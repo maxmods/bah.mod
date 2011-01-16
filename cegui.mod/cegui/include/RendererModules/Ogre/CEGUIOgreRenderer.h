@@ -32,9 +32,6 @@
 #include "../../CEGUISize.h"
 #include "../../CEGUIVector.h"
 
-#include <OgreBlendMode.h>
-#include <OgreTextureUnitState.h>
-
 #include <vector>
 
 #if (defined( __WIN32__ ) || defined( _WIN32 )) && !defined(CEGUI_STATIC)
@@ -56,6 +53,8 @@ namespace Ogre
 {
 class Root;
 class RenderSystem;
+class RenderTarget;
+class TexturePtr;
 }
 
 // Start of CEGUI namespace section
@@ -65,6 +64,8 @@ class OgreGeometryBuffer;
 class OgreTexture;
 class OgreResourceProvider;
 class OgreImageCodec;
+class OgreWindowTarget;
+struct OgreRenderer_impl;
 
 //! CEGUI::Renderer implementation for the Ogre engine.
 class OGRE_GUIRENDERER_API OgreRenderer : public Renderer
@@ -195,6 +196,65 @@ public:
     void setupRenderingBlendMode(const BlendMode mode,
                                  const bool force = false);
 
+    /*!
+    \brief
+        Controls whether rendering done by CEGUI will be wrapped with calls to
+        Ogre::RenderSystem::_beginFrame and Ogre::RenderSystem::_endFrame.
+
+        This defaults to enabled and is required when using the default hook
+        that automatically calls CEGUI::System::renderGUI via a frame listener.
+        If you disable this setting, the automated rendering will also be
+        disabled, which is useful when you wish to perform your own calls to the
+        CEGUI::System::renderGUI function (and is the sole purpose for this
+        setting).
+
+    \param enabled
+        - true if _beginFrame and _endFrame should be called.
+        - false if _beginFrame and _endFrame should not be called (also disables
+          default renderGUI call).
+    */
+    void setFrameControlExecutionEnabled(const bool enabled);
+
+    /*!
+    \brief
+        Returns whether rendering done by CEGUI will be wrapped with calls to
+        Ogre::RenderSystem::_beginFrame and Ogre::RenderSystem::_endFrame.
+
+        This defaults to enabled and is required when using the default hook
+        that automatically calls CEGUI::System::renderGUI via a frame listener.
+        If you disable this setting, the automated rendering will also be
+        disabled, which is useful when you wish to perform your own calls to the
+        CEGUI::System::renderGUI function (and is the sole purpose for this
+        setting).
+
+    \return
+        - true if _beginFrame and _endFrame will be called.
+        - false if _beginFrame and _endFrame will not be called (also means
+          default renderGUI call will not be made).
+    */
+    bool isFrameControlExecutionEnabled() const;
+
+    /*!
+    \brief
+        Sets all the required render states needed for CEGUI rendering.
+
+        This is a low-level function intended for certain advanced concepts; in
+        general it will not be required to call this function directly, since it
+        is called automatically by the system when rendering is done.
+    */
+    void initialiseRenderStateSettings();
+
+    /*!
+    \brief
+        Sets the Ogre::RenderTarget that should be targetted by the default
+        RenderingRoot.
+
+    \param target
+        Reference to the Ogre::RenderTarget object that is to be used as the
+        target for output from the default RenderingRoot.
+    */
+    void setDefaultRootRenderTarget(Ogre::RenderTarget& target);
+
     // implement CEGUI::Renderer interface
     RenderingRoot& getDefaultRenderingRoot();
     GeometryBuffer& createGeometryBuffer();
@@ -230,36 +290,8 @@ protected:
     //! common parts of constructor
     void constructor_impl(Ogre::RenderTarget& target);
 
-    //! String holding the renderer identification text.
-    static String d_rendererID;
-    //! What the renderer considers to be the current display size.
-    Size d_displaySize;
-    //! What the renderer considers to be the current display DPI resolution.
-    Vector2 d_displayDPI;
-    //! The default rendering root object
-    RenderingRoot* d_defaultRoot;
-    //! The default RenderTarget (used by d_defaultRoot)
-    RenderTarget* d_defaultTarget;
-    //! container type used to hold TextureTargets we create.
-    typedef std::vector<TextureTarget*> TextureTargetList;
-    //! Container used to track texture targets.
-    TextureTargetList d_textureTargets;
-    //! container type used to hold GeometryBuffers we create.
-    typedef std::vector<OgreGeometryBuffer*> GeometryBufferList;
-    //! Container used to track geometry buffers.
-    GeometryBufferList d_geometryBuffers;
-    //! container type used to hold Textures we create.
-    typedef std::vector<OgreTexture*> TextureList;
-    //! Container used to track textures.
-    TextureList d_textures;
-    //! What the renderer thinks the max texture size is.
-    uint d_maxTextureSize;
-    //! OGRE root object ptr
-    Ogre::Root* d_ogreRoot;
-    //! Pointer to the render system for Ogre.
-    Ogre::RenderSystem* d_renderSystem;
-    //! What we think is the current blend mode to use
-    BlendMode d_activeBlendMode;
+    //! Pointer to the hidden implementation data
+    OgreRenderer_impl* d_pimpl;
 };
 
 

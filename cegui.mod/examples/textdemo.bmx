@@ -11,6 +11,7 @@ Graphics 800, 600, 0
 HideMouse
 
 New CustomLogger
+TCELogger.GetLogger().setLogFilename("test2.log")
 
 ' Initialize CEGUI !
 Init_CEGUI(New TCEOpenGLRenderer)
@@ -58,7 +59,7 @@ Type MyApp Extends CEGuiBaseApplication
 		
 		' Load our layout as a basic
 		'DebugStop
-		background.addChildWindow(TCEWindowManager.loadWindowLayout("TextDemo.layout"))
+		background.addChild(TCEWindowManager.loadWindowLayout("TextDemo.layout"))
 		
 		' Init the seperate blocks which make up this sample
 		initStaticText()
@@ -220,13 +221,22 @@ End Type
 ' a custom logger
 Type CustomLogger Extends TCECustomLogger
 
+	Field stream:TStream
+
 	' does nothing - we are outputting to the debuglog
 	Method setLogFilename(filename:String, append:Int = False)
+		If stream Then
+			CloseStream(stream)
+		End If
+		
+		stream = WriteStream(filename)
 	End Method
 
 	' called for *every* event
-	Method logEvent(message:String, level:Int = LOG_STANDARD)	
-		DebugLog "EVENT : " + message
+	Method logEvent(message:String, level:Int = LOG_STANDARD)
+		If stream Then
+			stream.WriteLine("EVENT : " + message)
+		End If
 	End Method
 
 End Type

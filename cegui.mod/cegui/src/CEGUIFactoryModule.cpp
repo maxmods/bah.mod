@@ -53,7 +53,7 @@ const char  FactoryModule::RegisterAllFunctionName[]     = "registerAllFactories
 FactoryModule::FactoryModule(const String& filename):d_module(0)
 {
 #if !defined(CEGUI_STATIC)
-	d_module = new DynamicModule(filename);
+	d_module = CEGUI_NEW_AO DynamicModule(filename);
 #endif
 
     // functions are now optional, and only throw upon the first attempt to use a missing function.
@@ -89,8 +89,8 @@ void FactoryModule::registerFactory(const String& type) const
 		// are we attempting to use a missing function export
 		if (!d_regFunc)
 		{
-			throw InvalidRequestException("FactoryModule::registerFactory - Required function export 'void registerFactory(const String& type)' was not found in module '" +
-				d_module->getModuleName() + "'.");
+			CEGUI_THROW(InvalidRequestException("FactoryModule::registerFactory - Required function export 'void registerFactory(const String& type)' was not found in module '" +
+				d_module->getModuleName() + "'."));
 		}
 
 		d_regFunc(type);
@@ -112,8 +112,8 @@ uint FactoryModule::registerAllFactories() const
 		// are we attempting to use a missing function export
 		if (!d_regAllFunc)
 		{
-			throw InvalidRequestException("FactoryModule::registerAllFactories - Required function export 'uint registerAllFactories(void)' was not found in module '" +
-				d_module->getModuleName() + "'.");
+			CEGUI_THROW(InvalidRequestException("FactoryModule::registerAllFactories - Required function export 'uint registerAllFactories(void)' was not found in module '" +
+				d_module->getModuleName() + "'."));
 		}
 
 		return d_regAllFunc();

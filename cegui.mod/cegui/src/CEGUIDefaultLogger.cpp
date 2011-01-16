@@ -147,7 +147,7 @@ namespace CEGUI
 
         if (!d_ostream)
         {
-            throw "Logger::setLogFilename - Failed to open file.";
+            CEGUI_THROW("Logger::setLogFilename - Failed to open file.");
         }
 
         // initialise width for date & time alignment.
@@ -158,7 +158,7 @@ namespace CEGUI
         {
             d_caching = false;
 
-            std::vector<std::pair<String, LoggingLevel> >::iterator iter = d_cache.begin();
+            Cache::iterator iter = d_cache.begin();
 
             while (iter != d_cache.end())
             {

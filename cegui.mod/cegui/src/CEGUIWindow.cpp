@@ -58,7 +58,7 @@
 #elif defined (CEGUI_USE_MINIBIDI)
     #include "CEGUIMinibidiVisualMapping.h"
 #else
-    #include "CEGUIBiDiVisualMapping.h"
+    #include "CEGUIBidiVisualMapping.h"
 #endif
 
 // Start of CEGUI namespace section
@@ -66,7 +66,7 @@ namespace CEGUI
 {
 //----------------------------------------------------------------------------//
 const String Window::EventNamespace("Window");
-const String Window::EventWindowUpdated ("WindowUpdate");
+const String Window::EventUpdated ("Updated");
 const String Window::EventParentSized("ParentSized");
 const String Window::EventSized("Sized");
 const String Window::EventMoved("Moved");
@@ -80,18 +80,18 @@ const String Window::EventShown("Shown");
 const String Window::EventHidden("Hidden");
 const String Window::EventEnabled("Enabled");
 const String Window::EventDisabled("Disabled");
-const String Window::EventClippedByParentChanged("ClippingChanged");
+const String Window::EventClippedByParentChanged( "ClippedByParentChanged" );
 const String Window::EventDestroyedByParentChanged("DestroyedByParentChanged");
-const String Window::EventInheritsAlphaChanged("InheritAlphaChanged");
+const String Window::EventInheritsAlphaChanged( "InheritsAlphaChanged" );
 const String Window::EventAlwaysOnTopChanged("AlwaysOnTopChanged");
-const String Window::EventInputCaptureGained("CaptureGained");
-const String Window::EventInputCaptureLost("CaptureLost");
-const String Window::EventRenderingStarted("StartRender");
-const String Window::EventRenderingEnded("EndRender");
-const String Window::EventChildAdded("AddedChild");
-const String Window::EventChildRemoved("RemovedChild");
-const String Window::EventDestructionStarted("DestructStart");
-const String Window::EventZOrderChanged("ZChanged");
+const String Window::EventInputCaptureGained( "InputCaptureGained" );
+const String Window::EventInputCaptureLost( "InputCaptureLost" );
+const String Window::EventRenderingStarted( "RenderingStarted" );
+const String Window::EventRenderingEnded( "RenderingEnded" );
+const String Window::EventChildAdded( "ChildAdded" );
+const String Window::EventChildRemoved( "ChildRemoved" );
+const String Window::EventDestructionStarted( "DestructionStarted" );
+const String Window::EventZOrderChanged( "ZOrderChanged" );
 const String Window::EventDragDropItemEnters("DragDropItemEnters");
 const String Window::EventDragDropItemLeaves("DragDropItemLeaves");
 const String Window::EventDragDropItemDropped("DragDropItemDropped");
@@ -100,10 +100,13 @@ const String Window::EventHorizontalAlignmentChanged("HorizontalAlignmentChanged
 const String Window::EventWindowRendererAttached("WindowRendererAttached");
 const String Window::EventWindowRendererDetached("WindowRendererDetached");
 const String Window::EventRotated("Rotated");
-const String Window::EventNonClientChanged("NonClientChanged");
+const String Window::EventNonClientChanged( "NonClientChanged" );
 const String Window::EventTextParsingChanged("TextParsingChanged");
-const String Window::EventMouseEnters("MouseEnter");
-const String Window::EventMouseLeaves("MouseLeave");
+const String Window::EventMarginChanged("MarginChanged");
+const String Window::EventMouseEntersArea("MouseEntersArea");
+const String Window::EventMouseLeavesArea("MouseLeavesArea");
+const String Window::EventMouseEntersSurface( "MouseEntersSurface" );
+const String Window::EventMouseLeavesSurface( "MouseLeavesSurface" );
 const String Window::EventMouseMove("MouseMove");
 const String Window::EventMouseWheel("MouseWheel");
 const String Window::EventMouseButtonDown("MouseButtonDown");
@@ -125,21 +128,40 @@ BasicRenderedStringParser Window::d_basicStringParser;
 DefaultRenderedStringParser Window::d_defaultStringParser;
 
 //----------------------------------------------------------------------------//
-WindowProperties::Alpha             Window::d_alphaProperty;
-WindowProperties::AlwaysOnTop       Window::d_alwaysOnTopProperty;
-WindowProperties::ClippedByParent   Window::d_clippedByParentProperty;
-WindowProperties::DestroyedByParent Window::d_destroyedByParentProperty;
+TplProperty<Window, bool>           Window::d_alwaysOnTopProperty("AlwaysOnTop", "Property to get/set the 'always on top' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setAlwaysOnTop, &Window::isAlwaysOnTop, false);
+TplProperty<Window, bool>           Window::d_clippedByParentProperty("ClippedByParent", "Property to get/set the 'clipped by parent' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setClippedByParent, &Window::isClippedByParent, true);
+TplProperty<Window, bool>           Window::d_destroyedByParentProperty("DestroyedByParent", "Property to get/set the 'destroyed by parent' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setDestroyedByParent, &Window::isDestroyedByParent, true);
+/*TplProperty<Window, bool>           Window::d_disabledProperty("Disabled", "Property to get/set the 'disabled state' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setDisabled, &Window::isDisabled, false);*/
+
 WindowProperties::Disabled          Window::d_disabledProperty;
 WindowProperties::Font              Window::d_fontProperty;
-WindowProperties::ID                Window::d_IDProperty;
-WindowProperties::InheritsAlpha     Window::d_inheritsAlphaProperty;
+
+TplProperty<Window, uint>           Window::d_IDProperty("ID", "Property to get/set the ID value of the Window.  Value is an unsigned integer number.",
+                                                            &Window::setID, &Window::getID, 0);
+TplProperty<Window, bool>           Window::d_inheritsAlphaProperty("InheritsAlpha", "Property to get/set the 'inherits alpha' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setInheritsAlpha, &Window::inheritsAlpha, true);
+/*TplProperty<Window, Image*>         Window::d_mouseCursorProperty("MouseCursor", "Property to get/set the mouse cursor image for the Window.  Value should be \"set:<imageset name> image:<image name>\".",
+                                                            &Window::getMouseCursor, &Window::setMouseCursor, 0);*/
 WindowProperties::MouseCursorImage  Window::d_mouseCursorProperty;
-WindowProperties::RestoreOldCapture Window::d_restoreOldCaptureProperty;
-WindowProperties::Text              Window::d_textProperty;
+TplProperty<Window, bool>           Window::d_restoreOldCaptureProperty("RestoreOldCapture", "Property to get/set the 'restore old capture' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setRestoreOldCapture, &Window::restoresOldCapture, false);
+TplProperty<Window, String>         Window::d_textProperty("Text", "Property to get/set the text / caption for the Window. Value is the text string to use. Meaning of this property heavily depends on the type of the Window.",
+                                                            &Window::setText, &Window::getText, "");
+/*
+TplProperty<Window, bool>           Window::d_visibleProperty("Visible", "Property to get/set the 'visible state' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setVisible, &Window::isVisible, true);*/
 WindowProperties::Visible           Window::d_visibleProperty;
-WindowProperties::ZOrderChangeEnabled   Window::d_zOrderChangeProperty;
-WindowProperties::WantsMultiClickEvents Window::d_wantsMultiClicksProperty;
-WindowProperties::MouseButtonDownAutoRepeat Window::d_autoRepeatProperty;
+// TODO: inconsistency between property and setter getter names
+TplProperty<Window, bool>           Window::d_zOrderChangeProperty("ZOrderChangeEnabled", "Property to get/set the 'z-order changing enabled' setting for the Window.  Value is either \"True\" or \"False\".",
+                                                            &Window::setZOrderingEnabled, &Window::isZOrderingEnabled, true);
+TplProperty<Window, bool>           Window::d_wantsMultiClicksProperty("WantsMultiClickEvents", "Property to get/set whether the window will receive double-click and triple-click events.  Value is either \"True\" or \"False\".",
+                                                            &Window::setWantsMultiClickEvents, &Window::wantsMultiClickEvents, true);
+TplProperty<Window, bool>           Window::d_mouseButtonAutoRepeatProperty("MouseButtonDownAutoRepeat", "Property to get/set whether the window will receive autorepeat mouse button down events.  Value is either \"True\" or \"False\".",
+                                                            &Window::setMouseAutoRepeatEnabled, &Window::isMouseAutoRepeatEnabled, false);
 WindowProperties::AutoRepeatDelay   Window::d_autoRepeatDelayProperty;
 WindowProperties::AutoRepeatRate    Window::d_autoRepeatRateProperty;
 WindowProperties::DistributeCapturedInputs Window::d_distInputsProperty;
@@ -164,13 +186,11 @@ WindowProperties::LookNFeel         Window::d_lookNFeelProperty;
 WindowProperties::DragDropTarget    Window::d_dragDropTargetProperty;
 WindowProperties::AutoRenderingSurface Window::d_autoRenderingSurfaceProperty;
 WindowProperties::Rotation Window::d_rotationProperty;
-WindowProperties::XRotation Window::d_xRotationProperty;
-WindowProperties::YRotation Window::d_yRotationProperty;
-WindowProperties::ZRotation Window::d_zRotationProperty;
 WindowProperties::NonClient Window::d_nonClientProperty;
 WindowProperties::TextParsingEnabled Window::d_textParsingEnabledProperty;
+WindowProperties::Margin Window:: d_marginProperty;
 WindowProperties::UpdateMode Window::d_updateModeProperty;
-
+WindowProperties::MouseInputPropagationEnabled Window::d_mouseInputPropagationProperty;
 
 //----------------------------------------------------------------------------//
 Window::Window(const String& type, const String& name) :
@@ -216,9 +236,9 @@ Window::Window(const String& type, const String& name) :
 #ifndef CEGUI_BIDI_SUPPORT
     d_bidiVisualMapping(0),
 #elif defined (CEGUI_USE_FRIBIDI)
-    d_bidiVisualMapping(new FribidiVisualMapping),
+    d_bidiVisualMapping(CEGUI_NEW_AO FribidiVisualMapping),
 #elif defined (CEGUI_USE_MINIBIDI)
-    d_bidiVisualMapping(new MinibidiVisualMapping),
+    d_bidiVisualMapping(CEGUI_NEW_AO MinibidiVisualMapping),
 #else
     #error "BIDI Configuration is inconsistant, check your config!"
 #endif
@@ -226,6 +246,9 @@ Window::Window(const String& type, const String& name) :
     d_renderedStringValid(false),
     d_customStringParser(0),
     d_textParsingEnabled(true),
+
+    // margin
+    d_margin(UBox(UDim(0, 0))),
 
     // user specific data
     d_ID(0),
@@ -264,7 +287,14 @@ Window::Window(const String& type, const String& name) :
     d_maxSize(cegui_reldim(1), cegui_reldim(1)),
     d_horzAlign(HA_LEFT),
     d_vertAlign(VA_TOP),
-    d_rotation(0.0f, 0.0f, 0.0f),
+    d_rotation(Quaternion::IDENTITY),
+
+    // initialise area cache rects
+    d_outerUnclippedRect(0, 0, 0, 0),
+    d_innerUnclippedRect(0, 0, 0, 0),
+    d_outerRectClipper(0, 0, 0, 0),
+    d_innerRectClipper(0, 0, 0, 0),
+    d_hitTestRect(0, 0, 0, 0),
 
     // cached pixel rect validity flags
     d_outerUnclippedRectValid(false),
@@ -274,7 +304,10 @@ Window::Window(const String& type, const String& name) :
     d_hitTestRectValid(false),
 
     // Initial update mode
-    d_updateMode(WUM_VISIBLE)
+    d_updateMode(WUM_VISIBLE),
+
+    // Don't propagate mouse inputs by default.
+    d_propagateMouseInputs(false)
 {
     // add properties
     addStandardProperties();
@@ -286,7 +319,7 @@ Window::~Window(void)
     // most cleanup actually happened earlier in Window::destroy.
 
     System::getSingleton().getRenderer()->destroyGeometryBuffer(*d_geometry);
-    delete d_bidiVisualMapping;
+    CEGUI_DELETE_AO d_bidiVisualMapping;
 }
 
 //----------------------------------------------------------------------------//
@@ -378,9 +411,8 @@ Window* Window::getChild(const String& name) const
         if (d_children[i]->getName() == name)
             return d_children[i];
 
-    throw UnknownObjectException("Window::getChild - The Window object named '"
-                                 + name + "' is not attached to Window '" +
-                                 d_name + "'.");
+    CEGUI_THROW(UnknownObjectException("Window::getChild - The Window object "
+        "named '" + name + "' is not attached to Window '" + d_name + "'."));
 }
 
 //----------------------------------------------------------------------------//
@@ -394,8 +426,8 @@ Window* Window::getChild(uint ID) const
 
     char strbuf[16];
     sprintf(strbuf, "%X", ID);
-    throw UnknownObjectException("Window::getChild: A Window with ID: '" +
-        std::string(strbuf) + "' is not attached to Window '" + d_name + "'.");
+    CEGUI_THROW(UnknownObjectException("Window::getChild: A Window with ID: '" +
+        std::string(strbuf) + "' is not attached to Window '" + d_name + "'."));
 }
 
 //----------------------------------------------------------------------------//
@@ -880,13 +912,13 @@ void Window::setFont(const String& name)
 }
 
 //----------------------------------------------------------------------------//
-void Window::addChildWindow(const String& name)
+void Window::addChild(const String& name)
 {
-    addChildWindow(WindowManager::getSingleton().getWindow(name));
+    addChild(WindowManager::getSingleton().getWindow(name));
 }
 
 //----------------------------------------------------------------------------//
-void Window::addChildWindow(Window* window)
+void Window::addChild(Window* window)
 {
     // don't add null window or ourself as a child
     if (!window || window == this)
@@ -899,7 +931,7 @@ void Window::addChildWindow(Window* window)
 }
 
 //----------------------------------------------------------------------------//
-void Window::removeChildWindow(const String& name)
+void Window::removeChild(const String& name)
 {
     const size_t child_count = getChildCount();
 
@@ -907,16 +939,14 @@ void Window::removeChildWindow(const String& name)
     {
         if (d_children[i]->getName() == name)
         {
-            removeChildWindow(d_children[i]);
+            removeChild(d_children[i]);
             return;
         }
-
     }
-
 }
 
 //----------------------------------------------------------------------------//
-void Window::removeChildWindow(Window* window)
+void Window::removeChild(Window* window)
 {
     removeChild_impl(window);
     WindowEventArgs args(window);
@@ -925,7 +955,7 @@ void Window::removeChildWindow(Window* window)
 }
 
 //----------------------------------------------------------------------------//
-void Window::removeChildWindow(uint ID)
+void Window::removeChild(uint ID)
 {
     const size_t child_count = getChildCount();
 
@@ -933,12 +963,38 @@ void Window::removeChildWindow(uint ID)
     {
         if (d_children[i]->getID() == ID)
         {
-            removeChildWindow(d_children[i]);
+            removeChild(d_children[i]);
             return;
         }
 
     }
+}
 
+//----------------------------------------------------------------------------//
+Window* Window::createChild(const String& type, const String& name, bool nameLocal)
+{
+    Window* ret = WindowManager::getSingleton().createWindow(type,
+        nameLocal ? (getName() + "/" + name) : name );
+
+    addChild(ret);
+    return ret;
+}
+
+//----------------------------------------------------------------------------//
+void Window::destroyChild(Window* wnd)
+{
+    assert(isChild(wnd) && "Window you are attempting to destroy is not a child!");
+
+    WindowManager::getSingleton().destroyWindow(wnd);
+}
+
+//----------------------------------------------------------------------------//
+void Window::destroyChild(const String& name, bool nameLocal)
+{
+    Window* wnd = WindowManager::getSingleton().getWindow(
+        nameLocal ? (getName() + "/" + name) : name);
+
+    destroyChild(wnd);
 }
 
 //----------------------------------------------------------------------------//
@@ -1097,18 +1153,18 @@ void Window::releaseInput(void)
 }
 
 //----------------------------------------------------------------------------//
-void Window::setRestoreCapture(bool setting)
+void Window::setRestoreOldCapture(bool setting)
 {
     d_restoreOldCapture = setting;
 
     const size_t child_count = getChildCount();
 
     for (size_t i = 0; i < child_count; ++i)
-        d_children[i]->setRestoreCapture(setting);
+        d_children[i]->setRestoreOldCapture(setting);
 }
 
 //----------------------------------------------------------------------------//
-void Window::setAlpha(float alpha)
+void Window::setAlpha(const float alpha)
 {
     // clamp this to the valid range [0.0, 1.0]
     d_alpha = ceguimax(ceguimin(alpha, 1.0f), 0.0f);
@@ -1295,7 +1351,7 @@ void Window::cleanupChildren(void)
         Window* wnd = d_children[0];
 
         // always remove child
-        removeChildWindow(wnd);
+        removeChild(wnd);
 
         // destroy child if that is required
         if (wnd->isDestroyedByParent())
@@ -1309,7 +1365,7 @@ void Window::addChild_impl(Window* wnd)
     // if window is already attached, detach it first (will fire normal events)
     Window* const old_parent = wnd->getParent();
     if (old_parent)
-        old_parent->removeChildWindow(wnd);
+        old_parent->removeChild(wnd);
 
     addWindowToDrawList(*wnd);
 
@@ -1442,7 +1498,13 @@ void Window::generateAutoRepeatEvent(MouseButton button)
 //----------------------------------------------------------------------------//
 void Window::addStandardProperties(void)
 {
-    addProperty(&d_alphaProperty);
+    // experimental, even easier to maintan, property definition, neat eh?
+    CEGUI_DEFINE_PROPERTY((CEGUI_NEW_AO TplProperty<Window, float>(
+        "Alpha", "Property to get/set the alpha value of the Window. Value is floating point number.",
+        &Window::setAlpha, &Window::getAlpha, 1.0f)
+    ));
+
+    //addProperty(&d_alphaProperty);
     addProperty(&d_alwaysOnTopProperty);
     addProperty(&d_clippedByParentProperty);
     addProperty(&d_destroyedByParentProperty);
@@ -1456,7 +1518,7 @@ void Window::addStandardProperties(void)
     addProperty(&d_visibleProperty);
     addProperty(&d_zOrderChangeProperty);
     addProperty(&d_wantsMultiClicksProperty);
-    addProperty(&d_autoRepeatProperty);
+    addProperty(&d_mouseButtonAutoRepeatProperty);
     addProperty(&d_autoRepeatDelayProperty);
     addProperty(&d_autoRepeatRateProperty);
     addProperty(&d_distInputsProperty);
@@ -1481,12 +1543,11 @@ void Window::addStandardProperties(void)
     addProperty(&d_dragDropTargetProperty);
     addProperty(&d_autoRenderingSurfaceProperty);
     addProperty(&d_rotationProperty);
-    addProperty(&d_xRotationProperty);
-    addProperty(&d_yRotationProperty);
-    addProperty(&d_zRotationProperty);
     addProperty(&d_nonClientProperty);
     addProperty(&d_textParsingEnabledProperty);
+    addProperty(&d_marginProperty);
     addProperty(&d_updateModeProperty);
+    addProperty(&d_mouseInputPropagationProperty);
 
     // we ban some of these properties from xml for auto windows by default
     if (isAutoWindow())
@@ -1593,7 +1654,7 @@ void Window::update(float elapsed)
         static_cast<RenderingWindow*>(d_surface)->update(elapsed);
 
     UpdateEventArgs e(this,elapsed);
-    fireEvent(EventWindowUpdated,e,EventNamespace);
+    fireEvent(EventUpdated,e,EventNamespace);
 
     // update child windows
     for (size_t i = 0; i < getChildCount(); ++i)
@@ -1704,6 +1765,10 @@ void Window::destroy(void)
         return;
     }
 
+    // signal our imminent destruction
+    WindowEventArgs args(this);
+    onDestructionStarted(args);
+
     releaseInput();
 
     // let go of the tooltip if we have it
@@ -1714,6 +1779,14 @@ void Window::destroy(void)
     // ensure custom tooltip is cleaned up
     setTooltip(static_cast<Tooltip*>(0));
 
+    // clean up looknfeel related things
+    if (!d_lookName.empty())
+    {
+        d_windowRenderer->onLookNFeelUnassigned();
+        WidgetLookManager::getSingleton().getWidgetLook(d_lookName).
+            cleanUpWidget(*this);
+    }
+
     // free any assigned WindowRenderer
     if (d_windowRenderer != 0)
     {
@@ -1723,13 +1796,9 @@ void Window::destroy(void)
         d_windowRenderer = 0;
     }
 
-    // signal our imminent destruction
-    WindowEventArgs args(this);
-    onDestructionStarted(args);
-
     // double check we are detached from parent
     if (d_parent)
-        d_parent->removeChildWindow(this);
+        d_parent->removeChild(this);
 
     cleanupChildren();
 
@@ -1775,14 +1844,14 @@ void Window::setTooltipType(const String& tooltipType)
     }
     else
     {
-        try
+        CEGUI_TRY
         {
             d_customTip = static_cast<Tooltip*>(
                 WindowManager::getSingleton().createWindow(
                     tooltipType, getName() + TooltipNameSuffix));
             d_weOwnTip = true;
         }
-        catch (UnknownObjectException&)
+        CEGUI_CATCH (UnknownObjectException&)
         {
             d_customTip = 0;
             d_weOwnTip = false;
@@ -1921,7 +1990,19 @@ void Window::setArea(const UDim& xpos, const UDim& ypos,
 //----------------------------------------------------------------------------//
 void Window::setArea(const UVector2& pos, const UVector2& size)
 {
-    setArea_impl(pos, size);
+    // Limit the value we set to something that's within the constraints
+    // specified via the min and max size settings.
+
+    // get size of 'base' - i.e. the size of the parent region.
+    const Size base_sz((d_parent && !d_nonClientContent) ?
+                            d_parent->getUnclippedInnerRect().getSize() :
+                            getParentPixelSize());
+
+    UVector2 newsz(size);
+    constrainUVector2ToMinSize(base_sz, newsz);
+    constrainUVector2ToMaxSize(base_sz, newsz);
+
+    setArea_impl(pos, newsz);
 }
 
 //----------------------------------------------------------------------------//
@@ -1951,19 +2032,32 @@ void Window::setYPosition(const UDim& y)
 //----------------------------------------------------------------------------//
 void Window::setSize(const UVector2& size)
 {
-    setArea_impl(d_area.getPosition(), size);
+    // Limit the value we set to something that's within the constraints
+    // specified via the min and max size settings.
+
+    // get size of 'base' - i.e. the size of the parent region.
+    const Size base_sz((d_parent && !d_nonClientContent) ?
+                            d_parent->getUnclippedInnerRect().getSize() :
+                            getParentPixelSize());
+
+    UVector2 newsz(size);
+    constrainUVector2ToMinSize(base_sz, newsz);
+    constrainUVector2ToMaxSize(base_sz, newsz);
+
+    // set the new size.
+    setArea_impl(d_area.getPosition(), newsz);
 }
 
 //----------------------------------------------------------------------------//
 void Window::setWidth(const UDim& width)
 {
-    setArea_impl(d_area.getPosition(), UVector2(width, d_area.getSize().d_y));
+    setSize(UVector2(width, d_area.getSize().d_y));
 }
 
 //----------------------------------------------------------------------------//
 void Window::setHeight(const UDim& height)
 {
-    setArea_impl(d_area.getPosition(), UVector2(d_area.getSize().d_x, height));
+    setSize(UVector2(d_area.getSize().d_x, height));
 }
 
 //----------------------------------------------------------------------------//
@@ -1971,9 +2065,21 @@ void Window::setMaxSize(const UVector2& size)
 {
     d_maxSize = size;
 
-    // set window area back on itself to cause new maximum size to be applied if
-    // required.
-    setArea(d_area);
+    // Apply set maximum size to the windows set size.
+    // We can't use code in setArea[_impl] to adjust the set size, because
+    // that code has to ensure that it's possible for a size constrained
+    // window to 'recover' it's original (scaled) sizing when the constraint
+    // no longer needs to be applied.
+
+    // get size of 'base' - i.e. the size of the parent region.
+    const Size base_sz((d_parent && !d_nonClientContent) ?
+                            d_parent->getUnclippedInnerRect().getSize() :
+                            getParentPixelSize());
+
+    UVector2 wnd_sz(getSize());
+
+    if (constrainUVector2ToMaxSize(base_sz, wnd_sz))
+        setSize(wnd_sz);
 }
 
 //----------------------------------------------------------------------------//
@@ -1981,9 +2087,21 @@ void Window::setMinSize(const UVector2& size)
 {
     d_minSize = size;
 
-    // set window area back on itself to cause new minimum size to be applied if
-    // required.
-    setArea(d_area);
+    // Apply set minimum size to the windows set size.
+    // We can't use code in setArea[_impl] to adjust the set size, because
+    // that code has to ensure that it's possible for a size constrained
+    // window to 'recover' it's original (scaled) sizing when the constraint
+    // no longer needs to be applied.
+
+    // get size of 'base' - i.e. the size of the parent region.
+    const Size base_sz((d_parent && !d_nonClientContent) ?
+                            d_parent->getUnclippedInnerRect().getSize() :
+                            getParentPixelSize());
+
+    UVector2 wnd_sz(getSize());
+
+    if (constrainUVector2ToMinSize(base_sz, wnd_sz))
+        setSize(wnd_sz);
 }
 
 //----------------------------------------------------------------------------//
@@ -2074,9 +2192,9 @@ const String& Window::getLookNFeel() const
 void Window::setLookNFeel(const String& look)
 {
     if (!d_windowRenderer)
-        throw NullObjectException("Window::setLookNFeel: There must be a "
+        CEGUI_THROW(NullObjectException("Window::setLookNFeel: There must be a "
             "window renderer assigned to the window '" + d_name +
-            "' to set its look'n'feel");
+            "' to set its look'n'feel"));
 
     WidgetLookManager& wlMgr = WidgetLookManager::getSingleton();
     if (!d_lookName.empty())
@@ -2127,14 +2245,14 @@ void Window::performChildWindowLayout()
         return;
 
     // here we just grab the look and feel and get it to layout it's children
-    try
+    CEGUI_TRY
     {
         const WidgetLookFeel& wlf =
             WidgetLookManager::getSingleton().getWidgetLook(d_lookName);
         // get look'n'feel to layout any child windows it created.
         wlf.layoutChildWidgets(*this);
     }
-    catch (UnknownObjectException&)
+    CEGUI_CATCH (UnknownObjectException&)
     {
         Logger::getSingleton().logEvent("Window::performChildWindowLayout: "
             "assigned widget look was not found.", Errors);
@@ -2150,8 +2268,9 @@ const String& Window::getUserString(const String& name) const
     UserStringMap::const_iterator iter = d_userStrings.find(name);
 
     if (iter == d_userStrings.end())
-        throw UnknownObjectException("Window::getUserString: a user string "
-            "named '" + name + "' is not defined for Window '" + d_name + "'.");
+        CEGUI_THROW(UnknownObjectException(
+            "Window::getUserString: a user string named '" + name +
+            "' is not defined for Window '" + d_name + "'."));
 
     return (*iter).second;
 }
@@ -2203,7 +2322,7 @@ int Window::writePropertiesXML(XMLSerializer& xml_stream) const
         // first we check to make sure the property is'nt banned from XML
         if (!isPropertyBannedFromXML(iter.getCurrentValue()))
         {
-            try
+            CEGUI_TRY
             {
                 // only write property if it's not at the default state
                 if (!isPropertyAtDefault(iter.getCurrentValue()))
@@ -2212,7 +2331,7 @@ int Window::writePropertiesXML(XMLSerializer& xml_stream) const
                     ++propertiesWritten;
                 }
             }
-            catch (InvalidRequestException&)
+            CEGUI_CATCH (InvalidRequestException&)
             {
                 // This catches errors from the MultiLineColumnList for example
                 Logger::getSingleton().logEvent(
@@ -2387,9 +2506,9 @@ void Window::rename(const String& new_name)
     }
 
     if (winMgr.isWindowPresent(new_name))
-        throw AlreadyExistsException("Window::rename - Failed to rename "
+        CEGUI_THROW(AlreadyExistsException("Window::rename - Failed to rename "
             "Window: " + d_name + " as: " + new_name + ".  A Window named:" +
-            new_name + "' already exists within the system.");
+            new_name + "' already exists within the system."));
 
     // rename Falagard created child windows
     if (!d_lookName.empty())
@@ -2741,7 +2860,21 @@ void Window::onChildRemoved(WindowEventArgs& e)
     // we no longer want a total redraw here, instead we just get each window
     // to resubmit it's imagery to the Renderer.
     System::getSingleton().signalRedraw();
+    // Though we do need to invalidate the rendering surface!
+    getTargetRenderingSurface().invalidate();
     fireEvent(EventChildRemoved, e, EventNamespace);
+}
+
+//----------------------------------------------------------------------------//
+void Window::onMouseEntersArea(MouseEventArgs& e)
+{
+    fireEvent(EventMouseEntersArea, e, EventNamespace);
+}
+
+//----------------------------------------------------------------------------//
+void Window::onMouseLeavesArea(MouseEventArgs& e)
+{
+    fireEvent(EventMouseLeavesArea, e, EventNamespace);
 }
 
 //----------------------------------------------------------------------------//
@@ -2755,7 +2888,7 @@ void Window::onMouseEnters(MouseEventArgs& e)
     if (tip && !isAncestor(tip))
         tip->setTargetWindow(this);
 
-    fireEvent(EventMouseEnters, e, EventNamespace);
+    fireEvent(EventMouseEntersSurface, e, EventNamespace);
 }
 
 //----------------------------------------------------------------------------//
@@ -2767,7 +2900,7 @@ void Window::onMouseLeaves(MouseEventArgs& e)
     if (tip && mw != tip && !(mw && mw->isAncestor(tip)))
         tip->setTargetWindow(0);
 
-    fireEvent(EventMouseLeaves, e, EventNamespace);
+    fireEvent(EventMouseLeavesSurface, e, EventNamespace);
 }
 
 //----------------------------------------------------------------------------//
@@ -2779,6 +2912,17 @@ void Window::onMouseMove(MouseEventArgs& e)
         tip->resetTimer();
 
     fireEvent(EventMouseMove, e, EventNamespace);
+
+    // optionally propagate to parent
+    if (!e.handled && d_propagateMouseInputs &&
+        d_parent && this != System::getSingleton().getModalTarget())
+    {
+        e.window = d_parent;
+        d_parent->onMouseMove(e);
+
+        return;
+    }
+
     // by default we now mark mouse events as handled
     // (derived classes may override, of course!)
     ++e.handled;
@@ -2788,6 +2932,17 @@ void Window::onMouseMove(MouseEventArgs& e)
 void Window::onMouseWheel(MouseEventArgs& e)
 {
     fireEvent(EventMouseWheel, e, EventNamespace);
+
+    // optionally propagate to parent
+    if (!e.handled && d_propagateMouseInputs &&
+        d_parent && this != System::getSingleton().getModalTarget())
+    {
+        e.window = d_parent;
+        d_parent->onMouseWheel(e);
+
+        return;
+    }
+
     // by default we now mark mouse events as handled
     // (derived classes may override, of course!)
     ++e.handled;
@@ -2821,6 +2976,17 @@ void Window::onMouseButtonDown(MouseEventArgs& e)
     }
 
     fireEvent(EventMouseButtonDown, e, EventNamespace);
+
+    // optionally propagate to parent
+    if (!e.handled && d_propagateMouseInputs &&
+        d_parent && this != System::getSingleton().getModalTarget())
+    {
+        e.window = d_parent;
+        d_parent->onMouseButtonDown(e);
+
+        return;
+    }
+
     // by default we now mark mouse events as handled
     // (derived classes may override, of course!)
     ++e.handled;
@@ -2837,6 +3003,17 @@ void Window::onMouseButtonUp(MouseEventArgs& e)
     }
 
     fireEvent(EventMouseButtonUp, e, EventNamespace);
+
+    // optionally propagate to parent
+    if (!e.handled && d_propagateMouseInputs &&
+        d_parent && this != System::getSingleton().getModalTarget())
+    {
+        e.window = d_parent;
+        d_parent->onMouseButtonUp(e);
+
+        return;
+    }
+
     // by default we now mark mouse events as handled
     // (derived classes may override, of course!)
     ++e.handled;
@@ -2846,6 +3023,16 @@ void Window::onMouseButtonUp(MouseEventArgs& e)
 void Window::onMouseClicked(MouseEventArgs& e)
 {
     fireEvent(EventMouseClick, e, EventNamespace);
+
+    // optionally propagate to parent
+    if (!e.handled && d_propagateMouseInputs &&
+        d_parent && this != System::getSingleton().getModalTarget())
+    {
+        e.window = d_parent;
+        d_parent->onMouseClicked(e);
+
+        return;
+    }
 
     // if event was directly injected, mark as handled to be consistent with
     // other mouse button injectors
@@ -2858,10 +3045,17 @@ void Window::onMouseDoubleClicked(MouseEventArgs& e)
 {
     fireEvent(EventMouseDoubleClick, e, EventNamespace);
 
-    // if event was directly injected, mark as handled to be consistent with
-    // other mouse button injectors
-    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
-        ++e.handled;
+    // optionally propagate to parent
+    if (!e.handled && d_propagateMouseInputs &&
+        d_parent && this != System::getSingleton().getModalTarget())
+    {
+        e.window = d_parent;
+        d_parent->onMouseDoubleClicked(e);
+
+        return;
+    }
+
+    ++e.handled;
 }
 
 //----------------------------------------------------------------------------//
@@ -2869,10 +3063,17 @@ void Window::onMouseTripleClicked(MouseEventArgs& e)
 {
     fireEvent(EventMouseTripleClick, e, EventNamespace);
 
-    // if event was directly injected, mark as handled to be consistent with
-    // other mouse button injectors
-    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
-        ++e.handled;
+    // optionally propagate to parent
+    if (!e.handled && d_propagateMouseInputs &&
+        d_parent && this != System::getSingleton().getModalTarget())
+    {
+        e.window = d_parent;
+        d_parent->onMouseTripleClicked(e);
+
+        return;
+    }
+
+    ++e.handled;
 }
 
 //----------------------------------------------------------------------------//
@@ -2884,7 +3085,7 @@ void Window::onKeyDown(KeyEventArgs& e)
     // default we now do that here.  Generally speaking key handling widgets
     // may need to override this behaviour to halt further propogation.
     if (!e.handled && d_parent &&
-        d_parent != System::getSingleton().getModalTarget())
+        this != System::getSingleton().getModalTarget())
     {
         e.window = d_parent;
         d_parent->onKeyDown(e);
@@ -2900,7 +3101,7 @@ void Window::onKeyUp(KeyEventArgs& e)
     // default we now do that here.  Generally speaking key handling widgets
     // may need to override this behaviour to halt further propogation.
     if (!e.handled && d_parent &&
-        d_parent != System::getSingleton().getModalTarget())
+        this != System::getSingleton().getModalTarget())
     {
         e.window = d_parent;
         d_parent->onKeyUp(e);
@@ -2981,8 +3182,9 @@ void Window::setWindowRenderer(const String& name)
         onWindowRendererAttached(e);
     }
     else
-        throw InvalidRequestException("Window::setWindowRenderer: Attempt to "
-            "assign a 'null' window renderer to window '" + d_name + "'.");
+        CEGUI_THROW(InvalidRequestException(
+            "Window::setWindowRenderer: Attempt to "
+            "assign a 'null' window renderer to window '" + d_name + "'."));
 }
 
 //----------------------------------------------------------------------------//
@@ -2995,15 +3197,17 @@ WindowRenderer* Window::getWindowRenderer(void) const
 void Window::onWindowRendererAttached(WindowEventArgs& e)
 {
     if (!validateWindowRenderer(d_windowRenderer->getClass()))
-        throw InvalidRequestException("Window::onWindowRendererAttached: The "
+        CEGUI_THROW(InvalidRequestException(
+            "Window::onWindowRendererAttached: The "
             "window renderer '" + d_windowRenderer->getName() + "' is not "
-            "compatible with this widget type (" + getType() + ")");
+            "compatible with this widget type (" + getType() + ")"));
 
     if (!testClassName(d_windowRenderer->getClass()))
-        throw InvalidRequestException("Window::onWindowRendererAttached: The "
+        CEGUI_THROW(InvalidRequestException(
+            "Window::onWindowRendererAttached: The "
             "window renderer '" + d_windowRenderer->getName() + "' is not "
             "compatible with this widget type (" + getType() + "). It requires "
-            "a '" + d_windowRenderer->getClass() + "' based window type.");
+            "a '" + d_windowRenderer->getClass() + "' based window type."));
 
     d_windowRenderer->d_window = this;
     d_windowRenderer->onAttach();
@@ -3040,7 +3244,6 @@ void Window::banPropertyFromXML(const String& property_name)
     // check if the insertion failed
     if (!d_bannedXMLProperties.insert(property_name).second)
         // just log the incidence
-        // PDT: Hmmm, comment here says just log, yet we throw! I Wonder why?!   
         AlreadyExistsException("Window::banPropertyFromXML: The property '" +
             property_name + "' is already banned in window '" +
             d_name + "'");
@@ -3271,6 +3474,7 @@ bool Window::isTopOfZOrder() const
 void Window::insertText(const String& text, const String::size_type position)
 {
     d_textLogical.insert(position, text);
+    d_renderedStringValid = false;
     d_bidiDataValid = false;
 
     WindowEventArgs args(this);
@@ -3281,6 +3485,7 @@ void Window::insertText(const String& text, const String::size_type position)
 void Window::appendText(const String& text)
 {
     d_textLogical.append(text);
+    d_renderedStringValid = false;
     d_bidiDataValid = false;
 
     WindowEventArgs args(this);
@@ -3405,6 +3610,19 @@ void Window::setUsingAutoRenderingSurface(bool setting)
     notifyScreenAreaChanged();
 }
 
+void Window::setRotation(const Quaternion& rotation)
+{
+    d_rotation = rotation;
+
+    WindowEventArgs args(this);
+    onRotated(args);
+}
+
+const Quaternion& Window::getRotation() const
+{
+    return d_rotation;
+}
+
 //----------------------------------------------------------------------------//
 void Window::allocateRenderingWindow()
 {
@@ -3477,24 +3695,6 @@ void Window::transferChildSurfaces()
 }
 
 //----------------------------------------------------------------------------//
-const Vector3& Window::getRotation() const
-{
-    return d_rotation;
-}
-
-//----------------------------------------------------------------------------//
-void Window::setRotation(const Vector3& rotation)
-{
-    if (rotation == d_rotation)
-        return;
-
-    d_rotation = rotation;
-
-    WindowEventArgs args(this);
-    onRotated(args);
-}
-
-//----------------------------------------------------------------------------//
 void Window::initialiseClippers(const RenderingContext& ctx)
 {
     if (ctx.surface->isRenderingWindow() && ctx.owner == this)
@@ -3502,22 +3702,15 @@ void Window::initialiseClippers(const RenderingContext& ctx)
         RenderingWindow* const rendering_window =
             static_cast<RenderingWindow*>(ctx.surface);
 
-        const Rect surface_clip(
-            d_parent && d_clippedByParent ?
-                rendering_window->getOwner().isRenderingWindow() ?
-                    d_nonClientContent ?
-                        d_parent->getUnclippedOuterRect() :
-                        d_parent->getUnclippedInnerRect() :
-                    d_nonClientContent ?
-                        d_parent->getOuterRectClipper() :
-                        d_parent->getInnerRectClipper() :
+        if (d_clippedByParent && d_parent)
+            rendering_window->setClippingRegion(
+                d_parent->getInnerRectClipper());
+        else
+            rendering_window->setClippingRegion(
                 Rect(Vector2(0, 0),
-                     System::getSingleton().getRenderer()->getDisplaySize())
-        );
+                     System::getSingleton().getRenderer()->getDisplaySize()));
 
-        rendering_window->setClippingRegion(surface_clip);
-        d_geometry->setClippingRegion(Rect(Vector2(0,0),
-                                           rendering_window->getSize()));
+        d_geometry->setClippingRegion(Rect(Vector2(0, 0), d_pixelSize));
     }
     else
     {
@@ -3708,9 +3901,30 @@ void Window::setTextParsingEnabled(const bool setting)
 }
 
 //----------------------------------------------------------------------------//
+void Window::setMargin(const UBox& margin)
+{
+    d_margin = margin;
+
+    WindowEventArgs args(this);
+    onMarginChanged(args);
+}
+
+//----------------------------------------------------------------------------//
+const UBox& Window::getMargin() const
+{
+    return d_margin;
+}
+
+//----------------------------------------------------------------------------//
 void Window::onTextParsingChanged(WindowEventArgs& e)
 {
     fireEvent(EventTextParsingChanged, e, EventNamespace);
+}
+
+//----------------------------------------------------------------------------//
+void Window::onMarginChanged(WindowEventArgs& e)
+{
+    fireEvent(EventMarginChanged, e, EventNamespace);
 }
 
 //----------------------------------------------------------------------------//
@@ -3795,6 +4009,212 @@ void Window::setUpdateMode(const WindowUpdateMode mode)
 WindowUpdateMode Window::getUpdateMode() const
 {
     return d_updateMode;
+}
+
+//----------------------------------------------------------------------------//
+bool Window::constrainUVector2ToMinSize(const Size& base_sz, UVector2& sz)
+{
+    const Vector2 pixel_sz(sz.asAbsolute(base_sz));
+    const Vector2 min_sz(d_minSize.asAbsolute(
+        System::getSingleton().getRenderer()->getDisplaySize()));
+
+    bool size_changed = false;
+
+    // check width is not less than the minimum
+    if (pixel_sz.d_x < min_sz.d_x)
+    {
+        sz.d_x.d_offset = ceguimin(sz.d_x.d_offset, d_minSize.d_x.d_offset);
+
+        sz.d_x.d_scale = (base_sz.d_width != 0.0f) ?
+            (min_sz.d_x - sz.d_x.d_offset) / base_sz.d_width :
+            0.0f;
+
+        size_changed = true;
+    }
+
+    // check height is not less than the minimum
+    if (pixel_sz.d_y < min_sz.d_y)
+    {
+        sz.d_y.d_offset = ceguimin(sz.d_y.d_offset, d_minSize.d_y.d_offset);
+
+        sz.d_y.d_scale = (base_sz.d_height != 0.0f) ?
+            (min_sz.d_y - sz.d_y.d_offset) / base_sz.d_height :
+            0.0f;
+
+        size_changed = true;
+    }
+
+    return size_changed;
+}
+
+//----------------------------------------------------------------------------//
+bool Window::constrainUVector2ToMaxSize(const Size& base_sz, UVector2& sz)
+{
+    const Vector2 pixel_sz(sz.asAbsolute(base_sz));
+    const Vector2 max_sz(d_maxSize.asAbsolute(
+        System::getSingleton().getRenderer()->getDisplaySize()));
+
+    bool size_changed = false;
+
+    // check width is not greater than the maximum
+    if (pixel_sz.d_x > max_sz.d_x)
+    {
+        sz.d_x.d_offset = ceguimax(sz.d_x.d_offset, d_maxSize.d_x.d_offset);
+
+        sz.d_x.d_scale = (base_sz.d_width != 0.0f) ?
+            (max_sz.d_x - sz.d_x.d_offset) / base_sz.d_width :
+            0.0f;
+
+        size_changed = true;
+    }
+
+    // check height is not greater than the maximum
+    if (pixel_sz.d_y > max_sz.d_y)
+    {
+        sz.d_y.d_offset = ceguimax(sz.d_y.d_offset, d_maxSize.d_y.d_offset);
+
+        sz.d_y.d_scale = (base_sz.d_height != 0.0f) ?
+            (max_sz.d_y - sz.d_y.d_offset) / base_sz.d_height :
+            0.0f;
+
+        size_changed = true;
+    }
+
+    return size_changed;
+}
+
+//----------------------------------------------------------------------------//
+void Window::setMouseInputPropagationEnabled(const bool enabled)
+{
+    d_propagateMouseInputs = enabled;
+}
+
+//----------------------------------------------------------------------------//
+bool Window::isMouseInputPropagationEnabled() const
+{
+    return d_propagateMouseInputs;
+}
+
+//----------------------------------------------------------------------------//
+Window* Window::clone(const String& newName, const bool deepCopy) const
+{
+    Window* ret =
+        WindowManager::getSingleton().createWindow(getType(), newName);
+
+    // always copy properties
+    clonePropertiesTo(*ret);
+
+    // if user requested deep copy, we should copy children as well
+    if (deepCopy)
+        cloneChildWidgetsTo(*ret);
+
+    return ret;
+}
+
+//----------------------------------------------------------------------------//
+void Window::clonePropertiesTo(Window& target) const
+{
+    PropertySet::Iterator propertyIt = getPropertyIterator();
+
+    for (PropertySet::Iterator propertyIt = getPropertyIterator();
+         !propertyIt.isAtEnd();
+         ++propertyIt) 
+    {
+        const String& propertyName = propertyIt.getCurrentKey();
+        const String propertyValue = getProperty(propertyName);
+
+        // we never copy stuff that doesn't get written into XML
+        if (isPropertyBannedFromXML(propertyName))
+            continue;
+
+        // some cases when propertyValue is "" could lead to exception throws
+        if (propertyValue.empty())
+        {
+            // special case, this causes exception throw when no window renderer
+            // is assigned to the window
+            if (propertyName == "LookNFeel")
+                continue;
+
+            // special case, this causes exception throw because we are setting
+            // 'null' window renderer
+            if (propertyName == "WindowRenderer")
+                continue;
+        }
+
+        target.setProperty(propertyName, getProperty(propertyName));
+    }
+}
+
+//----------------------------------------------------------------------------//
+void Window::cloneChildWidgetsTo(Window& target) const
+{
+    const String& oldName = getName();
+    const String& newName = target.getName();
+
+    // todo: ChildWindowIterator?
+    for (size_t childI = 0; childI < getChildCount(); ++childI)
+    {
+        Window* child = getChildAtIdx(childI);
+        if (child->isAutoWindow())
+        {
+            // we skip auto windows, they are already created
+            // automatically
+
+            // note: some windows store non auto windows inside auto windows,
+            //       standard solution is to copy these non-auto windows to
+            //       the parent window
+            //
+            //       If you need alternative behaviour, you have to override
+            //       this method!
+
+            // so just copy it's child widgets
+            child->cloneChildWidgetsTo(target);
+            // and skip the auto widget
+            continue;
+        }
+
+        String newChildName = child->getName();
+        String::size_type idxBegin = newChildName.find(oldName + "/");
+        if (idxBegin == String::npos)
+        {
+            // not found, user is using non-standard naming
+            // use a pretty safe but long and non readable new name
+            newChildName = newChildName + "_clone_" + newName;
+        }
+        else
+        {
+            // +1 because of the "/"
+            String::size_type idxEnd = idxBegin + oldName.length() + 1;
+
+            // we replace the first occurence of the old parent's name with the new name
+            // this works great in case user uses the default recommended naming scheme
+            // like this: "Parent/ChildWindow/ChildChildWindow"
+            newChildName.replace(idxBegin, idxEnd, newName + "/");
+        }
+
+        Window* newChild = child->clone(newChildName, true);
+        target.addChild(newChild);
+    }
+}
+
+//----------------------------------------------------------------------------//
+Rect Window::getChildWindowContentArea(const bool non_client) const
+{
+    return non_client ?
+        getNonClientChildWindowContentArea_impl() :
+        getClientChildWindowContentArea_impl();
+}
+
+//----------------------------------------------------------------------------//
+Rect Window::getNonClientChildWindowContentArea_impl() const
+{
+    return getUnclippedOuterRect_impl();
+}
+
+//----------------------------------------------------------------------------//
+Rect Window::getClientChildWindowContentArea_impl() const
+{
+    return getUnclippedInnerRect_impl();
 }
 
 //----------------------------------------------------------------------------//

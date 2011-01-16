@@ -49,10 +49,13 @@
 #   include "config.h"
 #endif
 
+// Declare a function to return a WindowRendererModule as extern when
+// statically linking.
 #if defined(CEGUI_STATIC)
-#	if defined(CEGUI_FALAGARD_RENDERER)
-#		include "WindowRendererSets/Falagard/FalModule.h"
-#	endif
+extern "C"
+{
+CEGUI::WindowRendererModule& getWindowRendererModule();
+}
 #endif
 
 
@@ -159,10 +162,10 @@ bool Scheme::resourcesLoaded(void) const
 void Scheme::loadXMLImagesets()
 {
     ImagesetManager& ismgr = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::iterator  pos;
 
     // check all imagesets
-    for (pos = d_imagesets.begin(); pos != d_imagesets.end(); ++pos)
+    for (LoadableUIElementList::iterator pos = d_imagesets.begin();
+        pos != d_imagesets.end(); ++pos)
     {
         // skip if the imageset already exists
         if (!(*pos).name.empty() && ismgr.isDefined((*pos).name))
@@ -183,10 +186,10 @@ void Scheme::loadXMLImagesets()
         if (realname != (*pos).name)
         {
             ismgr.destroy(iset);
-            throw InvalidRequestException("Scheme::loadResources: "
+            CEGUI_THROW(InvalidRequestException("Scheme::loadResources: "
                 "The Imageset created by file '" + (*pos).filename +
                 "' is named '" + realname + "', not '" + (*pos).name +
-                "' as required by Scheme '" + d_name + "'.");
+                "' as required by Scheme '" + d_name + "'."));
         }
     }
 }
@@ -197,10 +200,10 @@ void Scheme::loadXMLImagesets()
 void Scheme::loadImageFileImagesets()
 {
     ImagesetManager& ismgr = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::iterator  pos;
 
     // check imagesets that are created directly from image files
-    for (pos = d_imagesetsFromImages.begin(); pos != d_imagesetsFromImages.end(); ++pos)
+    for (LoadableUIElementList::iterator pos = d_imagesetsFromImages.begin();
+        pos != d_imagesetsFromImages.end(); ++pos)
     {
         // if name is empty use the name of the image file.
         if ((*pos).name.empty())
@@ -218,10 +221,10 @@ void Scheme::loadImageFileImagesets()
 void Scheme::loadFonts()
 {
     FontManager& fntmgr = FontManager::getSingleton();
-    std::vector<LoadableUIElement>::iterator  pos;
 
     // check fonts
-    for (pos = d_fonts.begin(); pos != d_fonts.end(); ++pos)
+    for (LoadableUIElementList::iterator pos = d_fonts.begin();
+        pos != d_fonts.end(); ++pos)
     {
         // skip if a font with this name is already loaded
         if (!(*pos).name.empty() && fntmgr.isDefined((*pos).name))
@@ -242,10 +245,10 @@ void Scheme::loadFonts()
         if (realname != (*pos).name)
         {
             fntmgr.destroy(font);
-            throw InvalidRequestException("Scheme::loadResources: "
+            CEGUI_THROW(InvalidRequestException("Scheme::loadResources: "
                 "The Font created by file '" + (*pos).filename +
                 "' is named '" + realname + "', not '" + (*pos).name +
-                "' as required by Scheme '" + d_name + "'.");
+                "' as required by Scheme '" + d_name + "'."));
         }
     }
 }
@@ -256,13 +259,15 @@ void Scheme::loadFonts()
 void Scheme::loadLookNFeels()
 {
     WidgetLookManager& wlfMgr   = WidgetLookManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
 
     // load look'n'feels
     // (we can't actually check these, at the moment, so we just re-parse data;
     // it does no harm except maybe waste a bit of time)
-    for (pos = d_looknfeels.begin(); pos != d_looknfeels.end(); ++pos)
+    for (LoadableUIElementList::const_iterator pos = d_looknfeels.begin();
+        pos != d_looknfeels.end(); ++pos)
+    {
         wlfMgr.parseLookNFeelSpecification((*pos).filename, (*pos).resourceGroup);
+    }
 }
 
 /*************************************************************************
@@ -273,13 +278,13 @@ void Scheme::loadWindowFactories()
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
 
     // check factories
-    std::vector<UIModule>::iterator cmod = d_widgetModules.begin();
-    for (;cmod != d_widgetModules.end(); ++cmod)
+    for (UIModuleList::iterator cmod = d_widgetModules.begin();
+        cmod != d_widgetModules.end(); ++cmod)
     {
         // create and load dynamic module as required
         if (!(*cmod).module)
         {
-            (*cmod).module = new FactoryModule((*cmod).name);
+            (*cmod).module = CEGUI_NEW_AO FactoryModule((*cmod).name);
         }
 
         // see if we should just register all factories available in the module (i.e. No factories explicitly specified)
@@ -291,7 +296,7 @@ void Scheme::loadWindowFactories()
         // some names were explicitly given, so only register those.
         else
         {
-            std::vector<UIElementFactory>::const_iterator   elem = (*cmod).factories.begin();
+            UIModule::FactoryList::const_iterator   elem = (*cmod).factories.begin();
             for (; elem != (*cmod).factories.end(); ++elem)
             {
                 if (!wfmgr.isFactoryPresent((*elem).name))
@@ -309,15 +314,15 @@ void Scheme::loadWindowFactories()
 void Scheme::loadWindowRendererFactories()
 {
     // check factories
-    std::vector<WRModule>::iterator cmod = d_windowRendererModules.begin();
-    for (;cmod != d_windowRendererModules.end(); ++cmod)
+    for (WRModuleList::iterator cmod = d_windowRendererModules.begin();
+        cmod != d_windowRendererModules.end(); ++cmod)
     {
         if (!(*cmod).wrModule)
         {
 #if !defined(CEGUI_STATIC)
             // load dynamic module as required
             if (!(*cmod).dynamicModule)
-                (*cmod).dynamicModule = new DynamicModule((*cmod).name);
+                (*cmod).dynamicModule = CEGUI_NEW_AO DynamicModule((*cmod).name);
 
             WindowRendererModule& (*getWRModuleFunc)() =
                 reinterpret_cast<WindowRendererModule&(*)()>(
@@ -325,10 +330,10 @@ void Scheme::loadWindowRendererFactories()
                         getSymbolAddress("getWindowRendererModule"));
 
             if (!getWRModuleFunc)
-                throw InvalidRequestException(
+                CEGUI_THROW(InvalidRequestException(
                     "Scheme::loadWindowRendererFactories: Required function "
                     "export 'WindowRendererModule& getWindowRendererModule()' "
-                    "was not found in module '" + (*cmod).name + "'.");
+                    "was not found in module '" + (*cmod).name + "'."));
 
             // get the WindowRendererModule object for this module.
             (*cmod).wrModule = &getWRModuleFunc();
@@ -350,7 +355,7 @@ void Scheme::loadWindowRendererFactories()
         // some names were explicitly given, so only register those.
         else
         {
-            std::vector<String>::const_iterator elem = (*cmod).wrTypes.begin();
+            WRModule::WRTypeList::const_iterator elem = (*cmod).wrTypes.begin();
             for (; elem != (*cmod).wrTypes.end(); ++elem)
                 (*cmod).wrModule->registerFactory(*elem);
         }
@@ -365,8 +370,8 @@ void Scheme::loadFactoryAliases()
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
 
     // check aliases
-    std::vector<AliasMapping>::iterator alias = d_aliasMappings.begin();
-    for (;alias != d_aliasMappings.end(); ++alias)
+    for (AliasMappingList::iterator alias = d_aliasMappings.begin();
+        alias != d_aliasMappings.end(); ++alias)
     {
         // get iterator
         WindowFactoryManager::TypeAliasIterator iter = wfmgr.getAliasIterator();
@@ -399,8 +404,8 @@ void Scheme::loadFalagardMappings()
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
 
     // check falagard window mappings.
-    std::vector<FalagardMapping>::iterator falagard = d_falagardMappings.begin();
-    for (;falagard != d_falagardMappings.end(); ++falagard)
+    for (FalagardMappingList::iterator falagard = d_falagardMappings.begin();
+        falagard != d_falagardMappings.end(); ++falagard)
     {
         // get iterator
         WindowFactoryManager::FalagardMappingIterator iter = wfmgr.getFalagardMappingIterator();
@@ -437,12 +442,14 @@ void Scheme::loadFalagardMappings()
 void Scheme::unloadXMLImagesets()
 {
     ImagesetManager& ismgr      = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
 
     // unload all xml based Imagesets
-    for (pos = d_imagesets.begin(); pos != d_imagesets.end(); ++pos)
+    for (LoadableUIElementList::const_iterator pos = d_imagesets.begin();
+        pos != d_imagesets.end(); ++pos)
+    {
         if (!(*pos).name.empty())
             ismgr.destroy((*pos).name);
+    }
 }
 
 /*************************************************************************
@@ -451,12 +458,14 @@ void Scheme::unloadXMLImagesets()
 void Scheme::unloadImageFileImagesets()
 {
     ImagesetManager& ismgr      = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
 
     // unload all imagesets that are created directly from image files
-    for (pos = d_imagesetsFromImages.begin(); pos != d_imagesetsFromImages.end(); ++pos)
+    for (LoadableUIElementList::const_iterator pos = d_imagesetsFromImages.begin();
+        pos != d_imagesetsFromImages.end(); ++pos)
+    {
         if (!(*pos).name.empty())
             ismgr.destroy((*pos).name);
+    }
 }
 
 /*************************************************************************
@@ -465,12 +474,14 @@ void Scheme::unloadImageFileImagesets()
 void Scheme::unloadFonts()
 {
     FontManager& fntmgr         = FontManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
 
     // unload all loaded fonts
-    for (pos = d_fonts.begin(); pos != d_fonts.end(); ++pos)
+    for (LoadableUIElementList::const_iterator pos = d_fonts.begin();
+        pos != d_fonts.end(); ++pos)
+    {
         if (!(*pos).name.empty())
             fntmgr.destroy((*pos).name);
+    }
 }
 
 /*************************************************************************
@@ -489,10 +500,10 @@ void Scheme::unloadLookNFeels()
 void Scheme::unloadWindowFactories()
 {
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
-    std::vector<UIModule>::iterator cmod = d_widgetModules.begin();
 
     // for all widget modules loaded
-    for (;cmod != d_widgetModules.end(); ++cmod)
+    for (UIModuleList::iterator cmod = d_widgetModules.begin();
+        cmod != d_widgetModules.end(); ++cmod)
     {
         // see if we should just unregister all factories available in the
         // module (i.e. No factories explicitly specified)
@@ -503,7 +514,7 @@ void Scheme::unloadWindowFactories()
         // remove all window factories explicitly registered for this module
         else
         {
-            std::vector<UIElementFactory>::const_iterator elem = (*cmod).factories.begin();
+            UIModule::FactoryList::const_iterator elem = (*cmod).factories.begin();
             for (; elem != (*cmod).factories.end(); ++elem)
                 wfmgr.removeFactory((*elem).name);
         }
@@ -511,7 +522,7 @@ void Scheme::unloadWindowFactories()
         // unload dynamic module as required
         if ((*cmod).module)
         {
-            delete (*cmod).module;
+            CEGUI_DELETE_AO (*cmod).module;
             (*cmod).module = 0;
         }
     }
@@ -522,10 +533,9 @@ void Scheme::unloadWindowFactories()
 *************************************************************************/
 void Scheme::unloadWindowRendererFactories()
 {
-    std::vector<WRModule>::iterator cmod = d_windowRendererModules.begin();
-
     // for all widget modules loaded
-    for (;cmod != d_windowRendererModules.end(); ++cmod)
+    for (WRModuleList::iterator cmod = d_windowRendererModules.begin();
+        cmod != d_windowRendererModules.end(); ++cmod)
     {
         // assume module's factories were already removed if wrModule is 0.
         if (!(*cmod).wrModule)
@@ -540,7 +550,7 @@ void Scheme::unloadWindowRendererFactories()
         // remove all window factories explicitly registered for this module
         else
         {
-            std::vector<String>::const_iterator elem = (*cmod).wrTypes.begin();
+            WRModule::WRTypeList::const_iterator elem = (*cmod).wrTypes.begin();
             for (; elem != (*cmod).wrTypes.end(); ++elem)
                 (*cmod).wrModule->unregisterFactory(*elem);
         }
@@ -548,7 +558,7 @@ void Scheme::unloadWindowRendererFactories()
         // unload dynamic module as required
         if ((*cmod).dynamicModule)
         {
-            delete (*cmod).dynamicModule;
+            CEGUI_DELETE_AO (*cmod).dynamicModule;
             (*cmod).dynamicModule = 0;
         }
 
@@ -562,10 +572,10 @@ void Scheme::unloadWindowRendererFactories()
 void Scheme::unloadFactoryAliases()
 {
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
-    std::vector<AliasMapping>::iterator alias = d_aliasMappings.begin();
 
     // remove all factory aliases
-    for (;alias != d_aliasMappings.end(); ++alias)
+    for (AliasMappingList::iterator alias = d_aliasMappings.begin();
+        alias != d_aliasMappings.end(); ++alias)
     {
         // get iterator
         WindowFactoryManager::TypeAliasIterator iter = wfmgr.getAliasIterator();
@@ -587,10 +597,10 @@ void Scheme::unloadFactoryAliases()
 void Scheme::unloadFalagardMappings()
 {
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
-    std::vector<FalagardMapping>::iterator falagard = d_falagardMappings.begin();
 
     // remove all falagard window mappings for this scheme.
-    for (;falagard != d_falagardMappings.end(); ++falagard)
+    for (FalagardMappingList::iterator falagard = d_falagardMappings.begin();
+        falagard != d_falagardMappings.end(); ++falagard)
     {
         // get iterator
         WindowFactoryManager::FalagardMappingIterator iter = wfmgr.getFalagardMappingIterator();
@@ -620,12 +630,14 @@ void Scheme::unloadFalagardMappings()
 bool Scheme::areXMLImagesetsLoaded() const
 {
     ImagesetManager& ismgr = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
 
     // check imagesets
-    for (pos = d_imagesets.begin(); pos != d_imagesets.end(); ++pos)
+    for (LoadableUIElementList::const_iterator pos = d_imagesets.begin();
+        pos != d_imagesets.end(); ++pos)
+    {
         if ((*pos).name.empty() || !ismgr.isDefined((*pos).name))
             return false;
+    }
 
     return true;
 }
@@ -636,11 +648,13 @@ bool Scheme::areXMLImagesetsLoaded() const
 bool Scheme::areImageFileImagesetsLoaded() const
 {
     ImagesetManager& ismgr = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
 
-    for (pos = d_imagesetsFromImages.begin(); pos != d_imagesetsFromImages.end(); ++pos)
+    for (LoadableUIElementList::const_iterator pos = d_imagesetsFromImages.begin();
+        pos != d_imagesetsFromImages.end(); ++pos)
+    {
         if ((*pos).name.empty() || !ismgr.isDefined((*pos).name))
             return false;
+    }
 
     return true;
 }
@@ -651,12 +665,14 @@ bool Scheme::areImageFileImagesetsLoaded() const
 bool Scheme::areFontsLoaded() const
 {
     FontManager& fntmgr = FontManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
 
     // check fonts
-    for (pos = d_fonts.begin(); pos != d_fonts.end(); ++pos)
+    for (LoadableUIElementList::const_iterator pos = d_fonts.begin();
+        pos != d_fonts.end(); ++pos)
+    {
         if ((*pos).name.empty() || !fntmgr.isDefined((*pos).name))
             return false;
+    }
 
     return true;
 }
@@ -676,10 +692,10 @@ bool Scheme::areLookNFeelsLoaded() const
 bool Scheme::areWindowFactoriesLoaded() const
 {
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
-    std::vector<UIModule>::const_iterator   cmod = d_widgetModules.begin();
 
     // check factory modules
-    for (;cmod != d_widgetModules.end(); ++cmod)
+    for (UIModuleList::const_iterator cmod = d_widgetModules.begin();
+        cmod != d_widgetModules.end(); ++cmod)
     {
         // see if we should just test all factories available in the
         // module (i.e. No factories explicitly specified)
@@ -690,7 +706,7 @@ bool Scheme::areWindowFactoriesLoaded() const
         // check all window factories explicitly registered for this module
         else
         {
-            std::vector<UIElementFactory>::const_iterator   elem = (*cmod).factories.begin();
+            UIModule::FactoryList::const_iterator elem = (*cmod).factories.begin();
 
             for (; elem != (*cmod).factories.end(); ++elem)
             {
@@ -709,10 +725,10 @@ bool Scheme::areWindowFactoriesLoaded() const
 bool Scheme::areWindowRendererFactoriesLoaded() const
 {
     WindowRendererManager& wfmgr = WindowRendererManager::getSingleton();
-    std::vector<WRModule>::const_iterator cmod = d_windowRendererModules.begin();
 
     // check factory modules
-    for (;cmod != d_windowRendererModules.end(); ++cmod)
+    for (WRModuleList::const_iterator cmod = d_windowRendererModules.begin();
+        cmod != d_windowRendererModules.end(); ++cmod)
     {
         // see if we should just test all factories available in the
         // module (i.e. No factories explicitly specified)
@@ -723,7 +739,7 @@ bool Scheme::areWindowRendererFactoriesLoaded() const
         // check all window factories explicitly registered for this module
         else
         {
-            std::vector<String>::const_iterator elem = (*cmod).wrTypes.begin();
+            WRModule::WRTypeList::const_iterator elem = (*cmod).wrTypes.begin();
 
             for (; elem != (*cmod).wrTypes.end(); ++elem)
                 if (!wfmgr.isFactoryPresent(*elem))
@@ -740,10 +756,10 @@ bool Scheme::areWindowRendererFactoriesLoaded() const
 bool Scheme::areFactoryAliasesLoaded() const
 {
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
-    std::vector<AliasMapping>::const_iterator alias = d_aliasMappings.begin();
 
     // check aliases
-    for (;alias != d_aliasMappings.end(); ++alias)
+    for (AliasMappingList::const_iterator alias = d_aliasMappings.begin();
+        alias != d_aliasMappings.end(); ++alias)
     {
         // get iterator
         WindowFactoryManager::TypeAliasIterator iter = wfmgr.getAliasIterator();
@@ -774,10 +790,10 @@ bool Scheme::areFactoryAliasesLoaded() const
 bool Scheme::areFalagardMappingsLoaded() const
 {
     WindowFactoryManager& wfmgr = WindowFactoryManager::getSingleton();
-    std::vector<FalagardMapping>::const_iterator falagard = d_falagardMappings.begin();
 
     // check falagard window mappings.
-    for (;falagard != d_falagardMappings.end(); ++falagard)
+    for (FalagardMappingList::const_iterator falagard = d_falagardMappings.begin();
+        falagard != d_falagardMappings.end(); ++falagard)
     {
         // get iterator
         WindowFactoryManager::FalagardMappingIterator iter = wfmgr.getFalagardMappingIterator();

@@ -23,7 +23,7 @@ initialiseDefaultResourceGroups()
 
 TCESchemeManager.loadScheme("TaharezLook.scheme")
 
-TCESystem.setDefaultFont("Commonwealth-10")
+TCESystem.setDefaultFont("DejaVuSans-10")
 TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
 
 

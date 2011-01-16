@@ -38,13 +38,13 @@ Type MyApp Extends CEGuiBaseApplication
 			TCEFontManager.createFont("DejaVuSans-10")
 		End If
 		
-		' Set the GUI Sheet
-		Local sheet:TCEWindow = TCEWindowManager.CreateWindow("DefaultWindow", "root_wnd")
-		TCESystem.setGUISheet(sheet)
+		' Set the root GUI window
+		Local root:TCEWindow = TCEWindowManager.CreateWindow("DefaultWindow", "root_wnd")
+		TCESystem.setGUISheet(root)
 		
 		' Load a layout
 		Local guiLayout:TCEWindow = TCEWindowManager.loadWindowLayout("WidgetGalore.layout")
-		sheet.addChildWindow(guiLayout)
+		root.addChild(guiLayout)
 		
 		
 		
@@ -93,12 +93,12 @@ Type MyApp Extends CEGuiBaseApplication
 			staticImageInScrollablePane.setPositionU(UDim(), UDim()) ' Start in the upper left corner
 			staticImageInScrollablePane.setWidthU(UDim(2.0, 0.0)) ' Twice the width of the parent, the ScrollablePane
 			staticImageInScrollablePane.setHeightU(UDim(2.0, 0.0)) ' Twice the height of the parent, the ScrollablePane
-			scrollablePane.addChildWindow(staticImageInScrollablePane) ' Add the image to the ' Twice the width of the parent, the ScrollablePane
+			scrollablePane.addChild(staticImageInScrollablePane) ' Add the image to the ' Twice the width of the parent, the ScrollablePane
 		Local editboxInScrollablePane:TCEEditbox = TCEEditbox(TCEWindowManager.CreateWindow("TaharezLook/Editbox", "EditboxInScrollablePane"))
 			editboxInScrollablePane.setPositionU(UDim(), UDim(2.1, 0.0)) ' Start below the image
 			editboxInScrollablePane.setWidthU(UDim(2.0, 0.0)) 
 			editboxInScrollablePane.setHeightU(UDim(0.3, 0.0))
-			scrollablePane.addChildWindow(editboxInScrollablePane)
+			scrollablePane.addChild(editboxInScrollablePane)
 		
 		' Check box
 		Local checkbox:TCECheckbox = TCECheckbox(TCEWindowManager.getWindow("Checkbox"))

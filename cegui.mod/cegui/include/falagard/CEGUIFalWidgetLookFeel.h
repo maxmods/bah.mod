@@ -34,6 +34,7 @@
 #include "CEGUIFalPropertyInitialiser.h"
 #include "CEGUIFalPropertyDefinition.h"
 #include "CEGUIFalPropertyLinkDefinition.h"
+#include "CEGUIFalEventLinkDefinition.h"
 #include "CEGUIFalNamedArea.h"
 #include <map>
 
@@ -51,7 +52,8 @@ namespace CEGUI
     Class that encapsulates look & feel information for a particular widget
     type.
 */
-class CEGUIEXPORT WidgetLookFeel
+class CEGUIEXPORT WidgetLookFeel :
+    public AllocatedObject<WidgetLookFeel>
 {
 public:
     WidgetLookFeel(const String& name);
@@ -314,6 +316,23 @@ public:
 
     /*!
     \brief
+        Add the name of an animation that is associated with the
+        WidgetLookFeel.
+
+    \param anim_name
+        Reference to a String object that contains the name of the animation
+        to be associated with this WidgetLookFeel.
+    */
+    void addAnimationName(const String& anim_name);
+
+    //! adds an event link definition to the WidgetLookFeel.
+    void addEventLinkDefinition(const EventLinkDefinition& evtdef); 
+
+    //! clear all defined event link definitions from the WidgetLookFeel.
+    void clearEventLinkDefinitions();
+
+    /*!
+    \brief
         Writes an xml representation of this WidgetLookFeel to \a out_stream.
 
     \param xml_stream
@@ -361,9 +380,12 @@ public:
     const WidgetComponent* findWidgetComponent(const String& nameSuffix) const;
 
     /** Typedefs for property related lists. */
-    typedef std::vector<PropertyInitialiser>  PropertyList;
-    typedef std::vector<PropertyDefinition>   PropertyDefinitionList;
-    typedef std::vector<PropertyLinkDefinition> PropertyLinkDefinitionList;
+    typedef std::vector<PropertyInitialiser
+        CEGUI_VECTOR_ALLOC(PropertyInitialiser)> PropertyList;
+    typedef std::vector<PropertyDefinition
+        CEGUI_VECTOR_ALLOC(PropertyDefinition)> PropertyDefinitionList;
+    typedef std::vector<PropertyLinkDefinition
+        CEGUI_VECTOR_ALLOC(PropertyLinkDefinition)> PropertyLinkDefinitionList;
 
     /** Obtains list of properties definitions.
      * @access public
@@ -395,10 +417,20 @@ public:
     }
 
 private:
-    typedef std::map<String, StateImagery, String::FastLessCompare> StateList;
-    typedef std::map<String, ImagerySection, String::FastLessCompare> ImageryList;
-    typedef std::map<String, NamedArea, String::FastLessCompare> NamedAreaList;
-    typedef std::vector<WidgetComponent> WidgetList;
+    typedef std::map<String, StateImagery, String::FastLessCompare
+        CEGUI_MAP_ALLOC(String, StateImagery)> StateList;
+    typedef std::map<String, ImagerySection, String::FastLessCompare
+        CEGUI_MAP_ALLOC(String, ImagerySection)> ImageryList;
+    typedef std::map<String, NamedArea, String::FastLessCompare
+        CEGUI_MAP_ALLOC(String, NamedArea)> NamedAreaList;
+    typedef std::vector<WidgetComponent
+        CEGUI_VECTOR_ALLOC(WidgetComponent)> WidgetList;
+    typedef std::vector<String
+        CEGUI_VECTOR_ALLOC(String)> AnimationList;
+    typedef std::multimap<Window*, AnimationInstance*
+        /*CEGUI_MULTIMAP_ALLOC(Window*, AnimationInstance*)*/> AnimationInstanceMap;
+    typedef std::vector<EventLinkDefinition
+        CEGUI_VECTOR_ALLOC(EventLinkDefinition)> EventLinkDefinitionList;
 
     //! Name of this WidgetLookFeel.
     CEGUI::String d_lookName;
@@ -416,8 +448,13 @@ private:
     mutable PropertyDefinitionList  d_propertyDefinitions;
     //! Collection of PropertyLinkDefinition objects.
     mutable PropertyLinkDefinitionList d_propertyLinkDefinitions;
+    //! Collection of animation names associated with this WidgetLookFeel.
+    AnimationList d_animations;
+    //! map of windows and their associated animation instances
+    mutable AnimationInstanceMap d_animationInstances;
+    //! Collection of EventLinkDefinition objects.
+    EventLinkDefinitionList d_eventLinkDefinitions;
 };
-
 
 } // End of  CEGUI namespace section
 

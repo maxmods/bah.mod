@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@ Module BaH.CEGUI
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: CEGUI - 2004 - 2009 Paul D Turner & The CEGUI Development Team"
-ModuleInfo "Copyright: Wrapper - 2008-2010 Bruce A Henderson"
+ModuleInfo "Copyright: CEGUI - 2004 - 2010 Paul D Turner & The CEGUI Development Team"
+ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2394)"
+ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2772)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DPCRE_STATIC"
@@ -341,6 +341,14 @@ Type TCEFrameWindow Extends TCEWindow
 	bbdoc: Fired when the close button for the window is clicked. 
 	End Rem
 	Const EventCloseClicked:String = "CloseClicked"
+	Rem
+	bbdoc: Fired when drag-sizing of the window starts. 
+	End Rem
+	Const EventDragSizingStarted:String = "DragSizingStarted"
+	Rem
+	bbdoc: Fired when drag-sizing of the window ends. 
+	End Rem
+	Const EventDragSizingEnded:String = "DragSizingEnded"
 	
 	Rem
 	bbdoc: Returns whether this window is sizable.
@@ -713,11 +721,11 @@ Type TCEListbox Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
-	Const EventListContentsChanged:String = "ListItemsChanged"
+	Const EventListContentsChanged:String = "ListContentsChanged"
 	Rem
 	bbdoc: Event triggered when there is a change to the currently selected item(s). 
 	End Rem
-	Const EventSelectionChanged:String = "ItemSelectionChanged"
+	Const EventSelectionChanged:String = "SelectionChanged"
 	Rem
 	bbdoc: Event triggered when the sort mode setting changes. 
 	End Rem
@@ -725,15 +733,15 @@ Type TCEListbox Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the multi-select mode setting changes. 
 	End Rem
-	Const EventMultiselectModeChanged:String = "MuliselectModeChanged"
+	Const EventMultiselectModeChanged:String = "MultiselectModeChanged"
 	Rem
 	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes.
 	End Rem
-	Const EventVertScrollbarModeChanged:String = "VertScrollModeChanged"
+	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
 	Rem
 	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
-	Const EventHorzScrollbarModeChanged:String = "HorzScrollModeChanged"
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
 
 	Rem
 	bbdoc: Returns number of items attached to the list box. 
@@ -1420,7 +1428,7 @@ Type TCECombobox Extends TCEWindow
 	Rem
 	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
-	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
+	Const EventReadOnlyModeChanged:String = "ReadOnlyModeChanged"
 	Rem
 	bbdoc: The validation string has been changed. 
 	End Rem
@@ -1432,15 +1440,15 @@ Type TCECombobox Extends TCEWindow
 	Rem
 	bbdoc: Some operation has made the current text invalid with regards to the validation string. 
 	End Rem
-	Const EventTextInvalidated:String = "TextInvalidatedEvent"
+	Const EventTextInvalidated:String = "TextInvalidated"
 	Rem
 	bbdoc: The user attempted to modify the text in a way that would have made it invalid. 
 	End Rem
 	Const EventInvalidEntryAttempted:String = "InvalidEntryAttempted"
 	Rem
-	bbdoc: The text carat (insert point) has changed. 
+	bbdoc: The text caret (insert point) has changed. 
 	End Rem
-	Const EventCaratMoved:String = "CaratMoved"
+	Const EventCaretMoved:String = "CaretMoved"
 	Rem
 	bbdoc: The current text selection has changed. 
 	End Rem
@@ -1448,11 +1456,11 @@ Type TCECombobox Extends TCEWindow
 	Rem
 	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
-	Const EventEditboxFull:String = "EditboxFullEvent"
+	Const EventEditboxFull:String = "EditboxFull"
 	Rem
 	bbdoc: The user has accepted the current text by pressing Return, Enter, or Tab. 
 	End Rem
-	Const EventTextAccepted:String = "TextAcceptedEvent"
+	Const EventTextAccepted:String = "TextAccepted"
 	
 	' event names from list box
 	Rem
@@ -1570,10 +1578,10 @@ Type TCECombobox Extends TCEWindow
 	End Method
 	 
 	Rem
-	bbdoc: Returns the current position of the carat.
+	bbdoc: Returns the current position of the caret.
 	End Rem
-	Method getCaratIndex:Int()
-		Return bmx_cegui_combobox_getcaratindex(objectPtr)
+	Method getCaretIndex:Int()
+		Return bmx_cegui_combobox_getcaretindex(objectPtr)
 	End Method
 	 
 	Rem
@@ -1715,10 +1723,10 @@ Type TCECombobox Extends TCEWindow
 	End Method
 	 
 	Rem
-	bbdoc: Sets the current position of the carat.
+	bbdoc: Sets the current position of the caret.
 	End Rem
-	Method setCaratIndex(caratPos:Int)
-		bmx_cegui_combobox_setcaratindex(objectPtr, caratPos)
+	Method setCaretIndex(caretPos:Int)
+		bmx_cegui_combobox_setcaretindex(objectPtr, caretPos)
 	End Method
 	 
 	Rem
@@ -1841,11 +1849,11 @@ bbdoc: Window type intended to be used as a simple, generic Window.
 about: This type does no rendering and so appears totally transparent. This window defaults to
 position 0.0, 0.0 with a size of 1.0 x 1.0.
 End Rem
-Type TCEGUISheet Extends TCEWindow
+Type TCEDefaultWindow Extends TCEWindow
 
-	Function _create:TCEGUISheet(objectPtr:Byte Ptr)
+	Function _create:TCEDefaultWindow(objectPtr:Byte Ptr)
 		If objectPtr Then
-			Local this:TCEGUISheet = New TCEGUISheet
+			Local this:TCEDefaultWindow = New TCEDefaultWindow
 			this.objectPtr = objectPtr
 			Return this
 		End If
@@ -2026,7 +2034,7 @@ Type TCEItemListBase Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
-	Const EventListContentsChanged:String = "ListItemsChanged"
+	Const EventListContentsChanged:String = "ListContentsChanged"
 	Rem
 	bbdoc: Event fired when the sort enabled state changes. 
 	End Rem
@@ -3059,7 +3067,7 @@ Type TCEListHeader Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the rendering offset for the segments changes. 
 	End Rem
-	Const EventSegmentRenderOffsetChanged:String = "SegmentOffsetChanged"
+	Const EventSegmentRenderOffsetChanged:String = "SegmentRenderOffsetChanged"
 
 	Rem
 	bbdoc: Returns the number of columns or segments attached to the header.
@@ -3330,7 +3338,7 @@ Type TCEScrollbar Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the scroll bar position value changes. 
 	End Rem
-	Const EventScrollPositionChanged:String = "ScrollPosChanged"
+	Const EventScrollPositionChanged:String = "ScrollPositionChanged"
 	Rem
 	bbdoc: Event fired when the user begins dragging the thumb. 
 	End Rem
@@ -3594,7 +3602,7 @@ Type TCETabControl Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when there is a change to the currently selected tab. 
 	End Rem
-	Const EventSelectionChanged:String = "TabSelectionChanged"
+	Const EventSelectionChanged:String = "SelectionChanged"
 
 	Rem
 	bbdoc: Returns number of tabs.
@@ -3774,11 +3782,11 @@ Type TCETree Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
-	Const EventListContentsChanged:String = "ListItemsChanged"
+	Const EventListContentsChanged:String = "ListContentsChanged"
 	Rem
 	bbdoc: Event triggered when there is a change to the currently selected item(s). 
 	End Rem
-	Const EventSelectionChanged:String = "ItemSelectionChanged"
+	Const EventSelectionChanged:String = "SelectionChanged"
 	Rem
 	bbdoc: Event triggered when the sort mode setting changes. 
 	End Rem
@@ -3786,15 +3794,15 @@ Type TCETree Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the multi-select mode setting changes. 
 	End Rem
-	Const EventMultiselectModeChanged:String = "MuliselectModeChanged"
+	Const EventMultiselectModeChanged:String = "MultiselectModeChanged"
 	Rem
 	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes. 
 	End Rem
-	Const EventVertScrollbarModeChanged:String = "VertScrollModeChanged"
+	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
 	Rem
 	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
-	Const EventHorzScrollbarModeChanged:String = "HorzScrollModeChanged"
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
 	Rem
 	bbdoc: Event triggered when a branch of the tree is opened by the user. 
 	End Rem
@@ -4384,23 +4392,23 @@ Type TCEMultiColumnList Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the selection mode for the list box changes. 
 	End Rem
-	Const EventSelectionModeChanged:String = "SelectModeChanged"
+	Const EventSelectionModeChanged:String = "SelectionModeChanged"
 	Rem
 	bbdoc: Event fired when the nominated select column changes. 
 	End Rem
-	Const EventNominatedSelectColumnChanged:String = "NomSelColChanged"
+	Const EventNominatedSelectColumnChanged:String = "NominatedSelectColumnChanged"
 	Rem
 	bbdoc: Event fired when the nominated select row changes. 
 	End Rem
-	Const EventNominatedSelectRowChanged:String = "NomSelRowChanged"
+	Const EventNominatedSelectRowChanged:String = "NominatedSelectRowChanged"
 	Rem
 	bbdoc: Event fired when the vertical scroll bar 'force' setting changes. 
 	End Rem
-	Const EventVertScrollbarModeChanged:String = "VertBarModeChanged"
+	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
 	Rem
 	bbdoc: Event fired when the horizontal scroll bar 'force' setting changes. 
 	End Rem
-	Const EventHorzScrollbarModeChanged:String = "HorzBarModeChanged"
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
 	Rem
 	bbdoc: Event fired when the current selection(s) within the list box changes. 
 	End Rem
@@ -4408,23 +4416,23 @@ Type TCEMultiColumnList Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the contents of the list box changes. 
 	End Rem
-	Const EventListContentsChanged:String = "ContentsChanged"
+	Const EventListContentsChanged:String = "ListContentsChanged"
 	Rem
 	bbdoc: Event fired when the sort column changes. 
 	End Rem
-	Const EventSortColumnChanged:String = "SortColChanged"
+	Const EventSortColumnChanged:String = "SortColumnChanged"
 	Rem
 	bbdoc: Event fired when the sort direction changes. 
 	End Rem
-	Const EventSortDirectionChanged:String = "SortDirChanged"
+	Const EventSortDirectionChanged:String = "SortDirectionChanged"
 	Rem
 	bbdoc: Event fired when the width of a column in the list changes. 
 	End Rem
-	Const EventListColumnSized:String = "ColSized"
+	Const EventListColumnSized:String = "ListColumnSized"
 	Rem
 	bbdoc: Event fired when the column order changes. 
 	End Rem
-	Const EventListColumnMoved:String = "ColMoved"
+	Const EventListColumnMoved:String = "ListColumnMoved"
 
 	Rem
 	bbdoc: Returns whether user manipulation of the sort column and direction are enabled.
@@ -5002,7 +5010,7 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	Rem
 	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
-	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
+	Const EventReadOnlyModeChanged:String = "ReadOnlyModeChanged"
 	Rem
 	bbdoc: The word wrap mode of the text box has been changed. 
 	End Rem
@@ -5012,9 +5020,9 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	End Rem
 	Const EventMaximumTextLengthChanged:String = "MaximumTextLengthChanged"
 	Rem
-	bbdoc: The text carat (insert point) has changed. 
+	bbdoc: The text caret (insert point) has changed. 
 	End Rem
-	Const EventCaratMoved:String = "CaratMoved"
+	Const EventCaretMoved:String = "CaretMoved"
 	Rem
 	bbdoc: The current text selection has changed.
 	End Rem
@@ -5022,7 +5030,7 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	Rem
 	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
-	Const EventEditboxFull:String = "EditboxFullEvent"
+	Const EventEditboxFull:String = "EditboxFull"
 	Rem
 	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes.
 	End Rem
@@ -5047,15 +5055,15 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	End Method
 	
 	Rem
-	bbdoc: Returns the current position of the carat.
+	bbdoc: Returns the current position of the caret.
 	End Rem
-	Method getCaratIndex:Int()
-		Return bmx_cegui_multilineeditbox_getcaratindex(objectPtr)
+	Method getCaretIndex:Int()
+		Return bmx_cegui_multilineeditbox_getcaretindex(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the current selection start point.
-	returns: ndex of the selection start point relative to the start of the text. If no selection is defined this function returns the position of the carat.
+	returns: ndex of the selection start point relative to the start of the text. If no selection is defined this function returns the position of the caret.
 	End Rem
 	Method getSelectionStartIndex:Int()
 		Return bmx_cegui_multilineeditbox_getselectionstartindex(objectPtr)
@@ -5063,7 +5071,7 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	
 	Rem
 	bbdoc: Returns the current selection end point.
-	returns: Index of the selection end point relative to the start of the text. If no selection is defined this function returns the position of the carat.
+	returns: Index of the selection end point relative to the start of the text. If no selection is defined this function returns the position of the caret.
 	End Rem
 	Method getSelectionEndIndex:Int()
 		Return bmx_cegui_multilineeditbox_getselectionendindex(objectPtr)
@@ -5135,10 +5143,10 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	End Method
 	
 	Rem
-	bbdoc: Sets the current position of the carat.
+	bbdoc: Sets the current position of the caret.
 	End Rem
-	Method setCaratIndex(caratPos:Int)
-		bmx_cegui_multilineeditbox_setcaratindex(objectPtr, caratPos)
+	Method setCaretIndex(caretPos:Int)
+		bmx_cegui_multilineeditbox_setcaretindex(objectPtr, caretPos)
 	End Method
 	
 	Rem
@@ -5156,10 +5164,10 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	End Method
 	
 	Rem
-	bbdoc: Scrolls the editbox so that the carat is visible.
+	bbdoc: Scrolls the editbox so that the caret is visible.
 	End Rem
-	Method ensureCaratIsVisible()
-		bmx_cegui_multilineeditbox_ensurecaratisvisible(objectPtr)
+	Method ensureCaretIsVisible()
+		bmx_cegui_multilineeditbox_ensurecaretisvisible(objectPtr)
 	End Method
 	
 	Rem
@@ -5194,23 +5202,23 @@ Type TCEEditbox Extends TCEWindow
 	Rem
 	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
-	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
+	Const EventReadOnlyModeChanged:String = "ReadOnlyModeChanged"
 	Rem
 	bbdoc: The masked rendering mode (password mode) has been changed. 
 	End Rem
-	Const EventMaskedRenderingModeChanged:String = "MaskRenderChanged"
+	Const EventMaskedRenderingModeChanged:String = "MaskedRenderingModeChanged"
 	Rem
 	bbdoc: The code point (character) to use for masked text has been changed. 
 	End Rem
-	Const EventMaskCodePointChanged:String = "MaskCPChanged"
+	Const EventMaskCodePointChanged:String = "MaskCodePointChanged"
 	Rem
 	bbdoc: The validation string has been changed. 
 	End Rem
-	Const EventValidationStringChanged:String = "ValidatorChanged"
+	Const EventValidationStringChanged:String = "ValidationStringChanged"
 	Rem
 	bbdoc: The maximum allowable string length has been changed. 
 	End Rem
-	Const EventMaximumTextLengthChanged:String = "MaxTextLenChanged"
+	Const EventMaximumTextLengthChanged:String = "MaximumTextLengthChanged"
 	Rem
 	bbdoc: Some operation has made the current text invalid with regards to the validation string. 
 	End Rem
@@ -5218,15 +5226,15 @@ Type TCEEditbox Extends TCEWindow
 	Rem
 	bbdoc: The user attempted to modify the text in a way that would have made it invalid. 
 	End Rem
-	Const EventInvalidEntryAttempted:String = "InvalidInputAttempt"
+	Const EventInvalidEntryAttempted:String = "InvalidEntryAttempted"
 	Rem
-	bbdoc: The text carat (insert point) has changed. 
+	bbdoc: The text caret (insert point) has changed. 
 	End Rem
-	Const EventCaratMoved:String = "TextCaratMoved"
+	Const EventCaretMoved:String = "CaretMoved"
 	Rem
 	bbdoc: The current text selection has changed. 
 	End Rem
-	Const EventTextSelectionChanged:String = "TextSelectChanged"
+	Const EventTextSelectionChanged:String = "TextSelectionChanged"
 	Rem
 	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
@@ -5279,16 +5287,16 @@ Type TCEEditbox Extends TCEWindow
 	End Method
 	
 	Rem
-	bbdoc: Returns the current position of the carat.
-	returns: Index of the insert carat relative to the start of the text.
+	bbdoc: Returns the current position of the caret.
+	returns: Index of the insert caret relative to the start of the text.
 	End Rem
-	Method getCaratIndex:Int()
-		Return bmx_cegui_editbox_getcaratindex(objectPtr)
+	Method getCaretIndex:Int()
+		Return bmx_cegui_editbox_getcaretindex(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the current selection start point.
-	returns: Index of the selection start point relative to the start of the text. If no selection is defined this function returns the position of the carat.
+	returns: Index of the selection start point relative to the start of the text. If no selection is defined this function returns the position of the caret.
 	End Rem
 	Method getSelectionStartIndex:Int()
 		Return bmx_cegui_editbox_getselectionstartindex(objectPtr)
@@ -5296,7 +5304,7 @@ Type TCEEditbox Extends TCEWindow
 	
 	Rem
 	bbdoc: Returns the current selection end point.
-	returns: Index of the selection end point relative to the start of the text. If no selection is defined this function returns the position of the carat.
+	returns: Index of the selection end point relative to the start of the text. If no selection is defined this function returns the position of the caret.
 	End Rem
 	Method getSelectionEndIndex:Int()
 		Return bmx_cegui_editbox_getselectionendindex(objectPtr)
@@ -5340,10 +5348,10 @@ Type TCEEditbox Extends TCEWindow
 	End Method
 	
 	Rem
-	bbdoc: Sets the current position of the carat.
+	bbdoc: Sets the current position of the caret.
 	End Rem
-	Method setCaratIndex(caratPos:Int)
-		bmx_cegui_editbox_setcaratindex(objectPtr, caratPos)
+	Method setCaretIndex(caretPos:Int)
+		bmx_cegui_editbox_setcaretindex(objectPtr, caretPos)
 	End Method
 	
 	Rem

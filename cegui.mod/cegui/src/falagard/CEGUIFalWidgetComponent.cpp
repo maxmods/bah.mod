@@ -58,7 +58,7 @@ namespace CEGUI
             widget->setLookNFeel(d_imageryName);
 
         // add the new widget to its parent
-        parent.addChildWindow(widget);
+        parent.addChild(widget);
 
         // set alignment options
         widget->setVerticalAlignment(d_vertAlign);
@@ -158,7 +158,7 @@ namespace CEGUI
 
     void WidgetComponent::layout(const Window& owner) const
     {
-        try
+        CEGUI_TRY
         {
             Rect pixelArea(d_area.getPixelRect(owner));
             URect window_area(cegui_absdim(pixelArea.d_left),
@@ -170,7 +170,7 @@ namespace CEGUI
             wnd->setArea(window_area);
             wnd->notifyScreenAreaChanged();
         }
-        catch (UnknownObjectException&)
+        CEGUI_CATCH (UnknownObjectException&)
         {}
     }
 

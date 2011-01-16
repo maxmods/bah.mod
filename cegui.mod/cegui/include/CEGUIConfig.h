@@ -64,7 +64,7 @@ Each item in here has a comment to describe what it's for.
 //////////////////////////////////////////////////////////////////////////
 // Set this to the default ImageCodec to be used.
 // CoronaImageCodec, DevILImageCodec, FreeImageImageCodec,
-// SILLYImageCodec, TGAImageCodec 
+// SILLYImageCodec, TGAImageCodec or STBImageCodec
 //////////////////////////////////////////////////////////////////////////
 #ifndef CEGUI_DEFAULT_IMAGE_CODEC
 #   define CEGUI_DEFAULT_IMAGE_CODEC FreeImageImageCodec
@@ -144,6 +144,16 @@ Each item in here has a comment to describe what it's for.
 // - or -
 // Uncomment this to use an external fribidi library.
 //#define CEGUI_USE_FRIBIDI
+
+//////////////////////////////////////////////////////////////////////////
+// The following controls whether the MinizipResourceProvider will be
+// built into the CEGUIBase library.  You can uncomment the following line
+// to include this code (and it's dependency code).
+// 
+// The MinizipResourceProvider provides the ability to load resource files
+// from locations within .zip files.
+//////////////////////////////////////////////////////////////////////////
+//#define CEGUI_HAS_MINIZIP_RESOURCE_PROVIDER
 
 // #endif // defined(__APPLE__) // BaH
 

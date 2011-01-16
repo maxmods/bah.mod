@@ -28,8 +28,7 @@
 #ifndef _CEGUIFalagard_xmlHandler_h_
 #define _CEGUIFalagard_xmlHandler_h_
 
-#include "../CEGUIXMLHandler.h"
-#include "../CEGUIcolour.h"
+#include "../CEGUIChainedXMLHandler.h"
 #include "CEGUIFalDimensions.h"
 #include "../CEGUIWindow.h"
 #include <vector>
@@ -51,12 +50,14 @@ namespace CEGUI
     class TextComponent;
     class NamedArea;
     class FrameComponent;
+    class PropertyLinkDefinition;
+    class EventLinkDefinition;
 
     /*!
     \brief
         Handler class used to parse look & feel XML files used by the Falagard system.
     */
-    class Falagard_xmlHandler : public XMLHandler
+    class Falagard_xmlHandler : public ChainedXMLHandler
     {
     public:
         /*!
@@ -71,11 +72,13 @@ namespace CEGUI
         */
         ~Falagard_xmlHandler();
 
+    protected:
         /*************************************************************************
-            XMLHandler base class overrides
+            ChainedXMLHandler base class overrides
         *************************************************************************/
-        void elementStart(const String& element, const XMLAttributes& attributes);
-        void elementEnd(const String& element);
+        void elementStartLocal(const String& element,
+                               const XMLAttributes& attributes);
+        void elementEndLocal(const String& element);
 
     private:
         /*************************************************************************
@@ -126,6 +129,7 @@ namespace CEGUI
         static const String NamedAreaElement;           //!< Tag name for named area elements.
         static const String PropertyDefinitionElement;  //!< Tag name for property definition elements.
         static const String PropertyLinkDefinitionElement;  //!< Tag name for property link elements.
+        static const String PropertyLinkTargetElement;  //!< Tag name for property link target elements.
         static const String DimOperatorElement;         //!< Tag name for dimension operator elements.
         static const String VertFormatPropertyElement;  //!< Tag name for element that specifies a vertical formatting property.
         static const String HorzFormatPropertyElement;  //!< Tag name for element that specifies a horizontal formatting property..
@@ -134,6 +138,8 @@ namespace CEGUI
         static const String TextPropertyElement;        //!< Tag name for element that specifies an Text property.
         static const String FontPropertyElement;        //!< Tag name for element that specifies an Font property.
         static const String ColourElement;              //!< Tag name for Colour elements.
+        static const String EventLinkDefinitionElement; //!< Tag name for event link elements.
+        static const String EventLinkTargetElement;     //!< Tag name for event link target elements.
         // attribute names
         static const String TopLeftAttribute;           //!< Attribute name that stores colour for top-left corner.
         static const String TopRightAttribute;          //!< Attribute name that stores colour for top-right corner.
@@ -164,6 +170,13 @@ namespace CEGUI
         static const String TargetPropertyAttribute;    //!< Attribute name that stores a name of a target property.
         static const String ControlPropertyAttribute;   //!< Attribute name that stores a name of a property to control rendering of a section.
         static const String ColourAttribute;            //!< Attribute name that stores colour for all corners.
+        static const String PropertyAttribute;          //!< Attribute name that stores the name of a property.
+        static const String ControlValueAttribute;      //!< Attribute name that stores a test value to control rendering of a section.
+        static const String ControlWidgetAttribute;   //!< Attribute name that stores a widget identifier used to control rendering of a section.
+        //! Attribute name that stores a help string.
+        static const String HelpStringAttribute;
+        //! Attribute name that stores an Event name string.
+        static const String EventAttribute;
 
         /*************************************************************************
             helper methods
@@ -422,6 +435,18 @@ namespace CEGUI
         */
         void elementColourStart(const XMLAttributes& attributes);
 
+        //! Function to handle PropertyLinkTarget elements.
+        void elementPropertyLinkTargetStart(const XMLAttributes& attributes);
+        
+        //! Function to handle AnimationDefinition elements
+        void elementAnimationDefinitionStart(const XMLAttributes& attributes);
+
+        //! Function to handle EventLinkDefinition elements.
+        void elementEventLinkDefinitionStart(const XMLAttributes& attributes);
+
+        //! Function to handle EventLinkTarget elements.
+        void elementEventLinkTargetStart(const XMLAttributes& attributes);
+
         /*!
         \brief
             Method that handles the closing Falagard XML element.
@@ -500,6 +525,12 @@ namespace CEGUI
         */
         void elementAnyDimEnd();
 
+        //! Function to handle closing PropertyLinkDefinition XML element.
+        void elementPropertyLinkDefinitionEnd();
+
+        //! Function to handle closing EventLinkDefinition XML element.
+        void elementEventLinkDefinitionEnd();
+
         /*!
         \brief
             Register a handler for the opening tag of an XML element
@@ -511,6 +542,9 @@ namespace CEGUI
             Register a handler for the closing tag of an XML element
         */
         void registerElementEndHandler(const String& element, ElementEndHandler handler);
+    
+        //! helper to add an event link target as dictated by the input strings.
+        void processEventLinkTarget(const String& widget, const String& event);
 
         /*************************************************************************
             Implementation Data
@@ -538,10 +572,15 @@ namespace CEGUI
         NamedArea*      d_namedArea;
         FrameComponent*  d_framecomponent;
 
-        std::vector<BaseDim*>    d_dimStack;
+        std::vector<BaseDim*
+            CEGUI_VECTOR_ALLOC(BaseDim*)> d_dimStack;
+
+        PropertyLinkDefinition* d_propertyLink;
+        EventLinkDefinition* d_eventLink;
     };
 
 } // End of  CEGUI namespace section
 
 
 #endif  // end of guard _CEGUIFalagard_xmlHandler_h_
+

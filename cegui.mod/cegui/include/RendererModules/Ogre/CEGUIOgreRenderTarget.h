@@ -46,6 +46,21 @@ public:
     //! Destructor
     virtual ~OgreRenderTarget();
 
+    /*!
+    \brief
+        Set the underlying viewport area directly - bypassing what the
+        RenderTarget considers to be it's area - thus allowing the view port
+        area used for rendering to be different to the area set for the target.
+
+    \param area
+        Rect object describing the area to use in pixels.
+
+    \deprecated
+        This function is deprecated and will be removed or changed considerably
+        in future releases.
+    */
+    void setOgreViewportDimensions(const Rect& area);
+
     // implement parts of CEGUI::RenderTarget interface
     void draw(const GeometryBuffer& buffer);
     void draw(const RenderQueue& queue);
@@ -61,6 +76,8 @@ protected:
     void updateMatrix() const;
     //! helper that initialises the viewport
     void updateViewport();
+    //! helper to update the actual Ogre viewport dimensions
+    void updateOgreViewportDimensions(const Ogre::RenderTarget* const rt);
 
     //! OgreRenderer object that owns this RenderTarget
     OgreRenderer& d_owner;
@@ -80,6 +97,8 @@ protected:
     mutable float d_viewDistance;
     //! true when d_viewport is up to date and valid.
     bool d_viewportValid;
+    //! holds set Ogre viewport dimensions
+    Rect d_ogreViewportDimensions;
 };
 
 } // End of  CEGUI namespace section

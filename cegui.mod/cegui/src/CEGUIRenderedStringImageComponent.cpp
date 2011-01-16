@@ -93,7 +93,7 @@ void RenderedStringImageComponent::setColours(const ColourRect& cr)
 }
 
 //----------------------------------------------------------------------------//
-void RenderedStringImageComponent::setColours(const colour& c)
+void RenderedStringImageComponent::setColours(const Colour& c)
 {
     d_colours.setColours(c);
 }
@@ -138,8 +138,9 @@ void RenderedStringImageComponent::draw(GeometryBuffer& buffer,
         break;
 
     default:
-        throw InvalidRequestException("RenderedStringImageComponent::draw: "
-                "unknown VerticalFormatting option specified.");
+        CEGUI_THROW(InvalidRequestException(
+            "RenderedStringImageComponent::draw: "
+            "unknown VerticalFormatting option specified."));
     }
 
     Size sz(d_image->getSize());
@@ -192,14 +193,15 @@ bool RenderedStringImageComponent::canSplit() const
 RenderedStringImageComponent* RenderedStringImageComponent::split(
     float /*split_point*/, bool /*first_component*/)
 {
-    throw InvalidRequestException("RenderedStringImageComponent::split: this "
-                                  "component does not support being split.");
+    CEGUI_THROW(InvalidRequestException(
+        "RenderedStringImageComponent::split: this "
+        "component does not support being split."));
 }
 
 //----------------------------------------------------------------------------//
 RenderedStringImageComponent* RenderedStringImageComponent::clone() const
 {
-    return new RenderedStringImageComponent(*this);
+    return CEGUI_NEW_AO RenderedStringImageComponent(*this);
 }
 
 //----------------------------------------------------------------------------//

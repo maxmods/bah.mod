@@ -122,9 +122,9 @@ void OpenGLTexture::loadFromFile(const String& filename,
     // get and check existence of CEGUI::System (needed to access ImageCodec)
     System* sys = System::getSingletonPtr();
     if (!sys)
-        throw RendererException("OpenGLTexture::loadFromFile - "
-                                "CEGUI::System object has not been created: "
-                                "unable to access ImageCodec.");
+        CEGUI_THROW(RendererException("OpenGLTexture::loadFromFile - "
+            "CEGUI::System object has not been created: "
+            "unable to access ImageCodec."));
 
     Texture* res = sys->getImageCodec().load(texFile, this);
 
@@ -134,9 +134,9 @@ void OpenGLTexture::loadFromFile(const String& filename,
 
     if (!res)
         // It's an error
-        throw RendererException("OpenGLTexture::loadFromFile - " +
-                                sys->getImageCodec().getIdentifierString()+
-                                " failed to load image '" + filename + "'.");
+        CEGUI_THROW(RendererException("OpenGLTexture::loadFromFile - " +
+            sys->getImageCodec().getIdentifierString() +
+            " failed to load image '" + filename + "'."));
 }
 
 //----------------------------------------------------------------------------//
@@ -201,7 +201,8 @@ void OpenGLTexture::setTextureSize(const Size& sz)
     GLfloat maxSize;
     glGetFloatv(GL_MAX_TEXTURE_SIZE, &maxSize);
     if ((size.d_width > maxSize) || (size.d_height > maxSize))
-        throw RendererException("OpenGLTexture::setTextureSize: size too big");
+        CEGUI_THROW(RendererException(
+            "OpenGLTexture::setTextureSize: size too big"));
 
     // save old texture binding
     GLuint old_tex;
@@ -240,6 +241,40 @@ void OpenGLTexture::grabTexture()
     // delete the texture
     glDeleteTextures(1, &d_ogltexture);
 
+    // restore previous texture binding.
+    glBindTexture(GL_TEXTURE_2D, old_tex);
+}
+
+void OpenGLTexture::blitFromMemory(void* sourceData, const Rect& area)
+{
+    // save old texture binding
+    GLuint old_tex;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, reinterpret_cast<GLint*>(&old_tex));
+
+    // set texture to required size
+    glBindTexture(GL_TEXTURE_2D, d_ogltexture);
+    
+    glTexSubImage2D(GL_TEXTURE_2D, 0,
+        area.d_left, area.d_top,
+        area.d_right - area.d_left, area.d_bottom - area.d_top,
+        GL_RGBA8, GL_UNSIGNED_BYTE, sourceData
+    );
+
+    // restore previous texture binding.
+    glBindTexture(GL_TEXTURE_2D, old_tex);
+}
+
+void OpenGLTexture::blitToMemory(void* targetData)
+{
+    // save old texture binding
+    GLuint old_tex;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, reinterpret_cast<GLint*>(&old_tex));
+
+    // set texture to required size
+    glBindTexture(GL_TEXTURE_2D, d_ogltexture);
+    
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, targetData);
+    
     // restore previous texture binding.
     glBindTexture(GL_TEXTURE_2D, old_tex);
 }

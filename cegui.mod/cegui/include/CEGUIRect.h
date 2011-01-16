@@ -41,7 +41,8 @@ namespace CEGUI
 \brief
 	Class encapsulating operations on a Rectangle
 */
-class CEGUIEXPORT Rect
+class CEGUIEXPORT Rect :
+    public AllocatedObject<Rect>
 {
 public:
 	Rect(void) {}
@@ -53,14 +54,14 @@ public:
 	*/
 	Rect(float left, float top, float right, float bottom);
 
-    Rect(Point pos, Size sz);
+    Rect(Vector2 pos, Size sz);
 
 
 	/*!
 	\brief
 		Return top-left postion of Rect as a Point
 	*/
-	Point	getPosition(void) const		{return Point(d_left, d_top);}
+	Vector2	getPosition(void) const		{return Vector2(d_left, d_top);}
 
 	/*!
 	\brief
@@ -87,7 +88,7 @@ public:
 	\brief
 		set the position of the Rect (leaves size in tact)
 	*/
-	void	setPosition(const Point& pt);
+	void	setPosition(const Vector2& pt);
 
 
 	/*!
@@ -131,7 +132,7 @@ public:
 	\return
 		this Rect after the offset is performed
 	*/
-	Rect&	offset(const Point& pt);
+	Rect&	offset(const Vector2& pt);
 
 
 	/*!
@@ -144,7 +145,7 @@ public:
 	\return
 		true if position \a pt is within this Rect's area, else false
 	*/
-	bool	isPointInRect(const Point& pt) const;
+	bool	isPointInRect(const Vector2& pt) const;
 
 
 	/*!
@@ -204,14 +205,17 @@ public:
     Rect operator*(float scalar) const      { return Rect(d_left * scalar, d_top * scalar, d_right * scalar, d_bottom * scalar); }
     const Rect& operator*=(float scalar)    { d_left *= scalar; d_top *= scalar; d_right *= scalar; d_bottom *= scalar; return *this; }
 
+	Rect operator+(const Rect& r) const		{ return Rect(d_left + r.d_left, d_top + r.d_top, d_right + r.d_right, d_bottom + r.d_bottom); }
+
 
 	/*************************************************************************
 		Data Fields
 	*************************************************************************/
-	float	d_top, d_bottom, d_left, d_right;
+	float	d_left, d_top, d_right, d_bottom;
 };
 
 } // End of  CEGUI namespace section
 
 
 #endif	// end of guard _CEGUIRect_h_
+

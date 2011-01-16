@@ -17,7 +17,7 @@ class MouseCursor : public EventSet
 	static MouseCursor& getSingleton();
 
 	void setImage(const Image* image);
-	void setImage(string imageset, string image);
+	void setImage(utf8string imageset, utf8string image);
 	const Image* getImage() const;
 
 	void setPosition(const Vector2& pos);
@@ -35,6 +35,9 @@ class MouseCursor : public EventSet
 
     void setVisible(bool visible);
 	bool isVisible() const;
+
+    void setExplicitRenderSize(const Size& size);
+    const Size& getExplicitRenderSize() const;
 
     tolua_outside EventIterator ceguiLua_getEventIterator @ getEventIterator() const;
 };

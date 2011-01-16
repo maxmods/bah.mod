@@ -12,6 +12,7 @@ Graphics 800, 600, 0
 
 HideMouse
 
+New CustomLogger
 
 ' Create an instance of our provider
 Local provider:CustomResourceProvider = New CustomResourceProvider
@@ -23,7 +24,7 @@ initialiseDefaultResourceGroups()
 
 TCESchemeManager.createScheme("TaharezLook.scheme")
 
-TCESystem.setDefaultFont("Commonwealth-10")
+TCESystem.setDefaultFont("DejaVuSans-10")
 TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
 
 
@@ -33,7 +34,7 @@ TCESystem.setGUISheet(root)
 
 ' coded button
 Local button:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/Button", "button")
-root.addChildWindow(button)
+root.addChild(button)
 
 button.setText("Show")
 button.setPosition(40, 100)
@@ -42,7 +43,7 @@ button.subscribeEvent(TCEPushButton.EventClicked, clicked)
 
 ' coded editbox
 Local eb:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/Editbox", "editbox")
-root.addChildWindow(eb)
+root.addChild(eb)
 
 eb.setText("Type here")
 eb.setPosition(40, 130)
@@ -142,3 +143,18 @@ Function initialiseDefaultResourceGroups()
 	TCEWindowManager.setDefaultResourceGroup("layouts")
 	'TCEScriptModule.setDefaultResourceGroup("lua_scripts")
 End Function
+
+
+' a custom logger
+Type CustomLogger Extends TCECustomLogger
+
+	' does nothing - we are outputting to the debuglog
+	Method setLogFilename(filename:String, append:Int = False)
+	End Method
+
+	' called for *every* event
+	Method logEvent(message:String, level:Int = LOG_STANDARD)	
+		DebugLog "EVENT : " + message
+	End Method
+
+End Type

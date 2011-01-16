@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2010 Bruce A Henderson
+  Copyright (c) 2008-2011 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,6 @@ extern "C" {
 
 	BBObject * _bah_cegui_TCEEditbox__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCEFrameWindow__create(CEGUI::Window * window);
-	BBObject * _bah_cegui_TCEGUISheet__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCECheckbox__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCERadioButton__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCEPushButton__create(CEGUI::Window * window);
@@ -86,6 +85,7 @@ extern "C" {
 	BBObject * _bah_cegui_TCEClippedContainer__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCEGroupBox__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCEWindow__create(CEGUI::Window * window);
+	BBObject * _bah_cegui_TCEDefaultWindow__create(CEGUI::Window * window);
 
 	
 	BBObject * newObjectForWindow(CEGUI::Window * window);
@@ -201,8 +201,8 @@ extern "C" {
 	void bmx_cegui_window_setheight(CEGUI::Window * window, float height);
 	void bmx_cegui_window_setmaxsize(CEGUI::Window * window, float width, float height);
 	void bmx_cegui_window_setminsize(CEGUI::Window * window, float width, float height);
-	void bmx_cegui_window_addchildwindowwindow(CEGUI::Window * window, CEGUI::Window * win);
-	void bmx_cegui_window_addchildwindow(CEGUI::Window * window, const CEGUI::utf8 * name);
+	void bmx_cegui_window_addchildwindow(CEGUI::Window * window, CEGUI::Window * win);
+	void bmx_cegui_window_addchild(CEGUI::Window * window, const CEGUI::utf8 * name);
 	void bmx_cegui_window_hide(CEGUI::Window * window);
 	void bmx_cegui_window_show(CEGUI::Window * window);
 	BBString * bmx_cegui_window_gettype(CEGUI::Window * window);
@@ -272,14 +272,14 @@ extern "C" {
 	void bmx_cegui_window_appendtext(CEGUI::Window * window, const CEGUI::utf8 * text);
 	void bmx_cegui_window_setfont(CEGUI::Window * window, CEGUI::Font * font);
 	void bmx_cegui_window_setfontbyname(CEGUI::Window * window, const CEGUI::utf8 * name);
-	void bmx_cegui_window_removechildwindow(CEGUI::Window * window, CEGUI::Window * win);
-	void bmx_cegui_window_removechildwindowname(CEGUI::Window * window, const CEGUI::utf8 * name);
-	void bmx_cegui_window_removechildwindowforid(CEGUI::Window * window, CEGUI::uint ID);
+	void bmx_cegui_window_removechild(CEGUI::Window * window, CEGUI::Window * win);
+	void bmx_cegui_window_removechildname(CEGUI::Window * window, const CEGUI::utf8 * name);
+	void bmx_cegui_window_removechildforid(CEGUI::Window * window, CEGUI::uint ID);
 	void bmx_cegui_window_movetofront(CEGUI::Window * window);
 	void bmx_cegui_window_movetoback(CEGUI::Window * window);
 	int bmx_cegui_window_captureinput(CEGUI::Window * window);
 	void bmx_cegui_window_releaseinput(CEGUI::Window * window);
-	void bmx_cegui_window_setrestorecapture(CEGUI::Window * window, int setting);
+	void bmx_cegui_window_setrestoreoldcapture(CEGUI::Window * window, int setting);
 	void bmx_cegui_window_setalpha(CEGUI::Window * window, float alpha);
 	void bmx_cegui_window_setinheritsalpha(CEGUI::Window * window, int setting);
 	void bmx_cegui_window_invalidate(CEGUI::Window * window);
@@ -375,7 +375,7 @@ extern "C" {
 	int bmx_cegui_editbox_istextmasked(CEGUI::Editbox * eb);
 	int bmx_cegui_editbox_istextvalid(CEGUI::Editbox * eb);
 	BBString * bmx_cegui_editbox_getvalidationstring(CEGUI::Editbox * eb);
-	int bmx_cegui_editbox_getcaratindex(CEGUI::Editbox * eb);
+	int bmx_cegui_editbox_getcaretindex(CEGUI::Editbox * eb);
 	int bmx_cegui_editbox_getselectionstartindex(CEGUI::Editbox * eb);
 	int bmx_cegui_editbox_getselectionendindex(CEGUI::Editbox * eb);
 	int bmx_cegui_editbox_getselectionlength(CEGUI::Editbox * eb);
@@ -383,7 +383,7 @@ extern "C" {
 	void bmx_cegui_editbox_setreadonly(CEGUI::Editbox * eb, int setting);
 	void bmx_cegui_editbox_settextmasked(CEGUI::Editbox * eb, int setting);
 	void bmx_cegui_editbox_setvalidationstring(CEGUI::Editbox * eb, const CEGUI::utf8 * validationString);
-	void bmx_cegui_editbox_setcaratindex(CEGUI::Editbox * eb, int caratPos);
+	void bmx_cegui_editbox_setcaretindex(CEGUI::Editbox * eb, int caretPos);
 	void bmx_cegui_editbox_setselection(CEGUI::Editbox * eb, int startPos, int endPos);
 	void bmx_cegui_editbox_setmaxtextlength(CEGUI::Editbox * eb, int maxLen);
 	void bmx_cegui_editbox_setmaskcodepoint(CEGUI::Editbox * eb, CEGUI::utf32 codePoint);
@@ -439,7 +439,7 @@ extern "C" {
 
 	int bmx_cegui_multilineeditbox_hasinputfocus(CEGUI::MultiLineEditbox * eb);
 	int bmx_cegui_multilineeditbox_isreadonly(CEGUI::MultiLineEditbox * eb);
-	int bmx_cegui_multilineeditbox_getcaratindex(CEGUI::MultiLineEditbox * eb);
+	int bmx_cegui_multilineeditbox_getcaretindex(CEGUI::MultiLineEditbox * eb);
 	int bmx_cegui_multilineeditbox_getselectionstartindex(CEGUI::MultiLineEditbox * eb);
 	int bmx_cegui_multilineeditbox_getselectionendindex(CEGUI::MultiLineEditbox * eb);
 	int bmx_cegui_multilineeditbox_getselectionlength(CEGUI::MultiLineEditbox * eb);
@@ -451,10 +451,10 @@ extern "C" {
 	void bmx_cegui_multilineeditbox_gettextrenderarea(CEGUI::MultiLineEditbox * eb, float * x, float * y, float * w, float * h);
 	int bmx_cegui_multilineeditbox_getlinenumberfromindex(CEGUI::MultiLineEditbox * eb, int index);
 	void bmx_cegui_multilineeditbox_setreadonly(CEGUI::MultiLineEditbox * eb, int setting);
-	void bmx_cegui_multilineeditbox_setcaratindex(CEGUI::MultiLineEditbox * eb, int caratPos);
+	void bmx_cegui_multilineeditbox_setcaretindex(CEGUI::MultiLineEditbox * eb, int caretPos);
 	void bmx_cegui_multilineeditbox_setselection(CEGUI::MultiLineEditbox * eb, int startPos, int endPos);
 	void bmx_cegui_multilineeditbox_setmaxtextlength(CEGUI::MultiLineEditbox * eb, int maxLen);
-	void bmx_cegui_multilineeditbox_ensurecaratisvisible(CEGUI::MultiLineEditbox * eb);
+	void bmx_cegui_multilineeditbox_ensurecaretisvisible(CEGUI::MultiLineEditbox * eb);
 	void bmx_cegui_multilineeditbox_setwordwrapping(CEGUI::MultiLineEditbox * eb, int setting);
 	void bmx_cegui_multilineeditbox_setshowvertscrollbar(CEGUI::MultiLineEditbox * eb, int setting);
 
@@ -1007,7 +1007,7 @@ extern "C" {
 	int bmx_cegui_combobox_isreadonly(CEGUI::Combobox * cb);
 	int bmx_cegui_combobox_istextvalid(CEGUI::Combobox * cb);
 	BBString * bmx_cegui_combobox_getvalidationstring(CEGUI::Combobox * cb);
-	int bmx_cegui_combobox_getcaratindex(CEGUI::Combobox * cb);
+	int bmx_cegui_combobox_getcaretindex(CEGUI::Combobox * cb);
 	int bmx_cegui_combobox_getselectionstartindex(CEGUI::Combobox * cb);
 	int bmx_cegui_combobox_getselectionendindex(CEGUI::Combobox * cb);
 	int bmx_cegui_combobox_getselectionlength(CEGUI::Combobox * cb);
@@ -1027,7 +1027,7 @@ extern "C" {
 	void bmx_cegui_combobox_setsingleclickenabled(CEGUI::Combobox * cb, int setting);
 	void bmx_cegui_combobox_setreadonly(CEGUI::Combobox * cb, int setting);
 	void bmx_cegui_combobox_setvalidationstring(CEGUI::Combobox * cb, const CEGUI::utf8 * validationString);
-	void bmx_cegui_combobox_setcaratindex(CEGUI::Combobox * cb, int caratPos);
+	void bmx_cegui_combobox_setcaretindex(CEGUI::Combobox * cb, int caretPos);
 	void bmx_cegui_combobox_setselection(CEGUI::Combobox * cb, int startPos, int endPos);
 	void bmx_cegui_combobox_setmaxtextlength(CEGUI::Combobox * cb, int maxLen);
 	void bmx_cegui_combobox_activateeditbox(CEGUI::Combobox * cb);
@@ -1069,6 +1069,9 @@ extern "C" {
 	void bmx_cegui_font_setproperty(CEGUI::Font * font, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	int bmx_cegui_font_ispropertydefault(CEGUI::Font * font, const CEGUI::utf8 * name);
 	BBString * bmx_cegui_font_getpropertydefault(CEGUI::Font * font, const CEGUI::utf8 * name);
+	int bmx_cegui_font_getpropertyasbool(CEGUI::Font * font, const CEGUI::utf8 * name);
+	int bmx_cegui_font_getpropertyasint(CEGUI::Font * font, const CEGUI::utf8 * name);
+	void bmx_cegui_font_setpropertyasbool(CEGUI::Font * font, const CEGUI::utf8 * name, int value);
 
 	void bmx_cegui_font_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup);
 	BBString * bmx_cegui_font_getdefaultresourcegroup();
@@ -1228,13 +1231,13 @@ private:
 class MaxCEColour
 {
 public:
-	MaxCEColour(CEGUI::colour col);
+	MaxCEColour(CEGUI::Colour col);
 	~MaxCEColour();
 
-	CEGUI::colour Colour();
+	CEGUI::Colour Colour();
 	
 private:
-	CEGUI::colour colour;
+	CEGUI::Colour colour;
 };
 
 class MaxCEColourRect

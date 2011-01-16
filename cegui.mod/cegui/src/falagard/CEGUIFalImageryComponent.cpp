@@ -33,6 +33,7 @@
 #include "CEGUIImageset.h"
 #include "CEGUIPropertyHelper.h"
 #include <iostream>
+#include <cstdlib>
 
 // void	draw(const Rect& dest_rect, float z, const Rect& clip_rect,const ColourRect& colours);
 
@@ -57,11 +58,11 @@ namespace CEGUI
 
     void ImageryComponent::setImage(const String& imageset, const String& image)
     {
-        try
+        CEGUI_TRY
         {
             d_image = &ImagesetManager::getSingleton().get(imageset).getImage(image);
         }
-        catch (UnknownObjectException&)
+        CEGUI_CATCH (UnknownObjectException&)
         {
             d_image = 0;
         }
@@ -91,7 +92,7 @@ namespace CEGUI
     {
         // get final image to use.
         const Image* img = isImageFetchedFromProperty() ?
-            PropertyHelper::stringToImage(srcWindow.getProperty(d_imagePropertyName)) :
+            PropertyHelper<Image*>::fromString(srcWindow.getProperty(d_imagePropertyName)) :
             d_image;
 
         // do not draw anything if image is not set.
@@ -124,7 +125,8 @@ namespace CEGUI
 
             case HF_TILED:
                 xpos = destRect.d_left;
-                horzTiles = (uint)((destRect.getWidth() + (imgSz.d_width - 1)) / imgSz.d_width);
+                horzTiles = std::abs(static_cast<int>(
+                    (destRect.getWidth() + (imgSz.d_width - 1)) / imgSz.d_width));
                 break;
 
             case HF_LEFT_ALIGNED:
@@ -143,7 +145,7 @@ namespace CEGUI
                 break;
 
             default:
-                throw InvalidRequestException("ImageryComponent::render - An unknown HorizontalFormatting value was specified.");
+                CEGUI_THROW(InvalidRequestException("ImageryComponent::render - An unknown HorizontalFormatting value was specified."));
         }
 
         // calculate initial y co-ordinate and vertical tile count according to formatting options
@@ -157,7 +159,8 @@ namespace CEGUI
 
             case VF_TILED:
                 ypos = destRect.d_top;
-                vertTiles = (uint)((destRect.getHeight() + (imgSz.d_height - 1)) / imgSz.d_height);
+                vertTiles = std::abs(static_cast<int>(
+                    (destRect.getHeight() + (imgSz.d_height - 1)) / imgSz.d_height));
                 break;
 
             case VF_TOP_ALIGNED:
@@ -176,7 +179,7 @@ namespace CEGUI
                 break;
 
             default:
-                throw InvalidRequestException("ImageryComponent::render - An unknown VerticalFormatting value was specified.");
+                CEGUI_THROW(InvalidRequestException("ImageryComponent::render - An unknown VerticalFormatting value was specified."));
         }
 
         // perform final rendering (actually is now a caching of the images which will be drawn)

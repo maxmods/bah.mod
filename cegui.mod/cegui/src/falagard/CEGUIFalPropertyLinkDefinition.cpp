@@ -4,7 +4,7 @@
     author:     Paul D Turner <paul@cegui.org.uk>
 *************************************************************************/
 /***************************************************************************
- *   Copyright (C) 2004 - 2006 Paul D Turner & The CEGUI Development Team
+ *   Copyright (C) 2004 - 2010 Paul D Turner & The CEGUI Development Team
  *
  *   Permission is hereby granted, free of charge, to any person obtaining
  *   a copy of this software and associated documentation files (the
@@ -33,6 +33,10 @@
 // Start of CEGUI namespace section
 namespace CEGUI
 {
+    // Static string holding parent link identifier
+    static const String S_parentIdentifier("__parent__");
+
+
     PropertyLinkDefinition::PropertyLinkDefinition(
                                 const String& propertyName,
                                 const String& widgetNameSuffix,
@@ -42,42 +46,107 @@ namespace CEGUI
                                 bool layoutOnWrite)
 
         : PropertyDefinitionBase(propertyName,
-                                 "Falagard property link definition - links a property on this window to another defined on a child window.",
+                                 "Falagard property link definition - links a "
+                                     "property on this window to properties "
+                                     "defined on one or more child windows, or "
+                                     "the parent window.",
                                  initialValue,
                                  redrawOnWrite,
-                                 layoutOnWrite),
-
-          d_widgetNameSuffix(widgetNameSuffix),
-          d_targetProperty(targetProperty)
+                                 layoutOnWrite)
     {
+        // add initial target if it was specified via constructor
+        // (typically meaning it came via XML attributes)
+        if (!widgetNameSuffix.empty() || !targetProperty.empty())
+            addLinkTarget(widgetNameSuffix, targetProperty);
     }
 
     String PropertyLinkDefinition::get(const PropertyReceiver* receiver) const
     {
-        return getTargetWindow(receiver)->getProperty(d_targetProperty.empty() ? d_name : d_targetProperty);
+        const LinkTargetCollection::const_iterator i(d_targets.begin());
+
+        const Window* const target_wnd =
+            getTargetWindow(receiver, (*i).d_widgetNameSuffix);
+
+        // if no target, or target (currently) invalid, return the default value
+        if (d_targets.empty() || !target_wnd)
+            return d_default;
+
+        // otherwise return the value of the property for first target, since
+        // this is considered the 'master' target for get operations.
+        return target_wnd->getProperty((*i).d_targetProperty.empty() ?
+                                                d_name :
+                                                (*i).d_targetProperty);
     }
 
     void PropertyLinkDefinition::set(PropertyReceiver* receiver, const String& value)
     {
-        getTargetWindow(receiver)->setProperty(d_targetProperty.empty() ? d_name : d_targetProperty, value);
+        LinkTargetCollection::iterator i = d_targets.begin();
+        for ( ; i != d_targets.end(); ++i)
+        {
+            Window* target_wnd = getTargetWindow(receiver,
+                                                 (*i).d_widgetNameSuffix);
+
+            // only try to set property if target is currently valid.
+            if (target_wnd)
+                target_wnd->setProperty((*i).d_targetProperty.empty() ?
+                                                d_name :
+                                                (*i).d_targetProperty, value);
+        }
+
+        // base handles things like ensuring redraws and such happen
         PropertyDefinitionBase::set(receiver, value);
     }
 
     const Window* PropertyLinkDefinition::getTargetWindow(const PropertyReceiver* receiver) const
     {
-        // if no name suffix, we are the target (not very useful, but still...)
-        if (d_widgetNameSuffix.empty())
+        if (d_targets.empty())
             return static_cast<const Window*>(receiver);
 
-        return WindowManager::getSingleton().getWindow(
-                static_cast<const Window*>(receiver)->getName() + d_widgetNameSuffix);
+        return getTargetWindow(receiver,
+                               (*d_targets.begin()).d_widgetNameSuffix);
     }
 
     Window* PropertyLinkDefinition::getTargetWindow(PropertyReceiver* receiver)
     {
-        return const_cast<Window*>(static_cast<const PropertyLinkDefinition*>(this)->getTargetWindow(receiver));
+        return const_cast<Window*>(
+            static_cast<const PropertyLinkDefinition*>(this)->
+                getTargetWindow(receiver));
     }
 
+    void PropertyLinkDefinition::addLinkTarget(const String& widget,
+                                               const String& property)
+    {
+        const LinkTarget t = { widget, property };
+        d_targets.push_back(t);
+    }
+
+    void PropertyLinkDefinition::clearLinkTargets()
+    {
+        d_targets.clear();
+    }
+
+    const Window* PropertyLinkDefinition::getTargetWindow(
+                                            const PropertyReceiver* receiver,
+                                            const String& name_suffix) const
+    {
+        if (name_suffix.empty())
+            return static_cast<const Window*>(receiver);
+
+        // handle link back to parent.  Return receiver if no parent.
+        if (name_suffix == S_parentIdentifier)
+            return static_cast<const Window*>(receiver)->getParent();
+
+        return WindowManager::getSingleton().getWindow(
+            static_cast<const Window*>(receiver)->getName() + name_suffix);
+    }
+
+    Window* PropertyLinkDefinition::getTargetWindow(PropertyReceiver* receiver,
+                                                    const String& name_suffix)
+    {
+        return const_cast<Window*>(
+            static_cast<const PropertyLinkDefinition*>(this)->
+                getTargetWindow(receiver, name_suffix));
+    }
 
     void PropertyLinkDefinition::writeXMLElementType(XMLSerializer& xml_stream) const
     {
@@ -88,11 +157,38 @@ namespace CEGUI
     {
         PropertyDefinitionBase::writeXMLAttributes(xml_stream);
 
-        if (!d_widgetNameSuffix.empty())
-            xml_stream.attribute("widget", d_widgetNameSuffix);
+        // HACK: Here we abuse some intimate knowledge in that we know it's
+        // safe to write our sub-elements out although the function is named
+        // for writing attributes.  The alternative was to repeat code from the
+        // base class, also demonstrating intimate knowledge ;)
 
-        if (!d_targetProperty.empty())
-            xml_stream.attribute("targetProperty",  d_targetProperty);
+        LinkTargetCollection::const_iterator i(d_targets.begin());
+
+        // if there is one target only, write it out as attributes
+        if (d_targets.size() == 1)
+        {
+            if (!(*i).d_widgetNameSuffix.empty())
+                xml_stream.attribute("widget", (*i).d_widgetNameSuffix);
+
+            if (!(*i).d_targetProperty.empty())
+                xml_stream.attribute("targetProperty", (*i).d_targetProperty);
+        }
+        // we have multiple targets, so write them as PropertyLinkTarget tags
+        else
+        {
+            for ( ; i != d_targets.end(); ++i)
+            {
+                xml_stream.openTag("PropertyLinkTarget");
+
+                if (!(*i).d_widgetNameSuffix.empty())
+                    xml_stream.attribute("widget", (*i).d_widgetNameSuffix);
+
+                if (!(*i).d_targetProperty.empty())
+                    xml_stream.attribute("property", (*i).d_targetProperty);
+
+                xml_stream.closeTag();
+            }
+        }
     }
 
 } // End of  CEGUI namespace section

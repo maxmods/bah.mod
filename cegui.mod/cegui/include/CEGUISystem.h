@@ -61,7 +61,10 @@ struct MouseClickTrackerImpl;
 	an initialised Renderer object which it can use to interface to whatever rendering system will be
 	used to display the GUI imagery.
 */
-class CEGUIEXPORT System : public Singleton<System>, public EventSet
+class CEGUIEXPORT System :
+    public Singleton<System>,
+    public EventSet,
+    public AllocatedObject<System>
 {
 public:
 	static const String EventNamespace;				//!< Namespace for global events
@@ -667,8 +670,7 @@ public:
         Pointer to the current system default tooltip.  May return 0 if
         no system default tooltip is available.
      */
-    Tooltip* getDefaultTooltip(void) const  { return d_defaultTooltip; }
-
+    Tooltip* getDefaultTooltip(void) const;
 
 	/*!
 	\brief
@@ -847,6 +849,18 @@ public:
         window itself will use the systems BasicRenderedStringParser. 
     */
     void setDefaultCustomRenderedStringParser(RenderedStringParser* parser);
+
+    /*!
+    \brief
+        Invalidate all imagery and geometry caches for CEGUI managed elements.
+
+        This function will invalidate the caches used for both imagery and
+        geometry for all content that is managed by the core CEGUI manager
+        objects, causing a full and total redraw of that content.  This
+        includes Window object's cached geometry, rendering surfaces and
+        rendering windows and the mouse pointer geometry.
+    */
+    void invalidateAllCachedRendering();
 
 	/*************************************************************************
 		Input injection interface
@@ -1131,7 +1145,7 @@ private:
 	\return
 		Pointer to a Window object that should receive mouse input with the system in its current state and the mouse at location \a pt.
 	*/
-	Window*	getTargetWindow(const Point& pt, const bool allow_disabled) const;
+	Window*	getTargetWindow(const Vector2& pt, const bool allow_disabled) const;
 
 
 	/*!
@@ -1216,6 +1230,21 @@ private:
 
     //! Set the CEGUI version string that gets output to the log.
     void initialiseVersionString();
+
+    //! invalidate all windows and any rendering surfaces they may be using.
+    void invalidateAllWindows();
+
+    //! return common ancestor of two windows.
+    Window* getCommonAncestor(Window* w1, Window* w2);
+
+    //! call some function for a chain of windows: (top, bottom]
+    void notifyMouseTransition(Window* top, Window* bottom,
+                               void (Window::*func)(MouseEventArgs&),
+                               MouseEventArgs& args);
+    //! create a window of type d_defaultTooltipType for use as the Tooltip
+    void createSystemOwnedDefaultTooltipWindow() const;
+    //! destroy the default tooltip window if the system owns it.
+    void destroySystemOwnedDefaultTooltipWindow();
 
 	/*************************************************************************
 		Handlers for System events
@@ -1313,8 +1342,12 @@ private:
     bool        d_ourXmlParser;     //!< true when we created the xml parser.
     DynamicModule* d_parserModule;  //! pointer to parser module.
 
-    Tooltip* d_defaultTooltip;      //!< System default tooltip object.
-    bool     d_weOwnTooltip;        //!< true if System created the custom Tooltip.
+    //! System default tooltip object.
+    mutable Tooltip* d_defaultTooltip;
+    //! true if System created d_defaultTooltip.
+    mutable bool d_weOwnTooltip;
+    //! type of window to create as d_defaultTooltip
+    String d_defaultTooltipType;
 
     static String   d_defaultXMLParserName; //!< Holds name of default XMLParser
 

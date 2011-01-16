@@ -33,10 +33,12 @@
 #include "CEGUIBase.h"
 #include "CEGUIString.h"
 #include "CEGUIVector.h"
+#include "CEGUIQuaternion.h"
 #include "CEGUIRect.h"
 #include "CEGUISize.h"
 #include "CEGUIEventSet.h"
 #include "CEGUIPropertySet.h"
+#include "CEGUITplProperty.h"
 #include "CEGUISystem.h"
 #include "CEGUIInputEvent.h"
 #include "CEGUIWindowProperties.h"
@@ -135,7 +137,10 @@ enum WindowUpdateMode
     and specifies the minimal interface required to be implemented by derived
     classes.
 */
-class CEGUIEXPORT Window : public PropertySet, public EventSet
+class CEGUIEXPORT Window :
+    public PropertySet,
+    public EventSet,
+    public AllocatedObject<Window>
 {
 public:
     /*************************************************************************
@@ -148,7 +153,7 @@ public:
     /** Event fired as part of the time based update of the window.
      * Handlers are passed a const UpdateEventArgs reference.
      */
-    static const String EventWindowUpdated;
+    static const String EventUpdated;
     /** Event fired when the parent of this Window has been re-sized.
      * Handlers are passed a const WindowEventArgs reference with
      * WindowEventArgs::window pointing to the <em>parent window</em> that
@@ -360,18 +365,46 @@ public:
      * changed.
      */
     static const String EventTextParsingChanged;
+    /** Event fired when the Window's margin has changed (any of the four margins)
+     * Handlers are passed a const WindowEventArgs reference with
+     * WindowEventArgs::window set to the Window whose margin was
+     * changed.
+     */
+    static const String EventMarginChanged;
 
     // generated externally (inputs)
     /** Event fired when the mouse cursor has entered the Window's area.
      * Handlers are passed a const MouseEventArgs reference with all fields
      * valid.
      */
-    static const String EventMouseEnters;
+    static const String EventMouseEntersArea;
     /** Event fired when themouse cursor has left the Window's area.
      * Handlers are passed a const MouseEventArgs reference with all fields
      * valid.
      */
-    static const String EventMouseLeaves;
+    static const String EventMouseLeavesArea;
+    /** Event fired when the mouse cursor enters the Window's area.
+     * Handlers are passed a const MouseEventArgs reference with all fields
+     * valid.
+     *\note This event is fired if - and only if - the mouse cursor is actually
+     * over some part of this Window's surface area, and will not fire for
+     * example if the location of the mouse is over some child window (even
+     * though the mouse is technically also within the area of this Window).
+     * For an alternative version of this event see the
+     * Window::EventMouseEntersArea event.
+     */
+    static const String EventMouseEntersSurface;
+    /** Event fired when the mouse cursor is no longer over the Window's surface
+     * area.
+     * Handlers are passed a const MouseEventArgs reference with all fields
+     * valid.
+     *\note This event will fire whenever the mouse is no longer actually over
+     * some part of this Window's surface area, for example if the mouse is
+     * moved over some child window (even though technically the mouse has not
+     * actually 'left' this Window's area).  For an alternative version of this
+     * event see the Window::EventMouseLeavesArea event.
+     */
+    static const String EventMouseLeavesSurface;
     /** Event fired when the mouse cursor moves within the area of the Window.
      * Handlers are passed a const MouseEventArgs reference with all fields
      * valid.
@@ -973,6 +1006,27 @@ public:
         clipper rects should not to be used if reliable results are desired).
     */
     Rect getHitTestRect() const;
+
+    /*!
+    \brief
+        Return a Rect that describes the area that is used to position
+        and - for scale values - size child content attached to this Window.
+
+        By and large the area returned here will be the same as the unclipped
+        inner rect (for client content) or the unclipped outer rect (for non
+        client content), although certain advanced uses will require
+        alternative Rects to be returned.
+
+    \note
+        The behaviour of this function is modified by overriding the
+        protected Window::getClientChildWindowContentArea_impl and/or
+        Window::getNonClientChildWindowContentArea_impl functions.
+
+    \param non_client
+        - true to return the non-client child content area.
+        - false to return the client child content area (default).
+    */
+    Rect getChildWindowContentArea(const bool non_client = false) const;
 
     /*!
     \brief
@@ -1584,9 +1638,6 @@ public:
     const Window* getRootWindow() const;
     Window* getRootWindow();
 
-    //! return the rotations set for this window.
-    const Vector3& getRotation() const;
-
     /*!
     \brief
         Return whether the Window is a non-client window.
@@ -1867,7 +1918,7 @@ public:
         thrown if Window \a name is an ancestor of this Window, to prevent
         cyclic Window structures.
     */
-    void addChildWindow(const String& name);
+    void addChild(const String& name);
 
     /*!
     \brief
@@ -1885,7 +1936,7 @@ public:
         thrown if Window \a window is an ancestor of this Window, to prevent
         cyclic Window structures.
     */
-    void addChildWindow(Window* window);
+    void addChild(Window* window);
 
     /*!
     \brief
@@ -1898,7 +1949,7 @@ public:
     \return
         Nothing.
     */
-    void removeChildWindow(const String& name);
+    void removeChild(const String& name);
 
     /*!
     \brief
@@ -1911,7 +1962,7 @@ public:
     \return
         Nothing.
     */
-    void removeChildWindow(Window* window);
+    void removeChild(Window* window);
 
     /*!
     \brief
@@ -1926,7 +1977,47 @@ public:
     \return
         Nothing.
     */
-    void removeChildWindow(uint ID);
+    void removeChild(uint ID);
+
+    /*!
+	\brief
+		Creates a child window attached to this window.
+	
+	\param type
+		String that describes the type of Window to be created.  A valid WindowFactory for the specified type must be registered.
+
+	\param name
+		String that holds a unique name that is to be given to the new window.  If this string is empty (""), a name
+		will be generated for the window.
+	
+	\param nameLocal
+		If true, the name is considered local (the absolute name will be ParentWindowName/Name)
+
+	\return
+		Pointer to the newly created child Window object.
+	*/
+    Window* createChild(const String& type, const String& name, bool nameLocal = true);
+
+    /*!
+    \brief
+        Destroys a child window of this window
+
+    \param wnd
+        The child window to destroy
+    */
+    void destroyChild(Window* wnd);
+
+    /*!
+    \brief
+        Destroys a child window of this window
+
+    \param name
+        Name of the child window to destroy
+
+    \param nameLocal
+        If true, the name is considered local (the absolute name will be ParentWindowName/Name)
+    */
+    void destroyChild(const String& name, bool nameLocal = true);
 
     /*!
     \brief
@@ -2029,7 +2120,7 @@ public:
     \return
         Nothing
     */
-    void setRestoreCapture(bool setting);
+    void setRestoreOldCapture(bool setting);
 
     /*!
     \brief
@@ -2051,7 +2142,7 @@ public:
     \return
         Nothing
     */
-    void setAlpha(float alpha);
+    void setAlpha(const float alpha);
 
     /*!
     \brief
@@ -2867,7 +2958,7 @@ public:
     \return
         Nothing.
     */
-    void update(float elapsed);
+    virtual void update(float elapsed);
 
     /*!
     \brief
@@ -3061,8 +3152,25 @@ public:
     */
     void setUsingAutoRenderingSurface(bool setting);
 
-    //! set the rotations for this window.
-    void setRotation(const Vector3& rotation);
+    /*!
+    \brief sets rotation of this widget
+
+    \param rotation
+        A Quaternion describing the rotation
+
+    CEGUI used Euler angles previously. Whilst this is easy to use and seems
+    intuitive, it causes Gimbal locks when animating and is just the worse
+    solution than using Quaternions. You can still use Euler angles, see
+    the \a Quaternion class for more info about that.
+    */
+    void setRotation(const Quaternion& rotation);
+
+    /*!
+    \brief retrieves rotation of this widget
+
+    \see Window::setRotation
+    */
+    const Quaternion& getRotation() const;
 
     /*!
     \brief
@@ -3093,11 +3201,16 @@ public:
     //! set whether text parsing is enabled for this window.
     void setTextParsingEnabled(const bool setting);
 
+    //! set margin
+    virtual void setMargin(const UBox& margin);
+    //! retrieves currently set margin
+    const UBox& getMargin() const;
+
     //! return Vector2 \a pos after being fully unprojected for this Window.
     Vector2 getUnprojectedPosition(const Vector2& pos) const;
 
-    //! return the pointer to the BiDiVisualMapping for this window, if any.
-    const BiDiVisualMapping* getBiDiVisualMapping() const
+    //! return the pointer to the BidiVisualMapping for this window, if any.
+    const BidiVisualMapping* getBidiVisualMapping() const
         {return d_bidiVisualMapping;}
 
     //! Add the named property to the XML ban list for this window.
@@ -3155,6 +3268,51 @@ public:
         mode set for this Window.
     */
     WindowUpdateMode getUpdateMode() const;
+
+    /*!
+    \brief
+        Set whether mouse input that is not directly handled by this Window
+        (including it's event subscribers) should be propagated back to the
+        Window's parent.
+
+    \param enabled
+        - true if unhandled mouse input should be propagated to the parent.
+        - false if unhandled mouse input should not be propagated.
+    */
+    void setMouseInputPropagationEnabled(const bool enabled);
+
+    /*!
+    \brief
+        Return whether mouse input that is not directly handled by this Window
+        (including it's event subscribers) should be propagated back to the
+        Window's parent.
+
+    \return
+        - true if unhandled mouse input will be propagated to the parent.
+        - false if unhandled mouse input will not be propagated.
+    */
+    bool isMouseInputPropagationEnabled() const;
+
+    /*!
+    \brief
+        Clones this Window and returns the result
+
+    \param 
+        newName new name of the cloned window
+
+    \param
+        deepCopy if true, even children are copied (the old name prefix will
+        be replaced with new name prefix)
+
+    \return
+        the cloned Window
+    */
+    Window* clone(const String& newName, const bool deepCopy = true) const;
+
+    //! copies this widget's properties to given target widget
+    virtual void clonePropertiesTo(Window& target) const;
+    //! copies this widget's child widgets to given target widget
+    virtual void cloneChildWidgetsTo(Window& target) const;
 
 protected:
     // friend classes for construction / initialisation purposes (for now)
@@ -3448,7 +3606,7 @@ protected:
     \param e
         MouseEventArgs object.  All fields are valid.
     */
-    virtual void onMouseEnters(MouseEventArgs& e);
+    virtual void onMouseEntersArea(MouseEventArgs& e);
 
     /*!
     \brief
@@ -3456,6 +3614,38 @@ protected:
 
     \param e
         MouseEventArgs object.  All fields are valid.
+    */
+    virtual void onMouseLeavesArea(MouseEventArgs& e);
+
+    /*!
+    \brief
+        Handler called when the mouse cursor has entered this window's area and
+        is actually over some part of this windows surface and not, for
+        instance over a child window - even though technically in those cases
+        the mouse is also within this Window's area, the handler will not be
+        called.
+
+    \param e
+        MouseEventArgs object.  All fields are valid.
+
+    \see
+        Window::onMouseEntersArea
+    */
+    virtual void onMouseEnters(MouseEventArgs& e);
+
+    /*!
+    \brief
+        Handler called when the mouse cursor is no longer over this window's
+        surface area.  This will be called when the mouse is not over a part
+        of this Window's actual surface - even though technically the mouse is
+        still within the Window's area, for example if the mouse moves over a
+        child window.
+
+    \param e
+        MouseEventArgs object.  All fields are valid.
+
+    \see
+        Window::onMouseLeavesArea
     */
     virtual void onMouseLeaves(MouseEventArgs& e);
 
@@ -3684,6 +3874,8 @@ protected:
         'this'.
     */
     virtual void onTextParsingChanged(WindowEventArgs& e);
+
+    virtual void onMarginChanged(WindowEventArgs& e);
 
     /*************************************************************************
         Implementation Functions
@@ -3965,29 +4157,42 @@ protected:
     virtual Rect getInnerRectClipper_impl() const;
     //! Default implementation of function to return Window hit-test area.
     virtual Rect getHitTestRect_impl() const;
+    //! Default implementation of function to return non-client content area
+    virtual Rect getNonClientChildWindowContentArea_impl() const;
+    //! Default implementation of function to return client content area
+    virtual Rect getClientChildWindowContentArea_impl() const;
 
     virtual int writePropertiesXML(XMLSerializer& xml_stream) const;
     virtual int writeChildWindowsXML(XMLSerializer& xml_stream) const;
     virtual bool writeAutoChildWindowXML(XMLSerializer& xml_stream) const;
 
+    // constrain given UVector2 to window's min size, return if size changed.
+    bool constrainUVector2ToMinSize(const Size& base_sz, UVector2& sz);
+    // constrain given UVector2 to window's max size, return if size changed.
+    bool constrainUVector2ToMaxSize(const Size& base_sz, UVector2& sz);
+
     /*************************************************************************
         Properties for Window base class
     *************************************************************************/
-    static  WindowProperties::Alpha             d_alphaProperty;
-    static  WindowProperties::AlwaysOnTop       d_alwaysOnTopProperty;
-    static  WindowProperties::ClippedByParent   d_clippedByParentProperty;
-    static  WindowProperties::DestroyedByParent d_destroyedByParentProperty;
+    static TplProperty<Window, bool>            d_alwaysOnTopProperty;
+    static TplProperty<Window, bool>            d_clippedByParentProperty;
+    static TplProperty<Window, bool>            d_destroyedByParentProperty;
+
     static  WindowProperties::Disabled          d_disabledProperty;
     static  WindowProperties::Font              d_fontProperty;
-    static  WindowProperties::ID                d_IDProperty;
-    static  WindowProperties::InheritsAlpha     d_inheritsAlphaProperty;
+
+    static TplProperty<Window, uint>            d_IDProperty;
+    static TplProperty<Window, bool>            d_inheritsAlphaProperty;
+    //static TplProperty<Window, Image*>          d_mouseCursorProperty;
     static  WindowProperties::MouseCursorImage  d_mouseCursorProperty;
-    static  WindowProperties::RestoreOldCapture d_restoreOldCaptureProperty;
-    static  WindowProperties::Text              d_textProperty;
+    static TplProperty<Window, bool>            d_restoreOldCaptureProperty;
+    static TplProperty<Window, String>          d_textProperty;
+    //static TplProperty<Window, bool>            d_visibleProperty;
     static  WindowProperties::Visible           d_visibleProperty;
-    static  WindowProperties::ZOrderChangeEnabled   d_zOrderChangeProperty;
-    static  WindowProperties::WantsMultiClickEvents d_wantsMultiClicksProperty;
-    static  WindowProperties::MouseButtonDownAutoRepeat d_autoRepeatProperty;
+    static TplProperty<Window, bool>            d_zOrderChangeProperty;
+    static TplProperty<Window, bool>            d_wantsMultiClicksProperty;
+    static TplProperty<Window, bool>            d_mouseButtonAutoRepeatProperty;
+    
     static  WindowProperties::AutoRepeatDelay   d_autoRepeatDelayProperty;
     static  WindowProperties::AutoRepeatRate    d_autoRepeatRateProperty;
     static  WindowProperties::DistributeCapturedInputs d_distInputsProperty;
@@ -4012,22 +4217,24 @@ protected:
     static  WindowProperties::DragDropTarget    d_dragDropTargetProperty;
     static  WindowProperties::AutoRenderingSurface d_autoRenderingSurfaceProperty;
     static  WindowProperties::Rotation d_rotationProperty;
-    static  WindowProperties::XRotation d_xRotationProperty;
-    static  WindowProperties::YRotation d_yRotationProperty;
-    static  WindowProperties::ZRotation d_zRotationProperty;
     static  WindowProperties::NonClient d_nonClientProperty;
     static  WindowProperties::TextParsingEnabled d_textParsingEnabledProperty;
+    static  WindowProperties::Margin d_marginProperty;
     static  WindowProperties::UpdateMode d_updateModeProperty;
+    static  WindowProperties::MouseInputPropagationEnabled d_mouseInputPropagationProperty;
 
     /*************************************************************************
         Implementation Data
     *************************************************************************/
     //! definition of type used for the list of attached child windows.
-    typedef std::vector<Window*> ChildList;
+    typedef std::vector<Window*
+        CEGUI_VECTOR_ALLOC(Window*)> ChildList;
     //! definition of type used for the UserString dictionary.
-    typedef std::map<String, String, String::FastLessCompare> UserStringMap;
+    typedef std::map<String, String, String::FastLessCompare
+        CEGUI_MAP_ALLOC(String, String)> UserStringMap;
     //! definition of type used to track properties banned from writing XML.
-    typedef std::set<String, String::FastLessCompare> BannedXMLPropertySet;
+    typedef std::set<String, String::FastLessCompare
+        CEGUI_SET_ALLOC(String)> BannedXMLPropertySet;
 
     //! type of Window (also the name of the WindowFactory that created us)
     const String d_type;
@@ -4098,7 +4305,7 @@ protected:
     //! Holds the text / label / caption for this Window.
     String d_textLogical;
     //! pointer to bidirection support object
-    BiDiVisualMapping* d_bidiVisualMapping;
+    BidiVisualMapping* d_bidiVisualMapping;
     //! whether bidi visual mapping has been updated since last text change.
     mutable bool d_bidiDataValid;
     //! RenderedString representation of text string as ouput from a parser.
@@ -4113,6 +4320,9 @@ protected:
     RenderedStringParser* d_customStringParser;
     //! true if use of parser other than d_defaultStringParser is enabled
     bool d_textParsingEnabled;
+
+	//! Margin, only used when the Window is inside LayoutContainer class
+    UBox d_margin;
 
     //! User ID assigned to this Window
     uint d_ID;
@@ -4174,8 +4384,8 @@ protected:
     HorizontalAlignment d_horzAlign;
     //! Specifies the base for vertical alignment.
     VerticalAlignment d_vertAlign;
-    //! Rotation angles for this window
-    Vector3 d_rotation;
+    //! Rotation of this window (relative to the parent)
+    Quaternion d_rotation;
 
     //! outer area rect in screen pixels
     mutable Rect d_outerUnclippedRect;
@@ -4196,6 +4406,9 @@ protected:
 
     //! The mode to use for calling Window::update
     WindowUpdateMode d_updateMode;
+    //! specifies whether mouse inputs should be propagated to parent(s)
+    bool d_propagateMouseInputs;
+
 
 private:
     /*************************************************************************
@@ -4213,3 +4426,4 @@ private:
 #endif
 
 #endif  // end of guard _CEGUIWindow_h_
+

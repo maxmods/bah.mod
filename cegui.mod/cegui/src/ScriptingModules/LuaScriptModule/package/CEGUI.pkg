@@ -47,6 +47,14 @@ $pfile "RenderingWindow.pkg"
 $pfile "Renderer.pkg"
 $pfile "Texture.pkg"
 
+// Animation system classes
+$pfile "KeyFrame.pkg"
+$pfile "Affector.pkg"
+$pfile "AnimationInstance.pkg"
+$pfile "Animation.pkg"
+$pfile "AnimationManager.pkg"
+$pfile "Interpolator.pkg"
+
 // elements
 $pfile "elements/GUISheet.pkg"
 $pfile "elements/Tree.pkg"
@@ -102,6 +110,12 @@ $pfile "elements/ScrolledItemListBase.pkg"
 $pfile "elements/ItemListbox.pkg"
 
 $pfile "elements/GroupBox.pkg"
+
+$pfile "elements/LayoutContainer.pkg"
+$pfile "elements/SequentialLayoutContainer.pkg"
+$pfile "elements/HorizontalLayoutContainer.pkg"
+$pfile "elements/VerticalLayoutContainer.pkg"
+$pfile "elements/GridLayoutContainer.pkg"
 
 $pfile "falagard/Enums.pkg"
 $pfile "falagard/Dimension.pkg"

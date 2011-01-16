@@ -31,6 +31,7 @@
 #define _CEGUIListboxTextItem_h_
 #include "CEGUIListboxItem.h"
 #include "../CEGUIBasicRenderedStringParser.h"
+#include "../CEGUIDefaultRenderedStringParser.h"
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -45,7 +46,7 @@ public:
 	/*************************************************************************
 		Constants
 	*************************************************************************/
-	static const colour	DefaultTextColour;			//!< Default text colour.
+	static const Colour	DefaultTextColour;			//!< Default text colour.
 
 
 	/*************************************************************************
@@ -152,7 +153,7 @@ public:
 	\return 
 		Nothing.
 	*/
-	void	setTextColours(colour top_left_colour, colour top_right_colour, colour bottom_left_colour, colour bottom_right_colour);
+	void	setTextColours(Colour top_left_colour, Colour top_right_colour, Colour bottom_left_colour, Colour bottom_right_colour);
 
 
 	/*!
@@ -165,7 +166,21 @@ public:
 	\return
 		Nothing.
 	*/
-	void	setTextColours(colour col)		{setTextColours(col, col, col, col);}
+	void	setTextColours(Colour col)		{setTextColours(col, col, col, col);}
+
+    /*!
+    \brief
+        Set whether the the ListboxTextItem will have it's text parsed via the
+        BasicRenderedStringParser or not.
+
+    \param enable
+        - true if the ListboxTextItem text will be parsed.
+        - false if the ListboxTextItem text will be used verbatim.
+    */
+    void setTextParsingEnabled(const bool enable);
+
+    //! return whether text parsing is enabled for this ListboxTextItem.
+    bool isTextParsingEnabled() const;
 
     // base class overrides
     void setText(const String& text);
@@ -191,6 +206,10 @@ protected:
     mutable RenderedString  d_renderedString;
     //! boolean used to track when item state changes (and needs re-parse)
     mutable bool d_renderedStringValid;
+    //! Parser used when parsing is off.  Basically just does linebreaks.
+    static DefaultRenderedStringParser d_noTagsStringParser;
+    //! boolean that specifies whether text parsing is enabled for the item.
+    bool d_textParsingEnabled;
 };
 
 } // End of  CEGUI namespace section

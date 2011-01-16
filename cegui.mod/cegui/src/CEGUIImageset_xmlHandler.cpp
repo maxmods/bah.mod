@@ -70,15 +70,15 @@ Imageset_xmlHandler::Imageset_xmlHandler(const String& filename,
 Imageset_xmlHandler::~Imageset_xmlHandler()
 {
     if (!d_objectRead)
-        delete d_imageset;
+        CEGUI_DELETE_AO d_imageset;
 }
 
 //----------------------------------------------------------------------------//
 const String& Imageset_xmlHandler::getObjectName() const
 {
     if (!d_imageset)
-        throw InvalidRequestException("Imageset_xmlHandler::getName: "
-            "Attempt to access null object.");
+        CEGUI_THROW(InvalidRequestException("Imageset_xmlHandler::getName: "
+            "Attempt to access null object."));
 
     return d_imageset->getName();
 }
@@ -87,8 +87,8 @@ const String& Imageset_xmlHandler::getObjectName() const
 Imageset& Imageset_xmlHandler::getObject() const
 {
     if (!d_imageset)
-        throw InvalidRequestException("Imageset_xmlHandler::getObject: "
-            "Attempt to access null object.");
+        CEGUI_THROW(InvalidRequestException("Imageset_xmlHandler::getObject: "
+            "Attempt to access null object."));
 
     d_objectRead = true;
     return *d_imageset;
@@ -137,7 +137,7 @@ void Imageset_xmlHandler::elementImagesetStart(const XMLAttributes& attributes)
                     (resource_group.empty() ? "(Default)" : resource_group));
 
     // Create imageset object from image file
-    d_imageset = new Imageset(name, filename, resource_group);
+    d_imageset = CEGUI_NEW_AO Imageset(name, filename, resource_group);
 
     // set native resolution for imageset
     const float native_hres = static_cast<float>(
@@ -155,8 +155,9 @@ void Imageset_xmlHandler::elementImagesetStart(const XMLAttributes& attributes)
 void Imageset_xmlHandler::elementImageStart(const XMLAttributes& attributes)
 {
     if (!d_imageset)
-        throw InvalidRequestException("Imageset_xmlHandler::elementImageStart: "
-            "Attempt to access null object.");
+        CEGUI_THROW(InvalidRequestException(
+            "Imageset_xmlHandler::elementImageStart: "
+            "Attempt to access null object."));
 
     const String name(attributes.getValueAsString(ImageNameAttribute));
 
@@ -170,7 +171,7 @@ void Imageset_xmlHandler::elementImageStart(const XMLAttributes& attributes)
     rect.setHeight(
         static_cast<float>(attributes.getValueAsInteger(ImageHeightAttribute)));
 
-    const Point offset(
+    const Vector2 offset(
         static_cast<float>(attributes.getValueAsInteger(ImageXOffsetAttribute, 0)),
         static_cast<float>(attributes.getValueAsInteger(ImageYOffsetAttribute, 0)));
 
@@ -181,8 +182,9 @@ void Imageset_xmlHandler::elementImageStart(const XMLAttributes& attributes)
 void Imageset_xmlHandler::elementImagesetEnd()
 {
     if (!d_imageset)
-        throw InvalidRequestException("Imageset_xmlHandler::elementImagesetEnd: "
-            "Attempt to access null object.");
+        CEGUI_THROW(InvalidRequestException(
+            "Imageset_xmlHandler::elementImagesetEnd: "
+            "Attempt to access null object."));
 
     char addr_buff[32];
     sprintf(addr_buff, "(%p)", static_cast<void*>(d_imageset));

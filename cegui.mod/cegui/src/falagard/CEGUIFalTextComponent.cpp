@@ -47,7 +47,7 @@
 #elif defined (CEGUI_USE_MINIBIDI)
     #include "CEGUIMinibidiVisualMapping.h"
 #else
-    #include "CEGUIBiDiVisualMapping.h"
+    #include "CEGUIBidiVisualMapping.h"
 #endif
 
 // Start of CEGUI namespace section
@@ -57,18 +57,69 @@ namespace CEGUI
 #ifndef CEGUI_BIDI_SUPPORT
         d_bidiVisualMapping(0),
 #elif defined (CEGUI_USE_FRIBIDI)
-        d_bidiVisualMapping(new FribidiVisualMapping),
+        d_bidiVisualMapping(CEGUI_NEW_AO FribidiVisualMapping),
 #elif defined (CEGUI_USE_MINIBIDI)
-        d_bidiVisualMapping(new MinibidiVisualMapping),
+        d_bidiVisualMapping(CEGUI_NEW_AO MinibidiVisualMapping),
 #else
     #error "BIDI Configuration is inconsistant, check your config!"
 #endif
         d_bidiDataValid(false),
-        d_formattedRenderedString(new LeftAlignedRenderedString(d_renderedString)),
+        d_formattedRenderedString(CEGUI_NEW_AO LeftAlignedRenderedString(d_renderedString)),
         d_lastHorzFormatting(HTF_LEFT_ALIGNED),
         d_vertFormatting(VTF_TOP_ALIGNED),
         d_horzFormatting(HTF_LEFT_ALIGNED)
     {}
+
+    TextComponent::~TextComponent()
+    {
+        CEGUI_DELETE_AO d_bidiVisualMapping;
+    }
+
+    TextComponent::TextComponent(const TextComponent& obj) :
+        FalagardComponentBase(obj),
+        d_textLogical(obj.d_textLogical),
+#ifndef CEGUI_BIDI_SUPPORT
+        d_bidiVisualMapping(0),
+#elif defined (CEGUI_USE_FRIBIDI)
+        d_bidiVisualMapping(CEGUI_NEW_AO FribidiVisualMapping),
+#elif defined (CEGUI_USE_MINIBIDI)
+        d_bidiVisualMapping(CEGUI_NEW_AO MinibidiVisualMapping),
+#endif
+        d_bidiDataValid(false),
+        d_renderedString(obj.d_renderedString),
+        d_formattedRenderedString(obj.d_formattedRenderedString),
+        d_lastHorzFormatting(obj.d_lastHorzFormatting),
+        d_font(obj.d_font),
+        d_vertFormatting(obj.d_vertFormatting),
+        d_horzFormatting(obj.d_horzFormatting),
+        d_textPropertyName(obj.d_textPropertyName),
+        d_fontPropertyName(obj.d_fontPropertyName)
+    {
+    }
+
+    TextComponent& TextComponent::operator=(const TextComponent& other)
+    {
+        if (this == &other)
+            return *this;
+
+        FalagardComponentBase::operator=(other);
+
+        d_textLogical = other.d_textLogical;
+        // note we do not assign the BidiVisualMapping object, we just mark our
+        // existing one as invalid so it's data gets regenerated next time it's
+        // needed.
+        d_bidiDataValid = false;
+        d_renderedString = other.d_renderedString;
+        d_formattedRenderedString = other.d_formattedRenderedString;
+        d_lastHorzFormatting = other.d_lastHorzFormatting;
+        d_font = other.d_font;
+        d_vertFormatting = other.d_vertFormatting;
+        d_horzFormatting = other.d_horzFormatting;
+        d_textPropertyName = other.d_textPropertyName;
+        d_fontPropertyName = other.d_fontPropertyName;
+
+        return *this;
+    }
 
     const String& TextComponent::getText() const
     {
@@ -130,45 +181,45 @@ namespace CEGUI
         {
         case HTF_LEFT_ALIGNED:
             d_formattedRenderedString =
-                new LeftAlignedRenderedString(rendered_string);
+                CEGUI_NEW_AO LeftAlignedRenderedString(rendered_string);
             break;
 
         case HTF_CENTRE_ALIGNED:
             d_formattedRenderedString =
-                new CentredRenderedString(rendered_string);
+                CEGUI_NEW_AO CentredRenderedString(rendered_string);
             break;
 
         case HTF_RIGHT_ALIGNED:
             d_formattedRenderedString =
-                new RightAlignedRenderedString(rendered_string);
+                CEGUI_NEW_AO RightAlignedRenderedString(rendered_string);
             break;
 
         case HTF_JUSTIFIED:
             d_formattedRenderedString =
-                new JustifiedRenderedString(rendered_string);
+                CEGUI_NEW_AO JustifiedRenderedString(rendered_string);
             break;
 
         case HTF_WORDWRAP_LEFT_ALIGNED:
             d_formattedRenderedString =
-                new RenderedStringWordWrapper
+                CEGUI_NEW_AO RenderedStringWordWrapper
                     <LeftAlignedRenderedString>(rendered_string);
             break;
 
         case HTF_WORDWRAP_CENTRE_ALIGNED:
             d_formattedRenderedString =
-                new RenderedStringWordWrapper
+                CEGUI_NEW_AO RenderedStringWordWrapper
                     <CentredRenderedString>(rendered_string);
             break;
 
         case HTF_WORDWRAP_RIGHT_ALIGNED:
             d_formattedRenderedString =
-                new RenderedStringWordWrapper
+                CEGUI_NEW_AO RenderedStringWordWrapper
                     <RightAlignedRenderedString>(rendered_string);
             break;
 
         case HTF_WORDWRAP_JUSTIFIED:
             d_formattedRenderedString =
-                new RenderedStringWordWrapper
+                CEGUI_NEW_AO RenderedStringWordWrapper
                     <JustifiedRenderedString>(rendered_string);
             break;
         }
@@ -179,13 +230,13 @@ namespace CEGUI
         // get font to use
         Font* font;
 
-        try
+        CEGUI_TRY
         {
             font = d_fontPropertyName.empty() ?
                 (d_font.empty() ? srcWindow.getFont() : &FontManager::getSingleton().get(d_font))
                 : &FontManager::getSingleton().get(srcWindow.getProperty(d_fontPropertyName));
         }
-        catch (UnknownObjectException&)
+        CEGUI_CATCH (UnknownObjectException&)
         {
             font = 0;
         }
@@ -201,7 +252,7 @@ namespace CEGUI
             // fetch text & do bi-directional reordering as needed
             String vis;
             #ifdef CEGUI_BIDI_SUPPORT
-                BiDiVisualMapping::StrIndexList l2v, v2l;
+                BidiVisualMapping::StrIndexList l2v, v2l;
                 d_bidiVisualMapping->reorderFromLogicalToVisual(
                     srcWindow.getProperty(d_textPropertyName), vis, l2v, v2l);
             #else

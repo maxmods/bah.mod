@@ -106,7 +106,7 @@ void RenderedStringTextComponent::setColours(const ColourRect& cr)
 }
 
 //----------------------------------------------------------------------------//
-void RenderedStringTextComponent::setColours(const colour& c)
+void RenderedStringTextComponent::setColours(const Colour& c)
 {
     d_colours.setColours(c);
 }
@@ -153,8 +153,8 @@ void RenderedStringTextComponent::draw(GeometryBuffer& buffer,
         break;
 
     default:
-        throw InvalidRequestException("RenderedStringTextComponent::draw: "
-                "unknown VerticalFormatting option specified.");
+        CEGUI_THROW(InvalidRequestException("RenderedStringTextComponent::draw: "
+                "unknown VerticalFormatting option specified."));
     }
 
     // apply padding to position:
@@ -190,7 +190,7 @@ Size RenderedStringTextComponent::getPixelSize() const
 //----------------------------------------------------------------------------//
 bool RenderedStringTextComponent::canSplit() const
 {
-    return true;
+    return d_text.length() > 1;
 }
 
 //----------------------------------------------------------------------------//
@@ -202,11 +202,12 @@ RenderedStringTextComponent* RenderedStringTextComponent::split(
     // This is checked, but should never fail, since if we had no font our
     // extent would be 0 and we would never cause a split to be needed here.
     if (!fnt)
-        throw InvalidRequestException("RenderedStringTextComponent::split: "
-                                      "unable to split with no font set.");
+        CEGUI_THROW(InvalidRequestException(
+            "RenderedStringTextComponent::split: "
+            "unable to split with no font set."));
 
     // create 'left' side of split and clone our basic configuration
-    RenderedStringTextComponent* lhs = new RenderedStringTextComponent;
+    RenderedStringTextComponent* lhs = CEGUI_NEW_AO RenderedStringTextComponent();
     lhs->d_padding = d_padding;
     lhs->d_verticalFormatting = d_verticalFormatting;
     lhs->d_font = d_font;
@@ -231,8 +232,10 @@ RenderedStringTextComponent* RenderedStringTextComponent::split(
         {
             // if it was the first token, split the token itself
             if (first_component && left_len == 0)
-                left_len = fnt->getCharAtPixel(d_text.substr(0, token_len),
-                                               split_point);
+                left_len =
+                    ceguimax(static_cast<size_t>(1),
+                             fnt->getCharAtPixel(
+                                d_text.substr(0, token_len), split_point));
             
             // left_len is now the character index at which to split the line
             break;
@@ -279,7 +282,7 @@ size_t RenderedStringTextComponent::getNextTokenLength(const String& text,
 //----------------------------------------------------------------------------//
 RenderedStringTextComponent* RenderedStringTextComponent::clone() const
 {
-    RenderedStringTextComponent* c = new RenderedStringTextComponent(*this);
+    RenderedStringTextComponent* c = CEGUI_NEW_AO RenderedStringTextComponent(*this);
     return c;
 }
 

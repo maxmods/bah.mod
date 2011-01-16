@@ -161,7 +161,10 @@ void IrrlichtGeometryBuffer::setPivot(const Vector3& p)
 //----------------------------------------------------------------------------//
 void IrrlichtGeometryBuffer::setClippingRegion(const Rect& region)
 {
-    d_clipRect = region;
+    d_clipRect.d_top    = PixelAligned(region.d_top);
+    d_clipRect.d_bottom = PixelAligned(region.d_bottom);
+    d_clipRect.d_left   = PixelAligned(region.d_left);
+    d_clipRect.d_right  = PixelAligned(region.d_right);
 }
 
 //----------------------------------------------------------------------------//
@@ -316,5 +319,16 @@ void IrrlichtGeometryBuffer::updateMatrix() const
 }
 
 //----------------------------------------------------------------------------//
+irr::video::SMaterial& IrrlichtGeometryBuffer::getMaterial()
+{
+    return const_cast<irr::video::SMaterial&>(
+        static_cast<const IrrlichtGeometryBuffer*>(this)->getMaterial());
+}
+
+//----------------------------------------------------------------------------//
+const irr::video::SMaterial& IrrlichtGeometryBuffer::getMaterial() const
+{
+    return d_material;
+}
 
 } // End of  CEGUI namespace section

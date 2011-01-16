@@ -290,7 +290,7 @@ void Slider::updateThumb(void)
     else
     {
         //updateThumb_impl();
-        throw InvalidRequestException("Slider::updateThumb - This function must be implemented by the window renderer module");
+        CEGUI_THROW(InvalidRequestException("Slider::updateThumb - This function must be implemented by the window renderer module"));
     }
 }
 
@@ -308,7 +308,7 @@ float Slider::getValueFromThumb(void) const
     else
     {
         //return getValueFromThumb_impl();
-        throw InvalidRequestException("Slider::getValueFromThumb - This function must be implemented by the window renderer module");
+        CEGUI_THROW(InvalidRequestException("Slider::getValueFromThumb - This function must be implemented by the window renderer module"));
     }
 }
 
@@ -316,7 +316,7 @@ float Slider::getValueFromThumb(void) const
     Given window location 'pt', return a value indicating what change
     should be made to the scroll bar.
 *************************************************************************/
-float Slider::getAdjustDirectionFromPoint(const Point& pt) const
+float Slider::getAdjustDirectionFromPoint(const Vector2& pt) const
 {
     if (d_windowRenderer != 0)
     {
@@ -326,7 +326,7 @@ float Slider::getAdjustDirectionFromPoint(const Point& pt) const
     else
     {
         //return getAdjustDirectionFromPoint_impl(pt);
-        throw InvalidRequestException("Slider::getAdjustDirectionFromPoint - This function must be implemented by the window renderer module");
+        CEGUI_THROW(InvalidRequestException("Slider::getAdjustDirectionFromPoint - This function must be implemented by the window renderer module"));
     }
 }
 

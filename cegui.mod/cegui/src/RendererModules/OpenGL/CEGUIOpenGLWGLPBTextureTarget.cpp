@@ -66,8 +66,8 @@ OpenGLWGLPBTextureTarget::OpenGLWGLPBTextureTarget(OpenGLRenderer& owner) :
     d_prevDC(0)
 {
     if (!WGLEW_ARB_pbuffer)
-        throw RendererException("WGL_ARB_pbuffer extension is needed to use "
-            "OpenGLWGLPBTextureTarget!");
+        CEGUI_THROW(RendererException("WGL_ARB_pbuffer extension is needed to "
+            "use OpenGLWGLPBTextureTarget!"));
 
     HDC hdc = wglGetCurrentDC();
 
@@ -75,8 +75,8 @@ OpenGLWGLPBTextureTarget::OpenGLWGLPBTextureTarget(OpenGLRenderer& owner) :
     wglChoosePixelFormatARB(hdc, pbAttrs, 0, 1, &d_pixfmt, &fmtcnt);
 
     if (!fmtcnt)
-        throw RendererException("OpenGLWGLPBTextureTarget - "
-            "pbuff creation failure, no suitable pixel formats.");
+        CEGUI_THROW(RendererException("OpenGLWGLPBTextureTarget - "
+            "pbuff creation failure, no suitable pixel formats."));
 
     initialiseTexture();
 
@@ -97,7 +97,6 @@ void OpenGLWGLPBTextureTarget::activate()
     glEnable(GL_SCISSOR_TEST);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -106,6 +105,10 @@ void OpenGLWGLPBTextureTarget::activate()
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_FOG_COORDINATE_ARRAY);
     glDisableClientState(GL_EDGE_FLAG_ARRAY);
+
+    // we clear the blend mode here so the next setupRenderingBlendMode call
+    // is forced to update states for our local context.
+    d_owner.setupRenderingBlendMode(BM_INVALID);
 
     OpenGLRenderTarget::activate();
 }
@@ -121,6 +124,10 @@ void OpenGLWGLPBTextureTarget::deactivate()
                      static_cast<GLsizei>(d_area.d_bottom), 0);
 
     disablePBuffer();
+
+    // Clear the blend mode again so the next setupRenderingBlendMode call
+    // is forced to update states for the main / previous context.
+    d_owner.setupRenderingBlendMode(BM_INVALID);
 
     OpenGLRenderTarget::deactivate();
 }
@@ -179,24 +186,28 @@ void OpenGLWGLPBTextureTarget::initialisePBuffer()
                                     creation_attrs);
 
     if (!d_pbuffer)
-        throw RendererException("OpenGLWGLPBTextureTarget::initialisePBuffer - "
-            "pbuffer creation failure, wglCreatePbufferARB() call failed.");
+        CEGUI_THROW(RendererException(
+            "OpenGLWGLPBTextureTarget::initialisePBuffer - "
+            "pbuffer creation failure, wglCreatePbufferARB() call failed."));
 
     d_hdc = wglGetPbufferDCARB(d_pbuffer);
 
     if (!d_hdc)
-        throw RendererException("OpenGLWGLPBTextureTarget::initialisePBuffer - "
-            "pbuffer creation failure, wglGetPbufferDCARB() call failed.");
+        CEGUI_THROW(RendererException(
+            "OpenGLWGLPBTextureTarget::initialisePBuffer - "
+            "pbuffer creation failure, wglGetPbufferDCARB() call failed."));
 
     d_context= wglCreateContext(d_hdc);
 
     if (!d_hdc)
-        throw RendererException("OpenGLWGLPBTextureTarget::initialisePBuffer - "
-            "pbuffer creation failure, wglCreateContext() call failed.");
+        CEGUI_THROW(RendererException(
+            "OpenGLWGLPBTextureTarget::initialisePBuffer - "
+            "pbuffer creation failure, wglCreateContext() call failed."));
 
     if(!wglShareLists(wglGetCurrentContext(), d_context))
-        throw RendererException("OpenGLWGLPBTextureTarget::initialisePBuffer - "
-            "pbuffer creation failure, wglShareLists() call failed.");
+        CEGUI_THROW(RendererException(
+            "OpenGLWGLPBTextureTarget::initialisePBuffer - "
+            "pbuffer creation failure, wglShareLists() call failed."));
 
     // extract the actual size of the created bufer
     int actual_width, actual_height;

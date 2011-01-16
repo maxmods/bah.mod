@@ -83,7 +83,7 @@ ItemListBaseProperties::SortMode ItemListBase::d_sortModeProperty;
 	Constants
 *************************************************************************/
 // event names
-const String ItemListBase::EventListContentsChanged("ListItemsChanged");
+const String ItemListBase::EventListContentsChanged( "ListContentsChanged" );
 const String ItemListBase::EventSortEnabledChanged("SortEnabledChanged");
 const String ItemListBase::EventSortModeChanged("SortModeChanged");
 
@@ -138,7 +138,7 @@ ItemEntry* ItemListBase::getItemFromIndex(size_t index) const
 	}
 	else
 	{
-		throw InvalidRequestException("ItemListBase::getItemFromIndex - the specified index is out of range for this ItemListBase.");
+		CEGUI_THROW(InvalidRequestException("ItemListBase::getItemFromIndex - the specified index is out of range for this ItemListBase."));
 	}
 }
 
@@ -156,7 +156,7 @@ size_t ItemListBase::getItemIndex(const ItemEntry* item) const
 	}
 	else
 	{
-		throw InvalidRequestException("ItemListBase::getItemIndex - the specified ItemEntry is not attached to this ItemListBase.");
+		CEGUI_THROW(InvalidRequestException("ItemListBase::getItemIndex - the specified ItemEntry is not attached to this ItemListBase."));
 	}
 }
 
@@ -232,7 +232,7 @@ void ItemListBase::addItem(ItemEntry* item)
         }
         // make sure it gets added properly
 		item->d_ownerList = this;
-		addChildWindow(item);
+		addChild(item);
 		handleUpdatedItemData();
 	}
 }
@@ -264,14 +264,14 @@ void ItemListBase::insertItem(ItemEntry* item, const ItemEntry* position)
 			// throw if item 'position' is not in the list
 			if (ins_pos == d_listItems.end())
 			{
-				throw InvalidRequestException("ItemListBase::insertItem - the specified ItemEntry for parameter 'position' is not attached to this ItemListBase.");
+				CEGUI_THROW(InvalidRequestException("ItemListBase::insertItem - the specified ItemEntry for parameter 'position' is not attached to this ItemListBase."));
 			}
 
 		}
 
 		d_listItems.insert(ins_pos, item);
 		item->d_ownerList = this;
-		addChildWindow(item);
+		addChild(item);
 
 		handleUpdatedItemData();
 	}
@@ -285,7 +285,7 @@ void ItemListBase::removeItem(ItemEntry* item)
 {
 	if (item && item->d_ownerList == this)
 	{
-	    d_pane->removeChildWindow(item);
+	    d_pane->removeChild(item);
 	    if (item->isDestroyedByParent())
 	    {
 	        WindowManager::getSingleton().destroyWindow(item);
@@ -419,7 +419,7 @@ bool ItemListBase::resetList_impl(void)
 		while (!d_listItems.empty())
 		{
 		    ItemEntry* item = d_listItems[0];
-			d_pane->removeChildWindow(item);
+			d_pane->removeChild(item);
 			if (item->isDestroyedByParent())
 			{
 			    WindowManager::getSingleton().destroyWindow(item);
@@ -454,7 +454,7 @@ void ItemListBase::addChild_impl(Window* wnd)
         // add to the pane if we have one
         if (d_pane != this)
         {
-            d_pane->addChildWindow(wnd);
+            d_pane->addChild(wnd);
         }
         // add item directly to us
         else
@@ -547,7 +547,7 @@ Rect ItemListBase::getItemRenderArea(void) const
     else
     {
         //return getItemRenderArea_impl();
-        throw InvalidRequestException("ItemListBase::getItemRenderArea - This function must be implemented by the window renderer module");
+        CEGUI_THROW(InvalidRequestException("ItemListBase::getItemRenderArea - This function must be implemented by the window renderer module"));
     }
 }
 

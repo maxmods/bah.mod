@@ -178,7 +178,6 @@ struct CEGUIEXPORT Key
         Insert          =0xD2,    /* Insert on arrow keypad */
         Delete          =0xD3,    /* Delete on arrow keypad */
         LeftWindows     =0xDB,    /* Left Windows key */
-        RightWindow     =0xDC,    /* Right Windows key */
         RightWindows    =0xDC,    /* Right Windows key - Correct spelling :) */
         AppMenu         =0xDD,    /* AppMenu key */
         Power           =0xDE,    /* System Power */
@@ -277,7 +276,7 @@ class CEGUIEXPORT MouseEventArgs : public WindowEventArgs
 public:
 	MouseEventArgs(Window* wnd) : WindowEventArgs(wnd) {}
 
-	Point		position;		//!< holds current mouse position.
+	Vector2		position;		//!< holds current mouse position.
 	Vector2		moveDelta;		//!< holds variation of mouse position from last mouse input
 	MouseButton	button;			//!< one of the MouseButton enumerated values describing the mouse button causing the event (for button inputs only)
 	uint		sysKeys;		//!< current state of the system keys and mouse buttons.

@@ -29,7 +29,10 @@
 #include "CEGUIExceptions.h"
 #include "CEGUILogger.h"
 #include "CEGUIWindowManager.h"
+#include "CEGUIAnimationManager.h"
+#include "CEGUIAnimationInstance.h"
 #include <iostream>
+#include <algorithm>
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -47,9 +50,9 @@ const StateImagery& WidgetLookFeel::getStateImagery(
     StateList::const_iterator imagery = d_stateImagery.find(state);
 
     if (imagery == d_stateImagery.end())
-        throw UnknownObjectException(
+        CEGUI_THROW(UnknownObjectException(
             "WidgetLookFeel::getStateImagery - unknown state '" + state +
-            "' in look '" + d_lookName + "'.");
+            "' in look '" + d_lookName + "'."));
 
     return (*imagery).second;
 }
@@ -61,9 +64,9 @@ const ImagerySection& WidgetLookFeel::getImagerySection(
     ImageryList::const_iterator imgSect = d_imagerySections.find(section);
 
     if (imgSect == d_imagerySections.end())
-        throw UnknownObjectException(
+        CEGUI_THROW(UnknownObjectException(
             "WidgetLookFeel::getImagerySection - unknown imagery section '" +
-            section +  "' in look '" + d_lookName + "'.");
+            section +  "' in look '" + d_lookName + "'."));
 
     return (*imgSect).second;
 }
@@ -177,7 +180,24 @@ void WidgetLookFeel::initialiseWidget(Window& widget) const
     {
         (*prop).apply(widget);
     }
+    
+    // setup linked events
+    for (EventLinkDefinitionList::const_iterator evt = d_eventLinkDefinitions.begin();
+         evt != d_eventLinkDefinitions.end();
+         ++evt)
+    {
+        (*evt).initialiseWidget(widget);
+    }
 
+    // create animation instances
+    for (AnimationList::const_iterator anim = d_animations.begin(); anim != d_animations.end(); ++anim)
+    {
+        AnimationInstance* instance =
+            AnimationManager::getSingleton().instantiateAnimation(*anim);
+
+        d_animationInstances.insert(std::make_pair(&widget, instance));
+        instance->setTargetWindow(&widget);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -185,10 +205,10 @@ void WidgetLookFeel::cleanUpWidget(Window& widget) const
 {
     if (widget.getLookNFeel() != getName())
     {
-        throw InvalidRequestException(
+        CEGUI_THROW(InvalidRequestException(
             "WidgetLookFeel::cleanUpWidget - The window '"
             + widget.getName() +
-            "' does not have this look'n'feel assigned");
+            "' does not have this look'n'feel assigned"));
     }
 
     // remove added child widgets
@@ -198,6 +218,14 @@ void WidgetLookFeel::cleanUpWidget(Window& widget) const
     {
         WindowManager::getSingleton().destroyWindow(
             widget.getName() + (*curr).getWidgetNameSuffix());
+    }
+
+    // delete added named Events
+    for (EventLinkDefinitionList::const_iterator evt = d_eventLinkDefinitions.begin();
+         evt != d_eventLinkDefinitions.end();
+         ++evt)
+    {
+        (*evt).cleanUpWidget(widget);
     }
 
     // remove added property definitions
@@ -216,6 +244,14 @@ void WidgetLookFeel::cleanUpWidget(Window& widget) const
     {
         // remove the property from the window
         widget.removeProperty((*linkdef).getName());
+    }
+
+    // clean up animation instances assoicated wit the window.
+    AnimationInstanceMap::iterator anim;
+    while ((anim = d_animationInstances.find(&widget)) != d_animationInstances.end())
+    {
+        AnimationManager::getSingleton().destroyAnimationInstance(anim->second);
+        d_animationInstances.erase(anim);
     }
 }
 
@@ -249,9 +285,9 @@ const NamedArea& WidgetLookFeel::getNamedArea(const String& name) const
     NamedAreaList::const_iterator area = d_namedAreas.find(name);
 
     if (area == d_namedAreas.end())
-        throw UnknownObjectException(
+        CEGUI_THROW(UnknownObjectException(
             "WidgetLookFeel::getNamedArea - unknown named area: '" + name +
-            "' in look '" + d_lookName + "'.");
+            "' in look '" + d_lookName + "'."));
 
     return (*area).second;
 }
@@ -427,6 +463,29 @@ const WidgetComponent* WidgetLookFeel::findWidgetComponent(
     }
 
     return 0;
+}
+
+//---------------------------------------------------------------------------//
+void WidgetLookFeel::addAnimationName(const String& anim_name)
+{
+    AnimationList::iterator it = std::find(d_animations.begin(),
+                                           d_animations.end(),
+                                           anim_name);
+
+    if (it == d_animations.end())
+        d_animations.push_back(anim_name);
+}
+
+//---------------------------------------------------------------------------//
+void WidgetLookFeel::addEventLinkDefinition(const EventLinkDefinition& evtdef)
+{
+    d_eventLinkDefinitions.push_back(evtdef);
+}
+
+//---------------------------------------------------------------------------//
+void WidgetLookFeel::clearEventLinkDefinitions()
+{
+    d_eventLinkDefinitions.clear();
 }
 
 //---------------------------------------------------------------------------//

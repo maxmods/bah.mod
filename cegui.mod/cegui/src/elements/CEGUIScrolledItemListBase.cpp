@@ -100,7 +100,10 @@ void ScrolledItemListBase::initialiseComponents()
 
         // set up clipping
         static_cast<ClippedContainer*>(d_pane)->setClipperWindow(this);
-        addChildWindow(d_pane);
+        // allow propagation back to us
+        d_pane->setMouseInputPropagationEnabled(true);
+
+        addChild(d_pane);
     }
 
     // base class handling
@@ -148,6 +151,9 @@ void ScrolledItemListBase::configureScrollbars(const Size& doc_size)
     Scrollbar* v = getVertScrollbar();
     Scrollbar* h = getHorzScrollbar();
 
+    const bool old_vert_visible = v->isVisible(true);
+    const bool old_horz_visible = h->isVisible(true);
+
     Size render_area_size = getItemRenderArea().getSize();
 
     // setup the pane size
@@ -177,6 +183,14 @@ void ScrolledItemListBase::configureScrollbars(const Size& doc_size)
     else
     {
         h->hide();
+    }
+
+    // if some change occurred, invalidate the inner rect area caches.
+    if ((old_vert_visible != v->isVisible(true)) ||
+        (old_horz_visible != h->isVisible(true)))
+    {
+        d_innerUnclippedRectValid = false;
+        d_innerRectClipperValid = false;
     }
 
     // get a fresh item render area

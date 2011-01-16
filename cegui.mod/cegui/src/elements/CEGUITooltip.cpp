@@ -59,7 +59,8 @@ namespace CEGUI
 
     //////////////////////////////////////////////////////////////////////////
     Tooltip::Tooltip(const String& type, const String& name) :
-            Window(type, name)
+            Window(type, name),
+            d_inPositionSelf(false)
     {
         d_hoverTime     = 0.4f;
         d_displayTime   = 7.5f;
@@ -82,12 +83,18 @@ namespace CEGUI
 
     void Tooltip::positionSelf(void)
     {
+        // no recusion allowed for this function!
+        if (d_inPositionSelf)
+            return;
+
+        d_inPositionSelf = true;
+
         MouseCursor& cursor = MouseCursor::getSingleton();
         Rect screen(Vector2(0, 0), System::getSingleton().getRenderer()->getDisplaySize());
         Rect tipRect(getUnclippedOuterRect());
         const Image* mouseImage = cursor.getImage();
 
-        Point mousePos(cursor.getPosition());
+        Vector2 mousePos(cursor.getPosition());
         Size mouseSz(0,0);
 
         if (mouseImage)
@@ -95,7 +102,7 @@ namespace CEGUI
             mouseSz = mouseImage->getSize();
         }
 
-        Point tmpPos(mousePos.d_x + mouseSz.d_width, mousePos.d_y + mouseSz.d_height);
+        Vector2 tmpPos(mousePos.d_x + mouseSz.d_width, mousePos.d_y + mouseSz.d_height);
         tipRect.setPosition(tmpPos);
 
         // if tooltip would be off the right of the screen,
@@ -116,6 +123,8 @@ namespace CEGUI
         setPosition(
             UVector2(cegui_absdim(tmpPos.d_x),
                      cegui_absdim(tmpPos.d_y)));
+
+        d_inPositionSelf = false;
     }
 
     void Tooltip::sizeSelf(void)
@@ -137,7 +146,7 @@ namespace CEGUI
         {
             if (d_target != wnd)
             {
-                System::getSingleton().getGUISheet()->addChildWindow(this);
+                System::getSingleton().getGUISheet()->addChild(this);
                 d_target = wnd;
             }
 
@@ -317,7 +326,7 @@ namespace CEGUI
         d_elapsed = 0;
 
         if (d_parent)
-            d_parent->removeChildWindow(this);
+            d_parent->removeChild(this);
 
         // fire event before target gets reset in case that information is required in handler.
         WindowEventArgs args(this);

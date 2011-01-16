@@ -31,10 +31,14 @@
 #define _CEGUI_h_
 
 // base stuff
+#include "CEGUIAffector.h"
+#include "CEGUIAnimation.h"
+#include "CEGUIAnimationInstance.h"
+#include "CEGUIAnimationManager.h"
 #include "CEGUIBasicRenderedStringParser.h"
-#include "CEGUIBiDiVisualMapping.h"
+#include "CEGUIBidiVisualMapping.h"
 #include "CEGUICentredRenderedString.h"
-#include "CEGUIcolour.h"
+#include "CEGUIColour.h"
 #include "CEGUIColourRect.h"
 #include "CEGUICoordConverter.h"
 #include "CEGUIDataContainer.h"
@@ -50,11 +54,15 @@
 #include "CEGUIImageCodec.h"
 #include "CEGUIImagesetManager.h"
 #include "CEGUIInputEvent.h"
+#include "CEGUIInterpolator.h"
 #include "CEGUIJustifiedRenderedString.h"
+#include "CEGUIKeyFrame.h"
 #include "CEGUILeftAlignedRenderedString.h"
+#include "CEGUILinkedEvent.h"
 #include "CEGUIMouseCursor.h"
 #include "CEGUIPropertyHelper.h"
 #include "CEGUIPropertySet.h"
+#include "CEGUIQuaternion.h"
 #include "CEGUIRect.h"
 #include "CEGUIRegexMatcher.h"
 #include "CEGUIRenderedString.h"
@@ -80,6 +88,7 @@
 #include "CEGUITexture.h"
 #include "CEGUITextureTarget.h"
 #include "CEGUITextUtils.h"
+#include "CEGUITplInterpolators.h"
 #include "CEGUITplWindowFactory.h"
 #include "CEGUITplWindowRendererFactory.h"
 #include "CEGUITplWRFactoryRegisterer.h"
@@ -106,3 +115,4 @@
 #include "elements/CEGUIAll.h"
 
 #endif	// end of guard _CEGUI_h_
+

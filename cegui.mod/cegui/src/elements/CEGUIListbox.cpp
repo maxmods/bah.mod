@@ -64,12 +64,12 @@ ListboxProperties::ItemTooltips			Listbox::d_itemTooltipsProperty;
 	Constants
 *************************************************************************/
 // event names
-const String Listbox::EventListContentsChanged( "ListItemsChanged" );
-const String Listbox::EventSelectionChanged( "ItemSelectionChanged" );
+const String Listbox::EventListContentsChanged( "ListContentsChanged" );
+const String Listbox::EventSelectionChanged( "SelectionChanged" );
 const String Listbox::EventSortModeChanged( "SortModeChanged" );
-const String Listbox::EventMultiselectModeChanged( "MuliselectModeChanged" );
-const String Listbox::EventVertScrollbarModeChanged( "VertScrollModeChanged" );
-const String Listbox::EventHorzScrollbarModeChanged( "HorzScrollModeChanged" );
+const String Listbox::EventMultiselectModeChanged( "MultiselectModeChanged" );
+const String Listbox::EventVertScrollbarModeChanged( "VertScrollbarModeChanged" );
+const String Listbox::EventHorzScrollbarModeChanged( "HorzScrollbarModeChanged" );
 
 /*************************************************************************
     Child Widget name suffix constants
@@ -187,7 +187,7 @@ ListboxItem* Listbox::getListboxItemFromIndex(size_t index) const
 	}
 	else
 	{
-		throw InvalidRequestException("Listbox::getListboxItemFromIndex - the specified index is out of range for this Listbox.");
+		CEGUI_THROW(InvalidRequestException("Listbox::getListboxItemFromIndex - the specified index is out of range for this Listbox."));
 	}
 }
 
@@ -205,7 +205,7 @@ size_t Listbox::getItemIndex(const ListboxItem* item) const
 	}
 	else
 	{
-		throw InvalidRequestException("Listbox::getItemIndex - the specified ListboxItem is not attached to this Listbox.");
+		CEGUI_THROW(InvalidRequestException("Listbox::getItemIndex - the specified ListboxItem is not attached to this Listbox."));
 	}
 
 }
@@ -222,7 +222,7 @@ bool Listbox::isItemSelected(size_t index) const
 	}
 	else
 	{
-		throw InvalidRequestException("Listbox::isItemSelected - the specified index is out of range for this Listbox.");
+		CEGUI_THROW(InvalidRequestException("Listbox::isItemSelected - the specified index is out of range for this Listbox."));
 	}
 
 }
@@ -339,7 +339,7 @@ void Listbox::insertItem(ListboxItem* item, const ListboxItem* position)
 			// throw if item 'position' is not in the list
 			if (ins_pos == d_listItems.end())
 			{
-				throw InvalidRequestException("Listbox::insertItem - the specified ListboxItem for parameter 'position' is not attached to this Listbox.");
+				CEGUI_THROW(InvalidRequestException("Listbox::insertItem - the specified ListboxItem for parameter 'position' is not attached to this Listbox."));
 			}
 
 		}
@@ -381,7 +381,7 @@ void Listbox::removeItem(const ListboxItem* item)
 			if (item->isAutoDeleted())
 			{
 				// clean up this item.
-				delete item;
+				CEGUI_DELETE_AO item;
 			}
 
 			WindowEventArgs args(this);
@@ -516,7 +516,7 @@ void Listbox::setItemSelectState(ListboxItem* item, bool state)
 	}
 	else
 	{
-		throw InvalidRequestException("Listbox::setItemSelectState - the specified ListboxItem is not attached to this Listbox.");
+		CEGUI_THROW(InvalidRequestException("Listbox::setItemSelectState - the specified ListboxItem is not attached to this Listbox."));
 	}
 }
 
@@ -545,7 +545,7 @@ void Listbox::setItemSelectState(size_t item_index, bool state)
 	}
 	else
 	{
-		throw InvalidRequestException("Listbox::setItemSelectState - the value passed in the 'item_index' parameter is out of range for this Listbox.");
+		CEGUI_THROW(InvalidRequestException("Listbox::setItemSelectState - the value passed in the 'item_index' parameter is out of range for this Listbox."));
 	}
 
 }
@@ -742,9 +742,9 @@ bool Listbox::clearAllSelections_impl(void)
 /*************************************************************************
 	Return the ListboxItem under the given screen pixel co-ordinate.
 *************************************************************************/
-ListboxItem* Listbox::getItemAtPoint(const Point& pt) const
+ListboxItem* Listbox::getItemAtPoint(const Vector2& pt) const
 {
-    const Point local_pos(CoordConverter::screenToWindow(*this, pt));
+    const Vector2 local_pos(CoordConverter::screenToWindow(*this, pt));
 	const Rect renderArea(getListRenderArea());
 
 	// point must be within the rendering area of the Listbox.
@@ -1074,7 +1074,7 @@ bool Listbox::resetList_impl(void)
 			if (d_listItems[i]->isAutoDeleted())
 			{
 				// clean up this item.
-				delete d_listItems[i];
+				CEGUI_DELETE_AO d_listItems[i];
 			}
 
 		}
@@ -1132,7 +1132,7 @@ Rect Listbox::getListRenderArea() const
     }
     else
     {
-        throw InvalidRequestException("Listbox::getListRenderArea - This function must be implemented by the window renderer module");
+        CEGUI_THROW(InvalidRequestException("Listbox::getListRenderArea - This function must be implemented by the window renderer module"));
     }
 }
 

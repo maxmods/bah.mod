@@ -3,7 +3,7 @@
 -- TeCGraf/PUC-Rio
 -- Jul 1998
 -- Last update: Apr 2003
--- $Id: basic.lua 2097 2009-07-20 10:15:56Z ice-drezday $
+-- $Id: basic.lua 2498 2010-03-28 17:27:23Z ice-drezday $
 
 -- This code is free software; you can redistribute it and/or modify it.
 -- The software provided hereunder is on an "as is" basis, and
@@ -43,6 +43,21 @@ _basic_ctype = {
  value = "int",
  state = "lua_State*",
 }
+
+-------------------------------------------------------------------------------
+-- Start of changes for CEGUI
+--
+-- Add a utf8 string type.
+--
+-- utf8string should be typedeffed to a real type in C++ somewhere, like:
+--
+-- typedef CEGUI::utf8* utf8string;
+-------------------------------------------------------------------------------
+_basic['utf8string'] = 'utf8string'
+_basic_ctype.utf8string = 'const utf8string'
+-------------------------------------------------------------------------------
+--End of changes for CEGUI
+-------------------------------------------------------------------------------
 
 -- functions the are used to do a 'raw push' of basic types
 _basic_raw_push = {}

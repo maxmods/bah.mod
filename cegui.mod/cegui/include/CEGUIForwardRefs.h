@@ -36,10 +36,14 @@ namespace CEGUI
 /*************************************************************************
     Forward declare majority of core classes
 *************************************************************************/
+class Affector;
+class Animation;
+class AnimationInstance;
+class AnimationManager;
 class BasicRenderedStringParser;
-class BiDiVisualMapping;
+class BidiVisualMapping;
 class CentredRenderedString;
-class colour;
+class Colour;
 class ColourRect;
 class CoordConverter;
 class DefaultLogger;
@@ -62,14 +66,19 @@ class ImageCodec;
 class ImagerySection;
 class Imageset;
 class ImagesetManager;
+class Interpolator;
 class JustifiedRenderedString;
+class KeyFrame;
 class LeftAlignedRenderedString;
+class LinkedEvent;
+class LinkedEventArgs;
 class Logger;
 class MouseCursor;
 class Property;
-class PropertyHelper;
+template<typename T> class PropertyHelper;
 class PropertyReceiver;
 class PropertySet;
+class Quaternion;
 class RawDataContainer;
 class Rect;
 class RegexMatcher;
@@ -102,6 +111,10 @@ class System;
 class Texture;
 class TextureTarget;
 class TextUtils;
+class UBox;
+class UDim;
+class URect;
+class UVector2;
 class Vector2;
 class Vector3;
 struct Vertex;
@@ -125,13 +138,16 @@ class Checkbox;
 class ClippedContainer;
 class Combobox;
 class ComboDropList;
+class DefaultWindow;
 class DragContainer;
 class Editbox;
 class FrameWindow;
-class GUISheet;
+class GridLayoutContainer;
+class HorizontalLayoutContainer;
 class ItemEntry;
 class ItemListBase;
 class ItemListbox;
+class LayoutContainer;
 class Listbox;
 class ListboxItem;
 class ListboxTextItem;
@@ -150,6 +166,7 @@ class ScrollablePane;
 class Scrollbar;
 class ScrolledContainer;
 class ScrolledItemListBase;
+class SequentialLayoutContainer;
 class Slider;
 class Spinner;
 class TabButton;
@@ -159,6 +176,7 @@ class Titlebar;
 class Tooltip;
 class Tree;
 class TreeItem;
+class VerticalLayoutContainer;
 
 /*************************************************************************
     Forward declare EventArg based classes.
@@ -179,3 +197,4 @@ class WindowEventArgs;
 } // End of  CEGUI namespace section
 
 #endif	// end of guard _CEGUIForwardRefs_h_
+

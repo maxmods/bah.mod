@@ -38,11 +38,12 @@ namespace CEGUI
 {
 //----------------------------------------------------------------------------//
 BasicRenderedStringParser ListboxTextItem::d_stringParser;
+DefaultRenderedStringParser ListboxTextItem::d_noTagsStringParser;
 
 /*************************************************************************
 	Constants
 *************************************************************************/
-const colour	ListboxTextItem::DefaultTextColour		= 0xFFFFFFFF;
+const Colour	ListboxTextItem::DefaultTextColour		= 0xFFFFFFFF;
 
 
 /*************************************************************************
@@ -52,7 +53,8 @@ ListboxTextItem::ListboxTextItem(const String& text, uint item_id, void* item_da
 	ListboxItem(text, item_id, item_data, disabled, auto_delete),
 	d_textCols(DefaultTextColour, DefaultTextColour, DefaultTextColour, DefaultTextColour),
 	d_font(0),
-    d_renderedStringValid(false)
+    d_renderedStringValid(false),
+    d_textParsingEnabled(true)
 {
 }
 
@@ -163,10 +165,10 @@ void ListboxTextItem::draw(GeometryBuffer& buffer, const Rect& targetRect,
 /*************************************************************************
 	Set the colours used for text rendering.	
 *************************************************************************/
-void ListboxTextItem::setTextColours(colour top_left_colour,
-                                     colour top_right_colour,
-                                     colour bottom_left_colour,
-                                     colour bottom_right_colour)
+void ListboxTextItem::setTextColours(Colour top_left_colour,
+                                     Colour top_right_colour,
+                                     Colour bottom_left_colour,
+                                     Colour bottom_right_colour)
 {
 	d_textCols.d_top_left		= top_left_colour;
 	d_textCols.d_top_right		= top_right_colour;
@@ -187,9 +189,29 @@ void ListboxTextItem::setText(const String& text)
 //----------------------------------------------------------------------------//
 void ListboxTextItem::parseTextString() const
 {
-    d_renderedString =
-        d_stringParser.parse(getTextVisual(), getFont(), &d_textCols);
+    if (d_textParsingEnabled)
+        d_renderedString =
+            d_stringParser.parse(getTextVisual(), getFont(), &d_textCols);
+    else
+        d_renderedString =
+            d_noTagsStringParser.parse(getTextVisual(), getFont(), &d_textCols);
+
     d_renderedStringValid = true;
 }
+
+//----------------------------------------------------------------------------//
+void ListboxTextItem::setTextParsingEnabled(const bool enable)
+{
+    d_textParsingEnabled = enable;
+    d_renderedStringValid = false;
+}
+
+//----------------------------------------------------------------------------//
+bool ListboxTextItem::isTextParsingEnabled() const
+{
+    return d_textParsingEnabled;
+}
+
+//----------------------------------------------------------------------------//
 
 } // End of  CEGUI namespace section

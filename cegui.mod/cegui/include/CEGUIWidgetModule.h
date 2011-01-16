@@ -57,9 +57,9 @@ class className ## Factory : public WindowFactory\
 public:\
     className ## Factory(void) : WindowFactory(className::WidgetTypeName) { }\
     Window* createWindow(const String& name)\
-    { return new className(d_type, name); }\
+    { return CEGUI_NEW_AO className(d_type, name); }\
     void destroyWindow(Window* window)\
-    { delete window; }\
+    { CEGUI_DELETE_AO window; }\
 };\
 }\
 static CEGUI::className ## Factory  s_ ## className ## Factory;
@@ -93,7 +93,7 @@ extern "C" void registerFactory(const CEGUI::String& type_name)\
         ++entry;\
     }\
 \
-    throw CEGUI::UnknownObjectException("::registerFactory - The window factory for type '" + type_name + "' is not known in this module.");\
+    CEGUI_THROW(CEGUI::UnknownObjectException("::registerFactory - The window factory for type '" + type_name + "' is not known in this module."));\
 }\
 \
 extern "C" CEGUI::uint registerAllFactories(void)\

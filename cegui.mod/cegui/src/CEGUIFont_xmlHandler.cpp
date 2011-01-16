@@ -80,15 +80,15 @@ Font_xmlHandler::Font_xmlHandler(const String& filename,
 Font_xmlHandler::~Font_xmlHandler()
 {
     if (!d_objectRead)
-        delete d_font;
+        CEGUI_DELETE_AO d_font;
 }
 
 //----------------------------------------------------------------------------//
 const String& Font_xmlHandler::getObjectName() const
 {
     if (!d_font)
-        throw InvalidRequestException("Font_xmlHandler::getName: "
-            "Attempt to access null object.");
+        CEGUI_THROW(InvalidRequestException("Font_xmlHandler::getName: "
+            "Attempt to access null object."));
 
     return d_font->getName();
 }
@@ -97,8 +97,8 @@ const String& Font_xmlHandler::getObjectName() const
 Font& Font_xmlHandler::getObject() const
 {
     if (!d_font)
-        throw InvalidRequestException("Font_xmlHandler::getObject: "
-            "Attempt to access null object.");
+        CEGUI_THROW(InvalidRequestException("Font_xmlHandler::getObject: "
+            "Attempt to access null object."));
 
     d_objectRead = true;
     return *d_font;
@@ -142,8 +142,8 @@ void Font_xmlHandler::elementFontStart(const XMLAttributes& attributes)
     else if (font_type == FontTypePixmap)
         createPixmapFont(attributes);
     else
-        throw InvalidRequestException("Font_xmlHandler::elementFontStart: "
-            "Encountered unknown font type of '" + font_type + "'");
+        CEGUI_THROW(InvalidRequestException("Font_xmlHandler::elementFontStart: "
+            "Encountered unknown font type of '" + font_type + "'"));
 }
 
 //----------------------------------------------------------------------------//
@@ -159,9 +159,9 @@ void Font_xmlHandler::elementFontEnd ()
 void Font_xmlHandler::elementMappingStart(const XMLAttributes& attributes)
 {
     if (!d_font)
-        throw InvalidRequestException(
+        CEGUI_THROW(InvalidRequestException(
             "Imageset_xmlHandler::elementMappingStart: Attempt to access null "
-            "object.");
+            "object."));
 
     // double-check font type just in case - report issues as 'soft' errors
     if (d_font->getTypeName() != FontTypePixmap)
@@ -192,7 +192,7 @@ void Font_xmlHandler::createFreeTypeFont(const XMLAttributes& attributes)
     logger.logEvent("---- Real point size: " +
             attributes.getValueAsString(FontSizeAttribute, "12"));
 
-    d_font = new FreeTypeFont(name,
+    d_font = CEGUI_NEW_AO FreeTypeFont(name,
         attributes.getValueAsFloat(FontSizeAttribute, 12.0f),
         attributes.getValueAsBool(FontAntiAliasedAttribute, true),
         filename, resource_group,
@@ -201,8 +201,8 @@ void Font_xmlHandler::createFreeTypeFont(const XMLAttributes& attributes)
         attributes.getValueAsFloat(FontNativeVertResAttribute, 480.0f),
         attributes.getValueAsFloat(FontLineSpacingAttribute, 0.0f));
 #else
-    throw InvalidRequestException("Font_xmlHandler::createFreeTypeFont: "
-        "CEGUI was compiled without freetype support.");
+    CEGUI_THROW(InvalidRequestException("Font_xmlHandler::createFreeTypeFont: "
+        "CEGUI was compiled without freetype support."));
 #endif
 }
 
@@ -220,7 +220,7 @@ void Font_xmlHandler::createPixmapFont(const XMLAttributes& attributes)
                     " in resource group: " + (resource_group.empty() ?
                                               "(Default)" : resource_group));
 
-    d_font = new PixmapFont(name, filename, resource_group,
+    d_font = CEGUI_NEW_AO PixmapFont(name, filename, resource_group,
         attributes.getValueAsBool(FontAutoScaledAttribute, false),
         attributes.getValueAsFloat(FontNativeHorzResAttribute, 640.0f),
         attributes.getValueAsFloat(FontNativeVertResAttribute, 480.0f));

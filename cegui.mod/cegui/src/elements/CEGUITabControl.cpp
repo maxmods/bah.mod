@@ -31,7 +31,7 @@
 #include "elements/CEGUITabControl.h"
 #include "elements/CEGUITabButton.h"
 #include "elements/CEGUIPushButton.h"
-#include "elements/CEGUIGUISheet.h"
+#include "elements/CEGUIDefaultWindow.h"
 #include "CEGUIFont.h"
 #include "CEGUIWindowManager.h"
 #include "CEGUIPropertyHelper.h"
@@ -61,7 +61,7 @@ TabControlProperties::TabPanePosition		    TabControl::d_tabPanePosition;
 	Constants
 *************************************************************************/
 // event names
-const String TabControl::EventSelectionChanged( "TabSelectionChanged" );
+const String TabControl::EventSelectionChanged( "SelectionChanged" );
 
 /*************************************************************************
     Child Widget name suffix constants
@@ -170,7 +170,7 @@ size_t TabControl::getSelectedTabIndex() const
         if (d_tabButtonVector [i]->isSelected ())
             return i;
 
-	throw UnknownObjectException("TabControl::getSelectedTabIndex - Current tab not in list?");
+	CEGUI_THROW(UnknownObjectException("TabControl::getSelectedTabIndex - Current tab not in list?"));
 }
 
 /*************************************************************************
@@ -254,7 +254,7 @@ void TabControl::addTab(Window* wnd)
     // Create a new TabButton
     addButtonForTabContent(wnd);
     // Add the window to the content pane
-    getTabPane()->addChildWindow(wnd);
+    getTabPane()->addChild(wnd);
     // Auto-select?
     if (getTabCount() == 1)
         setSelectedTab(wnd->getName());
@@ -307,7 +307,7 @@ void TabControl::addButtonForTabContent(Window* wnd)
     // Instert into map
     d_tabButtonVector.push_back(tb);
     // add the button
-    getTabButtonPane()->addChildWindow(tb);
+    getTabButtonPane()->addChild(tb);
     // Subscribe to clicked event so that we can change tab
     tb->subscribeEvent(TabButton::EventClicked,
         Event::Subscriber(&TabControl::handleTabButtonClicked, this));
@@ -326,7 +326,7 @@ TabButton* TabControl::getButtonForTabContents(Window* wnd) const
         if (d_tabButtonVector [i]->getTargetWindow () == wnd)
             return d_tabButtonVector [i];
 
-	throw UnknownObjectException("TabControl::getButtonForTabContents - The Window object is not a tab contents.");
+	CEGUI_THROW(UnknownObjectException("TabControl::getButtonForTabContents - The Window object is not a tab contents."));
 }
 /*************************************************************************
 Remove tab button
@@ -344,7 +344,7 @@ void TabControl::removeButtonForTabContent(Window* wnd)
             d_tabButtonVector.erase (i);
             break;
         }
-    getTabButtonPane()->removeChildWindow(tb);
+    getTabButtonPane()->removeChild(tb);
 	// destroy
 	WindowManager::getSingleton().destroyWindow(tb);
 }
@@ -356,8 +356,7 @@ String TabControl::makeButtonName(Window* wnd)
     // Create the button name as "'auto' parent + 'auto' button + tab name"
     String buttonName = getTabButtonPane()->getName();
     buttonName.append(TabButtonNameSuffix);
-    size_t pathEndPos = wnd->getName().find_last_of("/");
-    buttonName.append(wnd->getName().substr(pathEndPos == String::npos ? 0 : pathEndPos + 1));
+    buttonName.append(wnd->getName());
     return buttonName;
 }
 /*************************************************************************
@@ -591,7 +590,7 @@ void TabControl::performChildWindowLayout()
         --i;
         float xmax = d_tabButtonVector [i]->getXPosition ().d_offset +
             d_tabButtonVector [i]->getPixelSize ().d_width;
-        float width = tabContentPane->getPixelSize ().d_width;
+        float width = tabButtonPane->getPixelSize ().d_width;
 
         // If right button margin exceeds right window margin,
         // or leftmost button is at offset 0, finish
@@ -689,7 +688,7 @@ TabButton* TabControl::createTabButton(const String& name) const
     else
     {
         //return createTabButton_impl(name);
-        throw InvalidRequestException("TabControl::createTabButton - This function must be implemented by the window renderer module");
+        CEGUI_THROW(InvalidRequestException("TabControl::createTabButton - This function must be implemented by the window renderer module"));
     }
 }
 
@@ -789,7 +788,7 @@ void TabControl::removeTab_impl(Window* window)
     // Was this selected?
     bool reselect = window->isVisible();
     // Tab buttons are the 2nd onward children
-    getTabPane()->removeChildWindow(window);
+    getTabPane()->removeChild(window);
 
     // remove button too
     removeButtonForTabContent(window);

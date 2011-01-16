@@ -41,7 +41,7 @@ String BlinkCaret::get(const PropertyReceiver* receiver) const
     FalagardEditbox* wr = static_cast<FalagardEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    return PropertyHelper::boolToString(wr->isCaretBlinkEnabled());
+    return PropertyHelper<bool>::toString(wr->isCaretBlinkEnabled());
 }
 
 //----------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ void BlinkCaret::set(PropertyReceiver* receiver, const String& value)
     FalagardEditbox* wr = static_cast<FalagardEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    wr->setCaretBlinkEnabled(PropertyHelper::stringToBool(value));
+    wr->setCaretBlinkEnabled(PropertyHelper<bool>::fromString(value));
 }
 
 //----------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ String BlinkCaretTimeout::get(const PropertyReceiver* receiver) const
     FalagardEditbox* wr = static_cast<FalagardEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    return PropertyHelper::floatToString(wr->getCaretBlinkTimeout());
+    return PropertyHelper<float>::toString(wr->getCaretBlinkTimeout());
 }
 
 //----------------------------------------------------------------------------//
@@ -68,8 +68,49 @@ void BlinkCaretTimeout::set(PropertyReceiver* receiver, const String& value)
     FalagardEditbox* wr = static_cast<FalagardEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    wr->setCaretBlinkTimeout(PropertyHelper::stringToFloat(value));
+    wr->setCaretBlinkTimeout(PropertyHelper<float>::fromString(value));
 }
+
+//----------------------------------------------------------------------------//
+String TextFormatting::get(const PropertyReceiver* receiver) const
+{
+    FalagardEditbox* wr = static_cast<FalagardEditbox*>(
+        static_cast<const Window*>(receiver)->getWindowRenderer());
+
+    switch(wr->getTextFormatting())
+    {
+    case HTF_RIGHT_ALIGNED:
+        return String("RightAligned");
+        break;
+
+    case HTF_CENTRE_ALIGNED:
+        return String("HorzCentred");
+        break;
+
+    default:
+        return String("LeftAligned");
+        break;
+    }
+}
+
+//----------------------------------------------------------------------------//
+void TextFormatting::set(PropertyReceiver* receiver, const String& value)
+{
+    HorizontalTextFormatting fmt;
+
+    if (value == "RightAligned")
+        fmt = HTF_RIGHT_ALIGNED;
+    else if (value == "HorzCentred")
+        fmt = HTF_CENTRE_ALIGNED;
+    else
+        fmt = HTF_LEFT_ALIGNED;
+
+    FalagardEditbox* wr = static_cast<FalagardEditbox*>(
+        static_cast<Window*>(receiver)->getWindowRenderer());
+    wr->setTextFormatting(fmt);
+}
+
+//----------------------------------------------------------------------------//
 
 } // End of FalagardEditboxProperties namespace section
 

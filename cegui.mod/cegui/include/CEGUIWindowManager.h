@@ -58,8 +58,9 @@ namespace CEGUI
 	WindowFactoryManager.  Additionally, the WindowManager tracks every Window object created, and can be
 	used to access those Window objects by name.
 */
-class CEGUIEXPORT WindowManager : public Singleton <WindowManager>,
-                                  public EventSet
+class CEGUIEXPORT WindowManager : public Singleton<WindowManager>,
+                                  public EventSet,
+                                  public AllocatedObject<WindowManager>
 {
 public:
     /*************************************************************************
@@ -317,6 +318,47 @@ public:
 
     /*!
     \brief
+        Save a full XML window layout, starting at the given Window, to a file
+        with the given file name.
+
+    \param window
+        String holding the name of the Window object to become the root of the
+        layout.
+
+    \param filename
+        The name of the file to which the XML will be written.  Note that this
+        does not use any part of the ResourceProvider system, but rather will
+        write directly to disk.  If this is not desirable, you should prefer the
+        OutStream based writeWindowLayoutToStream functions.
+
+    \param writeParent
+        If the starting window has a parent window, specifies whether to write
+        the parent name into the Parent attribute of the GUILayout XML element.
+    */
+    void saveWindowLayout(const String& window, const String& filename, const bool writeParent = false) const;
+
+    /*!
+    \brief
+        Save a full XML window layout, starting at the given Window, to a file
+        with the given file name.
+
+    \param window
+        Window object to become the root of the layout.
+
+    \param filename
+        The name of the file to which the XML will be written.  Note that this
+        does not use any part of the ResourceProvider system, but rather will
+        write directly to disk.  If this is not desirable, you should prefer the
+        OutStream based writeWindowLayoutToStream functions.
+
+    \param writeParent
+        If the starting window has a parent window, specifies whether to write
+        the parent name into the Parent attribute of the GUILayout XML element.
+    */
+    void saveWindowLayout(const Window& window, const String& filename, const bool writeParent = false) const;
+
+    /*!
+    \brief
         Rename a window.
 
     \param window
@@ -442,11 +484,13 @@ private:
 	/*************************************************************************
 		Implementation Data
 	*************************************************************************/
-	typedef std::map<String, Window*, String::FastLessCompare>			WindowRegistry;				//!< Type used to implement registry of Window objects
-    typedef std::vector<Window*>    WindowVector;   //!< Type to use for a collection of Window pointers.
+	typedef std::map<String, Window*, String::FastLessCompare
+        CEGUI_MAP_ALLOC(String, Window*)> WindowRegistry; //!< Type used to implement registry of Window objects
+    typedef std::vector<Window*
+        CEGUI_VECTOR_ALLOC(Window*)> WindowVector; //!< Type to use for a collection of Window pointers.
 
-	WindowRegistry			d_windowRegistry;			//!< The container that forms the Window registry
-    WindowVector    d_deathrow;     //!< Collection of 'destroyed' windows.
+	WindowRegistry d_windowRegistry;			//!< The container that forms the Window registry
+    WindowVector d_deathrow; //!< Collection of 'destroyed' windows.
 
     unsigned long   d_uid_counter;  //!< Counter used to generate unique window names.
     static String d_defaultResourceGroup;   //!< holds default resource group

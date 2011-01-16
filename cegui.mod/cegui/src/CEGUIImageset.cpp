@@ -63,7 +63,7 @@ Imageset::Imageset(const String& name, Texture& texture) :
 {
 	if (!d_texture)
 	{
-		throw NullObjectException("Imageset::Imageset - Texture object supplied for Imageset creation must be valid.");
+		CEGUI_THROW(NullObjectException("Imageset::Imageset - Texture object supplied for Imageset creation must be valid."));
 	}
 	// defaults for scaling options
 	d_autoScale = false;
@@ -93,7 +93,7 @@ Imageset::Imageset(const String& name, const String& filename, const String& res
         Rect(0, 0,
              d_texture->getOriginalDataSize().d_width,
              d_texture->getOriginalDataSize().d_height),
-        Point(0, 0)
+        Vector2(0, 0)
     );
 }
 
@@ -114,7 +114,7 @@ void Imageset::setTexture(Texture* texture)
 {
 	if (!d_texture)
 	{
-		throw NullObjectException("Imageset::setTexture - Texture object supplied for Imageset creation must be valid.");
+		CEGUI_THROW(NullObjectException("Imageset::setTexture - Texture object supplied for Imageset creation must be valid."));
 	}
 
 	d_texture = texture;
@@ -130,7 +130,7 @@ const Image& Imageset::getImage(const String& name) const
 
 	if (pos == d_images.end())
 	{
-		throw	UnknownObjectException("Imageset::getImage - The Image named '" + name + "' could not be found in Imageset '" + d_name + "'.");
+		CEGUI_THROW(UnknownObjectException("Imageset::getImage - The Image named '" + name + "' could not be found in Imageset '" + d_name + "'."));
 	}
 
 	return pos->second;
@@ -140,11 +140,11 @@ const Image& Imageset::getImage(const String& name) const
 /*************************************************************************
 	defines a new Image.
 *************************************************************************/
-void Imageset::defineImage(const String& name, const Rect& image_rect, const Point& render_offset)
+void Imageset::defineImage(const String& name, const Rect& image_rect, const Vector2& render_offset)
 {
 	if (isImageDefined(name))
 	{
-		throw AlreadyExistsException("Imageset::defineImage - An image with the name '" + name + "' already exists in Imageset '" + d_name + "'.");
+		CEGUI_THROW(AlreadyExistsException("Imageset::defineImage - An image with the name '" + name + "' already exists in Imageset '" + d_name + "'."));
 	}
 
 	// get scaling factors
@@ -252,8 +252,7 @@ void Imageset::draw(GeometryBuffer& buffer, const Rect& source_rect,
     vbuffer[5].colour_val= colours.d_bottom_right;
     vbuffer[5].tex_coords = Vector2(tex_rect.d_right, tex_rect.d_bottom);
 
-    // TODO: Remove cast when GeometryBuffer gets it's APIs fixed!
-    buffer.setActiveTexture((Texture*)d_texture);
+    buffer.setActiveTexture(d_texture);
     buffer.appendGeometry(vbuffer, 6);
 }
 
@@ -349,10 +348,10 @@ void Imageset::writeXMLToStream(XMLSerializer& xml_stream) const
 
     if (d_nativeHorzRes != DefaultNativeHorzRes)
         xml_stream.attribute("NativeHorzRes", 
-          PropertyHelper::uintToString(static_cast<uint>(d_nativeHorzRes)));
+          PropertyHelper<uint>::toString(static_cast<uint>(d_nativeHorzRes)));
     if (d_nativeVertRes != DefaultNativeVertRes)
         xml_stream.attribute("NativeVertRes", 
-          PropertyHelper::uintToString(static_cast<uint>(d_nativeVertRes)));
+          PropertyHelper<uint>::toString(static_cast<uint>(d_nativeVertRes)));
 
     if (d_autoScale)
         xml_stream.attribute("AutoScaled", "true");

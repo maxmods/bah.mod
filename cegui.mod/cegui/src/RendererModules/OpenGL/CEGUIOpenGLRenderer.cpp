@@ -34,18 +34,19 @@
 #include "CEGUIOpenGLRenderer.h"
 #include "CEGUIOpenGLTexture.h"
 #include "CEGUIExceptions.h"
-#include "CEGUIEventArgs.h"
 #include "CEGUIImageCodec.h"
 #include "CEGUIDynamicModule.h"
 #include "CEGUIOpenGLViewportTarget.h"
 #include "CEGUIOpenGLGeometryBuffer.h"
 #include "CEGUIRenderingRoot.h"
 #include "CEGUIOpenGLFBOTextureTarget.h"
+#include "CEGUISystem.h"
+#include "CEGUIDefaultResourceProvider.h"
 
 #include <sstream>
 #include <algorithm>
 
-#if defined(__linux__)  || defined(__FreeBSD__)
+#if defined(__linux__)  || defined(__FreeBSD__) || defined(__NetBSD__)
 #   include "CEGUIOpenGLGLXPBTextureTarget.h"
 #elif defined(_WIN32) || defined(__WIN32__)
 #   include "CEGUIOpenGLWGLPBTextureTarget.h"
@@ -107,6 +108,52 @@ class OGLTemplateTargetFactory : public OGLTextureTargetFactory
 //----------------------------------------------------------------------------//
 String OpenGLRenderer::d_rendererID(
 "CEGUI::OpenGLRenderer - Official OpenGL based 2nd generation renderer module.");
+
+//----------------------------------------------------------------------------//
+OpenGLRenderer& OpenGLRenderer::bootstrapSystem(const TextureTargetType tt_type)
+{
+    if (System::getSingletonPtr())
+        CEGUI_THROW(InvalidRequestException("OpenGLRenderer::bootstrapSystem: "
+            "CEGUI::System object is already initialised."));
+
+    OpenGLRenderer& renderer(create(tt_type));
+    DefaultResourceProvider* rp = new CEGUI::DefaultResourceProvider();
+    System::create(renderer, rp);
+
+    return renderer;
+}
+
+//----------------------------------------------------------------------------//
+OpenGLRenderer& OpenGLRenderer::bootstrapSystem(const Size& display_size,
+                                                const TextureTargetType tt_type)
+{
+    if (System::getSingletonPtr())
+        CEGUI_THROW(InvalidRequestException("OpenGLRenderer::bootstrapSystem: "
+            "CEGUI::System object is already initialised."));
+
+    OpenGLRenderer& renderer(create(display_size, tt_type));
+    DefaultResourceProvider* rp = new CEGUI::DefaultResourceProvider();
+    System::create(renderer, rp);
+
+    return renderer;
+}
+
+//----------------------------------------------------------------------------//
+void OpenGLRenderer::destroySystem()
+{
+    System* sys;
+    if (!(sys = System::getSingletonPtr()))
+        CEGUI_THROW(InvalidRequestException("OpenGLRenderer::destroySystem: "
+            "CEGUI::System object is not created or was already destroyed."));
+
+    OpenGLRenderer* renderer = static_cast<OpenGLRenderer*>(sys->getRenderer());
+    DefaultResourceProvider* rp =
+        static_cast<DefaultResourceProvider*>(sys->getResourceProvider());
+
+    System::destroy();
+    delete rp;
+    destroy(*renderer);
+}
 
 //----------------------------------------------------------------------------//
 OpenGLRenderer& OpenGLRenderer::create(const TextureTargetType tt_type)
@@ -479,7 +526,7 @@ void OpenGLRenderer::initialiseTextureTargetFactory(
             new OGLTemplateTargetFactory<OpenGLFBOTextureTarget>;
     }
 
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__)
     // on linux (etc), we can try for GLX pbuffer support
     else if (((tt_type == TTT_AUTO) || (tt_type == TTT_PBUFFER)) &&
              GLXEW_VERSION_1_3)
@@ -591,7 +638,7 @@ void initialiseGLExtensions()
         err_string << "OpenGLRenderer failed to initialise the GLEW library. "
         << glewGetErrorString(err);
 
-        throw RendererException(err_string.str());
+        CEGUI_THROW(RendererException(err_string.str()));
     }
 
     // GL 1.3 has multi-texture support natively

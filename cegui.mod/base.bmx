@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -866,7 +866,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Window has been updated.
 	End Rem
-	Const EventWindowUpdated:String = "WindowUpdate"
+	Const EventWindowUpdated:String = "Updated"
 	Rem
 	bbdoc: Parent of this Window has been re-sized. 
 	End Rem
@@ -922,7 +922,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Clipping by parent mode has been modified. 
 	End Rem
-	Const EventClippedByParentChanged:String = "ClippingChanged"
+	Const EventClippedByParentChanged:String = "ClippedByParentChanged"
 	Rem
 	bbdoc: Destruction by parent mode has been modified. 
 	End Rem
@@ -930,7 +930,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Alpha inherited from parent mode has been modified. 
 	End Rem
-	Const EventInheritsAlphaChanged:String = "InheritAlphaChanged"
+	Const EventInheritsAlphaChanged:String = "InheritsAlphaChanged"
 	Rem
 	bbdoc: Always on top mode has been modified. 
 	End Rem
@@ -938,35 +938,35 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Window has captured all inputs. 
 	End Rem
-	Const EventInputCaptureGained:String = "CaptureGained"
+	Const EventInputCaptureGained:String = "InputCaptureGained"
 	Rem
 	bbdoc: Window has lost it's capture on inputs. 
 	End Rem
-	Const EventInputCaptureLost:String = "CaptureLost"
+	Const EventInputCaptureLost:String = "InputCaptureLost"
 	Rem
 	bbdoc: Rendering of the Window has started. 
 	End Rem
-	Const EventRenderingStarted:String = "StartRender"
+	Const EventRenderingStarted:String = "RenderingStarted"
 	Rem
 	bbdoc: Rendering for the Window has finished. 
 	End Rem
-	Const EventRenderingEnded:String = "EndRender"
+	Const EventRenderingEnded:String = "RenderingEnded"
 	Rem
 	bbdoc: A child Window has been added. 
 	End Rem
-	Const EventChildAdded:String = "AddedChild"
+	Const EventChildAdded:String = "ChildAdded"
 	Rem
 	bbdoc: A child window has been removed. 
 	End Rem
-	Const EventChildRemoved:String = "RemovedChild"
+	Const EventChildRemoved:String = "ChildRemoved"
 	Rem
 	bbdoc: Destruction of the Window is about to begin. 
 	End Rem
-	Const EventDestructionStarted:String = "DestructStart"
+	Const EventDestructionStarted:String = "DestructionStarted"
 	Rem
 	bbdoc: The z-order of the window has changed. 
 	End Rem
-	Const EventZOrderChanged:String = "ZChanged"
+	Const EventZOrderChanged:String = "ZOrderChanged"
 	Rem
 	bbdoc: A DragContainer has been dragged over this window. 
 	End Rem
@@ -1008,13 +1008,25 @@ Type TCEWindow Extends TCEEventSet
 	End Rem
 	Const EventTextParsingChanged:String = "TextParsingChanged"
 	Rem
-	bbdoc: Mouse cursor has entered the Window. 
+	bbdoc: Window margin was changed.
 	End Rem
-	Const EventMouseEnters:String = "MouseEnter"
+	Const EventMarginChanged:String = "MarginChanged"
 	Rem
-	bbdoc: Mouse cursor has left the Window. 
+	bbdoc: Mouse cursor has entered the Window area. 
 	End Rem
-	Const EventMouseLeaves:String = "MouseLeave"
+	Const EventMouseEntersArea:String = "MouseEntersArea"
+	Rem
+	bbdoc: Mouse cursor has left the Window area. 
+	End Rem
+	Const EventMouseLeavesArea:String = "MouseLeavesArea"
+	Rem
+	bbdoc: Mouse cursor has entered the Window surface. 
+	End Rem
+	Const EventMouseEntersSurface:String = "MouseEntersSurface"
+	Rem
+	bbdoc: Mouse cursor has left the Window surface. 
+	End Rem
+	Const EventMouseLeavesSurface:String = "MouseLeavesSurface"
 	Rem
 	bbdoc: Mouse cursor was moved within the area of the Window. 
 	End Rem
@@ -1501,11 +1513,11 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Removes the named Window from this windows child list.
 	about: Accepts either a TCEWindow object, or window name.
 	End Rem
-	Method removeChildWindow(window:Object)
+	Method removeChild(window:Object)
 		If TCEWindow(window) Then
-			bmx_cegui_window_removechildwindow(objectPtr, TCEWindow(window).objectPtr)
+			bmx_cegui_window_removechild(objectPtr, TCEWindow(window).objectPtr)
 		ElseIf String(window) Then
-			bmx_cegui_window_removechildwindowname(objectPtr, _convertMaxToUTF8(String(window)))
+			bmx_cegui_window_removechildname(objectPtr, _convertMaxToUTF8(String(window)))
 		End If
 	End Method
 	
@@ -1513,8 +1525,8 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Removes the first child Window with the specified ID.
 	about: If there is more than one attached Window objects with the specified ID, only the fist one encountered will be removed.
 	End Rem
-	Method removeChildWindowForID(ID:Int)
-		bmx_cegui_window_removechildwindowforid(objectPtr, ID)
+	Method removeChildForID(ID:Int)
+		bmx_cegui_window_removechildforid(objectPtr, ID)
 	End Method
 	
 	Rem
@@ -1559,10 +1571,10 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Rem
-	bbdoc: Sets whether this window will remember and restore the previous window that had inputs captured.
+	bbdoc: Sets whether this window will remember And restore the previous window that had inputs captured.
 	End Rem
-	Method setRestoreCapture(setting:Int)
-		bmx_cegui_window_setrestorecapture(objectPtr, setting)
+	Method setRestoreOldCapture(setting:Int)
+		bmx_cegui_window_setrestoreoldcapture(objectPtr, setting)
 	End Method
 	
 	Rem
@@ -1920,11 +1932,11 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Adds the specified Window as a child of this Window.
 	about: If the Window window is already attached to a Window, it is detached before being added to this Window.
 	End Rem
-	Method addChildWindow(window:Object)
+	Method addChild(window:Object)
 		If TCEWindow(window) Then
-			bmx_cegui_window_addchildwindowwindow(objectPtr, TCEWindow(window).objectPtr)
+			bmx_cegui_window_addchildwindow(objectPtr, TCEWindow(window).objectPtr)
 		Else If String(window) Then
-			bmx_cegui_window_addchildwindow(objectPtr, _convertMaxToUTF8(String(window)))
+			bmx_cegui_window_addchild(objectPtr, _convertMaxToUTF8(String(window)))
 		End If
 	End Method
 	
@@ -3130,12 +3142,33 @@ Type TCEFont
 	Method getProperty:String(name:String)
 		Return bmx_cegui_font_getproperty(objectPtr, _convertMaxToUTF8(name))
 	End Method
+
+	Rem
+	bbdoc: Gets the current value of the specified Property as a bool value.
+	End Rem
+	Method getPropertyAsBool:Int(name:String)
+		Return bmx_cegui_font_getpropertyasbool(objectPtr, _convertMaxToUTF8(name))
+	End Method
+
+	Rem
+	bbdoc: Gets the current value of the specified Property as an int value.
+	End Rem
+	Method getPropertyAsInt:Int(name:String)
+		Return bmx_cegui_font_getpropertyasint(objectPtr, _convertMaxToUTF8(name))
+	End Method
 	 
 	Rem
 	bbdoc: Sets the current value of a Property.
 	End Rem
 	Method setProperty(name:String, value:String)
 		bmx_cegui_font_setproperty(objectPtr, _convertMaxToUTF8(name), _convertMaxToUTF8(value))
+	End Method
+	 
+	Rem
+	bbdoc: Sets the current value of a Property as a bool.
+	End Rem
+	Method setPropertyAsBool(name:String, value:Int)
+		bmx_cegui_font_setpropertyasbool(objectPtr, _convertMaxToUTF8(name), value)
 	End Method
 	 
 	Rem
@@ -3555,7 +3588,13 @@ End Rem
 Type TCERenderer Abstract
 
 	Field objectPtr:Byte Ptr
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method init:TCERenderer(g:Object = Null) Abstract
 	
+
 	Method createGeometryBuffer:TCEGeometryBuffer()
 '		Return TCEGeometryBuffer(bmx_cegui_renderer_creategeometrybuffer(objectPtr))
 	End Method

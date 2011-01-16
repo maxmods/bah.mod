@@ -41,61 +41,74 @@ namespace ScrollbarProperties
 {
 String	DocumentSize::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper::floatToString(static_cast<const Scrollbar*>(receiver)->getDocumentSize());
+	return PropertyHelper<float>::toString(static_cast<const Scrollbar*>(receiver)->getDocumentSize());
 }
 
 
 void	DocumentSize::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Scrollbar*>(receiver)->setDocumentSize(PropertyHelper::stringToFloat(value));
+	static_cast<Scrollbar*>(receiver)->setDocumentSize(PropertyHelper<float>::fromString(value));
 }
 
 
 String	PageSize::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper::floatToString(static_cast<const Scrollbar*>(receiver)->getPageSize());
+	return PropertyHelper<float>::toString(static_cast<const Scrollbar*>(receiver)->getPageSize());
 }
 
 
 void	PageSize::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Scrollbar*>(receiver)->setPageSize(PropertyHelper::stringToFloat(value));
+	static_cast<Scrollbar*>(receiver)->setPageSize(PropertyHelper<float>::fromString(value));
 }
 
 
 String	StepSize::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper::floatToString(static_cast<const Scrollbar*>(receiver)->getStepSize());
+	return PropertyHelper<float>::toString(static_cast<const Scrollbar*>(receiver)->getStepSize());
 }
 
 
 void	StepSize::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Scrollbar*>(receiver)->setStepSize(PropertyHelper::stringToFloat(value));
+	static_cast<Scrollbar*>(receiver)->setStepSize(PropertyHelper<float>::fromString(value));
 }
 
 
 String	OverlapSize::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper::floatToString(static_cast<const Scrollbar*>(receiver)->getOverlapSize());
+	return PropertyHelper<float>::toString(static_cast<const Scrollbar*>(receiver)->getOverlapSize());
 }
 
 
 void	OverlapSize::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Scrollbar*>(receiver)->setOverlapSize(PropertyHelper::stringToFloat(value));
+	static_cast<Scrollbar*>(receiver)->setOverlapSize(PropertyHelper<float>::fromString(value));
 }
 
 
 String	ScrollPosition::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper::floatToString(static_cast<const Scrollbar*>(receiver)->getScrollPosition());
+	return PropertyHelper<float>::toString(static_cast<const Scrollbar*>(receiver)->getScrollPosition());
 }
 
 
 void	ScrollPosition::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Scrollbar*>(receiver)->setScrollPosition(PropertyHelper::stringToFloat(value));
+	static_cast<Scrollbar*>(receiver)->setScrollPosition(PropertyHelper<float>::fromString(value));
+}
+
+String EndLockEnabled::get(const PropertyReceiver* receiver) const
+{
+    return PropertyHelper<bool>::toString(
+        static_cast<const Scrollbar*>(receiver)->isEndLockEnabled());
+}
+
+
+void EndLockEnabled::set(PropertyReceiver* receiver, const String& value)
+{
+    static_cast<Scrollbar*>(receiver)->
+        setEndLockEnabled(PropertyHelper<bool>::fromString(value));
 }
 
 } // End of  ScrollbarProperties namespace section

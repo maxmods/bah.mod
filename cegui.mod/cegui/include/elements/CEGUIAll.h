@@ -32,11 +32,13 @@
 #include "CEGUIClippedContainer.h"
 #include "CEGUICombobox.h"
 #include "CEGUIComboDropList.h"
+#include "CEGUIDefaultWindow.h"
 #include "CEGUIDragContainer.h"
 #include "CEGUIEditbox.h"
 #include "CEGUIFrameWindow.h"
+#include "CEGUIGridLayoutContainer.h"
 #include "CEGUIGroupBox.h"
-#include "CEGUIGUISheet.h"
+#include "CEGUIHorizontalLayoutContainer.h"
 #include "CEGUIItemEntry.h"
 #include "CEGUIItemListbox.h"
 #include "CEGUIListbox.h"
@@ -63,5 +65,6 @@
 #include "CEGUITooltip.h"
 #include "CEGUITree.h"
 #include "CEGUITreeItem.h"
+#include "CEGUIVerticalLayoutContainer.h"
 
 #endif // End of guard _CEGUIAll_h_

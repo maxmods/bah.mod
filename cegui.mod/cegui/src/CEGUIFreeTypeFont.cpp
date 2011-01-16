@@ -87,7 +87,7 @@ FreeTypeFont::FreeTypeFont(const String& font_name, const float point_size,
     updateFont();
 
     char tmp[50];
-    snprintf(tmp, sizeof(tmp), "Succsessfully loaded %d glyphs",
+    snprintf(tmp, sizeof(tmp), "Successfully loaded %d glyphs",
              static_cast<int>(d_cp_map.size()));
     Logger::getSingleton().logEvent(tmp, Informative);
 }
@@ -178,7 +178,7 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
         d_glyphImages.push_back(&is);
 
         // Create a memory buffer where we will render our glyphs
-        argb_t *mem_buffer = new argb_t [texsize * texsize];
+        argb_t* mem_buffer = CEGUI_NEW_ARRAY_PT(argb_t, texsize * texsize, BufferAllocator);
         memset(mem_buffer, 0, texsize * texsize * sizeof(argb_t));
 
         // Go ahead, line by line, top-left to bottom-right
@@ -216,7 +216,7 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
 
                     // Create a 'null' image for this glyph so we do not seg later
                     Rect area(0, 0, 0, 0);
-                    Point offset(0, 0);
+                    Vector2 offset(0, 0);
                     String name;
                     name += s->first;
                     is.defineImage(name, area, offset);
@@ -250,7 +250,7 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
                               static_cast<float>(x + glyph_w - INTER_GLYPH_PAD_SPACE),
                               static_cast<float>(y + glyph_h - INTER_GLYPH_PAD_SPACE));
 
-                    Point offset(d_fontFace->glyph->metrics.horiBearingX * static_cast<float>(FT_POS_COEF),
+                    Vector2 offset(d_fontFace->glyph->metrics.horiBearingX * static_cast<float>(FT_POS_COEF),
                                  -d_fontFace->glyph->metrics.horiBearingY * static_cast<float>(FT_POS_COEF));
 
                     String name;
@@ -283,7 +283,7 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
 
         // Copy our memory buffer into the texture and free it
         is.getTexture()->loadFromMemory(mem_buffer, Size(texsize, texsize), Texture::PF_RGBA);
-        delete [] mem_buffer;
+        CEGUI_DELETE_ARRAY_PT(mem_buffer, argb_t, texsize * texsize, BufferAllocator);
 
         if (finished)
             break;
@@ -320,9 +320,9 @@ void FreeTypeFont::drawGlyphToBuffer(argb_t *buffer, uint buf_width) const
             break;
 
         default:
-            throw InvalidRequestException("Font::drawGlyphToBuffer: "
+            CEGUI_THROW(InvalidRequestException("Font::drawGlyphToBuffer: "
                 "The glyph could not be drawn because the pixel mode is "
-                "unsupported.");
+                "unsupported."));
             break;
         }
 
@@ -362,18 +362,18 @@ void FreeTypeFont::updateFont()
     if ((error = FT_New_Memory_Face(ft_lib, d_fontData.getDataPtr(),
                            static_cast<FT_Long>(d_fontData.getSize()), 0,
                            &d_fontFace)) != 0)
-        throw GenericException("FreeTypeFont::updateFont: Failed to create "
-            "face from font file '" + d_filename + "' error was: " +
-            ((error < FT_Err_Max) ? ft_errors[error] : "unknown error"));
+        CEGUI_THROW(GenericException("FreeTypeFont::updateFont: Failed to "
+            "create face from font file '" + d_filename + "' error was: " +
+            ((error < FT_Err_Max) ? ft_errors[error] : "unknown error")));
 
     // check that default Unicode character map is available
     if (!d_fontFace->charmap)
     {
         FT_Done_Face(d_fontFace);
         d_fontFace = 0;
-        throw GenericException("FreeTypeFont::updateFont: "
+        CEGUI_THROW(GenericException("FreeTypeFont::updateFont: "
             "The font '" + d_name + "' does not have a Unicode charmap, and "
-            "cannot be used.");
+            "cannot be used."));
     }
 
     uint horzdpi = System::getSingleton().getRenderer()->getDisplayDPI().d_x;
@@ -410,7 +410,7 @@ void FreeTypeFont::updateFont()
         {
             char size [20];
             snprintf(size, sizeof(size), "%g", d_ptSize);
-            throw GenericException("FreeTypeFont::load - The font '" + d_name + "' cannot be rasterised at a size of " + size + " points, and cannot be used.");
+            CEGUI_THROW(GenericException("FreeTypeFont::load - The font '" + d_name + "' cannot be rasterised at a size of " + size + " points, and cannot be used."));
         }
     }
 
@@ -464,13 +464,13 @@ void FreeTypeFont::updateFont()
 void FreeTypeFont::writeXMLToStream_impl(XMLSerializer& xml_stream) const
 {
     xml_stream.attribute(Font_xmlHandler::FontSizeAttribute,
-                         PropertyHelper::floatToString(d_ptSize));
+                         PropertyHelper<float>::toString(d_ptSize));
     if (!d_antiAliased)
         xml_stream.attribute(Font_xmlHandler::FontAntiAliasedAttribute, "False");
 
     if (d_specificLineSpacing > 0.0f)
         xml_stream.attribute(Font_xmlHandler::FontLineSpacingAttribute,
-                             PropertyHelper::floatToString(d_specificLineSpacing));
+                             PropertyHelper<float>::toString(d_specificLineSpacing));
 }
 
 //----------------------------------------------------------------------------//

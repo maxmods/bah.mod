@@ -36,6 +36,7 @@
 #include "CEGUIGeometryBuffer.h"
 #include "CEGUIVertex.h"
 #include "CEGUIRenderEffect.h"
+#include "CEGUIPropertyHelper.h"
 #include <fstream>
 
 #define __operator_increment    operator++
@@ -51,7 +52,16 @@
 #   define snprintf   _snprintf
 #endif
 
+// map the utf8string funcs to c-string funcs
+#define tolua_pushutf8string(x,y) tolua_pushstring(x,y)
+#define tolua_isutf8string tolua_isstring
+#define tolua_isutf8stringarray tolua_isstringarray
+#define tolua_pushfieldutf8string(L,lo,idx,s) tolua_pushfieldstring(L, lo, idx, s)
+#define tolua_toutf8string tolua_tostring
+#define tolua_tofieldutf8string tolua_tofieldstring
+
 typedef CEGUI::String string;
+typedef CEGUI::utf8* utf8string;
 
 namespace CEGUI
 {
@@ -126,6 +136,38 @@ void ceguiLua_FileStream_open(FileStream*, const char* filename);
 *************************************************************************/
 bool ceguiLua_System_isSystemKeyDown(const System* sys, SystemKey k);
 
+/************************************************************************
+    wrapper class for PropertyHelper to de-templatise it.
+*************************************************************************/
+class ceguiLua_PropertyHelper
+{
+public:
+    static float stringToFloat(const String& str);
+    static unsigned int stringToUint(const String& str);
+    static bool stringToBool(const String& str);
+    static Size stringToSize(const String& str);
+    static Vector2 stringToVector2(const String& str);
+    static Rect stringToRect(const String& str);
+    static const Image* stringToImage(const String& str);
+    static Colour stringToColour(const String& str);
+    static ColourRect stringToColourRect(const String& str);
+    static UDim stringToUDim(const String& str);
+    static UVector2 stringToUVector2(const String& str);
+    static URect stringToURect(const String& str);
+    static String floatToString(float val);
+    static String uintToString(unsigned int val);
+    static String boolToString(bool val);
+    static String sizeToString(const Size& val);
+    static String vector2ToString(const Vector2& val);
+    static String rectToString(const Rect& val);
+    static String imageToString(const Image* val);
+    static String colourToString(const Colour& val);
+    static String colourRectToString(const ColourRect& val);
+    static String udimToString(const UDim& val);
+    static String uvector2ToString(const UVector2& val);
+    static String urectToString(const URect& val);
+};
+
 }
 
 // the binding file generates alot of
@@ -133,3 +175,4 @@ bool ceguiLua_System_isSystemKeyDown(const System* sys, SystemKey k);
 #if defined(_MSC_VER)
 #   pragma warning(disable : 4800)
 #endif
+
