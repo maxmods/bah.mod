@@ -1,4 +1,4 @@
-' Copyright (c) 2010 Bruce A Henderson
+' Copyright (c) 2010-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ bbdoc:
 End Rem
 Type TCEDirect3D9Renderer Extends TCERenderer
 
-	Method init:TCEDirect3D9Renderer(g:Object)
+	Method init:TCERenderer(g:Object = Null)
 		If TD3D9Graphics(g) Then
 			objectPtr = bmx_cegui_direct3d9renderer_new(TD3D9Graphics(g).GetDirect3DDevice())
 		Else If TMax2DGraphics(g) Then
