@@ -100,7 +100,7 @@ void Direct3D9GeometryBuffer::setTranslation(const Vector3& t)
 }
 
 //----------------------------------------------------------------------------//
-void Direct3D9GeometryBuffer::setRotation(const Vector3& r)
+void Direct3D9GeometryBuffer::setRotation(const Quaternion& r)
 {
     d_rotation = r;
     d_matrixValid = false;
