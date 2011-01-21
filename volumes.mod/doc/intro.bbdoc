@@ -8,4 +8,14 @@ a list of <a href="#TVolume">TVolume</a> objects, from which you have access to 
 You can also retrieve size information directly using <a href="#GetVolumeSize">GetVolumeSize</a> and <a href="#GetVolumeFreeSpace">GetVolumeFreeSpace</a>.
 </p>
 <h2>User Directories</h2>
-<p>Useful for the application developer is access to user-specific directories, like their home and document directories. The Volumes module provides access to four of these for all supported platforms: <a href="#GetUserAppDir">GetUserAppDir</a>, <a href="#GetUserDesktopDir">GetUserDesktopDir</a>, <a href="#GetUserDocumentsDir">GetUserDocumentsDir</a>, and <a href="#GetUserHomeDir">GetUserHomeDir</a>.</p>
+<p>Useful for the application developer is access to user-specific directories, like their home and document directories. 
+The Volumes module provides access to four of these for all supported platforms: <a href="#GetUserAppDir">GetUserAppDir</a>, 
+<a href="#GetUserDesktopDir">GetUserDesktopDir</a>, <a href="#GetUserDocumentsDir">GetUserDocumentsDir</a>, and <a href="#GetUserHomeDir">GetUserHomeDir</a>.</p>
+<h2>Custom Directories</h2>
+<p>
+There are also more platform-specific directories available via the <a href="#GetCustomDir">GetCustomDir</a> method.
+</p>
+<p>
+Generic paths include, DT_SHAREDUSERDATA, DT_USERPICTURES, DT_USERMUSIC and DT_USERMOVIES, which are standard values for all platforms.<br>
+On Windows, you can also use any of the CSIDL_xxxxxx identifiers to retrieve the specific path string.
+</p>

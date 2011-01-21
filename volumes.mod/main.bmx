@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -198,6 +198,7 @@ about: The following table lists valid @dirType -
 <tr><td>All</td><td>DT_USERPICTURES</td><td>The &quot;Pictures&quot; or &quot;My Pictures&quot; folder of the user.</td></tr>
 <tr><td>All</td><td>DT_USERMUSIC</td><td>The &quot;Music&quot; or &quot;My Music&quot; folder of the user.</td></tr>
 <tr><td>All</td><td>DT_USERMOVIES</td><td>The &quot;Movies&quot;, &quot;Videos&quot; or &quot;My Videos&quot; folder of the user.</td></tr>
+<tr><td>Win32</td><td>CSIDL_xxxxxxxx</td><td>Any of the Windows-specific CSIDL identifiers that represent different folders on the system.</td></tr>
 </table>
 <p>Returns Null if @dirType is not valid for the platform.</p>
 End Rem
@@ -207,10 +208,10 @@ End Function
 
 ' custom dir types
 
-Const DT_SHAREDUSERDATA:Int = $0001
-Const DT_USERPICTURES:Int = $0002
-Const DT_USERMUSIC:Int = $0003
-Const DT_USERMOVIES:Int = $0004
+Const DT_SHAREDUSERDATA:Int = -1
+Const DT_USERPICTURES:Int = -2
+Const DT_USERMUSIC:Int = -3
+Const DT_USERMOVIES:Int = -4
 
 
 '
