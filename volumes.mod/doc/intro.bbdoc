@@ -16,6 +16,12 @@ The Volumes module provides access to four of these for all supported platforms:
 There are also more platform-specific directories available via the <a href="#GetCustomDir">GetCustomDir</a> method.
 </p>
 <p>
-Generic paths include, DT_SHAREDUSERDATA, DT_USERPICTURES, DT_USERMUSIC and DT_USERMOVIES, which are standard values for all platforms.<br>
+Generic paths include, DT_SHAREDUSERDATA, DT_USERPICTURES, DT_USERMUSIC and DT_USERMOVIES, which are standard values for all platforms.
+</p>
+<p>
 On Windows, you can also use any of the CSIDL_xxxxxx identifiers to retrieve the specific path string.
+</p>
+<p>
+On Mac, you can choose from a selection of "k" folder types, as well as an optional domain. The default domain is <a href="#kUserDomain">kUserDomain</a>. 
+Others domains include <a href="#kSystemDomain">kSystemDomain</a>, <a href="#kLocalDomain">kLocalDomain</a> and <a href="#kNetworkDomain">kNetworkDomain</a>.
 </p>

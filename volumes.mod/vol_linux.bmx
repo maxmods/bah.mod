@@ -230,7 +230,7 @@ Type TLinuxVolume Extends TVolume
 		Return bmx_userdirlookup("DOCUMENTS")
 	End Method
 
-	Method GetCustomDir:String(dirType:Int)
+	Method GetCustomDir:String(dirType:Int, flags:Int = 0)
 
 		Select dirType
 			Case DT_SHAREDUSERDATA

@@ -35,7 +35,7 @@ Extern "win32"
 	Function GetVolumeInformation:Int(lpRootPathName:Short Ptr, lpVolumeNameBuffer:Short Ptr, nVolumeNameSize:Int, ..
 		lpVolumeSerialNumber:Int Var, lpMaximumComponentLength:Int Var, lpFileSystemFlags:Int Var, lpFileSystemNameBuffer:Short Ptr, nFileSystemNameSize:Int) = "GetVolumeInformationW@32"
 	Function GetLogicalDrives:Int() = "GetLogicalDrives@0"
-	Function SetErrorMode:Int(mode:Int) = "SetErrorMode@4"
+	Function SetErrorMode:Int(Mode:Int) = "SetErrorMode@4"
 
 	' volumes
 	Function FindFirstVolume:Int(volumeName:Short Ptr, bufferSize:Int) = "FindFirstVolumeW@8"
@@ -239,7 +239,7 @@ Type TWinVolume Extends TVolume
 	End Method
 	
 	Method GetVolumeInfo:TVolume(vol:String)
-		Local mode:Int = SetErrorMode(SEM_FAILCRITICALERRORS)
+		Local Mode:Int = SetErrorMode(SEM_FAILCRITICALERRORS)
 
 		Local volume:TWinVolume = New TWinVolume
 		
@@ -265,7 +265,7 @@ Type TWinVolume Extends TVolume
 			volume.available = True
 		End If
 		
-		SetErrorMode(mode)
+		SetErrorMode(Mode)
 				
 		Return volume
 	End Method
@@ -304,7 +304,7 @@ Type TWinVolume Extends TVolume
 		Return _getFolderPath(CSIDL_PERSONAL)
 	End Method
 
-	Method GetCustomDir:String(dirType:Int)
+	Method GetCustomDir:String(dirType:Int, flags:Int = 0)
 		If dirType < 0 Then
 			Select dirType
 				Case DT_USERPICTURES
@@ -354,7 +354,7 @@ Type TVolSpace
 	End Function
 	
 	Method refresh:Int()
-		Local mode:Int = SetErrorMode(SEM_FAILCRITICALERRORS)
+		Local Mode:Int = SetErrorMode(SEM_FAILCRITICALERRORS)
 		
 		Local dir:Short Ptr = vol.toWString()
 
@@ -364,7 +364,7 @@ Type TVolSpace
 			MemFree(dir)
 		End If
 		
-		SetErrorMode(mode)
+		SetErrorMode(Mode)
 		Return ret
 	End Method
 

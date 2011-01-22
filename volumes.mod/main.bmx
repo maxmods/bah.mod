@@ -80,7 +80,7 @@ Type TVolume
 	Method GetUserAppDir:String() Abstract
 	Method GetUserDocumentsDir:String() Abstract
 	
-	Method GetCustomDir:String(dirType:Int) Abstract
+	Method GetCustomDir:String(dirType:Int, flags:Int = 0) Abstract
 	
 End Type
 
@@ -202,8 +202,8 @@ about: The following table lists valid @dirType -
 </table>
 <p>Returns Null if @dirType is not valid for the platform.</p>
 End Rem
-Function GetCustomDir:String(dirType:Int)
-	Return volume_driver.GetCustomDir(dirType)
+Function GetCustomDir:String(dirType:Int, flags:Int = 0)
+	Return volume_driver.GetCustomDir(dirType, flags)
 End Function
 
 ' custom dir types

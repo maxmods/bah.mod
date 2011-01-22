@@ -33,6 +33,22 @@ Extern
 	Function FSRefMakePath:Int( ref:Byte Ptr,path:Byte Ptr, maxPath:Int )
 End Extern
 
+Rem
+bbdoc: Read-only system hierarchy.
+End Rem
+Const kSystemDomain:Int = -32766
+Rem
+bbdoc: All users of a single machine have access to these resources.
+End Rem
+Const kLocalDomain:Int = -32765
+Rem
+bbdoc: All users configured to use a common network server has access to these resources.
+End Rem
+Const kNetworkDomain:Int = -32764
+Rem
+bbdoc: Resources that are private to the user.
+about: Read/write.
+End Rem
 Const kUserDomain:Int = -32763
 Const kDesktopFolderType:Int = Asc("d") Shl 24 | Asc("e") Shl 16 | Asc( "s") Shl 8 | Asc("k")
 Const kCurrentUserFolderType:Int = Asc("c") Shl 24 | Asc("u") Shl 16 | Asc( "s") Shl 8 | Asc("r")
@@ -42,6 +58,22 @@ Const kSharedUserDataFolderType:Int = Asc("s") Shl 24 | Asc("d") Shl 16 | Asc( "
 Const kPictureDocumentsFolderType:Int = Asc("p") Shl 24 | Asc("d") Shl 16 | Asc( "o") Shl 8 | Asc("c")
 Const kMusicDocumentsFolderType:Int = $B5646F63
 Const kMovieDocumentsFolderType:Int = Asc("m") Shl 24 | Asc("d") Shl 16 | Asc( "o") Shl 8 | Asc("c")
+Const kTrashFolderType:Int = Asc("t") Shl 24 | Asc("r") Shl 16 | Asc("s") Shl 8 | Asc("h") 
+Const kWhereToEmptyTrashFolderType:Int = Asc("e") Shl 24 | Asc("m") Shl 16 | Asc("p") Shl 8 | Asc("t") 
+Const kFontsFolderType:Int = Asc("f") Shl 24 | Asc("o") Shl 16 | Asc("n") Shl 8 | Asc("t") 
+Const kPreferencesFolderType:Int = Asc("p") Shl 24 | Asc("r") Shl 16 | Asc("e") Shl 8 | Asc("f") 
+Const kSystemPreferencesFolderType:Int = Asc("s") Shl 24 | Asc("p") Shl 16 | Asc("r") Shl 8 | Asc("f") 
+Const kTemporaryFolderType:Int = Asc("t") Shl 24 | Asc("e") Shl 16 | Asc("m") Shl 8 | Asc("p") 
+Const kChewableItemsFolderType:Int = Asc("f") Shl 24 | Asc("l") Shl 16 | Asc("n") Shl 8 | Asc("t") 
+Const kTemporaryItemsInCacheDataFolderType:Int = Asc("v") Shl 24 | Asc("t") Shl 16 | Asc("m") Shl 8 | Asc("p") 
+Const kApplicationsFolderType:Int = Asc("a") Shl 24 | Asc("p") Shl 16 | Asc("p") Shl 8 | Asc("s") 
+Const kVolumeRootFolderType:Int = Asc("r") Shl 24 | Asc("o") Shl 16 | Asc("o") Shl 8 | Asc("t") 
+Const kDomainTopLevelFolderType:Int = Asc("d") Shl 24 | Asc("t") Shl 16 | Asc("o") Shl 8 | Asc("p") 
+Const kDomainLibraryFolderType:Int = Asc("d") Shl 24 | Asc("l") Shl 16 | Asc("i") Shl 8 | Asc("b") 
+Const kUsersFolderType:Int = Asc("u") Shl 24 | Asc("s") Shl 16 | Asc("r") Shl 8 | Asc("s")
+Const kInternetSitesFolderType:Int = Asc("s") Shl 24 | Asc("i") Shl 16 | Asc("t") Shl 8 | Asc("e") 
+Const kPublicFolderType:Int = Asc("p") Shl 24 | Asc("u") Shl 16 | Asc("b") Shl 8 | Asc("b") 
+
 
 Type Tstatfs
 	Const f_otype:Int = 0    ' Type of file system (reserved: zero) */
@@ -244,10 +276,14 @@ Type TMacVolume Extends TVolume
 		Return volume
 	End Method
 	
-	Method getPath:String(folderType:Int)
+	Method getPath:String(folderType:Int, flags:Int = 0)
 		Local buf:Byte[1024],ref:Byte[80]
 		
-		If FSFindFolder( kUserDomain, folderType, False, ref ) Return Null
+		If flags Then
+			If FSFindFolder( flags, folderType, False, ref ) Return Null
+		Else
+			If FSFindFolder( kUserDomain, folderType, False, ref ) Return Null
+		End If
 		If FSRefMakePath( ref,buf,1024 ) Return Null
 		
 		Return bbStringFromUTF8String( buf )
@@ -269,18 +305,21 @@ Type TMacVolume Extends TVolume
 		Return getPath(kDocumentsFolderType)
 	End Method
 
-	Method GetCustomDir:String(dirType:Int)
-	
-		Select dirType
-			Case DT_SHAREDUSERDATA
-				Return getPath(kSharedUserDataFolderType)
-			Case DT_USERPICTURES
-				Return getPath(kPictureDocumentsFolderType)
-			Case DT_USERMUSIC
-				Return getPath(kMusicDocumentsFolderType)
-			Case DT_USERMOVIES
-				Return getPath(kMovieDocumentsFolderType)
-		End Select
+	Method GetCustomDir:String(dirType:Int, flags:Int = 0)
+		If dirType < 0 And dirType > -10 Then
+			Select dirType
+				Case DT_SHAREDUSERDATA
+					Return getPath(kSharedUserDataFolderType)
+				Case DT_USERPICTURES
+					Return getPath(kPictureDocumentsFolderType)
+				Case DT_USERMUSIC
+					Return getPath(kMusicDocumentsFolderType)
+				Case DT_USERMOVIES
+					Return getPath(kMovieDocumentsFolderType)
+			End Select
+		Else
+			Return getPath(dirType, flags)
+		End If
 		
 		Return Null
 	End Method
