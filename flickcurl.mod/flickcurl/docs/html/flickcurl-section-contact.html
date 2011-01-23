@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Contacts</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-collections.html" title="Collections">
+<link rel="next" href="flickcurl-section-context.html" title="Contexts">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-collections.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-context.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-contact.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-contact.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Contacts">
+<a name="flickcurl-section-contact"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-contact.top_of_page"></a>Contacts</span></h2>
+<p>Contacts — A contact of a user.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-contact.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact">flickcurl_contact</a>;
+<a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="returnvalue">flickcurl_contact</span></a>** <a class="link" href="flickcurl-section-contact.html#flickcurl-contacts-getList" title="flickcurl_contacts_getList ()">flickcurl_contacts_getList</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *filter</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>);
+<a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="returnvalue">flickcurl_contact</span></a>** <a class="link" href="flickcurl-section-contact.html#flickcurl-contacts-getListRecentlyUploaded" title="flickcurl_contacts_getListRecentlyUploaded ()">flickcurl_contacts_getListRecentlyUploaded</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> date_lastupload</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *filter</code></em>);
+<a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="returnvalue">flickcurl_contact</span></a>** <a class="link" href="flickcurl-section-contact.html#flickcurl-contacts-getPublicList" title="flickcurl_contacts_getPublicList ()">flickcurl_contacts_getPublicList</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-contact.html#flickcurl-free-contact" title="flickcurl_free_contact ()">flickcurl_free_contact</a>              (<em class="parameter"><code><a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="type">flickcurl_contact</span></a> *contact_object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-contact.html#flickcurl-free-contacts" title="flickcurl_free_contacts ()">flickcurl_free_contacts</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="type">flickcurl_contact</span></a> **contacts_object</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-contact.description"></a><h2>Description</h2>
+<p>
+A contact of a user.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-contact.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_contact">
+<a name="flickcurl-contact"></a><h3>flickcurl_contact</h3>
+<pre class="programlisting">typedef struct {
+  char *nsid;
+  char *username;
+  int iconserver;
+  char *realname;
+  int is_friend;
+  int is_family;
+  int ignored;
+  int uploaded;
+} flickcurl_contact;
+</pre>
+<p>
+A contact.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-contact.nsid"></a>nsid</code></em>;</span></p></td>
+<td>NSID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-contact.username"></a>username</code></em>;</span></p></td>
+<td>user name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-contact.iconserver"></a>iconserver</code></em>;</span></p></td>
+<td>icon server
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-contact.realname"></a>realname</code></em>;</span></p></td>
+<td>real name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-contact.is-friend"></a>is_friend</code></em>;</span></p></td>
+<td>is friend boolean
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-contact.is-family"></a>is_family</code></em>;</span></p></td>
+<td>is family boolean
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-contact.ignored"></a>ignored</code></em>;</span></p></td>
+<td>ignored
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-contact.uploaded"></a>uploaded</code></em>;</span></p></td>
+<td>count of number of photos uploaded (for <a class="link" href="flickcurl-section-contact.html#flickcurl-contacts-getListRecentlyUploaded" title="flickcurl_contacts_getListRecentlyUploaded ()"><code class="function">flickcurl_contacts_getListRecentlyUploaded()</code></a> )
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_contacts_getList ()">
+<a name="flickcurl-contacts-getList"></a><h3>flickcurl_contacts_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="returnvalue">flickcurl_contact</span></a>** flickcurl_contacts_getList          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *filter</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>);</pre>
+<p>
+Get a list of contacts for the calling user.
+</p>
+<p>
+Implements flickr.contacts.getList (0.11)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>filter</code></em> :</span></p></td>
+<td>An optional filter of the results. The following values are valid:  friends, family, both or neither (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page. If this argument is omitted, it defaults to 1000. The maximum allowed value is 1000. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_contacts_getListRecentlyUploaded ()">
+<a name="flickcurl-contacts-getListRecentlyUploaded"></a><h3>flickcurl_contacts_getListRecentlyUploaded ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="returnvalue">flickcurl_contact</span></a>** flickcurl_contacts_getListRecentlyUploaded
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> date_lastupload</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *filter</code></em>);</pre>
+<p>
+Return a list of contacts for a user who have recently uploaded
+photos along with the total count of photos uploaded.
+</p>
+<p>
+This API added 2009-01-14 as announced in
+http://tech.groups.yahoo.com/group/yws-flickr/message/4668
+</p>
+<p>
+Implements flickr.contacts.getListRecentlyUploaded (1.8)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date_lastupload</code></em> :</span></p></td>
+<td>Limits the results to contacts that have uploaded photos since this date (in the form of a Unix timestamp).  The default, and maximum, offset is 1 hour.  (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>filter</code></em> :</span></p></td>
+<td>Limit the result set to all contacts or only those who are friends or family. Valid options are: ff: friends and family, all: all your contacts. Default value is "all". (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_contacts_getPublicList ()">
+<a name="flickcurl-contacts-getPublicList"></a><h3>flickcurl_contacts_getPublicList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="returnvalue">flickcurl_contact</span></a>** flickcurl_contacts_getPublicList    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>);</pre>
+<p>
+Get the contact list for a user.
+</p>
+<p>
+Implements flickr.contacts.getPublicList (0.11)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user to fetch the contact list for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page. If this argument is omitted, it defaults to 1000. The maximum allowed value is 1000. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_contact ()">
+<a name="flickcurl-free-contact"></a><h3>flickcurl_free_contact ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_contact              (<em class="parameter"><code><a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="type">flickcurl_contact</span></a> *contact_object</code></em>);</pre>
+<p>
+Destructor for contact object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>contact_object</code></em> :</span></p></td>
+<td>contact object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_contacts ()">
+<a name="flickcurl-free-contacts"></a><h3>flickcurl_free_contacts ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_contacts             (<em class="parameter"><code><a class="link" href="flickcurl-section-contact.html#flickcurl-contact" title="flickcurl_contact"><span class="type">flickcurl_contact</span></a> **contacts_object</code></em>);</pre>
+<p>
+Destructor for array of contact object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>contacts_object</code></em> :</span></p></td>
+<td>contact object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

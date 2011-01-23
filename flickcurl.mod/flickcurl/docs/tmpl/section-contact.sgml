@@ -1,0 +1,87 @@
+<!-- ##### SECTION Title ##### -->
+Contacts
+
+<!-- ##### SECTION Short_Description ##### -->
+A contact of a user.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+A contact of a user.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### STRUCT flickcurl_contact ##### -->
+<para>
+
+</para>
+
+@nsid: 
+@username: 
+@iconserver: 
+@realname: 
+@is_friend: 
+@is_family: 
+@ignored: 
+@uploaded: 
+
+<!-- ##### FUNCTION flickcurl_contacts_getList ##### -->
+<para>
+
+</para>
+
+@fc: 
+@filter: 
+@page: 
+@per_page: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_contacts_getListRecentlyUploaded ##### -->
+<para>
+
+</para>
+
+@fc: 
+@date_lastupload: 
+@filter: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_contacts_getPublicList ##### -->
+<para>
+
+</para>
+
+@fc: 
+@user_id: 
+@page: 
+@per_page: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_free_contact ##### -->
+<para>
+
+</para>
+
+@contact_object: 
+
+
+<!-- ##### FUNCTION flickcurl_free_contacts ##### -->
+<para>
+
+</para>
+
+@contacts_object: 
+
+

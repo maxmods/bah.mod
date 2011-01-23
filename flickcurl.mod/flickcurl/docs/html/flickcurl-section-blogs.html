@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Blogs</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-auth.html" title="Authentication">
+<link rel="next" href="flickcurl-section-category.html" title="Categories">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-auth.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-category.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-blogs.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-blogs.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Blogs">
+<a name="flickcurl-section-blogs"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-blogs.top_of_page"></a>Blogs</span></h2>
+<p>Blogs — Posting photos to blogs</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-blogs.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-blogs.html#flickcurl-blog" title="flickcurl_blog">flickcurl_blog</a>;
+<a class="link" href="flickcurl-section-blogs.html#flickcurl-blog" title="flickcurl_blog"><span class="returnvalue">flickcurl_blog</span></a>**    <a class="link" href="flickcurl-section-blogs.html#flickcurl-blogs-getList" title="flickcurl_blogs_getList ()">flickcurl_blogs_getList</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+                    <a class="link" href="flickcurl-section-blogs.html#flickcurl-blog-service" title="flickcurl_blog_service">flickcurl_blog_service</a>;
+<a class="link" href="flickcurl-section-blogs.html#flickcurl-blog-service" title="flickcurl_blog_service"><span class="returnvalue">flickcurl_blog_service</span></a>** <a class="link" href="flickcurl-section-blogs.html#flickcurl-blogs-getServices" title="flickcurl_blogs_getServices ()">flickcurl_blogs_getServices</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-blogs.html#flickcurl-blogs-postPhoto" title="flickcurl_blogs_postPhoto ()">flickcurl_blogs_postPhoto</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *blog_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *title</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *description</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *blog_password</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-blogs.html#flickcurl-free-blogs" title="flickcurl_free_blogs ()">flickcurl_free_blogs</a>                (<em class="parameter"><code><a class="link" href="flickcurl-section-blogs.html#flickcurl-blog" title="flickcurl_blog"><span class="type">flickcurl_blog</span></a> **blogs_object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-blogs.html#flickcurl-free-blog-services" title="flickcurl_free_blog_services ()">flickcurl_free_blog_services</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-blogs.html#flickcurl-blog-service" title="flickcurl_blog_service"><span class="type">flickcurl_blog_service</span></a> **blog_services_object</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-blogs.description"></a><h2>Description</h2>
+<p>
+Posting photos to blogs
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-blogs.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_blog">
+<a name="flickcurl-blog"></a><h3>flickcurl_blog</h3>
+<pre class="programlisting">typedef struct {
+  char* id;
+  char* name;
+  int needs_password;
+  char* url;
+} flickcurl_blog;
+</pre>
+<p>
+A blog.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-blog.id"></a>id</code></em>;</span></p></td>
+<td>ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-blog.name"></a>name</code></em>;</span></p></td>
+<td>Group Name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-blog.needs-password"></a>needs_password</code></em>;</span></p></td>
+<td>needs password
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-blog.url"></a>url</code></em>;</span></p></td>
+<td>URL
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_blogs_getList ()">
+<a name="flickcurl-blogs-getList"></a><h3>flickcurl_blogs_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-blogs.html#flickcurl-blog" title="flickcurl_blog"><span class="returnvalue">flickcurl_blog</span></a>**    flickcurl_blogs_getList             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Get a list of configured blogs for the calling user.
+</p>
+<p>
+Implements flickr.blogs.getList (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_blog_service">
+<a name="flickcurl-blog-service"></a><h3>flickcurl_blog_service</h3>
+<pre class="programlisting">typedef struct {
+  char* id;
+  char* name;
+} flickcurl_blog_service;
+</pre>
+<p>
+A blog service.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-blog-service.id"></a>id</code></em>;</span></p></td>
+<td>ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-blog-service.name"></a>name</code></em>;</span></p></td>
+<td>Service Name
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_blogs_getServices ()">
+<a name="flickcurl-blogs-getServices"></a><h3>flickcurl_blogs_getServices ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-blogs.html#flickcurl-blog-service" title="flickcurl_blog_service"><span class="returnvalue">flickcurl_blog_service</span></a>** flickcurl_blogs_getServices    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Return a list of Flickr supported blogging services
+</p>
+<p>
+Implements flickr.blogs.getServices (1.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> list of services or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_blogs_postPhoto ()">
+<a name="flickcurl-blogs-postPhoto"></a><h3>flickcurl_blogs_postPhoto ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_blogs_postPhoto           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *blog_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *title</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *description</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *blog_password</code></em>);</pre>
+<p>
+Post a photo to a blog/
+</p>
+<p>
+Implements flickr.blogs.postPhoto (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>blog_id</code></em> :</span></p></td>
+<td>The id of the blog to post to
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to blog
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>title</code></em> :</span></p></td>
+<td>The blog post title
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>description</code></em> :</span></p></td>
+<td>The blog post body
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>blog_password</code></em> :</span></p></td>
+<td>The password for the blog (used when the blog does not have a stored password) (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_blogs ()">
+<a name="flickcurl-free-blogs"></a><h3>flickcurl_free_blogs ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_blogs                (<em class="parameter"><code><a class="link" href="flickcurl-section-blogs.html#flickcurl-blog" title="flickcurl_blog"><span class="type">flickcurl_blog</span></a> **blogs_object</code></em>);</pre>
+<p>
+Destructor for array of blog objects
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>blogs_object</code></em> :</span></p></td>
+<td>blog object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_blog_services ()">
+<a name="flickcurl-free-blog-services"></a><h3>flickcurl_free_blog_services ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_blog_services        (<em class="parameter"><code><a class="link" href="flickcurl-section-blogs.html#flickcurl-blog-service" title="flickcurl_blog_service"><span class="type">flickcurl_blog_service</span></a> **blog_services_object</code></em>);</pre>
+<p>
+Destructor for array of blog services objects
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>blog_services_object</code></em> :</span></p></td>
+<td>blog services object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

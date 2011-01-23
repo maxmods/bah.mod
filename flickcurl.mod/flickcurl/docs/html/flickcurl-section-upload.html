@@ -1,0 +1,357 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Uploading</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-test.html" title="Test">
+<link rel="next" href="flickcurl-section-urls.html" title="URLs">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-test.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-urls.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-upload.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-upload.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Uploading">
+<a name="flickcurl-section-upload"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-upload.top_of_page"></a>Uploading</span></h2>
+<p>Uploading — Uploading APIs and Asynchronous upload tickets.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-upload.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-upload.html#flickcurl-ticket" title="flickcurl_ticket">flickcurl_ticket</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-upload.html#flickcurl-free-ticket" title="flickcurl_free_ticket ()">flickcurl_free_ticket</a>               (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-ticket" title="flickcurl_ticket"><span class="type">flickcurl_ticket</span></a> *ticket</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-upload.html#flickcurl-free-tickets" title="flickcurl_free_tickets ()">flickcurl_free_tickets</a>              (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-ticket" title="flickcurl_ticket"><span class="type">flickcurl_ticket</span></a> **tickets_object</code></em>);
+                    <a class="link" href="flickcurl-section-upload.html#flickcurl-upload-params" title="flickcurl_upload_params">flickcurl_upload_params</a>;
+                    <a class="link" href="flickcurl-section-upload.html#flickcurl-upload-status" title="flickcurl_upload_status">flickcurl_upload_status</a>;
+                    <a class="link" href="flickcurl-section-upload.html#flickcurl-user-upload-status" title="flickcurl_user_upload_status">flickcurl_user_upload_status</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-upload.html#flickcurl-free-upload-status" title="flickcurl_free_upload_status ()">flickcurl_free_upload_status</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-upload-status" title="flickcurl_upload_status"><span class="type">flickcurl_upload_status</span></a> *status</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-upload.html#flickcurl-free-user-upload-status" title="flickcurl_free_user_upload_status ()">flickcurl_free_user_upload_status</a>   (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-user-upload-status" title="flickcurl_user_upload_status"><span class="type">flickcurl_user_upload_status</span></a> *u</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-upload.description"></a><h2>Description</h2>
+<p>
+Uploading APIs and Asynchronous upload tickets.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-upload.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_ticket">
+<a name="flickcurl-ticket"></a><h3>flickcurl_ticket</h3>
+<pre class="programlisting">typedef struct {
+  int id;
+  int photoid;
+  int complete;
+  int invalid;
+} flickcurl_ticket;
+</pre>
+<p>
+An aysnchronous photo upload ticket.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-ticket.id"></a>id</code></em>;</span></p></td>
+<td>ticket ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-ticket.photoid"></a>photoid</code></em>;</span></p></td>
+<td>photoID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-ticket.complete"></a>complete</code></em>;</span></p></td>
+<td>complete flag
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-ticket.invalid"></a>invalid</code></em>;</span></p></td>
+<td>invalid flag
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_ticket ()">
+<a name="flickcurl-free-ticket"></a><h3>flickcurl_free_ticket ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_ticket               (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-ticket" title="flickcurl_ticket"><span class="type">flickcurl_ticket</span></a> *ticket</code></em>);</pre>
+<p>
+Destructor for ticket object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>ticket</code></em> :</span></p></td>
+<td>ticket object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_tickets ()">
+<a name="flickcurl-free-tickets"></a><h3>flickcurl_free_tickets ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_tickets              (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-ticket" title="flickcurl_ticket"><span class="type">flickcurl_ticket</span></a> **tickets_object</code></em>);</pre>
+<p>
+Destructor for array of ticket objects
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>tickets_object</code></em> :</span></p></td>
+<td>ticket object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_upload_params">
+<a name="flickcurl-upload-params"></a><h3>flickcurl_upload_params</h3>
+<pre class="programlisting">typedef struct {
+  const char* photo_file;
+  const char *title;
+  const char *description;
+  const char *tags;  
+  int is_public;
+  int is_friend;
+  int is_family;  
+  int safety_level;
+  int content_type;
+} flickcurl_upload_params;
+</pre>
+<p>
+Photo upload parameters
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term">const <span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-params.photo-file"></a>photo_file</code></em>;</span></p></td>
+<td>photo filename
+</td>
+</tr>
+<tr>
+<td><p><span class="term">const <span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-params.title"></a>title</code></em>;</span></p></td>
+<td>title or NULL
+</td>
+</tr>
+<tr>
+<td><p><span class="term">const <span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-params.description"></a>description</code></em>;</span></p></td>
+<td>description of photo (HTML) (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term">const <span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-params.tags"></a>tags</code></em>;</span></p></td>
+<td>space-separated list of tags (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-upload-params.is-public"></a>is_public</code></em>;</span></p></td>
+<td>is public photo boolean (non-0 true)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-upload-params.is-friend"></a>is_friend</code></em>;</span></p></td>
+<td>is friend photo boolean (non-0 true)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-upload-params.is-family"></a>is_family</code></em>;</span></p></td>
+<td>is family photo boolean (non-0 true)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-upload-params.safety-level"></a>safety_level</code></em>;</span></p></td>
+<td>1=safe, 2=moderate, 3=restricted
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-upload-params.content-type"></a>content_type</code></em>;</span></p></td>
+<td>1=photo, 2=screenshot, 3=other/artwork
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_upload_status">
+<a name="flickcurl-upload-status"></a><h3>flickcurl_upload_status</h3>
+<pre class="programlisting">typedef struct {
+  char *photoid;
+  char *secret;
+  char *originalsecret;
+  char *ticketid;
+} flickcurl_upload_status;
+</pre>
+<p>
+An upload response.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-status.photoid"></a>photoid</code></em>;</span></p></td>
+<td>photo ID that was uploaded/replaced (upload only)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-status.secret"></a>secret</code></em>;</span></p></td>
+<td>secret of photo uploaded (replace only)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-status.originalsecret"></a>originalsecret</code></em>;</span></p></td>
+<td>secret of original photo (replace only)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-upload-status.ticketid"></a>ticketid</code></em>;</span></p></td>
+<td>ticket ID for asynchronous upload (replace only)
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_user_upload_status">
+<a name="flickcurl-user-upload-status"></a><h3>flickcurl_user_upload_status</h3>
+<pre class="programlisting">typedef struct {
+  char* username;
+  int bandwidth_maxbytes;
+  int bandwidth_maxkb;
+  int bandwidth_usedbytes;
+  int bandwidth_usedkb;
+  int bandwidth_remainingbytes;
+  int bandwidth_remainingkb;
+
+  int filesize_maxbytes;
+  int filesize_maxkb;
+
+  int sets_created;
+  char* sets_remaining;
+} flickcurl_user_upload_status;
+</pre>
+<p>
+A user's upload status
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-user-upload-status.username"></a>username</code></em>;</span></p></td>
+<td>user name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.bandwidth-maxbytes"></a>bandwidth_maxbytes</code></em>;</span></p></td>
+<td>max bytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.bandwidth-maxkb"></a>bandwidth_maxkb</code></em>;</span></p></td>
+<td>max kbytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.bandwidth-usedbytes"></a>bandwidth_usedbytes</code></em>;</span></p></td>
+<td>used bytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.bandwidth-usedkb"></a>bandwidth_usedkb</code></em>;</span></p></td>
+<td>used kbytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.bandwidth-remainingbytes"></a>bandwidth_remainingbytes</code></em>;</span></p></td>
+<td>remaining bytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.bandwidth-remainingkb"></a>bandwidth_remainingkb</code></em>;</span></p></td>
+<td>remaining kbytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.filesize-maxbytes"></a>filesize_maxbytes</code></em>;</span></p></td>
+<td>max file size in bytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.filesize-maxkb"></a>filesize_maxkb</code></em>;</span></p></td>
+<td>max file size in kbytes
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-user-upload-status.sets-created"></a>sets_created</code></em>;</span></p></td>
+<td>number of sets created
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-user-upload-status.sets-remaining"></a>sets_remaining</code></em>;</span></p></td>
+<td>remaining sets: 0, 1, 2, 3 or "lots"
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_upload_status ()">
+<a name="flickcurl-free-upload-status"></a><h3>flickcurl_free_upload_status ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_upload_status        (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-upload-status" title="flickcurl_upload_status"><span class="type">flickcurl_upload_status</span></a> *status</code></em>);</pre>
+<p>
+Destructor - free a <a class="link" href="flickcurl-section-upload.html#flickcurl-upload-status" title="flickcurl_upload_status"><span class="type">flickcurl_upload_status</span></a>
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>status</code></em> :</span></p></td>
+<td>status object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_user_upload_status ()">
+<a name="flickcurl-free-user-upload-status"></a><h3>flickcurl_free_user_upload_status ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_user_upload_status   (<em class="parameter"><code><a class="link" href="flickcurl-section-upload.html#flickcurl-user-upload-status" title="flickcurl_user_upload_status"><span class="type">flickcurl_user_upload_status</span></a> *u</code></em>);</pre>
+<p>
+Destructor for user upload status object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>u</code></em> :</span></p></td>
+<td>user upload status object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

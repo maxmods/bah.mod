@@ -1,0 +1,3708 @@
+2010-11-17  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_20 for 1.20 release (GIT
+	36da7d18f61cacc33808d20fb9a00455b5dc34c6)
+
+	* src/photosets-api.c:
+	(flickcurl_photosets_getPhotos_params): Make it work again.
+
+2010-09-29  Dave Beckett <dave@dajobe.org>
+
+	* src/gallery.c: Casts for C++
+
+	* configure.ac: Use AC_LANG_SOURCE for gcc flag test
+
+	* NEWS.html, configure.ac: 1.20
+
+	* src/photos-api.c, src/photos-comments-api.c,
+	src/photos-geo-api.c, src/stats-api.c, src/tags-api.c:
+	Adjust all
+	callers to flickcurl_invoke_photos_list() to not pass /photo xpath
+	suffix This makes searches work again.
+
+2010-09-02  Dave Beckett <dave@dajobe.org>
+
+	* src/photo.c:
+	(flickcurl_invoke_photos_list): End with no-error if no <photo>
+	found.
+
+	* src/photo.c:
+	(flickcurl_invoke_photos_list): End with error if no <photo> found.
+
+2010-07-24  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_19 for 1.19 release (GIT
+	acd343b3b123211be65b8b8539e847d8575fe56f)
+
+	* docs/tmpl/section-photo.sgml: Update doc tmpl for
+	flickcurl_photo struct
+
+	* docs/tmpl/section-note.sgml: Add doc tmpl
+
+	* src/flickcurl.h: autodocs
+
+	* src/note.c: autodocs
+
+	* docs/flickcurl-sections.txt: Added section note for
+	flickcurl_free_note and flickcurl_note
+
+	* utils/flickcurl.c:
+	Print photo notes using flickcurl_note fields from photo object.
+
+	(command_print_tags): Print a tags: label if nothing passed in.
+
+	(command_print_notes): Added to print a list of notes
+
+	(command_print_photo): Call above.
+
+	* src/note.c: remove C++ comments
+
+2010-07-22  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/flickcurl.h, src/flickcurl_internal.h,
+	src/note.c, src/photo.c:
+	Add flickr notes class flickcurl_note and use for photos
+
+	Added flickcurl_note class.
+
+	flickcurl_photo struct gains notes and and notes_count fields.
+
+	(flickcurl_free_note): Added.
+
+	(flickcurl_build_notes): Added internal function.
+
+	(flickcurl_build_photos): Use flickcurl_build_notes to add notes
+	structure.
+
+2010-07-02  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-photoset.sgml, docs/tmpl/section-stats.sgml:
+	Update doc tmpls
+
+	* coverage.html: Update coverage for 1.19
+
+	* src/photos-api.c: fix autodocs for flickcurl_photos_removeTag
+
+	* docs/flickcurl-sections.txt: Add flickcurl_stats_getCSVFiles
+
+	* src/stat.c: autodocs for flickcurl_free_stat
+
+	* utils/flickcurl.c: Added command support for
+	flickcurl_photosets_removePhotos,
+	flickcurl_photosets_reorderPhotos and
+	flickcurl_photosets_setPrimaryPhoto
+
+	* docs/flickcurl-sections.txt, src/flickcurl.h,
+	src/photosets-api.c: Added flickcurl_photosets_removePhotos,
+	flickcurl_photosets_reorderPhotos and
+	flickcurl_photosets_setPrimaryPhoto
+
+	* src/galleries-api.c:
+	(flickcurl_galleries_editPhotos): Fix param check.
+
+2010-05-15  Dave Beckett <dave@dajobe.org>
+
+	* src/upload-api.c:
+	(flickcurl_photos_upload): autodocs - note deprecation for
+	flickcurl_photos_upload_params
+
+	* src/upload-api.c: autodocs
+
+2010-05-13  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/stats-api.c:
+	(flickcurl_stats_getCSVFiles): Added, but not implementing an API
+	with a death date 2 weeks away. Always fails.
+
+2010-05-09  Dave Beckett <dave@dajobe.org>
+
+	* coverage.html: Updated to 1.18 - 176 API calls
+
+	* NEWS.html, configure.ac: 1.19
+
+	* utils/flickcurl.c:
+	(command_print_photos_list): Print out photos list new fields
+
+	* src/favorites-api.c, src/galleries-api.c,
+	src/groups-pools-api.c, src/interestingness-api.c,
+	src/panda-api.c, src/people-api.c: Update
+	flickcurl_invoke_photos_list callers to remove '/photos/' from
+	XPath suffix
+
+	* src/photo.c: Capture counts and, change xpath convention for
+	internal flickcurl_invoke_photos_list.
+
+	(flickcurl_invoke_photos_list): Capture the page, per-page and
+	total photos counts into fields of the returned photos_list
+
+	Adjust the calling convention to pass in the top level XPath, and
+	append '/photo' to it to get the individual photos via the
+	unchanged internal function flickcurl_build_photos.
+
+	* src/flickcurl.h: flickcurl_photos_list gains page, per_page and
+	total_count
+
+	* src/collection.c:
+	(flickcurl_build_collections): declare debug var in ifdef
+
+2010-05-03  Dave Beckett <dave@dajobe.org>
+
+	* src/vsnprintf.c: Remove space from '> =' and '+ =' operators
+	added by accident -
+	http://github.com/dajobe/flickcurl/issues/#issue/4
+
+2010-04-28  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	(main): remove harmless unused set of read_auth var [clang]
+
+	* utils/flickcurl.c:
+	(main): remove harmless unused set of lastdc var [clang]
+
+	* utils/flickcurl.c:
+	(command_people_getPhotos): initialise rc [clang]
+
+	* src/photosets-api.c:
+	(flickcurl_photosets_delete): result var never used [clang]
+
+	* src/tags.c:
+	(flickcurl_build_tag_clusters): cluster_count written but never read
+	[clang]
+
+	* src/context.c:
+	(flickcurl_build_contexts): setting i is useless in first loop
+	[clang]
+
+	* (flickcurl_build_collections): setting datatype is usless [clang]
+
+2010-04-26  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_18 for 1.18 release
+	(GIT ebae39d1cde76c5f805bcd2cc4614615317b7eb0)
+
+	* docs/flickcurl-sections.txt, src/common.c, src/flickcurl.h,
+	src/flickcurl_internal.h:
+
+	Added flickcurl_curl_setopt_handler()
+
+	flickcurl_curl_setopt_handler: Added new handler typedef for
+	setting curl options.
+
+	(flickcurl_curl_setopt_handler): Added to set handler callback
+	with docs to note alternative flickcurl_new_with_handle()
+
+	* docs/flickcurl-sections.txt, src/common.c, src/flickcurl.h: Add
+	flickcurl_new_with_handle()
+
+	* src/flickcurl.h: autodocs
+
+2010-04-15  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	Make command "photos.geo.setLocation" work Fixes second part of Issue
+	http://github.com/dajobe/flickcurl/issues/#issue/1
+
+	* src/photos-geo-api.c: Correct several cut-n-paste "latitude
+	should be longitude" errors
+
+	(flickcurl_photos_geo_batchCorrectLocation,
+	flickcurl_photos_geo_photosForLocation_params,
+	flickcurl_photos_geo_setLocation): sprintf longitude value into
+	longitude_s - not latitude.
+
+	Fixes Issue http://github.com/dajobe/flickcurl/issues#issue/1
+
+2010-04-11  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-photos-people.sgml: give section a title
+
+	* docs/tmpl/section-gallery.sgml: give section a title
+
+	* docs/tmpl/section-stats.sgml: give section a title
+
+	* docs/flickcurl-sections.txt: Add new Galleries methods to docs
+
+	* NEWS.html: update flickcurl_galleries_editPhoto sig to match
+	param name.
+
+	* NEWS.html: docs
+
+	* utils/flickcurl.c: Add utility support for new galleries
+	commands.
+
+	* src/flickcurl.h, src/gallery.c: Make flickcurl_free_gallery()
+	public
+
+2010-04-09  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html: 1.18 gallery docs
+
+	* src/flickcurl.h, src/photo.c: Added PHOTO_FIELD_gallery_comment
+	for photo comments in a gallery context.
+
+	* NEWS.html: Update 1.18 news with new galleries functions
+
+	* src/flickcurl.h: Update flickcurl_gallery docs
+
+	* src/photos-api.c: #docs for in_gallery
+
+	* src/flickcurl.h, src/galleries-api.c:
+	Added implementation for (rest of) galleries APIs
+
+	(flickcurl_galleries_create, flickcurl_galleries_editMeta,
+	flickcurl_galleries_editPhoto, flickcurl_galleries_editPhotos,
+	flickcurl_galleries_getInfo, flickcurl_galleries_getPhotos_params,
+	flickcurl_galleries_getPhotos): Added.
+
+	* src/flickcurl.h, src/urls-api.c: Added
+	flickcurl_urls_lookupGallery() As announced
+	http://code.flickr.com/blog/2010/04/08/galleries-apis/
+
+	* src/people-api.c: #autodocs
+
+2010-03-18  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html: fix link
+
+	* NEWS.html, configure.ac: 1.18
+
+	* utils/flickcurl.c: Add command for flickcurl_people_getPhotos
+
+	* src/flickcurl.h, src/people-api.c:
+	Change flickcurl_people_getPhotos* to have int params for filters
+
+	(flickcurl_people_getPhotos_params, flickcurl_people_getPhotos);
+	Take int param for safe_search, content_type, privacy_filter.
+
+	* docs/tmpl/section-people.sgml: Add tmpl for
+	flickcurl_people_getPhotos
+
+	* docs/flickcurl-sections.txt: Add flickcurl_people_getPhotos
+
+	* src/flickcurl.h, src/people-api.c: Added
+	flickcurl_people_getPhotos() and
+	flickcurl_people_getPhotos_params().
+
+2010-03-03  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_17 for 1.17 release
+	(GIT d5d0b9e21b3c347d1ce7581367a2de209781045f)
+
+	* src/flickcurl.h: autodocs
+
+	* docs/flickcurl-docs.xml: Added section-stats.xml
+
+	* docs/flickcurl-sections.txt: Added section-stats
+
+	* NEWS.html: notes
+
+	* src/stats-api.c:
+	(flickcurl_stats_getPhotostreamStats): Init count to 0
+
+	* src/stats-api.c: fix getPhotoDomains xpath
+
+	* utils/flickcurl.c: tidy params for required args
+
+	* utils/flickcurl.c: fix view command return values
+
+	* utils/flickcurl.c: Fix args for photostream commands
+
+	* utils/flickcurl.c: Tidy print stats
+
+	* src/stat.c: hide view debug message
+
+	* src/photo.c: Added photo_fields for counts of comments and
+	favorites
+
+	photo_fields_table gains xpaths for stats/@views, stats/@comments
+	and stats/@favorites
+
+	(flickcurl_build_photos): Skip setting fields with boolean string
+	value ''
+
+	* src/flickcurl.h:
+	Added photo_fields for counts of comments and favorites
+	flickcurl_photo_field_type gains PHOTO_FIELD_comments and
+	PHOTO_FIELD_favorites
+
+	* utils/flickcurl.c: fix stats commands
+
+	* src/stats-api.c: docs
+
+	* utils/flickcurl.c: Add stat commands to utility - not yet tested
+
+	* src/flickcurl.h, src/stat.c: Export flickcurl_free_stat
+
+	* src/flickcurl.h, src/stat.c:
+	(flickcurl_free_view_stats): Added to free view stats object.
+
+	* src/Makefile.am, src/flickcurl.h, src/stat.c, src/stats-api.c:
+	Fill out stat APIs with results from responses.
+
+	flickcurl_stat and flickcurl_view_stats structs added
+
+	Return array of flickcurl_stat** for stat requests that return
+	domains or referrers.
+
+	Return int for stat requests for view counts.
+
+	(flickcurl_stats_getTotalViews): Return flickcurl_view_stats* for
+	total views.
+
+	(flickcurl_free_stat): Added.
+
+	(flickcurl_free_stats): Added to free array of stats.
+
+	(flickcurl_build_stats): Added.
+
+	* src/flickcurl_internal.h: code style
+
+	* src/blog.c, src/blogs-api.c: code style
+
+	* src/flickcurl.h: Added flickr stats API prototypes
+
+	* src/Makefile.am, src/stats-api.c: Added flickr.stats API initial
+	skeleton APIs
+
+2010-01-22  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	(command_people_getPhotosOf, command_galleries_getList): args fix
+
+	* utils/codegen.c: Handle optional and int args better - hard code
+	page & per_page for now.
+
+2010-01-21  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c: f
+
+	* src/common.c: Update fflickcurl_field_value_type_label
+
+	* docs/tmpl/section-photos-people.sgml: Updated photos.people
+	template
+
+	* docs/flickcurl-docs.xml, docs/flickcurl-sections.txt,
+	docs/tmpl/section-gallery.sgml, docs/tmpl/section-people.sgml,
+	src/flickcurl.h: Add documentation for galleries
+
+	* src/galleries-api.c, src/gallery.c: Add photo galleries support
+	- add photos to gallery, list galleries
+
+	(flickcurl_galleries_addPhoto, flickcurl_galleries_getList,
+	flickcurl_galleries_getListForPhoto): Added functions for gallery
+	API.
+
+	(flickcurl_free_galleries): Added destructor
+
+	* src/Makefile.am, src/common.c, src/flickcurl.h,
+	src/flickcurl_internal.h, utils/flickcurl.c: Add photo galleries
+	support - add photos to gallery, list galleries
+
+	flickcurl_gallery: added new type
+
+	Added new gallery.c and galleries-api.c modules.
+
+	(flickcurl_galleries_addPhoto, flickcurl_galleries_getList,
+	flickcurl_galleries_getListForPhoto): Added functions for gallery
+	API.
+
+	(flickcurl_free_galleries): Added destructor Updated flickcurl
+	utility to call above functions.
+
+	* src/Makefile.am, src/flickcurl.h, src/photos-people-api.c,
+	utils/flickcurl.c: Added flickr.photos.people.* APIs -
+	add/remove/edit/list people in photos.
+
+	(flickcurl_photos_people_add, flickcurl_photos_people_delete,
+	flickcurl_photos_people_deleteCoords,
+	flickcurl_photos_people_editCoordsflickcurl_photos_people_getList):
+	Added
+
+	Updated utility to support new above functions.
+
+	* src/flickcurl.h, src/people-api.c, utils/flickcurl.c: Added
+	flickr.people.getPhotosOf support in
+	flickcurl_people_getPhotosOf_params() and
+	flickcurl_people_getPhotosOf()
+
+	(flickcurl_people_getPhotosOf_params): Added with
+	flickcurl_photos_list_params* list_params for full control of
+	paging and result formats.
+
+	(flickcurl_people_getPhotosOf_params): Added, calling above with
+	simple photos result and fixed params.
+
+	Added support for people.getPhotosOf to flickcurl utility
+
+	(command_people_getPhotosOf): Added.
+
+	* utils/codegen.c: 2010
+
+	* NEWS.html, configure.ac: 1.17
+
+2010-01-13  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_16 for 1.16 release
+	(GIT 12509697523a4a91378fbb154a71d1c636d03616)
+
+	* docs/Makefile.am, docs/flickcurl-authenticate.xml: Add
+	appgarden-mobile-auth-page.png for results of mobile auth and
+	update words
+
+	* utils/flickcurl.c: Remove spaces around config examples.  Add
+	pointer to web site auth page
+
+2010-01-04  Dave Beckett <dave@dajobe.org>
+
+	* src/config.c: Allow spaces around = in config key=value lines
+	Include ctype.h for isspace()
+
+	(read_ini_config): Skip spaces before = in key and after = in
+	value.
+
+	* utils/flickcurl.c: Fix .flickcurl.conf generation to not add
+	spaces around =
+
+2010-01-03  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: do not edit VERSION to make major/minor/release
+	vars
+
+	* NEWS.html, configure.ac: Bump version to 1.16
+
+	* docs/flickcurl-docs.xml, LICENSE.html, NEWS.html, README.html,
+	coverage.html: Update to 2010
+
+	* configure.ac, src/Makefile.am:
+	Add LIBFLICKCURL_LIBTOOL_VERSION and use to explicitly set libtool
+	library version
+
+	* configure.ac:
+	Remove duplicate AM_INIT_AUTOMAKE call and AC_REVISION
+
+2010-01-02  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	automake 1.11 requires autoconf 2.62
+
+	* autogen.sh:
+	Make autogen.sh skip configuring in release dirs
+
+	* Snapshotted flickcurl_1_15 for 1.15 release (GIT
+	1131dbef927ac920d8b85cee571650293c17015f)
+
+	* docs/flickcurl-sections.txt: remove flickcurl_set - never
+	existed
+
+2009-12-31  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl.rdf.in: Flickcurl is in GIT
+
+2009-12-21  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh: Tidying autogen.
+	Ignore configure.ac in release dirs.
+	Add gtkdoc_args iff gtk-doc is present.
+	Rename ltdl to ltdl_args
+	Rename silent to silent_args
+
+2009-12-20  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c: restore "=" character constant
+
+	* docs/tmpl/section-photo.sgml: Update templates
+
+	* utils/flickcurl.c: remove final nl from photos.search help
+
+	* utils/flickcurl.c: photos.search add geo-context is-commons and
+	is-gallery args Add recent changes to flickcurl_search_params to
+	the photos.search command: geo-context 1-2, is-commons and
+	is-gallery args.
+
+	* src/activity-api.c, src/activity.c, src/args.c, src/auth-api.c,
+	src/blog.c, src/blogs-api.c, src/category.c, src/collection.c,
+	src/comments.c, src/common.c, src/commons-api.c, src/config.c,
+	src/contacts-api.c, src/contacts.c, src/context.c, src/exif.c,
+	src/favorites-api.c, src/group.c, src/groups-api.c,
+	src/groups-members-api.c, src/groups-pools-api.c,
+	src/institution.c, src/interestingness-api.c, src/location.c,
+	src/machinetags-api.c, src/machinetags.c, src/md5.c, src/members.c,
+	src/method.c, src/panda-api.c, src/people-api.c, src/perms.c,
+	src/person.c, src/photo.c, src/photos-api.c,
+	src/photos-comments-api.c, src/photos-geo-api.c,
+	src/photos-licenses-api.c, src/photos-notes-api.c,
+	src/photos-transform-api.c, src/photos-upload-api.c,
+	src/photoset.c, src/photosets-api.c, src/photosets-comments-api.c,
+	src/place.c, src/places-api.c, src/prefs-api.c,
+	src/reflection-api.c, src/serializer.c, src/shape.c, src/size.c,
+	src/tags-api.c, src/tags.c, src/test-api.c, src/ticket.c,
+	src/upload-api.c, src/user_upload_status.c, src/video.c,
+	src/vsnprintf.c, utils/codegen.c, utils/flickcurl.c,
+	utils/flickrdf.c, utils/list-methods.c:
+	Code style - add whitespace around assignments (=, +=, -=)
+	and comparators	(==, <=, >=)
+
+	* autogen.sh, build/.gitignore, build/shave-libtool.in,
+	build/shave.in, build/shave.m4, configure.ac:
+	Switch from SHAVE to automake 1.11 AM_SILENT_RULES Remove SHAVE
+	files.  Depend on automake 1.11 and it's dependencies.  Add
+	--enable-silent-rules to configure; only enabled for maintainer
+	builds via autogen.sh Make autogen.sh pick glibtoolize on OSX.
+
+	* src/photos-api.c:
+	(flickcurl_photos_search): Support #flickcurl_search_params
+	in_gallery field.
+
+	* src/flickcurl.h:
+	flickcurl_search_params gains in_gallery field added to the API
+	sometime.
+
+2009-12-12  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl-config.in:
+	Try computing the decimal version another way
+
+	* flickcurl-config.in:
+	Make flickcurl-config be a wrapper around pkg-config flickcurl.
+	The --prefix=DIR and --libtool-libs options are no longer
+	supported.
+
+2009-12-11  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac:
+	Bump version to 1.15
+
+	* Update authentication docs to use screen shots
+
+	* Add screen dumps to dist
+
+	* Added App Garden screen dumps for auth flow
+
+2009-11-26  Dave Beckett <dave@dajobe.org>
+
+	* appgarden changes
+
+2009-11-20  Dave Beckett <dave@dajobe.org>
+
+	* prune wiki suffix for pkgconfig url
+
+2009-11-19  Dave Beckett <dave@dajobe.org>
+
+	* Fail configure if pkg-config is missing to prevent cascading
+	errors for libxml and curl checks.
+
+2009-09-20  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_14 for 1.14 release (GIT
+	34290b418097bb755dccdeaaf2fa45d125957c45)
+
+2009-09-18  Dave Beckett <dave@dajobe.org>
+
+	* src/photo.c: Add 1 to static strings short_uri_alphabet and
+	short_uri_prefix for NUL.  Remove extra const in other static
+	strings
+
+2009-09-15  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-searching.xml:
+	words and more words.
+	explain search params with kitten and spelcheck
+
+	* examples/search-photos.c:
+	do not strdup strings that are saved in a static struct that will
+	not be freed.
+
+2009-09-14  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am:
+	adjust dist-hook-local rule
+
+	* docs/flickcurl-searching.xml:
+	shorter compile line; words
+
+	* examples/search-photos.c:
+	just print photo ID
+
+	* examples/search-photos.c:
+	restore errno.h
+
+	* examples/search-photos.c:
+	Even smaller - add usage/-h hard coded
+
+	* examples/search-photos.c:
+	remove conditional headers.
+
+	* examples/search-photos.c:
+	Simplify - remove options, to make a better example program.
+
+	* docs/Makefile.am:
+	Copy search.photos.c to docs
+
+	* docs/Makefile.am:
+	Filter search-photos.c to here and clean up after
+
+	* docs/flickcurl-searching.xml:
+	xml; more docs
+
+	* docs/Makefile.am:
+	Fix CSS in srcdir
+
+	* docs/flickcurl-searching.xml:
+	More searching docs
+
+	* configure.ac, docs/Makefile.am:
+	Fixup absolute positioning in
+	gtkdoc-mkhtml generated CSS
+
+2009-09-13  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-searching.xml:
+	xml; more words
+
+	* utils/flickcurl.c:
+	do not emit blank line at end
+
+	* docs/flickcurl-searching.xml:
+	typo in id
+
+	* docs/flickcurl-searching.xml:
+	move text here from generated code
+
+	* src/flickcurl.h:
+	flickcurl_search_params: correct autodocs to note
+	when 0 is taken as param is not present.
+
+	* src/common.c:
+	(flickcurl_search_params_init): Internal docs why memset to 0 is ok.
+
+	* src/photos-api.c:
+	(flickcurl_photos_search_params): Only set woe_id if >0
+
+	* docs/flickcurl-searching.xml:
+	add xi xmlns
+
+	* docs/Makefile.am, docs/flickcurl-docs.xml,
+	docs/flickcurl-searching.xml:
+	Added searching tutorial
+
+	* NEWS.html:
+	words
+
+	* NEWS.html:
+	Update is_commons and geo_context search params notes.
+
+	* NEWS.html:
+	Use path_alias description from
+	http://tech.groups.yahoo.com/group/yws-flickr/message/5053
+
+	* src/common.c:
+	Add path_alias description from
+	http://tech.groups.yahoo.com/group/yws-flickr/message/5053
+
+2009-09-08  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html: 1.14
+
+	* examples/Makefile.am, examples/search-photos.c,
+	utils/Makefile.am, utils/search-photos.c:
+	Move search-photos.c from
+	utils to examples dir.
+
+	* .gitignore:
+	do not ignore flickr.conf
+
+	* src/win32_flickcurl_config.h:
+	2009
+
+	* utils/flickcurl.c:
+	typo
+
+	* utils/flickcurl.c:
+	Add newline to msg
+
+	* docs/flickcurl-authenticate.xml:
+	Update flickr website auth sequence
+
+2009-09-07  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am:
+	Do not erase flickcurl-extras.xml after building it for dist.
+
+	* .gitignore: Ignore tarballs
+
+	* docs/.gitignore, docs/Makefile.am:
+	Generate flickcurl-extras.xml via ../utils/flickcurl -m1
+
+	* docs/.gitignore: Ignore xml dir here
+
+	* docs/Makefile.am, utils/Makefile.am, utils/flickcurl.c:
+	Adjust flickcurl utility -m maintainer option to generate
+	extras too The -m option now takes an int arg: 0 for the manpage
+	fragment and 1 for the docbook extras enumeration fragment - not
+	currently used.  This option remains only built when compiling
+	for maintainer mode.
+
+	* .gitignore, src/common.c:
+	Switch captured web service response dir to 'captured'
+
+	* .gitignore: Do not ignore xml/ in all dirs
+
+	* docs/flickcurl-docs.xml: Make this newer legal docbook
+
+2009-09-06  Dave Beckett <dave@dajobe.org>
+
+	* src/video.c:
+	code style
+
+2009-09-06  Huge <mr.huge@seznam.cz>
+
+	* src/video.c:
+	Some small cleanup, but still don't like that goto;)
+	And consult the conversion in >> v=(flickcurl_video*)calloc(1,
+	sizeof(flickcurl_video)); << with bottom lines of this:
+	http://en.wikipedia.org/wiki/Malloc#Usage_example
+
+	Signed-off-by: Dave Beckett <dave@dajobe.org>
+	Original commit was 2009-08-04
+
+2009-09-06  Dave Beckett <dave@dajobe.org>
+
+	* utils/Makefile.am:
+	Remove list-methods rule for maintainer
+
+	* utils/search-photos.c:
+	Make this search API example code.  Rename list-photos to
+	search-photos throughout and adjust user messages.  Add more
+	comments about parameter uses.
+
+	* utils/.gitignore, utils/Makefile.am, utils/list-photos.c,
+	utils/search-photos.c:
+	Rename list-photos to search-photos
+
+	* utils/.gitignore:
+	Add list-photos to ignore
+
+	* docs/tmpl/section-photo.sgml:
+	Add generated docs for new search param fields
+
+2009-08-18  Dave Beckett <dave@dajobe.org>
+
+	* utils/list-photos.c:
+	usage
+
+2009-08-18  Dave Beckett <dave@dajobe.org>
+
+	* utils/list-photos.c:
+	photos for me (the user) only
+
+2009-08-18  Dave Beckett <dave@dajobe.org>
+
+	* utils/Makefile.am, utils/list-photos.c:
+	Add list-photos
+
+2009-08-17  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac:
+	Bump version to 1.14
+
+2009-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/photos-api.c:
+	(flickcurl_photos_search_params): Support geo_context and
+	is_comments search params.
+
+2009-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h:
+	flickcurl_search_params gains geo_context and
+	is_comments search params added to the API at some point
+
+2009-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c:
+	flickcurl_extras_format_info: add new (undocumented?) API
+	'extras': path_alias, url_m, url_o, url_s, url_sq, url_t
+	path_alias is the only one not totally clear; the rest provide
+	URLs of images.
+
+2009-08-01  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_13 for 1.13 release
+
+2009-07-31  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-sections.txt, docs/tmpl/section-photo.sgml:
+	Added flickcurl_source_uri_as_photo_id
+
+	* src/photo.c: add #include <ctype.h> for isdigit()
+
+	* src/flickcurl.h, src/photo.c, utils/flickcurl.c:
+	Added utility function flickcurl_source_uri_as_photo_id to get
+	photo IDs from image URLs
+	(flickcurl_source_uri_as_photo_id): Added - decoding the raw image 
+	URL format into a photo ID that can be used for other API calls.
+	
+	Added flickcurl utility command getphotoid to call this.
+
+2009-07-26  Dave Beckett <dave@dajobe.org>
+
+	* README.html:
+	Tidy readme words - do not mention a Flickr API date.
+
+	* docs/flickcurl-sections.txt, docs/tmpl/section-core.sgml:
+	Document flickcurl_get_current_request_wait
+
+	* src/common.c, src/flickcurl.h:
+	Added call to get current web service request delay time.
+
+	(flickcurl_get_current_request_wait): Added.  Allows applications
+	to know when the library will delay - sleep - in order to let the
+	web service rate limiting work.  This allows the application to
+	come back later if it desires rather than have Flickcurl freeze
+	the entire application.
+
+	* src/common.c, src/flickcurl_internal.h:
+	Use a dynamic buffer size for request URI construction
+
+	Flickcurl crashed when dealing with requests e.g photo IDs that
+	exceeded the "big enough" buffer for a URI.  Need to move to a
+	dynamic model.  Bug noticed and reported by Henning Spruth -
+	thanks!
+
+	flickcurl_s structure moves uri to a char* not fixed buffer and
+	adds a uri_len field to record length of allocated buffer.
+
+	(flickcurl_prepare_common): Calculate length needed and create a
+	new url buffer if current one is too small.
+
+2009-07-09  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c:
+	(flickcurl_free): Free any allocated user_agent.  Resource leak
+	found by Debarshi Ray - Thanks.
+
+2009-07-09  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac:
+	Bump version to 1.13
+
+2009-07-04  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html: 1.12
+
+	* 1.12
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* coverage.html:
+	Updated for recent API additions: now 145 -
+	flickr.blogs.getServices - flickr.places.getTopPlacesList
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-blogs.sgml, docs/tmpl/section-place.sgml:
+	Updated sgml doc templates for recent APIs
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-sections.txt:
+	Added flickcurl_blog_service
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* src/places-api.c:
+	(flickcurl_places_getTopPlacesList): autodocs
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-sections.txt:
+	Added flickcurl_places_getTopPlacesList
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	Allow WOEID args to be "-" to omit them in
+	several calls.  Update places.getTopPlacesList args doc
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/places-api.c, utils/flickcurl.c:
+	Implement new Flickr API call flickr.places.getTopPlacesList
+	(flickcurl_places_getTopPlacesList): Added to implement
+	flickr.places.getTopPlacesList.
+	Update utility to allow calling flickr.places.getTopPlacesList.
+
+2009-07-01  Dave Beckett <dave@dajobe.org>
+
+	* src/place.c:
+	Added "continent" to flickcurl_place_type_label Get
+	place name from <place> element content as well as attribute.  In
+	Flickr API, there is always more than one way to get a field ;)
+
+2009-06-30  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-blogs.sgml, docs/tmpl/section-photo.sgml:
+	
+	Updated sgml templates for API additions
+
+2009-06-30  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-sections.txt, src/blog.c, src/blogs-api.c,
+	src/flickcurl.h, src/flickcurl_internal.h, utils/flickcurl.c:
+	Added support for new flickr.blogs.getServices API call Added
+	flickcurl_blog_service structure for describing a blog service.
+	(flickcurl_blogs_getServices): Added to implement
+	flickr.blogs.getServices API call.
+	(flickcurl_free_blog_services): Added to free blog services
+	array.
+	Updated utility to allow calling flickr.blogs.getServices.
+
+2009-06-30  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-sections.txt, src/flickcurl.h, src/photo.c,
+	utils/flickcurl.c:
+	Added functions for generating flic.kr short URIs
+	(flickcurl_photo_as_short_uri, flickcurl_photo_id_as_short_uri):
+	Added to make an http://flic.kr short URI from a photo object or
+	photo ID string.  Added shorturi command to utility to call this.
+
+2009-06-28  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh:
+	Note automake 1.11 requirements
+
+2009-06-28  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	note can use automake 1.11 for shave-like
+	functionality at some point.
+
+2009-06-28  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-sections.txt, docs/tmpl/flickcurl-unused.sgml,
+	docs/tmpl/section-collections.sgml,
+	docs/tmpl/section-machinetags.sgml, docs/tmpl/section-photo.sgml,
+	docs/tmpl/section-photoset.sgml, src/flickcurl.h:
+	Update autodocs
+
+2009-06-28  Dave Beckett <dave@dajobe.org>
+
+	* build/shave.in, build/shave.m4:
+	Update SHAVE from master
+	2134bb1207e06d1650918a56f6b142e9a840219d
+
+2009-06-26  Dave Beckett <dave@dajobe.org>
+
+	* .gitignore:
+	Ignore config.cache
+
+2009-06-24  Dave Beckett <dave@dajobe.org>
+
+	* coverage.html:
+	Update to 143 API calls Prefer _params() version of
+	functions
+
+2009-06-23  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/photos-comments-api.c, utils/flickcurl.c:
+	Implement new API flickr.photos.comments.getRecentForContacts
+	(flickcurl_photos_comments_getRecentForContacts_params): Added to
+	implement flickr.photos.comments.getRecentForContacts Updated
+	flickcurl utility to add photos.comments.getRecentForContacts
+	command with all optional parameters.
+
+2009-06-21  Dave Beckett <dave@dajobe.org>
+
+	* README.md:
+	more markdown
+
+2009-06-21  Dave Beckett <dave@dajobe.org>
+
+	* README.md:
+	Add markdown README for github browsers
+
+2009-06-13  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c:
+	(flickcurl_invoke_common): Always set/reset HTTP headers list.  This
+	allows requests that set/don't set headers to work in sequence when
+	called with the same flickcurl context.  The symptom of this was in
+	long sequences with mixed reads and writes, crashes or mysterious
+	failures happened.  Bug reported/found by Henning Spruth - thanks!
+
+2009-06-10  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	(command_print_photo): Print less and indent fields.  Update calls
+	to above to reduce duplication and newlines.
+
+2009-06-10  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	(command_print_collection): Print nicer optional description
+
+2009-06-10  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	(command_collections_getTree): Print photos inside
+
+2009-06-10  Dave Beckett <dave@dajobe.org>
+
+	* src/collection.c:
+	collection_fields_table - match iconphotos / photo elements
+
+2009-06-10  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	(command_print_collection): Do not flickcurl_free_photos
+
+2009-06-10  Dave Beckett <dave@dajobe.org>
+
+	* src/collection.c:
+	(flickcurl_build_collections): Build icon photos using
+	flickcurl_build_photos
+
+2009-06-05  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/machinetags-api.c, utils/flickcurl.c: Added
+	machinetags.getRecentValues support
+	(flickcurl_machinetags_getRecentValues): Added based on
+	flickcurl_machinetags_getValues processing.
+
+2009-06-05  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h: Replace flickcurl_set with existing
+	flickcurl_photoset
+
+2009-06-04  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-docs.xml, docs/flickcurl-sections.txt,
+	docs/tmpl/section-collections.sgml, docs/tmpl/section-photo.sgml: 
+	Added collections to docs
+
+2009-06-04  Dave Beckett <dave@dajobe.org>
+
+	* docs/.gitignore: Ignore more tmp files
+
+2009-06-04  Dave Beckett <dave@dajobe.org>
+
+	* .gitignore, docs/.gitignore, docs/tmpl/.gitignore: Ignore more
+	dev files
+
+2009-06-04  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h: Fix flickcurl_set use of flickcurl_photo_s
+	forward reference
+
+2009-06-02  Dave Beckett <dave@dajobe.org>
+
+	* .gitignore, src/Makefile.am, src/collection.c,
+	src/collections-api.c, src/flickcurl.h, src/flickcurl_internal.h,
+	src/person.c, src/photo.c, src/serializer.c, utils/flickcurl.c:
+	Added flickr collections API - not yet complete.
+	Added new types: flickcurl_set and flickcurl_collection
+	(flickcurl_free_collection, flickcurl_free_collections): Added
+	destructors.  Added new API calls flickr.collections.getInfo and
+	flickr.collections.getTree
+	(flickcurl_build_collections): Added to build collection structure
+	into an array.  Does not handle icon photos, sub-sets or
+	sub-collections.
+	(flickcurl_build_collection): Added to use above to get just 1
+	collection.
+	(flickcurl_collections_getInfo): Added, using above to get
+	individual collection details.
+	(flickcurl_collections_getTree): Added, using above to get tree.
+	Not working at this point since the XML is slightly different.
+
+2009-06-02  Dave Beckett <dave@dajobe.org>
+
+	* utils/.gitignore: Ignore more
+
+2009-06-02  Dave Beckett <dave@dajobe.org>
+
+	* .gitignore, README.html, build/.gitignore, docs/.gitignore,
+	examples/.gitignore, src/.gitignore, utils/.gitignore: Switched from
+	Subversion to GIT source control hosted by GitHub.
+
+2009-05-27  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 1.12
+
+2009-05-26  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_11 for 1.11 release (SVN 1020)
+	This corresponds to GIT Commit bee9a12977670cabc0e65e43890a26f844c33302
+
+2009-05-24  Dave Beckett <dave@dajobe.org>
+
+	* Makefile.am, flickcurl.conf.example: Added
+	flickcurl.conf.example example ~/.flickcurl.conf file
+
+	* flickcurl.spec.in: use PACKAGE
+
+	* src/flickcurl.h, src/photo.c: Rename _url to _uri
+
+	* src/flickcurl.h, src/photo.c: Added PHOTO_FIELD_original_width,
+	PHOTO_FIELD_original_height, PHOTO_FIELD_views for more photo
+	extras
+
+	* src/flickcurl.h, src/photo.c:
+	(flickcurl_user_icon_uri): Added to get a user buddy icon url.
+	(flickcurl_photo_as_user_icon_uri): Added to get the user buddy
+	icon url from a user's photo
+
+	* src/flickcurl.h, src/photo.c: Added PHOTO_FIELD_owner_iconserver
+	and PHOTO_FIELD_owner_iconfarm fields
+
+	* src/photo.c: Support more fields returned as attributes from
+	'extras' in search: owner, place_id, woeid, accuracy, latitude,
+	longitude
+
+	* src/serializer.c: Added internal VALUE_TYPE_TAG_STRING to switch
+
+	* src/flickcurl.h, src/photo.c:
+	(flickcurl_photo_as_page_uri): Added
+
+2009-05-23  Dave Beckett <dave@dajobe.org>
+
+	* src/person.c:
+	(flickcurl_build_persons): Handle/ignore new VALUE_TYPE_TAG_STRING
+
+	* src/common.c:
+	flickcurl_field_value_type_label: Added internal types
+
+	* src/common.c:
+	(flickcurl_invoke_common): Added more attempts to reset curl
+	context between calls - GET/POST.
+
+	* src/flickcurl.h: Added internal VALUE_TYPE_TAG_STRING
+
+	* src/photo.c:
+	(flickcurl_build_photos): Use flickcurl_build_tags_from_string to
+	handle photos/@tags as special field type VALUE_TYPE_TAG_STRING
+
+	* src/flickcurl_internal.h:
+	(flickcurl_build_tags_from_string): Added
+
+	* src/tags.c:
+	(flickcurl_build_tags_from_string): Added
+
+	* src/flickcurl.h: flickcurl_search_params - document new
+	'extras': o_dims, views, media
+
+2009-05-22  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: Add support for search woeid param
+
+	* src/flickcurl.h, src/photos-api.c: Add woe_id field to search
+	params
+
+	* configure.ac: CFLAGS
+
+	* flickcurl.pc.in: Always use Requires: - for libcurl and libxml
+
+	* configure.ac: Switch to pkg-config for libxml and libcurl
+	configuration
+
+2009-05-12  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: formatting
+
+	* utils/flickcurl.c:
+	(command_print_shape): Added and handle is/has donut holes as well
+	as shapedata inline XML
+	(command_print_place, command_places_getShapeHistory): Use above
+
+	* src/shape.c: shape_field_type gains SHAPE_HAS_DONUTHOLE
+	shape_fields_table gains ./@has_donuthole XPATH
+	(flickcurl_build_shapes): Handle has_donutfield.
+
+	* src/flickcurl.h: flickcurl_shapedata gains has_donuthole field
+
+	* utils/flickcurl.c:
+	(command_print_place): Print location timezone
+
+	* src/place.c: place_field_type gains PLACE_TIMEZONE
+	(flickcurl_free_place, flickcurl_build_places): Add place timezone
+	field support
+
+	* src/flickcurl.h: flickcurl_place gains timezone field
+
+	* utils/flickcurl.c:
+	(command_places_getShapeHistory): Print is_donuthole flag
+
+	* src/shape.c: shape_field_type gains SHAPE_IS_DONUTHOLE
+	shape_fields_table gains ./@is_donuthole XPATH
+	(flickcurl_build_shapes): Handle is_donutfield.
+
+	* src/flickcurl.h: flickcurl_shapedata gains is_donuthole field
+
+	* src/places-api.c:
+	(flickcurl_places_getShapeHistory): Handle API response returning
+	/rsp/shapes/shape instead of /rsp/shapes/shapedata wot it used to.
+
+2009-05-09  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, flickcurl.spec.in: Export libcurl
+	@LIBCURL_MIN_VERSION@ and libxml2-devel @LIBXML_MIN_VERSION@
+
+	* flickcurl.spec.in: Use @RAPTOR_MIN_VERSION@
+
+	* configure.ac: Set raptor libs and cflags correctly
+
+	* configure.ac: Add raptor libs and cflags to LIBS and CPPFLAGS
+
+	* configure.ac: Separate raptor autodetection, version checking
+	and enabling
+
+	* configure.ac, flickcurl.pc.in: Find raptor via pkg-config and
+	update flickcurl.pc to reflect it
+
+	* configure.ac: Update shave comments
+
+	* Makefile.am, autogen.sh, configure.ac: Disable shave by default,
+	enable it for maintainers and make autogen.sh do that
+
+	* build, build/shave-libtool.in, build/shave.in, build/shave.m4,
+	configure.ac: Added SHAVE support "make autotools output sane" -
+	enabled by default http://git.lespiau.name/cgit/shave/
+	git clone git://git.lespiau.name/shave
+
+	* autogen.sh: libtool V2 needed
+	Add -Wall to automake args
+	Reorder args to remove dups
+	Find config_aux_dir and config_macro_dir and use them for copying in
+	config.{sub,guess} and adjusting aclocal args respectively.
+
+	* NEWS.html, configure.ac: Bump version to 1.11
+
+2009-04-29  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_10 for 1.10 release (SVN 962)
+
+	* docs/flickcurl-sections.txt: Add
+	flickcurl_set_replace_service_uri and
+	flickcurl_set_upload_service_uri
+
+	* src/common.c, src/flickcurl.h, src/flickcurl_internal.h,
+	src/upload-api.c: Make uploading work again - add service URIs for
+	uploading and replacing services.
+	flickcurl structure gains upload_service_uri and
+	replace_service_uri fields.
+	Added constants: flickcurl_flickr_upload_service_uri and
+	flickcurl_flickr_replace_service_uri for default Flickr upload and
+	replace URIs.
+	(flickcurl_new): Initialise default upload and replace service URIs.
+	(flickcurl_free): Free service URIs.
+	(flickcurl_set_upload_service_uri): Added to set upload service URI,
+	(flickcurl_set_replace_service_uri): Added to set replace service
+	URI.
+	(flickcurl_prepare_common): Restore url parameter to use in calls,
+	do not just use fc->service_uri.
+	(flickcurl_photos_upload_params): Pass in fc->upload_service_uri
+	to flickcurl_prepare_upload.
+	(flickcurl_photos_replace): Pass in fc->replace_service_uri to
+	flickcurl_prepare_upload.
+	(flickcurl_prepare_noauth, flickcurl_prepare): Pass in
+	fc->service_uri to flickcurl_prepare_common.
+	(flickcurl_prepare_upload): Pass along incoming url to inner
+	flickcurl_prepare_common.
+
+	* src/common.c, src/flickcurl.h, src/institution.c,
+	src/machinetags-api.c, src/place.c, src/serializer.c, src/shape.c,
+	src/tags-api.c, utils/flickcurl.c, utils/flickrdf.c:
+	Casts for compiling and using from C++.  Main change is to rename
+	variables and arguments called 'namespace' to 'nspace'
+
+2009-04-05  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 1.10
+
+	* Snapshotted flickcurl_1_9 for 1.9 release (SVN 948)
+
+	* docs/tmpl/section-core.sgml: sgml docs
+
+	* README.html, coverage.html, NEWS.html: Flickcurl 1.9
+
+	* src/groups-members-api.c: flickcurl_groups_members_getList
+	announcement
+
+	* src/contacts-api.c, src/contacts.c, src/groups-api.c,
+	src/photos-api.c, src/photosets-api.c, src/place.c: 2009
+
+	* src/common.c: autodocs
+
+	* docs/flickcurl-sections.txt, src/common.c, src/flickcurl.h,
+	src/flickcurl_internal.h:
+	(flickcurl_set_service_uri): Added to allow using
+	Flickr-compatible services such as 23hq.com.  Fix based on patch
+	from Thorsten Zitterell
+
+2009-03-18  Dave Beckett <dave@dajobe.org>
+
+	* src/photos-api.c:
+	(flickcurl_photos_setDates): Increase date buffer string size
+
+2009-03-04  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c: 2009
+
+2009-03-03  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-docs.xml, docs/flickcurl-sections.txt,
+	docs/tmpl/section-panda.sgml, src/panda-api.c:
+	panda docs
+
+	* src/Makefile.am, src/flickcurl.h, src/panda-api.c, utils/flickcurl.c:
+	Added Panda support
+	(flickcurl_panda_getList): Added to implement flickr.panda.getList
+	API added 2009-03-03
+	(flickcurl_panda_getPhotos): Added to implement
+	flickr.panda.getPhotos API added 2009-03-03 Updated flickcurl
+	utility to support the new calls.
+
+2009-03-02  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-group.sgml: templates
+
+	* docs/flickcurl-sections.txt:
+	Add flickcurl_groups_members_getList and members
+
+	* src/Makefile.am, src/flickcurl.h, src/flickcurl_internal.h,
+	src/groups-api.c, src/groups-members-api.c, src/members.c,
+	utils/flickcurl.c:
+	flickcurl_member added
+	(flickcurl_groups_members_getList): Added to implement new
+	flickr.groups.members.getList API method added sometime between
+	2009-02-23 and 2009-03-02.
+	(flickcurl_free_member, flickcurl_free_members): Added to destroy
+	members.
+	(flickcurl_build_members): Added.
+
+	Added flickr.groups.members.getList to flickcurl utility
+
+2009-02-15  Dave Beckett <dave@dajobe.org>
+
+	* src/config.c: (read_ini_config): Handle \r\n, \r and \n newlines
+
+	* src/common.c: macro
+
+	* src/common.c: Be less noisy when debugging - don't print output
+	of set auth token, api key and secret
+
+	* src/photosets-api.c: (flickcurl_photosets_getList): Fix to match
+	correct xpath
+
+2009-02-10  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 1.9
+
+2009-02-09  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_8 for 1.8 release (SVN 920)
+
+	* NEWS.html: 1.8
+
+2009-02-08  Dave Beckett <dave@dajobe.org>
+
+	* README.html, LICENSE.html, NEWS.html, coverage.html: 2009
+
+	* docs/tmpl/section-commons.sgml, docs/tmpl/section-shapes.sgml: tmpls
+
+	* src/flickcurl.h: autodocs
+
+	* src/places-api.c: more autodocs in docbook sgml
+
+	* src/places-api.c: more autodocs in docbook sgml
+
+	* src/places-api.c: autodocs in docbook sgml
+
+	* docs/tmpl/section-commons.sgml, docs/tmpl/section-contact.sgml,
+	docs/tmpl/section-photo.sgml, docs/tmpl/section-place.sgml,
+	docs/tmpl/section-shapes.sgml, docs/tmpl/section-unused.sgml:
+	Update tmpls
+
+	* coverage.html: added commons
+
+	* src/flickcurl.h: autodocs
+
+	* src/institution.c: autodocs
+
+	* docs/flickcurl-sections.txt: added new functions for 1.8
+
+	* utils/flickcurl.c:
+	(command_print_institution): Rename to ix
+
+	* src/Makefile.am, src/commons-api.c, src/flickcurl.h,
+	src/flickcurl_internal.h, src/institution.c, utils/flickcurl.c:
+	Added flickr.commons API
+	(flickcurl_commons_getInstitutions): Added.
+	Added flickcurl_instutition class.
+	(flickcurl_free_institution, flickcurl_free_institutions,
+	flickcurl_get_institution_url_type_label): Added.
+	(flickcurl_build_institutions, flickcurl_build_institution): Added
+	internal helpers.
+	Updated utility to call commons.getInstitutions
+
+	* docs/flickcurl-docs.xml: 2009 and commons
+
+2009-02-06  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: fix return
+
+	* src/place.c: (flickcurl_free_place): Do not free shape data twice.
+
+	* src/shape.c: disable debug message
+
+	* coverage.html, src/Makefile.am, src/contacts-api.c,
+	src/contacts.c, src/flickcurl.h, src/flickcurl_internal.h,
+	src/place.c, src/places-api.c, src/shape.c, utils/flickcurl.c:
+	(flickcurl_places_getShapeHistory, flickcurl_places_tagsForPlace,
+	flickcurl_contacts_getListRecentlyUploaded): Added.  Updated
+	utility for new calls.  Added missing contacts.getList command.
+
+	Added flickcurl_shapedata structure and deprecated old shape fields
+	in flickcurl_place (but continue to include them).
+	(flickcurl_build_shapes, flickcurl_free_shape, flickcurl_free_shapes):
+	Added to create and free flickcurl_shape structures.
+
+2009-01-12  Dave Beckett <dave@dajobe.org>
+
+	* src/places-api.c, utils/flickcurl.c:
+	Make flickcurl_places_placesForContacts work and fix arg parsing
+
+2009-01-11  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/places-api.c, utils/flickcurl.c:
+	(flickcurl_places_getChildrenWithPhotosPublic2): Added to
+	deprecate flickcurl_places_getChildrenWithPhotosPublic with an
+	integer woe_id argument.
+	(flickcurl_places_getInfo2): Added to deprecated
+	flickcurl_places_getInfo with an integer woe_id argument.
+	(flickcurl_places_placesForContacts): Use integer woe_id and
+	threshold.  Implemented.
+
+	Added places.placesForContacts via function
+	command_places_placesForContacts to flickcurl utility.
+
+2009-01-05  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/places-api.c,
+	utils/flickcurl.c: (flickcurl_places_placesForBoundingBox): Made
+	work.  Added to flickcurl utility
+
+	* src/place.c: (flickcurl_place_type_to_id): Return ID
+
+2008-12-28  Dave Beckett <dave@dajobe.org>
+
+	* src/photo.c: Removed duplicate xpaths
+	"./location/region/@place_id" for region_placeid and
+	"./location/region/@woeid" for region_woeid
+
+2008-12-27  Dave Beckett <dave@dajobe.org>
+
+	* src/place.c:
+	(flickcurl_build_places): Free strings used for atoi, atof
+
+	* src/photo.c: debug typo
+
+	* src/photo.c: debug messages
+
+	* src/common.c:
+	(flickcurl_xpath_eval): Use xmlXPathNodeSetIsEmpty
+
+	* utils/flickcurl.c:
+	(command_places_getPlaceTypes): make it compile
+
+	* ChangeLog, src/flickcurl.h, src/flickcurl_internal.h,
+	src/photos-geo-api.c, src/place.c, src/places-api.c,
+	utils/flickcurl.c: Added flickcurl_place_type_info Added
+	FLICKCURL_PLACE_CONTINENT
+	(flickcurl_places_getPlaceTypes): Added.
+	(flickcurl_places_placesForBoundingBox): Added skeleton.
+	(flickcurl_places_placesForContacts): Added skeleton.
+	(flickcurl_places_placesForTags): Added skeleton.
+	(flickcurl_free_place_type_infos): Added.
+	(flickcurl_photos_geo_batchCorrectLocation): Added.
+	(flickcurl_photos_geo_correctLocation): Added skeleton.
+	(flickcurl_photos_geo_photosForLocation_params): Added.
+	(flickcurl_photos_geo_photosForLocation): Added.
+	(flickcurl_photos_geo_setContext): Added.
+	(flickcurl_build_place_types): Added.
+	(flickcurl_place_type_to_id): Added.
+	(flickcurl_place_id_to_type): Added.
+
+	flickcurl command: Added places.getPlaceTypes
+
+	* src/common.c: (flickcurl_xpath_eval_to_tree_string): Check for
+	empty nodeset with xmlXPathNodeSetIsEmpty macro.
+
+2008-12-18  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 1.8
+
+2008-12-15  Dave Beckett <dave@dajobe.org>
+
+	* src/machinetags-api.c: more docs
+
+2008-11-30  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_1_7 for 1.7 release (SVN 880)
+
+	* src/tags-api.c: docs
+
+	* src/place.c: (flickcurl_build_places): Fix shapefile paths
+
+	* utils/flickcurl.c: shapefile url print tidying
+
+	* src/places-api.c: add places API announce dates
+
+	* src/photosets-api.c: (flickcurl_photosets_getList,
+	flickcurl_photosets_getPhotos_params): Fix photoset photo xpath
+	now /rsp/photoset/photo
+
+	* utils/flickcurl.c: Give usage message when min/max args are wrong
+
+	* docs/tmpl/section-machinetags.sgml: Update template for machine tags
+
+	* src/flickcurl.h, src/machinetags.c: Rename some args to match docs
+
+	* docs/flickcurl-docs.xml, docs/flickcurl-sections.txt: Add new
+	functions to sections
+
+	* src/flickcurl.h, src/flickcurl_internal.h,
+	src/machinetags-api.c, src/machinetags.c, utils/flickcurl.c:
+	Renamed flickcurl_namespace to flickcurl_tag_namespace and
+	adjusted all machine tag namespace functions to use that naming
+	for constructors, destructors, methods:
+	flickcurl_free_tag_namespace, flickcurl_free_tag_namespaces,
+	flickcurl_machinetags_getNamespaces.
+
+	Added flickcurl_tag_predicate_value structure
+	(flickcurl_free_tag_predicate_value,
+	flickcurl_free_tag_predicate_values): Added.
+	(flickcurl_machinetags_getPairs, flickcurl_machinetags_getPredicates,
+	flickcurl_machinetags_getValues): Return array of
+	flickcurl_tag_predicate_value
+
+	Adjusted utils/flickcurl to new return
+	value. (command_print_predicate_values): Added.
+
+2008-11-19  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/flickcurl.h, src/flickcurl_internal.h,
+	src/machinetags-api.c, src/machinetags.c, utils/flickcurl.c: Added
+	flickcurl_namespace typedef for machine tags.
+	(flickcurl_free_namespace, flickcurl_free_namespaces): Added.
+	(flickcurl_machinetags_getNamespaces): Now returns array of
+	flickcurl_namespace
+	(flickcurl_build_namespaces, flickcurl_build_namespace): Added.
+
+2008-11-18  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/machinetags-api.c, utils/flickcurl.c:
+	update machinetags APIs calling conventions
+
+	* src/tags-api.c: (flickcurl_tags_getClusterPhotos): Fix error return
+
+	* src/Makefile.am, src/machinetags-api.c: Add flickr.machinetags
+	methods added 2008-11-18
+
+2008-11-06  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h: xml quoting
+
+	* src/common.c, src/flickcurl.h, src/place.c, src/places-api.c,
+	utils/flickcurl.c: Added
+	flickcurl_places_getChildrenWithPhotosPublic() for
+	flickr.places.getChildrenWithPhotosPublic
+
+2008-11-05  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/places-api.c, utils/flickcurl.c: Added
+	places.getInfoByUrl
+
+2008-11-03  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c:
+	(command_print_place): Print shapedata and
+	shapefile_urls if present
+
+	* src/place.c:
+	(flickcurl_free_place): Free shapefile urls Add
+	PLACE_SHAPEFILE_URL (not yet generated in API but predicted!)
+	(flickcurl_build_places): Use flickcurl_xpath_eval_to_tree_string
+	to fill in place->shapedata as an XML string. Fill in
+	place->shapefile_urls as an array of URLs - based on predicated
+	output
+
+	* src/flickcurl.h: flickcurl_place gains shapefile_urls and
+	shapefile_urls_count fields.
+
+	* src/common.c, src/flickcurl_internal.h:
+	(flickcurl_xpath_eval_to_tree_string): Added
+
+	* src/flickcurl.h, src/place.c: Add shapedate and shapedata_length
+	fields to flickcurl_place
+
+	* utils/flickcurl.c: Add places.getInfo
+
+	* src/flickcurl.h: Added flickcurl_places_getInfo to API
+
+	* src/place.c: struct place_fields_table - added place_url
+	attributes.
+	(flickcurl_build_places): Add placeholder for <shapedata>
+	processing.
+
+	* src/places-api.c:
+	(flickcurl_places_getInfo): Added.
+
+2008-09-19  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/tags-api.c:
+	(flickcurl_tags_getClusterPhotos): Added
+
+2008-09-05  Dave Beckett <dave@dajobe.org>
+
+	* src/places-api.c: words
+
+2008-09-04  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: (command_places_placesForUser): Renamed from
+	command_places_forUser and use flickcurl_places_placesForUser
+	rather than deprecated flickcurl_places_forUser
+
+	* src/flickcurl.h,
+	src/places-api.c: (flickcurl_places_placesForUser): Added with
+	correct name, deprecating flickcurl_places_forUser
+
+	* NEWS.html, configure.ac: Bump version to 1.7
+
+	* Snapshotted flickcurl_1_6 for 1.6 release (SVN 831)
+
+	* NEWS.html, docs/flickcurl-sections.txt, src/flickcurl.h,
+	src/place.c, src/places-api.c, utils/flickcurl.c:
+	(flickcurl_places_forUser): Added for flickr.places.forUser
+	announced about 25mins ago
+
+	* src/common.c: (flickcurl_invoke_common): Report HTTP code on an
+	error
+
+	* src/common.c: (flickcurl_invoke_common): late night code idiocy,
+	put {}s around an if in an if.
+
+2008-09-03  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c: (flickcurl_curl_header_callback): Ensure capturing
+	of feed format failure error messages by saving HTTP headers
+	X-FlickrErrCode/Message
+	(flickcurl_invoke_common): Set callback for headers using above
+	and if status code is not 200, fail with error.  This might cause
+	other things to fail that previously were silent about it.
+
+2008-09-02  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: commands: make final NULL sentinal entry have
+	correct number of fields.
+
+	* docs/tmpl/section-photo.sgml: Added flickcurl_search_params_init
+
+	* docs/flickcurl-sections.txt: Added flickcurl_search_params_init
+
+	* src/flickcurl.h: autodocs
+
+	* src/photo.c: (flickcurl_invoke_photos_list): Copy correct format
+	for regular XML result
+
+	* utils/flickcurl.c: (command_photos_search): Use
+	flickcurl_search_params_init to ensure params structure is not
+	junk.
+
+	* src/common.c, src/flickcurl.h: (flickcurl_search_params_init): Added
+
+	* src/context.c: (flickcurl_build_contexts): Do not expect the
+	number of contexts to be 3 (!!) but allocate it based on the
+	returned XML.   Bug reported by Francis Gastellu.
+
+2008-09-01  Dave Beckett <dave@dajobe.org>
+
+	* src/place.c: place_fields_table: Add XPaths for both spellings
+	of neighbourhood just in case
+
+	* src/photo.c: photo_fields_table: Add XPaths for both spellings
+	of neighbourhood just in case
+
+	* docs/tmpl/section-core.sgml, docs/tmpl/section-favorite.sgml,
+	docs/tmpl/section-group.sgml, docs/tmpl/section-misc.sgml,
+	docs/tmpl/section-people.sgml, docs/tmpl/section-photo.sgml,
+	docs/tmpl/section-photoset.sgml,
+	docs/tmpl/section-photoslist.sgml: update tmpls
+
+	* docs/flickcurl.1.in: Added -o FILE, -q and -V
+
+	* utils/flickcurl.c: Added -o FILE option to set format=feed*
+	output file.
+	Added -q option for less verbose
+	Added more output conditional to if(verbose)
+	(command_print_photos_list): May fail if fwrite fails, returns
+	error state to caller.
+
+	* src/common.c: (flickcurl_append_photos_list_params): Keep
+	per_page & page param memory around.
+
+	* utils/flickcurl.c: (command_photos_recentlyUpdated): Make
+	photos.recentlyUpdated take 1-4 params, first one is mandator
+	min-date in unixtime
+
+	* src/common.c: (flickcurl_append_photos_list_params): Fix counting
+
+	* docs/flickcurl-sections.txt: Added flickcurl_photos_list_params_init
+
+	* examples/print-photo-info.c: compile line
+
+	* utils/flickcurl.c: Use flickcurl_photos_list_params_init to
+	replace photos_list_params_init
+
+	* src/common.c,
+	src/flickcurl.h: (flickcurl_photos_list_params_init): Added.
+	flickcurl_photos_list_params gains a version field currently set
+	to 1
+
+	* utils/flickcurl.c: (command_photos_setPerms): perm_comment and
+	perm_addmeta are not booleans.
+
+	* utils/flickcurl.c: Added parse_bool_param to parse is_FOO values
+	and strings false/no, true/yes as well as integers: non-0 is true
+
+	* utils/flickcurl.c: Added parse_page_param to parse page/per_page
+	values and accept '-' for default
+
+	* docs/flickcurl-sections.txt: Added
+	flickcurl_favorites_getList_params,
+	flickcurl_favorites_getPublicList_params,
+	flickcurl_groups_pools_getPhotos_params,
+	flickcurl_interestingness_getList_params,
+	flickcurl_people_getPublicPhotos_params,
+	flickcurl_photos_getContactsPhotos_params,
+	flickcurl_photos_getContactsPublicPhotos_params,
+	flickcurl_photos_getNotInSet_params,
+	flickcurl_photos_getRecent_params,
+	flickcurl_photos_getUntagged_params,
+	flickcurl_photos_getWithGeoData_params,
+	flickcurl_photos_getWithoutGeoData_params,
+	flickcurl_photos_recentlyUpdated_params,
+	flickcurl_photos_search_params,
+	flickcurl_photosets_getPhotos_params
+
+	* docs/flickcurl-sections.txt: Added flickcurl_get_extras_format_info
+
+	* utils/flickcurl.c: Use flickcurl_get_extras_format_info
+
+	* utils/flickcurl.c: Add FORMAT to all photos lists results.
+	(photos_list_params_init): Added.
+	Explain list params in help message
+
+	* src/common.c,
+	src/flickcurl.h: (flickcurl_get_extras_format_info): Added to
+	enumerate values of 'extras'
+
+2008-08-30  Dave Beckett <dave@dajobe.org>
+
+	* src/favorites-api.c, src/groups-pools-api.c, src/photos-api.c:
+	Fix 'implements function (vers)' dups for _params calls
+
+	* docs/tmpl/flickcurl-unused.sgml, docs/tmpl/section-core.sgml,
+	docs/tmpl/section-photoslist.sgml: docs
+
+	* docs/flickcurl-sections.txt: section typo
+
+	* docs/flickcurl-docs.xml, docs/flickcurl-sections.txt: Add
+	section-photoslist and functions/typedefs
+
+	* src/flickcurl.h, src/photosets-api.c:
+	(flickcurl_photosets_getPhotos_params): Added
+	(flickcurl_photosets_getPhotos): Use above.
+
+	* src/flickcurl.h,
+	src/photos-api.c: (flickcurl_get_photoslist_params): Renamed from
+	flickcurl_get_photoslist and takes a list_params.
+	(flickcurl_photos_getNotInSet_params,
+	flickcurl_photos_getRecent_params,
+	flickcurl_photos_getUntagged_params,
+	flickcurl_photos_getWithGeoData_params,
+	flickcurl_photos_getWithoutGeoData_params,
+	flickcurl_photos_recentlyUpdated_params): Added, using
+	flickcurl_get_photoslist_params instead of
+	flickcurl_get_photoslist.  Rewrote old non-_params functions to
+	use call _params version.
+
+	* src/favorites-api.c, src/groups-pools-api.c,
+	src/interestingness-api.c, src/people-api.c: Update to use
+	flickcurl_invoke_photos_list without xpathCtx arg
+
+	* src/flickcurl.h, src/photos-api.c:
+	(flickcurl_photos_getContactsPublicPhotos_params): Added with
+	list_params and using flickcurl_append_photos_list_params.
+	(flickcurl_photos_getContactsPublicPhotos): Use
+	flickcurl_photos_getContactsPublicPhotos_params
+
+	* src/flickcurl_internal.h,
+	src/photo.c: (flickcurl_invoke_photos_list): Remove xpathCtx arg
+
+	* src/flickcurl.h, src/photos-api.c:
+	(flickcurl_photos_getContactsPhotos_params): Added with
+	list_params and using flickcurl_append_photos_list_params.
+	(flickcurl_photos_getContactsPhotos): Use
+	flickcurl_photos_getContactsPhotos_params
+
+	* src/flickcurl.h, src/people-api.c:
+	(flickcurl_people_getPublicPhotos_params): Added with list_params
+	and using flickcurl_append_photos_list_params.
+	(flickcurl_people_getPublicPhotos): Use
+	flickcurl_people_getPublicPhotos_params
+
+	* src/flickcurl.h, src/interestingness-api.c:
+	(flickcurl_interestingness_getList_params): Added with list_params
+	and using flickcurl_append_photos_list_params.
+	(flickcurl_interestingness_getlist): Use
+	flickcurl_interestingness_getList_params
+
+	* src/flickcurl.h, src/groups-pools-api.c:
+	(flickcurl_groups_pools_getPhotos_params): Added with list_params
+	and using flickcurl_append_photos_list_params.
+	(flickcurl_groups_pools_getPhotos): Use
+	flickcurl_groups_pools_getPhotos_params
+
+	* src/photos-api.c: (flickcurl_photos_search_params): Use
+	flickcurl_append_photos_list_params.
+
+	* src/favorites-api.c: (flickcurl_favorites_getList_params,
+	flickcurl_favorites_getPublicList_params): Use
+	flickcurl_append_photos_list_params.
+
+	* src/flickcurl.h: autodocs for extras
+
+2008-08-29  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c, src/flickcurl_internal.h:
+	(flickcurl_append_photos_list_params): Added
+
+2008-08-27  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: Use flickcurl_get_feed_format_info to print
+	feed formats into the generated man page.
+
+	* utils/flickcurl.c: Use flickcurl_get_feed_format_info to
+	enumerate feed FORMATS in help message.
+
+	* src/common.c, src/flickcurl.h:
+	(flickcurl_get_feed_format_info): Added to enumerate possible feed
+	format parameter values.
+
+	* src/favorites-api.c, src/flickcurl.h:
+	(flickcurl_favorites_getPublicList_params): Added.
+	(flickcurl_favorites_getPublicList): Refactored to use it
+
+	* utils/flickcurl.c:
+	(command_print_photos_list): Added to print a flickcurl_photos_list
+	(command_photos_search): Use it.
+	(command_favorites_getList): Alter to use
+	flickcurl_favorites_getList_params to return a
+	flickcurl_photos_list and use flickcurl_photos_list to print the
+	result.
+	(main): Add an optional 4th parameter to favorites.getList for
+	FORMAT
+
+	* utils/flickcurl.c:
+	(command_photos_search): Use flickcurl_photos_search_params for
+	photos.search command with a flickcurl_photos_list result and
+	accept the format parameter.  If the result is raw content, print
+	it.
+
+	* docs/tmpl/section-photo.sgml, docs/tmpl/section-place.sgml,
+	src/favorites-api.c, src/flickcurl.h:
+	(flickcurl_favorites_getList_params): Added.
+	(flickcurl_favorites_getList): Refactored to use it
+
+	* src/photos-api.c:
+	(flickcurl_photos_search_params): Free photos list with
+	flickcurl_free_photos_list on error
+
+	* src/flickcurl.h:
+	(typedef flickcurl_photos_list_params): const chars
+
+	* src/photos-api.c: autodocs
+
+	* src/flickcurl.h, src/photos-api.c:
+	(flickcurl_photos_search_params): Added with
+	flickcurl_photos_list_params.
+	(flickcurl_photos_search): Refactored to use
+	flickcurl_photos_search_params
+
+	* src/flickcurl_internal.h: Added flickcurl_invoke_photos_list
+	prototype
+
+	* src/flickcurl.h, src/photo.c: Added typedef flickcurl_photos_list.
+	Added flickcurl_photos_list_params for new API calls to pass in
+	list result parameters.
+	(flickcurl_invoke_photos_list): Added to construct it.
+	(flickcurl_free_photos_list): Added to delete it - public
+
+	* src/common.c, src/flickcurl_internal.h:
+	(flickcurl_invoke_get_content): Added to return the raw content of
+	the web service call as a block of bytes.  Added struct
+	flickcurl_chunk_s to support this.  struct flickcurl_s gains extra
+	content fields and chunks fields.
+
+	* src/flickcurl_internal.h:
+	(FLICKCURL_ASSERT_OBJECT_POINTER_RETURN_VALUE):	Define with a test
+
+2008-08-23  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl.1.in: words
+
+	* docs/flickcurl.1.in: Note -a change and how to make a config file
+
+	* utils/flickcurl.c: Print a help message when no config file is
+	present.
+	Make -a FROB exit with success after it
+
+2008-08-19  Dave Beckett <dave@dajobe.org>
+
+	* src/serializer.c: Fix FOAF NS - no trailing #
+
+2008-08-18  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h, src/photo.c, src/place.c: Support neighbourhood
+	in location despite expecting it to be spelled neighborhood in
+	American.  As announced 2008-08-19 at
+	http://geobloggers.com/2008/08/19/correcting-location-data-the-flickr-way/
+
+2008-08-17  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 1.6
+
+	* Snapshotted flickcurl_1_5 for 1.5 release (SVN 720)
+	
+	* docs/flickcurl-sections.txt, docs/tmpl/section-serializer.sgml:
+	Add flickcurl_serializer_factory
+
+	* utils/flickcurl.c: (command_tags_getClusters): Call
+	flickcurl_free_tag_clusters to do proper cleanup
+
+	* src/tags-api.c: (flickcurl_tags_getClusters): Casts and fix
+	error return
+
+	* src/tags.c: (flickcurl_free_tag_cluster): Remove from public
+	api, make static
+
+	* src/flickcurl.h: Remove flickcurl_free_tag_cluster from public api
+
+2008-08-16  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: Added new command tags.getClusters for
+	flickcurl_tags_getClusters
+
+	* src/tags-api.c: (flickcurl_tags_getClusters): Added for new API
+	call flickr.tags.getClusters
+
+	* src/tags.c: (flickcurl_free_tag_cluster,
+	flickcurl_free_tag_clusters, flickcurl_build_tag_clusters): Added
+	for tag clusters
+
+	* src/flickcurl_internal.h: Added flickcurl_build_tag_clusters for
+	building clusters of tags for new API call flickr.tags.getClusters
+
+	* src/flickcurl.h: Added typedefs flickcurl_tag_cluster,
+	flickcurl_tag_clusters Added prototypes for
+	flickcurl_free_tag_cluster and flickcurl_free_tag_clusters
+	Added flickcurl_tags_getClusters prototype for new API call
+	flickr.tags.getClusters
+
+	* docs/tmpl/section-photo.sgml, src/flickcurl.h, src/photos-api.c,
+	utils/flickcurl.c: flickcurl_search_params gains contacts field.
+	(flickcurl_photos_search): Added support for photos.search
+	contacts parameter.
+
+2008-08-15  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickrdf.c: Make flickrdf build without raptor
+
+2008-06-27  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h: flickcurl_search_params gains fields: has_geo,
+	lat, lon, radius, radius_units
+
+	* src/photos-api.c: (flickcurl_photos_search): Add has_geo,
+	lat/lon/radius/radius_units as announced 2008-06-27
+	http://tech.groups.yahoo.com/group/yws-flickr/message/4146
+
+2008-06-26  Dave Beckett <dave@dajobe.org>
+
+	* utils/Makefile.am: Added check-api target for maintainer
+
+2008-06-25  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 1.5
+
+	* Snapshotted flickcurl_1_4 for 1.4 release (SVN 685)
+	
+	* docs/tmpl/flickcurl-unused.sgml, docs/tmpl/section-place.sgml,
+	docs/tmpl/section-unused.sgml: Updates from gtk-doc run
+
+	* src/flickcurl.h: code reformat to help gtkdoc-scan
+
+2008-05-24  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h: spelling and autodocs
+
+2008-05-15  Dave Beckett <dave@dajobe.org>
+
+	* utils/Makefile.am: tab
+
+	* utils/Makefile.am: Add rule for building libflickcurl.la
+
+2008-05-10  Dave Beckett <dave@dajobe.org>
+
+	* src/serializer.c: Add dc: for old dc namespace, new stuff to
+	dcterms:
+
+	* src/serializer.c: make geo:lat and geo:long into floats
+
+	* src/serializer.c: Use flickcurl_sqltimestamp_to_isotime to
+	convert dc:created from SQL form to XSD.
+
+	* src/common.c: (flickcurl_sqltimestamp_to_isotime): Fix end of
+	string
+
+	* src/common.c, src/flickcurl_internal.h: Added
+	flickcurl_sqltimestamp_to_isotime for convertion sql timestamp to
+	iso time format
+
+	* src/serializer.c: Namespace notes. Update DC to new 2008
+	http://purl.org/dc/dcterms/ namespace from old
+	http://purl.org/dc/elements/1.1/
+
+	* utils/flickcurl.c: Update sizes
+
+	* src/serializer.c: Add photo/video size info to serializing
+
+	* src/size.c: (flickcurl_free_size): free media param
+	(flickcurl_build_sizes): decode media
+
+	* src/flickcurl.h: Add media field to flickcurl_size
+
+2008-05-09  Dave Beckett <dave@dajobe.org>
+
+	* src/serializer.c: move debug
+
+	* src/serializer.c: Declare rdfs for sizes
+
+	* src/serializer.c: XSD_NS
+
+	* src/serializer.c: namespace sort
+
+	* src/serializer.c: RDFS
+
+	* src/serializer.c: just 1 buf
+
+	* src/serializer.c: Added image sizes to serializatin
+
+2008-05-01  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c: (flickcurl_invoke): Use raptor file: URI decoding
+	when it is available - for -DOFFLINE only
+
+	* src/Makefile.am: Use conditional OFFLINE to enable raptor for
+	library
+
+	* configure.ac: Add conditional OFFLINE
+
+2008-04-28  Dave Beckett <dave@dajobe.org>
+
+	* src/flickcurl.h: docs
+
+	* src/serializer.c: autodocs
+
+	* docs/flickcurl-docs.xml, docs/flickcurl-sections.txt,
+	docs/tmpl/section-photo.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-video.sgml: add serializer to docs
+
+	* src/serializer.c: Declare namespaces needed for places triples
+
+2008-04-27  Dave Beckett <dave@dajobe.org>
+
+	* src/serializer.c: Added dopplr, flickr, places, geonames
+	namespaces pointing to machinetags.org
+	(flickcurl_serialize_photo): Generate triples from places
+
+	* utils/Makefile.am: clean up internal programs
+
+	* src/activity.c, src/args.c, src/blog.c, src/category.c,
+	src/comments.c, src/contacts.c, src/context.c, src/exif.c,
+	src/group.c, src/location.c, src/method.c, src/perms.c,
+	src/person.c, src/photo.c, src/photoset.c, src/place.c,
+	src/serializer.c, src/size.c, src/tags.c, src/ticket.c,
+	src/upload-api.c, src/user_upload_status.c, src/video.c: Use
+	FLICKCURL_ASSERT_OBJECT_POINTER_RETURN to check and protect NULL
+	pointers in destructors.
+
+	* src/flickcurl_internal.h: Added asset macros
+
+2008-04-15  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickrdf.c: code style
+
+	* src/serializer.c: gcc warning
+
+	* src/flickcurl.h: autodocs
+
+	* utils/flickrdf.c: Fix flickcurl_serializer_factory calling convention
+
+2008-04-12  Dave Beckett <dave@dajobe.org>
+
+	* src/serializer.c: autodocs
+
+	* src/flickcurl.h: autodoc flickcurl_serialzier_factory
+
+2008-04-11  Dave Beckett <dave@dajobe.org>
+
+	* src/serializer.c: debug > 1
+
+	* src/serializer.c: Do not flickcurl_free_photo inside serializer
+
+	* src/serializer.c: one more user data
+
+	* src/serializer.c: (flickcurl_serialize_photo): Ignore tags with no ':'
+
+	* src/serializer.c: use BLANK not ANONYMOUS
+
+	* src/flickcurl.h: flickcurl_term_type
+
+	* src/flickcurl.h, src/serializer.c: Pass user data in to
+	serializer.  Remove emit_start unused
+
+	* utils/flickrdf.c: error checking
+
+	* utils/flickrdf.c: (raptor_serialize_start_to_file_handle): Only
+	write @base for Turtle
+
+	* utils/flickrdf.c: Use new flickcurl_serializer API to generate
+	triples. Raptor specific code still lives here.
+
+	* src/Makefile.am, src/common.c, src/flickcurl.h,
+	src/flickcurl_internal.h, src/serializer.c: Added serializer API.
+	(flickcurl_new_serializer, flickcurl_free_serializer,
+	flickcurl_serialize_photo): Added.  Added new object
+	flickcurl_serializer and new open factory
+	flickcurl_serializer_factory
+
+	* src/serializer.c (from /trunk/utils/flickrdf.c:609): copy rdf
+	serializer
+
+	* utils/flickrdf.c: refactor - introduce a flickcurl_serializer
+	and flickcurl_serializer_factory
+
+2008-04-10  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickrdf.c: N-Triples escape strings when !HAVE_RAPTOR
+
+	* utils/flickrdf.c: default ntriples when ! HAVE_RAPTOR
+
+	* utils/flickrdf.c: Use fake static raptor when not HAVE_RAPTOR
+
+	* src/photo.c: (flickcurl_build_photos): Ensure media_type is set
+	to default "photo" if nothing was found
+
+2008-04-08  Dave Beckett <dave@dajobe.org>
+
+	* src/photo.c: Add labels for usage* fields
+
+	* utils/flickcurl.c: (command_print_video): Added.
+	(command_print_photo): Use command_print_video
+	(command_photos_search): Add media arg
+
+	* src/Makefile.am, src/favorites-api.c, src/flickcurl.h,
+	src/flickcurl_internal.h, src/groups-pools-api.c,
+	src/interestingness-api.c, src/people-api.c, src/person.c,
+	src/photo.c, src/photos-api.c, src/photosets-api.c, src/video.c:
+	Added video support.
+	Photos have a media_type and an optional pointer to new
+	flickcurl_video* object.  Search API takes media param.
+	Added VALUE_TYPE_MEDIA_TYPE (internal).
+	Added PHOTO_FIELD_usage_candownload, PHOTO_FIELD_usage_canblog,
+	PHOTO_FIELD_usage_canprint. 
+	Added flickcurl_free_video().
+
+	* utils/flickrdf.c: more refactoring
+
+	* utils/flickrdf.c: Add flickrdf_context_s to refactor
+	raptor/non-raptor code
+
+2008-04-07  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-misc.sgml: new doc functions
+
+2008-04-06  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl.1.in: date
+
+	* docs/flickcurl.1.in: Add -V/--verbose
+
+	* src/flickcurl.h: document flickcurl typedef
+
+	* docs/Makefile.am: ignore win32_flickcurl_config.h
+
+	* docs/flickcurl-sections.txt: Added
+	flickcurl_get_content_type_label,
+	flickcurl_get_content_type_from_string,
+	flickcurl_get_safety_level_label and
+	flickcurl_get_safety_level_from_string
+
+	* utils/flickcurl.c: Add a -V/--verbose flag
+	(print_upload_status): Add FILE* handle
+	(yesno): Added earlier
+	(print_upload_params): Added.
+	(command_upload): Fix command arg to be a while loop and not be
+	off-per-1 each loop.  Use flickcurl_get_safety_level_from_string
+	and flickcurl_get_content_type_from_string Print more when verbose
+	with print_upload_params()
+	(command_photos_setContentType): Use
+	flickcurl_get_content_type_from_string and
+	flickcurl_get_content_type_label.
+	(command_photos_setSafetyLevel): Use
+	flickcurl_get_safety_level_from_string and
+	flickcurl_get_safety_level_label
+	(command_photos_search, command_interestingness_getList): Fix arg
+	parsing to be a while loop.
+
+	* src/common.c,
+	src/flickcurl.h: (flickcurl_get_content_type_label,
+	flickcurl_get_content_type_from_string,
+	flickcurl_get_safety_level_label,
+	flickcurl_get_safety_level_from_string): Added
+
+2008-03-24  Dave Beckett <dave@dajobe.org>
+
+	* docs/flickcurl-sections.txt, docs/tmpl/section-prefs.sgml: Added
+	flickcurl_prefs_getGeoPerms
+
+	* coverage.html: 1.4 flickcurl_prefs_getGeoPerms
+
+	* src/common.c, src/flickcurl.h, src/prefs-api.c,
+	utils/flickcurl.c: Added flickcurl_prefs_getGeoPerms() for
+	flickr.prefs.getGeoPerms added 2008-03-24
+
+2008-03-14  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-photo.sgml: docs
+
+2008-03-08  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog: Snapshotted flickcurl_1_3 for 1.3 release (SVN 571)
+
+2008-03-05  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: (command_print_place): Added woe ID printing.
+	Tidy places help messages
+
+	* src/place.c: Added place woe_ids parsing
+
+	* src/photo.c: Add photo woeid fields parsing
+
+	* src/flickcurl.h: Added WOE ID photo fiels:
+	PHOTO_FIELD_location_woeid, PHOTO_FIELD_neighborhood_woeid,
+	PHOTO_FIELD_locality_woeid, PHOTO_FIELD_county_woeid,
+	PHOTO_FIELD_region_woeid and PHOTO_FIELD_country_woeid
+	flickcurl_place gains woe_ids array
+
+	* utils/Makefile.am, utils/list-methods.c: Added list-methods
+	example utility
+
+2008-03-04  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-prefs.sgml, docs/flickcurl-docs.xml: Added
+	section-prefs.xml
+
+	* coverage.html, src/Makefile.am, src/flickcurl.h,
+	src/prefs-api.c, utils/flickcurl.c: Added flickr.prefs calls
+	flickcurl_prefs_getContentType, flickcurl_prefs_getHidden,
+	flickcurl_prefs_getPrivacy and flickcurl_prefs_getSafetyLevel
+
+	* src/person.c, src/photo.c: Add cast for time_t to int to prevent
+	non-gcc compiler warning
+
+2008-03-01  Dave Beckett <dave@dajobe.org>
+
+	* src/common.c: Use FOUR_GIGA_NSEC100 as legal macro name
+
+	* configure.ac: Search for gettimeofday and nanosleep
+
+	* src/win32_flickcurl_config.h: win32_flickcurl_config.h for
+	windows config
+
+	* configure.ac: Test for usleep.  Warn, don't fail if no nanosleep
+	is present, the static version can be used.
+
+	* src/common.c: (gettimeofday): Added static version for win32
+	based on GetSystemTimeAsFileTime()
+	(nanosleep): Added static version for win32 or other systems based
+	on Sleep, sleep and/or usleep.
+
+2008-02-29  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Use AM_PROG_CC_C_O to stop libtool warnings
+
+	* docs/tmpl/flickcurl-unused.sgml,
+	docs/tmpl/section-activity.sgml, docs/tmpl/section-auth.sgml,
+	docs/tmpl/section-blogs.sgml, docs/tmpl/section-category.sgml,
+	docs/tmpl/section-comment.sgml, docs/tmpl/section-contact.sgml,
+	docs/tmpl/section-context.sgml, docs/tmpl/section-core.sgml,
+	docs/tmpl/section-exif.sgml, docs/tmpl/section-favorite.sgml,
+	docs/tmpl/section-general.sgml, docs/tmpl/section-group.sgml,
+	docs/tmpl/section-misc.sgml, docs/tmpl/section-people.sgml,
+	docs/tmpl/section-person.sgml, docs/tmpl/section-photo.sgml,
+	docs/tmpl/section-photoset.sgml, docs/tmpl/section-place.sgml,
+	docs/tmpl/section-reflection.sgml, docs/tmpl/section-tag.sgml,
+	docs/tmpl/section-test.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-upload.sgml, docs/tmpl/section-urls.sgml: gtkdoc
+
+	* NOTICE: url
+
+	* LICENSE.html: Make it clear it's any newer version
+
+	* docs/flickcurl-sections.txt: Add FLICKCURL_API
+
+	* examples/Makefile.am: example Makefile.am
+
+	* src/activity-api.c, src/activity.c, src/args.c, src/auth-api.c,
+	src/blog.c, src/blogs-api.c, src/category.c, src/comments.c,
+	src/common.c, src/config.c, src/contacts-api.c, src/contacts.c,
+	src/context.c, src/exif.c, src/favorites-api.c, src/group.c,
+	src/groups-api.c, src/groups-pools-api.c,
+	src/interestingness-api.c, src/location.c, src/md5.c,
+	src/method.c, src/people-api.c, src/perms.c, src/person.c,
+	src/photo.c, src/photos-api.c, src/photos-comments-api.c,
+	src/photos-geo-api.c, src/photos-licenses-api.c,
+	src/photos-notes-api.c, src/photos-transform-api.c,
+	src/photos-upload-api.c, src/photoset.c, src/photosets-api.c,
+	src/photosets-comments-api.c, src/place.c, src/places-api.c,
+	src/reflection-api.c, src/size.c, src/tags-api.c, src/tags.c,
+	src/test-api.c, src/ticket.c, src/upload-api.c, src/urls-api.c,
+	src/user_upload_status.c, src/vsnprintf.c: Conditionally include
+	win32_flickcurl_config.h if WIN32 defined
+
+	* configure.ac: Add -DFLICKCURL_INTERNAL to CPPFLAGS
+
+	* src/flickcurl.h: Add FLICKCURL_API macro for handling win32
+	declspec dllexport/dllimport
+
+	* src/common.c: Add AC_HEADER_TIME standed ifdef headers to get
+	time structs and prototypes.
+
+	* configure.ac: Add AC_HEADER_TIME
+
+	* src/common.c: Add time.h if it's present for time prototype
+	functions.
+	(flickcurl_sort_args): Cast for qsort array
+	(flickcurl_unixtime_to_isotime,
+	flickcurl_unixtime_to_sqltimestamp): Casts for gmtime() return
+	value.
+
+	* src/example.c: move example.c to examples/
+
+	* examples, examples/print-photo-info.c: Added new example based
+	on old src/example.c
+
+	* Makefile.am, configure.ac: Added examples dir
+
+	* src/Makefile.am: Removed example.c
+
+	* src/example.c: Change flickcurl_photo_field field to
+	flickcurl_photo_field_type field_type;
+
+2008-02-17  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL: Remove INSTALL from svn
+
+	* autogen.sh: Update autogen.sh to latest
+
+2008-02-11  Dave Beckett <dave@dajobe.org>
+
+	* src/photosets-api.c: (flickcurl_photosets_create): Initialise
+	xpathCtx
+
+	* utils/flickcurl.c: photosets.create has 3 args not 4
+
+2008-02-08  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am, docs/flickcurl-authenticate.xml,
+	docs/flickcurl-docs.xml, docs/tmpl/flickcurl-unused.sgml,
+	docs/tmpl/section-activity.sgml, docs/tmpl/section-auth.sgml,
+	docs/tmpl/section-blogs.sgml, docs/tmpl/section-category.sgml,
+	docs/tmpl/section-comment.sgml, docs/tmpl/section-contact.sgml,
+	docs/tmpl/section-context.sgml, docs/tmpl/section-core.sgml,
+	docs/tmpl/section-exif.sgml, docs/tmpl/section-favorite.sgml,
+	docs/tmpl/section-general.sgml, docs/tmpl/section-group.sgml,
+	docs/tmpl/section-misc.sgml, docs/tmpl/section-people.sgml,
+	docs/tmpl/section-person.sgml, docs/tmpl/section-photo.sgml,
+	docs/tmpl/section-photoset.sgml, docs/tmpl/section-place.sgml,
+	docs/tmpl/section-reflection.sgml, docs/tmpl/section-tag.sgml,
+	docs/tmpl/section-test.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-upload.sgml, docs/tmpl/section-urls.sgml: Added
+	flickcurl-authenticate.xml for authenticating howto
+
+2008-01-31  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: (command_print_photo): Print place only if
+	not NULL
+
+2008-01-29  Dave Beckett <dave@dajobe.org>
+
+	* utils/flickcurl.c: Patch from Kumar Appaiah to change USER-ID
+	references in help messages to use USER-NSID.
+
+	* src/common.c: (flickcurl_prepare_common): Patch from Kumar
+	Appaiah to prevent a crash when a parameter has a NULL value.
+
+2008-01-28  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 1.3
+
+	* ChangeLog: Snapshotted flickcurl_1_2 for 1.2 release (SVN 518)
+
+	* configure.ac: Look for nanosleep in -lrt and -lposix4 to help solaris.
+
+	* docs/Makefile.am: Add flickcurl.1.in to dist.  Make build rule
+	maintainer only
+
+2008-01-26  Dave Beckett <dave@dajobe.org>
+
+	* README.html: curl min
+
+	* ChangeLog: Snapshotted flickcurl_1_1 for 1.1 release (SVN 507)
+
+	* NEWS.html, configure.ac: Bump version to 1.2
+
+	* Snapshotted flickcurl_1_1 for 1.1 release (SVN 509)
+
+	* NEWS.html: 1.1
+
+2008-01-24  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html: min libcurl and libxml
+
+	* configure.ac: Set min curl version to 7.10.0 when curl_free()
+	was added, but still ancient (Oct 1 2002)
+	Die if either libxml or libcurl is too old in configure.
+
+2008-01-23  Dave Beckett <dave@dajobe.org>
+
+	* README.html: 2008-01-23 places API
+
+	* docs/tmpl/section-activity.sgml, docs/tmpl/section-auth.sgml,
+	docs/tmpl/section-blogs.sgml, docs/tmpl/section-category.sgml,
+	docs/tmpl/section-comment.sgml, docs/tmpl/section-contact.sgml,
+	docs/tmpl/section-context.sgml, docs/tmpl/section-core.sgml,
+	docs/tmpl/section-exif.sgml, docs/tmpl/section-favorite.sgml,
+	docs/tmpl/section-general.sgml, docs/tmpl/section-group.sgml,
+	docs/tmpl/section-misc.sgml, docs/tmpl/section-people.sgml,
+	docs/tmpl/section-person.sgml, docs/tmpl/section-photo.sgml,
+	docs/tmpl/section-photoset.sgml, docs/tmpl/section-place.sgml,
+	docs/tmpl/section-reflection.sgml, docs/tmpl/section-tag.sgml,
+	docs/tmpl/section-test.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-upload.sgml, docs/tmpl/section-urls.sgml: long
+	desc
+
+	* docs/flickcurl-sections.txt: Added flickcurl_places_findByLatLon
+
+	* src/places-api.c: flickcurl_places_findByLatLon docs
+
+	* utils/flickcurl.c: Add -m to help
+
+	* utils/flickcurl.c: define GETOPT_STRING_MORE to null when not
+	maintainer
+
+	* utils/flickcurl.c: (command_upload): Handle upload with just
+	filenme arg crash
+
+	* utils/flickcurl.c: sort commands before writing to manpage
+
+	* utils/flickcurl.c: docs.
+	Update man output to do escaping and newlines
+
+	* docs/flickcurl.1.in: no seealso
+
+	* utils/flickcurl.c: Added -m option to build manpage when
+	FLICKCURL_MANPAGE is defined
+
+	* docs/Makefile.am, docs/flickcurl.1, docs/flickcurl.1.in (from
+	/trunk/docs/flickcurl.1:479): Build flickcurl.1 using the utility
+	itself and -m option
+
+	* utils/Makefile.am: When bulding flickcurl in maintainer mode,
+	add -DFLICKCURL_MANPAGE
+
+	* coverage.html: flickr.places.findByLatLon
+
+	* utils/flickcurl.c: make getopt_long() not permute args
+	* src/flickcurl.h: typo
+
+	* ChangeLog, coverage.html, src/flickcurl.h, src/places-api.c,
+	utils/flickcurl.c: (flickcurl_places_findByLatLon): Added,
+	implementing flickr.places.findByLatLon
+
+2008-01-19  Dave Beckett <dave@dajobe.org>
+
+	* Makefile.am: Enable gtk doc for make distcheck
+
+	* src/flickcurl.h: activity autodocs
+
+	* docs/flickcurl-docs.xml: docd
+
+	* docs/version.xml.in: add version.xml.in
+
+	* docs/flickcurl-sections.txt: Add gtkdoc files
+
+	* docs, docs/flickcurl-docs.xml, docs/flickcurl-overrides.txt,
+	docs/flickcurl.types: Add gtkdoc files
+
+	* configure.ac: gtk-doc
+
+	* docs/Makefile.am, docs/tmpl, docs/tmpl/flickcurl-unused.sgml,
+	docs/tmpl/section-activity.sgml, docs/tmpl/section-auth.sgml,
+	docs/tmpl/section-blogs.sgml, docs/tmpl/section-category.sgml,
+	docs/tmpl/section-comment.sgml, docs/tmpl/section-contact.sgml,
+	docs/tmpl/section-context.sgml, docs/tmpl/section-core.sgml,
+	docs/tmpl/section-exif.sgml, docs/tmpl/section-favorite.sgml,
+	docs/tmpl/section-general.sgml, docs/tmpl/section-group.sgml,
+	docs/tmpl/section-misc.sgml, docs/tmpl/section-people.sgml,
+	docs/tmpl/section-person.sgml, docs/tmpl/section-photo.sgml,
+	docs/tmpl/section-photoset.sgml, docs/tmpl/section-place.sgml,
+	docs/tmpl/section-reflection.sgml, docs/tmpl/section-tag.sgml,
+	docs/tmpl/section-test.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-upload.sgml, docs/tmpl/section-urls.sgml: gtkdoc
+	from docucomments
+
+	* src/activity-api.c, src/activity.c, src/auth-api.c, src/blog.c,
+	src/category.c, src/comments.c, src/common.c, src/config.c,
+	src/contacts.c, src/context.c, src/exif.c, src/flickcurl.h,
+	src/group.c, src/groups-pools-api.c, src/location.c, src/method.c,
+	src/perms.c, src/person.c, src/photo.c, src/photos-api.c,
+	src/photos-upload-api.c, src/photoset.c, src/photosets-api.c,
+	src/place.c, src/size.c, src/tags-api.c, src/tags.c, src/ticket.c,
+	src/upload-api.c, src/user_upload_status.c: docucomments
+
+	* docs/Makefile.am: Fix dist for mans
+
+	* Makefile.am, configure.ac, docs, docs/Makefile.am (from
+	/trunk/Makefile.am:457), docs/flickcurl-config.1 (from
+	/trunk/flickcurl-config.1:457), docs/flickcurl.1 (from
+	/trunk/flickcurl.1:457), docs/flickrdf.1 (from
+	/trunk/flickrdf.1:457), flickcurl-config.1, flickcurl.1,
+	flickrdf.1: Move man pages to docs/
+
+	* Makefile.am, configure.ac, src/Makefile.am, src/codegen.c,
+	src/flickcurl_getopt.h, src/flickrdf.c, src/getopt.c, src/test.c,
+	utils/Makefile.am, utils/codegen.c (from
+	/trunk/src/codegen.c:456), utils/flickcurl_getopt.h (from
+	/trunk/src/flickcurl_getopt.h:456), utils/flickrdf.c (from
+	/trunk/src/flickrdf.c:456), utils/getopt.c (from
+	/trunk/src/getopt.c:456): Updates for source dir reorg.
+
+	* activity-api.c, activity.c, args.c, auth-api.c, blog.c,
+	blogs-api.c, category.c, codegen.c, comments.c, common.c,
+	config.c, contacts-api.c, contacts.c, context.c, docs, example.c,
+	exif.c, favorites-api.c, flickcurl.c, flickcurl.h,
+	flickcurl_getopt.h, flickcurl_internal.h, flickrdf.c, getopt.c,
+	group.c, groups-api.c, groups-pools-api.c, interestingness-api.c,
+	location.c, md5.c, method.c, people-api.c, perms.c, person.c,
+	photo.c, photos-api.c, photos-comments-api.c, photos-geo-api.c,
+	photos-licenses-api.c, photos-notes-api.c, photos-transform-api.c,
+	photos-upload-api.c, photoset.c, photosets-api.c,
+	photosets-comments-api.c, place.c, places-api.c, reflection-api.c,
+	size.c, src, src/Makefile.am (from /trunk/Makefile.am:455),
+	src/activity-api.c (from /trunk/activity-api.c:455),
+	src/activity.c (from /trunk/activity.c:455), src/args.c (from
+	/trunk/args.c:455), src/auth-api.c (from /trunk/auth-api.c:455),
+	src/blog.c (from /trunk/blog.c:455), src/blogs-api.c (from
+	/trunk/blogs-api.c:455), src/category.c (from
+	/trunk/category.c:455), src/codegen.c (from /trunk/codegen.c:455),
+	src/comments.c (from /trunk/comments.c:455), src/common.c (from
+	/trunk/common.c:455), src/config.c (from /trunk/config.c:455),
+	src/contacts-api.c (from /trunk/contacts-api.c:455),
+	src/contacts.c (from /trunk/contacts.c:455), src/context.c (from
+	/trunk/context.c:455), src/example.c (from /trunk/example.c:455),
+	src/exif.c (from /trunk/exif.c:455), src/favorites-api.c (from
+	/trunk/favorites-api.c:455), src/flickcurl.h (from
+	/trunk/flickcurl.h:455), src/flickcurl_getopt.h (from
+	/trunk/flickcurl_getopt.h:455), src/flickcurl_internal.h (from
+	/trunk/flickcurl_internal.h:455), src/flickrdf.c (from
+	/trunk/flickrdf.c:455), src/getopt.c (from /trunk/getopt.c:455),
+	src/group.c (from /trunk/group.c:455), src/groups-api.c (from
+	/trunk/groups-api.c:455), src/groups-pools-api.c (from
+	/trunk/groups-pools-api.c:455), src/interestingness-api.c (from
+	/trunk/interestingness-api.c:455), src/location.c (from
+	/trunk/location.c:455), src/md5.c (from /trunk/md5.c:455),
+	src/method.c (from /trunk/method.c:455), src/people-api.c (from
+	/trunk/people-api.c:455), src/perms.c (from /trunk/perms.c:455),
+	src/person.c (from /trunk/person.c:455), src/photo.c (from
+	/trunk/photo.c:455), src/photos-api.c (from
+	/trunk/photos-api.c:455), src/photos-comments-api.c (from
+	/trunk/photos-comments-api.c:455), src/photos-geo-api.c (from
+	/trunk/photos-geo-api.c:455), src/photos-licenses-api.c (from
+	/trunk/photos-licenses-api.c:455), src/photos-notes-api.c (from
+	/trunk/photos-notes-api.c:455), src/photos-transform-api.c (from
+	/trunk/photos-transform-api.c:455), src/photos-upload-api.c (from
+	/trunk/photos-upload-api.c:455), src/photoset.c (from
+	/trunk/photoset.c:455), src/photosets-api.c (from
+	/trunk/photosets-api.c:455), src/photosets-comments-api.c (from
+	/trunk/photosets-comments-api.c:455), src/place.c (from
+	/trunk/place.c:455), src/places-api.c (from
+	/trunk/places-api.c:455), src/reflection-api.c (from
+	/trunk/reflection-api.c:455), src/size.c (from /trunk/size.c:455),
+	src/tags-api.c (from /trunk/tags-api.c:455), src/tags.c (from
+	/trunk/tags.c:455), src/test-api.c (from /trunk/test-api.c:455),
+	src/test.c (from /trunk/test.c:455), src/ticket.c (from
+	/trunk/ticket.c:455), src/upload-api.c (from
+	/trunk/upload-api.c:455), src/urls-api.c (from
+	/trunk/urls-api.c:455), src/user_upload_status.c (from
+	/trunk/user_upload_status.c:455), src/vsnprintf.c (from
+	/trunk/vsnprintf.c:455), tags-api.c, tags.c, test-api.c, test.c,
+	ticket.c, upload-api.c, urls-api.c, user_upload_status.c, utils,
+	utils/Makefile.am (from /trunk/Makefile.am:455),
+	utils/flickcurl.c (from /trunk/flickcurl.c:455), vsnprintf.c: Move
+	sources to src/ utils to utils/
+
+	* NEWS.html: 1.1 news
+
+	* coverage.html: 1.1
+
+	* coverage.html, flickcurl.c, flickcurl.h, flickcurl_internal.h,
+	photo.c, place.c, places-api.c: (flickcurl_places_find): Added to
+	support flickr.places.find announced 2008-01-18
+
+2008-01-12  Dave Beckett <dave@dajobe.org>
+
+	* README.html: word
+
+	* NEWS.html, configure.ac: Bump version to 1.1
+
+	* Snapshotted flickcurl_1_0 for 1.0 release (SVN 449)
+
+	* README.html: place
+
+	* flickcurl.c, flickcurl.h, photo.c: Add place field to
+	flickcurl_photo so place can be got as a structure rather than
+	just raw fields
+
+	* LICENSE.html, Makefile.am, NEWS.html, activity-api.c,
+	activity.c, args.c, auth-api.c, blog.c, blogs-api.c, category.c,
+	codegen.c, comments.c, common.c, config.c, configure.ac,
+	contacts-api.c, contacts.c, context.c, coverage.html, exif.c,
+	favorites-api.c, flickcurl-config.in, flickcurl.c, flickcurl.h,
+	flickcurl.rdf.in, flickcurl_internal.h, flickrdf.c, group.c,
+	groups-api.c, groups-pools-api.c, interestingness-api.c,
+	location.c, md5.c, method.c, people-api.c, perms.c, person.c,
+	photo.c, photos-api.c, photos-comments-api.c, photos-geo-api.c,
+	photos-licenses-api.c, photos-notes-api.c, photos-transform-api.c,
+	photos-upload-api.c, photoset.c, photosets-api.c,
+	photosets-comments-api.c, place.c, places-api.c, reflection-api.c,
+	size.c, tags-api.c, tags.c, test-api.c, test.c, ticket.c,
+	upload-api.c, urls-api.c, user_upload_status.c, vsnprintf.c: 2008
+	and url tweak
+
+	* README.html: words
+
+	* NEWS.html: places 1.0
+
+	* flickcurl.h, photo.c: photo fields added for place IDs
+
+	* README.html: 100% and update output
+
+	* common.c: No PWD
+
+	* NEWS.html: 1.0
+
+	* NEWS.html, activity-api.c, blogs-api.c, configure.ac,
+	coverage.html, favorites-api.c, photos-api.c, places-api.c,
+	test-api.c: 0.14 is now 1.0 since 100% of the API is supported
+
+	* Makefile.am, activity-api.c, activity.c, common.c,
+	coverage.html, flickcurl.c, flickcurl.h, flickcurl_internal.h:
+	Implement activity API - 100% of API DONE
+
+2008-01-11  Dave Beckett <dave@dajobe.org>
+
+	* category.c: categories comment out debug message
+
+	* Makefile.am, blog.c, blogs-api.c, coverage.html, flickcurl.c,
+	flickcurl.h, flickcurl_internal.h: Added Blogs API
+
+	* configure.ac: 0.14
+
+	* coverage.html, flickcurl.c, flickcurl.h, test-api.c: Completed
+	flickr.test API
+
+	* ChangeLog, Makefile.am, coverage.html, favorites-api.c,
+	flickcurl.c, flickcurl.h: Added Favorites API
+
+	* places-api.c: doc
+
+	* coverage.html: 0.14
+
+	* place.c: (flickcurl_build_place): Free xpathNodeCtx
+
+	* Makefile.am, common.c, flickcurl.c, flickcurl.h,
+	flickcurl_internal.h, photos-api.c, place.c, places-api.c: Added
+	Places API
+
+	* NEWS.html: 0.14
+
+	* codegen.c: 2008
+
+	* coverage.html: Added 2 places APIs
+
+2007-12-21  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_0_13 for 0.13 release (SVN 422)
+
+2007-12-18  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html: 0.13
+
+	* Makefile.am, coverage.html, flickcurl.c, flickcurl.h,
+	interestingness-api.c: Added flickr.interestingness.getList
+
+	* Makefile.am, coverage.html, flickcurl.c, flickcurl.h,
+	photos-transform-api.c: Added photos.transform.rotate
+
+	* coverage.html: Added people.getUploadStatus
+
+	* Makefile.am, coverage.html, flickcurl.c, flickcurl.h,
+	flickcurl_internal.h, people-api.c, user_upload_status.c: Added
+	people.getUploadStatus
+
+	* coverage.html, flickcurl.c, flickcurl.h, people-api.c: Added
+	flickr.people.getPublicGroups
+
+	* Makefile.am, category.c, flickcurl.c, flickcurl.h,
+	flickcurl_internal.h, group.c, groups-api.c: Added flickr.group
+	API
+
+2007-11-03  Dave Beckett <dave@dajobe.org>
+
+	* upload-api.c: docs
+
+	* flickcurl.c: Added command_photos_upload_checkTickets
+
+	* flickcurl_internal.h: Added flickcurl_build_tickets
+
+	* flickcurl.h: Added flickcurl_ticket
+	Added flickcurl_free_ticket, flickcurl_free_tickets and
+	flickcurl_photos_upload_checkTickets
+
+	* photos-upload-api.c, ticket.c: Photos upload api
+
+	* Makefile.am: Added photos-upload-api.c
+
+	* Makefile.am: Added ticket.c
+
+2007-11-02  Dave Beckett <dave@dajobe.org>
+
+	* photos-api.c: flickcurl_photos_getSizes 0.13
+
+	* flickcurl.c: Added command_photos_getSizes
+
+	* photos-api.c: (flickcurl_photos_getSizes): Added.
+
+	* flickcurl_internal.h: Added flickcurl_build_sizes
+
+	* Makefile.am: Added size.c
+
+	* size.c: Added size
+
+	* flickcurl.h: Added flickcurl_size
+	Added flickcurl_free_size and flickcurl_free_sizes
+	Added flickcurl_photos_getSizes
+
+	* flickcurl.c: Added commands: flickr.photosets.addPhoto,
+	flickr.photosets.create, flickr.photosets.delete,
+	flickr.photosets.editMeta, flickr.photosets.editPhotos,
+	flickr.photosets.orderSets and flickr.photosets.removePhoto
+
+	* photosets-api.c: (flickcurl_photosets_editPhotos,
+	flickcurl_photosets_orderSets) Now take an array of photo
+	IDs/photoset IDs
+
+	* flickcurl.h: flickcurl_photosets_editPhotos,
+	flickcurl_photosets_orderSets now take an array of photo
+	IDs/photoset IDs
+
+	* flickcurl.c: command_photos_getCounts added
+
+	* common.c, flickcurl.h, photos-api.c: (flickcurl_array_join,
+	flickcurl_array_split, flickcurl_array_free):
+	Added.  (flickcurl_photos_getCounts): Added
+
+2007-10-31  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl.c: Added command_print_photoset Added command
+	flickr.photosets.getInfo, flickr.photosets.getList and
+	flickr.photosets.getPhotos
+
+2007-10-30  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl.h, flickcurl_internal.h: Added flickcurl_photoset
+
+	* photosets-api.c: Added rest of flickr.photosets APIs - writeable
+	ones untested.
+
+	* Makefile.am: Added photoset.c
+
+	* photoset.c: Flickcurl photoset functions
+
+2007-08-11  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac: Bump version to 0.13
+
+	* Snapshotted flickcurl_0_12 for 0.12 release (SVN 368)
+
+	* coverage.html, flickcurl.c, flickcurl.h, photos-api.c: Added
+	flickr.photos.getNotInSet, flickr.photos.getRecent,
+	flickr.photos.getUntagged, flickr.photos.getWithGeoData,
+	flickr.photos.getWithoutGeoData, flickr.photos.recentlyUpdated
+
+	* coverage.html, flickcurl.c, flickcurl.h, person.c, photos-api.c:
+	Added flickr.photos.getFavorites
+
+	* coverage.html, flickcurl.h, flickcurl_internal.h, person.c:
+	Added flickcurl_build_persons
+
+	* exif.c: -debug
+
+	* Makefile.am, exif.c, flickcurl.c, flickcurl.h,
+	flickcurl_internal.h, photos-api.c: Added flickcurl_photos_getExif
+
+	* coverage.html, flickcurl.c, flickcurl.h, photos-api.c: Added
+	flickcurl_photos_getContactsPublicPhotos
+
+2007-08-10  Dave Beckett <dave@dajobe.org>
+
+	* Makefile.am, coverage.html, flickcurl.c, flickcurl.h,
+	flickcurl_internal.h, group.c, groups-pools-api.c: Added
+	groups.pools APIs
+
+	* coverage.html, flickcurl.c, people-api.c: Added
+	flickcurl_people_getPublicPhotos
+
+	* flickcurl.h: Added flickcurl_people_getPublicPhotos
+
+	* flickcurl.c, flickcurl.h, photos-licenses-api.c: Added
+	photos.licenses.setLicense API
+
+	* Makefile.am, coverage.html, flickcurl.c, flickcurl.h,
+	photos-notes-api.c: Added photos.notes API
+
+	* photos-geo-api.c: (flickcurl_photos_geo_setLocation): Handle
+	optional accuracy
+
+	* flickcurl.c, flickcurl.h, location.c, photos-geo-api.c: Added
+	photos.geo API
+
+	* photos-api.c: (flickcurl_photos_delete): Tidy result returning.
+
+	* Makefile.am: Add location.c photos-geo-api.c
+
+	* flickcurl_internal.h: Add flickcurl_build_location
+
+	* perms.c: (flickcurl_build_perms): Add iscontact.
+
+	* photos-api.c: (flickcurl_photos_setContentType): No need for
+	xpathCtx
+
+2007-08-08  Dave Beckett <dave@dajobe.org>
+
+	* AUTHORS, contacts-api.c, contacts.c: Added Vanila I. Shu
+	copyright to AUTHORS and contacts code
+
+2007-08-06  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl_internal.h: Remove libxslt headers - patch from
+	FreeBSD packaging
+
+2007-08-05  Dave Beckett <dave@dajobe.org>
+
+	* example.c: title, license header
+
+2007-08-04  Dave Beckett <dave@dajobe.org>
+
+	* flickrdf.c: change machinetags.org namespaces
+
+2007-08-03  Dave Beckett <dave@dajobe.org>
+
+	* photo.c: (flickcurl_build_photos): Do not overwrite a field if
+	it's found in the earlier of two XPaths
+
+	* flickrdf.c: Properly ignore xmlns in (machine) tags
+
+	* NEWS.html: 0.12
+
+	* configure.ac: Bumped version to 0.12
+
+2007-08-02  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Bumped version to 0.12
+	
+	* Snapshotted flickcurl_0_11 for 0.11 release (SVN 337)
+	
+	* coverage.html: 50%!!!
+
+2007-08-01  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl.c: (command_print_photo): Added.
+	(command_photos_getInfo): Use above.
+	(command_photos_getContactsPhotos): Added.
+	(command_photos_search): Added with huge list of optional fields.
+
+	* photos-api.c: (flickcurl_photos_getContactsPhotos): Fix field
+	types
+	(flickcurl_photos_search): Fix parameter types and do int/string
+	conversions and checks.
+
+	* flickcurl.h: Fix types of flickcurl_search_params fields
+
+	* photo.c: Recognise photo fields as attributes when they appear
+	in a photos summary result.
+
+2007-07-31  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl.h: Added flickcurl_free_photos prototype.
+
+	* photos-api.c: (flickcurl_photos_getContactsPhotos): Added.
+
+	* photo.c: declare var
+
+	* photo.c: (flickcurl_free_photos): Added.
+
+	* flickcurl_internal.h: Added flickcurl_build_perms
+
+	* flickcurl.c: (command_photos_getPerms) tidied
+
+	* flickcurl.c: command_photos_getPerms for flickr.photos.getPerms
+	added.
+
+	* Makefile.am: Added perms.c
+
+	* flickcurl.h: flickcurl_perms structure added Added
+	flickcurl_photos_getPerms and altered flickcurl_photos_setPerms to
+	use flickcurl_perms
+	Added flickcurl_free_perms
+
+	* photos-api.c: (flickcurl_photos_getPerms): Added, returning
+	flickcurl_perms
+	(flickcurl_photos_setPerms): Changed to use flickcurl_perms
+
+	* perms.c: flickcurl_perms functions
+
+2007-07-29  Dave Beckett <dave@dajobe.org>
+
+	* Makefile.am, contacts-api.c, contacts.c, flickcurl.h,
+	flickcurl_internal.h: Added contacts APIs
+
+	* upload-api.c: (flickcurl_photos_upload_params): Added as
+	prefered upload API call, deprecating flickcurl_photos_upload
+	(flickcurl_free_upload_status): Added, replacing deprecated
+	flickcurl_upload_status_free.
+
+	* flickcurl.c: (command_upload): switch to new API
+	flickcurl_photos_upload_params
+	(command_photos_setContentType, command_photos_setDates,
+	command_photos_setMeta, command_photos_setPerms,
+	command_photos_setSafetyLevel): Added along with commands for the
+	photos API calls.
+
+	* photos-api.c: (flickcurl_photos_search,
+	flickcurl_photos_setContentType, flickcurl_photos_setDates,
+	flickcurl_photos_setMeta, flickcurl_photos_setPerms,
+	flickcurl_photos_setSafetyLevel): Added.
+
+	* flickcurl_internal.h: Added flickcurl_unixtime_to_sqltimestamp
+	and flickcurl_build_photos prototypes
+
+	* flickcurl.h: Added FLICKCURL_DEPRECATED macro. Added
+	flickcurl_upload_params structure for uploading and
+	flickcurl_search_params for searching. Deprecated
+	flickcurl_photos_upload for flickcurl_photos_upload_params and
+	flickcurl_upload_status_free for flickcurl_free_upload_status
+
+	* photo.c: photo_fields_table: XPaths are now relative
+	(flickcurl_build_photos): Added return a list of photos
+	(flickcurl_build_photo): Altered to wrap flickcurl_build_photos
+	and return 1 photo.
+
+	* common.c: (flickcurl_unixtime_to_sqltimestamp): Added.
+
+2007-05-06  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl.c: Title and usage with no args
+
+2007-04-22  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh: Update autogen.sh
+
+2007-04-19  Dave Beckett <dave@dajobe.org>
+
+	* flickrdf.c: Declare namespaces from tags if seen too.
+
+	* flickrdf.c: debug messages are gone one place to add namespaces
+
+	* flickrdf.c: license name if no url
+
+	* flickrdf.c: handle license with no url
+
+	* flickrdf.c: namespace fun
+
+	* flickrdf.c: Add type override for geo:lat, geo:long - keep the
+	values as string in RDF.
+
+	* configure.ac: Bumped version to 0.11
+	
+2007-04-16  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_0_10 for 0.10 release (SVN 295)
+	
+	* photo.c: region is not a float
+
+	* photo.c: field twice
+
+	* photo.c: debug msg
+
+	* photo.c: free photo tags
+
+	* common.c: +1
+
+	* upload-api.c: errno
+
+	* flickcurl.c: (command_upload): Change command parsing.  Works.
+
+	* flickcurl.c: (print_upload_status): Added.
+	(command_upload): Added for uploading a photo file with option
+	handling that does not seem to work.
+	(command_replace): Added for uploading a replacement photo file.
+
+	* common.c: (flickcurl_prepare_common): Properly add api_sig as a
+	new parameter.  Fix debugging output with no method parameter to
+	go to upload.xml
+
+	* upload-api.c: (flickcurl_photos_upload): Return if file is not
+	readable.  Handle optional parameters.
+	(flickcurl_photos_replace): Return if file is not readable.
+
+	* Makefile.am: Added upload-api.c
+
+	* upload-api.c: Flickr photo upload API calls
+
+	* flickcurl.h: Added flickcurl_upload_status struct Added
+	flickcurl_photos_upload, flickcurl_photos_replace and
+	flickcurl_upload_status_free
+
+	* common.c: (flickcurl_prepare_common): Handle optional method.
+	(flickcurl_prepare): Check for required method here.
+	(flickcurl_prepare_upload): No need for flickcurl_set_write
+
+	* flickcurl_internal.h: flickcurl_prepare_upload has no method.
+
+	* common.c: Save away fields: param_fields, param_values,
+	parameter_count, upload_field, upload_value saved from prepare to
+	invoke.
+	(flickcurl_free): Free new fields
+	(flickcurl_prepare_common): Handle params in body not urls by
+	saving them away and not appending them here.  Take in destination
+	URL base as a parameter.  Add upload params, saved away for
+	invoke.
+	(flickcurl_prepare): Now a wrapper around flickcurl_prepare_common
+	with no upload params.
+	(flickcurl_prepare_upload): Added, calling
+	flickcurl_prepare_common with most params set.
+	(flickcurl_invoke): Look for upload field and if present, put
+	params in form-data body using curl_formadd and curl_easy_setopt
+	CURLOPT_HTTPPOST.
+
+	* flickcurl_internal.h: Added flickcurl_prepare_upload struct
+	flickcurl_s gains fields: param_fields, param_values,
+	parameter_count, upload_field, upload_value saved from prepare.
+
+	* flickcurl.h: Added flickcurl_photosets_comments_addComment,
+	flickcurl_photosets_comments_deleteComment,
+	flickcurl_photosets_comments_editComment and
+	flickcurl_photosets_comments_getList
+
+	* flickcurl.c: Added photosets.comments calls
+
+	* Makefile.am: photosets-comments-api.c
+
+	* photosets-comments-api.c: Flickr flickr.photosets.comments.* API
+	calls
+
+	* codegen.c: better codegen. no -a/auth. delay init. usage
+
+	* Makefile.am: codegen is extra
+
+	* common.c: (flickcurl_prepare): Fix URI escaping with curl_escape
+	to allow sending values with spaces.
+
+	* photos-comments-api.c: Use flickcurl_set_data for POST with no
+	content
+
+	* codegen.c: write sets default data to empty
+
+2007-04-15  Dave Beckett <dave@dajobe.org>
+
+	* comments.c: now with less core dumps
+
+	* comments.c: (flickcurl_free_comments): Added.
+
+	* flickcurl.h: Added flickcurl_free_comments
+
+	* flickcurl.c: Added photos.comments calls
+
+	* comments.c: Flickr comments
+
+	* photos-comments-api.c: Flickr flickr.photos.comments.* API calls
+
+	* Makefile.am: Added codegen, photos comments API in comments.c
+	and photos-comments-api.c
+
+	* flickcurl_internal.h: Added flickcurl_build_comments
+
+	* flickcurl.h: Added flickcurl_comment structure.  Added
+	flickcurl_free_comment, flickcurl_photos_comments_addComment,
+	flickcurl_photos_comments_deleteComment,
+	flickcurl_photos_comments_editComment,
+	flickcurl_photos_comments_getList functions.
+
+	* codegen.c: code generator
+
+	* flickcurl.c: (command_reflection_getMethodInfo): prints
+
+	* flickcurl.c: (command_reflection_getMethods): Added for
+	flickr.reflection.getMethods
+
+	* reflection-api.c: Flickr flickr.reflection.* API calls
+
+	* flickcurl.c: (command_reflection_getMethodInfo): Added for
+	flickr.reflection.getMethodInfo
+
+	* Makefile.am: Added args.c method. reflection-api.c
+
+	* flickcurl.h: Added flickcurl_arg, flickcurl_method structures
+	Other docs Added: flickcurl_free_method(flickcurl_method *method)
+	Added API calls: flickcurl_reflection_getMethods
+	flickcurl_reflection_getMethodInfo
+
+	* method.c: Flickcurl method functions
+
+	* flickcurl_internal.h: Add args.c method.c prototypes for
+	reflection API support: flickcurl_free_arg, flickcurl_build_args,
+	flickcurl_build_method.
+
+	* flickcurl.c: fix error returns
+
+	* photo.c: Added location fields neighborhood, locality, region
+	and country to photo_fields_table.
+
+	* flickcurl.h: Added PHOTO_FIELD_location_neighborhood,
+	PHOTO_FIELD_location_locality, PHOTO_FIELD_location_region,
+	PHOTO_FIELD_location_country after announcement
+	http://geobloggers.com/archives/2007/04/12/flickr-two-new-subtle-geo-updates/
+	which doesn't seem to actually be live right now.
+
+2007-04-14  Dave Beckett <dave@dajobe.org>
+
+	* Makefile.am, flickrdf.c: triplr becomes flickrdf
+
+2007-02-25  Dave Beckett <dave@dajobe.org>
+
+	* common.c, person.c: Move flickcurl_free_person from common.c to
+	person.c
+
+	* configure.ac: Bumped version to 0.10
+	
+	* Snapshotted flickcurl_0_9 for 0.9 release (SVN 221)
+
+	* tags.c: (flickcurl_build_tags): Handle @score from tags.getHotList
+
+	* tags-api.c: (flickcurl_tags_getHotList): Added.
+
+	* photos-api.c: (flickcurl_photos_addTags,
+	flickcurl_photos_delete, flickcurl_photos_removeTag,
+	flickcurl_photos_setTags): Added
+
+	* flickcurl.c: Added commands for flickcurl_photos_addTags,
+	flickcurl_photos_delete, flickcurl_photos_removeTag,
+	flickcurl_photos_setTags and flickcurl_tags_getHotList
+
+	* flickcurl.h: Added API calls flickcurl_photos_addTags,
+	flickcurl_photos_delete, flickcurl_photos_removeTag,
+	flickcurl_photos_setTags and flickcurl_tags_getHotList
+
+	* common.c: (flickcurl_invoke): Remove extra curl_set_easyopt
+
+2007-02-24  Dave Beckett <dave@dajobe.org>
+
+	* flickcurl_internal.h: flickcurl_call_get_one_string_field const
+	xpathExpr
+
+	* common.c: (flickcurl_call_get_one_string_field): const xpathExpr
+
+	* flickcurl.c: Added commands for flickcurl_urls_getGroup,
+	flickcurl_urls_getUserPhotos, flickcurl_urls_getUserProfile,
+	flickcurl_urls_lookupGroup and flickcurl_urls_lookupUser
+
+	* urls-api.c: (flickcurl_urls_getGroup,
+	flickcurl_urls_getUserPhotos, flickcurl_urls_getUserProfile,
+	flickcurl_urls_lookupGroup and flickcurl_urls_lookupUser): Added.
+
+	* flickcurl.h: Added flickcurl_urls_getGroup,
+	flickcurl_urls_getUserPhotos, flickcurl_urls_getUserProfile,
+	flickcurl_urls_lookupGroup and flickcurl_urls_lookupUser
+
+	* flickcurl_internal.h: Add flickcurl_call_get_one_string_field
+
+	* people-api.c: Use flickcurl_call_get_one_string_field to replace
+	flickcurl_get_nsid
+
+	* common.c: (flickcurl_call_get_one_string_field): Added based on
+	flickcurl_get_nsid, removed from people-api.c
+
+	* auth-api.c, groups-pools-api.c, people-api.c, photos-api.c,
+	photos-licenses-api.c, photosets-api.c, tags-api.c, test-api.c,
+	test.c, urls-api.c: Adjust parameters arrays to allow for up to 5
+	added params
+
+	* flickcurl.c: (main): Check max and min args.
+
+	* configure.ac: Define FLICKCURL_VERSION_DECIMAL and substitute it
+
+	* flickcurl.c: warning when command failed
+
+	* config.c: (read_ini_config): Check for full length of app string
+	match, not just prefix.
+
+	* flickcurl_internal.h, photo.c,
+	photos-api.c: (flickcurl_build_photo): Created from
+	flickcurl_photos_getInfo() content which now uses it
+
+	* Makefile.am, api.c, common.c, flickcurl_internal.h,
+	photo.c (from common.c r185), tags.c: Copied photo routines from
+	common.c to new photo.c and moved remaining api junk from api.c to
+	common.c. Deleted api.c
+
+	* Makefile.am, common.c, context.c, tags.c (from common.c r184):
+	Pulled tags code out of api.c common.c into new tags.c including
+	tags destructor and flickcurl_build_tags()
+
+	* Makefile.am, api.c, common.c, context.c (from common.c r181),
+	flickcurl_internal.h: Pulled contexts code out of api.c common.c
+	into new context.c including flickcurl_build_contexts()
+
+	* flickcurl.c: Added command_tags_getRelated for
+	flickr.tags.getRelated
+
+	* tags-api.c: (flickcurl_tags_getListUserRaw): Let
+	flickcurl_build_tags tidy up the raw/cooked field detail.
+
+	* common.c: (flickcurl_build_tags): Handle 
+	<tag clean="cooked"><raw>raw</raw></tag> for
+	flickr.tags.getListUserRaw and put @clean into the tags->cooked
+	field and <raw> content into tags->raw field.
+
+	* configure.ac: AM_CONFIG_HEADER
+
+	* api.c, flickcurl.c, flickcurl.h, photos-api.c, triplr.c: Major
+	tidy of flickcurl.h with reordering and more comments.  Pulled out
+	photos and contexts fields into new structures named
+	flickcurl_THING_type, renaming enums to flickcurl_THING_field_type
+
+	* Makefile.am, flickcurl_internal.h, people-api.c, person.c (from
+	api.c r176): Added person.c from api.c and pulled out
+	flickcurl_build_person from people-api.c
+
+	* api.c, auth-api.c, groups-pools-api.c, people-api.c,
+	photos-api.c, photos-licenses-api.c, photosets-api.c, tags-api.c,
+	test-api.c, urls-api.c: Header comments
+
+	* photosets-api.c: add stubs
+
+	* Makefile.am, api.c, test-api.c (from api.c r173): Added
+	test-api.c from api.c
+
+	* Makefile.am, api.c, coverage.html, photosets-api.c (from api.c
+	r172): Added photosets-api.c from api.c
+
+	* Makefile.am, api.c, groups-pools-api.c (from api.c r171): Added
+	groups-pools-api.c from api.c
+
+	* api.c, flickcurl.h, people-api.c: Added
+	PERSON_FIELD_photos_views in photos
+
+	* api.c, auth-api.c, coverage.html, flickcurl.h, people-api.c,
+	photos-api.c, photos-licenses-api.c, test.c, urls-api.c: Remove
+	use of setting token field into flickcurl_prepare and remove uses
+	of flickcurl_set_sig_key
+
+	* common.c: (flickcurl_free): No sig_key field
+	(flickcurl_set_sig_key): Removed
+	(flickcurl_set_sign): Added.
+	(flickcurl_prepare): Set auth_token field here and sign either if
+	it present or otherwise told to sign, if fc->sign is set.
+	(flickcurl_invoke): Reset fc->sign.
+
+	* flickcurl_internal.h: flickcurl* replaced sig_key field with
+	sign flag.
+
+	* tags-api.c: (flickcurl_tags_getRelated): Added.
+
+	* flickcurl.c: (command_print_tags): Added Added commands for
+	flickcurl_tags_getListPhoto, flickcurl_tags_getListUser,
+	flickcurl_tags_getListUserPopular and
+	flickcurl_tags_getListUserRaw.
+
+	* tags-api.c: (flickcurl_tags_getListPhoto,
+	flickcurl_tags_getListUser, flickcurl_tags_getListUserPopular and
+	flickcurl_tags_getListUserRaw): Added.
+
+	* flickcurl.h: Added flickcurl_tags_getListPhoto,
+	flickcurl_tags_getListUser, flickcurl_tags_getListUserPopular and
+	flickcurl_tags_getListUserRaw
+
+2007-02-23  Dave Beckett <dave@dajobe.org>
+
+	* example.c: add tag count
+
+	* common.c: (flickcurl_build_tags): Add count
+
+	* flickcurl.h: struct flickcurl_tag gains count
+
+	* flickcurl.h: Added flickcurl_tags_getListInfo
+
+	* flickcurl.c: Added command_tags_getListInfo for tags.getListPhoto
+
+	* photos-api.c: (flickcurl_photos_getInfo): Free xpathCtx here
+
+	* common.c: (flickcurl_build_tags): Do not free xpathCtx here
+
+	* Makefile.am: Added tags-api.c
+
+	* tags-api.c: flickr.tags.*
+
+	* flickcurl.c: (command_photos_getInfo): Handle NULL authorname
+
+	* flickcurl.c: (command_photos_getInfo): Print authorname
+
+	* common.c: (flickcurl_free_tag): Free authorname
+	(flickcurl_build_tags): Add authorname
+
+	* example.c: add authorname
+
+	* flickcurl.h: struct flickcurl_tag gains authorname
+
+	* photos-api.c: (flickcurl_photos_getInfo): Moved tags parsing to
+	new flickcurl_build_tags()
+
+	* flickcurl.h: struct flickcurl_photo replace flickcurl_tag*
+	tags[20] with flickcurl_tag**
+
+	* common.c: (flickcurl_build_tags): Added, pulled out of
+	flickcurl_photos_getInfo().
+
+	* flickcurl_internal.h: Added flickcurl_build_tags
+
+	* Makefile.am: remove example
+
+	* coverage.html: Link to photo upload API
+
+	* common.c: (flickcurl_free): Only free XML data.
+
+	* test.c: errno
+
+	* common.c: (flickcurl_invoke): Error if capture write fails.
+	Tidy URI debug message
+
+	* test.c: low-level api test
+
+	* Makefile.am: example and test are extra
+
+	* example.c: tidy
+
+	* flickcurl.c: Added new commands and helper functions for
+	flickcurl_auth_checkToken, flickcurl_auth_getFrob,
+	flickcurl_auth_getToken and flickcurl_auth_getFullToken Moved
+	initializing earlier so that '-a' can work again.
+
+2007-02-22  Dave Beckett <dave@dajobe.org>
+
+	* common.c: (flickcurl_free): Tidy data, data_length and
+	data_is_xml fields.
+	(flickcurl_prepare): Init to read-only, no content data.
+	(flickcurl_invoke): Add Content-Type: application/xml header when
+	sending data.  Use POST when write flag is set.  Handle non XML
+	responses failing gracefully
+	(flickcurl_set_write, flickcurl_set_data, flickcurl_set_xml_data):
+	Added.
+
+	* flickcurl_internal.h: Added is_write, data, data_length and
+	data_is_xml fields to flickcurl*
+
+	* auth-api.c: (flickcurl_auth_checkToken, flickcurl_auth_getFrob
+	and flickcurl_auth_getToken): Added, completing the flickr.auth.*
+	API calls.
+
+	* flickcurl.h: Added flickcurl_set_write, flickcurl_set_data,
+	flickcurl_set_xml_data Added auth API calls:
+	flickcurl_auth_checkToken, flickcurl_auth_getFrob and
+	flickcurl_auth_getToken
+
+	* coverage.html: 0.9
+
+2007-02-20  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_0_8 for 0.8 release (SVN 122)
+
+	* example.c: Add init, finish
+
+	* coverage.html: Now with changes
+
+	* NEWS: NEWS now generated
+
+	* common.c: (flickcurl_new): 1000ms default delay
+
+2007-02-19  Dave Beckett <dave@dajobe.org>
+
+	* triplr.c: (emit_triple): Casts for raptor_free_uri
+
+	* flickcurl.c, triplr.c: Use flickcurl_init/flickcurl_finish to
+	ensure all of curl/libxml is initialised and cleaned up as far as
+	is possible
+
+	* flickcurl.h: Added flickcurl_init
+
+	* common.c: (flickcurl_init): Added.
+
+	* flickcurl.c: (main): Call flickcurl_finish
+
+	* flickcurl.h: Added flickcurl_finish prototype.
+
+	* common.c: (flickcurl_finish): Added.
+
+	* photos-api.c: (flickcurl_photos_getInfo): return NULL on error
+
+	* flickcurl.c: (main): Init fc and ensure it is freed on help/usage.
+
+	* photos-licenses-api.c: free attribute strings that are atoi()ed
+
+	* photos-api.c: free attribute strings that are atoi()ed
+
+	* common.c: free attribute strings that are atoi()ed
+
+	* triplr.c: (emit_triple): Free uris properly.
+	(main): Init fc and ensure it is freed on help/usage.
+
+	* triplr.c: help to stdout
+
+	* Makefile.am, api.c, photos-licenses-api.c (renamed from
+	api.c r95): Pull photos.licenses API out of api.c into
+	photos-licenses-api.c
+
+	* api.c, auth-api.c, people-api.c, photos-api.c, urls-api.c: autodocs
+
+	* Makefile.am, api.c, photos-api.c (renamed from api.c r90): Pull
+	photos API out of api.c into photos-api.c
+
+	* common.c: common.c
+
+	* Makefile.am, common.c (renamed from core.c r90), core.c: Rename
+	core.c to common.c - files named core* are a bad idea
+
+	* flickcurl.c: Rename commands to match API names
+	Allow old foo-bar commands to work
+	Allow flickr.COMMAND to work
+
+2007-02-18  Dave Beckett <dave@dajobe.org>
+
+	* triplr.c: Extend help when raptor is present
+
+	* people-api.c: (flickcurl_get_nsid): Added with common code from
+	flickcurl_people_findByEmail, flickcurl_people_findByUsername.
+	(flickcurl_people_findByEmail, flickcurl_people_findByUsername):
+	Updated to use flickcurl_get_nsid.
+
+	* flickcurl.c: Added commands to call flickcurl_people_findByEmail
+	and flickcurl_people_findByUsername
+
+	* people-api.c: (flickcurl_people_findByEmail,
+	flickcurl_people_findByUsername): Added.
+
+	* flickcurl.h: Added
+	char* flickcurl_people_findByEmail(flickcurl* fc, const char* email);
+	char* flickcurl_people_findByUsername(flickcurl* fc, const char* username);
+
+	* core.c, flickcurl_internal.h: Fix offline/capture defines
+
+	* core.c: use errno.h
+
+	* configure.ac, core.c, flickcurl_internal.h: Added
+	--enable-offline and --enable-capture to configure rather than
+	editing a header file
+
+	* api.c, auth-api.c, core.c, flickcurl_internal.h, people-api.c,
+	urls-api.c: More comprehensive offline and XML capture
+
+	* Makefile.am, api.c, urls-api.c (from /trunk/api.c:67): Copy urls
+	apis from api.c urls-api.c
+
+	* people-api.c: Move person_fields_table from api.c
+
+	* Makefile.am, api.c, people-api.c (from /trunk/api.c:62): Move
+	people calls from api.c to people-api.c
+
+	* auth-api.c: remove offline define
+
+	* Makefile.am, flickcurl.c (from /trunk/main.c:57), main.c: Rename
+	main.c to flickcurl.c
+
+	* Makefile.am, core.c (from /trunk/flickcurl.c:61), flickcurl.c:
+	Rename flickcurl.c to core.c
+
+	* Makefile.am, api.c, auth-api.c (from /trunk/api.c:51),
+	flickcurl_internal.h: Move auth calls from api.c to auth-api.c
+
+	* flickcurl.c: (flickcurl_new): Default to 100ms min delay between
+	requests.
+
+	* configure.ac: Remove  -Wmissing-format-attribute
+	Which is too annoying to fix right now.
+
+	* flickcurl.c: ifdef not if
+
+	* flickcurl.c: (flickcurl_invoke): Wrap debug messages with ifdefs
+
+	* main.c: Added -d/--delay DELAY to set request delay
+
+	* triplr.c: Debug is now -D/--delay
+	-d/--delay DELAY to set request delay
+
+	* flickcurl.c: (flickcurl_set_request_delay): Added to set the
+	inter-request minimum delay.
+	(flickcurl_invoke): Use gettimeofday and nanosleep to enforce the
+	minimum delay between requests.
+
+	* flickcurl.h: Added flickcurl_set_request_delay
+
+	* flickcurl_internal.h: flickcurl gains last_request_time and
+	request_delay fields
+
+	* flickcurl.c: Fix home page url
+
+	* configure.ac: Bumped version to 0.8
+
+	* Snapshotted flickcurl_0_7 for 0.7 release (SVN 48)
+
+2007-02-17  Dave Beckett <dave@dajobe.org>
+
+	* main.c: (command_contexts_print): Added helper
+	(command_groups_pools_getContext): Added, calling
+	flickcurl_groups_pools_getContext.
+	(command_photos_getAllContexts): Added, calling
+	flickcurl_photos_getAllContexts.
+	(command_photos_getContext): Added, calling
+	flickcurl_photos_getContext.
+	(command_photosets_getContext): Added, calling
+	flickcurl_photosets_getContext
+
+	* api.c: (flickcurl_get_context_type_field_label): Added helper
+	(flickcurl_groups_pools_getContext,
+	flickcurl_photos_getAllContexts, flickcurl_photos_getContext,
+	flickcurl_photosets_getContext): Added API calls.
+
+	* flickcurl.c: (flickcurl_free_context, flickcurl_free_contexts,
+	flickcurl_build_contexts): Added
+
+	* flickcurl.h: Added flickcurl_context_type enum,
+	flickcurl_context typedef Added
+	flickcurl_get_context_type_field_label,
+	flickcurl_groups_pools_getContext,
+	flickcurl_photos_getAllContexts, flickcurl_photos_getContext,
+	flickcurl_photosets_getContext, API calls.  Added
+	flickcurl_free_context and flickcurl_free_contexts
+
+	* flickcurl_internal.h: Added flickcurl_context_type_element,
+	flickcurl_build_contexts
+
+2007-02-11  Dave Beckett <dave@dajobe.org>
+
+	* README.html: dc:rights example
+
+	* NEWS, README.html, configure.ac: Bumped to 0.7
+
+	* coverage.html: annoate version it appeared
+
+	* Makefile.am, README.html, coverage.html: Added coverage doc
+
+	* configure.ac: AC_INIT tweak
+
+2007-02-11  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted flickcurl_0_6 for 0.6 release (SVN 31)
+
+	* Makefile.am, README.html, coverage.html: Added coverage doc
+
+	* configure.ac: AC_INIT tweak
+
+2007-02-05  Dave Beckett <dave@dajobe.org>
+
+	* README.html: Added flickcurl_urls_lookupUser
+
+	* main.c; Added command_urls_lookupUser and urls-lookupUser command
+
+	* flickcurl.h: Added flickcurl_urls_lookupUser
+
+	* api.c: (flickcurl_urls_lookupUser): Added
+
+2007-02-04  Dave Beckett <dave@dajobe.org>
+	* api.c: online
+
+	* triplr.c: When a photo license field is found, look up the license
+	URI with flickcurl_photos_licenses_getInfo_by_id()
+
+	* main.c: Added command_people_getInfo,
+	command_photos_licenses_getInfo and corresponding as
+	people-getInfo and photos-licenses-getInfo
+
+	* flickcurl.c (flickcurl_free): Tidy licenses found.
+	(flickcurl_free_person): Added.
+
+	* api.c: (flickcurl_photos_getInfo): auth_token is optional.
+	(flickcurl_get_person_field_label, flickcurl_people_getInfo,
+	flickcurl_photos_licenses_getInfo,
+	flickcurl_photos_licenses_getInfo_by_id, flickcurl_free_person):
+	Added
+	(compare_licenses, flickcurl_read_licenses): Added to implement
+	flickcurl_photos_licenses_getInfo() and
+	flickcurl_photos_licenses_getInfo_by_id().
+
+	* flickcurl.h: Added VALUE_TYPE_PERSON_ID
+	Added flickcurl_license, flickcurl_person_field, flickcurl_person
+	Added:
+	const char* flickcurl_get_person_field_label(flickcurl_person_field field);
+	flickcurl_person* flickcurl_people_getInfo(flickcurl* fc, const char* user_id);
+	flickcurl_license** flickcurl_photos_licenses_getInfo(flickcurl *fc);
+	flickcurl_license* flickcurl_photos_licenses_getInfo_by_id(flickcurl *fc, int id);
+	void flickcurl_free_person(flickcurl_person *person);
+
+	* flickcurl_internal.h: Added licenses to struct flickcurl_s
+
+	* configure.ac: 0.6
+
+	* Imported flickcurl 0.1 - 0.5 from tarballs

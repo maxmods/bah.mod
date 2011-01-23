@@ -1,0 +1,194 @@
+<!-- ##### SECTION Title ##### -->
+Miscellaneous
+
+<!-- ##### SECTION Short_Description ##### -->
+Miscellaneous functions.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+Miscellaneous functions.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### STRUCT flickcurl_location ##### -->
+<para>
+
+</para>
+
+@latitude: 
+@longitude: 
+@accuracy: 
+
+<!-- ##### STRUCT flickcurl_perms ##### -->
+<para>
+
+</para>
+
+@is_public: 
+@is_contact: 
+@is_friend: 
+@is_family: 
+@perm_comment: 
+@perm_addmeta: 
+
+<!-- ##### STRUCT flickcurl_size ##### -->
+<para>
+
+</para>
+
+@label: 
+@width: 
+@height: 
+@source: 
+@url: 
+@media: 
+
+<!-- ##### FUNCTION flickcurl_free_size ##### -->
+<para>
+
+</para>
+
+@size: 
+
+
+<!-- ##### FUNCTION flickcurl_free_sizes ##### -->
+<para>
+
+</para>
+
+@sizes_object: 
+
+
+<!-- ##### FUNCTION flickcurl_free_location ##### -->
+<para>
+
+</para>
+
+@location: 
+
+
+<!-- ##### FUNCTION flickcurl_free_perms ##### -->
+<para>
+
+</para>
+
+@perms: 
+
+
+<!-- ##### FUNCTION flickcurl_get_field_value_type_label ##### -->
+<para>
+
+</para>
+
+@datatype: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_get_location_accuracy_label ##### -->
+<para>
+
+</para>
+
+@accuracy: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_get_shared_secret ##### -->
+<para>
+
+</para>
+
+@fc: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_interestingness_getList ##### -->
+<para>
+
+</para>
+
+@fc: 
+@date: 
+@extras: 
+@per_page: 
+@page: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_interestingness_getList_params ##### -->
+<para>
+
+</para>
+
+@fc: 
+@date: 
+@list_params: 
+@Returns: 
+
+
+<!-- ##### STRUCT flickcurl_license ##### -->
+<para>
+
+</para>
+
+@id: 
+@url: 
+@name: 
+
+<!-- ##### FUNCTION flickcurl_get_content_type_label ##### -->
+<para>
+
+</para>
+
+@content_type: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_get_content_type_from_string ##### -->
+<para>
+
+</para>
+
+@content_type_string: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_get_safety_level_label ##### -->
+<para>
+
+</para>
+
+@safety_level: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_get_safety_level_from_string ##### -->
+<para>
+
+</para>
+
+@safety_level_string: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_user_icon_uri ##### -->
+<para>
+
+</para>
+
+@farm: 
+@server: 
+@nsid: 
+@Returns: 
+
+

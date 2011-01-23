@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Flickcurl Flickr API Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="next" href="introduction.html" title="Flickcurl Overview">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="book" title="Flickcurl Flickr API Manual">
+<div class="titlepage">
+<div>
+<div><table class="navigation" id="top" width="100%" cellpadding="2" cellspacing="0"><tr><th valign="middle"><p class="title">Flickcurl Flickr API Manual</p></th></tr></table></div>
+<div><div class="author">
+<h3 class="author">
+<span class="firstname">Dave</span> <span class="surname">Beckett</span>
+</h3>
+<div class="affiliation"><div class="address"><p><br>
+	  <span class="otheraddr"><a class="ulink" href="http://www.dajobe.org/" target="_top">http://www.dajobe.org/</a></span><br>
+	</p></div></div>
+</div></div>
+<div><p class="releaseinfo">Manual for <a class="ulink" href="http://librdf.org/flickcurl/" target="_top">Flickcurl</a> 1.20
+</p></div>
+<div><p class="copyright">Copyright © 2007, 2008, 2009, 2010 Dave Beckett</p></div>
+<div><div class="legalnotice" title="Legal Notice">
+<a name="id2948262"></a><p>
+      This documentation is Free Software / Open Source - you can
+      redistribute it and/or modify it under the same licenses as
+      <a class="ulink" href="http://librdf.org/flickcurl/" target="_top">Flickcurl</a>.
+      It is licensed under the following three licenses as alternatives:
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><p>GNU Lesser General Public License (LGPL) V2.1 or any newer version</p></li>
+<li class="listitem"><p>GNU General Public License (GPL) V2 or any newer version</p></li>
+<li class="listitem"><p>Apache License, V2.0 or any newer version</p></li>
+</ol></div>
+<p>
+      You may not use this documentation except in compliance with at
+      least one of the above three licenses. See the
+      <a class="ulink" href="http://librdf.org/flickcurl/" target="_top">Flickcurl</a>
+      site for the full license terms.
+    </p>
+</div></div>
+</div>
+<hr>
+</div>
+<div class="toc"><dl>
+<dt><span class="chapter"><a href="introduction.html">Flickcurl Overview</a></span></dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-core.html">Core</a></span><span class="refpurpose"> — Core library functions</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-general.html">General</a></span><span class="refpurpose"> — General functions.</span>
+</dt>
+<dt><span class="chapter"><a href="flickcurl-auth.html">Authenticating Flickcurl</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="flickcurl-auth.html#flickcurl-auth-intro">Build Flickcurl library and flickcurl utility</a></span></dt>
+<dt><span class="section"><a href="flickcurl-auth-register.html">Register application to get API Key and Shared Secret</a></span></dt>
+<dt><span class="section"><a href="flickcurl-auth-authenticate.html">Getting Authentication Token from API Key and Secret</a></span></dt>
+<dt><span class="section"><a href="flickcurl-auth-use.html">Use flickcurl</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="flickcurl-searching.html">Searching for Photos with Flickcurl</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="flickcurl-searching.html#flickcurl-searching-intro">Introduction</a></span></dt>
+<dt><span class="section"><a href="flickcurl-searching-search-parameters.html">Search parameters</a></span></dt>
+<dt><span class="section"><a href="flickcurl-searching-search-paging.html">Result paging parameters</a></span></dt>
+<dt><span class="section"><a href="flickcurl-searching-search-extras.html">Extra result fields</a></span></dt>
+<dt><span class="section"><a href="flickcurl-searching-search-result-formats.html">Search result format</a></span></dt>
+<dt><span class="section"><a href="flickcurl-searching-search-run.html">Run the search for photos</a></span></dt>
+<dt><span class="section"><a href="flickcurl-searching-search-results.html">Handling a photos search result</a></span></dt>
+<dt><span class="section"><a href="flickcurl-searching-search-example.html">Photos search example</a></span></dt>
+</dl></dd>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-activity.html">Activity</a></span><span class="refpurpose"> — Activity on notes and comments</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-auth.html">Authentication</a></span><span class="refpurpose"> — Authentication of web service requests</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-blogs.html">Blogs</a></span><span class="refpurpose"> — Posting photos to blogs</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-category.html">Categories</a></span><span class="refpurpose"> — Categories of groups</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-comment.html">Comments</a></span><span class="refpurpose"> — Photo comments</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-commons.html">Flickr Commons</a></span><span class="refpurpose"> — Flickr Commons and institutions</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-collections.html">Collections</a></span><span class="refpurpose"> — Collections of photos or sets.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-contact.html">Contacts</a></span><span class="refpurpose"> — A contact of a user.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-context.html">Contexts</a></span><span class="refpurpose"> — Photo contexts</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-exif.html">EXIF</a></span><span class="refpurpose"> — EXIF photo metadata.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-favorite.html">Favorites</a></span><span class="refpurpose"> — Favorite photos.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-gallery.html">Galleries</a></span><span class="refpurpose"> — Galleries of photos.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-group.html">Groups</a></span><span class="refpurpose"> — Groups of users.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-machinetags.html">Machine tag</a></span><span class="refpurpose"> — Machine tags.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-misc.html">Miscellaneous</a></span><span class="refpurpose"> — Miscellaneous functions.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-note.html">Notes.</a></span><span class="refpurpose"> — Photo notes.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-panda.html">Panda photos</a></span><span class="refpurpose"> — Photos selected by Pandas.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-people.html">People</a></span><span class="refpurpose"> — Photos taken by people APIs.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-person.html">Person class.</a></span><span class="refpurpose"> — Person class.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-photo.html">Photo</a></span><span class="refpurpose"> — Photo.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-photos-people.html">Photos containing people.</a></span><span class="refpurpose"> — Photos containing people.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-photoslist.html">Photos List</a></span><span class="refpurpose"> — Photos List.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-photoset.html">Photoset</a></span><span class="refpurpose"> — Set of Photos.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-place.html">Place</a></span><span class="refpurpose"> — Places in the real world.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-prefs.html">Preferences</a></span><span class="refpurpose"> — User preferences</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-reflection.html">Reflection</a></span><span class="refpurpose"> — Flickr introspection API.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-serializer.html">Serializer</a></span><span class="refpurpose"> — Serialize a photo to RDF Triples.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-stats.html">Statistics.</a></span><span class="refpurpose"> — Statistics.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-tag.html">Tags</a></span><span class="refpurpose"> — Photo tagging.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-test.html">Test</a></span><span class="refpurpose"> — Test functions.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-upload.html">Uploading</a></span><span class="refpurpose"> — Uploading APIs and Asynchronous upload tickets.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-urls.html">URLs</a></span><span class="refpurpose"> — Support functions to get URLs.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="flickcurl-section-video.html">Video</a></span><span class="refpurpose"> — Video.</span>
+</dt>
+<dt><span class="index"><a href="indexes.html">Index</a></span></dt>
+</dl></div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

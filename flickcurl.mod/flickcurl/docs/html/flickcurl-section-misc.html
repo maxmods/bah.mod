@@ -1,0 +1,641 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Miscellaneous</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-machinetags.html" title="Machine tag">
+<link rel="next" href="flickcurl-section-note.html" title="Notes.">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-machinetags.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-note.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-misc.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-misc.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Miscellaneous">
+<a name="flickcurl-section-misc"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-misc.top_of_page"></a>Miscellaneous</span></h2>
+<p>Miscellaneous — Miscellaneous functions.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-misc.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-misc.html#flickcurl-location" title="flickcurl_location">flickcurl_location</a>;
+                    <a class="link" href="flickcurl-section-misc.html#flickcurl-perms" title="flickcurl_perms">flickcurl_perms</a>;
+                    <a class="link" href="flickcurl-section-misc.html#flickcurl-size" title="flickcurl_size">flickcurl_size</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-misc.html#flickcurl-free-size" title="flickcurl_free_size ()">flickcurl_free_size</a>                 (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-size" title="flickcurl_size"><span class="type">flickcurl_size</span></a> *size</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-misc.html#flickcurl-free-sizes" title="flickcurl_free_sizes ()">flickcurl_free_sizes</a>                (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-size" title="flickcurl_size"><span class="type">flickcurl_size</span></a> **sizes_object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-misc.html#flickcurl-free-location" title="flickcurl_free_location ()">flickcurl_free_location</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-location" title="flickcurl_location"><span class="type">flickcurl_location</span></a> *location</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-misc.html#flickcurl-free-perms" title="flickcurl_free_perms ()">flickcurl_free_perms</a>                (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-perms" title="flickcurl_perms"><span class="type">flickcurl_perms</span></a> *perms</code></em>);
+const <span class="returnvalue">char</span>*         <a class="link" href="flickcurl-section-misc.html#flickcurl-get-field-value-type-label" title="flickcurl_get_field_value_type_label ()">flickcurl_get_field_value_type_label</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-photo.html#flickcurl-field-value-type" title="enum flickcurl_field_value_type"><span class="type">flickcurl_field_value_type</span></a> datatype</code></em>);
+const <span class="returnvalue">char</span>*         <a class="link" href="flickcurl-section-misc.html#flickcurl-get-location-accuracy-label" title="flickcurl_get_location_accuracy_label ()">flickcurl_get_location_accuracy_label</a>
+                                                        (<em class="parameter"><code><span class="type">int</span> accuracy</code></em>);
+const <span class="returnvalue">char</span>*         <a class="link" href="flickcurl-section-misc.html#flickcurl-get-shared-secret" title="flickcurl_get_shared_secret ()">flickcurl_get_shared_secret</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-misc.html#flickcurl-interestingness-getList" title="flickcurl_interestingness_getList ()">flickcurl_interestingness_getList</a>   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-misc.html#flickcurl-interestingness-getList-params" title="flickcurl_interestingness_getList_params ()">flickcurl_interestingness_getList_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+                    <a class="link" href="flickcurl-section-misc.html#flickcurl-license" title="flickcurl_license">flickcurl_license</a>;
+const <span class="returnvalue">char</span>*         <a class="link" href="flickcurl-section-misc.html#flickcurl-get-content-type-label" title="flickcurl_get_content_type_label ()">flickcurl_get_content_type_label</a>    (<em class="parameter"><code><span class="type">int</span> content_type</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-misc.html#flickcurl-get-content-type-from-string" title="flickcurl_get_content_type_from_string ()">flickcurl_get_content_type_from_string</a>
+                                                        (<em class="parameter"><code>const <span class="type">char</span> *content_type_string</code></em>);
+const <span class="returnvalue">char</span>*         <a class="link" href="flickcurl-section-misc.html#flickcurl-get-safety-level-label" title="flickcurl_get_safety_level_label ()">flickcurl_get_safety_level_label</a>    (<em class="parameter"><code><span class="type">int</span> safety_level</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-misc.html#flickcurl-get-safety-level-from-string" title="flickcurl_get_safety_level_from_string ()">flickcurl_get_safety_level_from_string</a>
+                                                        (<em class="parameter"><code>const <span class="type">char</span> *safety_level_string</code></em>);
+<span class="returnvalue">char</span>*               <a class="link" href="flickcurl-section-misc.html#flickcurl-user-icon-uri" title="flickcurl_user_icon_uri ()">flickcurl_user_icon_uri</a>             (<em class="parameter"><code><span class="type">int</span> farm</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> server</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> *nsid</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-misc.description"></a><h2>Description</h2>
+<p>
+Miscellaneous functions.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-misc.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_location">
+<a name="flickcurl-location"></a><h3>flickcurl_location</h3>
+<pre class="programlisting">typedef struct {
+  double latitude;
+  double longitude;
+  int accuracy;
+} flickcurl_location;
+</pre>
+<p>
+A Location in the world with an optional accuracy
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">double</span> <em class="structfield"><code><a name="flickcurl-location.latitude"></a>latitude</code></em>;</span></p></td>
+<td>The latitude from -90 to 90
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">double</span> <em class="structfield"><code><a name="flickcurl-location.longitude"></a>longitude</code></em>;</span></p></td>
+<td>The longitude from -180 to 180
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-location.accuracy"></a>accuracy</code></em>;</span></p></td>
+<td>Recorded accuracy level of the location.
+  World level is 1, Country is ~3, Region ~6, City ~11, Street
+  ~16. Current range is 1-16. (&lt;0 for unknown accuracy)
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_perms">
+<a name="flickcurl-perms"></a><h3>flickcurl_perms</h3>
+<pre class="programlisting">typedef struct {
+  int is_public;
+  int is_contact;
+  int is_friend;
+  int is_family;
+  int perm_comment;
+  int perm_addmeta;
+} flickcurl_perms;
+</pre>
+<p>
+Permissions as used by <a class="link" href="flickcurl-section-photo.html#flickcurl-photos-getPerms" title="flickcurl_photos_getPerms ()"><code class="function">flickcurl_photos_getPerms()</code></a> and 
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photos-setPerms" title="flickcurl_photos_setPerms ()"><code class="function">flickcurl_photos_setPerms()</code></a> which use public, friend, family,
+perm_comment and perm-addmeta.  <a class="link" href="flickcurl-section-photo.html#flickcurl-photos-geo-setPerms" title="flickcurl_photos_geo_setPerms ()"><code class="function">flickcurl_photos_geo_setPerms()</code></a> uses
+public, contact, friend and family.
+</p>
+<p>
+A Photo permission.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-perms.is-public"></a>is_public</code></em>;</span></p></td>
+<td>non-0 to set the photo to public else private
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-perms.is-contact"></a>is_contact</code></em>;</span></p></td>
+<td>non-0 to make the photo visible to contacts when private
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-perms.is-friend"></a>is_friend</code></em>;</span></p></td>
+<td>non-0 to make the photo visible to friends when private
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-perms.is-family"></a>is_family</code></em>;</span></p></td>
+<td>non-0 to make the photo visible to family when private
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-perms.perm-comment"></a>perm_comment</code></em>;</span></p></td>
+<td>who can add comments to the photo and it's notes. one of: 0 nobody,  1 friends &amp; family, 2 contacts, 3 everybody
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-perms.perm-addmeta"></a>perm_addmeta</code></em>;</span></p></td>
+<td>who can add notes and tags to the photo. one of: 0 nobody / just the owner, 1 friends &amp; family, 2 contacts, 3 everybody
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_size">
+<a name="flickcurl-size"></a><h3>flickcurl_size</h3>
+<pre class="programlisting">typedef struct {
+  char *label;
+  int width;
+  int height;
+  char *source;
+  char *url;
+  char* media;
+} flickcurl_size;
+</pre>
+<p>
+A photo at a size.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-size.label"></a>label</code></em>;</span></p></td>
+<td>label
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-size.width"></a>width</code></em>;</span></p></td>
+<td>width in pixels
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-size.height"></a>height</code></em>;</span></p></td>
+<td>height in pixels
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-size.source"></a>source</code></em>;</span></p></td>
+<td>raw image source URL
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-size.url"></a>url</code></em>;</span></p></td>
+<td>url of photo page
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-size.media"></a>media</code></em>;</span></p></td>
+<td>'photo' or 'video'
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_size ()">
+<a name="flickcurl-free-size"></a><h3>flickcurl_free_size ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_size                 (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-size" title="flickcurl_size"><span class="type">flickcurl_size</span></a> *size</code></em>);</pre>
+<p>
+Destructor for size object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>size</code></em> :</span></p></td>
+<td>size object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_sizes ()">
+<a name="flickcurl-free-sizes"></a><h3>flickcurl_free_sizes ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_sizes                (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-size" title="flickcurl_size"><span class="type">flickcurl_size</span></a> **sizes_object</code></em>);</pre>
+<p>
+Destructor for array of size objects
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>sizes_object</code></em> :</span></p></td>
+<td>size object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_location ()">
+<a name="flickcurl-free-location"></a><h3>flickcurl_free_location ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_location             (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-location" title="flickcurl_location"><span class="type">flickcurl_location</span></a> *location</code></em>);</pre>
+<p>
+Destructor for location object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>location</code></em> :</span></p></td>
+<td>location object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_perms ()">
+<a name="flickcurl-free-perms"></a><h3>flickcurl_free_perms ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_perms                (<em class="parameter"><code><a class="link" href="flickcurl-section-misc.html#flickcurl-perms" title="flickcurl_perms"><span class="type">flickcurl_perms</span></a> *perms</code></em>);</pre>
+<p>
+Destructor for perms object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>perms</code></em> :</span></p></td>
+<td>perms object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_field_value_type_label ()">
+<a name="flickcurl-get-field-value-type-label"></a><h3>flickcurl_get_field_value_type_label ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span>*         flickcurl_get_field_value_type_label
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-photo.html#flickcurl-field-value-type" title="enum flickcurl_field_value_type"><span class="type">flickcurl_field_value_type</span></a> datatype</code></em>);</pre>
+<p>
+Get label for datatype
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>datatype</code></em> :</span></p></td>
+<td>datatype enum
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> label string or NULL if none valid
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_location_accuracy_label ()">
+<a name="flickcurl-get-location-accuracy-label"></a><h3>flickcurl_get_location_accuracy_label ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span>*         flickcurl_get_location_accuracy_label
+                                                        (<em class="parameter"><code><span class="type">int</span> accuracy</code></em>);</pre>
+<p>
+Get label for an accuracy
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>accuracy</code></em> :</span></p></td>
+<td>accuracy
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> label string or NULL if none valid
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_shared_secret ()">
+<a name="flickcurl-get-shared-secret"></a><h3>flickcurl_get_shared_secret ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span>*         flickcurl_get_shared_secret         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Get current Shared Secret
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl object
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> shared secret or NULL if none set
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_interestingness_getList ()">
+<a name="flickcurl-interestingness-getList"></a><h3>flickcurl_interestingness_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_interestingness_getList   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Returns the list of interesting photos for the most recent day or a user-specified date.
+</p>
+<p>
+See <a class="link" href="flickcurl-section-misc.html#flickcurl-interestingness-getList" title="flickcurl_interestingness_getList ()"><code class="function">flickcurl_interestingness_getList()</code></a> for full description of arguments.
+</p>
+<p>
+Implements flickr.interestingness.getList (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>A specific date, formatted as YYYY-MM-DD, to return interesting photos for. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record. See <a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> for the full list (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page default 100, max 500
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return, default 1
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_interestingness_getList_params ()">
+<a name="flickcurl-interestingness-getList-params"></a><h3>flickcurl_interestingness_getList_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_interestingness_getList_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Returns the list of interesting photos for the most recent day or a user-specified date.
+</p>
+<p>
+Optional extra type 'media' that will return an extra media = VALUE
+for VALUE "photo" or "video".  API addition 2008-04-07.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>A specific date, formatted as YYYY-MM-DD, to return interesting photos for. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_license">
+<a name="flickcurl-license"></a><h3>flickcurl_license</h3>
+<pre class="programlisting">typedef struct {
+  /* license id */
+  int id;
+  /* license url or NULL if none */
+  char *url;
+  /* license name */
+  char *name;
+} flickcurl_license;
+</pre>
+<p>
+A photo license.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-license.id"></a>id</code></em>;</span></p></td>
+<td>license ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-license.url"></a>url</code></em>;</span></p></td>
+<td>license URL
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-license.name"></a>name</code></em>;</span></p></td>
+<td>license short name
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_content_type_label ()">
+<a name="flickcurl-get-content-type-label"></a><h3>flickcurl_get_content_type_label ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span>*         flickcurl_get_content_type_label    (<em class="parameter"><code><span class="type">int</span> content_type</code></em>);</pre>
+<p>
+Get label for a content type.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>content_type</code></em> :</span></p></td>
+<td>safety level index
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> pointer to shared string label for content type or "unknown"
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_content_type_from_string ()">
+<a name="flickcurl-get-content-type-from-string"></a><h3>flickcurl_get_content_type_from_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_get_content_type_from_string
+                                                        (<em class="parameter"><code>const <span class="type">char</span> *content_type_string</code></em>);</pre>
+<p>
+Get the enumeration value for a content type string.
+</p>
+<p>
+Parses the string value into a content type either from an
+integer form like '1' or a label like 'photo'.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>content_type_string</code></em> :</span></p></td>
+<td>string
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> content type enumeration value or &lt;0 on error
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_safety_level_label ()">
+<a name="flickcurl-get-safety-level-label"></a><h3>flickcurl_get_safety_level_label ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span>*         flickcurl_get_safety_level_label    (<em class="parameter"><code><span class="type">int</span> safety_level</code></em>);</pre>
+<p>
+Get label for a safety level.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>safety_level</code></em> :</span></p></td>
+<td>safety level index
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> pointer to shared string label for safety level or "unknown"
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_safety_level_from_string ()">
+<a name="flickcurl-get-safety-level-from-string"></a><h3>flickcurl_get_safety_level_from_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_get_safety_level_from_string
+                                                        (<em class="parameter"><code>const <span class="type">char</span> *safety_level_string</code></em>);</pre>
+<p>
+Get the enumeration value for a safety level string.
+</p>
+<p>
+Parses the string value into a safety level either from an
+integer form like '1' or a label like 'safe'.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>safety_level_string</code></em> :</span></p></td>
+<td>string
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> safety level enumeration value or &lt;0 on error
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_user_icon_uri ()">
+<a name="flickcurl-user-icon-uri"></a><h3>flickcurl_user_icon_uri ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span>*               flickcurl_user_icon_uri             (<em class="parameter"><code><span class="type">int</span> farm</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> server</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> *nsid</code></em>);</pre>
+<p>
+Get the user's icon URI
+</p>
+<p>
+The icon URI returned is always a 48x48 pixel JPEG.
+</p>
+<p>
+If <em class="parameter"><code>server</code></em> is 0 (or the other fields are NULL), the default icon URI of
+http://www.flickr.com/images/buddyicon.jpg is returned.
+</p>
+<p>
+Defined by http://www.flickr.com/services/api/misc.buddyicons.html
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>farm</code></em> :</span></p></td>
+<td>user icon farm
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>server</code></em> :</span></p></td>
+<td>user icon server or 0
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsid</code></em> :</span></p></td>
+<td>user nsid
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> new icon URI string or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Preferences</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-place.html" title="Place">
+<link rel="next" href="flickcurl-section-reflection.html" title="Reflection">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-place.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-reflection.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-prefs.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-prefs.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Preferences">
+<a name="flickcurl-section-prefs"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-prefs.top_of_page"></a>Preferences</span></h2>
+<p>Preferences — User preferences</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-prefs.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis"><span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-prefs.html#flickcurl-prefs-getContentType" title="flickcurl_prefs_getContentType ()">flickcurl_prefs_getContentType</a>      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-prefs.html#flickcurl-prefs-getGeoPerms" title="flickcurl_prefs_getGeoPerms ()">flickcurl_prefs_getGeoPerms</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-prefs.html#flickcurl-prefs-getHidden" title="flickcurl_prefs_getHidden ()">flickcurl_prefs_getHidden</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-prefs.html#flickcurl-prefs-getPrivacy" title="flickcurl_prefs_getPrivacy ()">flickcurl_prefs_getPrivacy</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-prefs.html#flickcurl-prefs-getSafetyLevel" title="flickcurl_prefs_getSafetyLevel ()">flickcurl_prefs_getSafetyLevel</a>      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-prefs.description"></a><h2>Description</h2>
+<p>
+User preferences
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-prefs.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_prefs_getContentType ()">
+<a name="flickcurl-prefs-getContentType"></a><h3>flickcurl_prefs_getContentType ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_prefs_getContentType      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Returns the default content type preference for the user.
+</p>
+<p>
+Implements flickr.prefs.getContentType (1.3)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> content type or &lt;0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_prefs_getGeoPerms ()">
+<a name="flickcurl-prefs-getGeoPerms"></a><h3>flickcurl_prefs_getGeoPerms ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_prefs_getGeoPerms         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Returns the default privacy level for geographic information attached to the user's photos. 
+</p>
+<p>
+Possible values are: 0: no default, 1: public, 2: contacts only, 3: friends
+and family only, 4: friends only, 5: family only, 6: private.
+</p>
+<p>
+Implements flickr.prefs.getGeoPerms (1.4)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_prefs_getHidden ()">
+<a name="flickcurl-prefs-getHidden"></a><h3>flickcurl_prefs_getHidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_prefs_getHidden           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Returns the default hidden preference for the user.
+</p>
+<p>
+Implements flickr.prefs.getHidden (1.3)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_prefs_getPrivacy ()">
+<a name="flickcurl-prefs-getPrivacy"></a><h3>flickcurl_prefs_getPrivacy ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_prefs_getPrivacy          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Returns the default privacy level preference for the user.
+</p>
+<p>
+Possible values are: Public (1), Friends only (2),  Family only (3)
+Friends and Family (4) and Private (5)
+</p>
+<p>
+Implements flickr.prefs.getPrivacy (1.3)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> privacy level or &lt;0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_prefs_getSafetyLevel ()">
+<a name="flickcurl-prefs-getSafetyLevel"></a><h3>flickcurl_prefs_getSafetyLevel ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_prefs_getSafetyLevel      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Returns the default safety level preference for the user.
+</p>
+<p>
+Implements flickr.prefs.getSafetyLevel (1.3)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> safety level or &lt;0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

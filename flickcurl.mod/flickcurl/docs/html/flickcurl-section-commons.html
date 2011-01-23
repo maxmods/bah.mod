@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Flickr Commons</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-comment.html" title="Comments">
+<link rel="next" href="flickcurl-section-collections.html" title="Collections">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-comment.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-collections.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-commons.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-commons.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Flickr Commons">
+<a name="flickcurl-section-commons"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-commons.top_of_page"></a>Flickr Commons</span></h2>
+<p>Flickr Commons — Flickr Commons and institutions</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-commons.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-commons.html#flickcurl-institution" title="flickcurl_institution">flickcurl_institution</a>;
+enum                <a class="link" href="flickcurl-section-commons.html#flickcurl-institution-url-type" title="enum flickcurl_institution_url_type">flickcurl_institution_url_type</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-commons.html#flickcurl-free-institution" title="flickcurl_free_institution ()">flickcurl_free_institution</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-commons.html#flickcurl-institution" title="flickcurl_institution"><span class="type">flickcurl_institution</span></a> *institution</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-commons.html#flickcurl-free-institutions" title="flickcurl_free_institutions ()">flickcurl_free_institutions</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-commons.html#flickcurl-institution" title="flickcurl_institution"><span class="type">flickcurl_institution</span></a> **institutions_object</code></em>);
+const <span class="returnvalue">char</span>*         <a class="link" href="flickcurl-section-commons.html#flickcurl-get-institution-url-type-label" title="flickcurl_get_institution_url_type_label ()">flickcurl_get_institution_url_type_label</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-commons.html#flickcurl-institution-url-type" title="enum flickcurl_institution_url_type"><span class="type">flickcurl_institution_url_type</span></a> url_type</code></em>);
+<a class="link" href="flickcurl-section-commons.html#flickcurl-institution" title="flickcurl_institution"><span class="returnvalue">flickcurl_institution</span></a>** <a class="link" href="flickcurl-section-commons.html#flickcurl-commons-getInstitutions" title="flickcurl_commons_getInstitutions ()">flickcurl_commons_getInstitutions</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-commons.description"></a><h2>Description</h2>
+<p>
+Flickr Commons and institutions
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-commons.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_institution">
+<a name="flickcurl-institution"></a><h3>flickcurl_institution</h3>
+<pre class="programlisting">typedef struct {
+  char *nsid;
+  int date_launch;
+  char *name;
+  char **urls;
+} flickcurl_institution;
+</pre>
+<p>
+Flickr Commons institution
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-institution.nsid"></a>nsid</code></em>;</span></p></td>
+<td>NSID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-institution.date-launch"></a>date_launch</code></em>;</span></p></td>
+<td>Date launched in unix timestamp format
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-institution.name"></a>name</code></em>;</span></p></td>
+<td>Institution name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> **<em class="structfield"><code><a name="flickcurl-institution.urls"></a>urls</code></em>;</span></p></td>
+<td>Array of related urls.
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="enum flickcurl_institution_url_type">
+<a name="flickcurl-institution-url-type"></a><h3>enum flickcurl_institution_url_type</h3>
+<pre class="programlisting">typedef enum {
+  FLICKCURL_INSTITUTION_URL_NONE = 0,
+  FLICKCURL_INSTITUTION_URL_SITE,
+  FLICKCURL_INSTITUTION_URL_LICENSE,
+  FLICKCURL_INSTITUTION_URL_FLICKR,
+  FLICKCURL_INSTITUTION_URL_LAST = FLICKCURL_INSTITUTION_URL_FLICKR
+} flickcurl_institution_url_type;
+</pre>
+<p>
+Institution URL type
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><a name="FLICKCURL-INSTITUTION-URL-NONE:CAPS"></a><span class="term"><code class="literal">FLICKCURL_INSTITUTION_URL_NONE</code></span></p></td>
+<td>internal
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-INSTITUTION-URL-SITE:CAPS"></a><span class="term"><code class="literal">FLICKCURL_INSTITUTION_URL_SITE</code></span></p></td>
+<td>site URL
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-INSTITUTION-URL-LICENSE:CAPS"></a><span class="term"><code class="literal">FLICKCURL_INSTITUTION_URL_LICENSE</code></span></p></td>
+<td>license URL
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-INSTITUTION-URL-FLICKR:CAPS"></a><span class="term"><code class="literal">FLICKCURL_INSTITUTION_URL_FLICKR</code></span></p></td>
+<td>flickr photos page URL
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-INSTITUTION-URL-LAST:CAPS"></a><span class="term"><code class="literal">FLICKCURL_INSTITUTION_URL_LAST</code></span></p></td>
+<td>internal offset to last in enum list
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_institution ()">
+<a name="flickcurl-free-institution"></a><h3>flickcurl_free_institution ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_institution          (<em class="parameter"><code><a class="link" href="flickcurl-section-commons.html#flickcurl-institution" title="flickcurl_institution"><span class="type">flickcurl_institution</span></a> *institution</code></em>);</pre>
+<p>
+Destructor for institution object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>institution</code></em> :</span></p></td>
+<td>institution object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_institutions ()">
+<a name="flickcurl-free-institutions"></a><h3>flickcurl_free_institutions ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_institutions         (<em class="parameter"><code><a class="link" href="flickcurl-section-commons.html#flickcurl-institution" title="flickcurl_institution"><span class="type">flickcurl_institution</span></a> **institutions_object</code></em>);</pre>
+<p>
+Destructor for array of institution object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>institutions_object</code></em> :</span></p></td>
+<td>institution object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_institution_url_type_label ()">
+<a name="flickcurl-get-institution-url-type-label"></a><h3>flickcurl_get_institution_url_type_label ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span>*         flickcurl_get_institution_url_type_label
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-commons.html#flickcurl-institution-url-type" title="enum flickcurl_institution_url_type"><span class="type">flickcurl_institution_url_type</span></a> url_type</code></em>);</pre>
+<p>
+Get label for institution url type
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>url_type</code></em> :</span></p></td>
+<td>institution url enum
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> label string or NULL if none valid
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_commons_getInstitutions ()">
+<a name="flickcurl-commons-getInstitutions"></a><h3>flickcurl_commons_getInstitutions ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-commons.html#flickcurl-institution" title="flickcurl_institution"><span class="returnvalue">flickcurl_institution</span></a>** flickcurl_commons_getInstitutions
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Retrieves a list of the current Commons institutions.
+</p>
+<p>
+Implements flickr.commons.getInstitutions (1.8)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

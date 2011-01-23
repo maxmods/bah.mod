@@ -1,0 +1,1872 @@
+                                 Flickcurl News
+
+[1]Dave Beckett
+
+2010-11-17 Flickcurl 1.20
+
+   Fixed parsing of standard photos responses (SPR) to make several API
+   calls work again including:
+     * flickr.photos.comments.getRecentForContacts
+       Functions flickcurl_photos_comments_getRecentForContacts_params()
+       and flickcurl_photos_comments_getRecentForContacts().
+     * flickr.photos.getContactsPhotos
+       Functions flickcurl_photos_getContactsPhotos_params() and
+       flickcurl_photos_getContactsPhotos().
+     * flickr.photos.getContactsPublicPhotos
+       Functions flickcurl_photos_getContactsPublicPhotos_params() and
+       flickcurl_photos_getContactsPublicPhotos().
+     * flickr.photos.getRecent
+       Functions flickcurl_photos_getRecent_params() and
+       flickcurl_photos_getRecent().
+     * flickr.photos.recentlyUpdated
+       Functions flickcurl_photos_recentlyUpdated_params() and
+       flickcurl_photos_recentlyUpdated().
+     * flickr.photos.search
+       Functions flickcurl_photos_search_params() and
+       flickcurl_photos_search().
+     * flickr.photos.geo.photosForLocation
+       Functions flickcurl_photos_geo_photosForLocation_params() and
+       flickcurl_photos_geo_photosForLocation().
+     * flickr.photosets.getPhotos
+       Functions flickcurl_photosets_getPhotos_params() and
+       flickcurl_photosets_getPhotos().
+     * flickr.stats.getPopularPhotos
+       Functions flickcurl_stats_getPopularPhotos().
+     * flickr.tags.getClusterPhotos
+       Functions flickcurl_tags_getClusterPhotos().
+
+2010-07-24 Flickcurl 1.19
+
+   Support returning photo notes in flickcurl_photo structure when
+   returning photo information with a new array field notes and
+   notes_count for the size of the array.
+
+   Added flickcurl_note class to store photo notes.
+
+   Added flickcurl_photosets_removePhotos(),
+   flickcurl_photosets_reorderPhotos() and
+   flickcurl_photosets_setPrimaryPhoto() for new API calls
+   [2]flickr.photosets.removePhotos, [3]flickr.photosets.reorderPhotos and
+   [4]flickr.photosets.setPrimaryPhoto:
+  int flickcurl_photosets_removePhotos(flickcurl* fc,
+    const char* photoset_id, const char** photo_ids_array);
+
+  int flickcurl_photosets_reorderPhotos(flickcurl* fc,
+    const char* photoset_id, const char** photo_ids_array);
+
+  int flickcurl_photosets_setPrimaryPhoto(flickcurl* fc,
+    const char* photoset_id, const char* photo_id);
+
+   Added flickcurl(1) command support for new API calls.
+
+   flickcurl_photos_list gains fields for page number (page), per-page
+   count (per_page) and total photos count (total_count).
+
+   Added flickcurl_stats_getCSVFiles but it always does nothing since it
+   expired at 2010-06-01.
+
+   Fixed portability operator typo '> =' and '+ =' lose spaces. [5]Issue
+   #4.
+
+2010-04-26 Flickcurl 1.18
+
+   Added (rest of) Galleries API calls as [6]announced 2010-04-08:
+  char* flickcurl_galleries_create(flickcurl* fc, const char* title,
+    const char* description, const char* primary_photo_id,
+    char** gallery_url_p);
+
+  int flickcurl_galleries_editMeta(flickcurl* fc, const char* gallery_id,
+    const char* title, const char* description);
+
+  int flickcurl_galleries_editPhoto(flickcurl* fc, const char* gallery_id,
+    const char* photo_id, const char* new_comment);
+
+  int flickcurl_galleries_editPhotos(flickcurl* fc, const char* gallery_id,
+    const char* primary_photo_id, const char** photo_ids_array);
+
+  flickcurl_gallery* flickcurl_galleries_getInfo(flickcurl* fc,
+    const char* gallery_id);
+
+  flickcurl_photos_list* flickcurl_galleries_getPhotos_params(flickcurl* fc,
+    const char* gallery_id, flickcurl_photos_list_params* list_params);
+
+  flickcurl_photo** flickcurl_galleries_getPhotos(flickcurl* fc,
+    const char* gallery_id, const char* extras, int per_page, int page);
+
+  char* flickcurl_urls_lookupGallery(flickcurl* fc, const char* url);
+
+
+   (The other Gallery API calls were implemented in Flickcurl 1.17 before
+   they were announced.)
+
+   Enum flickcurl_photo_field_type gains a new PHOTO_FIELD_gallery_comment
+   field for representing a photo's comments in a gallery context.
+
+   Added function for new people API call (not announced):
+   [7]flickr.people.getPhotos:
+
+  flickcurl_photos_list* flickcurl_people_getPhotos_params(flickcurl* fc,
+    const char* user_id, int safe_search,
+    const char* min_upload_date, const char* max_upload_date,
+    const char* min_taken_date, const char* max_taken_date,
+    int content_type, int privacy_filter,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photo** flickcurl_people_getPhotos(flickcurl* fc,
+    const char* user_id, int safe_search,
+    const char* min_upload_date, const char* max_upload_date,
+    const char* min_taken_date, const char* max_taken_date,
+    int content_type, int privacy_filter, const char* extras,
+    int per_page, int page);
+
+   Added functions to allow more control over the internal CURL* handle
+   and to set any curl options needed such as with curl_easy_setopt(). The
+   new library constructor function flickcurl_new_with_handle() allows
+   reuse an existing curl handle rather than create and destroy one during
+   the library use. The new library method
+   flickcurl_set_curl_setopt_handler() allows user code to be called via a
+   handler to make any adjustments to the curl options that may be
+   required on a per-request basis.
+  flickcurl* flickcurl_new_with_handle(void* curl_handle);
+
+  void flickcurl_set_curl_setopt_handler(flickcurl *fc,
+     flickcurl_curl_setopt_handler curl_handler,
+     void* curl_handler_data);
+
+   Added flickcurl(1) utility support for new API calls.
+
+   Fix several cut-n-paste "latitude should be longitude" errors in
+   flickcurl_photos_geo_batchCorrectLocation(),
+   flickcurl_photos_geo_photosForLocation_params() and
+   flickcurl_photos_geo_setLocation().
+
+2010-03-05 Flickcurl 1.17
+
+   Added functions for new stats API calls [8]announced 2010-03-03:
+   [9]flickr.stats.getCollectionDomains,
+   [10]flickr.stats.getCollectionReferrers,
+   [11]flickr.stats.getCollectionStats, [12]flickr.stats.getPhotoDomains,
+   [13]flickr.stats.getPhotoReferrers,
+   [14]flickr.stats.getPhotosetDomains,
+   [15]flickr.stats.getPhotosetReferrers,
+   [16]flickr.stats.getPhotosetStats, [17]flickr.stats.getPhotoStats,
+   [18]flickr.stats.getPhotostreamDomains,
+   [19]flickr.stats.getPhotostreamReferrers,
+   [20]flickr.stats.getPhotostreamStats, [21]flickr.stats.getPopularPhotos
+   and [22]flickr.stats.getTotalViews including new flickcurl_stats and
+   flickcurl_view_stats datatypes:
+  flickcurl_stat** flickcurl_stats_getCollectionDomains(flickcurl* fc,
+    const char* date, const char* collection_id, int per_page, int page);
+
+  flickcurl_stat** flickcurl_stats_getCollectionReferrers(flickcurl* fc,
+    const char* date, const char* domain, const char* collection_id,
+    int per_page, int page);
+
+  int flickcurl_stats_getCollectionStats(flickcurl* fc, const char* date,
+    const char* collection_id);
+
+  flickcurl_stat** flickcurl_stats_getPhotoDomains(flickcurl* fc,
+    const char* date, const char* photo_id, int per_page, int page);
+
+  flickcurl_stat** flickcurl_stats_getPhotoReferrers(flickcurl* fc,
+    const char* date, const char* domain, const char* photo_id,
+    int per_page, int page);
+
+  flickcurl_stat* flickcurl_stats_getPhotoStats(flickcurl* fc,
+    const char* date, const char* photo_id);
+
+  flickcurl_stat** flickcurl_stats_getPhotosetDomains(flickcurl* fc,
+    const char* date, const char* photoset_id, int per_page, int page);
+
+  flickcurl_stat** flickcurl_stats_getPhotosetReferrers(flickcurl* fc,
+    const char* date, const char* domain, const char* photoset_id,
+    int per_page, int page);
+
+  int flickcurl_stats_getPhotosetStats(flickcurl* fc, const char* date,
+    const char* photoset_id);
+
+  flickcurl_stat** flickcurl_stats_getPhotostreamDomains(flickcurl* fc,
+    const char* date, int per_page, int page);
+
+  flickcurl_stat** flickcurl_stats_getPhotostreamReferrers(flickcurl* fc,
+    const char* date, const char* domain, int per_page, int page);
+
+  int flickcurl_stats_getPhotostreamStats(flickcurl* fc, const char* date);
+
+  flickcurl_photo** flickcurl_stats_getPopularPhotos(flickcurl* fc,
+    const char* date, const char* sort, int per_page, int page,
+    const char* extras);
+
+  flickcurl_view_stats* flickcurl_stats_getTotalViews(flickcurl* fc,
+    const char* date);
+
+  void flickcurl_free_stat(flickcurl_stat *stat);
+
+  void flickcurl_free_stats(flickcurl_stat **stats_object);
+
+  void flickcurl_free_view_stats(flickcurl_view_stats *view_stats);
+
+   The flickcurl_photo_field_type enum gains new fields for counts of
+   comments (PHOTO_FIELD_comments) and favorites (PHOTO_FIELD_favorites)
+   so that these stats can be returned by the new
+   flickcurl_stats_getPopularPhotos() call. (View count field is already
+   present).
+
+   Added functions for 5 new people API calls [23]announced 2010-01-21
+   [24]flickr.photos.people.add, [25]flickr.photos.people.delete,
+   [26]flickr.photos.people.deleteCoords,
+   [27]flickr.photos.people.editCoords and
+   [28]flickr.photos.people.getList:
+  int flickcurl_photos_people_add(flickcurl* fc, const char* photo_id,
+    const char* user_id, int person_x, int person_y, int person_w, int person_h)
+;
+
+  int flickcurl_photos_people_delete(flickcurl* fc, const char* photo_id,
+    const char* user_id);
+
+  int flickcurl_photos_people_deleteCoords(flickcurl* fc, const char* photo_id,
+    const char* user_id);
+
+  int flickcurl_photos_people_editCoords(flickcurl* fc, const char* photo_id,
+    const char* user_id, int person_x, int person_y, int person_w, int person_h)
+;
+
+  flickcurl_person** flickcurl_photos_people_getList(flickcurl* fc,
+    const char* photo_id);
+
+   Added functions for 1 new "photos of" people API calls [29]announced
+   2010-01-21 [30]flickr.people.getPhotosOf:
+  flickcurl_photos_list* flickcurl_people_getPhotosOf_params(flickcurl* fc,
+    const char* user_id, flickcurl_photos_list_params* list_params);
+
+  flickcurl_photo** flickcurl_people_getPhotosOf(flickcurl* fc,
+    const char* user_id, const char* extras, int per_page, int page);
+
+   Added functions for 3 new gallery API calls - not yet announced and
+   seems a little incomplete e.g. you cannot list the photos in a gallery:
+   [31]flickr.galleries.addPhoto, [32]flickr.galleries.getList and
+   [33]flickr.galleries.getListForPhoto including new type
+   flickcurl_gallery:
+  int flickcurl_galleries_addPhoto(flickcurl* fc, const char* gallery_id,
+    const char* photo_id, const char* comment_text);
+
+  flickcurl_gallery** flickcurl_galleries_getList(flickcurl* fc,
+    const char* user_id, int per_page, int page);
+
+  flickcurl_gallery** flickcurl_galleries_getListForPhoto(flickcurl* fc,
+    const char* photo_id, int per_page, int page);
+
+  void flickcurl_free_galleries(flickcurl_gallery **galleries_object);
+
+   Updated the flickcurl(1) to support the new gallery, people photos and
+   stats API calls.
+
+2010-01-13 Flickcurl 1.16
+
+   Fix flickcurl(1) utility configuration file generation to use key=value
+   format as documented. Make the software accept files with spaces around
+   the '='.
+
+   Updated authentication documentation to add a picture showing the
+   result of fetching the mobile authentication URLs.
+
+2010-01-02 Flickcurl 1.15
+
+   The flickcurl_search_params gains an in_gallery boolean field which was
+   added to the photos search API [34]as announced 2009-12-17.
+
+   The flickcurl(1) utility photos.search commands gains geo-context
+   taking an integer arg for inside/outside, is-commons boolean flag and
+   is-gallery boolean flag arguments.
+
+   Update the authentication section of the documentation to represent the
+   Flickr App Garden changes. Add screen shots of the steps in the flow to
+   authenticate.
+
+   Switch the build system to use automake 1.11 AM_SILENT_RULES enabled by
+   default for maintainer, but can be triggered with --enable-silent-rules
+   in configure.
+
+2009-09-20 Flickcurl 1.14
+
+   Added a tutorial section to the documentation on how to use the search
+   API - search parameters, result formats, extras and walking through the
+   photos list results. Added a new example program search-photos.c to
+   demonstrate a full working program searching for photos and using the
+   results.
+
+   The flickcurl_search_params structure gains geo_context and is_commons
+   search parameters which were added to the search API at some time in
+   the past (geo_context before 10 March 2009). The Geo Context can be set
+   for photos with flickcurl_photos_geo_setLocation() corresponding to the
+   flickr.photos.geo.setLocation API call.
+
+   The flickcurl_extras_format_info gains new API 'extras': path_alias,
+   url_m, url_o, url_s, url_sq, url_t as [35]announced 2009-06-29.
+   path_alias returns the user's Flickr URL as in /photos/user and the
+   others provide various computed URLs and dimensions for the photos of a
+   given size so that flickcurl_photos_getSizes() calls can be avoided
+   directly after a search.
+
+   Apply a little resource leak fix to the video API when calloc fails -
+   patch from github fork by 'mr.huge at seznam dot cz'. Thanks.
+
+   Fixed some off-by-1 errors in some static string allocation sizes.
+
+   Small typos and fixes to flickcurl(1) utility messages.
+
+2009-08-01 Flickcurl 1.13
+
+   Added function flickcurl_source_uri_as_photo_id() to get photo IDs from
+   full raw 'farm' image URLs. Added command getphotoid to the
+   command-line utility to allow this to be called.
+  char* flickcurl_source_uri_as_photo_id(const char *uri);
+
+   Added function flickcurl_get_current_request_wait() so applications can
+   know when flickcurl will delay - sleep(2) - in order to let the web
+   service rate limiting work. This allows the application to avoid this
+   and try again later if it desires, rather than have Flickcurl freeze
+   the entire application (if single threaded).
+  int flickcurl_get_current_request_wait(flickcurl *fc);
+
+   Use a dynamic buffer size for request URI construction to avoid
+   crashing when dealing with requests with e.g. long lists of of photo
+   IDs that exceeded the "big enough" buffer for a URI. Bug noticed and
+   reported by Henning Spruth - thanks!
+
+   After the above problem, reviewed the other fixed buffer sizes in the
+   code and they are all for known fixed uses such as formatting a decimal
+   number (of known size) into a string. None of the remaining ones can be
+   influenced by data passed by API calls.
+
+   Fixed resource leak of user agent string in flickcurl_free() found by
+   Debarshi Ray - Thanks.
+
+2009-07-04 Flickcurl 1.12
+
+   Added function flickcurl_places_getTopPlacesList() for new API call
+   [36]flickr.places.getTopPlacesList.
+  flickcurl_place** flickcurl_places_getTopPlacesList(flickcurl* fc,
+    flickcurl_place_type place_type, const char* date, int woe_id,
+    const char* place_id);
+
+   Added function flickcurl_blogs_getServices() and new
+   flickcurl_blog_service structure for describing a blog service. for new
+   API call [37]flickr.blogs.getServices. Added function
+   flickcurl_free_blog_services() to free blog services array.
+  flickcurl_blog_service** flickcurl_blogs_getServices(flickcurl* fc);
+
+  void flickcurl_free_blog_services(flickcurl_blog_service **blog_services_objec
+t);
+
+   Added function flickcurl_photos_comments_getRecentForContacts_params()
+   for new API call [38]flickr.photos.comments.getRecentForContacts
+
+   Added function flickcurl_machinetags_getRecentValues() for new API call
+   [39]flickr.machinetags.getRecentValues
+
+   Added flickr collections API including new flickcurl_collection
+   datatype:
+  flickcurl_collection* flickcurl_collections_getInfo(flickcurl* fc,
+    const char* collection_id);
+
+  flickcurl_collection* flickcurl_collections_getTree(flickcurl* fc,
+    const char* collection_id, const char* user_id);
+
+   Added functions for generating flic.kr short URIs from a photo object
+   or photo ID:
+  char* flickcurl_photo_id_as_short_uri(char *photo_id);
+
+  char* flickcurl_photo_as_short_uri(flickcurl_photo *photo);
+
+   Fixed flickcurl_invoke_common() to always set / reset HTTP headers list
+   to allows requests that set/don't set headers to work in sequence when
+   called with the same flickcurl context. The symptom of this was in long
+   sequences with mixed reads and writes, crashes or mysterious failures
+   happened. Bug reported / found by Henning Spruth - thanks!
+
+   Added continent type to allow flickcurl_get_place_type_label() and
+   flickcurl_get_place_type_by_label() to use. This allows 'continent' to
+   be used in place APIs when called from flickcurl(1) utility.
+
+   Retrieve the place name from the <place> element content as well as
+   from attribute value. In the Flickr API, there is always more than one
+   way to get a field ;)
+
+   Switched from Subversion to GIT source control hosted by [40]GitHub.
+   The [41]GitHub flickcurl project page. previously was in Subversion at
+   [42]svn.dajobe.org and it moved as of SVN r1021 on 2006-06-02 after the
+   1.11 release tagged flickcurl_1_11.
+
+   Update SHAVE from master GIT 2134bb1207e06d1650918a56f6b142e9a840219d
+
+   Added flickcurl(1) utility support for new API calls, allow WOEID args
+   to be "-" to omitted and to add a shorturi command to generate flic.kr
+   short URIs from a photo ID.
+
+2009-05-26 Flickcurl 1.11
+
+   flickcurl_search_params structure now has an integer field woe_id for
+   searching via Where On Earth IDs (WOEIDs). Forgot to add this earlier!
+
+   The flickcurl utility was updated to support searching with the integer
+   woeid parameter.
+
+   Search results now decode more of the extras that can be returned in
+   search queries when the extras field is set in the query to a
+   comma-separated list of things to return. The additions with their
+   extras names are: original dimensions (o_dims), photo views count
+   (views), simple list of tags (tags), photo user information (owner),
+   geo information (geo) and user buddy icons (icons),
+
+   Added new flickcurl_photo fields for 'extras' from search results:
+   PHOTO_FIELD_original_height, PHOTO_FIELD_original_width,
+   PHOTO_FIELD_owner_iconfarm, PHOTO_FIELD_owner_iconserver and
+   PHOTO_FIELD_views
+
+   Added donuthole support to shapes as [43]announced 2009-05-06. The
+   flicckurl_shapedata structure now has is_donuthole and has_donuthole
+   boolean flag fields.
+
+   Fix handling API calls return shape XML with slightly different names
+   so that places.getShapeHistory and places.getInfo both work now
+   (again?).
+
+   Added function to get a user buddy icon URI for a given user:
+  char* flickcurl_user_icon_uri(int farm, int server, char *nsid);
+
+   Added function to get the user buddy icon URI from a user's photo:
+  char* flickcurl_photo_as_user_icon_uri(flickcurl_photo *photo);
+
+   Added function to return the photo page URI of a photo:
+  char* flickcurl_photo_as_page_uri(flickcurl_photo *photo);
+
+   Added timezone field support to place (This has not yet been announced
+   as an API change). The flickcurl_place structure now has a timezone
+   string field.
+
+   Make more attempts to reset the libcurl context between requests which
+   should help in sequences of calls that mix GET (searches, get
+   information) and POST (uploading, deletions etc.) This is intended to
+   try to fix a hard-to-test report of crashes with multiple upload and
+   API calls on Solaris/SPARC.
+
+   Configuration via configure now uses pkg-config(1) to get the compile
+   (CFLAGS) and link (LIBS) flags info for libxml, libcurl and raptor.
+   This should work since those libraries have shipped the respective .pc
+   file in releases for some time.
+
+   Use pkg-config raptor configuration for checking raptor presence,
+   versions, cflags and libs rather than the (deprecated) raptor-config
+   program output.
+
+   Added configure [44]SHAVE support (git clone
+   git://git.lespiau.name/shave ) to "make autotools output sane" which
+   amounts to much less verbose messages when compiling. It is now enabled
+   by default.
+
+   Compiling from subversion (autogen.sh or configure
+   --enable-maintainer-mode) requires Libtool V2 for consistency with my
+   other projects.
+
+2009-05-01 Flickcurl 1.10
+
+   Made uploading images and replacing images work again.
+
+   Added functions to set the service URIs for the image upload and image
+   replacing web services:
+  void flickcurl_set_upload_service_uri(flickcurl *fc, const char *uri);
+
+  void flickcurl_set_replace_service_uri(flickcurl *fc, const char *uri);
+
+   Added casts for compiling and using from C++ - the main change is to
+   rename internal variables and function arguments called 'namespace' to
+   'nspace'.
+
+2009-04-04 Flickcurl 1.9
+
+   Added functions for 2 new API calls [45]flickr.panda.getList
+   [46]flickr.panda.getPhotos as [47]announced on 2009-03-03 used in the
+   vomiting [48]Flickr Panda.
+  char** flickcurl_panda_getList(flickcurl* fc);
+
+  flickcurl_photo** flickcurl_panda_getPhotos(flickcurl *fc,
+    const char *panda_name);
+
+   Added function for 1 new API call [49]flickr.groups.members.getList as
+   [50]announced as experimental on 2009-02-24.
+  flickcurl_member** flickcurl_groups_members_getList(flickcurl* fc,
+    const char* group_id, const char* membertypes, int per_page, int page);
+
+   Updated the flickcurl(1) utility to support the 3 new calls.
+
+   Fixed flickcurl_photosets_getList() to work again with XML returned by
+   the web service. Not clear if the service changed since this used to
+   work and the code did not change.
+
+   Allow config file ~/.flickcurl.conf (as used by flickcurl(1) utility)
+   to contain DOS newline sequence (\r\n) as well as Unix (\n) and \r.
+
+   Increased date buffer size in flickcurl_photos_setDates() to prevent
+   buffer overruns.
+
+2009-02-09 Flickcurl 1.8
+
+   Added support for new commons API with new institution class, new
+   photos geo and places APIs, and new shape history API with a new shape
+   structure class.
+
+   Added functions for 12 new API calls
+   [51]flickr.commons.getInstitutions,
+   [52]flickr.contacts.getListRecentlyUploaded,
+   [53]flickr.photos.geo.batchCorrectLocation,
+   [54]flickr.photos.geo.correctLocation,
+   [55]flickr.photos.geo.photosForLocation,
+   [56]flickr.photos.geo.setContext, [57]flickr.places.getPlaceTypes,
+   [58]flickr.places.getShapeHistory,
+   [59]flickr.places.placesForBoundingBox,
+   [60]flickr.places.placesForContacts, [61]flickr.places.placesForTags
+   and [62]flickr.places.tagsForPlace as announced [63]2009-01-12
+   (flickr.places.getShapeHistory), [64]2009-01-14
+   (flickr.contacts.getListRecentlyUploaded) and [65]2009-01-29 (Commons
+   API):
+  flickcurl_institution** flickcurl_commons_getInstitutions(flickcurl* fc);
+
+  flickcurl_contact** flickcurl_contacts_getListRecentlyUploaded(flickcurl* fc,
+    int date_lastupload, const char* filter);
+
+  int flickcurl_photos_geo_batchCorrectLocation(flickcurl* fc,
+    flickcurl_location* location, const char* place_id, int woe_id);
+  int flickcurl_photos_geo_correctLocation(flickcurl* fc,
+    const char* photo_id, const char* place_id, int woe_id);
+  flickcurl_photo** flickcurl_photos_geo_photosForLocation(flickcurl* fc,
+    flickcurl_location* location, const char* extras, int per_page, int page);
+  flickcurl_photos_list* flickcurl_photos_geo_photosForLocation_params(flickcurl
+* fc,
+    flickcurl_location* location, flickcurl_photos_list_params* list_params);
+  int flickcurl_photos_geo_setContext(flickcurl* fc, const char* photo_id,
+    int context);
+
+  flickcurl_place_type_info** flickcurl_places_getPlaceTypes(flickcurl* fc);
+  flickcurl_shapedata** flickcurl_places_getShapeHistory(flickcurl* fc,
+    const char* place_id, int woe_id);
+  flickcurl_place** flickcurl_places_placesForBoundingBox(flickcurl* fc,
+    flickcurl_place_type place_type, double minimum_longitude,
+    double minimum_latitude, double maximum_longitude,
+    double maximum_latitude);
+  flickcurl_place** flickcurl_places_placesForContacts(flickcurl* fc,
+    flickcurl_place_type place_type, int woe_id, const char* place_id,
+    int threshold, const char* contacts, int min_upload_date,
+    int max_upload_date, int min_taken_date, int max_taken_date);
+  int flickcurl_places_placesForTags(flickcurl* fc,
+    flickcurl_place_type place_type, int woe_id, const char* place_id,
+    const char* threshold, const char* tags, const char* tag_mode,
+    const char* machine_tags, const char* machine_tag_mode,
+    const char* min_upload_date, const char* max_upload_date,
+    const char* min_taken_date, const char* max_taken_date);
+  flickcurl_tag** flickcurl_places_tagsForPlace(flickcurl* fc,
+    int woe_id, const char* place_id, int min_upload_date,
+    int max_upload_date, int min_taken_date, int max_taken_date);
+
+   Added destructors for new classes:
+  void flickcurl_free_institution(flickcurl_institution *);
+  void flickcurl_free_institutions(flickcurl_institution **);
+  void flickcurl_free_place_type_infos(flickcurl_place_type_info **);
+  void flickcurl_free_shape(flickcurl_shapedata *);
+  void flickcurl_free_shapes(flickcurl_shapedata **);
+
+   Added flickcurl_institution class and flickcurl_institution_url_type
+   enum for URL types for response from
+   flickcurl_commons_getInstitutions(). Added flickcurl_free_institution()
+   and flickcurl_free_institutions() destructors.
+
+   Added FLICKCURL_PLACE_CONTINENT value to place flickcurl_location enum.
+
+   Added flickcurl_place_type_info for results of
+   flickcurl_places_getPlaceTypes(). Added
+   flickcurl_free_place_type_infos() destructor.
+
+   Added new flickcurl_shapedata class to store shape information, ESRI
+   shape data and/or URLs returned by flickcurl_places_getShapeHistory().
+
+   flickcurl_place structure gains a shape field returning a pointer to
+   the flickcurl_shapedata shape data, deprecating old shape fields. Added
+   flickcurl_free_shape() and flickcurl_free_shapes() destructors.
+
+   flickcurl_tag gains a new uploaded field for use with
+   flickcurl_contacts_getListRecentlyUploaded()
+
+   Deprecated flickcurl_places_getChildrenWithPhotosPublic() and
+   flickcurl_places_getInfo() replacing them with new
+   flickcurl_places_getChildrenWithPhotosPublic2() and
+   flickcurl_places_getInfo2() that taken an integer WOEID parameter
+   rather than string.
+
+   Updated flickcurl(1) utility for new API calls.
+
+2008-11-30 Flickcurl 1.7
+
+   Added support for the new Machine Tags API as [66]announced 2008-11-18.
+   Added representations for machine tag namespaces
+   flickcurl_tag_namespace and machine tag predicate/value pairs
+   flickcurl_tag_predicate_value.
+
+   Added functions for the new API calls
+   [67]flickr.machinetags.getNamespaces, [68]flickr.machinetags.getPairs,
+   [69]flickr.machinetags.getPredicates and
+   [70]flickr.machinetags.getValues:
+  flickcurl_tag_namespace** flickcurl_machinetags_getNamespaces(flickcurl* fc,
+    const char* predicate, int per_page, int page);
+
+  flickcurl_tag_predicate_value** flickcurl_machinetags_getPairs(flickcurl* fc,
+    const char* namespace, const char* predicate, int per_page, int page);
+
+  flickcurl_tag_predicate_value** flickcurl_machinetags_getPredicates(flickcurl*
+ fc,
+    const char* namespace, int per_page, int page);
+
+  flickcurl_tag_predicate_value** flickcurl_machinetags_getValues(flickcurl* fc,
+
+    const char* namespace, const char* predicate, int per_page, int page);
+
+   Added destructors for new machine tag structures and arrays of them:
+  void flickcurl_free_tag_namespace(flickcurl_tag_namespace *tag_nspace);
+  void flickcurl_free_tag_namespaces(flickcurl_tag_namespace** tag_nspaces);
+  void flickcurl_free_tag_predicate_value(flickcurl_tag_predicate_value* tag_pv)
+;
+  void flickcurl_free_tag_predicate_values(flickcurl_tag_predicate_value **tag_p
+vs);
+
+   Added flickcurl_tags_getClusterPhotos() function for new API call
+   [71]flickr.tags.getClusterPhotos to get a set of photos around a
+   cluster (of 3 tags). This was added to the web service API but not
+   announced some time between 2008-09-04 ad 2008-09-19.
+  flickcurl_photos_list* flickcurl_tags_getClusterPhotos(flickcurl* fc,
+    const char* tag, const char* cluster_id,
+    flickcurl_photos_list_params* list_params);
+
+   Updated Places API for changes as [72]announced 2008-11-05 and in
+   [73]The Shape of Alpha to support querying for places via place IDs or
+   [74]Where on Earth (WOE) Ids. The places APIs may now return ESRI shape
+   information and flickcurl_place now stores any XML <shapedata> and ESRI
+   shapefile URLs returned in a lookup call e.g:
+$ ./flickcurl places.getInfo 4hLQygSaBJ92
+  Type locality (2)
+  Location: latitude 45.512000  longitude -73.554000  accuracy unknown
+  Shapedata (1752 bytes):
+    <polylines>
+                        <polyline>45.427627563477,-73.589645385742 45.427051544.
+..
+  Shapefile URLs: 1
+    0): http://farm4.static.flickr.com/3228/shapefiles/3534_20081111_0a8afe03c5.
+tar.gz
+  0) place location: name 'Montreal, Quebec, Canada' id 4hLQygSaBJ92 woeid 3534
+url '/Canada/Quebec/Montreal'
+  2) place locality: name 'Montreal, Quebec, Canada' id 4hLQygSaBJ92 woeid 3534
+url '/Canada/Quebec/Montreal'
+  3) place county: name 'Montreal, Quebec, Canada' id cFBi9x6bCJ8D5rba1g woeid 2
+9375198 url '/cFBi9x6bCJ8D5rba1g'
+  4) place region: name 'Quebec, Canada' id CrZUvXebApjI0.72 woeid 2344924 url '
+/Canada/Quebec'
+  5) place country: name 'Canada' id EESRy8qbApgaeIkbsA woeid 23424775 url '/Can
+ada'
+
+   Added flickcurl_places_getInfo() for [75]flickr.places.getInfo,
+   flickcurl_places_getInfoByUrl() for [76]flickr.places.getInfoByUrl and
+   flickcurl_places_getChildrenWithPhotosPublic() for
+   [77]flickr.places.getChildrenWithPhotosPublic:
+  flickcurl_place** flickcurl_places_getChildrenWithPhotosPublic(flickcurl* fc,
+    const char* place_id, const char* woe_id);
+
+  flickcurl_place* flickcurl_places_getInfo(flickcurl* fc,
+    const char* place_id, const char* woe_id);
+
+  flickcurl_place* flickcurl_places_getInfoByUrl(flickcurl* fc,
+    const char* url);
+
+   Added flickcurl_places_placesForUser() function to match API name
+   correctly for API call [78]flickr.places.placesForUser deprecating
+   wrong name flickcurl_places_forUser().
+  flickcurl_place** flickcurl_places_placesForUser(flickcurl* fc,
+     flickcurl_place_type place_type, int woe_id, const char* place_id,
+     int threshold);
+
+   Fixed photoset API calls flickcurl_photosets_getList() and
+   flickcurl_photosets_getPhotos_params() to correctly find photos in a
+   photoset from latest web service API. Not clear if the existing code
+   was wrong or the web service response changed.
+
+   Updated flickcurl(1) utility to give a usage message for a commmand
+   when it is called with too many or too few arguments.
+
+2008-09-04 Flickcurl 1.6
+
+   [79]"It's a beautiful day in the neighborhood" and also "Everybody
+   needs good [80]Neighbours".
+   Added PHOTO_FIELD_location_neighbourhood,
+   PHOTO_FIELD_neighbourhood_placeid, PHOTO_FIELD_neighbourhood_woeid,
+   PHOTO_FIELD_location_neighbourhood and FLICKCURL_PLACE_NEIGHBOURHOOD
+   enum values making the American English spelling versions aliases for
+   the British / Commonwealth English. Adjusted the XPaths to accept both
+   spellings just in case Flickr changes this. The neighbourhood /
+   neighborhood feature was [81]announced 2008-08-19.
+
+   Added flickcurl_places_forUser() function for new API call
+   [82]flickr.places.placesForUser to get the cluster of places for a user
+   as [83]announced 2008-09-04.
+  flickcurl_place** flickcurl_places_forUser(flickcurl* fc,
+     flickcurl_place_type place_type, int woe_id, const char* place_id,
+     int threshold);
+
+   Added support for the (experimental) Photos List feed format parameter
+   by the new feature of allowing any function that returns a Standard
+   Photos Response to send the same optional result parameters, including
+   format. This is done by adding new typedefs flickcurl_photos_list for
+   the standard photos response and flickcurl_photos_list_params for the
+   parameters. This allows for existing result parameters (page, per_page,
+   extras) as well as the new new format parameter to be given optionally.
+   The standard photos response format was [84]described 2008-08-19 and
+   the experimental feeds format feature was [85]announced 2008-08-25.
+
+   Added functions to return lists of photos with list results parameters
+   based on existing functions without the _params suffix. The functions
+   all take a flickcurl_photos_list_params to replace any existing extras,
+   page and/or per_page parameters and return a new flickcurl_photos_list
+   object on success.
+  flickcurl_photos_list*
+  flickcurl_favorites_getList_params(flickcurl* fc, const char* user_id,
+    flickcurl_photos_list_params* params);
+
+  flickcurl_photos_list*
+  flickcurl_favorites_getPublicList_params(flickcurl* fc,
+    const char* user_id, flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_groups_pools_getPhotos_params(flickcurl* fc,
+    const char* group_id, const char* tags, const char* user_id,
+    flickcurl_photos_list_params* list_params);
+  flickcurl_photos_list*
+  flickcurl_interestingness_getList_params(flickcurl* fc,
+    const char* date, flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_people_getPublicPhotos_params(flickcurl* fc,
+    const char* user_id,  flickcurl_photos_list_params* params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_getContactsPhotos_params(flickcurl* fc,
+    int contact_count, int just_friends, int single_photo,
+    int include_self, flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_getContactsPublicPhotos_params(flickcurl* fc,
+    const char* user_id, int photo_count, int just_friends,
+    int single_photo, int include_self,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_getNotInSet_params(flickcurl* fc,
+    int min_upload_date, int max_upload_date, const char* min_taken_date,
+    const char* max_taken_date, int privacy_filter,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_getRecent_params(flickcurl* fc,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_getUntagged_params(flickcurl* fc,
+    int min_upload_date, int max_upload_date, const char* min_taken_date,
+    const char* max_taken_date, int privacy_filter,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_getWithGeoData_params(flickcurl* fc,
+    int min_upload_date, int max_upload_date, const char* min_taken_date,
+    const char* max_taken_date, int privacy_filter,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_getWithoutGeoData_params(flickcurl* fc,
+    int min_upload_date, int max_upload_date, const char* min_taken_date,
+    const char* max_taken_date, int privacy_filter,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_recentlyUpdated_params(flickcurl* fc, int min_date,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photos_search_params(flickcurl* fc,
+    flickcurl_search_params* params,
+    flickcurl_photos_list_params* list_params);
+
+  flickcurl_photos_list*
+  flickcurl_photosets_getPhotos_params(flickcurl* fc,
+   const char* photoset_id, int privacy_filter,
+   flickcurl_photos_list_params* list_params);
+
+   Added int flickcurl_photos_list_params_init() to initialize a photos
+   list parameter object and flickcurl_free_photos_list() to destroy a
+   photos list object.
+  int flickcurl_photos_list_params_init(flickcurl_photos_list_params* list_param
+s);
+  void flickcurl_free_photos_list(flickcurl_photos_list* photos_list);
+
+   Added a flickcurl_location to a flickcurl_place for the new
+   flickcurl_places_forUser() function.
+
+   Added flickcurl_get_feed_format_info() to get the names and
+   descriptions of the current known feed 'format' parameter values, as
+   usable by the '_params' functions mentioned above.
+  int flickcurl_get_feed_format_info(int feed_format,
+    const char** name_p, const char** label_p, const char** mime_type_p);
+
+   Added flickcurl_get_extras_format_info() to get the names and
+   descriptions of the current known 'extras' parameter values, as usable
+   by the '_params' functions mentioned above.
+  int flickcurl_get_extras_format_info(int extras_format,
+    const char** name_p, const char** label_p);
+
+   Added flickcurl_search_params_init() to initialize a search parameter
+   object
+  int flickcurl_search_params_init(flickcurl_search_params* params);
+
+   Fixed building contexts to not expect the number of contexts to be 3
+   (!!) but allocate it based on the returned XML. Bug reported by Francis
+   Gastellu.
+
+   Fixed typo in the FOAF namespace - no trailing #
+
+   Updated flickcurl(1) utility to help with authentication configuration.
+   It now prints a help message on how to get authentication tokens set
+   up, when there is no configuration file present and now accepts -a FROB
+   as an entire command line to get the auth token from the web service
+   via the mobile frob.
+
+   Updated flickcurl(1) utility help message to explain list result
+   parameters in more detail, enumerating the known format and extra
+   values using the new flickcurl_get_extras_format_info() and
+   flickcurl_get_feed_format_info() functions.
+
+   All flickcurl(1) utility command options that accept booleans, now
+   recognise "true", "false", "yes" and "no" values as well as the
+   existing 'non-zero integer means true' form.
+
+   Updated flickcurl(1) utility command photos.recentlyUpdated now
+   enforces it's required parameter - min-date.
+
+   Updated flickcurl(1) utility to understand raw format results and write
+   them either to stdout (default) or a file, when called with -o FILE or
+   --output FILE.
+
+   Updated flickcurl(1) utility to add a -q / --quiet to be less verbose
+   in its output. This option does not make informational requests
+   generate no output!
+
+   Improved error reporting when an API fails (returns non-200), an error
+   message is called via the error handler (set by
+   flickcurl_set_error_handler()).
+
+2008-08-17 Flickcurl 1.5
+
+   Added flickcurl_tags_getClusters() function for new API call
+   [86]flickr.tags.getClusters as [87]announced 2008-07-17
+
+   Added Tag Clusters API support including new typedefs
+   flickcurl_tag_cluster and flickcurl_tag_clusters and destructor
+   function:
+  void flickcurl_free_tag_clusters(flickcurl_tag_clusters *tcs);
+
+   Updated flickcurl(1) utility command to add new command
+   tags.getClusters for calling the flickcurl_tags_getClusters() API.
+
+   Updated photo search API structure flickcurl_search_params to add
+   contacts, has_geo, lat, lon, radius and radius_units fields.
+
+   Updated flickcurl_photos_search() to add support for new photos.search
+   contacts, has_geo, lat, lon, radius and radius_units parameters. The
+   lat, lon, radius and radius_units parameters were [88]announced
+   2008-06-27
+
+   Updated flickrdf utility to make it build without raptor available.
+
+2008-06-24 Flickcurl 1.4
+
+   Added video support.
+
+   Updated flickcurl(1) utility to report video information when found.
+   Document that photos.search can now take a media argument to search
+   over photos, videos or both.
+
+   Added a char* media type field to flickcurl_photo to allow detection of
+   photos or videos by type, and in the case of type "video", provide
+   extra video information in another new field flickcurl_video* video.
+
+   Added new flickcurl_video structure for providing video-specific
+   information such as duration and flickcurl_free_video() to free it.
+
+   Added an API for turning photo description/metadata into RDF triples.
+   Added new class flickcurl_serializer and factory
+   flickcurl_serializer_factory for called to handle the results of
+   serializing. Added new functions:
+  flickcurl_serializer* flickcurl_new_serializer(flickcurl* fc,
+    void* data, flickcurl_serializer_factory* factory);
+  void flickcurl_free_serializer(flickcurl_serializer* serializer);
+  int flickcurl_serialize_photo(flickcurl_serializer* frc,
+    flickcurl_photo* photo);
+
+   Updated all the namespaces used by the RDF serializer to use a
+   different use of machinetags.org as follows:
+    1. Public namespaces (existing schemas):
+          + [89]Dublin Core: Prefix: dc URI:
+            http://purl.org/dc/elements/1.1/
+            legacy namespace
+          + [90]Dublin Core Terms: Prefix: dcterms URI:
+            http://purl.org/dc/terms/
+            new namespace with predicates dc:creator dc:dateSubmitted
+            dc:rights dc:modified dc:issued dc:created dc:description
+            dc:title
+          + [91]FOAF: Prefix: foaf URI: http://xmlns.com/foaf/0.1/
+            with predicates foaf:maker foaf:name foaf:nick and classes
+            foaf:Person foaf:Image
+          + [92]Geo by W3C SWIG: Prefix: geo URI:
+            http://www.w3.org/2003/01/geo/wgs84_pos#
+            with predicates geo:lat geo:long
+          + [93]RDF Schema: Prefix: rdfs URI:
+            http://www.w3.org/2000/01/rdf-schema#
+            with predicates rdfs:label
+          + [94]RDF: Prefix: rdf URI:
+            http://www.w3.org/1999/02/22-rdf-syntax-ns#
+            with predicates rdf:type
+          + [95]XML Schema Datatypes: Prefix: xsd URI:
+            http://www.w3.org/2001/XMLSchema#
+            with XSD datatypes xsd:boolean xsd:dateTime xsd:double
+            xsd:integer
+    2. Flickr terminology namespaces (no schema yet):
+          + [96]Flickr API initially for video terms: Prefix: flickr URI:
+            http://machinetags.org/ns/Flickr#
+            with predicates flickr:image flickr:video flickr:width
+            flickr:height and classes flickr:Video
+          + [97]Places API: Prefix: places URI:
+            http://machinetags.org/ns/Places#
+            with predicates places:place places:type places:name places:id
+            places:placeid places:url and class places:Place
+    3. Machine Tag namespaces (no schema yet; prefix is the same as the
+       machine tag prefix):
+          + Bluetagging: Prefix: blue URI: http://machinetags.org/ns/Blue#
+          + Celltagging: Prefix: cell URI: http://machinetags.org/ns/Cell#
+          + [98]Dopplr: Prefix: dopplr URI:
+            http://machinetags.org/ns/Dopplr#
+          + [99]Filtr: Prefix: filtr URI: http://machinetags.org/ns/Filtr#
+          + [100]Geonames: Prefix: geonames URI:
+            http://machinetags.org/ns/Geonames#
+          + Ph: Prefix: ph URI: http://machinetags.org/ns/Ph#
+          + [101]Upcoming: Prefix: upcoming URI:
+            http://machinetags.org/ns/Upcoming#
+
+   Updated flickrdf(1) to use new serialization API and to have less
+   conditional code.
+
+   Fixed argument parsing bugs for the flickcurl(1) utility commands
+   photos.search and photos.upload - 1 argument was skipped for every
+   argument found.
+
+   flickcurl(1) utility commands photos.setContentType and
+   photos.setSafetyLevel now accept both integer and label values.
+
+   Added a -V / --verbose flag to the flickcurl(1) utility.
+
+   Added helper functions for to/from labels for content type and safety
+   level.
+  const char* flickcurl_get_content_type_label(int content_type);
+  int flickcurl_get_content_type_from_string(const char* content_type_string);
+  const char* flickcurl_get_safety_level_label(int safety_level);
+  int flickcurl_get_safety_level_from_string(const char* safety_level_string);
+
+   Added 1 new Flickr API call for the preferences API added to the public
+   API around 2008-03-24.
+  int flickcurl_prefs_getGeoPerms(flickcurl* fc);
+
+   Protect destructors from NULL args. In maintainer mode, a warning
+   message and an abort happen.
+
+   Note that the woeids can be used with the new [102]Yahoo! Geo API
+
+2008-03-08 Flickcurl 1.3
+
+   4 new Flickr API calls for updates to the new flickr.prefs APIs:
+  int flickcurl_prefs_getContentType(flickcurl* fc);
+  int flickcurl_prefs_getHidden(flickcurl* fc);
+  int flickcurl_prefs_getPrivacy(flickcurl* fc);
+  int flickcurl_prefs_getSafetyLevel(flickcurl* fc);
+
+   Fixed flickcurl_photosets_create() to return properly on success. It
+   used to do the creation correctly but failed to set up the XML XPath
+   context so returned a failure response and error message even on
+   success..
+
+   Fixed flickcurl photosets.create command to take 3 args not 4.
+
+   flickcurl help message was edited to use USER-NSID for NSIDs not
+   USER-ID for user login IDs.
+
+   Added documentation section on how to do Flickr authentication.
+
+   Fixed example code and renamed it to examples/print-photo-info.c
+
+   Portability fixes for time headers.
+
+   Win32 and portability compilation fixes:
+     * Add FLICKCURL_API macro for handling win32 declspec dllexport and
+       dllimport.
+     * Added check for FLICKCURL_STATIC macro to compile without dll parts
+     * Added FLICKCURL_INTERNAL define when compiling library
+     * Added some casts to remove warnings
+
+   Add portable gettimeofday() which does not exist on Win32 and may not
+   exist on non-BSD systems.
+
+   Added an implementation of the nanosleep() using either on win32:
+   Sleep() or on unixes: sleep() and/or usleep().
+
+   Added support for place woeid field and added new photo fields
+   PHOTO_FIELD_location_woeid, PHOTO_FIELD_neighborhood_woeid,
+   PHOTO_FIELD_locality_woeid, PHOTO_FIELD_county_woeid,
+   PHOTO_FIELD_region_woeid and PHOTO_FIELD_country_woeid.
+
+2008-01-28 Flickcurl 1.2
+
+   Fixed "brown paper bag" issue. 1.1 could not be built as
+   docs/flickcurl.1.in was missing from the tarball:
+make[1]: *** No rule to make target `flickcurl.1.in', needed by `flickcurl.1'.
+Stop.
+
+   Added configure search for nanosleep() in librt and libposix4 for
+   building on Solaris.
+
+2008-01-26 Flickcurl 1.1
+
+   2 new Flickr API calls for updates to the places APIs:
+  flickcurl_place** flickcurl_places_find(flickcurl* fc, const char* query);
+  flickcurl_place* flickcurl_places_findByLatLon(flickcurl* fc, double lat,
+                                                 double lon, int accuracy);
+
+   Added type field to flickcurl_place structure for use by results from
+   flickcurl_places_find().
+
+   Added method to turn a place type label into an enum:
+  flickcurl_place_type flickcurl_get_place_type_by_label(const char* place_label
+);
+
+   Added destructor function to free list of places
+  void flickcurl_free_places(flickcurl_place **places_object);
+
+   Source structure reorganised but it is building the same libraries and
+   binaries and installing them in the same places.
+
+   Added HTML documentation API reference manual documentation
+   automatically generated from source code autodocs, via gtkdoc. 100% of
+   the API functions and structures are documented.
+
+   Made flickcurl manpage automatically be kept up to date with the
+   command help from the utility itself.
+
+   Fixed a crash with the upload command of flickcurl(1)
+
+   Enforce minimum library versions in configure: libcurl minimum version
+   7.10.0 from 2002. libxml minimum version 2.6.8 from 2004
+
+2008-01-12 Flickcurl 1.0
+
+   Now supports the entire Flickr API including the new Places API:
+   searching, looking up by ID or URI, getting place IDs from photo
+   descriptions.
+
+   12 new Flickr API calls supported (100.0% of API):
+     * flickcurl_activity_userComments
+  flickcurl_activity** flickcurl_activity_userComments(flickcurl* fc,
+        int per_page, int page);
+
+     * flickcurl_activity_userPhotos
+  flickcurl_activity** flickcurl_activity_userPhotos(flickcurl* fc,
+        const char* timeframe, int per_page, int page);
+
+     * flickcurl_blogs_getList
+  flickcurl_blog** flickcurl_blogs_getList(flickcurl* fc);
+
+     * flickcurl_blogs_postPhoto
+  int flickcurl_blogs_postPhoto(flickcurl* fc, const char* blog_id,
+            const char* photo_id, const char* title, const char* description,
+            const char* blog_password);
+
+     * flickcurl_favorites_add
+  int flickcurl_favorites_add(flickcurl* fc, const char* photo_id);
+
+     * flickcurl_favorites_getList
+  flickcurl_photo** flickcurl_favorites_getList(flickcurl* fc,
+        const char* user_id, const char* extras, int per_page, int page);
+
+     * flickcurl_favorites_getPublicList
+  flickcurl_photo** flickcurl_favorites_getPublicList(flickcurl* fc,
+        const char* user_id, const char* extras, int per_page, int page);
+
+     * flickcurl_favorites_remove
+  int flickcurl_favorites_remove(flickcurl* fc, const char* photo_id);
+
+     * flickcurl_places_resolvePlaceId
+  flickcurl_place* flickcurl_places_resolvePlaceId(flickcurl* fc,
+        const char* place_id);
+
+     * flickcurl_places_resolvePlaceURL
+  flickcurl_place* flickcurl_places_resolvePlaceURL(flickcurl* fc,
+        const char* url);
+
+     * flickcurl_test_login
+  char* flickcurl_test_login(flickcurl* fc);
+
+     * flickcurl_test_null
+  int flickcurl_test_null(flickcurl* fc);
+
+   flickcurl utility updated to add all new functions.
+
+   Added flickcurl_activity and flickcurl_activity_event for photo/comment
+   activity
+
+   Added flickcurl_blog for photo blogs.
+
+   Added flickcurl_place for places.
+
+   Added place_id to search parameters
+
+   Added placeid fields to the flickcurl_photo_field_type enum and as new
+   flickcurl_photo fields.
+
+   Added destructor functions to free photosets, tickets, user status
+   information and categories
+  void flickcurl_free_activities(flickcurl_activity** activities);
+  void flickcurl_free_blogs(flickcurl_blog **blogs_object);
+  void flickcurl_free_place(flickcurl_place* place);
+
+2007-12-22 Flickcurl 0.13
+
+   20 new Flickr API calls supported (91.3% of API):
+     * flickcurl_groups_browse
+  flickcurl_category* flickcurl_groups_browse(flickcurl* fc, int cat_id);
+
+     * flickcurl_groups_getInfo
+  flickcurl_group* flickcurl_groups_getInfo(flickcurl* fc,
+        const char* group_id, const char* lang);
+
+     * flickcurl_groups_search
+  flickcurl_group** flickcurl_groups_search(flickcurl* fc, const char* text,
+        int per_page, int page);
+
+     * flickcurl_interestingness_getList
+  flickcurl_photo** flickcurl_interestingness_getList(flickcurl* fc,
+        const char* date, const char* extras, int per_page, int page);
+
+     * flickcurl_people_getPublicGroups
+  flickcurl_group** flickcurl_people_getPublicGroups(flickcurl* fc,
+        const char* user_id);
+
+     * flickcurl_people_getUploadStatus
+  flickcurl_user_upload_status* flickcurl_people_getUploadStatus(flickcurl* fc);
+
+     * flickcurl_photos_getCounts
+  int** flickcurl_photos_getCounts(flickcurl* fc, const char** dates_array,
+        const char** taken_dates_array);
+
+     * flickcurl_photos_getSizes
+  flickcurl_size** flickcurl_photos_getSizes(flickcurl* fc,
+        const char* photo_id);
+
+     * flickcurl_photos_transform_rotate
+  int flickcurl_photos_transform_rotate(flickcurl* fc, const char* photo_id,
+        int degrees);
+
+     * flickcurl_photos_upload_checkTickets
+  flickcurl_ticket** flickcurl_photos_upload_checkTickets(flickcurl* fc,
+        const char** tickets_ids);
+
+     * flickcurl_photosets_addPhoto
+  int flickcurl_photosets_addPhoto(flickcurl* fc, const char* photoset_id,
+        const char* photo_id);
+
+     * flickcurl_photosets_create
+  char* flickcurl_photosets_create(flickcurl* fc, const char* title,
+        const char* description, const char* primary_photo_id,
+        char** photoset_url_p);
+
+     * flickcurl_photosets_delete
+  int flickcurl_photosets_delete(flickcurl* fc, const char* photoset_id);
+
+     * flickcurl_photosets_editMeta
+  int flickcurl_photosets_editMeta(flickcurl* fc, const char* photoset_id,
+        const char* title, const char* description);
+
+     * flickcurl_photosets_editPhotos
+  int flickcurl_photosets_editPhotos(flickcurl* fc, const char* photoset_id,
+        const char* primary_photo_id, const char** photo_ids_array);
+
+     * flickcurl_photosets_getInfo
+  flickcurl_photoset* flickcurl_photosets_getInfo(flickcurl* fc,
+        const char* photoset_id);
+
+     * flickcurl_photosets_getList
+  flickcurl_photoset** flickcurl_photosets_getList(flickcurl* fc,
+        const char* user_id);
+
+     * flickcurl_photosets_getPhotos
+  flickcurl_photo** flickcurl_photosets_getPhotos(flickcurl* fc,
+        const char* photoset_id, const char* extras, int privacy_filter,
+        int per_page, int page);
+
+     * flickcurl_photosets_orderSets
+  int flickcurl_photosets_orderSets(flickcurl* fc,
+        const char** photoset_ids_array);
+
+     * flickcurl_photosets_removePhoto
+  int flickcurl_photosets_removePhoto(flickcurl* fc, const char* photoset_id,
+        const char* photo_id);
+
+   flickcurl utility updated to add all new functions.
+
+   Added flickcurl_category for categories of groups.
+
+   Added flickcurl_photoset for photosets.
+
+   Added flickcurl_size for returning image sizes.
+
+   Added flickcurl_ticket for returning asynchronous upload tickets.
+
+   Added flickcurl_user_upload_status for returning details on a user's
+   upload status.
+
+   Added destructor functions to free photosets, tickets, user status
+   information and categories
+  void flickcurl_free_photoset(flickcurl_photoset *photoset);
+  void flickcurl_free_photosets(flickcurl_photoset **photosets_object);
+  void flickcurl_free_ticket(flickcurl_ticket *ticket);
+  void flickcurl_free_tickets(flickcurl_ticket **tickets_object);
+  void flickcurl_free_user_upload_status(flickcurl_user_upload_status *u);
+  void flickcurl_free_category(flickcurl_category *category);
+  void flickcurl_free_categories(flickcurl_category **categories_object);
+
+   Added utility functions:
+  char* flickcurl_array_join(const char *array[], char delim);
+  char** flickcurl_array_split(const char *str, char delim);
+  void flickcurl_array_free(char *array[]);
+
+2007-08-11 Flickcurl 0.12
+
+   23 new Flickr API calls supported (72.1% of API):
+     * flickcurl_groups_pools_add
+  int flickcurl_groups_pools_add(flickcurl* fc, const char* photo_id,
+        const char* group_id);
+
+     * flickcurl_groups_pools_getGroups
+  flickcurl_group** flickcurl_groups_pools_getGroups(flickcurl* fc,
+        int page, int per_page);
+
+     * flickcurl_groups_pools_getPhotos
+  flickcurl_photo** flickcurl_groups_pools_getPhotos(flickcurl* fc,
+        const char* group_id, const char* tags, const char* user_id,
+        const char* extras, int per_page, int page);
+
+     * flickcurl_groups_pools_remove
+  int flickcurl_groups_pools_remove(flickcurl* fc, const char* photo_id,
+        const char* group_id);
+
+     * flickcurl_people_getPublicPhotos
+  flickcurl_photo** flickcurl_people_getPublicPhotos(flickcurl* fc,
+        const char* user_id,  const char* extras, int per_page, int page);
+
+     * flickcurl_photos_getContactsPublicPhotos
+  flickcurl_photo** flickcurl_photos_getContactsPublicPhotos(flickcurl* fc,
+        const char* user_id, int count, int just_friends,
+        int single_photo, int include_self, const char* extras);
+
+     * flickcurl_photos_getExif
+  flickcurl_exif** flickcurl_photos_getExif(flickcurl* fc,
+        const char* photo_id, const char* secret);
+
+     * flickcurl_photos_getFavorites
+  flickcurl_person** flickcurl_photos_getFavorites(flickcurl* fc,
+        const char* photo_id, int page, int per_page);
+
+     * flickcurl_photos_getNotInSet
+  flickcurl_photo** flickcurl_photos_getNotInSet(flickcurl* fc,
+        int min_upload_date, int max_upload_date,
+        const char* min_taken_date, const char* max_taken_date,
+        int privacy_filter, const char* extras, int per_page, int page);
+
+     * flickcurl_photos_getRecent
+  flickcurl_photo** flickcurl_photos_getRecent(flickcurl* fc,
+        const char* extras, int per_page, int page);
+
+     * flickcurl_photos_getUntagged
+  flickcurl_photo** flickcurl_photos_getUntagged(flickcurl* fc,
+        int min_upload_date, int max_upload_date,
+        const char* min_taken_date, const char* max_taken_date,
+        int privacy_filter, const char* extras, int per_page, int page);
+
+     * flickcurl_photos_getWithGeoData
+  flickcurl_photo** flickcurl_photos_getWithGeoData(flickcurl* fc,
+        int min_upload_date, int max_upload_date,
+        const char* min_taken_date, const char* max_taken_date,
+        int privacy_filter, const char* extras, int per_page, int page);
+
+     * flickcurl_photos_getWithoutGeoData
+  flickcurl_photo** flickcurl_photos_getWithoutGeoData(flickcurl* fc,
+        int min_upload_date, int max_upload_date,
+        const char* min_taken_date, const char* max_taken_date,
+        int privacy_filter, const char* extras, int per_page, int page);
+
+     * flickcurl_photos_recentlyUpdated
+  flickcurl_photo** flickcurl_photos_recentlyUpdated(flickcurl* fc,
+        int min_date, const char* extras, int per_page, int page);
+
+     * flickcurl_photos_geo_getLocation
+  flickcurl_location* flickcurl_photos_geo_getLocation(flickcurl* fc,
+        const char* photo_id);
+
+     * flickcurl_photos_geo_getPerms
+  flickcurl_perms* flickcurl_photos_geo_getPerms(flickcurl* fc,
+        const char* photo_id);
+
+     * flickcurl_photos_geo_removeLocation
+  int flickcurl_photos_geo_removeLocation(flickcurl* fc,
+        const char* photo_id);
+
+     * flickcurl_photos_geo_setLocation
+  int flickcurl_photos_geo_setLocation(flickcurl* fc,
+        const char* photo_id, flickcurl_location* location);
+
+     * flickcurl_photos_geo_setPerms
+  int flickcurl_photos_geo_setPerms(flickcurl* fc,
+        const char* photo_id, flickcurl_perms* perms);
+
+     * flickcurl_photos_licenses_setLicense
+  int flickcurl_photos_licenses_setLicense(flickcurl* fc,
+        const char* photo_id, int license_id);
+
+     * flickcurl_photos_notes_add
+  char* flickcurl_photos_notes_add(flickcurl* fc, const char* photo_id,
+        int note_x, int note_y, int note_w, int note_h,
+        const char* note_text);
+
+     * flickcurl_photos_notes_delete
+  int flickcurl_photos_notes_delete(flickcurl* fc, const char* note_id);
+
+     * flickcurl_photos_notes_edit
+  int flickcurl_photos_notes_edit(flickcurl* fc, const char* note_id,
+        int note_x, int note_y, int note_w, int note_h,
+        const char* note_text);
+
+   flickcurl utility updated to add all new functions.
+
+   Added flickcurl_exif for flickcurl_photos_getExif
+
+   Added flickcurl_group for the groups functions
+   flickcurl_groups_pools_add, flickcurl_groups_pools_getGroups,
+   flickcurl_groups_pools_getPhotos and flickcurl_groups_pools_remove
+
+   Added photos field PERSON_FIELD_favedate as returned by
+   flickcurl_photos_getFavorites
+
+   Added destructor functions to free persons lists, exif, exifs list,
+   group and groups list.
+  void flickcurl_free_persons(flickcurl_person** persons);
+  void flickcurl_free_exif(flickcurl_exif *exif);
+  void flickcurl_free_exifs(flickcurl_exif **exifs_object);
+  void flickcurl_free_group(flickcurl_group *group);
+  void flickcurl_free_groups(flickcurl_group **groups_object);
+
+2007-08-03 Flickcurl 0.11
+
+   10 new Flickr API calls supported (50% of API):
+     * flickr.contacts.getList:
+  flickcurl_contact** flickcurl_contacts_getList(flickcurl* fc,
+        const char* filter, int page, int per_page);
+
+     * flickr.contacts.getPublicList:
+  flickcurl_contact** flickcurl_contacts_getPublicList(flickcurl* fc,
+        const char* user_id, int page, int per_page);
+
+     * flickr.photos.getContactsPhotos:
+  flickcurl_photo** flickcurl_photos_getContactsPhotos(flickcurl* fc,
+        int contact_count, int just_friends, int single_photo,
+        int include_self, const char* extras);
+
+     * flickr.photos.getPerms:
+  flickcurl_perms* flickcurl_photos_getPerms(flickcurl* fc,
+        const char* photo_id);
+
+     * flickr.photos.search:
+  flickcurl_photo** flickcurl_photos_search(flickcurl* fc,
+        flickcurl_search_params* params);
+
+     * flickr.photos.setContentType:
+  int flickcurl_photos_setContentType(flickcurl* fc,
+        const char* photo_id, int content_type);
+
+     * flickr.photos.setDates:
+  int flickcurl_photos_setDates(flickcurl* fc, const char* photo_id,
+        int date_posted, int date_taken, int date_taken_granularity);
+
+     * flickr.photos.setMeta:
+  int flickcurl_photos_setMeta(flickcurl* fc, const char* photo_id,
+        const char* title, const char* description);
+
+     * flickr.photos.setPerms:
+  int flickcurl_photos_setPerms(flickcurl* fc, const char* photo_id,
+        flickcurl_perms* perms);
+
+     * flickr.photos.setSafetyLevel:
+  int flickcurl_photos_setSafetyLevel(flickcurl* fc,
+        const char* photo_id, int safety_level, int hidden);
+
+   flickcurl utility updated to add all new functions.
+
+   Added flickcurl_search_params structure for flickcurl_photos_search().
+
+   Added flickcurl_perms for the flickcurl_photos_getPerms() and
+   flickcurl_photos_setPerms() functions.
+
+   Added flickcurl_contact structure for flickcurl_contacts_getList() and
+   flickcurl_contacts_getPublicList() functions.
+
+   Added flickcurl_upload_params structure and added new upload function
+   flickcurl_photos_upload_params() to use it, deprecating
+   flickcurl_photos_upload() with the long list of parameters.
+
+   Added destructor functions to free a photos list, perms contacts and
+   upload status.
+  void flickcurl_free_photos(flickcurl_photo** photos);
+  void flickcurl_free_perms(flickcurl_perms *perms);
+  void flickcurl_free_contact(flickcurl_contact *contact_object);
+  void flickcurl_free_contacts(flickcurl_contact **contacts_object);
+  void flickcurl_free_upload_status(flickcurl_upload_status* status);
+
+   Deprecated wrongly named function flickcurl_free_upload_status(),
+   replaced by
+  void flickcurl_upload_status_free(flickcurl_upload_status* status);
+
+2007-04-16 Flickcurl 0.10
+
+   13 new Flickr API calls supported (40.8% of API):
+     * flickcurl_photos_comments_addComment: Add comment to a photo as the
+       currently authenticated user.
+  char* flickcurl_photos_comments_addComment(flickcurl* fc,
+        const char* photo_id, const char* comment_text);
+
+     * flickcurl_photos_comments_deleteComment: Delete a comment as the
+       currently authenticated user.
+  int flickcurl_photos_comments_deleteComment(flickcurl* fc,
+        const char* comment_id);
+
+     * flickcurl_photos_comments_editComment: Edit the text of a comment
+       as the currently authenticated user.
+  int flickcurl_photos_comments_editComment(flickcurl* fc,
+        const char* comment_id, const char* comment_text);
+
+     * flickcurl_photos_comments_getList: Returns the comments for a
+       photo.
+  flickcurl_comment** flickcurl_photos_comments_getList(flickcurl* fc,
+        const char* photo_id);
+
+     * flickcurl_photosets_comments_addComment: Add a comment to a
+       photoset.
+  char* flickcurl_photosets_comments_addComment(flickcurl* fc,
+        const char* photoset_id, const char* comment_text);
+
+     * flickcurl_photosets_comments_deleteComment: Delete a photoset
+       comment as the currently authenticated user.
+  int flickcurl_photosets_comments_deleteComment(flickcurl* fc,
+        const char* comment_id);
+
+     * flickcurl_photosets_comments_editComment: Edit the text of a
+       comment as the currently authenticated user.
+  int flickcurl_photosets_comments_editComment(flickcurl* fc,
+        const char* comment_id, const char* comment_text);
+
+     * flickcurl_photosets_comments_getList: Returns the comments for a
+       photoset.
+  flickcurl_comment** flickcurl_photosets_comments_getList(flickcurl* fc,
+        const char* photoset_id);
+
+     * flickcurl_reflection_getMethods: Get the list of available API
+       method names.
+  char** flickcurl_reflection_getMethods(flickcurl* fc);
+
+     * flickcurl_reflection_getMethodInfo: Get information about an API
+       method.
+  flickcurl_method* flickcurl_reflection_getMethodInfo(flickcurl* fc,
+        const char* name);
+
+   flickcurl utility updated to add all new functions.
+
+   Added all uploading and replacing of photos APIs. and
+   flickcurl_upload_status structure for upload results.
+
+   Added all photo comments APIs and flickcurl_comment structure for
+   comments.
+
+   Added support for uploading with POST and form-data. Yay libcurl.
+
+   Added codegen utility to aid writing skeleton API code.
+
+   Added all reflection APIs and flickcurl_method and flickcurl_arg
+   structures for method descriptions.
+
+   Added photo location fields: neighborhood, locality, region and
+   country. They may not be returned in the API just yet, they were
+   announced and then removed.
+
+   Renamed the "Flickr to RDF app" to be called flickrdf since I used
+   [103]Triplr for something else as it was such a good name.
+
+2007-02-25 Flickcurl 0.9
+
+   17 new Flickr API calls supported (28.2% of API):
+     * flickr.auth.checkToken: Get the credentials attached to an
+       authentication TOKEN.
+  char* flickcurl_auth_checkToken(flickcurl* fc, const char* token);
+
+     * flickr.auth.getFrob: Get a frob to be used during authentication.
+  char* flickcurl_auth_getFrob(flickcurl* fc);
+
+     * flickr.auth.getToken: Get the auth token for the FROB, if one has
+       been attached.
+  char* flickcurl_auth_getToken(flickcurl* fc, const char* frob);
+
+     * flickr.photos.addTags: Add TAGS to a PHOTO-ID.
+  int flickcurl_photos_addTags(flickcurl* fc, const char* photo_id,
+        const char* tags);
+
+     * flickr.photos.delete: Delete a PHOTO-ID.
+  int flickcurl_photos_delete(flickcurl* fc, const char* photo_id);
+
+     * flickr.photos.removeTag: Remove a tag TAG-ID from a photo.
+  int flickcurl_photos_removeTag(flickcurl* fc, const char* tag_id);
+
+     * flick.photos.setTags: Set the tags for a PHOTO-ID to TAGS.
+  int flickcurl_photos_setTags(flickcurl* fc, const char* photo_id,
+        const char* tags);
+
+     * flickr.tags.getHotList: Get the list of hot tags for the given
+       PERIOD (day, week).
+  flickcurl_tag** flickcurl_tags_getHotList(flickcurl* fc, const char* period,
+        int tag_count);
+
+     * flickr.tags.getListPhoto: Get the tag list for a PHOTO-ID.
+  flickcurl_tag** flickcurl_tags_getListPhoto(flickcurl* fc,
+        const char* photo_id);
+
+     * flickr.tags.getListUser: Get the tag list for a USER-ID (or current
+       user).
+  flickcurl_tag** flickcurl_tags_getListUser(flickcurl* fc,
+        const char* user_id);
+
+     * flickr.tags.getListUserPopular: Get the popular tag list for a
+       USER-ID (or current user).
+  flickcurl_tag** flickcurl_tags_getListUserPopular(flickcurl* fc,
+        const char* user_id, int pop_count);
+
+     * flickr.tags.getListUserRaw: Get the raw versions of a TAG (or all
+       tags) for the current user.
+  flickcurl_tag** flickcurl_tags_getListUserRaw(flickcurl* fc,
+        const char* tag);
+
+     * flickr.tags.getRelated: Get a list of tags 'related' to TAG based
+       on clustered usage analysis.
+  flickcurl_tag** flickcurl_tags_getRelated(flickcurl* fc, const char* tag);
+
+     * flickr.urls.getGroup: Get the url of the group page for GROUP-ID.
+  char* flickcurl_urls_getGroup(flickcurl* fc, const char* group_id);
+
+     * flickr.urls.getUserPhotos: Get the url of the photo page for
+       USER-ID.
+  char* flickcurl_urls_getUserPhotos(flickcurl* fc, const char* user_id);
+
+     * flickr.urls.getUserProfile: Get the url of the profile page for
+       USER-ID.
+  char* flickcurl_urls_getUserProfile(flickcurl* fc, const char* user_id);
+
+     * flickr.urls.lookupGroup: Get a group NSID from the URL to a group's
+       page or photo pool.
+  char* flickcurl_urls_lookupGroup(flickcurl* fc, const char* url);
+
+   Renamed enum flickcurl_photo_field to flickcurl_photo_field_type and
+   added flickcurl_photo_field as the photo field structure.
+
+   Added authorname and count fields to the flickcurl_tag structure to
+   handle tag methods that return counts.
+
+   Added enum flickcurl_person_field_type value PERSON_FIELD_photos_views
+   with value integer, not in API docs.
+
+   flickcurl_person_field structure for fields of flickcurl_person.
+
+   Added flickcurl* method to indicate that an API call must be signed,
+   even if no authentication token has been given. This is mostly for
+   internals of authentication.
+  void flickcurl_set_sign(flickcurl *fc)
+
+   Added flickcurl* method to do a write request with POST. Not presently
+   used.
+  void flickcurl_set_write(flickcurl *fc, int is_write);
+
+   Added flickcurl methods to set data to send in a request:
+  /* send binary data */
+  void flickcurl_set_data(flickcurl *fc, void* data, size_t data_length);
+
+  /* send XML serialized from the document DOM */
+  void flickcurl_set_xml_data(flickcurl *fc, xmlDocPtr doc);
+
+2007-02-20 Flickcurl 0.8
+
+   Added flickcurl_init() and flickcurl_finish() to do once-per-process
+   initializing and cleanup.
+
+   Added more help info to flickrdf.
+
+   Added a -d DELAY option to flickrdf and flickcurl to set delay between
+   requests using new flickcurl_set_request_delay().
+
+   Added 2 new Flickr API calls (12% of API):
+     * flickr.people.findByEmail:
+  char* flickcurl_people_findByEmail(flickcurl* fc, const char* email);
+
+     * flickr.people.findByUsername:
+  char* flickcurl_people_findByUsername(flickcurl* fc, const char* username);
+
+   Added configure development/debugging options:
+   --enable-capture to capture web service responses into XML files
+   --enable-offline to use the XML files to return results when offline
+
+   Split large api.c into auth-api.c, people-api.c, photos-api.c,
+   photos-licenses-api.c and urls-api.c to match the API sections.
+
+   Added method to set the minimum delay between web service requests:
+void flickcurl_set_request_delay(flickcurl *fc, long delay_msec);
+
+   The default is set to 1000ms = 1 request/second.
+
+   Moved flickcurl utility code into flickcurl.c
+
+2007-02-18 Flickcurl 0.7
+
+   Added API calls returning contexts as a struct flickcurl_context* array
+   and of type flickcurl_context_type
+
+   Added 4 Flickr API calls (10% of API):
+     * flickr.groups.pool.getContext:
+  flickcurl_context** flickcurl_groups_pools_getContext(flickcurl* fc,
+        const char* photo_id, const char* group_id);
+
+     * flickr.photos.getAllContexts:
+  flickcurl_context** flickcurl_photos_getAllContexts(flickcurl* fc,
+        const char* photo_id);
+
+     * flickr.photos.getContext:
+  flickcurl_context** flickcurl_photos_getContext(flickcurl* fc,
+        const char* photo_id);
+
+     * flickr.photosets.getContext:
+  flickcurl_context** flickcurl_photosets_getContext(flickcurl* fc,
+        const char* photo_id, const char* photoset_id);
+
+   Added struct flickcurl_context utility functions:
+  const char* flickcurl_get_context_type_field_label(flickcurl_context_type type
+);
+  void flickcurl_free_context(flickcurl_context *context);
+  void flickcurl_free_contexts(flickcurl_context** contexts);
+
+   Added new flickcurl utility commands for the new APIs:
+   groups.pools.getContext photos.getAllContexts photos.getContext,
+   photosets.getContext
+
+2007-02-11 Flickcurl 0.6
+
+   Added API call flickcurl.licenses.getInfo: struct flickcurl_license
+  flickcurl_license** flickcurl_photos_licenses_getInfo(flickcurl *fc);
+
+   and command licenses.getInfo in flickcurl utility
+
+   Added helper to look up one license by ID:
+  flickcurl_license* flickcurl_photos_licenses_getInfo_by_id(flickcurl *fc, int
+id);
+
+   Flickrdf updated to use the above to emit URIs instead of integers for
+   dc:rights
+
+   Added API call flickr.people.getInfo: enum flickcurl_person_field,
+   struct flickcurl_person
+  const char* flickcurl_get_person_field_label(flickcurl_person_field field);
+  flickcurl_person* flickcurl_people_getInfo(flickcurl* fc, const char* user_id)
+;
+  void flickcurl_free_person(flickcurl_person *person);
+
+   and command person.getInfo in flickcurl utility
+
+   6% of API
+
+2007-02-04 Flickcurl 0.5
+
+   Added optional support for using [104]Raptor for more accurate and
+   prettier serializing triples in flickrdf
+
+   Released to the world!
+
+   3% of API
+
+2007-02-03 Flickcurl 0.4
+
+   Added flickrdf utility.
+
+   3% of API
+
+2007-02-01 Flickcurl 0.3
+
+   Renamed all symbols to be flickcurl_*
+
+   Added flickcurl_photo_as_source_uri() to get the image file URLs for a
+   photo ID.
+
+   Configuration file for the utilities to record the authentication is
+   now ~/.flickcurl.conf
+
+   Packaging and licensing
+
+   3% of API
+
+2007-01-24 Flickcurl 0.2
+
+   Refactored to have separate flickcurl* object
+
+   API calls flickr.test.echo, flickr.auth.getFullToken and
+   flickr.photos.getInfo with functions flickcurl_test_echo,
+   flickcurl_auth_getFullToken, flickcurl_photos_getInfo
+
+   Test program has commands table and help, authentication
+
+   3% of API
+
+2007-01-21 Flickcurl 0.1
+
+   First version
+
+   0% of API
+     __________________________________________________________________
+
+   Copyright (C) 2007-2010 [105]Dave Beckett
+
+References
+
+   1. http://www.dajobe.org/
+   2. http://www.flickr.com/services/api/flickr.photosets.removePhotos.html
+   3. http://www.flickr.com/services/api/flickr.photosets.reorderPhotos.html
+   4. http://www.flickr.com/services/api/flickr.photosets.setPrimaryPhoto.html
+   5. http://github.com/dajobe/flickcurl/issues/#issue/4
+   6. http://code.flickr.com/blog/2010/04/08/galleries-apis/
+   7. http://www.flickr.com/services/api/flickr.people.getPhotos.html
+   8. http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+   9. http://www.flickr.com/services/api/flickr.stats.getCollectionDomains.html
+  10. http://www.flickr.com/services/api/flickr.stats.getCollectionReferrers.html
+  11. http://www.flickr.com/services/api/flickr.stats.getCollectionStats.html
+  12. http://www.flickr.com/services/api/flickr.stats.getPhotoDomains.html
+  13. http://www.flickr.com/services/api/flickr.stats.getPhotoReferrers.html
+  14. http://www.flickr.com/services/api/flickr.stats.getPhotosetDomains.html
+  15. http://www.flickr.com/services/api/flickr.stats.getPhotosetReferrers.html
+  16. http://www.flickr.com/services/api/flickr.stats.getPhotosetStats.html
+  17. http://www.flickr.com/services/api/flickr.stats.getPhotoStats.html
+  18. http://www.flickr.com/services/api/flickr.stats.getPhotostreamDomains.html
+  19. http://www.flickr.com/services/api/flickr.stats.getPhotostreamReferrers.html
+  20. http://www.flickr.com/services/api/flickr.stats.getPhotostreamStats.html
+  21. http://www.flickr.com/services/api/flickr.stats.getPopularPhotos.html
+  22. http://www.flickr.com/services/api/flickr.stats.getTotalViews.html
+  23. http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+  24. http://www.flickr.com/services/api/flickr.photos.people.add.html
+  25. http://www.flickr.com/services/api/flickr.photos.people.delete.html
+  26. http://www.flickr.com/services/api/flickr.photos.people.deleteCoords.html
+  27. http://www.flickr.com/services/api/flickr.photos.people.editCoords.html
+  28. http://www.flickr.com/services/api/flickr.photos.people.getList.html
+  29. http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+  30. http://www.flickr.com/services/api/flickr.people.getPhotosOf.html
+  31. http://www.flickr.com/services/api/flickr.galleries.addPhoto.html
+  32. http://www.flickr.com/services/api/flickr.galleries.getList.html
+  33. http://www.flickr.com/services/api/flickr.galleries.getListForPhoto.html
+  34. http://www.flickr.com/groups/api/discuss/72157622404753248/#comment72157622896186411
+  35. http://tech.groups.yahoo.com/group/yws-flickr/message/5053
+  36. http://www.flickr.com/services/api/flickr.places.getTopPlacesList.html
+  37. http://www.flickr.com/services/api/flickr.blogs.getServices.html
+  38. http://www.flickr.com/services/api/flickr.photos.comments.getRecentForContacts.html
+  39. http://www.flickr.com/services/api/flickr.machinetags.getRecentValues.html
+  40. http://github.com/
+  41. http://github.com/dajobe/flickcurl/tree/master
+  42. http://svn.dajobe.org/view/
+  43. http://code.flickr.com/blog/2009/05/06/the-absence-and-the-anchor/
+  44. http://git.lespiau.name/cgit/shave/
+  45. http://www.flickr.com/services/api/flickr.panda.getList.html
+  46. http://www.flickr.com/services/api/flickr.panda.getPhotos.html
+  47. http://code.flickr.com/blog/2009/03/03/panda-tuesday-the-history-of-the-panda-new-apis-explore-and-you/
+  48. http://www.flickr.com/explore/panda
+  49. http://www.flickr.com/services/api/flickr.groups.members.getList.html
+  50. http://tech.groups.yahoo.com/group/yws-flickr/message/4749
+  51. http://www.flickr.com/services/api/flickr.commons.getInstitutions.html
+  52. http://www.flickr.com/services/api/flickr.contacts.getListRecentlyUploaded.html
+  53. http://www.flickr.com/services/api/flickr.photos.geo.batchCorrectLocation.html
+  54. http://www.flickr.com/services/api/flickr.photos.geo.correctLocation.html
+  55. http://www.flickr.com/services/api/flickr.photos.geo.photosForLocation.html
+  56. http://www.flickr.com/services/api/flickr.photos.geo.setContext.html
+  57. http://www.flickr.com/services/api/flickr.places.getPlaceTypes.html
+  58. http://www.flickr.com/services/api/flickr.places.getShapeHistory.html
+  59. http://www.flickr.com/services/api/flickr.places.placesForBoundingBox.html
+  60. http://www.flickr.com/services/api/flickr.places.placesForContacts.html
+  61. http://www.flickr.com/services/api/flickr.places.placesForTags.html
+  62. http://www.flickr.com/services/api/flickr.places.tagsForPlace.html
+  63. http://tech.groups.yahoo.com/group/yws-flickr/message/4669
+  64. http://tech.groups.yahoo.com/group/yws-flickr/message/4668
+  65. http://flickr.com/groups/api/discuss/72157613093793775/
+  66. http://tech.groups.yahoo.com/group/yws-flickr/message/4545
+  67. http://www.flickr.com/services/api/flickr.machinetags.getNamespaces.html
+  68. http://www.flickr.com/services/api/flickr.machinetags.getPairs.html
+  69. http://www.flickr.com/services/api/flickr.machinetags.getPredicates.html
+  70. http://www.flickr.com/services/api/flickr.machinetags.getValues.html
+  71. http://www.flickr.com/services/api/flickr.tags.getClusterPhotos.html
+  72. http://tech.groups.yahoo.com/group/yws-flickr/message/4510
+  73. http://code.flickr.com/blog/2008/10/30/the-shape-of-alpha/
+  74. http://developer.yahoo.com/geo/
+  75. http://www.flickr.com/services/api/flickr.places.getInfo.html
+  76. http://www.flickr.com/services/api/flickr.places.getInfoByUrl.html
+  77. http://www.flickr.com/services/api/flickr.places.getChildrenWithPhotosPublic.html
+  78. http://www.flickr.com/services/api/flickr.places.placesForUser.html
+  79. http://en.wikipedia.org/wiki/Mister_Rogers%27_Neighborhood
+  80. http://en.wikipedia.org/wiki/Neighbours
+  81. http://geobloggers.com/2008/08/19/correcting-location-data-the-flickr-way/
+  82. http://www.flickr.com/services/api/flickr.places.placesForUser.html
+  83. http://code.flickr.com/blog/2008/09/04/whos-on-first/
+  84. http://code.flickr.com/blog/2008/08/19/standard-photos-response-apis-for-civilized-age/
+  85. http://code.flickr.com/blog/2008/08/25/api-responses-as-feeds/
+  86. http://www.flickr.com/services/api/flickr.tags.getClusters.html
+  87. http://tech.groups.yahoo.com/group/yws-flickr/message/4218
+  88. http://tech.groups.yahoo.com/group/yws-flickr/message/4146
+  89. http://dublincore.org/
+  90. http://dublincore.org/
+  91. http://www.foaf-project.org/
+  92. http://www.w3.org/2003/01/geo/
+  93. http://www.w3.org/TR/rdf-schema/
+  94. http://www.w3.org/TR/rdf-concepts/
+  95. http://www.w3.org/TR/xmlschema-1/
+  96. http://www.flickr.com/services/api/
+  97. http://www.flickr.com/services/api/
+  98. http://www.dopplr.com/
+  99. http://www.aaronland.info/bin/filtr/
+ 100. http://www.geonames.org/
+ 101. http://upcoming.yahoo.com/
+ 102. http://developer.yahoo.com/geo/
+ 103. http://triplr.org/
+ 104. http://librdf.org/raptor
+ 105. http://www.dajobe.org/

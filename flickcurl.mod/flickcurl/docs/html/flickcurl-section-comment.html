@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Comments</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-category.html" title="Categories">
+<link rel="next" href="flickcurl-section-commons.html" title="Flickr Commons">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-category.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-commons.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-comment.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-comment.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Comments">
+<a name="flickcurl-section-comment"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-comment.top_of_page"></a>Comments</span></h2>
+<p>Comments — Photo comments</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-comment.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-comment.html#flickcurl-comment" title="flickcurl_comment">flickcurl_comment</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-comment.html#flickcurl-free-comment" title="flickcurl_free_comment ()">flickcurl_free_comment</a>              (<em class="parameter"><code><a class="link" href="flickcurl-section-comment.html#flickcurl-comment" title="flickcurl_comment"><span class="type">flickcurl_comment</span></a> *comment_object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-comment.html#flickcurl-free-comments" title="flickcurl_free_comments ()">flickcurl_free_comments</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-comment.html#flickcurl-comment" title="flickcurl_comment"><span class="type">flickcurl_comment</span></a> **comments_object</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-comment.description"></a><h2>Description</h2>
+<p>
+Photo comments
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-comment.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_comment">
+<a name="flickcurl-comment"></a><h3>flickcurl_comment</h3>
+<pre class="programlisting">typedef struct {
+  char* id;
+  char* author;
+  char* authorname;
+  int datecreate;
+  char* permalink;
+  char* text;
+} flickcurl_comment;
+</pre>
+<p>
+A photo comment.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-comment.id"></a>id</code></em>;</span></p></td>
+<td>comment ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-comment.author"></a>author</code></em>;</span></p></td>
+<td>author ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-comment.authorname"></a>authorname</code></em>;</span></p></td>
+<td>author name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-comment.datecreate"></a>datecreate</code></em>;</span></p></td>
+<td>date of creation
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-comment.permalink"></a>permalink</code></em>;</span></p></td>
+<td>permanent link of comment
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-comment.text"></a>text</code></em>;</span></p></td>
+<td>comment text
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_comment ()">
+<a name="flickcurl-free-comment"></a><h3>flickcurl_free_comment ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_comment              (<em class="parameter"><code><a class="link" href="flickcurl-section-comment.html#flickcurl-comment" title="flickcurl_comment"><span class="type">flickcurl_comment</span></a> *comment_object</code></em>);</pre>
+<p>
+Destructor for comment object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>comment_object</code></em> :</span></p></td>
+<td>comment object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_comments ()">
+<a name="flickcurl-free-comments"></a><h3>flickcurl_free_comments ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_comments             (<em class="parameter"><code><a class="link" href="flickcurl-section-comment.html#flickcurl-comment" title="flickcurl_comment"><span class="type">flickcurl_comment</span></a> **comments_object</code></em>);</pre>
+<p>
+Destructor for array of comment object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>comments_object</code></em> :</span></p></td>
+<td>comment object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

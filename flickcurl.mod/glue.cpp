@@ -1,5 +1,5 @@
 /*
-  Copyright 2008,2009 Bruce A Henderson
+  Copyright 2008-20011 Bruce A Henderson
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@ extern "C" {
 	flickcurl_place * bmx_flickcurl_resolveplaceid(flickcurl * fc, BBString * placeID);
 	flickcurl_place * bmx_flickcurl_resolveplaceurl(flickcurl * fc, BBString * url);
 	flickcurl_place * bmx_flickcurl_findplacebylatlon(flickcurl * fc, double lat, double lon, int accuracy);
+	flickcurl_place ** bmx_flickcurl_placesfind(flickcurl * fc, BBString * query);
 
 	BBString * bmx_flickcurl_place_gettypelabel(flickcurl_place_type placeType);
 	BBString * bmx_flickcurl_place_getname(flickcurl_place * place, int index);
@@ -91,6 +92,7 @@ extern "C" {
 	BBObject * bmx_flickcurl_place_getlocation(flickcurl_place * place);
 	int bmx_flickcurl_place_getcount(flickcurl_place * place);
 	void bmx_flickcurl_place_free(flickcurl_place * place);
+	int bmx_flickcurl_place_gettypebylabel(BBString * label);
 
 	flickcurl_search_params * bmx_flickcurl_searchparams_new();
 	void bmx_flickcurl_searchparams_setuserid(flickcurl_search_params * params, BBString * value);
@@ -122,6 +124,10 @@ extern "C" {
 	void bmx_flickcurl_searchparams_setradius(flickcurl_search_params * params, double value);
 	void bmx_flickcurl_searchparams_setradiusunits(flickcurl_search_params * params, BBString * value);
 	void bmx_flickcurl_searchparams_setcontacts(flickcurl_search_params * params, BBString * value);
+	void bmx_flickcurl_searchparams_setwoeid(flickcurl_search_params * params, int value);
+	void bmx_flickcurl_searchparams_setgeocontext(flickcurl_search_params * params, int value);
+	void bmx_flickcurl_searchparams_setiscommons(flickcurl_search_params * params, int value);
+	void bmx_flickcurl_searchparams_setingallery(flickcurl_search_params * params, int value);
 	void bmx_flickcurl_searchparams_delete(flickcurl_search_params * params);
 
 	flickcurl_photo * bmx_flickcurl_tag_getphoto(flickcurl_tag * tag);
@@ -270,6 +276,10 @@ extern "C" {
 	flickcurl_photo** bmx_flickcurl_getcontactspublicphotos(flickcurl * fc, BBString * user, int photoCount, int justFriends,
 			int singlePhoto, int includeSelf, BBString * extras);
 
+
+	int bmx_flickcurl_listofplaces_getplacecount(flickcurl_place ** list);
+	flickcurl_place * bmx_flickcurl_listofplaces_getplace(flickcurl_place ** list, int index);
+
 }
 
 
@@ -340,6 +350,13 @@ flickcurl_place * bmx_flickcurl_resolveplaceurl(flickcurl * fc, BBString * url) 
 
 flickcurl_place * bmx_flickcurl_findplacebylatlon(flickcurl * fc, double lat, double lon, int accuracy) {
 	return flickcurl_places_findByLatLon(fc, lat, lon, accuracy);
+}
+
+flickcurl_place ** bmx_flickcurl_placesfind(flickcurl * fc, BBString * query) {
+	char *p=bbStringToCString( query );
+	flickcurl_place ** places = flickcurl_places_find(fc, p);
+	bbMemFree( p );
+	return places;
 }
 
 int bmx_flickcurl_getprefscontenttype(flickcurl * fc) {
@@ -587,6 +604,12 @@ void bmx_flickcurl_place_free(flickcurl_place * place) {
 	flickcurl_free_place(place);
 }
 
+int bmx_flickcurl_place_gettypebylabel(BBString * label) {
+	char *p=bbStringToCString( label );
+	int res = flickcurl_get_place_type_by_label(p);
+	bbMemFree(p);
+	return res;
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -783,6 +806,22 @@ void bmx_flickcurl_searchparams_setcontacts(flickcurl_search_params * params, BB
 	}
 	char *p=bbStringToCString( value );
 	params->contacts = p;
+}
+
+void bmx_flickcurl_searchparams_setwoeid(flickcurl_search_params * params, int value) {
+	params->woe_id = value;
+}
+
+void bmx_flickcurl_searchparams_setgeocontext(flickcurl_search_params * params, int value) {
+	params->geo_context = value;
+}
+
+void bmx_flickcurl_searchparams_setiscommons(flickcurl_search_params * params, int value) {
+	params->is_commons = value;
+}
+
+void bmx_flickcurl_searchparams_setingallery(flickcurl_search_params * params, int value) {
+	params->in_gallery = value;
 }
 
 void bmx_flickcurl_searchparams_delete(flickcurl_search_params * params) {
@@ -1639,5 +1678,22 @@ BBObject * bmx_flickcurl_listofcontacts_getcontact(flickcurl_contact** list, int
 	return _bah_flickcurl_TFCContact__create(bbStringFromCString(c->nsid), bbStringFromCString(c->username), 
 			c->iconserver, bbStringFromCString(c->realname), c->is_friend, c->is_family, c->ignored, c->uploaded);
 
+}
+
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int bmx_flickcurl_listofplaces_getplacecount(flickcurl_place ** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+flickcurl_place * bmx_flickcurl_listofplaces_getplace(flickcurl_place ** list, int index) {
+	return list[index];
 }
 

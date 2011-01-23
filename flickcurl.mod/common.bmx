@@ -1,4 +1,4 @@
-' Copyright 2008,2009 Bruce A Henderson
+' Copyright 2008-2011 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ Extern
 	Function bmx_flickcurl_resolveplaceid:Byte Ptr(handle:Byte Ptr, placeID:String)
 	Function bmx_flickcurl_resolveplaceurl:Byte Ptr(handle:Byte Ptr, url:String)
 	Function bmx_flickcurl_findplacebylatlon:Byte Ptr(handle:Byte Ptr, lat:Double, lon:Double, accuracy:Int)
+	Function bmx_flickcurl_placesfind:Byte Ptr(handle:Byte Ptr, query:String)
 
 	Function bmx_flickcurl_getprefscontenttype:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_getprefsgeoperms:Int(handle:Byte Ptr)
@@ -83,6 +84,7 @@ Extern
 	Function bmx_flickcurl_place_getlocation:Object(handle:Byte Ptr)
 	Function bmx_flickcurl_place_getcount:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_place_free(handle:Byte Ptr)
+	Function bmx_flickcurl_place_gettypebylabel:Int(label:String)
 
 	Function bmx_flickcurl_searchparams_new:Byte Ptr()
 	Function bmx_flickcurl_searchparams_setuserid(handle:Byte Ptr, value:String)
@@ -114,6 +116,10 @@ Extern
 	Function bmx_flickcurl_searchparams_setradius(handle:Byte Ptr, value:Double)
 	Function bmx_flickcurl_searchparams_setradiusunits(handle:Byte Ptr, value:String)
 	Function bmx_flickcurl_searchparams_setcontacts(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setwoeid(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setgeocontext(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setiscommons(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setingallery(handle:Byte Ptr, value:Int)
 	Function bmx_flickcurl_searchparams_delete(handle:Byte Ptr)
 
 	Function bmx_flickcurl_tag_getphoto:Byte Ptr(handle:Byte Ptr)
@@ -254,6 +260,9 @@ Extern
 	Function bmx_flickcurl_getcontactspublicphotos:Byte Ptr(handle:Byte Ptr, user:String, photoCount:Int, justFriends:Int, ..
 			singlePhoto:Int, includeSelf:Int, extras:String)
 
+	Function bmx_flickcurl_listofplaces_getplacecount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listofplaces_getplace:Byte Ptr(handle:Byte Ptr, index:Int)
+
 
 	' API direct functions
 	Function flickcurl_init:Int()
@@ -269,6 +278,7 @@ Extern
 	Function flickcurl_free_activities(handle:Byte Ptr)
 	Function flickcurl_free_institutions(handle:Byte Ptr)
 	Function flickcurl_free_contacts(handle:Byte Ptr)
+	Function flickcurl_free_places(handle:Byte Ptr)
 
 End Extern
 
@@ -335,8 +345,16 @@ Const PHOTO_FIELD_country_woeid:Int = 48
 Const PHOTO_FIELD_usage_candownload:Int = 49
 Const PHOTO_FIELD_usage_canblog:Int = 50
 Const PHOTO_FIELD_usage_canprint:Int = 51
+Const PHOTO_FIELD_owner_iconserver:Int = 52
+Const PHOTO_FIELD_owner_iconfarm:Int = 53
+Const PHOTO_FIELD_original_width:Int = 54
+Const PHOTO_FIELD_original_height:Int = 55
+Const PHOTO_FIELD_views:Int = 56
+Const PHOTO_FIELD_comments:Int = 57
+Const PHOTO_FIELD_favorites:Int = 58
+Const PHOTO_FIELD_gallery_comment:Int = 59
 Const PHOTO_FIELD_FIRST:Int = PHOTO_FIELD_dateuploaded
-Const PHOTO_FIELD_LAST:Int = PHOTO_FIELD_usage_canprint
+Const PHOTO_FIELD_LAST:Int = PHOTO_FIELD_gallery_comment
 
 
 Const VALUE_TYPE_NONE:Int = 0
@@ -351,7 +369,10 @@ Const VALUE_TYPE_STRING:Int = 8
 Const VALUE_TYPE_URI:Int = 9
 Const VALUE_TYPE_PERSON_ID:Int = 10
 Const VALUE_TYPE_MEDIA_TYPE:Int = 11
-Const VALUE_TYPE_LAST:Int = VALUE_TYPE_MEDIA_TYPE
+Const VALUE_TYPE_TAG_STRING:Int = 12
+Const VALUE_TYPE_COLLECTION_ID:Int = 13
+Const VALUE_TYPE_ICON_PHOTOS:Int = 14
+Const VALUE_TYPE_LAST:Int = VALUE_TYPE_ICON_PHOTOS
 
 Const FLICKCURL_PLACE_LOCATION:Int = 0
 Const FLICKCURL_PLACE_NEIGHBOURHOOD:Int = 1
@@ -360,7 +381,8 @@ Const FLICKCURL_PLACE_LOCALITY:Int = 2
 Const FLICKCURL_PLACE_COUNTY:Int = 3
 Const FLICKCURL_PLACE_REGION:Int = 4
 Const FLICKCURL_PLACE_COUNTRY:Int = 5
-Const FLICKCURL_PLACE_LAST:Int = FLICKCURL_PLACE_COUNTRY
+Const FLICKCURL_PLACE_CONTINENT:Int = 6
+Const FLICKCURL_PLACE_LAST:Int = FLICKCURL_PLACE_CONTINENT
 
 Const PERSON_FIELD_none:Int = 0
 Const PERSON_FIELD_isadmin:Int = 1

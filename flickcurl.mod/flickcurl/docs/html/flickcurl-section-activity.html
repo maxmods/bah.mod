@@ -1,0 +1,351 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Activity</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-searching-search-example.html" title="Photos search example">
+<link rel="next" href="flickcurl-section-auth.html" title="Authentication">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-searching-search-example.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-auth.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-activity.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-activity.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Activity">
+<a name="flickcurl-section-activity"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-activity.top_of_page"></a>Activity</span></h2>
+<p>Activity — Activity on notes and comments</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-activity.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-activity.html#flickcurl-activity" title="flickcurl_activity">flickcurl_activity</a>;
+                    <a class="link" href="flickcurl-section-activity.html#flickcurl-activity-event" title="flickcurl_activity_event">flickcurl_activity_event</a>;
+<a class="link" href="flickcurl-section-activity.html#flickcurl-activity" title="flickcurl_activity"><span class="returnvalue">flickcurl_activity</span></a>** <a class="link" href="flickcurl-section-activity.html#flickcurl-activity-userComments" title="flickcurl_activity_userComments ()">flickcurl_activity_userComments</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-activity.html#flickcurl-activity" title="flickcurl_activity"><span class="returnvalue">flickcurl_activity</span></a>** <a class="link" href="flickcurl-section-activity.html#flickcurl-activity-userPhotos" title="flickcurl_activity_userPhotos ()">flickcurl_activity_userPhotos</a>      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *timeframe</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-activity.html#flickcurl-free-activities" title="flickcurl_free_activities ()">flickcurl_free_activities</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-activity.html#flickcurl-activity" title="flickcurl_activity"><span class="type">flickcurl_activity</span></a> **activities_object</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-activity.description"></a><h2>Description</h2>
+<p>
+Activity on notes and comments
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-activity.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_activity">
+<a name="flickcurl-activity"></a><h3>flickcurl_activity</h3>
+<pre class="programlisting">typedef struct {
+  char *type; /* photoset or photo */
+  char *owner;
+  char *owner_name;
+  char *primary;
+
+  /* photo info: ID/secret/server/farm */
+  char *id;
+  char *secret;
+  int server;
+  int farm;
+
+  /* counts */
+  int comments_old;
+  int comments_new;
+  int notes_old;
+  int notes_new;
+  int views;
+  int comments;
+  int photos;
+  int faves;
+
+  /* flags */
+  int more;
+  char* title;
+
+  /* Array of events on this item */
+  flickcurl_activity_event* events[FLICKCURL_MAX_ACTIVITY_EVENTS+1];
+} flickcurl_activity;
+</pre>
+<p>
+Comments or photos item with activity
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity.type"></a>type</code></em>;</span></p></td>
+<td>activity type photoset or photo
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity.owner"></a>owner</code></em>;</span></p></td>
+<td>owner NSID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity.owner-name"></a>owner_name</code></em>;</span></p></td>
+<td>owner name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity.primary"></a>primary</code></em>;</span></p></td>
+<td>primary
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity.id"></a>id</code></em>;</span></p></td>
+<td>photo id
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity.secret"></a>secret</code></em>;</span></p></td>
+<td>photo secret
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.server"></a>server</code></em>;</span></p></td>
+<td>photo server
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.farm"></a>farm</code></em>;</span></p></td>
+<td>photo farm
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.comments-old"></a>comments_old</code></em>;</span></p></td>
+<td>old comments count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.comments-new"></a>comments_new</code></em>;</span></p></td>
+<td>new comments count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.notes-old"></a>notes_old</code></em>;</span></p></td>
+<td>old notes count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.notes-new"></a>notes_new</code></em>;</span></p></td>
+<td>new notes count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.views"></a>views</code></em>;</span></p></td>
+<td>views count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.comments"></a>comments</code></em>;</span></p></td>
+<td>comments count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.photos"></a>photos</code></em>;</span></p></td>
+<td>photos count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.faves"></a>faves</code></em>;</span></p></td>
+<td>favourites count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity.more"></a>more</code></em>;</span></p></td>
+<td>more boolean flag
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity.title"></a>title</code></em>;</span></p></td>
+<td>title of acitivty
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><a class="link" href="flickcurl-section-activity.html#flickcurl-activity-event" title="flickcurl_activity_event"><span class="type">flickcurl_activity_event</span></a> *<em class="structfield"><code><a name="flickcurl-activity.events"></a>events</code></em>[FLICKCURL_MAX_ACTIVITY_EVENTS+1];</span></p></td>
+<td>array of events associated with this actiivty
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_activity_event">
+<a name="flickcurl-activity-event"></a><h3>flickcurl_activity_event</h3>
+<pre class="programlisting">typedef struct {
+  char *type; /* comment or note */
+  char *id;
+  char *user;
+  char *username;
+  char *value;
+  int date_added;
+} flickcurl_activity_event;
+</pre>
+<p>
+Comment or photo activity event
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity-event.type"></a>type</code></em>;</span></p></td>
+<td>activty event type
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity-event.id"></a>id</code></em>;</span></p></td>
+<td>ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity-event.user"></a>user</code></em>;</span></p></td>
+<td>user ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity-event.username"></a>username</code></em>;</span></p></td>
+<td>user name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-activity-event.value"></a>value</code></em>;</span></p></td>
+<td>event value
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-activity-event.date-added"></a>date_added</code></em>;</span></p></td>
+<td>date added
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_activity_userComments ()">
+<a name="flickcurl-activity-userComments"></a><h3>flickcurl_activity_userComments ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-activity.html#flickcurl-activity" title="flickcurl_activity"><span class="returnvalue">flickcurl_activity</span></a>** flickcurl_activity_userComments    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Returns a list of recent activity on photos commented on by the calling user. 
+</p>
+<p>
+Implements flickr.activity.userComments (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of items to return per page. If this argument is omitted, it defaults to 10. The maximum allowed value is 50.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_activity_userPhotos ()">
+<a name="flickcurl-activity-userPhotos"></a><h3>flickcurl_activity_userPhotos ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-activity.html#flickcurl-activity" title="flickcurl_activity"><span class="returnvalue">flickcurl_activity</span></a>** flickcurl_activity_userPhotos      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *timeframe</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Returns a list of recent activity on photos belonging to the calling user. Do not poll this method more than once an hour.
+</p>
+<p>
+Implements flickr.activity.userPhotos (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>timeframe</code></em> :</span></p></td>
+<td>The timeframe in which to return updates for. This can be specified in days (<code class="code">'2d'</code>) or hours (<code class="code">'4h'</code>). The default behavoir is to return changes since the beginning of the previous user session. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of items to return per page. If this argument is omitted, it defaults to 10. The maximum allowed value is 50. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_activities ()">
+<a name="flickcurl-free-activities"></a><h3>flickcurl_free_activities ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_activities           (<em class="parameter"><code><a class="link" href="flickcurl-section-activity.html#flickcurl-activity" title="flickcurl_activity"><span class="type">flickcurl_activity</span></a> **activities_object</code></em>);</pre>
+<p>
+Destructor for array of activity objects
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>activities_object</code></em> :</span></p></td>
+<td>activity object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

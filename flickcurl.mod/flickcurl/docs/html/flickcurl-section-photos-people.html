@@ -1,0 +1,331 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Photos containing people.</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-photo.html" title="Photo">
+<link rel="next" href="flickcurl-section-photoslist.html" title="Photos List">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-photo.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-photoslist.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-photos-people.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-photos-people.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Photos containing people.">
+<a name="flickcurl-section-photos-people"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-photos-people.top_of_page"></a>Photos containing people.</span></h2>
+<p>Photos containing people. — Photos containing people.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-photos-people.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis"><span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photos-people.html#flickcurl-photos-people-add" title="flickcurl_photos_people_add ()">flickcurl_photos_people_add</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_x</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_y</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_w</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_h</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photos-people.html#flickcurl-photos-people-delete" title="flickcurl_photos_people_delete ()">flickcurl_photos_people_delete</a>      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photos-people.html#flickcurl-photos-people-deleteCoords" title="flickcurl_photos_people_deleteCoords ()">flickcurl_photos_people_deleteCoords</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photos-people.html#flickcurl-photos-people-editCoords" title="flickcurl_photos_people_editCoords ()">flickcurl_photos_people_editCoords</a>  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_x</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_y</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_w</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_h</code></em>);
+<a class="link" href="flickcurl-section-person.html#flickcurl-person" title="flickcurl_person"><span class="returnvalue">flickcurl_person</span></a>**  <a class="link" href="flickcurl-section-photos-people.html#flickcurl-photos-people-getList" title="flickcurl_photos_people_getList ()">flickcurl_photos_people_getList</a>     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-photos-people.description"></a><h2>Description</h2>
+<p>
+Photos containing people.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-photos-people.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_photos_people_add ()">
+<a name="flickcurl-photos-people-add"></a><h3>flickcurl_photos_people_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photos_people_add         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_x</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_y</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_w</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_h</code></em>);</pre>
+<p>
+Add a person to a photo. Coordinates and sizes of boxes are optional; they are measured in pixels, based on the 500px image size shown on individual photo pages.
+</p>
+<p>
+Implements flickr.photos.people.add (1.17)
+</p>
+<p>
+Announced 2010-01-21
+http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to add a person to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user to add to the photo.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_x</code></em> :</span></p></td>
+<td>The left-most pixel co-ordinate of the box around the person. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_y</code></em> :</span></p></td>
+<td>The top-most pixel co-ordinate of the box around the person. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_w</code></em> :</span></p></td>
+<td>The width (in pixels) of the box around the person. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_h</code></em> :</span></p></td>
+<td>The height (in pixels) of the box around the person. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photos_people_delete ()">
+<a name="flickcurl-photos-people-delete"></a><h3>flickcurl_photos_people_delete ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photos_people_delete      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);</pre>
+<p>
+Remove a person from a photo.
+</p>
+<p>
+Implements flickr.photos.people.delete (1.17)
+</p>
+<p>
+Announced 2010-01-21
+http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to remove a person from.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the person to remove from the photo.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photos_people_deleteCoords ()">
+<a name="flickcurl-photos-people-deleteCoords"></a><h3>flickcurl_photos_people_deleteCoords ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photos_people_deleteCoords
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);</pre>
+<p>
+Remove the bounding box from a person in a photo
+</p>
+<p>
+Implements flickr.photos.people.deleteCoords (1.17)
+</p>
+<p>
+Announced 2010-01-21
+http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to edit a person in.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the person whose bounding box you want to remove.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photos_people_editCoords ()">
+<a name="flickcurl-photos-people-editCoords"></a><h3>flickcurl_photos_people_editCoords ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photos_people_editCoords  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_x</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_y</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_w</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> person_h</code></em>);</pre>
+<p>
+Edit the bounding box of an existing person on a photo.
+</p>
+<p>
+Implements flickr.photos.people.editCoords (1.17)
+</p>
+<p>
+Announced 2010-01-21
+http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to edit a person in.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the person to edit in a photo.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_x</code></em> :</span></p></td>
+<td>The left-most pixel co-ordinate of the box around the person.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_y</code></em> :</span></p></td>
+<td>The top-most pixel co-ordinate of the box around the person.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_w</code></em> :</span></p></td>
+<td>The width (in pixels) of the box around the person.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>person_h</code></em> :</span></p></td>
+<td>The height (in pixels) of the box around the person.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photos_people_getList ()">
+<a name="flickcurl-photos-people-getList"></a><h3>flickcurl_photos_people_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-person.html#flickcurl-person" title="flickcurl_person"><span class="returnvalue">flickcurl_person</span></a>**  flickcurl_photos_people_getList     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Get a list of people in a given photo.
+</p>
+<p>
+Implements flickr.photos.people.getList (1.17)
+</p>
+<p>
+Announced 2010-01-21
+http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to get a list of people for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> list of persons or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

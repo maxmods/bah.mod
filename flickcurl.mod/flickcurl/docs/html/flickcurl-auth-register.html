@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Register application to get API Key and Shared Secret</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="flickcurl-auth.html" title="Authenticating Flickcurl">
+<link rel="prev" href="flickcurl-auth.html" title="Authenticating Flickcurl">
+<link rel="next" href="flickcurl-auth-authenticate.html" title="Getting Authentication Token from API Key and Secret">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2"><tr valign="middle">
+<td><a accesskey="p" href="flickcurl-auth.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="flickcurl-auth.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-auth-authenticate.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="section" title="Register application to get API Key and Shared Secret">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="flickcurl-auth-register"></a>Register application to get API Key and Shared Secret</h2></div></div></div>
+<p>NOTE: In the pictures below, the Flickr web site is shown in
+English and the screenshots taken in early December 2009.  Flickr
+upgrade the web site often so these instructions may not match the
+latest look.  Hopefully you can figure it out!</p>
+<p>
+Start by navigating to the Flickr <span class="emphasis"><em>App Garden</em></span> at
+<a class="ulink" href="http://www.flickr.com/services/" target="_top">http://www.flickr.com/services/</a>
+and follow the link 'Create an App' taking you to 
+<a class="ulink" href="http://www.flickr.com/services/apps/create/" target="_top">http://www.flickr.com/services/apps/create/</a>
+</p>
+<div class="mediaobject" align="center">
+<img src="appgarden-get-your-api-key.png" align="middle" width="432"><div class="caption"><p>Flickr App Garden - Get your API Key</p></div>
+</div>
+<p>
+Select the link 'Request an API Key' taking you to
+<a class="ulink" href="http://www.flickr.com/services/apps/create/apply/" target="_top">http://www.flickr.com/services/apps/create/apply/</a>
+</p>
+<div class="mediaobject" align="center">
+<img src="appgarden-commercial-picker.png" align="middle" width="432"><div class="caption"><p>Flickr App Garden - Commercial / Non-Commercial</p></div>
+</div>
+<p>
+Select either of the two buttons:
+'Apply for a Non-Commercial Key' or 'Apply for a Commercial Key'
+as appropriate.
+</p>
+<div class="mediaobject" align="center">
+<img src="appgarden-tell-us-about-your-app.png" align="middle" width="432"><div class="caption"><p>Flickr App Garden - Describe application</p></div>
+</div>
+<p>
+Fill in the form fields and submit it via the 'Submit' button.  
+</p>
+<div class="mediaobject" align="center">
+<img src="appgarden-new-api-key-secret.png" align="middle" width="432"><div class="caption"><p>Flickr App Garden - Key and Secret</p></div>
+</div>
+<p>Flickr will return a page containing both the
+API <span class="emphasis"><em>Key</em></span> that looks something like:
+</p>
+<pre class="programlisting">
+   0123456789abcdef0123456789abcdef
+</pre>
+<p>and <span class="emphasis"><em>Secret</em></span> which looks something like:</p>
+<pre class="programlisting">
+   fedcba9876543210
+</pre>
+<p>
+These strings should be used for the values of the <code class="code">api</code>
+and <code class="code">secret</code> keys in either the <code class="code">~/.flickcurl.conf</code>
+if used with the flickcurl utility or in code, with the
+<a class="link" href="flickcurl-section-core.html#flickcurl-set-api-key" title="flickcurl_set_api_key ()">flickcurl_set_api_key()</a>
+and
+<a class="link" href="flickcurl-section-core.html#flickcurl-set-shared-secret" title="flickcurl_set_shared_secret ()">flickcurl_set_shared_secret()</a>
+functions.
+</p>
+<p>
+You now need to change the key to be of type mobile since no callback
+URL is usually appropriate for a command-line application or library.
+</p>
+<p>
+Click the 'Edit auth flow for this app' link below the
+<span class="emphasis"><em>Key</em></span> and <span class="emphasis"><em>Secret</em></span>
+</p>
+<div class="mediaobject" align="center">
+<img src="appgarden-edit-auth-flow.png" align="middle" width="432"><div class="caption"><p>Flickr App Garden - Edit authentication flow</p></div>
+</div>
+<p>Change the 'App Type' to 'Mobile Application'
+then set the 'Mobile Permissions' to 'Read', 'Write' Or 'Delete' as
+appropriate.
+</p>
+<div class="mediaobject" align="center">
+<img src="appgarden-edit-auth-flow-mobile.png" align="middle" width="432"><div class="caption"><p>Flickr App Garden - Edit authentication flow: mobile</p></div>
+</div>
+<p>
+This sequence will make the new key 'Auth mode Mobile'
+and an <span class="emphasis"><em>authentication URL</em></span> will be shown on the
+same page and look something like this:
+</p>
+<pre class="programlisting">
+http://www.flickr.com/auth-11111111111111111
+</pre>
+<p>Finish with the 'Save Changes' button to confirm and return
+you to the application page.</p>
+<div class="mediaobject" align="center">
+<img src="appgarden-test-app-page.png" align="middle" width="432"><div class="caption"><p>Flickr App Garden - Application page</p></div>
+</div>
+<p>
+If you ever need to alter or view the authentication, use the link
+'Edit the authentication flow' on right-hand side of the application page.
+</p>
+<p>All your Flickr applications are linked from
+<a class="ulink" href="http://www.flickr.com/services/apps/by/me" target="_top">http://www.flickr.com/services/apps/by/me</a>
+</p>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

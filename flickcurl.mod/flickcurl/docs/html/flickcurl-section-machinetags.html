@@ -1,0 +1,485 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Machine tag</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-group.html" title="Groups">
+<link rel="next" href="flickcurl-section-misc.html" title="Miscellaneous">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-group.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-misc.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-machinetags.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-machinetags.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Machine tag">
+<a name="flickcurl-section-machinetags"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-machinetags.top_of_page"></a>Machine tag</span></h2>
+<p>Machine tag — Machine tags.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-machinetags.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-namespace" title="flickcurl_tag_namespace">flickcurl_tag_namespace</a>;
+                    <a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value">flickcurl_tag_predicate_value</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-machinetags.html#flickcurl-free-tag-namespace" title="flickcurl_free_tag_namespace ()">flickcurl_free_tag_namespace</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-namespace" title="flickcurl_tag_namespace"><span class="type">flickcurl_tag_namespace</span></a> *tag_nspace</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-machinetags.html#flickcurl-free-tag-namespaces" title="flickcurl_free_tag_namespaces ()">flickcurl_free_tag_namespaces</a>       (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-namespace" title="flickcurl_tag_namespace"><span class="type">flickcurl_tag_namespace</span></a> **tag_nspaces</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-machinetags.html#flickcurl-free-tag-predicate-value" title="flickcurl_free_tag_predicate_value ()">flickcurl_free_tag_predicate_value</a>  (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="type">flickcurl_tag_predicate_value</span></a> *tag_pv</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-machinetags.html#flickcurl-free-tag-predicate-values" title="flickcurl_free_tag_predicate_values ()">flickcurl_free_tag_predicate_values</a> (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="type">flickcurl_tag_predicate_value</span></a> **tag_pvs</code></em>);
+<a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-namespace" title="flickcurl_tag_namespace"><span class="returnvalue">flickcurl_tag_namespace</span></a>** <a class="link" href="flickcurl-section-machinetags.html#flickcurl-machinetags-getNamespaces" title="flickcurl_machinetags_getNamespaces ()">flickcurl_machinetags_getNamespaces</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** <a class="link" href="flickcurl-section-machinetags.html#flickcurl-machinetags-getPairs" title="flickcurl_machinetags_getPairs ()">flickcurl_machinetags_getPairs</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** <a class="link" href="flickcurl-section-machinetags.html#flickcurl-machinetags-getPredicates" title="flickcurl_machinetags_getPredicates ()">flickcurl_machinetags_getPredicates</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** <a class="link" href="flickcurl-section-machinetags.html#flickcurl-machinetags-getRecentValues" title="flickcurl_machinetags_getRecentValues ()">flickcurl_machinetags_getRecentValues</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> added_since</code></em>);
+<a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** <a class="link" href="flickcurl-section-machinetags.html#flickcurl-machinetags-getValues" title="flickcurl_machinetags_getValues ()">flickcurl_machinetags_getValues</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-machinetags.description"></a><h2>Description</h2>
+<p>
+Machine tags.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-machinetags.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_tag_namespace">
+<a name="flickcurl-tag-namespace"></a><h3>flickcurl_tag_namespace</h3>
+<pre class="programlisting">typedef struct {
+  char *name;
+  int usage_count;
+  int predicates_count;
+} flickcurl_tag_namespace;
+</pre>
+<p>
+A machine tags namespace
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag-namespace.name"></a>name</code></em>;</span></p></td>
+<td>Name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag-namespace.usage-count"></a>usage_count</code></em>;</span></p></td>
+<td>Number of uses of this namespace
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag-namespace.predicates-count"></a>predicates_count</code></em>;</span></p></td>
+<td>Number of predicates for this namespace
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tag_predicate_value">
+<a name="flickcurl-tag-predicate-value"></a><h3>flickcurl_tag_predicate_value</h3>
+<pre class="programlisting">typedef struct {
+  int usage_count;
+  char *predicate;
+  int used_in_namespace_count;
+  char *value;
+} flickcurl_tag_predicate_value;
+</pre>
+<p>
+A machine tag predicate-value pair
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag-predicate-value.usage-count"></a>usage_count</code></em>;</span></p></td>
+<td>Number of uses of this predicate-value pair
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag-predicate-value.predicate"></a>predicate</code></em>;</span></p></td>
+<td>Predicate name or NULL
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag-predicate-value.used-in-namespace-count"></a>used_in_namespace_count</code></em>;</span></p></td>
+<td>number of namespaces this pair is used in
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag-predicate-value.value"></a>value</code></em>;</span></p></td>
+<td>Value or NULL
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_tag_namespace ()">
+<a name="flickcurl-free-tag-namespace"></a><h3>flickcurl_free_tag_namespace ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_tag_namespace        (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-namespace" title="flickcurl_tag_namespace"><span class="type">flickcurl_tag_namespace</span></a> *tag_nspace</code></em>);</pre>
+<p>
+Destructor for machinetag namespace object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>tag_nspace</code></em> :</span></p></td>
+<td>machinetag namespace object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_tag_namespaces ()">
+<a name="flickcurl-free-tag-namespaces"></a><h3>flickcurl_free_tag_namespaces ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_tag_namespaces       (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-namespace" title="flickcurl_tag_namespace"><span class="type">flickcurl_tag_namespace</span></a> **tag_nspaces</code></em>);</pre>
+<p>
+Destructor for array of namespace object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>tag_nspaces</code></em> :</span></p></td>
+<td>namespace object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_tag_predicate_value ()">
+<a name="flickcurl-free-tag-predicate-value"></a><h3>flickcurl_free_tag_predicate_value ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_tag_predicate_value  (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="type">flickcurl_tag_predicate_value</span></a> *tag_pv</code></em>);</pre>
+<p>
+Destructor for machinetag predicate-value pair  object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>tag_pv</code></em> :</span></p></td>
+<td>machinetag predicate_value object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_tag_predicate_values ()">
+<a name="flickcurl-free-tag-predicate-values"></a><h3>flickcurl_free_tag_predicate_values ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_tag_predicate_values (<em class="parameter"><code><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="type">flickcurl_tag_predicate_value</span></a> **tag_pvs</code></em>);</pre>
+<p>
+Destructor for array of predicate_value object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>tag_pvs</code></em> :</span></p></td>
+<td>predicate_value object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_machinetags_getNamespaces ()">
+<a name="flickcurl-machinetags-getNamespaces"></a><h3>flickcurl_machinetags_getNamespaces ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-namespace" title="flickcurl_tag_namespace"><span class="returnvalue">flickcurl_tag_namespace</span></a>** flickcurl_machinetags_getNamespaces
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Return a list of unique namespaces, optionally limited by a given predicate, in alphabetical order.
+</p>
+<p>
+Implements flickr.machinetags.getNamespaces (1.7)
+</p>
+<p>
+As announced 2008-11-18
+http://tech.groups.yahoo.com/group/yws-flickr/message/4545
+and
+http://code.flickr.com/blog/2008/12/15/machine-tag-hierarchies/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>predicate</code></em> :</span></p></td>
+<td>Limit the list of namespaces returned to those that have the following predicate (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of namespaces to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of namespaces or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_machinetags_getPairs ()">
+<a name="flickcurl-machinetags-getPairs"></a><h3>flickcurl_machinetags_getPairs ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** flickcurl_machinetags_getPairs
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Return a list of unique namespace and predicate pairs, optionally limited by predicate or namespace, in alphabetical order.
+</p>
+<p>
+Implements flickr.machinetags.getPairs (1.7)
+</p>
+<p>
+As announced 2008-11-18
+http://tech.groups.yahoo.com/group/yws-flickr/message/4545
+and
+http://code.flickr.com/blog/2008/12/15/machine-tag-hierarchies/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nspace</code></em> :</span></p></td>
+<td>Limit the list of pairs returned to those that have the following namespace (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>predicate</code></em> :</span></p></td>
+<td>Limit the list of pairs returned to those that have the following predicate (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of pairs to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of pairs or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_machinetags_getPredicates ()">
+<a name="flickcurl-machinetags-getPredicates"></a><h3>flickcurl_machinetags_getPredicates ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** flickcurl_machinetags_getPredicates
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Return a list of unique predicates, optionally limited by a given namespace.
+</p>
+<p>
+Implements flickr.machinetags.getPredicates (1.7)
+</p>
+<p>
+As announced 2008-11-18
+http://tech.groups.yahoo.com/group/yws-flickr/message/4545
+and
+http://code.flickr.com/blog/2008/12/15/machine-tag-hierarchies/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nspace</code></em> :</span></p></td>
+<td>Limit the list of predicates returned to those that have the following namespace (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of predicates to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of predicates or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_machinetags_getRecentValues ()">
+<a name="flickcurl-machinetags-getRecentValues"></a><h3>flickcurl_machinetags_getRecentValues ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** flickcurl_machinetags_getRecentValues
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> added_since</code></em>);</pre>
+<p>
+Fetch recently used machine tags values.
+</p>
+<p>
+Implements flickr.machinetags.getRecentValues (1.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nspace</code></em> :</span></p></td>
+<td>A namespace that all values should be restricted to (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>predicate</code></em> :</span></p></td>
+<td>A predicate that all values should be restricted to (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>added_since</code></em> :</span></p></td>
+<td>Only return machine tags values that have been added since this timestamp, in epoch seconds (or &lt;0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of values or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_machinetags_getValues ()">
+<a name="flickcurl-machinetags-getValues"></a><h3>flickcurl_machinetags_getValues ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-machinetags.html#flickcurl-tag-predicate-value" title="flickcurl_tag_predicate_value"><span class="returnvalue">flickcurl_tag_predicate_value</span></a>** flickcurl_machinetags_getValues
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *nspace</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *predicate</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Return a list of unique values for a namespace and predicate.
+</p>
+<p>
+Implements flickr.machinetags.getValues (1.7)
+</p>
+<p>
+As announced 2008-11-18
+http://tech.groups.yahoo.com/group/yws-flickr/message/4545
+and
+http://code.flickr.com/blog/2008/12/15/machine-tag-hierarchies/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nspace</code></em> :</span></p></td>
+<td>The namespace that all values should be restricted to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>predicate</code></em> :</span></p></td>
+<td>The predicate that all values should be restricted to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of values to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of values or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

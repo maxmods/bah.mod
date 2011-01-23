@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Flickcurl
+Description: Flickr API Library
+Version: @VERSION@
+Libs: -L${libdir} -lflickcurl
+Libs.private: @LIBS@
+Cflags: -I${includedir}
+Requires:@PKG_CONFIG_REQUIRES@
+

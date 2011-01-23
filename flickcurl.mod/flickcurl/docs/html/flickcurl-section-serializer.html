@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Serializer</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-reflection.html" title="Reflection">
+<link rel="next" href="flickcurl-section-stats.html" title="Statistics.">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-reflection.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-stats.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-serializer.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-serializer.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Serializer">
+<a name="flickcurl-section-serializer"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-serializer.top_of_page"></a>Serializer</span></h2>
+<p>Serializer — Serialize a photo to RDF Triples.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-serializer.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">typedef             <a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer" title="flickcurl_serializer">flickcurl_serializer</a>;
+                    <a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer-factory" title="flickcurl_serializer_factory">flickcurl_serializer_factory</a>;
+<a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer" title="flickcurl_serializer"><span class="returnvalue">flickcurl_serializer</span></a>* <a class="link" href="flickcurl-section-serializer.html#flickcurl-new-serializer" title="flickcurl_new_serializer ()">flickcurl_new_serializer</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer-factory" title="flickcurl_serializer_factory"><span class="type">flickcurl_serializer_factory</span></a> *factory</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-serializer.html#flickcurl-free-serializer" title="flickcurl_free_serializer ()">flickcurl_free_serializer</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer" title="flickcurl_serializer"><span class="type">flickcurl_serializer</span></a> *serializer</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-serializer.html#flickcurl-serialize-photo" title="flickcurl_serialize_photo ()">flickcurl_serialize_photo</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer" title="flickcurl_serializer"><span class="type">flickcurl_serializer</span></a> *fcs</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="type">flickcurl_photo</span></a> *photo</code></em>);
+enum                <a class="link" href="flickcurl-section-serializer.html#flickcurl-term-type" title="enum flickcurl_term_type">flickcurl_term_type</a>;
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-serializer.description"></a><h2>Description</h2>
+<p>
+Serialize a photo to RDF Triples.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-serializer.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_serializer">
+<a name="flickcurl-serializer"></a><h3>flickcurl_serializer</h3>
+<pre class="programlisting">typedef struct flickcurl_serializer_s flickcurl_serializer;
+</pre>
+<p>
+Serializer from Photo and metadata to RDF triples
+</p>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_serializer_factory">
+<a name="flickcurl-serializer-factory"></a><h3>flickcurl_serializer_factory</h3>
+<pre class="programlisting">typedef struct {
+  int version;
+  void (*emit_namespace)(void* user_data, const char* prefix, size_t prefix_len, const char* uri, size_t uri_len);
+  void (*emit_triple)(void* user_data,
+                      const char* subject, int subject_type,
+                      const char* predicate_nspace, const char* predicate_name,
+                      const char *object, int object_type,
+                      const char *datatype_uri);
+  void (*emit_finish)(void* user_data);
+} flickcurl_serializer_factory;
+</pre>
+<p>
+Triples serializer factory
+</p>
+<p>
+API version 1 is all that is supported.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-serializer-factory.version"></a>version</code></em>;</span></p></td>
+<td>API version
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="structfield"><code><a name="flickcurl-serializer-factory.emit-namespace"></a>emit_namespace</code></em> ()</span></p></td>
+<td>(V1) emit namespace callback
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="structfield"><code><a name="flickcurl-serializer-factory.emit-triple"></a>emit_triple</code></em> ()</span></p></td>
+<td>(V1) emit a triple
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="structfield"><code><a name="flickcurl-serializer-factory.emit-finish"></a>emit_finish</code></em> ()</span></p></td>
+<td>(V1) finish emitting
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_new_serializer ()">
+<a name="flickcurl-new-serializer"></a><h3>flickcurl_new_serializer ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer" title="flickcurl_serializer"><span class="returnvalue">flickcurl_serializer</span></a>* flickcurl_new_serializer          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer-factory" title="flickcurl_serializer_factory"><span class="type">flickcurl_serializer_factory</span></a> *factory</code></em>);</pre>
+<p>
+Create a new triples serializer for generating a RDF triples
+representation of a Flickr photo.
+</p>
+<p>
+The factory must contain the methods and the correct factory API
+version as described in <a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer-factory" title="flickcurl_serializer_factory"><span class="type">flickcurl_serializer_factory</span></a>
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl object
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
+<td>user data for factory methods
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>factory</code></em> :</span></p></td>
+<td>triples serializer factory
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> a new serializer object or NULL on failure
+
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_serializer ()">
+<a name="flickcurl-free-serializer"></a><h3>flickcurl_free_serializer ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_serializer           (<em class="parameter"><code><a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer" title="flickcurl_serializer"><span class="type">flickcurl_serializer</span></a> *serializer</code></em>);</pre>
+<p>
+Destructor for triples serializer object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>serializer</code></em> :</span></p></td>
+<td>serializer object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_serialize_photo ()">
+<a name="flickcurl-serialize-photo"></a><h3>flickcurl_serialize_photo ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_serialize_photo           (<em class="parameter"><code><a class="link" href="flickcurl-section-serializer.html#flickcurl-serializer" title="flickcurl_serializer"><span class="type">flickcurl_serializer</span></a> *fcs</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="type">flickcurl_photo</span></a> *photo</code></em>);</pre>
+<p>
+Serialize photo description to RDF triples
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fcs</code></em> :</span></p></td>
+<td>flickcurl serializer object
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo</code></em> :</span></p></td>
+<td>photo object
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="enum flickcurl_term_type">
+<a name="flickcurl-term-type"></a><h3>enum flickcurl_term_type</h3>
+<pre class="programlisting">typedef enum {
+  FLICKCURL_TERM_TYPE_RESOURCE = 1,
+  FLICKCURL_TERM_TYPE_BLANK    = 2,
+  FLICKCURL_TERM_TYPE_LITERAL  = 5
+} flickcurl_term_type;
+</pre>
+<p>
+Triple part types
+</p>
+<p>
+These are the same as raptor_identifier_type values.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><a name="FLICKCURL-TERM-TYPE-RESOURCE:CAPS"></a><span class="term"><code class="literal">FLICKCURL_TERM_TYPE_RESOURCE</code></span></p></td>
+<td>resource/URI term
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-TERM-TYPE-BLANK:CAPS"></a><span class="term"><code class="literal">FLICKCURL_TERM_TYPE_BLANK</code></span></p></td>
+<td>blank node/anonymous term
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-TERM-TYPE-LITERAL:CAPS"></a><span class="term"><code class="literal">FLICKCURL_TERM_TYPE_LITERAL</code></span></p></td>
+<td>literal term
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

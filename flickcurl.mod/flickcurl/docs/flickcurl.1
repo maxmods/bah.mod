@@ -1,0 +1,604 @@
+.TH FLICKCURL 1 "1 September 2008"
+.SH NAME
+flickcurl \- call Flickr API
+.SH SYNOPSIS
+.B flickcurl
+\fB\-a \fIFROB\fP\fR
+.br
+.B flickcurl
+[\fB\-d \fIDELAY\fP\fR] [\fB\-h\fR] [\fB\-o FILE\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-V\fR] [\fIcommands\fR] ...
+.br
+.SH DESCRIPTION
+\fBflickcurl\fP is a utility program to call the Flickr APIs via the
+flickcurl library.  Run \fIflickcurl \-h\fP to get a list of
+the supported commands and their arguments.
+.LP
+The program requires configuring before use to work with the Flickr
+APIs.  Run \fBflickcurl\fP without any options to get the instructions
+for registering the application and creating the initial
+configuration file \fI~/.flickcurl.conf\fP from the registration
+information.
+.SH OPTIONS
+These programs follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+.TP
+.B \-a \fIFROB\fP, \-\-auth \fIFROB\fP
+Authenticate with a \fIFROB\fP and update the authentication file.
+The program will exit after updating the file.
+.TP
+.B \-d \fIDELAY\fP, \-\-delay \fIDELAY\fP
+Set delay between requests to \fIDELAY\fP milliseconds.
+.TP
+.B \-h, \-\-help
+Show summary of options and exit.
+.TP
+.B \-o \fIFILE\fP, \-\-output \fIFILE\fP
+Write the results of format feed API calls to \fIFILE\fP
+.TP
+.B \-q, \-\-quiet
+Display less information while the program runs.
+.TP
+.B \-v, \-\-version
+Display the version of the program and exit.
+.TP
+.B \-V, \-\-verbose
+Display more information while the program runs.
+.SH COMMANDS
+.IP "\fBactivity.userComments\fP \fI[PER-PAGE [PAGE]]\fP"
+Get photos commented on by the caller.
+.IP "\fBactivity.userPhotos\fP \fI[TIMEFRAME [PER-PAGE [PAGE]]]\fP"
+Get recent activity on the caller's photos.
+.IP "\fBauth.checkToken\fP \fITOKEN\fP"
+Get the credentials attached to an authentication TOKEN.
+.IP "\fBauth.getFrob\fP \fI\fP"
+Get a frob to be used during authentication.
+.IP "\fBauth.getFullToken\fP \fIMINI-TOKEN\fP"
+Get the full authentication token for MINI-TOKEN.
+.IP "\fBauth.getToken\fP \fITOKEN\fP"
+Get the auth token for the FROB, if one has been attached.
+.IP "\fBblogs.getList\fP \fI\fP"
+Get a list of configured blogs for the calling user.
+.IP "\fBblogs.getServices\fP \fI\fP"
+Get a list of blog services.
+.IP "\fBblogs.postPhoto\fP \fIBLOG-ID PHOTO-ID TITLE DESCRIPTION [BLOG-PASSWORD]\fP"
+Post PHOTO-ID to blog BLOG-ID with TITLE, DESCRIPTION and optional password.
+.IP "\fBcollections.getInfo\fP \fICOLLECTION-ID\fP"
+Get information on collection COLLECTION-ID
+.IP "\fBcollections.getTree\fP \fI[COLLECTION-ID|- [USER-ID|-]]\fP"
+Get tree of collections COLLECTION-ID for USER-ID
+.IP "\fBcommons.getInstitutions\fP \fI\fP"
+Get list of institutions
+.IP "\fBcontacts.getList\fP \fI[FILTER [PER-PAGE [PAGE]]]\fP"
+Get a list of contacts with optional FILTER
+.IP "\fBcontacts.getListRecentlyUploaded\fP \fI[DATE-LAST-UPLOAD [FILTER]]\fP"
+Get a list of recent uploading contacts since DATE-LAST-UPLOAD with optional FILTER
+.IP "\fBfavorites.add\fP \fIPHOTO-ID\fP"
+Adds PHOTO-ID to the current user's favorites.
+.IP "\fBfavorites.getList\fP \fIUSER-NSID [[PER-PAGE] [PAGE [FORMAT]]]\fP"
+Get a list of USER-NSID's favorite photos.
+.IP "\fBfavorites.getPublicList\fP \fIUSER-NSID [[PER-PAGE] [PAGE [FORMAT]]]\fP"
+Get a list of USER-NSID's favorite public photos.
+.IP "\fBfavorites.remove\fP \fIPHOTO-ID\fP"
+Removes PHOTO-ID to the current user's favorites.
+.IP "\fBgalleries.addPhoto\fP \fIGALLERY-ID PHOTO-ID TEXT\fP"
+Add photo PHOTO-ID to galleries GALLERY-ID with TEXT
+.IP "\fBgalleries.create\fP \fITITLE [DESCRIPTION [PRIMARY-PHOTO-ID]\fP"
+Create a new galleries with TITlE, DESCRIPTION and PRIMARY-PHOTO_ID.
+.IP "\fBgalleries.editMeta\fP \fIGALLERY-ID TITLE [DESCRIPTION]\fP"
+Set the TITLE and/or DESCRIPTION of a GALLERY-ID.
+.IP "\fBgalleries.editPhoto\fP \fIGALLERY-ID PHOTO-ID COMMENT\fP"
+Set the COMMENT for PHOTO-ID in GALLERY-ID.
+.IP "\fBgalleries.editPhotos\fP \fIGALLERY-ID PRIMARY-PHOTO-ID PHOTO-IDS,...\fP"
+Set the PHOTO-IDs of a GALLERY-ID and PRIMARY-PHOTO-ID.
+.IP "\fBgalleries.getInfo\fP \fIGALLERY-ID\fP"
+Get information about GALLERY-ID.
+.IP "\fBgalleries.getList\fP \fIUSER-ID [PER-PAGE [PAGE]]\fP"
+Get list of galleries for a USER-ID with optional paging
+.IP "\fBgalleries.getListForPhoto\fP \fIPHOTO-ID [PER-PAGE [PAGE]]\fP"
+Get list of galleries PHOTO-ID appears in with optional paging
+.IP "\fBgalleries.getPhotos\fP \fIGALLERY-ID [EXTRAS [PER-PAGE [PAGE [FORMAT]]]]\fP"
+Get the list of photos in GALLERY-ID with options.
+.IP "\fBgetphotoid\fP \fIIMAGE-URL\fP"
+Get the photo id from a raw flickr farm IMAGE-URL
+.IP "\fBgroups.browse\fP \fI[CAT-ID]\fP"
+Browse groups below category CAT-ID (or root).
+.IP "\fBgroups.getInfo\fP \fIGROUP-ID [LANG]\fP"
+Get information on group GROUP-ID with language LANG.
+.IP "\fBgroups.members.getList\fP \fIGROUP-ID [MEMBER-TYPES [PER-PAGE [PAGE]]]\fP"
+Get list of MEMBER-TYPES types members of group GROUP-ID.
+.IP "\fBgroups.pools.add\fP \fIPHOTO-ID GROUP-ID\fP"
+Add PHOTO-ID in GROUP-ID pool.
+.IP "\fBgroups.pools.getContext\fP \fIPHOTO-ID GROUP-ID\fP"
+Get next and previous photos for PHOTO-ID in GROUP-ID pool.
+.IP "\fBgroups.pools.getGroups\fP \fI[PAGE [PER-PAGE]]\fP"
+Get list of groups a user can add to.
+.IP "\fBgroups.pools.getPhotos\fP \fIGROUP-ID [PAGE [PER-PAGE [FORMAT]]]\fP"
+Get list of photos in GROUP-ID.
+.IP "\fBgroups.pools.remove\fP \fIPHOTO-ID GROUP-ID\fP"
+Remove PHOTO-ID from group GROUP-ID.
+.IP "\fBgroups.search\fP \fITEXT [PER-PAGE [PAGE]]\fP"
+Search for groups matching TEXT paging PER-PAGE and PAGE.
+.IP "\fBinterestingness.getList\fP \fI[PARAMS]\fP"
+Get interesting photos with optional parameters
+.br
+date DATE 
+.br
+extras EXTRAS 
+.br
+per-page PER-PAGE 
+.br
+page PAGE 
+.br
+format FORMAT
+.IP "\fBmachinetags.getNamespaces\fP \fI[PREDICATE [PER-PAGE [PAGE]]]\fP"
+Get a list of namespaces with optional PREDICATE
+.IP "\fBmachinetags.getPairs\fP \fI[NAMESPACE [PREDICATE [PER-PAGE [PAGE]]]]\fP"
+Get a list of unique NAMESPACE and PREDICATE pairs
+.IP "\fBmachinetags.getPredicates\fP \fI[NAMESPACE [PER-PAGE [PAGE]]]\fP"
+Get a list of unique predicates optionally by NAMESPACE
+.IP "\fBmachinetags.getRecentValues\fP \fI[NAMESPACE|- [PREDICATE|- [ADDED-SINCE]]]\fP"
+Get a list of recent machinetags for NAMESPACE and PREDICATE since ADDED-SINCE
+.IP "\fBmachinetags.getValues\fP \fINAMESPACE PREDICATE [PER-PAGE [PAGE]]\fP"
+Get a list of unique values for a NAMESPACE and PREDICATE
+.IP "\fBpanda.getList\fP \fI\fP"
+get the current list of pandas
+.IP "\fBpanda.getPhotos\fP \fIPANDA\fP"
+ask a PANDA for a list of recent public and safe photos
+.IP "\fBpeople.findByEmail\fP \fIEMAIL\fP"
+get a user's NSID from their EMAIL address
+.IP "\fBpeople.findByUsername\fP \fIUSERNAME\fP"
+get a user's NSID from their USERNAME
+.IP "\fBpeople.getInfo\fP \fIUSER-NSID\fP"
+Get information about one person with id USER-NSID
+.IP "\fBpeople.getPhotos\fP \fIUSER-NSID\fP"
+Get photos from user USER-NSID with optional parameters
+.br
+safe-search 1-3 
+.br
+min-upload-date DATE 
+.br
+max-upload-date DATE
+.br
+min-taken date DATE 
+.br
+max-taken-date DATE 
+.br
+content-type 1-7
+.br
+privacy-filter 1-5 
+.br
+per-page PER-PAGE 
+.br
+page PAGE 
+.br
+format FORMAT
+.IP "\fBpeople.getPhotosOf\fP \fIUSER-NSID [PER-PAGE [PAGE [FORMAT]]]\fP"
+Get public photos of a user USER-NSID
+.IP "\fBpeople.getPublicGroups\fP \fIUSER-NSID\fP"
+Get list of public groups a user is amember of
+.IP "\fBpeople.getPublicPhotos\fP \fIUSER-NSID [PER-PAGE [PAGE [FORMAT]]]\fP"
+Get public photos for a user USER-NSID
+.IP "\fBpeople.getUploadStatus\fP \fI\fP"
+Get calling user upload status
+.IP "\fBphotos.addTags\fP \fIPHOTO-ID TAGS\fP"
+Add TAGS to a PHOTO-ID.
+.IP "\fBphotos.comments.addComment\fP \fIPHOTO-ID TEXT\fP"
+Add a photo comment TEXT to PHOTO-ID.
+.IP "\fBphotos.comments.deleteComment\fP \fICOMMENT-ID\fP"
+Delete a photo comment COMMENT-ID.
+.IP "\fBphotos.comments.editComment\fP \fICOMMENT-ID TEXT\fP"
+Edit a photo comment COMMENT-ID to have new TEXT.
+.IP "\fBphotos.comments.getList\fP \fIPHOTO-ID\fP"
+Get the comments for a photo PHOTO-ID.
+.IP "\fBphotos.comments.getRecentForContacts\fP \fI[PARAMS]\fP"
+Get the list of photos for user contacts with recent comments
+.br
+since DATE-LAST-COMMENT filter CONTACTS-FILTER
+.br
+per-page PER-PAGE page PAGE format FORMAT
+.IP "\fBphotos.delete\fP \fIPHOTO-ID\fP"
+Delete a PHOTO-ID.
+.IP "\fBphotos.geo.getLocation\fP \fIPHOTO-ID\fP"
+Get the geo location for a photo PHOTO-ID.
+.IP "\fBphotos.geo.getPerms\fP \fIPHOTO-ID\fP"
+Get the geo perms for a photo PHOTO-ID.
+.IP "\fBphotos.geo.removeLocation\fP \fIPHOTO-ID\fP"
+Remove the location for a photo PHOTO-ID.
+.IP "\fBphotos.geo.setLocation\fP \fIPHOTO-ID LAT LONG ACCURACY\fP"
+Set the location for a photo PHOTO-ID.
+.IP "\fBphotos.geo.setPerms\fP \fIPHOTO-ID IS-PUBLIC IS-CONTACT IS-FRIEND IS-FAMILY\fP"
+Set the geo perms for a photo PHOTO-ID.
+.IP "\fBphotos.getAllContexts\fP \fIPHOTO-ID\fP"
+Get all visible sets and pools the PHOTO-ID belongs to.
+.IP "\fBphotos.getContactsPhotos\fP \fI\fP"
+Get a list of recent photos from the calling users' contacts
+.IP "\fBphotos.getContactsPublicPhotos\fP \fIUSER-NSID [FORMAT]\fP"
+Get a list of recent public photos from USER-NSID's contacts
+.IP "\fBphotos.getContext\fP \fIPHOTO-ID\fP"
+Get next and previous photos for a PHOTO-ID in a photostream.
+.IP "\fBphotos.getCounts\fP \fIDATES TAKEN-DATES\fP"
+Get the counts for a set of DATES or TAKEN-DATES.
+.IP "\fBphotos.getExif\fP \fIPHOTO-ID\fP"
+Get EXIF information about one photo with id PHOTO-ID
+.IP "\fBphotos.getFavorites\fP \fIPHOTO-ID [PER-PAGE [PAGE]]\fP"
+Get favourites information about one photo with id PHOTO-ID
+.IP "\fBphotos.getInfo\fP \fIPHOTO-ID\fP"
+Get information about one photo with id PHOTO-ID
+.IP "\fBphotos.getNotInSet\fP \fI[PER-PAGE [PAGE [FORMAT]]]\fP"
+Get list of photos that are not in any set
+.IP "\fBphotos.getPerms\fP \fIPHOTO-ID\fP"
+Get a photo viewing and commenting permissions
+.IP "\fBphotos.getRecent\fP \fI[PER-PAGE [PAGE [FORMAT]]]\fP"
+Get list of recent photos
+.IP "\fBphotos.getSizes\fP \fIPHOTO-ID\fP"
+Get sizes of a PHOTO-ID
+.IP "\fBphotos.getUntagged\fP \fI[PER-PAGE [PAGE [FORMAT]]]\fP"
+Get list of photos that are not tagged
+.IP "\fBphotos.getWithGeoData\fP \fI[PER-PAGE [PAGE [FORMAT]]]\fP"
+Get list of photos that have geo data
+.IP "\fBphotos.getWithoutGeoData\fP \fI[PER-PAGE [PAGE [FORMAT]]]\fP"
+Get list of photos that do not have geo data
+.IP "\fBphotos.licenses.getInfo\fP \fI\fP"
+Get list of available photo licenses
+.IP "\fBphotos.licenses.setLicense\fP \fIPHOTO-ID LICENSE-ID\fP"
+Get photo PHOTO-ID license to LICENSE-ID
+.IP "\fBphotos.notes.add\fP \fIPHOTO-ID X Y W H TEXT\fP"
+Add a note (X, Y, W, H, TEXT) to a photo with id PHOTO-ID
+.IP "\fBphotos.notes.delete\fP \fINOTE-ID\fP"
+Delete a note with id NOTE-ID
+.IP "\fBphotos.notes.edit\fP \fINOTE-ID X Y W H TEXT\fP"
+Edit note NOTE-ID to (X, Y, W, H, TEXT)
+.IP "\fBphotos.people.add\fP \fIPHOTO-ID USER-ID X Y W H\fP"
+Mark USER-ID appearing in PHOTO-ID at (X, Y, W, H)
+.IP "\fBphotos.people.delete\fP \fIPHOTO-ID USER-ID\fP"
+Mark USER-ID as not appearing in PHOTO-ID
+.IP "\fBphotos.people.deleteCoords\fP \fIPHOTO-ID USER-ID\fP"
+Mark USER-ID as not appearing at coordinates in PHOTO-ID
+.IP "\fBphotos.people.editCoords\fP \fIPHOTO-ID USER-ID X Y W H\fP"
+Update USER-ID appearing in PHOTO-ID to coords (X, Y, W, H)
+.IP "\fBphotos.people.getList\fP \fIPHOTO-ID\fP"
+Get list of users appearing in PHOTO-ID
+.IP "\fBphotos.recentlyUpdated\fP \fIMIN-DATE [PER-PAGE [PAGE [FORMAT]]]\fP"
+Get list of photos that were recently updated
+.IP "\fBphotos.removeTag\fP \fIPHOTO-ID TAG-ID\fP"
+Remove a tag TAG-ID from a photo.
+.IP "\fBphotos.search\fP \fI[PARAMS] tags TAGS...\fP"
+Search for photos/videos with many optional parameters
+.br
+user USER 
+.br
+tag-mode any|all 
+.br
+text TEXT
+.br
+(min|max)-(upload|taken)-date DATE
+.br
+license LICENSE 
+.br
+privacy PRIVACY 
+.br
+bbox a,b,c,d
+.br
+sort date-(posted|taken)-(asc|desc)|interestingness-(desc|asc)|relevance
+.br
+accuracy 1-16 
+.br
+safe-search 1-3 
+.br
+type 1-4
+.br
+machine-tags TAGS 
+.br
+machine-tag-mode any|all
+.br
+group-id ID 
+.br
+place-id ID 
+.br
+extras EXTRAS
+.br
+per-page PER-PAGE 
+.br
+page PAGES
+.br
+media all|photos|videos 
+.br
+has-geo
+.br
+lat LAT lon LON radius RADIUS radius-units km|mi
+.br
+contacts (all|ff)
+.br
+format FORMAT 
+.br
+woeid WOEID
+.br
+geo-context 1-2
+.br
+in-commons 
+.br
+in-gallery
+.IP "\fBphotos.setContentType\fP \fIPHOTO-ID TYPE\fP"
+Set photo TYPE to one of 'photo', 'screenshot' or 'other'
+.IP "\fBphotos.setDates\fP \fIPHOTO-ID POSTED TAKEN GRANULARITY\fP"
+Set a photo POSTED date, TAKEN date with GRANULARITY
+.IP "\fBphotos.setMeta\fP \fIPHOTO-ID TITLE DESCRIPTION\fP"
+Set a photo TITLE and DESCRIPTION
+.IP "\fBphotos.setPerms\fP \fIPHOTO-ID IS-PUBLIC IS-FRIEND IS-FAMILY PERM-COMMENT PERM-ADDMETA\fP"
+Set a photo viewing and commenting permissions
+.IP "\fBphotos.setSafetyLevel\fP \fIPHOTO-ID SAFETY-LEVEL HIDDEN\fP"
+Set a photo's SAFETY-LEVEL and HIDDEN flag
+.IP "\fBphotos.setTags\fP \fIPHOTO-ID TAGS\fP"
+Set the tags for a PHOTO-ID to TAGS.
+.IP "\fBphotos.transform.rotate\fP \fIPHOTO-ID DEGREES\fP"
+Rotate PHOTO-ID by 90/180/270 DEGREES
+.IP "\fBphotos.upload.checkTickets\fP \fITICKET-IDS...\fP"
+Get the status of upload TICKET-IDS
+.IP "\fBphotosets.addPhoto\fP \fIPHOTOSET-ID PHOTO-ID\fP"
+Add PHOTO-ID to a PHOTOSET-ID.
+.IP "\fBphotosets.comments.addComment\fP \fIPHOTOSET-ID TEXT\fP"
+Add a comment TEXT to photoset PHOTOSET-ID.
+.IP "\fBphotosets.comments.deleteComment\fP \fICOMMENT-ID\fP"
+Delete a photoset comment COMMENT-ID.
+.IP "\fBphotosets.comments.editComment\fP \fICOMMENT-ID TEXT\fP"
+Edit a photoset comment COMMENT-ID to have new TEXT.
+.IP "\fBphotosets.comments.getList\fP \fIPHOTOSET-ID\fP"
+Get the comments for a photoset PHOTOSET-ID.
+.IP "\fBphotosets.create\fP \fITITLE DESCRIPTION PRIMARY-PHOTO-ID\fP"
+Create a photoset with TITLE, DESCRIPTION and PRIMARY-PHOTO-ID.
+.IP "\fBphotosets.delete\fP \fIPHOTOSET-ID\fP"
+Delete a photoset with PHOTOSET-ID.
+.IP "\fBphotosets.editMeta\fP \fIPHOTOSET-ID TITLE DESCRIPTION\fP"
+Set the TITLE and/or DESCRIPTION of a PHOTOSET-ID.
+.IP "\fBphotosets.editPhotos\fP \fIPHOTOSET-ID PRIMARY-PHOTO-ID PHOTO-IDS,...\fP"
+Set the PHOTO-IDs of a PHOTOSET-ID and PRIMARY-PHOTO-ID.
+.IP "\fBphotosets.getContext\fP \fIPHOTO-ID PHOTOSET-ID\fP"
+Get next and previous photos for PHOTO-ID in PHOTOSET-ID.
+.IP "\fBphotosets.getInfo\fP \fIPHOTOSET-ID\fP"
+Get information about PHOTOSET-ID.
+.IP "\fBphotosets.getList\fP \fI[USER-NSID]\fP"
+Get the list of photosets for the USER-NSID.
+.IP "\fBphotosets.getPhotos\fP \fIPHOTOSET-ID [EXTRAS [PRIVACY [PER-PAGE [PAGE [FORMAT]]]]]\fP"
+Get the list of photos in PHOTOSET-ID with options.
+.IP "\fBphotosets.orderSets\fP \fIPHOTOSET-IDS...\fP"
+Set the order of sets PHOTOSET-IDS.
+.IP "\fBphotosets.removePhoto\fP \fIPHOTOSET-ID PHOTO-ID\fP"
+Remove PHOTO-ID from PHOTOSET-ID.
+.IP "\fBphotosets.removePhotos\fP \fIPHOTOSET-ID PHOTO-IDS...\fP"
+Remove PHOTO-IDS from PHOTOSET-ID.
+.IP "\fBphotosets.reorderPhotos\fP \fIPHOTOSET-ID PHOTO-IDS...\fP"
+Reorder PHOTO-IDS from PHOTOSET-ID.
+.IP "\fBphotosets.setPrimaryPhoto\fP \fIPHOTOSET-ID PHOTO-ID\fP"
+Set photoset PHOTOSET-ID primary photo to PHOTO-ID.
+.IP "\fBplaces.find\fP \fITEXT\fP"
+Find places by TEXT query.
+.IP "\fBplaces.findByLatLon\fP \fILAT LON ACCURACY\fP"
+Find places by LAT and LON with ACCURACY 1-16.
+.IP "\fBplaces.getChildrenWithPhotosPublic\fP \fIPLACE-ID|- [WOE-ID|-]\fP"
+Find child places with public photos by PLACE-ID or WOE-ID
+.IP "\fBplaces.getInfo\fP \fIPLACE-ID|- [WOE-ID|-]\fP"
+Find place by PLACE-ID or WOE-ID
+.IP "\fBplaces.getInfoByUrl\fP \fIURL\fP"
+Find place by place URL
+.IP "\fBplaces.getPlaceTypes\fP \fIURL\fP"
+Get a list of available place types
+.IP "\fBplaces.getShapeHistory\fP \fIPLACE-ID|- [WOE-ID|-]\fP"
+Get history of shapes for a place by PLACE-ID or WOE-ID
+.IP "\fBplaces.getTopPlacesList\fP \fIPLACE-TYPE [DATE [WOE-ID|- [PLACE-ID]]]\fP"
+Get the top 100 most geotagged places for a DATE (or yesterday).
+.IP "\fBplaces.placesForBoundingBox\fP \fIPLACE-TYPE MIN-LONG MIN-LAT MAX-LONG MAX-LAT\fP"
+Find user places of PLACE-TYPE in bbox.
+.IP "\fBplaces.placesForContacts\fP \fIPLACE-TYPE WOE-ID|- PLACE-ID|- THRESHOLD [PARAMS]\fP"
+Find top 100 unique places clustered by a given PLACE-TYPE for a
+.br
+user's contacts with optional parameters
+.br
+contacts CONTACTS 
+.br
+min-upload MIN-UPLOAD-DATE 
+.br
+max-upload MAX-UPLOAD-DATE
+.br
+min-taken MIN-TAKEN-DATE 
+.br
+max-taken MAX-TAKEN-DATE
+.IP "\fBplaces.placesForUser\fP \fIPLACE-TYPE [WOE-ID] [PLACE-ID [THRESHOLD]]]\fP"
+Find user places of PLACE-TYPE.
+.IP "\fBplaces.resolvePlaceId\fP \fIPLACE-ID  / WOE-ID\fP"
+Find places information by PLACE-ID or WOE-ID (number).
+.IP "\fBplaces.resolvePlaceURL\fP \fIPLACE-URL\fP"
+Find places information by PLACE-URL.
+.IP "\fBplaces.tagsForPlace\fP \fIPLACE-ID|- [WOE-ID|-]\fP"
+Get tags for a place by PLACE-ID or WOE-ID with optional parameters
+.br
+min-upload MIN-UPLOAD-DATE 
+.br
+max-upload MAX-UPLOAD-DATE
+.br
+min-taken MIN-TAKEN-DATE 
+.br
+max-taken MAX-TAKEN-DATE
+.IP "\fBprefs.getContentType\fP \fI\fP"
+Get default content type preference for user.
+.IP "\fBprefs.getGeoPerms\fP \fI\fP"
+Get default privacy level for geographic info for user.
+.IP "\fBprefs.getHidden\fP \fI\fP"
+Get default hidden preference for user.
+.IP "\fBprefs.getPrivacy\fP \fI\fP"
+Get default privacy preference for user.
+.IP "\fBprefs.getSafetyLevel\fP \fI\fP"
+Get default safety level for user.
+.IP "\fBreflection.getMethodInfo\fP \fINAME\fP"
+Get information about an API method NAME
+.IP "\fBreflection.getMethods\fP \fI\fP"
+Get API methods
+.IP "\fBreplace\fP \fIFILE PHOTO-ID [async]\fP"
+Replace a photo PHOTO-ID with a new FILE (async)
+.IP "\fBshorturi\fP \fIPHOTO-ID\fP"
+Get the http://flic.kr short uri for PHOTO-ID
+.IP "\fBstats.getCollectionDomains\fP \fIDATE [COLLECTION-ID [PER-PAGE [PAGE]]]\fP"
+Get collection domains stats
+.IP "\fBstats.getCollectionReferrers\fP \fIDATE DOMAIN [COLLECTION-ID [PER-PAGE [PAGE]]]\fP"
+Get collection referrers stats
+.IP "\fBstats.getCollectionStats\fP \fIDATE COLLECTION-ID\fP"
+Get collection view count stats
+.IP "\fBstats.getPhotoDomains\fP \fIDATE [PHOTO-ID [PER-PAGE [PAGE]]]\fP"
+Get photo domains stats
+.IP "\fBstats.getPhotoReferrers\fP \fIDATE DOMAIN [PHOTO-ID [PER-PAGE [PAGE]]]\fP"
+Get photo referrers stats
+.IP "\fBstats.getPhotoStats\fP \fIDATE PHOTO-ID\fP"
+Get photo view count stats
+.IP "\fBstats.getPhotosetDomains\fP \fIDATE [PHOTOSET-ID [PER-PAGE [PAGE]]]\fP"
+Get photoset domains stats
+.IP "\fBstats.getPhotosetReferrers\fP \fIDATE DOMAIN [PHOTOSET-ID [PER-PAGE [PAGE]]]\fP"
+Get photoset referrers stats
+.IP "\fBstats.getPhotosetStats\fP \fIDATE PHOTOSET-ID\fP"
+Get photoset view count stats
+.IP "\fBstats.getPhotostreamDomains\fP \fIDATE [PER-PAGE [PAGE]]\fP"
+Get photostream domains stats
+.IP "\fBstats.getPhotostreamReferrers\fP \fIDATE DOMAIN [PER-PAGE [PAGE]]\fP"
+Get photostream referrers stats
+.IP "\fBstats.getPhotostreamStats\fP \fIDATE\fP"
+Get photostream view count stats
+.IP "\fBstats.getPopularPhotos\fP \fI[DATE [SORT [PER-PAGE [PAGE [EXTRAS]]]]]\fP"
+Get popular photos stats
+.IP "\fBstats.getTotalViews\fP \fI[DATE]\fP"
+Get total stats
+.IP "\fBtags.getClusters\fP \fITAG\fP"
+Get list of tag clusters for TAG
+.IP "\fBtags.getHotList\fP \fI[PERIOD [COUNT]]\fP"
+Get the list of hot tags for the given PERIOD (day, week)
+.IP "\fBtags.getListPhoto\fP \fIPHOTO-ID\fP"
+Get the tag list for a PHOTO-ID.
+.IP "\fBtags.getListUser\fP \fI[USER-NSID]\fP"
+Get the tag list for a USER-NSID (or current user).
+.IP "\fBtags.getListUserPopular\fP \fI[USER-NSID [COUNT]]\fP"
+Get the popular tag list for a USER-NSID (or current user).
+.IP "\fBtags.getListUserRaw\fP \fI[TAG]\fP"
+Get the raw versions of a TAG (or all tags) for the current user.
+.IP "\fBtags.getRelated\fP \fITAG\fP"
+Get a list of tags 'related' to TAG based on clustered usage analysis.
+.IP "\fBtest.echo\fP \fIKEY VALUE\fP"
+Test echo API call; echos KEY VALUE
+.IP "\fBtest.login\fP \fI\fP"
+Test login API call: returns username
+.IP "\fBtest.null\fP \fIKEY VALUE\fP"
+Test null API call: no return
+.IP "\fBupload\fP \fIFILE [PARAMS...]\fP"
+Upload a photo FILE with optional parameters PARAM or PARAM VALUE
+.br
+title TITLE 
+.br
+description DESC 
+.br
+tags TAGS... 
+.br
+friend 
+.br
+public 
+.br
+family
+.IP "\fBurls.getGroup\fP \fIGROUP-ID\fP"
+Get the url of the group page for GROUP-ID.
+.IP "\fBurls.getUserPhotos\fP \fIUSER-NSID\fP"
+Get the url of the photo page for USER-NSID.
+.IP "\fBurls.getUserProfile\fP \fIUSER-NSID\fP"
+Get the url of the profile page for USER-NSID.
+.IP "\fBurls.lookupGroup\fP \fIURL\fP"
+Get a group NSID from the URL to a group's page or photo pool.
+.IP "\fBurls.lookupUser\fP \fIURL\fP"
+Get a user NSID from the URL to a user's photo
+.SH Extras Fields
+The \fBEXTRAS\fP parameter can take a comma-separated set of the following values
+.TP
+\fBdate_taken\fP
+Date item was taken
+.TP
+\fBdate_upload\fP
+Date item was uploaded
+.TP
+\fBgeo\fP
+Geotagging latitude, longitude and accuracy
+.TP
+\fBicon_server\fP
+Item owner icon fields
+.TP
+\fBlast_update\fP
+Date item was last updated
+.TP
+\fBlicense\fP
+Item License 
+.TP
+\fBmachine_tags\fP
+Machine tags
+.TP
+\fBmedia\fP
+Item Format: photo or video
+.TP
+\fBo_dims\fP
+Original item dimensions
+.TP
+\fBoriginal_format\fP
+Original item secret and format
+.TP
+\fBowner_name\fP
+Item owner ID
+.TP
+\fBpath_alias\fP
+Path alias for owner like /photos/USERNAME
+.TP
+\fBtags\fP
+Item clean tags (safe for HTML, URLs)
+.TP
+\fBurl_m\fP
+URL of medium size image
+.TP
+\fBurl_o\fP
+URL of original size image
+.TP
+\fBurl_s\fP
+URL of small size image
+.TP
+\fBurl_sq\fP
+URL of square size image
+.TP
+\fBurl_t\fP
+URL of thumbnail size image
+.TP
+\fBviews\fP
+Number of times item has been viewed
+.SH Photos List Feed Formats
+The \fBFORMAT\fP parameter can take any of the following values
+.TP
+\fBfeed-rss_100\fP
+RSS 1.0
+.TP
+\fBfeed-rss_200\fP
+RSS 2.0
+.TP
+\fBfeed-atom_10\fP
+Atom 1.0
+.TP
+\fBfeed-georss\fP
+RSS 2.0 with GeoRSS and W3C Geo for geotagged photos
+.TP
+\fBfeed-geoatom\fP
+Atom 1.0 with GeoRSS and W3C Geo for geotagged photos
+.TP
+\fBfeed-geordf\fP
+RSS 1.0 with GeoRSS and W3C Geo for geotagged photos
+.TP
+\fBfeed-kml\fP
+KML 2.1
+.TP
+\fBfeed-kml_nl\fP
+KML 2.1 network link
+.SH SEE ALSO
+.BR flickrdf (1).
+.br
+.SH AUTHOR
+flickcurl was written by David Beckett.
+.PP
+This manual page was written by Kumar Appaiah <akumar@ee.iitm.ac.in>,
+for the Debian project (but may be used by others).

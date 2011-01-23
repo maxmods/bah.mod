@@ -1,0 +1,757 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Groups</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-gallery.html" title="Galleries">
+<link rel="next" href="flickcurl-section-machinetags.html" title="Machine tag">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-gallery.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-machinetags.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-group.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-group.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Groups">
+<a name="flickcurl-section-group"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-group.top_of_page"></a>Groups</span></h2>
+<p>Groups — Groups of users.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-group.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group">flickcurl_group</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-group.html#flickcurl-free-group" title="flickcurl_free_group ()">flickcurl_free_group</a>                (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="type">flickcurl_group</span></a> *group</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-group.html#flickcurl-free-groups" title="flickcurl_free_groups ()">flickcurl_free_groups</a>               (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="type">flickcurl_group</span></a> **groups_object</code></em>);
+<a class="link" href="flickcurl-section-category.html#flickcurl-category" title="flickcurl_category"><span class="returnvalue">flickcurl_category</span></a>* <a class="link" href="flickcurl-section-group.html#flickcurl-groups-browse" title="flickcurl_groups_browse ()">flickcurl_groups_browse</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> cat_id</code></em>);
+<a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>*    <a class="link" href="flickcurl-section-group.html#flickcurl-groups-getInfo" title="flickcurl_groups_getInfo ()">flickcurl_groups_getInfo</a>            (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *lang</code></em>);
+                    <a class="link" href="flickcurl-section-group.html#flickcurl-member" title="flickcurl_member">flickcurl_member</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-group.html#flickcurl-free-member" title="flickcurl_free_member ()">flickcurl_free_member</a>               (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-member" title="flickcurl_member"><span class="type">flickcurl_member</span></a> *member_object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-group.html#flickcurl-free-members" title="flickcurl_free_members ()">flickcurl_free_members</a>              (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-member" title="flickcurl_member"><span class="type">flickcurl_member</span></a> **members_object</code></em>);
+<a class="link" href="flickcurl-section-group.html#flickcurl-member" title="flickcurl_member"><span class="returnvalue">flickcurl_member</span></a>**  <a class="link" href="flickcurl-section-group.html#flickcurl-groups-members-getList" title="flickcurl_groups_members_getList ()">flickcurl_groups_members_getList</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *membertypes</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-group.html#flickcurl-groups-pools-add" title="flickcurl_groups_pools_add ()">flickcurl_groups_pools_add</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>);
+<a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="returnvalue">flickcurl_context</span></a>** <a class="link" href="flickcurl-section-group.html#flickcurl-groups-pools-getContext" title="flickcurl_groups_pools_getContext ()">flickcurl_groups_pools_getContext</a>   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>);
+<a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>**   <a class="link" href="flickcurl-section-group.html#flickcurl-groups-pools-getGroups" title="flickcurl_groups_pools_getGroups ()">flickcurl_groups_pools_getGroups</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-group.html#flickcurl-groups-pools-getPhotos" title="flickcurl_groups_pools_getPhotos ()">flickcurl_groups_pools_getPhotos</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tags</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-group.html#flickcurl-groups-pools-getPhotos-params" title="flickcurl_groups_pools_getPhotos_params ()">flickcurl_groups_pools_getPhotos_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tags</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-group.html#flickcurl-groups-pools-remove" title="flickcurl_groups_pools_remove ()">flickcurl_groups_pools_remove</a>       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>);
+<a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>**   <a class="link" href="flickcurl-section-group.html#flickcurl-groups-search" title="flickcurl_groups_search ()">flickcurl_groups_search</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *text</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-group.description"></a><h2>Description</h2>
+<p>
+Groups of users.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-group.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_group">
+<a name="flickcurl-group"></a><h3>flickcurl_group</h3>
+<pre class="programlisting">typedef struct {
+  char* nsid;
+  char* name;
+  char* description;
+  char* lang;
+  int is_admin;
+  int is_pool_moderated;
+  int is_eighteenplus;
+  int privacy;
+  int photos;
+  int iconserver;
+  int members;
+  int throttle_count;
+  char* throttle_mode;
+  int throttle_remaining;
+} flickcurl_group;
+</pre>
+<p>
+A group.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-group.nsid"></a>nsid</code></em>;</span></p></td>
+<td>NSID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-group.name"></a>name</code></em>;</span></p></td>
+<td>Group Name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-group.description"></a>description</code></em>;</span></p></td>
+<td>Description
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-group.lang"></a>lang</code></em>;</span></p></td>
+<td>Language
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.is-admin"></a>is_admin</code></em>;</span></p></td>
+<td>is admin flag
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.is-pool-moderated"></a>is_pool_moderated</code></em>;</span></p></td>
+<td>is the pool moderated
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.is-eighteenplus"></a>is_eighteenplus</code></em>;</span></p></td>
+<td>18+ group
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.privacy"></a>privacy</code></em>;</span></p></td>
+<td>privacy level
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.photos"></a>photos</code></em>;</span></p></td>
+<td>photos in group count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.iconserver"></a>iconserver</code></em>;</span></p></td>
+<td>icon server ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.members"></a>members</code></em>;</span></p></td>
+<td>member count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.throttle-count"></a>throttle_count</code></em>;</span></p></td>
+<td>throttle count
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-group.throttle-mode"></a>throttle_mode</code></em>;</span></p></td>
+<td>throttle mode (day, ...)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-group.throttle-remaining"></a>throttle_remaining</code></em>;</span></p></td>
+<td>throttle remaining
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_group ()">
+<a name="flickcurl-free-group"></a><h3>flickcurl_free_group ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_group                (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="type">flickcurl_group</span></a> *group</code></em>);</pre>
+<p>
+Destructor for group object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>group</code></em> :</span></p></td>
+<td>group object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_groups ()">
+<a name="flickcurl-free-groups"></a><h3>flickcurl_free_groups ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_groups               (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="type">flickcurl_group</span></a> **groups_object</code></em>);</pre>
+<p>
+Destructor for array of group object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>groups_object</code></em> :</span></p></td>
+<td>group object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_browse ()">
+<a name="flickcurl-groups-browse"></a><h3>flickcurl_groups_browse ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-category.html#flickcurl-category" title="flickcurl_category"><span class="returnvalue">flickcurl_category</span></a>* flickcurl_groups_browse             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> cat_id</code></em>);</pre>
+<p>
+Browse the group category tree, finding groups and sub-categories.
+</p>
+<p>
+Implements flickr.groups.browse (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cat_id</code></em> :</span></p></td>
+<td>The category id to fetch a list of groups and sub-categories for. If not specified, it defaults to zero, the root of the category tree. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_getInfo ()">
+<a name="flickcurl-groups-getInfo"></a><h3>flickcurl_groups_getInfo ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>*    flickcurl_groups_getInfo            (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *lang</code></em>);</pre>
+<p>
+Get information about a group.
+</p>
+<p>
+Implements flickr.groups.getInfo (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>The NSID of the group to fetch information for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>lang</code></em> :</span></p></td>
+<td>The language of the group name and description to fetch.  If the language is not found, the primary language of the group will be returned (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_member">
+<a name="flickcurl-member"></a><h3>flickcurl_member</h3>
+<pre class="programlisting">typedef struct {
+  char *nsid;
+  char *username;
+  int iconserver;
+  int iconfarm;
+  int member_type;
+} flickcurl_member;
+</pre>
+<p>
+Member in a group
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-member.nsid"></a>nsid</code></em>;</span></p></td>
+<td>NSID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-member.username"></a>username</code></em>;</span></p></td>
+<td>User name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-member.iconserver"></a>iconserver</code></em>;</span></p></td>
+<td>icon server
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-member.iconfarm"></a>iconfarm</code></em>;</span></p></td>
+<td>icon farm
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-member.member-type"></a>member_type</code></em>;</span></p></td>
+<td>member type - 1: narwhal, 2: member, 3: moderator 4: admin
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_member ()">
+<a name="flickcurl-free-member"></a><h3>flickcurl_free_member ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_member               (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-member" title="flickcurl_member"><span class="type">flickcurl_member</span></a> *member_object</code></em>);</pre>
+<p>
+Destructor for member object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>member_object</code></em> :</span></p></td>
+<td>member object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_members ()">
+<a name="flickcurl-free-members"></a><h3>flickcurl_free_members ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_members              (<em class="parameter"><code><a class="link" href="flickcurl-section-group.html#flickcurl-member" title="flickcurl_member"><span class="type">flickcurl_member</span></a> **members_object</code></em>);</pre>
+<p>
+Destructor for array of member object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>members_object</code></em> :</span></p></td>
+<td>member object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_members_getList ()">
+<a name="flickcurl-groups-members-getList"></a><h3>flickcurl_groups_members_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-group.html#flickcurl-member" title="flickcurl_member"><span class="returnvalue">flickcurl_member</span></a>**  flickcurl_groups_members_getList    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *membertypes</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of the members of a group.
+</p>
+<p>
+The call must be signed on behalf of a Flickr member, and the
+ability to see the group membership will be determined by the
+Flickr member's group privileges.
+</p>
+<p>
+Implements flickr.groups.members.getList (1.9)
+as announced as an experimental API on 2009-02-24:
+http://tech.groups.yahoo.com/group/yws-flickr/message/4749
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>Return a list of members for this group.  The group must be viewable by the Flickr member on whose behalf the API call is made.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>membertypes</code></em> :</span></p></td>
+<td>Comma separated list of member types:  2: member, 3: moderator 4: admin.  By default returns all types.  (Returning super rare member type "1: narwhal" isn't supported by this API method) (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of members to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500 (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1 (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> list of members or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_pools_add ()">
+<a name="flickcurl-groups-pools-add"></a><h3>flickcurl_groups_pools_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_groups_pools_add          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>);</pre>
+<p>
+Add a photo to a group's pool.
+</p>
+<p>
+Implements flickr.groups.pools.add (0.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to add to the group pool.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>The NSID of the group who's pool the photo is to be added to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_pools_getContext ()">
+<a name="flickcurl-groups-pools-getContext"></a><h3>flickcurl_groups_pools_getContext ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="returnvalue">flickcurl_context</span></a>** flickcurl_groups_pools_getContext   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>);</pre>
+<p>
+Get next and previous photos for a photo in a group pool.
+</p>
+<p>
+Implements flickr.groups.pools.getContext (0.7)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>photo ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>group ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> an array of size 3 [prev, next, NULL] flickcurl_context*
+or NULL on error
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_pools_getGroups ()">
+<a name="flickcurl-groups-pools-getGroups"></a><h3>flickcurl_groups_pools_getGroups ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>**   flickcurl_groups_pools_getGroups    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>);</pre>
+<p>
+Returns a list of groups to which you can add photos.
+</p>
+<p>
+Implements flickr.groups.pools.getGroups (0.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return (default 1)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of groups to return per page (default 400, max 400)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_pools_getPhotos ()">
+<a name="flickcurl-groups-pools-getPhotos"></a><h3>flickcurl_groups_pools_getPhotos ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_groups_pools_getPhotos    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tags</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Returns a list of pool photos for a given group.
+</p>
+<p>
+See <a class="link" href="flickcurl-section-group.html#flickcurl-groups-pools-getPhotos-params" title="flickcurl_groups_pools_getPhotos_params ()"><code class="function">flickcurl_groups_pools_getPhotos_params()</code></a> for details
+of the fields.
+</p>
+<p>
+Implements flickr.groups.pools.getPhotos (0.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>The id of the group who's pool you which to get the photo list for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tags</code></em> :</span></p></td>
+<td>A tag to filter the pool with. At the moment only one tag at a time is supported. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The nsid of a user (or NULL).  If given, retrieves only photos that the user has contributed to the group pool.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page (default 100, max 500)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return (default 1)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_pools_getPhotos_params ()">
+<a name="flickcurl-groups-pools-getPhotos-params"></a><h3>flickcurl_groups_pools_getPhotos_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_groups_pools_getPhotos_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tags</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Returns a list of pool photos for a given group.
+</p>
+<p>
+Currently supported extra fields are: license, date_upload,
+date_taken, owner_name, icon_server, original_format,
+last_update, geo, tags, machine_tags.
+</p>
+<p>
+Optional extra type 'media' that will return an extra media = VALUE
+for VALUE "photo" or "video".  API addition 2008-04-07.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>The id of the group who's pool you which to get the photo list for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tags</code></em> :</span></p></td>
+<td>A tag to filter the pool with. At the moment only one tag at a time is supported. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The nsid of a user (or NULL).  If given, retrieves only photos that the user has contributed to the group pool.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_pools_remove ()">
+<a name="flickcurl-groups-pools-remove"></a><h3>flickcurl_groups_pools_remove ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_groups_pools_remove       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *group_id</code></em>);</pre>
+<p>
+Remove a photo from a group pool.
+</p>
+<p>
+Implements flickr.groups.pools.remove (0.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to remove from the group pool.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>The NSID of the group who's pool the photo is to removed from.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_groups_search ()">
+<a name="flickcurl-groups-search"></a><h3>flickcurl_groups_search ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>**   flickcurl_groups_search             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *text</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Search for groups. 18+ groups will only be returned for
+authenticated calls where the authenticated user is over 18.
+</p>
+<p>
+Implements flickr.groups.search (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>text</code></em> :</span></p></td>
+<td>The text to search for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of groups to return per page, default 100, max 500 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return, default 1 (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

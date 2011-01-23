@@ -1,0 +1,75 @@
+<!-- ##### SECTION Title ##### -->
+Unused
+
+<!-- ##### SECTION Short_Description ##### -->
+Unused.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+Unused.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO FLICKCURL_API ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT flickcurl_s ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### STRUCT flickcurl_photo_s ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### STRUCT flickcurl_serializer_s ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### STRUCT flickcurl_shapedata_s ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION read_ini_config ##### -->
+<para>
+
+</para>
+
+@filename: 
+@application: 
+@user_data: 
+@handler: 
+@Returns: 
+
+
+<!-- ##### USER_FUNCTION set_config_var_handler ##### -->
+<para>
+
+</para>
+
+@userdata: 
+@key: 
+@value: 
+
+

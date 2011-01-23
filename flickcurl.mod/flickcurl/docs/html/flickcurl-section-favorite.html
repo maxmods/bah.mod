@@ -1,0 +1,338 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Favorites</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-exif.html" title="EXIF">
+<link rel="next" href="flickcurl-section-gallery.html" title="Galleries">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-exif.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-gallery.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-favorite.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-favorite.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Favorites">
+<a name="flickcurl-section-favorite"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-favorite.top_of_page"></a>Favorites</span></h2>
+<p>Favorites — Favorite photos.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-favorite.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis"><span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-add" title="flickcurl_favorites_add ()">flickcurl_favorites_add</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-getList" title="flickcurl_favorites_getList ()">flickcurl_favorites_getList</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-getList-params" title="flickcurl_favorites_getList_params ()">flickcurl_favorites_getList_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-getPublicList" title="flickcurl_favorites_getPublicList ()">flickcurl_favorites_getPublicList</a>   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-getPublicList-params" title="flickcurl_favorites_getPublicList_params ()">flickcurl_favorites_getPublicList_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-remove" title="flickcurl_favorites_remove ()">flickcurl_favorites_remove</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-favorite.description"></a><h2>Description</h2>
+<p>
+Favorite photos.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-favorite.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_favorites_add ()">
+<a name="flickcurl-favorites-add"></a><h3>flickcurl_favorites_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_favorites_add             (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Adds a photo to a user's favorites list.
+</p>
+<p>
+Implements flickr.favorites.add (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to add to the user's favorites.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_favorites_getList ()">
+<a name="flickcurl-favorites-getList"></a><h3>flickcurl_favorites_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_favorites_getList         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Returns a list of the user's favorite photos.
+</p>
+<p>
+See <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-getList-params" title="flickcurl_favorites_getList_params ()"><code class="function">flickcurl_favorites_getList_params()</code></a> for details of parameters.
+</p>
+<p>
+Implements flickr.favorites.getList (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user to fetch the favorites list for. If this argument is omitted, the favorites list for the calling user is returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record. Currently supported fields are: license, date_upload, date_taken, owner_name, icon_server, original_format, last_update, geo, tags, machine_tags. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_favorites_getList_params ()">
+<a name="flickcurl-favorites-getList-params"></a><h3>flickcurl_favorites_getList_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_favorites_getList_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Returns a list of the user's favorite photos.
+</p>
+<p>
+Flickcurl 1.6: Added <em class="parameter"><code>list_params</code></em> beyond <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-getList" title="flickcurl_favorites_getList ()"><code class="function">flickcurl_favorites_getList()</code></a>
+to allow returning raw content if <em class="parameter"><code>list_params</code></em> is present and
+field <em class="parameter"><code>format</code></em> is not NULL as announced 2008-08-25
+http://code.flickr.com/blog/2008/08/25/api-responses-as-feeds/
+</p>
+<p>
+Only photos which the calling user has permission to see are returned.
+</p>
+<p>
+Optional extra type 'media' that will return an extra media = VALUE
+for VALUE "photo" or "video".  API addition 2008-04-07.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user to fetch the favorites list for. If this argument is omitted, the favorites list for the calling user is returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_favorites_getPublicList ()">
+<a name="flickcurl-favorites-getPublicList"></a><h3>flickcurl_favorites_getPublicList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_favorites_getPublicList   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Returns a list of favorite public photos for the given user.
+</p>
+<p>
+See <a class="link" href="flickcurl-section-favorite.html#flickcurl-favorites-getPublicList-params" title="flickcurl_favorites_getPublicList_params ()"><code class="function">flickcurl_favorites_getPublicList_params()</code></a> for details of parameters.
+</p>
+<p>
+Implements flickr.favorites.getPublicList (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The user to fetch the favorites list for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record. Currently supported fields are: license, date_upload, date_taken, owner_name, icon_server, original_format, last_update, geo, tags, machine_tags. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_favorites_getPublicList_params ()">
+<a name="flickcurl-favorites-getPublicList-params"></a><h3>flickcurl_favorites_getPublicList_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_favorites_getPublicList_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Returns a list of favorite public photos for the given user.
+</p>
+<p>
+Optional extra type 'media' that will return an extra media = VALUE
+for VALUE "photo" or "video".  API addition 2008-04-07.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The user to fetch the favorites list for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_favorites_remove ()">
+<a name="flickcurl-favorites-remove"></a><h3>flickcurl_favorites_remove ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_favorites_remove          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Removes a photo from a user's favorites list.
+</p>
+<p>
+Implements flickr.favorites.remove (1.0)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to remove from the user's favorites.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

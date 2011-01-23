@@ -1,0 +1,55 @@
+.TH FLICKCURL 1 "1 September 2008"
+.SH NAME
+flickcurl \- call Flickr API
+.SH SYNOPSIS
+.B flickcurl
+\fB\-a \fIFROB\fP\fR
+.br
+.B flickcurl
+[\fB\-d \fIDELAY\fP\fR] [\fB\-h\fR] [\fB\-o FILE\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-V\fR] [\fIcommands\fR] ...
+.br
+.SH DESCRIPTION
+\fBflickcurl\fP is a utility program to call the Flickr APIs via the
+flickcurl library.  Run \fIflickcurl \-h\fP to get a list of
+the supported commands and their arguments.
+.LP
+The program requires configuring before use to work with the Flickr
+APIs.  Run \fBflickcurl\fP without any options to get the instructions
+for registering the application and creating the initial
+configuration file \fI~/.flickcurl.conf\fP from the registration
+information.
+.SH OPTIONS
+These programs follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+.TP
+.B \-a \fIFROB\fP, \-\-auth \fIFROB\fP
+Authenticate with a \fIFROB\fP and update the authentication file.
+The program will exit after updating the file.
+.TP
+.B \-d \fIDELAY\fP, \-\-delay \fIDELAY\fP
+Set delay between requests to \fIDELAY\fP milliseconds.
+.TP
+.B \-h, \-\-help
+Show summary of options and exit.
+.TP
+.B \-o \fIFILE\fP, \-\-output \fIFILE\fP
+Write the results of format feed API calls to \fIFILE\fP
+.TP
+.B \-q, \-\-quiet
+Display less information while the program runs.
+.TP
+.B \-v, \-\-version
+Display the version of the program and exit.
+.TP
+.B \-V, \-\-verbose
+Display more information while the program runs.
+.SH COMMANDS
+.SH SEE ALSO
+.BR flickrdf (1).
+.br
+.SH AUTHOR
+flickcurl was written by David Beckett.
+.PP
+This manual page was written by Kumar Appaiah <akumar@ee.iitm.ac.in>,
+for the Debian project (but may be used by others).

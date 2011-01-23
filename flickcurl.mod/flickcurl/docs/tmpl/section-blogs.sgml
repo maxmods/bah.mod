@@ -1,0 +1,88 @@
+<!-- ##### SECTION Title ##### -->
+Blogs
+
+<!-- ##### SECTION Short_Description ##### -->
+Posting photos to blogs
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+Posting photos to blogs
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### STRUCT flickcurl_blog ##### -->
+<para>
+
+</para>
+
+@id: 
+@name: 
+@needs_password: 
+@url: 
+
+<!-- ##### FUNCTION flickcurl_blogs_getList ##### -->
+<para>
+
+</para>
+
+@fc: 
+@Returns: 
+
+
+<!-- ##### STRUCT flickcurl_blog_service ##### -->
+<para>
+
+</para>
+
+@id: 
+@name: 
+
+<!-- ##### FUNCTION flickcurl_blogs_getServices ##### -->
+<para>
+
+</para>
+
+@fc: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_blogs_postPhoto ##### -->
+<para>
+
+</para>
+
+@fc: 
+@blog_id: 
+@photo_id: 
+@title: 
+@description: 
+@blog_password: 
+@Returns: 
+
+
+<!-- ##### FUNCTION flickcurl_free_blogs ##### -->
+<para>
+
+</para>
+
+@blogs_object: 
+
+
+<!-- ##### FUNCTION flickcurl_free_blog_services ##### -->
+<para>
+
+</para>
+
+@blog_services_object: 
+
+

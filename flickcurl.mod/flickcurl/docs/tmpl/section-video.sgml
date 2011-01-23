@@ -1,0 +1,42 @@
+<!-- ##### SECTION Title ##### -->
+Video
+
+<!-- ##### SECTION Short_Description ##### -->
+Video.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+Video.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### STRUCT flickcurl_video ##### -->
+<para>
+
+</para>
+
+@ready: 
+@failed: 
+@pending: 
+@duration: 
+@width: 
+@height: 
+
+<!-- ##### FUNCTION flickcurl_free_video ##### -->
+<para>
+
+</para>
+
+@video: 
+
+

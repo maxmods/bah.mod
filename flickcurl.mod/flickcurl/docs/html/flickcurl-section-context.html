@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Contexts</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-contact.html" title="Contacts">
+<link rel="next" href="flickcurl-section-exif.html" title="EXIF">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-contact.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-exif.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-context.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-context.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Contexts">
+<a name="flickcurl-section-context"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-context.top_of_page"></a>Contexts</span></h2>
+<p>Contexts — Photo contexts</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-context.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context">flickcurl_context</a>;
+enum                <a class="link" href="flickcurl-section-context.html#flickcurl-context-type" title="enum flickcurl_context_type">flickcurl_context_type</a>;
+const <span class="returnvalue">char</span>*         <a class="link" href="flickcurl-section-context.html#flickcurl-get-context-type-field-label" title="flickcurl_get_context_type_field_label ()">flickcurl_get_context_type_field_label</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-context.html#flickcurl-context-type" title="enum flickcurl_context_type"><span class="type">flickcurl_context_type</span></a> type</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-context.html#flickcurl-free-context" title="flickcurl_free_context ()">flickcurl_free_context</a>              (<em class="parameter"><code><a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="type">flickcurl_context</span></a> *context</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-context.html#flickcurl-free-contexts" title="flickcurl_free_contexts ()">flickcurl_free_contexts</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="type">flickcurl_context</span></a> **contexts</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-context.description"></a><h2>Description</h2>
+<p>
+Photo contexts
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-context.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_context">
+<a name="flickcurl-context"></a><h3>flickcurl_context</h3>
+<pre class="programlisting">typedef struct {
+  flickcurl_context_type type;
+  char* id;
+  char* secret; /* may be NULL */
+  int server;   /* may be 0 */
+  int farm;     /* may be 0 */
+  char* title;  /* may be NULL */
+  char* url;    /* may be NULL */
+  char* thumb;  /* may be NULL */
+} flickcurl_context;
+</pre>
+<p>
+Photo use context.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><a class="link" href="flickcurl-section-context.html#flickcurl-context-type" title="enum flickcurl_context_type"><span class="type">flickcurl_context_type</span></a> <em class="structfield"><code><a name="flickcurl-context.type"></a>type</code></em>;</span></p></td>
+<td>Type of context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-context.id"></a>id</code></em>;</span></p></td>
+<td>ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-context.secret"></a>secret</code></em>;</span></p></td>
+<td>secret 
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-context.server"></a>server</code></em>;</span></p></td>
+<td>server
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-context.farm"></a>farm</code></em>;</span></p></td>
+<td>farm
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-context.title"></a>title</code></em>;</span></p></td>
+<td>use title
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-context.url"></a>url</code></em>;</span></p></td>
+<td>url
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-context.thumb"></a>thumb</code></em>;</span></p></td>
+<td>thumbnail
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="enum flickcurl_context_type">
+<a name="flickcurl-context-type"></a><h3>enum flickcurl_context_type</h3>
+<pre class="programlisting">typedef enum {
+  FLICKCURL_CONTEXT_NONE,
+  FLICKCURL_CONTEXT_SET,  /* other thing is a set */
+  FLICKCURL_CONTEXT_POOL, /* other thing is a pool */
+  FLICKCURL_CONTEXT_PREV, /* other thing is a previous photo */
+  FLICKCURL_CONTEXT_NEXT, /* other thing is a next photo */
+  FLICKCURL_CONTEXT_LAST = FLICKCURL_CONTEXT_NEXT
+} flickcurl_context_type;
+</pre>
+<p>
+Types of photo context: relationship between photo and another item
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><a name="FLICKCURL-CONTEXT-NONE:CAPS"></a><span class="term"><code class="literal">FLICKCURL_CONTEXT_NONE</code></span></p></td>
+<td>internal
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-CONTEXT-SET:CAPS"></a><span class="term"><code class="literal">FLICKCURL_CONTEXT_SET</code></span></p></td>
+<td>context is a set
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-CONTEXT-POOL:CAPS"></a><span class="term"><code class="literal">FLICKCURL_CONTEXT_POOL</code></span></p></td>
+<td>context is a pool
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-CONTEXT-PREV:CAPS"></a><span class="term"><code class="literal">FLICKCURL_CONTEXT_PREV</code></span></p></td>
+<td>context is a previous photo
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-CONTEXT-NEXT:CAPS"></a><span class="term"><code class="literal">FLICKCURL_CONTEXT_NEXT</code></span></p></td>
+<td>context is a next photo
+</td>
+</tr>
+<tr>
+<td><p><a name="FLICKCURL-CONTEXT-LAST:CAPS"></a><span class="term"><code class="literal">FLICKCURL_CONTEXT_LAST</code></span></p></td>
+<td>internal offset to last in enum list
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_get_context_type_field_label ()">
+<a name="flickcurl-get-context-type-field-label"></a><h3>flickcurl_get_context_type_field_label ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span>*         flickcurl_get_context_type_field_label
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-context.html#flickcurl-context-type" title="enum flickcurl_context_type"><span class="type">flickcurl_context_type</span></a> type</code></em>);</pre>
+<p>
+Get label for context type
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>type</code></em> :</span></p></td>
+<td>context type
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> label string or NULL if none valid
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_context ()">
+<a name="flickcurl-free-context"></a><h3>flickcurl_free_context ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_context              (<em class="parameter"><code><a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="type">flickcurl_context</span></a> *context</code></em>);</pre>
+<p>
+Destructor for context object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>context</code></em> :</span></p></td>
+<td>context object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_contexts ()">
+<a name="flickcurl-free-contexts"></a><h3>flickcurl_free_contexts ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_contexts             (<em class="parameter"><code><a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="type">flickcurl_context</span></a> **contexts</code></em>);</pre>
+<p>
+Destructor for array of context object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>contexts</code></em> :</span></p></td>
+<td>context object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

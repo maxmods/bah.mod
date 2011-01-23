@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>EXIF</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-context.html" title="Contexts">
+<link rel="next" href="flickcurl-section-favorite.html" title="Favorites">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-context.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-favorite.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-exif.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-exif.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="EXIF">
+<a name="flickcurl-section-exif"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-exif.top_of_page"></a>EXIF</span></h2>
+<p>EXIF — EXIF photo metadata.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-exif.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-exif.html#flickcurl-exif" title="flickcurl_exif">flickcurl_exif</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-exif.html#flickcurl-free-exif" title="flickcurl_free_exif ()">flickcurl_free_exif</a>                 (<em class="parameter"><code><a class="link" href="flickcurl-section-exif.html#flickcurl-exif" title="flickcurl_exif"><span class="type">flickcurl_exif</span></a> *exif</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-exif.html#flickcurl-free-exifs" title="flickcurl_free_exifs ()">flickcurl_free_exifs</a>                (<em class="parameter"><code><a class="link" href="flickcurl-section-exif.html#flickcurl-exif" title="flickcurl_exif"><span class="type">flickcurl_exif</span></a> **exifs_object</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-exif.description"></a><h2>Description</h2>
+<p>
+EXIF photo metadata.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-exif.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_exif">
+<a name="flickcurl-exif"></a><h3>flickcurl_exif</h3>
+<pre class="programlisting">typedef struct {
+  char* tagspace;
+  int tagspaceid;
+  int tag;
+  char* label;
+  char* raw;
+  char* clean;
+} flickcurl_exif;
+</pre>
+<p>
+An EXIF tag.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-exif.tagspace"></a>tagspace</code></em>;</span></p></td>
+<td>Tagspace name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-exif.tagspaceid"></a>tagspaceid</code></em>;</span></p></td>
+<td>ID of tagspace
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-exif.tag"></a>tag</code></em>;</span></p></td>
+<td>tag ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-exif.label"></a>label</code></em>;</span></p></td>
+<td>tag label
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-exif.raw"></a>raw</code></em>;</span></p></td>
+<td>raw tag name
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-exif.clean"></a>clean</code></em>;</span></p></td>
+<td>pretty-formatted tag name
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_exif ()">
+<a name="flickcurl-free-exif"></a><h3>flickcurl_free_exif ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_exif                 (<em class="parameter"><code><a class="link" href="flickcurl-section-exif.html#flickcurl-exif" title="flickcurl_exif"><span class="type">flickcurl_exif</span></a> *exif</code></em>);</pre>
+<p>
+Destructor for exif object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>exif</code></em> :</span></p></td>
+<td>exif object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_exifs ()">
+<a name="flickcurl-free-exifs"></a><h3>flickcurl_free_exifs ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_exifs                (<em class="parameter"><code><a class="link" href="flickcurl-section-exif.html#flickcurl-exif" title="flickcurl_exif"><span class="type">flickcurl_exif</span></a> **exifs_object</code></em>);</pre>
+<p>
+Destructor for array of exif objects
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>exifs_object</code></em> :</span></p></td>
+<td>array of exif objects
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

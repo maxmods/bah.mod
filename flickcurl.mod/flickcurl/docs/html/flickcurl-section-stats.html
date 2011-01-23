@@ -1,0 +1,1068 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Statistics.</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-serializer.html" title="Serializer">
+<link rel="next" href="flickcurl-section-tag.html" title="Tags">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-serializer.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-tag.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-stats.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-stats.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Statistics.">
+<a name="flickcurl-section-stats"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-stats.top_of_page"></a>Statistics.</span></h2>
+<p>Statistics. — Statistics.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-stats.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat">flickcurl_stat</a>;
+                    <a class="link" href="flickcurl-section-stats.html#flickcurl-view-stats" title="flickcurl_view_stats">flickcurl_view_stats</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-stats.html#flickcurl-free-stat" title="flickcurl_free_stat ()">flickcurl_free_stat</a>                 (<em class="parameter"><code><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="type">flickcurl_stat</span></a> *stat</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-stats.html#flickcurl-free-stats" title="flickcurl_free_stats ()">flickcurl_free_stats</a>                (<em class="parameter"><code><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="type">flickcurl_stat</span></a> **stats_object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-stats.html#flickcurl-free-view-stats" title="flickcurl_free_view_stats ()">flickcurl_free_view_stats</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-stats.html#flickcurl-view-stats" title="flickcurl_view_stats"><span class="type">flickcurl_view_stats</span></a> *view_stats</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getCSVFiles" title="flickcurl_stats_getCSVFiles ()">flickcurl_stats_getCSVFiles</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getCollectionDomains" title="flickcurl_stats_getCollectionDomains ()">flickcurl_stats_getCollectionDomains</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getCollectionReferrers" title="flickcurl_stats_getCollectionReferrers ()">flickcurl_stats_getCollectionReferrers</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getCollectionStats" title="flickcurl_stats_getCollectionStats ()">flickcurl_stats_getCollectionStats</a>  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotoDomains" title="flickcurl_stats_getPhotoDomains ()">flickcurl_stats_getPhotoDomains</a>     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotoReferrers" title="flickcurl_stats_getPhotoReferrers ()">flickcurl_stats_getPhotoReferrers</a>   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>*     <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotoStats" title="flickcurl_stats_getPhotoStats ()">flickcurl_stats_getPhotoStats</a>       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotosetDomains" title="flickcurl_stats_getPhotosetDomains ()">flickcurl_stats_getPhotosetDomains</a>  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotosetReferrers" title="flickcurl_stats_getPhotosetReferrers ()">flickcurl_stats_getPhotosetReferrers</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotosetStats" title="flickcurl_stats_getPhotosetStats ()">flickcurl_stats_getPhotosetStats</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotostreamDomains" title="flickcurl_stats_getPhotostreamDomains ()">flickcurl_stats_getPhotostreamDomains</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotostreamReferrers" title="flickcurl_stats_getPhotostreamReferrers ()">flickcurl_stats_getPhotostreamReferrers</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPhotostreamStats" title="flickcurl_stats_getPhotostreamStats ()">flickcurl_stats_getPhotostreamStats</a> (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getPopularPhotos" title="flickcurl_stats_getPopularPhotos ()">flickcurl_stats_getPopularPhotos</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *sort</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>);
+<a class="link" href="flickcurl-section-stats.html#flickcurl-view-stats" title="flickcurl_view_stats"><span class="returnvalue">flickcurl_view_stats</span></a>* <a class="link" href="flickcurl-section-stats.html#flickcurl-stats-getTotalViews" title="flickcurl_stats_getTotalViews ()">flickcurl_stats_getTotalViews</a>     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-stats.description"></a><h2>Description</h2>
+<p>
+Statistics.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-stats.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_stat">
+<a name="flickcurl-stat"></a><h3>flickcurl_stat</h3>
+<pre class="programlisting">typedef struct {
+  int views;
+  int comments;
+  int favorites;
+  char *name;
+  char *url;
+  char *searchterms;
+} flickcurl_stat;
+</pre>
+<p>
+Statistics object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-stat.views"></a>views</code></em>;</span></p></td>
+<td>number of views of item
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-stat.comments"></a>comments</code></em>;</span></p></td>
+<td>number of comments on item
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-stat.favorites"></a>favorites</code></em>;</span></p></td>
+<td>number of item favorites
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-stat.name"></a>name</code></em>;</span></p></td>
+<td>name assocated with stat (e.g. domain name)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-stat.url"></a>url</code></em>;</span></p></td>
+<td>URL associated with stat (e.g. referrer URL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-stat.searchterms"></a>searchterms</code></em>;</span></p></td>
+<td>search term assocated with stat
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_view_stats">
+<a name="flickcurl-view-stats"></a><h3>flickcurl_view_stats</h3>
+<pre class="programlisting">typedef struct {
+  int total;
+  int photos;
+  int photostreams;
+  int sets;
+  int collections;
+} flickcurl_view_stats;
+</pre>
+<p>
+Total views statistics
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-view-stats.total"></a>total</code></em>;</span></p></td>
+<td>total view
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-view-stats.photos"></a>photos</code></em>;</span></p></td>
+<td>number of photo views
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-view-stats.photostreams"></a>photostreams</code></em>;</span></p></td>
+<td>number of photostream views
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-view-stats.sets"></a>sets</code></em>;</span></p></td>
+<td>number of set views
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-view-stats.collections"></a>collections</code></em>;</span></p></td>
+<td>number of collection views
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_stat ()">
+<a name="flickcurl-free-stat"></a><h3>flickcurl_free_stat ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_stat                 (<em class="parameter"><code><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="type">flickcurl_stat</span></a> *stat</code></em>);</pre>
+<p>
+Destructor for stat object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>stat</code></em> :</span></p></td>
+<td>stat object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_stats ()">
+<a name="flickcurl-free-stats"></a><h3>flickcurl_free_stats ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_stats                (<em class="parameter"><code><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="type">flickcurl_stat</span></a> **stats_object</code></em>);</pre>
+<p>
+Destructor for array of stat objects
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>stats_object</code></em> :</span></p></td>
+<td>stat object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_view_stats ()">
+<a name="flickcurl-free-view-stats"></a><h3>flickcurl_free_view_stats ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_view_stats           (<em class="parameter"><code><a class="link" href="flickcurl-section-stats.html#flickcurl-view-stats" title="flickcurl_view_stats"><span class="type">flickcurl_view_stats</span></a> *view_stats</code></em>);</pre>
+<p>
+Destructor for view stat object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>view_stats</code></em> :</span></p></td>
+<td>view stat object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getCSVFiles ()">
+<a name="flickcurl-stats-getCSVFiles"></a><h3>flickcurl_stats_getCSVFiles ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_stats_getCSVFiles         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Returns a list of URLs for text files containing historic stats data (from November 26th 2007 to 1 June 2010) for the current user.
+</p>
+<p>
+Not implemented since the files that this API call points to stop
+working after June 1 2010.
+</p>
+<p>
+Implements flickr.stats.getCSVFiles (1.19)
+</p>
+<p>
+Announced http://code.flickr.com/blog/2010/05/13/stats-api-redux/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> always returns non-0 to signify failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getCollectionDomains ()">
+<a name="flickcurl-stats-getCollectionDomains"></a><h3>flickcurl_stats_getCollectionDomains ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getCollectionDomains
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referring domains for a collection
+</p>
+<p>
+Implements flickr.stats.getCollectionDomains (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>collection_id</code></em> :</span></p></td>
+<td>The id of the collection to get stats for. If not provided, stats for all collections will be returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of domains to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getCollectionReferrers ()">
+<a name="flickcurl-stats-getCollectionReferrers"></a><h3>flickcurl_stats_getCollectionReferrers ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getCollectionReferrers
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referrers from a given domain to a collection
+</p>
+<p>
+Implements flickr.stats.getCollectionReferrers (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>domain</code></em> :</span></p></td>
+<td>The domain to return referrers for. This should be a hostname (eg: "flickr.com") with no protocol or pathname.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>collection_id</code></em> :</span></p></td>
+<td>The id of the collection to get stats for. If not provided, stats for all collections will be returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of referrers to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getCollectionStats ()">
+<a name="flickcurl-stats-getCollectionStats"></a><h3>flickcurl_stats_getCollectionStats ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_stats_getCollectionStats  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>);</pre>
+<p>
+Get the number of views on a collection for a given date.
+</p>
+<p>
+Implements flickr.stats.getCollectionStats (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according to
+Flickr Stats starts at midnight GMT for all users, and timestamps
+will automatically be rounded down to the start of the day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>collection_id</code></em> :</span></p></td>
+<td>The id of the collection to get stats for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> views count or &lt;0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotoDomains ()">
+<a name="flickcurl-stats-getPhotoDomains"></a><h3>flickcurl_stats_getPhotoDomains ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getPhotoDomains     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referring domains for a photo
+</p>
+<p>
+Implements flickr.stats.getPhotoDomains (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to get stats for. If not provided, stats for all photos will be returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of domains to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotoReferrers ()">
+<a name="flickcurl-stats-getPhotoReferrers"></a><h3>flickcurl_stats_getPhotoReferrers ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getPhotoReferrers   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referrers from a given domain to a photo
+</p>
+<p>
+Implements flickr.stats.getPhotoReferrers (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>domain</code></em> :</span></p></td>
+<td>The domain to return referrers for. This should be a hostname (eg: "flickr.com") with no protocol or pathname.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to get stats for. If not provided, stats for all photos will be returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of referrers to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotoStats ()">
+<a name="flickcurl-stats-getPhotoStats"></a><h3>flickcurl_stats_getPhotoStats ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>*     flickcurl_stats_getPhotoStats       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Get the number of views, comments and favorites on a photo for a given date.
+</p>
+<p>
+Implements flickr.stats.getPhotoStats (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to get stats for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotosetDomains ()">
+<a name="flickcurl-stats-getPhotosetDomains"></a><h3>flickcurl_stats_getPhotosetDomains ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getPhotosetDomains  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referring domains for a photoset
+</p>
+<p>
+Implements flickr.stats.getPhotosetDomains (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to get stats for. If not provided, stats for all sets will be returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of domains to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotosetReferrers ()">
+<a name="flickcurl-stats-getPhotosetReferrers"></a><h3>flickcurl_stats_getPhotosetReferrers ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getPhotosetReferrers
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referrers from a given domain to a photoset
+</p>
+<p>
+Implements flickr.stats.getPhotosetReferrers (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>domain</code></em> :</span></p></td>
+<td>The domain to return referrers for. This should be a hostname (eg: "flickr.com") with no protocol or pathname.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to get stats for. If not provided, stats for all sets will be returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of referrers to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotosetStats ()">
+<a name="flickcurl-stats-getPhotosetStats"></a><h3>flickcurl_stats_getPhotosetStats ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_stats_getPhotosetStats    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);</pre>
+<p>
+Get the number of views on a photoset for a given date.
+</p>
+<p>
+Implements flickr.stats.getPhotosetStats (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to get stats for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> number of views or &lt;0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotostreamDomains ()">
+<a name="flickcurl-stats-getPhotostreamDomains"></a><h3>flickcurl_stats_getPhotostreamDomains ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getPhotostreamDomains
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referring domains for a photostream
+</p>
+<p>
+Implements flickr.stats.getPhotostreamDomains (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of domains to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100 (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotostreamReferrers ()">
+<a name="flickcurl-stats-getPhotostreamReferrers"></a><h3>flickcurl_stats_getPhotostreamReferrers ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-stat" title="flickcurl_stat"><span class="returnvalue">flickcurl_stat</span></a>**    flickcurl_stats_getPhotostreamReferrers
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of referrers from a given domain to a user's photostream
+</p>
+<p>
+Implements flickr.stats.getPhotostreamReferrers (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>domain</code></em> :</span></p></td>
+<td>The domain to return referrers for. This should be a hostname (eg: "flickr.com") with no protocol or pathname.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of referrers to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPhotostreamStats ()">
+<a name="flickcurl-stats-getPhotostreamStats"></a><h3>flickcurl_stats_getPhotostreamStats ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_stats_getPhotostreamStats (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>);</pre>
+<p>
+Get the number of views on a user's photostream for a given date.
+</p>
+<p>
+Implements flickr.stats.getPhotostreamStats (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> number of views or &lt;0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getPopularPhotos ()">
+<a name="flickcurl-stats-getPopularPhotos"></a><h3>flickcurl_stats_getPopularPhotos ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_stats_getPopularPhotos    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *sort</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>);</pre>
+<p>
+Get stats for popular photos
+</p>
+<p>
+Implements flickr.stats.getPopularPhotos (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.  If no date is provided, all time view counts will be
+returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>sort</code></em> :</span></p></td>
+<td>The order in which to sort returned photos. Defaults to views. The possible values are views, comments and favorites.  Other sort options are available through search. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of referrers to return per page. If this argument is omitted, it defaults to 25. The maximum allowed value is 100. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record. Currently supported fields are: <code class="code">description</code>, <code class="code">license</code>, <code class="code">date_upload</code>, <code class="code">date_taken</code>, <code class="code">owner_name</code>, <code class="code">icon_server</code>, <code class="code">original_format</code>, <code class="code">last_update</code>, <code class="code">geo</code>, <code class="code">tags</code>, <code class="code">machine_tags</code>, <code class="code">o_dims</code>, <code class="code">views</code>, <code class="code">media</code>, <code class="code">path_alias</code>, <code class="code">url_sq</code>, <code class="code">url_t</code>, <code class="code">url_s</code>, <code class="code">url_m</code>, <code class="code">url_o</code> (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_stats_getTotalViews ()">
+<a name="flickcurl-stats-getTotalViews"></a><h3>flickcurl_stats_getTotalViews ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-stats.html#flickcurl-view-stats" title="flickcurl_view_stats"><span class="returnvalue">flickcurl_view_stats</span></a>* flickcurl_stats_getTotalViews     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *date</code></em>);</pre>
+<p>
+Get the overall view counts for an account
+</p>
+<p>
+Implements flickr.stats.getTotalViews (1.17)
+</p>
+<p>
+Announced 2010-03-03
+http://code.flickr.com/blog/2010/03/03/flickr-stats-api/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>date</code></em> :</span></p></td>
+<td>Stats will be returned for this date. This should be in
+either be in YYYY-MM-DD or unix timestamp format.  A day according
+to Flickr Stats starts at midnight GMT for all users, and
+timestamps will automatically be rounded down to the start of the
+day.  If no date is provided, all time view counts will be
+returned. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> view count or &lt;0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

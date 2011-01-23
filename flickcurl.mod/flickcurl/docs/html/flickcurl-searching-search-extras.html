@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Extra result fields</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="flickcurl-searching.html" title="Searching for Photos with Flickcurl">
+<link rel="prev" href="flickcurl-searching-search-paging.html" title="Result paging parameters">
+<link rel="next" href="flickcurl-searching-search-result-formats.html" title="Search result format">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2"><tr valign="middle">
+<td><a accesskey="p" href="flickcurl-searching-search-paging.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="flickcurl-searching.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-searching-search-result-formats.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="section" title="Extra result fields">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="flickcurl-searching-search-extras"></a>Extra result fields</h2></div></div></div>
+<p>Search results can be made to return additional fields in the
+photo results by using the <span class="emphasis"><em>extras</em></span> configuration
+of the search API.
+(This applies to both results returning the 
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo">flickcurl_photo</a> struct as
+well as syntax formats described in the next section.)
+This is done by configuring the field <code class="code">extras</code> in the
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params">flickcurl_photos_list_params</a>
+structure containing a , (comma) separated list of the extra names
+like <code class="code">name1,name2</code>.
+</p>
+<p>The known search 'extras' names and what they fields they
+return are as follows (at the time this documentation was built):
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term">date_taken</span></p></td>
+<td>Date item was taken</td>
+</tr>
+<tr>
+<td><p><span class="term">date_upload</span></p></td>
+<td>Date item was uploaded</td>
+</tr>
+<tr>
+<td><p><span class="term">geo</span></p></td>
+<td>Geotagging latitude, longitude and accuracy</td>
+</tr>
+<tr>
+<td><p><span class="term">icon_server</span></p></td>
+<td>Item owner icon fields</td>
+</tr>
+<tr>
+<td><p><span class="term">last_update</span></p></td>
+<td>Date item was last updated</td>
+</tr>
+<tr>
+<td><p><span class="term">license</span></p></td>
+<td>Item License </td>
+</tr>
+<tr>
+<td><p><span class="term">machine_tags</span></p></td>
+<td>Machine tags</td>
+</tr>
+<tr>
+<td><p><span class="term">media</span></p></td>
+<td>Item Format: photo or video</td>
+</tr>
+<tr>
+<td><p><span class="term">o_dims</span></p></td>
+<td>Original item dimensions</td>
+</tr>
+<tr>
+<td><p><span class="term">original_format</span></p></td>
+<td>Original item secret and format</td>
+</tr>
+<tr>
+<td><p><span class="term">owner_name</span></p></td>
+<td>Item owner ID</td>
+</tr>
+<tr>
+<td><p><span class="term">path_alias</span></p></td>
+<td>Path alias for owner like /photos/USERNAME</td>
+</tr>
+<tr>
+<td><p><span class="term">tags</span></p></td>
+<td>Item clean tags (safe for HTML, URLs)</td>
+</tr>
+<tr>
+<td><p><span class="term">url_m</span></p></td>
+<td>URL of medium size image</td>
+</tr>
+<tr>
+<td><p><span class="term">url_o</span></p></td>
+<td>URL of original size image</td>
+</tr>
+<tr>
+<td><p><span class="term">url_s</span></p></td>
+<td>URL of small size image</td>
+</tr>
+<tr>
+<td><p><span class="term">url_sq</span></p></td>
+<td>URL of square size image</td>
+</tr>
+<tr>
+<td><p><span class="term">url_t</span></p></td>
+<td>URL of thumbnail size image</td>
+</tr>
+<tr>
+<td><p><span class="term">views</span></p></td>
+<td>Number of times item has been viewed</td>
+</tr>
+</tbody>
+</table></div>
+<p>Use
+<a class="link" href="flickcurl-section-core.html#flickcurl-get-extras-format-info" title="flickcurl_get_extras_format_info ()">flickcurl_get_extras_format_info()</a>
+to get the known <code class="code">extra</code> names and descriptions at runtime.  
+</p>
+<p>The following code fragment sets the extras field to the single
+extra name <code class="code">original_format</code> which adds to the the search results
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo">flickcurl_photo</a> objects
+fields for the original item secret and original item format
+(like <code class="code">"jpg"</code>).
+</p>
+<pre class="programlisting">
+  flickcurl_photos_list_params list_params;
+
+  flickcurl_photos_list_params_init(&amp;list_params);
+
+  list_params.extras = "original_format";
+</pre>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

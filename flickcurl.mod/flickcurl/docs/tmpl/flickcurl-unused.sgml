@@ -1,0 +1,105 @@
+<!-- ##### SECTION ./tmpl/flickcurl-unused.sgml:Stability_Level ##### -->
+
+
+
+<!-- ##### SECTION ./tmpl/section-photoslists.sgml:Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION ./tmpl/section-photoslists.sgml:See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION ./tmpl/section-photoslists.sgml:Short_Description ##### -->
+
+
+
+<!-- ##### SECTION ./tmpl/section-photoslists.sgml:Stability_Level ##### -->
+
+
+
+<!-- ##### SECTION ./tmpl/section-photoslists.sgml:Title ##### -->
+section-photoslists
+
+
+<!-- ##### FUNCTION emit_finish ##### -->
+<para>
+
+</para>
+
+@user_data: 
+
+<!-- ##### FUNCTION emit_namespace ##### -->
+<para>
+
+</para>
+
+@user_data: 
+@prefix: 
+@prefix_len: 
+@uri: 
+@uri_len: 
+
+<!-- ##### FUNCTION emit_triple ##### -->
+<para>
+
+</para>
+
+@user_data: 
+@subject: 
+@subject_type: 
+@predicate_nspace: 
+@predicate_name: 
+@object: 
+@object_type: 
+@datatype_uri: 
+
+<!-- ##### STRUCT flickcurl_category_s ##### -->
+<para>
+
+</para>
+
+@id: 
+@name: 
+@path: 
+@count: 
+@categories: 
+@categories_count: 
+@groups: 
+@groups_count: 
+
+<!-- ##### FUNCTION flickcurl_free_note ##### -->
+<para>
+
+</para>
+
+@note: 
+
+<!-- ##### FUNCTION flickcurl_photo_as_user_icon_url ##### -->
+<para>
+
+</para>
+
+@photo: 
+@Returns: 
+
+<!-- ##### TYPEDEF flickcurl_set ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION flickcurl_user_icon_url ##### -->
+<para>
+
+</para>
+
+@farm: 
+@server: 
+@nsid: 
+@Returns: 
+

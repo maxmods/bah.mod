@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Collections</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-commons.html" title="Flickr Commons">
+<link rel="next" href="flickcurl-section-contact.html" title="Contacts">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-commons.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-contact.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-collections.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-collections.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Collections">
+<a name="flickcurl-section-collections"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-collections.top_of_page"></a>Collections</span></h2>
+<p>Collections — Collections of photos or sets.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-collections.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">typedef             <a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection">flickcurl_collection</a>;
+<a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="returnvalue">flickcurl_collection</span></a>* <a class="link" href="flickcurl-section-collections.html#flickcurl-collections-getInfo" title="flickcurl_collections_getInfo ()">flickcurl_collections_getInfo</a>     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>);
+<a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="returnvalue">flickcurl_collection</span></a>* <a class="link" href="flickcurl-section-collections.html#flickcurl-collections-getTree" title="flickcurl_collections_getTree ()">flickcurl_collections_getTree</a>     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-collections.html#flickcurl-free-collection" title="flickcurl_free_collection ()">flickcurl_free_collection</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="type">flickcurl_collection</span></a> *collection</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-collections.html#flickcurl-free-collections" title="flickcurl_free_collections ()">flickcurl_free_collections</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="type">flickcurl_collection</span></a> **collections</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-collections.description"></a><h2>Description</h2>
+<p>
+Collections of photos or sets.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-collections.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_collection">
+<a name="flickcurl-collection"></a><h3>flickcurl_collection</h3>
+<pre class="programlisting">typedef struct flickcurl_collection_s flickcurl_collection;
+</pre>
+<p>
+A photo collection.  May contain collections OR sets but not both.
+</p>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_collections_getInfo ()">
+<a name="flickcurl-collections-getInfo"></a><h3>flickcurl_collections_getInfo ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="returnvalue">flickcurl_collection</span></a>* flickcurl_collections_getInfo     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>);</pre>
+<p>
+Returns information for a single collection.  Currently can only
+be called by the collection owner, this may change.
+</p>
+<p>
+Implements flickr.collections.getInfo (1.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>collection_id</code></em> :</span></p></td>
+<td>The ID of the collection to fetch information for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> a collection or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_collections_getTree ()">
+<a name="flickcurl-collections-getTree"></a><h3>flickcurl_collections_getTree ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="returnvalue">flickcurl_collection</span></a>* flickcurl_collections_getTree     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *collection_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);</pre>
+<p>
+Returns a tree (or sub tree) of collections belonging to a given user.
+</p>
+<p>
+Implements flickr.collections.getTree (1.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>collection_id</code></em> :</span></p></td>
+<td>The ID of the collection to fetch a tree for, or zero to fetch the root collection. Defaults to zero. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The ID of the account to fetch the collection tree for. Deafults to the calling user. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> a collection or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_collection ()">
+<a name="flickcurl-free-collection"></a><h3>flickcurl_free_collection ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_collection           (<em class="parameter"><code><a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="type">flickcurl_collection</span></a> *collection</code></em>);</pre>
+<p>
+Destructor collection
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>collection</code></em> :</span></p></td>
+<td>collection
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_collections ()">
+<a name="flickcurl-free-collections"></a><h3>flickcurl_free_collections ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_collections          (<em class="parameter"><code><a class="link" href="flickcurl-section-collections.html#flickcurl-collection" title="flickcurl_collection"><span class="type">flickcurl_collection</span></a> **collections</code></em>);</pre>
+<p>
+Destructor for array of collection object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>collections</code></em> :</span></p></td>
+<td>collection object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Tags</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-stats.html" title="Statistics.">
+<link rel="next" href="flickcurl-section-test.html" title="Test">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-stats.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-test.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-tag.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-tag.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Tags">
+<a name="flickcurl-section-tag"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-tag.top_of_page"></a>Tags</span></h2>
+<p>Tags — Photo tagging.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-tag.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag">flickcurl_tag</a>;
+                    <a class="link" href="flickcurl-section-tag.html#flickcurl-tag-cluster" title="flickcurl_tag_cluster">flickcurl_tag_cluster</a>;
+                    <a class="link" href="flickcurl-section-tag.html#flickcurl-tag-clusters" title="flickcurl_tag_clusters">flickcurl_tag_clusters</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-tag.html#flickcurl-free-tag" title="flickcurl_free_tag ()">flickcurl_free_tag</a>                  (<em class="parameter"><code><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> *t</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-tag.html#flickcurl-free-tag-clusters" title="flickcurl_free_tag_clusters ()">flickcurl_free_tag_clusters</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-tag.html#flickcurl-tag-clusters" title="flickcurl_tag_clusters"><span class="type">flickcurl_tag_clusters</span></a> *tcs</code></em>);
+<span class="returnvalue">void</span>                (<a class="link" href="flickcurl-section-tag.html#flickcurl-tag-handler" title="flickcurl_tag_handler ()">*flickcurl_tag_handler</a>)            (<em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> *tag</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getClusterPhotos" title="flickcurl_tags_getClusterPhotos ()">flickcurl_tags_getClusterPhotos</a>  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *cluster_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<a class="link" href="flickcurl-section-tag.html#flickcurl-tag-clusters" title="flickcurl_tag_clusters"><span class="returnvalue">flickcurl_tag_clusters</span></a>* <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getClusters" title="flickcurl_tags_getClusters ()">flickcurl_tags_getClusters</a>      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>);
+<a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getHotList" title="flickcurl_tags_getHotList ()">flickcurl_tags_getHotList</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *period</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> tag_count</code></em>);
+<a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getListPhoto" title="flickcurl_tags_getListPhoto ()">flickcurl_tags_getListPhoto</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+<a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getListUser" title="flickcurl_tags_getListUser ()">flickcurl_tags_getListUser</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);
+<a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getListUserPopular" title="flickcurl_tags_getListUserPopular ()">flickcurl_tags_getListUserPopular</a>   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> pop_count</code></em>);
+<a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getListUserRaw" title="flickcurl_tags_getListUserRaw ()">flickcurl_tags_getListUserRaw</a>       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>);
+<a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     <a class="link" href="flickcurl-section-tag.html#flickcurl-tags-getRelated" title="flickcurl_tags_getRelated ()">flickcurl_tags_getRelated</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-tag.description"></a><h2>Description</h2>
+<p>
+Photo tagging.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-tag.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_tag">
+<a name="flickcurl-tag"></a><h3>flickcurl_tag</h3>
+<pre class="programlisting">typedef struct {
+  struct flickcurl_photo_s* photo;
+  char* id;
+  char* author;
+  char* authorname;
+  char* raw;
+  char* cooked;
+  int machine_tag;
+  int count;
+} flickcurl_tag;
+</pre>
+<p>
+A tag OR a posting of a tag about a photo by a user OR a tag in a histogram
+</p>
+<p>
+Most of these fields may be NULL, 0 for numbers
+but not all.  Either <em class="parameter"><code>raw</code></em> or <em class="parameter"><code>cooked</code></em> MUST appear. 
+</p>
+<p>
+A Photo Tag.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term">struct <span class="type">flickcurl_photo_s</span> *<em class="structfield"><code><a name="flickcurl-tag.photo"></a>photo</code></em>;</span></p></td>
+<td>Associated photo object if any
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag.id"></a>id</code></em>;</span></p></td>
+<td>tag identifier
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag.author"></a>author</code></em>;</span></p></td>
+<td>author (may be NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag.authorname"></a>authorname</code></em>;</span></p></td>
+<td>author real name (may be NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag.raw"></a>raw</code></em>;</span></p></td>
+<td>raw tag as user typed it (may be NULL, but if so <em class="parameter"><code>cooked</code></em> must be not NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-tag.cooked"></a>cooked</code></em>;</span></p></td>
+<td>cooked tag (may be NULL, but if so <em class="parameter"><code>raw</code></em> must not be NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag.machine-tag"></a>machine_tag</code></em>;</span></p></td>
+<td>boolean (non-0 true) if tag is a Machine Tag
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag.count"></a>count</code></em>;</span></p></td>
+<td>tag count in a histogram (or 0)
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tag_cluster">
+<a name="flickcurl-tag-cluster"></a><h3>flickcurl_tag_cluster</h3>
+<pre class="programlisting">typedef struct {
+  int count;
+  char** tags;
+} flickcurl_tag_cluster;
+</pre>
+<p>
+A cluster (set) of tag names
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag-cluster.count"></a>count</code></em>;</span></p></td>
+<td>number of tags
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> **<em class="structfield"><code><a name="flickcurl-tag-cluster.tags"></a>tags</code></em>;</span></p></td>
+<td>tags in this cluster
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tag_clusters">
+<a name="flickcurl-tag-clusters"></a><h3>flickcurl_tag_clusters</h3>
+<pre class="programlisting">typedef struct {
+  int count;
+  flickcurl_tag_cluster** clusters;
+} flickcurl_tag_clusters;
+</pre>
+<p>
+A set of clusters of tag names
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-tag-clusters.count"></a>count</code></em>;</span></p></td>
+<td>number of tag clusters
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag-cluster" title="flickcurl_tag_cluster"><span class="type">flickcurl_tag_cluster</span></a> **<em class="structfield"><code><a name="flickcurl-tag-clusters.clusters"></a>clusters</code></em>;</span></p></td>
+<td>tag clusters
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_tag ()">
+<a name="flickcurl-free-tag"></a><h3>flickcurl_free_tag ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_tag                  (<em class="parameter"><code><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> *t</code></em>);</pre>
+<p>
+Destructor for tag object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>t</code></em> :</span></p></td>
+<td>tag object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_tag_clusters ()">
+<a name="flickcurl-free-tag-clusters"></a><h3>flickcurl_free_tag_clusters ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_tag_clusters         (<em class="parameter"><code><a class="link" href="flickcurl-section-tag.html#flickcurl-tag-clusters" title="flickcurl_tag_clusters"><span class="type">flickcurl_tag_clusters</span></a> *tcs</code></em>);</pre>
+<p>
+Destructor for tag clusters object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>tcs</code></em> :</span></p></td>
+<td>tag clusters object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tag_handler ()">
+<a name="flickcurl-tag-handler"></a><h3>flickcurl_tag_handler ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                (*flickcurl_tag_handler)            (<em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> *tag</code></em>);</pre>
+<p>
+Flickcurl Tag handler callback.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data pointer
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tag</code></em> :</span></p></td>
+<td>tag
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getClusterPhotos ()">
+<a name="flickcurl-tags-getClusterPhotos"></a><h3>flickcurl_tags_getClusterPhotos ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_tags_getClusterPhotos  (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *cluster_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Returns the first 24 photos for a given tag cluster
+</p>
+<p>
+Implements flickr.tags.getClusterPhotos (1.7)
+</p>
+<p>
+Added to API (not announced) some time between 2008-09-04 and 2008-09-19
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tag</code></em> :</span></p></td>
+<td>The tag that this cluster belongs to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cluster_id</code></em> :</span></p></td>
+<td>The top three tags for the cluster, separated by dashes (just like the url).
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getClusters ()">
+<a name="flickcurl-tags-getClusters"></a><h3>flickcurl_tags_getClusters ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag-clusters" title="flickcurl_tag_clusters"><span class="returnvalue">flickcurl_tag_clusters</span></a>* flickcurl_tags_getClusters      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>);</pre>
+<p>
+Gives you a list of tag clusters for the given tag.
+</p>
+<p>
+Implements flickr.tags.getClusters (1.5)
+</p>
+<p>
+"There is no pagination for this method as the number of clusters
+for a single tag is capped at 5 and each cluster may contain
+between 1 - 50 tags (give or take)."
+</p>
+<p>
+As announced 2008-07-17
+http://tech.groups.yahoo.com/group/yws-flickr/message/4218
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tag</code></em> :</span></p></td>
+<td>The tag to fetch clusters for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getHotList ()">
+<a name="flickcurl-tags-getHotList"></a><h3>flickcurl_tags_getHotList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     flickcurl_tags_getHotList           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *period</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> tag_count</code></em>);</pre>
+<p>
+Returns a list of hot tags for the given period.
+</p>
+<p>
+Implements flickr.tags.getHotList (0.9)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>period</code></em> :</span></p></td>
+<td>The period for which to fetch hot tags. Valid values are day and
+  week (defaults to day).
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tag_count</code></em> :</span></p></td>
+<td>The number of tags to return. Defaults to 20. Maximum allowed
+  value is 200 (or -1 to leave as default)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of <a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getListPhoto ()">
+<a name="flickcurl-tags-getListPhoto"></a><h3>flickcurl_tags_getListPhoto ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     flickcurl_tags_getListPhoto         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Get the tag list for a given photo.
+</p>
+<p>
+Implements flickr.tags.getListPhoto (0.9)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>photo ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of <a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getListUser ()">
+<a name="flickcurl-tags-getListUser"></a><h3>flickcurl_tags_getListUser ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     flickcurl_tags_getListUser          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);</pre>
+<p>
+Get the tag list for a given user (or current user)
+</p>
+<p>
+Implements flickr.tags.getListUser (0.9)
+</p>
+<p>
+FIXME: API docs says user_id is optional but it is not.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>user NSID (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of <a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getListUserPopular ()">
+<a name="flickcurl-tags-getListUserPopular"></a><h3>flickcurl_tags_getListUserPopular ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     flickcurl_tags_getListUserPopular   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> pop_count</code></em>);</pre>
+<p>
+Get the popular tag list for a given user (or current user)
+</p>
+<p>
+Implements flickr.tags.getListUserPopular (0.9)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>user NSID (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>pop_count</code></em> :</span></p></td>
+<td>number of popular tags to return (or &lt;0 for default)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of <a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getListUserRaw ()">
+<a name="flickcurl-tags-getListUserRaw"></a><h3>flickcurl_tags_getListUserRaw ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     flickcurl_tags_getListUserRaw       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>);</pre>
+<p>
+Get the raw versions of a given tag (or all tags) for the currently logged-in user.
+</p>
+<p>
+Implements flickr.tags.getListUserRaw (0.9)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tag</code></em> :</span></p></td>
+<td>tag to get raw version of (or NULL for all)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of <a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_tags_getRelated ()">
+<a name="flickcurl-tags-getRelated"></a><h3>flickcurl_tags_getRelated ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="returnvalue">flickcurl_tag</span></a>**     flickcurl_tags_getRelated           (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *tag</code></em>);</pre>
+<p>
+Get a list of tags 'related' to the given tag, based on clustered usage analysis.
+</p>
+<p>
+Implements flickr.tags.getRelated (0.9)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tag</code></em> :</span></p></td>
+<td>tag to fetch related tags for
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of <a class="link" href="flickcurl-section-tag.html#flickcurl-tag" title="flickcurl_tag"><span class="type">flickcurl_tag</span></a> or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

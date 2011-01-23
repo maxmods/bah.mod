@@ -1,0 +1,290 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" 
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+<chapter id="flickcurl-auth">
+
+<title>Authenticating Flickcurl</title>
+
+<section id="flickcurl-auth-intro">
+
+<title>Build Flickcurl library and flickcurl utility</title>
+
+<programlisting>
+  $ ./configure
+  $ make
+</programlisting>
+
+<para>
+Add the utils directory to your shell search path:
+</para>
+<programlisting>
+  $ PATH=`pwd`/utils:$PATH
+on bourne shells such as Bash or
+  $ setenv PATH `pwd`/utils:$PATH
+on c shells such as tcsh
+</programlisting>
+
+<para>
+You should get an error if you now try the utility:
+</para>
+<programlisting>
+  $ flickcurl photos.getInfo 1234567
+  flickcurl: ERROR: No shared secret
+  flickcurl: Command photos.getInfo failed
+</programlisting>
+
+<para>
+This is because there is no configuration set for the library.  For
+the flickcurl utility, it reads the configuration from a file
+<code>~/.flickcurl.conf</code> which contains parameters used
+for authentication.  This section describes how those parameters
+are obtained.
+</para>
+
+</section>
+
+
+<section id="flickcurl-auth-register">
+
+<title>Register application to get API Key and Shared Secret</title>
+
+<para>NOTE: In the pictures below, the Flickr web site is shown in
+English and the screenshots taken in early December 2009.  Flickr
+upgrade the web site often so these instructions may not match the
+latest look.  Hopefully you can figure it out!</para>
+
+
+<para>
+Start by navigating to the Flickr <emphasis>App Garden</emphasis> at
+<ulink url="http://www.flickr.com/services/">http://www.flickr.com/services/</ulink>
+and follow the link 'Create an App' taking you to 
+<ulink url="http://www.flickr.com/services/apps/create/">http://www.flickr.com/services/apps/create/</ulink>
+</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-get-your-api-key.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Get your API Key</para></caption>
+</mediaobject>
+
+<para>
+Select the link 'Request an API Key' taking you to
+<ulink url="http://www.flickr.com/services/apps/create/apply/">http://www.flickr.com/services/apps/create/apply/</ulink>
+</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-commercial-picker.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Commercial / Non-Commercial</para></caption>
+</mediaobject>
+
+<para>
+Select either of the two buttons:
+'Apply for a Non-Commercial Key' or 'Apply for a Commercial Key'
+as appropriate.
+</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-tell-us-about-your-app.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Describe application</para></caption>
+</mediaobject>
+
+<para>
+Fill in the form fields and submit it via the 'Submit' button.  
+</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-new-api-key-secret.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Key and Secret</para></caption>
+</mediaobject>
+
+<para>Flickr will return a page containing both the
+API <emphasis>Key</emphasis> that looks something like:
+</para>
+<programlisting>
+   0123456789abcdef0123456789abcdef
+</programlisting>
+<para>and <emphasis>Secret</emphasis> which looks something like:</para>
+<programlisting>
+   fedcba9876543210
+</programlisting>
+
+<para>
+These strings should be used for the values of the <code>api</code>
+and <code>secret</code> keys in either the <code>~/.flickcurl.conf</code>
+if used with the flickcurl utility or in code, with the
+<link linkend="flickcurl-set-api-key">flickcurl_set_api_key()</link>
+and
+<link linkend="flickcurl-set-shared-secret">flickcurl_set_shared_secret()</link>
+functions.
+</para>
+
+<para>
+You now need to change the key to be of type mobile since no callback
+URL is usually appropriate for a command-line application or library.
+</para>
+
+<para>
+Click the 'Edit auth flow for this app' link below the
+<emphasis>Key</emphasis> and <emphasis>Secret</emphasis>
+</para>
+
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-edit-auth-flow.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Edit authentication flow</para></caption>
+</mediaobject>
+
+<para>Change the 'App Type' to 'Mobile Application'
+then set the 'Mobile Permissions' to 'Read', 'Write' Or 'Delete' as
+appropriate.
+</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-edit-auth-flow-mobile.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Edit authentication flow: mobile</para></caption>
+</mediaobject>
+
+<para>
+This sequence will make the new key 'Auth mode Mobile'
+and an <emphasis>authentication URL</emphasis> will be shown on the
+same page and look something like this:
+</para>
+<programlisting>
+http://www.flickr.com/auth-11111111111111111
+</programlisting>
+
+<para>Finish with the 'Save Changes' button to confirm and return
+you to the application page.</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-test-app-page.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Application page</para></caption>
+</mediaobject>
+
+<para>
+If you ever need to alter or view the authentication, use the link
+'Edit the authentication flow' on right-hand side of the application page.
+</para>
+
+<para>All your Flickr applications are linked from
+<ulink url="http://www.flickr.com/services/apps/by/me">http://www.flickr.com/services/apps/by/me</ulink>
+</para>
+
+</section>
+
+
+<section id="flickcurl-auth-authenticate">
+
+<title>Getting Authentication Token from API Key and Secret</title>
+
+<para>
+Create a file <code>~/.flickcurl.conf</code> with the two
+values above (API Key, Shared Secret) like this:
+</para>
+
+<programlisting>
+[flickr]
+api_key=0123456789abcdef0123456789abcdef
+secret=fedcba9876543210
+</programlisting>
+
+<para>Then visit the Authentication URL mentioned in the previous section
+(http://www.flickr.com/auth-11111111111111111) in a web browser.
+</para>
+
+<para>Flickr will return a page that says something like:</para>
+<programlisting>
+  "[APP NAME] wants to link to your Flickr account"
+</programlisting>
+<para>with more information and two buttons.  Click the button
+with the text:</para>
+<programlisting>
+  [OK, I'LL AUTHORIZE IT]
+</programlisting>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="appgarden-mobile-auth-page.png" format="PNG" scale="80" align="center"/>
+</imageobject>
+<caption><para>Flickr App Garden - Mobile Auth</para></caption>
+</mediaobject>
+
+
+<para>Flickr will return on the next page a
+9-digit <emphasis>FROB</emphasis> that looks like this:</para>
+<programlisting>
+  123-456-789
+</programlisting>
+
+<para>
+Switch back to the command line and run the flickcurl utility with that FROB:
+</para>
+<programlisting>
+$ flickcurl -a 123-456-789
+</programlisting>
+
+<para>The result will be that an
+<emphasis>Authentication Token</emphasis> (auth token) is calculated
+and returned.  The flickcurl utility will reply:</para>
+<programlisting>
+flickcurl: Successfully exchanged frob 123-456-789 for authentication token
+flickcurl: Updated configuration file /Users/NAME/.flickcurl.conf with authentication token
+</programlisting>
+
+<para>The flickcurl utility has automatically updated the
+<code>~/.flickcurl.conf</code> configuration file (as the message
+will show) with the <code>auth_token</code> field to give something
+like:</para>
+
+<programlisting>
+$ cat ~/.flickcurl.conf
+[flickr]
+auth_token=1234567-8901234567890123
+api_key=0123456789abcdef0123456789abcdef
+secret=fedcba9876543210
+</programlisting>
+
+<para>
+At this stage, the utility (or library) is authenticated and ready to use.
+</para>
+
+</section>
+
+
+<section id="flickcurl-auth-use">
+
+<title>Use flickcurl</title>
+
+<para>Now the configuration has been created and authentication
+completed, the library and utility will work.
+</para>
+
+<programlisting>
+  $ flickcurl photos.getInfo 1234567
+  flickcurl: Found photo with URI http://www.flickr.com/photos/yogi/1234567/ ID 1234567 and 1 tags
+  ...
+</programlisting>
+
+</section>
+
+
+</chapter>
+
+<!--
+Local variables:
+mode: sgml
+sgml-parent-document: ("flickcurl-docs.xml" "book" "part")
+End:
+-->

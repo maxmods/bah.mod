@@ -1,0 +1,640 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>People</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-panda.html" title="Panda photos">
+<link rel="next" href="flickcurl-section-person.html" title="Person class.">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-panda.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-person.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-people.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-people.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="People">
+<a name="flickcurl-section-people"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-people.top_of_page"></a>People</span></h2>
+<p>People — Photos taken by people APIs.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-people.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis"><span class="returnvalue">char</span>*               <a class="link" href="flickcurl-section-people.html#flickcurl-people-findByEmail" title="flickcurl_people_findByEmail ()">flickcurl_people_findByEmail</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *email</code></em>);
+<span class="returnvalue">char</span>*               <a class="link" href="flickcurl-section-people.html#flickcurl-people-findByUsername" title="flickcurl_people_findByUsername ()">flickcurl_people_findByUsername</a>     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *username</code></em>);
+<a class="link" href="flickcurl-section-person.html#flickcurl-person" title="flickcurl_person"><span class="returnvalue">flickcurl_person</span></a>*   <a class="link" href="flickcurl-section-people.html#flickcurl-people-getInfo" title="flickcurl_people_getInfo ()">flickcurl_people_getInfo</a>            (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPhotos" title="flickcurl_people_getPhotos ()">flickcurl_people_getPhotos</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> safe_search</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_taken_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_taken_date</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> content_type</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPhotos-params" title="flickcurl_people_getPhotos_params ()">flickcurl_people_getPhotos_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> safe_search</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_taken_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_taken_date</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> content_type</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPhotosOf" title="flickcurl_people_getPhotosOf ()">flickcurl_people_getPhotosOf</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPhotosOf-params" title="flickcurl_people_getPhotosOf_params ()">flickcurl_people_getPhotosOf_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>**   <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPublicGroups" title="flickcurl_people_getPublicGroups ()">flickcurl_people_getPublicGroups</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPublicPhotos" title="flickcurl_people_getPublicPhotos ()">flickcurl_people_getPublicPhotos</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPublicPhotos-params" title="flickcurl_people_getPublicPhotos_params ()">flickcurl_people_getPublicPhotos_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<a class="link" href="flickcurl-section-upload.html#flickcurl-user-upload-status" title="flickcurl_user_upload_status"><span class="returnvalue">flickcurl_user_upload_status</span></a>* <a class="link" href="flickcurl-section-people.html#flickcurl-people-getUploadStatus" title="flickcurl_people_getUploadStatus ()">flickcurl_people_getUploadStatus</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-people.description"></a><h2>Description</h2>
+<p>
+Photos taken by people APIs.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-people.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_people_findByEmail ()">
+<a name="flickcurl-people-findByEmail"></a><h3>flickcurl_people_findByEmail ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span>*               flickcurl_people_findByEmail        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *email</code></em>);</pre>
+<p>
+Get a user's NSID, given their email address
+</p>
+<p>
+Implements flickr.people.findByEmail (0.8)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>email</code></em> :</span></p></td>
+<td>user email address
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> NSID or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_findByUsername ()">
+<a name="flickcurl-people-findByUsername"></a><h3>flickcurl_people_findByUsername ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span>*               flickcurl_people_findByUsername     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *username</code></em>);</pre>
+<p>
+Get a user's NSID, given their username address
+</p>
+<p>
+Implements flickr.people.findByUsername (0.8)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>username</code></em> :</span></p></td>
+<td>username
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> NSID or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getInfo ()">
+<a name="flickcurl-people-getInfo"></a><h3>flickcurl_people_getInfo ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-person.html#flickcurl-person" title="flickcurl_person"><span class="returnvalue">flickcurl_person</span></a>*   flickcurl_people_getInfo            (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);</pre>
+<p>
+Get information about a person
+</p>
+<p>
+Implements flickr.people.getInfo (0.6)
+</p>
+<p>
+NSID can be found by <a class="link" href="flickcurl-section-people.html#flickcurl-people-findByEmail" title="flickcurl_people_findByEmail ()"><code class="function">flickcurl_people_findByEmail()</code></a> or
+<a class="link" href="flickcurl-section-people.html#flickcurl-people-findByUsername" title="flickcurl_people_findByUsername ()"><code class="function">flickcurl_people_findByUsername()</code></a>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>user NSID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> <a class="link" href="flickcurl-section-person.html#flickcurl-person" title="flickcurl_person"><span class="type">flickcurl_person</span></a> object or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getPhotos ()">
+<a name="flickcurl-people-getPhotos"></a><h3>flickcurl_people_getPhotos ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_people_getPhotos          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> safe_search</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_taken_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_taken_date</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> content_type</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get photos from the given user's photostream.
+</p>
+<p>
+Only photos visible to the calling user will be returned. This
+method must be authenticated; to return public photos for a user,
+use <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPublicPhotos" title="flickcurl_people_getPublicPhotos ()"><code class="function">flickcurl_people_getPublicPhotos()</code></a>.
+</p>
+<p>
+Implements flickr.people.getPhotos (1.18)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user who's photos to return. A value of "me" will return the calling user's photos.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>safe_search</code></em> :</span></p></td>
+<td>Safe search setting: 1 for safe, 2 for moderate, 3 for restricted. (Please note: Un-authed calls can only see Safe content.) (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>min_upload_date</code></em> :</span></p></td>
+<td>Minimum upload date. Photos with an upload date greater than or equal to this value will be returned. The date should be in the form of a unix timestamp. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>max_upload_date</code></em> :</span></p></td>
+<td>Maximum upload date. Photos with an upload date less than or equal to this value will be returned. The date should be in the form of a unix timestamp. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>min_taken_date</code></em> :</span></p></td>
+<td>Minimum taken date. Photos with an taken date greater than or equal to this value will be returned. The date should be in the form of a mysql datetime. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>max_taken_date</code></em> :</span></p></td>
+<td>Maximum taken date. Photos with an taken date less than or equal to this value will be returned. The date should be in the form of a mysql datetime. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>content_type</code></em> :</span></p></td>
+<td>Content Type setting: 1 for photos only, 2 for screenshots only, 3 for 'other' only, 4 for photos and screenshots, 5 for screenshots and 'other', 6 for photos and 'other', 7 for photos, screenshots, and 'other' (all) (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>privacy_filter</code></em> :</span></p></td>
+<td>Return photos only matching a certain privacy level. This only applies when making an authenticated call to view photos you own. Valid values are: 1 public photos, 2 private photos visible to friends, 3 private photos visible to family, 4 private photos visible to friends &amp; family, 5 completely private photo (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record. Currently supported fields are: <code class="code">description</code>, <code class="code">license</code>, <code class="code">date_upload</code>, <code class="code">date_taken</code>, <code class="code">owner_name</code>, <code class="code">icon_server</code>, <code class="code">original_format</code>, <code class="code">last_update</code>, <code class="code">geo</code>, <code class="code">tags</code>, <code class="code">machine_tags</code>, <code class="code">o_dims</code>, <code class="code">views</code>, <code class="code">media</code>, <code class="code">path_alias</code>, <code class="code">url_sq</code>, <code class="code">url_t</code>, <code class="code">url_s</code>, <code class="code">url_m</code>, <code class="code">url_o</code> (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getPhotos_params ()">
+<a name="flickcurl-people-getPhotos-params"></a><h3>flickcurl_people_getPhotos_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_people_getPhotos_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> safe_search</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_upload_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *min_taken_date</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *max_taken_date</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> content_type</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Get photos from the given user's photostream.
+</p>
+<p>
+Only photos visible to the calling user will be returned. This
+method must be authenticated; to return public photos for a user,
+use <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPublicPhotos" title="flickcurl_people_getPublicPhotos ()"><code class="function">flickcurl_people_getPublicPhotos()</code></a>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user who's photos to return. A value of "me" will return the calling user's photos.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>safe_search</code></em> :</span></p></td>
+<td>Safe search setting: 1 for safe, 2 for moderate, 3 for restricted. (Please note: Un-authed calls can only see Safe content.) (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>min_upload_date</code></em> :</span></p></td>
+<td>Minimum upload date. Photos with an upload date greater than or equal to this value will be returned. The date should be in the form of a unix timestamp. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>max_upload_date</code></em> :</span></p></td>
+<td>Maximum upload date. Photos with an upload date less than or equal to this value will be returned. The date should be in the form of a unix timestamp. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>min_taken_date</code></em> :</span></p></td>
+<td>Minimum taken date. Photos with an taken date greater than or equal to this value will be returned. The date should be in the form of a mysql datetime. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>max_taken_date</code></em> :</span></p></td>
+<td>Maximum taken date. Photos with an taken date less than or equal to this value will be returned. The date should be in the form of a mysql datetime. (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>content_type</code></em> :</span></p></td>
+<td>Content Type setting: 1 for photos only, 2 for screenshots only, 3 for 'other' only, 4 for photos and screenshots, 5 for screenshots and 'other', 6 for photos and 'other', 7 for photos, screenshots, and 'other' (all) (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>privacy_filter</code></em> :</span></p></td>
+<td>Return photos only matching a certain privacy level. This only applies when making an authenticated call to view photos you own. Valid values are: 1 public photos, 2 private photos visible to friends, 3 private photos visible to family, 4 private photos visible to friends &amp; family, 5 completely private photos (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getPhotosOf ()">
+<a name="flickcurl-people-getPhotosOf"></a><h3>flickcurl_people_getPhotosOf ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_people_getPhotosOf        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Returns a list of photos containing a particular Flickr member.
+</p>
+<p>
+Implements flickr.people.getPhotosOf (1.17) 
+</p>
+<p>
+Announced 2010-01-21
+http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user who's photo to search. A value of "me" will search against the calling user's photos for authenticated calls.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt; 0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> photos array or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getPhotosOf_params ()">
+<a name="flickcurl-people-getPhotosOf-params"></a><h3>flickcurl_people_getPhotosOf_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_people_getPhotosOf_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Returns a list of photos containing a particular Flickr member.
+</p>
+<p>
+Announced 2010-01-21
+http://code.flickr.com/blog/2010/01/21/people-in-photos-the-api-methods/
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user who's photo to search. A value of "me" will search against the calling user's photos for authenticated calls.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> photos list or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getPublicGroups ()">
+<a name="flickcurl-people-getPublicGroups"></a><h3>flickcurl_people_getPublicGroups ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-group.html#flickcurl-group" title="flickcurl_group"><span class="returnvalue">flickcurl_group</span></a>**   flickcurl_people_getPublicGroups    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);</pre>
+<p>
+Returns the list of public groups a user is a member of.
+</p>
+<p>
+Implements flickr.people.getPublicGroups (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user to fetch groups for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getPublicPhotos ()">
+<a name="flickcurl-people-getPublicPhotos"></a><h3>flickcurl_people_getPublicPhotos ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_people_getPublicPhotos    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get a list of public photos for the given user.
+</p>
+<p>
+See <a class="link" href="flickcurl-section-people.html#flickcurl-people-getPublicPhotos-params" title="flickcurl_people_getPublicPhotos_params ()"><code class="function">flickcurl_people_getPublicPhotos_params()</code></a> for details of extras.
+</p>
+<p>
+Implements flickr.people.getPublicPhotos (0.12)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user who's photos to return.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page (default 100, max 500)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return (default 1)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> list of photos or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getPublicPhotos_params ()">
+<a name="flickcurl-people-getPublicPhotos-params"></a><h3>flickcurl_people_getPublicPhotos_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_people_getPublicPhotos_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Get a list of public photos for the given user.
+</p>
+<p>
+Currently supported extras fields are: license, date_upload,
+date_taken, owner_name, icon_server, original_format,
+last_update, geo, tags, machine_tags.
+</p>
+<p>
+Optional extra type 'media' that will return an extra media = VALUE
+for VALUE "photo" or "video".  API addition 2008-04-07.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user who's photos to return.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> list of people public photos or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_people_getUploadStatus ()">
+<a name="flickcurl-people-getUploadStatus"></a><h3>flickcurl_people_getUploadStatus ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-upload.html#flickcurl-user-upload-status" title="flickcurl_user_upload_status"><span class="returnvalue">flickcurl_user_upload_status</span></a>* flickcurl_people_getUploadStatus
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>);</pre>
+<p>
+Returns information for the calling user related to photo uploads.
+</p>
+<p>
+Implements flickr.people.getUploadStatus (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

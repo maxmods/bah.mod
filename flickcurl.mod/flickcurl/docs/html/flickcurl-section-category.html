@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Categories</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-blogs.html" title="Blogs">
+<link rel="next" href="flickcurl-section-comment.html" title="Comments">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-blogs.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-comment.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-category.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-category.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Categories">
+<a name="flickcurl-section-category"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-category.top_of_page"></a>Categories</span></h2>
+<p>Categories — Categories of groups</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-category.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">typedef             <a class="link" href="flickcurl-section-category.html#flickcurl-category" title="flickcurl_category">flickcurl_category</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-category.html#flickcurl-free-categories" title="flickcurl_free_categories ()">flickcurl_free_categories</a>           (<em class="parameter"><code><a class="link" href="flickcurl-section-category.html#flickcurl-category" title="flickcurl_category"><span class="type">flickcurl_category</span></a> **categories_object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-category.html#flickcurl-free-category" title="flickcurl_free_category ()">flickcurl_free_category</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-category.html#flickcurl-category" title="flickcurl_category"><span class="type">flickcurl_category</span></a> *category</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-category.description"></a><h2>Description</h2>
+<p>
+Categories of groups
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-category.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_category">
+<a name="flickcurl-category"></a><h3>flickcurl_category</h3>
+<pre class="programlisting">typedef struct flickcurl_category_s flickcurl_category;
+</pre>
+<p>
+A category.
+</p>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_categories ()">
+<a name="flickcurl-free-categories"></a><h3>flickcurl_free_categories ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_categories           (<em class="parameter"><code><a class="link" href="flickcurl-section-category.html#flickcurl-category" title="flickcurl_category"><span class="type">flickcurl_category</span></a> **categories_object</code></em>);</pre>
+<p>
+Destructor for array of category object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>categories_object</code></em> :</span></p></td>
+<td>category object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_category ()">
+<a name="flickcurl-free-category"></a><h3>flickcurl_free_category ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_category             (<em class="parameter"><code><a class="link" href="flickcurl-section-category.html#flickcurl-category" title="flickcurl_category"><span class="type">flickcurl_category</span></a> *category</code></em>);</pre>
+<p>
+Destructor for category object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>category</code></em> :</span></p></td>
+<td>category object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

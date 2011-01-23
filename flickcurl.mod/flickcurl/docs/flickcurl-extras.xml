@@ -1,0 +1,78 @@
+<variablelist>
+  <varlistentry>
+    <term>date_taken</term>
+    <listitem><simpara>Date item was taken</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>date_upload</term>
+    <listitem><simpara>Date item was uploaded</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>geo</term>
+    <listitem><simpara>Geotagging latitude, longitude and accuracy</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>icon_server</term>
+    <listitem><simpara>Item owner icon fields</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>last_update</term>
+    <listitem><simpara>Date item was last updated</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>license</term>
+    <listitem><simpara>Item License </simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>machine_tags</term>
+    <listitem><simpara>Machine tags</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>media</term>
+    <listitem><simpara>Item Format: photo or video</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>o_dims</term>
+    <listitem><simpara>Original item dimensions</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>original_format</term>
+    <listitem><simpara>Original item secret and format</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>owner_name</term>
+    <listitem><simpara>Item owner ID</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>path_alias</term>
+    <listitem><simpara>Path alias for owner like /photos/USERNAME</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>tags</term>
+    <listitem><simpara>Item clean tags (safe for HTML, URLs)</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>url_m</term>
+    <listitem><simpara>URL of medium size image</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>url_o</term>
+    <listitem><simpara>URL of original size image</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>url_s</term>
+    <listitem><simpara>URL of small size image</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>url_sq</term>
+    <listitem><simpara>URL of square size image</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>url_t</term>
+    <listitem><simpara>URL of thumbnail size image</simpara></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>views</term>
+    <listitem><simpara>Number of times item has been viewed</simpara></listitem>
+  </varlistentry>
+</variablelist>

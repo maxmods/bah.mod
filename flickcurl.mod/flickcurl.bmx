@@ -1,4 +1,4 @@
-' Copyright 2008,2009 Bruce A Henderson
+' Copyright 2008-2011 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -21,8 +21,11 @@ Module BaH.Flickcurl
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: Flickurl - 2007-2009, David Beckett http://www.dajobe.org/"
-ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
+ModuleInfo "Copyright: Flickurl - 2007-2010, David Beckett http://www.dajobe.org/"
+ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
+
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release. (flickcurl 1.20)"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DFLICKCURL_STATIC -DCURL_STATICLIB -DLIBXML_STATIC"
 
@@ -169,7 +172,7 @@ Type TFlickcurl
 	</ul>
 	End Rem
 	Method ResolvePlaceId:TFCPlace(placeID:String)
-		Return TFCPlace._create(bmx_flickcurl_resolveplaceid(fcPtr, placeID))
+		Return TFCPlace._create(bmx_flickcurl_resolveplaceid(fcPtr, placeID), fcPtr)
 	End Method
 	
 	Rem
@@ -181,7 +184,7 @@ Type TFlickcurl
 	</ul>
 	End Rem
 	Method ResolvePlaceURL:TFCPlace(url:String)
-		Return TFCPlace._create(bmx_flickcurl_resolveplaceurl(fcPtr, url))
+		Return TFCPlace._create(bmx_flickcurl_resolveplaceurl(fcPtr, url), fcPtr)
 	End Method
 	
 	Rem
@@ -200,7 +203,14 @@ Type TFlickcurl
 	</p>
 	End Rem
 	Method FindPlaceByLatLon:TFCPlace(lat:Double, lon:Double, accuracy:Int = 16)
-		Return TFCPlace._create(bmx_flickcurl_findplacebylatlon(fcPtr, lat, lon, accuracy))
+		Return TFCPlace._create(bmx_flickcurl_findplacebylatlon(fcPtr, lat, lon, accuracy), fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method FindPlaces:TFCPlaceList(query:String)
+		Return TFCPlaceList._create(bmx_flickcurl_placesfind(fcPtr, query), fcPtr)
 	End Method
 	
 	Rem
@@ -962,6 +972,14 @@ Type TFCPhoto
 <tr><td>PHOTO_FIELD_usage_candownload</td><td> can download</td></tr>
 <tr><td>PHOTO_FIELD_usage_canblog</td><td> can blog</td></tr>
 <tr><td>PHOTO_FIELD_usage_canprint</td><td> can print</td></tr>
+<tr><td>PHOTO_FIELD_owner_iconserver </td><td> server of owner's icon </td></tr>
+<tr><td>PHOTO_FIELD_owner_iconfarm </td><td> farm of owner's icon </td></tr>
+<tr><td>PHOTO_FIELD_original_width </td><td> original photo width </td></tr>
+<tr><td>PHOTO_FIELD_original_height </td><td> original photo height </td></tr>
+<tr><td>PHOTO_FIELD_views </td><td> number of photo views </td></tr>
+<tr><td>PHOTO_FIELD_comments </td><td> number of photo comments </td></tr>
+<tr><td>PHOTO_FIELD_favorites </td><td> number of photo favorites </td></tr>
+<tr><td>PHOTO_FIELD_gallery_comment </td><td> comment on the photo when used in a gallery </td></tr>
 <tr><td>PHOTO_FIELD_FIRST</td><td> internal offset to first in enum list</td></tr>
 <tr><td>PHOTO_FIELD_LAST</td><td> internal offset to last in enum list</td></tr>
 </table>
@@ -974,7 +992,7 @@ Type TFCPhoto
 	bbdoc: Returns the place for the photo.
 	End Rem
 	Method GetPlace:TFCPlace()
-		Return TFCPlace._create(bmx_flickcurl_photo_getplace(photoPtr), False)
+		Return TFCPlace._create(bmx_flickcurl_photo_getplace(photoPtr), fcPtr, False)
 	End Method
 	
 	Rem
@@ -1515,11 +1533,13 @@ Type TFCPlace
 
 	Field placePtr:Byte Ptr
 	Field owner:Int
+	Field fcPtr:Byte Ptr
 
-	Function _create:TFCPlace(placePtr:Byte Ptr, owner:Int = True)
+	Function _create:TFCPlace(placePtr:Byte Ptr, fcPtr:Byte Ptr, owner:Int = True)
 		If placePtr Then
 			Local this:TFCPlace = New TFCPlace
 			this.placePtr = placePtr
+			this.fcPtr = fcPtr
 			this.owner = owner
 			Return this
 		End If
@@ -1586,7 +1606,7 @@ Type TFCPlace
 	End Method
 	
 	Rem
-	bbdoc: Get label for a place type.
+	bbdoc: Gets label for a place type.
 	about: One of
 	<table>
 	<tr><th>Constant</th><th>Description</th></tr>
@@ -1596,13 +1616,70 @@ Type TFCPlace
 	<tr><td>FLICKCURL_PLACE_LOCALITY</td><td>locality</td></tr>
 	<tr><td>FLICKCURL_PLACE_COUNTY</td><td>county</td></tr>
 	<tr><td>FLICKCURL_PLACE_REGION</td><td>region</td></tr>
-	<tr><td>FLICKCURL_PLACE_COUNTRY</td><td>country (widest place)</td></tr>
+	<tr><td>FLICKCURL_PLACE_COUNTRY</td><td>country</td></tr>
+	<tr><td>FLICKCURL_PLACE_CONTINENT</td><td>continent (widest place)</td></tr>
 	<tr><td>FLICKCURL_PLACE_LAST</td><td>internal offset to last place type</td></tr>
 	</table>
 	End Rem
 	Function GetTypeLabel:String(placeType:Int)
 		Return bmx_flickcurl_place_gettypelabel(placeType)
 	End Function
+	
+	Rem
+	bbdoc: Gets a place type by label
+	about: One of "location", "neighbourhood", "locality", "county", "region", "country" or "continent"
+	End Rem
+	Function GetTypeByLabel:Int(label:String)
+		Return bmx_flickcurl_place_gettypebylabel(label)
+	End Function
+	
+	Method Delete()
+		Free()
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TFCPlaceList
+
+	Field plPtr:Byte Ptr
+	
+	Field fcPtr:Byte Ptr
+
+	Function _create:TFCPlaceList(plPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If plPtr Then
+			Local this:TFCPlaceList = New TFCPlaceList
+			this.plPtr = plPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the number of places.
+	End Rem
+	Method GetPlaceCount:Int()
+		Return bmx_flickcurl_listofplaces_getplacecount(plPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the place at the given @index.
+	End Rem
+	Method GetPlace:TFCPlace(index:Int)
+		Return TFCPlace._create(bmx_flickcurl_listofplaces_getplace(plPtr, index), fcPtr, False)
+	End Method
+
+	Rem
+	bbdoc: Destructor for List object.
+	End Rem
+	Method Free()
+		If plPtr Then
+			flickcurl_free_places(plPtr)
+			plPtr = Null
+		End If
+	End Method
 	
 	Method Delete()
 		Free()
@@ -2144,6 +2221,39 @@ Type TFCSearchParams
 	End Rem
 	Method SetContacts(value:String)
 		bmx_flickcurl_searchparams_setcontacts(paramsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: A 32-bit identifier that uniquely represents spatial entities.
+	about: (not used if bbox argument is present). Same restrictions as placeID (or 0)
+	End Rem
+	Method SetWOEID(value:Int)
+		bmx_flickcurl_searchparams_setwoeid(paramsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: A numeric value representing the photo's geotagginess beyond latitude and longitude.
+	about: The current list of context IDs is 0: not defined, 1: indoors and 2: outdoors. Geo queries require some
+	sort of limiting agent in order to prevent the database from crying (or 0)
+	End Rem
+	Method SetGeoContext(value:Int)
+		bmx_flickcurl_searchparams_setgeocontext(paramsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Limit the scope of the search to only photos that are part of the Flickr Commons project.
+	about: Default is false (or 0)
+	End Rem
+	Method SetIsCommons(value:Int)
+		bmx_flickcurl_searchparams_setiscommons(paramsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Limit the scope of the search to only photos that are in a gallery.
+	about: Default is false, search all photos.
+	End Rem
+	Method SetInGallery(value:Int)
+		bmx_flickcurl_searchparams_setingallery(paramsPtr, value)
 	End Method
 
 	Method Delete()

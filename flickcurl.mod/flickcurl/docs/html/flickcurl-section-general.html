@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>General</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-core.html" title="Core">
+<link rel="next" href="flickcurl-auth.html" title="Authenticating Flickcurl">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-core.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-auth.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-general.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-general.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="General">
+<a name="flickcurl-section-general"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-general.top_of_page"></a>General</span></h2>
+<p>General — General functions.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-general.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">#define             <a class="link" href="flickcurl-section-general.html#FLICKCURL-DEPRECATED:CAPS" title="FLICKCURL_DEPRECATED">FLICKCURL_DEPRECATED</a>
+#define             <a class="link" href="flickcurl-section-general.html#FLICKCURL-MAX-ACTIVITY-EVENTS:CAPS" title="FLICKCURL_MAX_ACTIVITY_EVENTS">FLICKCURL_MAX_ACTIVITY_EVENTS</a>
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-general.html#flickcurl-array-free" title="flickcurl_array_free ()">flickcurl_array_free</a>                (<em class="parameter"><code><span class="type">char</span> *array[]</code></em>);
+<span class="returnvalue">char</span>*               <a class="link" href="flickcurl-section-general.html#flickcurl-array-join" title="flickcurl_array_join ()">flickcurl_array_join</a>                (<em class="parameter"><code>const <span class="type">char</span> *array[]</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> delim</code></em>);
+<span class="returnvalue">char</span>**              <a class="link" href="flickcurl-section-general.html#flickcurl-array-split" title="flickcurl_array_split ()">flickcurl_array_split</a>               (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> delim</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-general.description"></a><h2>Description</h2>
+<p>
+General functions.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-general.details"></a><h2>Details</h2>
+<div class="refsect2" title="FLICKCURL_DEPRECATED">
+<a name="FLICKCURL-DEPRECATED:CAPS"></a><h3>FLICKCURL_DEPRECATED</h3>
+<pre class="programlisting">#define             FLICKCURL_DEPRECATED</pre>
+<p>
+deprecated
+</p>
+</div>
+<hr>
+<div class="refsect2" title="FLICKCURL_MAX_ACTIVITY_EVENTS">
+<a name="FLICKCURL-MAX-ACTIVITY-EVENTS:CAPS"></a><h3>FLICKCURL_MAX_ACTIVITY_EVENTS</h3>
+<pre class="programlisting">#define FLICKCURL_MAX_ACTIVITY_EVENTS 20
+</pre>
+<p>
+Max number of activity events.
+</p>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_array_free ()">
+<a name="flickcurl-array-free"></a><h3>flickcurl_array_free ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_array_free                (<em class="parameter"><code><span class="type">char</span> *array[]</code></em>);</pre>
+<p>
+Free an array.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>array</code></em> :</span></p></td>
+<td>C array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_array_join ()">
+<a name="flickcurl-array-join"></a><h3>flickcurl_array_join ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span>*               flickcurl_array_join                (<em class="parameter"><code>const <span class="type">char</span> *array[]</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> delim</code></em>);</pre>
+<p>
+Join elements of a C array into a string
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>array</code></em> :</span></p></td>
+<td>C array
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>delim</code></em> :</span></p></td>
+<td>delimeter character
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> newly allocated string or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_array_split ()">
+<a name="flickcurl-array-split"></a><h3>flickcurl_array_split ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span>**              flickcurl_array_split               (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> delim</code></em>);</pre>
+<p>
+Split a string into a C array
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>str</code></em> :</span></p></td>
+<td>string
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>delim</code></em> :</span></p></td>
+<td>delimeter character
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> newly allocated array or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

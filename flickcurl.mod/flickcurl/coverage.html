@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Flickcurl: Flickr API coverage</title>
+  <link rel="stylesheet" type="text/css" href="stylesheet.css" />
+  <style type="text/css">
+.unsupported { color: #666666 }
+a:visited.unsupported { color: #666666 }
+.supported { color: green; font-weight: bold }
+a:visited.supported { color: green; font-weight: bold }
+span.coverage { font-weight: bold}
+  </style>
+</head>
+<body>
+
+<h1 style="text-align:center">Flickcurl: Flickr API coverage</h1>
+<h2 style="text-align:center"><a href="http://www.dajobe.org/">Dave Beckett</a></h2>
+
+<p>This page summarizes the Flickr API calls that are supported
+by <a href="http://librdf.org/flickcurl/">Flickcurl</a>.  API
+calls are marked as follows as <span class="supported">supported</span>
+or <span class="unsupported">unsupported</span>.
+</p>
+
+<p>Current Flickr API coverage by Flickcurl: 
+<!-- next line updated by update-coverage -->
+<span class="coverage">100.0% (180/180)</span>
+</p>
+
+
+<h2>Flickr API</h2>
+
+<h3>Photo Upload API</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/upload.api.html">Uploading Photos</a> (0.10): <code>POST</code> to http://api.flickr.com/services/upload/</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/replace.api.html">Replacing Photos</a> (0.10): <code>POST</code> to http://api.flickr.com/services/replace/</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/upload.async.html">Asynchronous Uploading</a> (0.10): synchronous <code>POST</code> upload with async=1 then use <code>flickr.photos.upload.checkTickets</code> to check it has completed</li>
+</ul>
+
+
+<h3>activity</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.activity.userComments.html">flickr.activity.userComments</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.activity.userPhotos.html">flickr.activity.userPhotos</a> (1.0)</li>
+</ul>
+
+
+<h3>auth</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.auth.checkToken.html">flickr.auth.checkToken</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.auth.getFrob.html">flickr.auth.getFrob</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.auth.getFullToken.html">flickr.auth.getFullToken</a> (0.5)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.auth.getToken.html">flickr.auth.getToken</a> (0.9)</li>
+</ul>
+
+
+<h3>blogs</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.blogs.getList.html">flickr.blogs.getList</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.blogs.getServices.html">flickr.blogs.getServices</a> (1.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.blogs.postPhoto.html">flickr.blogs.postPhoto</a> (1.0)</li>
+</ul>
+
+
+<h3>collections</h3>
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.collections.getInfo.html">flickr.collections.getInfo</a> (1.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.collections.getTree.html">flickr.collections.getTree</a> (1.12)</li>
+</ul>
+
+
+<h3>commons</h3>
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.commons.getInstitutions.html">flickr.commons.getInstitutions</a> (1.8)</li>
+</ul>
+
+
+<h3>contacts</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.contacts.getList.html">flickr.contacts.getList</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.contacts.getListRecentlyUploaded.html">flickr.contacts.getListRecentlyUploaded</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.contacts.getPublicList.html">flickr.contacts.getPublicList</a> (0.11)</li>
+</ul>
+
+
+<h3>favorites</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.favorites.add.html">flickr.favorites.add</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.favorites.getList.html">flickr.favorites.getList</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.favorites.getPublicList.html">flickr.favorites.getPublicList</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.favorites.remove.html">flickr.favorites.remove</a> (1.0)</li>
+</ul>
+
+
+<h3>galleries</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.addPhoto.html">flickr.galleries.addPhoto</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.create.html">flickr.galleries.create</a> (1.18)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.editMeta.html">flickr.galleries.editMeta</a> (1.18)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.editPhoto.html">flickr.galleries.editPhoto</a> (1.18)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.editPhotos.html">flickr.galleries.editPhotos</a> (1.18)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.getInfo.html">flickr.galleries.getInfo</a> (1.18)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.getList.html">flickr.galleries.getList</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.getListForPhoto.html">flickr.galleries.getListForPhoto</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.galleries.getPhotos.html">flickr.galleries.getPhotos</a> (1.18)</li>
+</ul>
+
+<h3>groups</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.browse.html">flickr.groups.browse</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.getInfo.html">flickr.groups.getInfo</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.search.html">flickr.groups.search</a> (0.13)</li>
+</ul>
+
+
+<h3>groups.members</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.members.getList.html">flickr.groups.members.getList</a> (1.9)</li>
+</ul>
+
+
+<h3>groups.pools</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.pools.add.html">flickr.groups.pools.add</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.pools.getContext.html">flickr.groups.pools.getContext</a> (0.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.pools.getGroups.html">flickr.groups.pools.getGroups</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.pools.getPhotos.html">flickr.groups.pools.getPhotos</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.groups.pools.remove.html">flickr.groups.pools.remove</a> (0.12)</li>
+</ul>
+
+
+<h3>interestingness</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.interestingness.getList.html">flickr.interestingness.getList</a> (0.13)</li>
+</ul>
+
+
+<h3>machinetags</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.machinetags.getNamespaces.html">flickr.machinetags.getNamespaces</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.machinetags.getPairs.html">flickr.machinetags.getPairs</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.machinetags.getPredicates.html">flickr.machinetags.getPredicates</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.machinetags.getValues.html">flickr.machinetags.getValues</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.machinetags.getRecentValues.html">flickr.machinetags.getRecentValues</a> (1.12)</li>
+</ul>
+
+
+<h3>panda</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.panda.getPhotos.html">flickr.panda.getPhotos</a> (1.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.panda.getList.html">flickr.panda.getList</a> (1.9)</li>
+</ul>
+
+
+<h3>people</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.findByEmail.html">flickr.people.findByEmail</a> (0.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.findByUsername.html">flickr.people.findByUsername</a> (0.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.getInfo.html">flickr.people.getInfo</a> (0.6)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.getPhotos.html">flickr.people.getPhotos</a> (1.18)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.getPublicGroups.html">flickr.people.getPublicGroups</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.getPublicPhotos.html">flickr.people.getPublicPhotos</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.getUploadStatus.html">flickr.people.getUploadStatus</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.people.getPhotosOf.html">flickr.people.getPhotosOf</a> (1.17)</li>
+</ul>
+
+
+<h3>photos</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.addTags.html">flickr.photos.addTags</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.delete.html">flickr.photos.delete</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getAllContexts.html">flickr.photos.getAllContexts</a> (0.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getContactsPhotos.html">flickr.photos.getContactsPhotos</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getContactsPublicPhotos.html">flickr.photos.getContactsPublicPhotos</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getContext.html">flickr.photos.getContext</a> (0.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getCounts.html">flickr.photos.getCounts</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getExif.html">flickr.photos.getExif</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getFavorites.html">flickr.photos.getFavorites</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getInfo.html">flickr.photos.getInfo</a> (0.5)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getNotInSet.html">flickr.photos.getNotInSet</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getPerms.html">flickr.photos.getPerms</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getRecent.html">flickr.photos.getRecent</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getSizes.html">flickr.photos.getSizes</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getUntagged.html">flickr.photos.getUntagged</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getWithGeoData.html">flickr.photos.getWithGeoData</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.getWithoutGeoData.html">flickr.photos.getWithoutGeoData</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.recentlyUpdated.html">flickr.photos.recentlyUpdated</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.removeTag.html">flickr.photos.removeTag</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.search.html">flickr.photos.search</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.setContentType.html">flickr.photos.setContentType</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.setDates.html">flickr.photos.setDates</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.setMeta.html">flickr.photos.setMeta</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.setPerms.html">flickr.photos.setPerms</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.setSafetyLevel.html">flickr.photos.setSafetyLevel</a> (0.11)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.setTags.html">flickr.photos.setTags</a> (0.9)</li>
+</ul>
+
+
+<h3>photos.comments</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.comments.addComment.html">flickr.photos.comments.addComment</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.comments.deleteComment.html">flickr.photos.comments.deleteComment</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.comments.editComment.html">flickr.photos.comments.editComment</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.comments.getList.html">flickr.photos.comments.getList</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.comments.getRecentForContacts.html">flickr.photos.comments.getRecentForContacts</a> (1.12)</li>
+</ul>
+
+
+<h3>photos.geo</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.batchCorrectLocation.html">flickr.photos.geo.batchCorrectLocation</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.correctLocation.html">flickr.photos.geo.correctLocation</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.getLocation.html">flickr.photos.geo.getLocation</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.getPerms.html">flickr.photos.geo.getPerms</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.photosoForLocation.html">flickr.photos.geo.photosForLocation</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.removeLocation.html">flickr.photos.geo.removeLocation</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.setContext.html">flickr.photos.geo.setContext</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.setLocation.html">flickr.photos.geo.setLocation</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.geo.setPerms.html">flickr.photos.geo.setPerms</a> (0.12)</li>
+</ul>
+
+
+<h3>photos.licenses</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html">flickr.photos.licenses.getInfo</a> (0.6)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.licenses.setLicense.html">flickr.photos.licenses.setLicense</a> (0.12)</li>
+</ul>
+
+
+<h3>photos.notes</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.notes.add.html">flickr.photos.notes.add</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.notes.delete.html">flickr.photos.notes.delete</a> (0.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.notes.edit.html">flickr.photos.notes.edit</a> (0.12)</li>
+</ul>
+
+
+<h3>photos.people</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.people.add.html">flickr.photos.people.add</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.people.delete.html">flickr.photos.people.delete</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.people.deleteCoords.html">flickr.photos.people.deleteCoords</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.people.editCoords.html">flickr.photos.people.editCoords</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.people.getList.html">flickr.photos.people.getList</a> (1.17)</li>
+ </ul>
+
+
+<h3>photos.transform</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.transform.rotate.html">flickr.photos.transform.rotate</a> (0.13)</li>
+</ul>
+
+
+<h3>photos.upload</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photos.upload.checkTickets.html">flickr.photos.upload.checkTickets</a> (0.13)</li>
+</ul>
+
+
+<h3>photosets</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.addPhoto.html">flickr.photosets.addPhoto</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.create.html">flickr.photosets.create</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.delete.html">flickr.photosets.delete</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.editMeta.html">flickr.photosets.editMeta</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.editPhotos.html">flickr.photosets.editPhotos</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.getContext.html">flickr.photosets.getContext</a> (0.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.getInfo.html">flickr.photosets.getInfo</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.getList.html">flickr.photosets.getList</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.getPhotos.html">flickr.photosets.getPhotos</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.orderSets.html">flickr.photosets.orderSets</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.removePhoto.html">flickr.photosets.removePhoto</a> (0.13)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.removePhotos.html">flickr.photosets.removePhotos</a> (1.19)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.reorderPhotos.html">flickr.photosets.reorderPhotos</a> (1.19)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.setPrimaryPhoto.html">flickr.photosets.setPrimaryPhoto</a> (1.19)</li>
+</ul>
+
+
+<h3>photosets.comments</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.comments.addComment.html">flickr.photosets.comments.addComment</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.comments.deleteComment.html">flickr.photosets.comments.deleteComment</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.comments.editComment.html">flickr.photosets.comments.editComment</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.photosets.comments.getList.html">flickr.photosets.comments.getList</a> (0.10)</li>
+</ul>
+
+
+<h3>places</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.find.html">flickr.places.find</a> (1.1)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.findByLatLon.html">flickr.places.findByLatLon</a> (1.1)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.getChildrenWithPhotosPublic.html">flickr.places.getChildrenWithPhotosPublic</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.getInfo.html">flickr.places.getInfo</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.getInfoByUrl.html">flickr.places.getInfoByUrl</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.getPlaceTypes.html">flickr.places.getPlaceTypes</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.getShapeHistory.html">flickr.places.getShapeHistory</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.getTopPlacesList.html">flickr.places.getTopPlacesList</a> (1.12)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.placesForBoundingBox.html">flickr.places.placesForBoundingBox</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.placesForContacts.html">flickr.places.placesForContacts</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.placesForTags.html">flickr.places.placesForTags</a> (1.8)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.placesForUser.html">flickr.places.placesForUser</a> (1.6)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.resolvePlaceId.html">flickr.places.resolvePlaceId</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.resolvePlaceURL.html">flickr.places.resolvePlaceURL</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.places.tagsForPlace.html">flickr.places.tagsForPlace</a> (1.8)</li>
+</ul>
+
+
+
+<h3>prefs</h3>
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.prefs.getContentType.html">flickr.prefs.getContentType</a> (1.3)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.prefs.getGeoPerms.html">flickr.prefs.getGeoPerms</a> (1.4)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.prefs.getHidden.html">flickr.prefs.getHidden</a> (1.3)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.prefs.getPrivacy.html">flickr.prefs.getPrivacy</a> (1.3)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.prefs.getSafetyLevel.html">flickr.prefs.getSafetyLevel</a> (1.3)</li>
+</ul>
+
+
+<h3>reflection</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.reflection.getMethodInfo.html">flickr.reflection.getMethodInfo</a> (0.10)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.reflection.getMethods.html">flickr.reflection.getMethods</a> (0.10)</li>
+</ul>
+
+
+<h3>stats</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getCSVFiles.html">flickr.stats.getCSVFiles</a> (1.19)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getCollectionDomains.html">flickr.stats.getCollectionDomains</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getCollectionReferrers.html">flickr.stats.getCollectionReferrers</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getCollectionStats.html">flickr.stats.getCollectionStats</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotoDomains.html">flickr.stats.getPhotoDomains</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotoReferrers.html">flickr.stats.getPhotoReferrers</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotosetDomains.html">flickr.stats.getPhotosetDomains</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotosetReferrers.html">flickr.stats.getPhotosetReferrers</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotosetStats.html">flickr.stats.getPhotosetStats</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotoStats.html">flickr.stats.getPhotoStats</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotostreamDomains.html">flickr.stats.getPhotostreamDomains</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotostreamReferrers.html">flickr.stats.getPhotostreamReferrers</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPhotostreamStats.html">flickr.stats.getPhotostreamStats</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getPopularPhotos.html">flickr.stats.getPopularPhotos</a> (1.17)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.stats.getTotalViews.html">flickr.stats.getTotalViews</a> (1.17)</li>
+</ul>
+
+
+<h3>tags</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getClusterPhotos.html">flickr.tags.getClusterPhotos</a> (1.7)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getClusters.html">flickr.tags.getClusters</a> (1.5)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getHotList.html">flickr.tags.getHotList</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getListPhoto.html">flickr.tags.getListPhoto</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getListUser.html">flickr.tags.getListUser</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getListUserPopular.html">flickr.tags.getListUserPopular</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getListUserRaw.html">flickr.tags.getListUserRaw</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.tags.getRelated.html">flickr.tags.getRelated</a> (0.9)</li>
+</ul>
+
+
+<h3>test</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.test.echo.html">flickr.test.echo</a> (0.5)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.test.login.html">flickr.test.login</a> (1.0)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.test.null.html">flickr.test.null</a> (1.0)</li>
+</ul>
+
+
+<h3>urls</h3>
+
+<ul>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.urls.getGroup.html">flickr.urls.getGroup</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.urls.getUserPhotos.html">flickr.urls.getUserPhotos</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.urls.getUserProfile.html">flickr.urls.getUserProfile</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.urls.lookupGallery.html">flickr.urls.lookupGallery</a> (1.18)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.urls.lookupGroup.html">flickr.urls.lookupGroup</a> (0.9)</li>
+  <li><a class="supported" href="http://www.flickr.com/services/api/flickr.urls.lookupUser.html">flickr.urls.lookupUser</a> (0.6)</li>
+</ul>
+
+
+<h2>Changes</h2>
+
+<p><strong>1.19</strong>: flickr.photosets.removePhotos, flickr.photosets.reorderPhotos, flickr.photosets.setPrimaryPhoto, flickr.stats.getCSVFiles (4 new)</p>
+<pre>
+int flickcurl_photosets_removePhotos(flickcurl* fc, const char* photoset_id, const char** photo_ids_array);
+int flickcurl_photosets_reorderPhotos(flickcurl* fc, const char* photoset_id, const char** photo_ids_array);
+int flickcurl_photosets_setPrimaryPhoto(flickcurl* fc, const char* photoset_id, const char* photo_id);
+int flickcurl_stats_getCSVFiles(flickcurl* fc);
+</pre>
+
+
+<p><strong>1.18</strong>: flickr.galleries.create, flickr.galleries.editMeta, flickr.galleries.editPhoto, flickr.galleries.editPhotos, flickr.galleries.getInfo, flickr.galleries.getPhotos, flickr.people.getPhotos, flickr.urls.lookupGallery (8 new)</p>
+<pre>
+char* flickcurl_galleries_create(flickcurl* fc, const char* title, const char* description, const char* primary_photo_id, char** gallery_url_p);
+int flickcurl_galleries_editMeta(flickcurl* fc, const char* gallery_id, const char* title, const char* description);
+int flickcurl_galleries_editPhoto(flickcurl* fc, const char* gallery_id, const char* photo_id, const char* new_comment);
+int flickcurl_galleries_editPhotos(flickcurl* fc, const char* gallery_id, const char* primary_photo_id, const char** photo_ids_array);
+flickcurl_gallery* flickcurl_galleries_getInfo(flickcurl* fc, const char* gallery_id);
+flickcurl_photo** flickcurl_galleries_getPhotos(flickcurl* fc, const char* gallery_id, const char* extras, int per_page, int page);
+flickcurl_photo** flickcurl_people_getPhotos(flickcurl* fc, const char* user_id, int safe_search, const char* min_upload_date, const char* max_upload_date, const char* min_taken_date, const char* max_taken_date, int content_type, int privacy_filter, const char* extras, int per_page, int page);
+char* flickcurl_urls_lookupGallery(flickcurl* fc, const char* url);
+</pre>
+
+
+<p><strong>1.17</strong>: flickr.galleries.addPhoto, flickr.galleries.getList, flickr.galleries.getListForPhoto, flickr.people.getPhotosOf, flickr.photos.people.add, flickr.photos.people.delete, flickr.photos.people.deleteCoords, flickr.photos.people.editCoords, flickr.photos.people.getList, flickr.stats.getCollectionDomains, flickr.stats.getCollectionReferrers, flickr.stats.getCollectionStats, flickr.stats.getPhotoDomains, flickr.stats.getPhotoReferrers, flickr.stats.getPhotosetDomains, flickr.stats.getPhotosetReferrers, flickr.stats.getPhotosetStats, flickr.stats.getPhotoStats, flickr.stats.getPhotostreamDomains, flickr.stats.getPhotostreamReferrers, flickr.stats.getPhotostreamStats, flickr.stats.getPopularPhotos, flickr.stats.getTotalViews (23 new)</p>
+<pre>
+int flickcurl_galleries_addPhoto(flickcurl* fc, const char* gallery_id, const char* photo_id, const char* comment_text);
+flickcurl_gallery** flickcurl_galleries_getList(flickcurl* fc, const char* user_id, int per_page, int page);
+flickcurl_gallery** flickcurl_galleries_getListForPhoto(flickcurl* fc, const char* photo_id, int per_page, int page);
+flickcurl_photo** flickcurl_people_getPhotosOf(flickcurl* fc, const char* user_id, const char* extras, int per_page, int page);
+int flickcurl_photos_people_add(flickcurl* fc, const char* photo_id, const char* user_id, int person_x, int person_y, int person_w, int person_h);
+int flickcurl_photos_people_delete(flickcurl* fc, const char* photo_id, const char* user_id);
+int flickcurl_photos_people_deleteCoords(flickcurl* fc, const char* photo_id, const char* user_id);
+int flickcurl_photos_people_editCoords(flickcurl* fc, const char* photo_id, const char* user_id, int person_x, int person_y, int person_w, int person_h);
+flickcurl_person** flickcurl_photos_people_getList(flickcurl* fc, const char* photo_id);
+flickcurl_stat** flickcurl_stats_getCollectionDomains(flickcurl* fc, const char* date, const char* collection_id, int per_page, int page);
+flickcurl_stat** flickcurl_stats_getCollectionReferrers(flickcurl* fc, const char* date, const char* domain, const char* collection_id, int per_page, int page);
+int flickcurl_stats_getCollectionStats(flickcurl* fc, const char* date, const char* collection_id);
+flickcurl_stat** flickcurl_stats_getPhotoDomains(flickcurl* fc, const char* date, const char* photo_id, int per_page, int page);
+flickcurl_stat** flickcurl_stats_getPhotoReferrers(flickcurl* fc, const char* date, const char* domain, const char* photo_id, int per_page, int page);
+flickcurl_stat** flickcurl_stats_getPhotosetDomains(flickcurl* fc, const char* date, const char* photoset_id, int per_page, int page);
+flickcurl_stat** flickcurl_stats_getPhotosetReferrers(flickcurl* fc, const char* date, const char* domain, const char* photoset_id, int per_page, int page);
+int flickcurl_stats_getPhotosetStats(flickcurl* fc, const char* date, const char* photoset_id);
+flickcurl_stat* flickcurl_stats_getPhotoStats(flickcurl* fc, const char* date, const char* photo_id);
+flickcurl_stat** flickcurl_stats_getPhotostreamDomains(flickcurl* fc, const char* date, int per_page, int page);
+flickcurl_stat** flickcurl_stats_getPhotostreamReferrers(flickcurl* fc, const char* date, const char* domain, int per_page, int page);
+int flickcurl_stats_getPhotostreamStats(flickcurl* fc, const char* date);
+flickcurl_photo** flickcurl_stats_getPopularPhotos(flickcurl* fc, const char* date, const char* sort, int per_page, int page, const char* extras);
+flickcurl_view_stats* flickcurl_stats_getTotalViews(flickcurl* fc, const char* date);
+</pre>
+
+
+<p><strong>1.12</strong>: flickr.blogs.getServices, flickr.collections.getInfo, flickr.collections.getTree, flickr.machinetags.getRecentValues, flickr.photos.comments.getRecentForContacts, flickr.places.getTopPlacesList (6 new)</p>
+<pre>
+flickcurl_blog_service** flickcurl_blogs_getServices(flickcurl* fc);
+flickcurl_collection* flickcurl_collections_getInfo(flickcurl* fc, const char* collection_id);
+flickcurl_collection* flickcurl_collections_getTree(flickcurl* fc, const char* collection_id, const char* user_id);
+flickcurl_tag_predicate_value** flickcurl_machinetags_getRecentValues(flickcurl* fc, const char *nspace, const char* predicate, int added_since);
+flickcurl_photos_list* flickcurl_photos_comments_getRecentForContacts_params(flickcurl* fc, int date_lastcomment, const char* contacts_filter, flickcurl_photos_list_params* list_params);
+flickcurl_place** flickcurl_places_getTopPlacesList(flickcurl* fc, flickcurl_place_type place_type, const char* date, int woe_id, const char* place_id);
+</pre>
+
+
+<p><strong>1.9</strong>: flickr.groups.members.getList, flickr.panda.getList, flickr.panda.getPhotos (3 new)</p>
+<pre>
+flickcurl_member** flickcurl_groups_members_getList(flickcurl* fc, const char* group_id, const char* membertypes, int per_page, int page);
+char** flickcurl_panda_getList(flickcurl* fc);
+flickcurl_photo** flickcurl_panda_getPhotos(flickcurl *fc, const char *panda_name);
+</pre>
+
+
+<p><strong>1.8</strong>: flickr.commons.getInstitutions, flickr.contacts.getListRecentlyUploaded, flickr.photos.geo.batchCorrectLocation, flickr.photos.geo.correctLocation, flickr.photos.geo.photosForLocation, flickr.photos.geo.setContext, flickr.places.getPlaceTypes, flickr.places.getShapeHistory, flickr.places.placesForBoundingBox, flickr.places.placesForContacts, flickr.places.placesForTags, flickr.places.tagsForPlace (12 new)</p>
+<pre>
+flickcurl_institution** flickcurl_commons_getInstitutions(flickcurl* fc);
+flickcurl_contact** flickcurl_contacts_getListRecentlyUploaded(flickcurl* fc, int date_lastupload, const char* filter);
+int flickcurl_photos_geo_batchCorrectLocation(flickcurl* fc, flickcurl_location* location, const char* place_id, int woe_id);
+int flickcurl_photos_geo_correctLocation(flickcurl* fc, const char* photo_id, const char* place_id, int woe_id);
+flickcurl_photo** flickcurl_photos_geo_photosForLocation(flickcurl* fc, flickcurl_location* location, const char* extras, int per_page, int page);
+int flickcurl_photos_geo_setContext(flickcurl* fc, const char* photo_id, int context);
+flickcurl_place_type_info** flickcurl_places_getPlaceTypes(flickcurl* fc);
+flickcurl_shapedata** flickcurl_places_getShapeHistory(flickcurl* fc, const char* place_id, int woe_id);
+flickcurl_place** flickcurl_places_placesForBoundingBox(flickcurl* fc, flickcurl_place_type place_type, double minimum_longitude, double minimum_latitude, double maximum_longitude, double maximum_latitude);
+flickcurl_place** flickcurl_places_placesForContacts(flickcurl* fc, flickcurl_place_type place_type, int woe_id, const char* place_id, int threshold, const char* contacts, int min_upload_date, int max_upload_date, int min_taken_date, int max_taken_date);
+int flickcurl_places_placesForTags(flickcurl* fc, flickcurl_place_type place_type, int woe_id, const char* place_id, const char* threshold, const char* tags, const char* tag_mode, const char* machine_tags, const char* machine_tag_mode, const char* min_upload_date, const char* max_upload_date, const char* min_taken_date, const char* max_taken_date);
+flickcurl_tag** flickcurl_places_tagsForPlace(flickcurl* fc, int woe_id, const char* place_id, int min_upload_date, int max_upload_date, int min_taken_date, int max_taken_date);
+</pre>
+
+
+<p><strong>1.7</strong>: flickr.machinetags.getNamespaces, flickr.machinetags.getPairs, flickr.machinetags.getPredicates, flickr.machinetags.getValues, flickr.places.getChildrenWithPhotosPublic, flickr.places.getInfo, flickr.places.getInfoByUrl, flickr.tags.getClusterPhotos (8 new)</p>
+<pre>
+flickcurl_tag_namespace** flickcurl_machinetags_getNamespaces(flickcurl* fc, const char* predicate, int per_page, int page);
+flickcurl_tag_predicate_value** flickcurl_machinetags_getPairs(flickcurl* fc, const char *nspace, const char* predicate, int per_page, int page);
+flickcurl_tag_predicate_value** flickcurl_machinetags_getPredicates(flickcurl* fc, const char *nspace, int per_page, int page);
+flickcurl_tag_predicate_value** flickcurl_machinetags_getValues(flickcurl* fc, const char *nspace, const char* predicate, int per_page, int page);
+flickcurl_place** flickcurl_places_getChildrenWithPhotosPublic(flickcurl* fc, const char* place_id, const char* woe_id);
+flickcurl_place* flickcurl_places_getInfo(flickcurl* fc, const char* place_id, const char* woe_id);
+flickcurl_place* flickcurl_places_getInfoByUrl(flickcurl* fc, const char* url);
+flickcurl_photos_list* flickcurl_tags_getClusterPhotos(flickcurl* fc, const char* tag, const char* cluster_id, flickcurl_photos_list_params* list_params);
+</pre>
+
+
+<p><strong>1.6</strong>: flickr.places.placesForUser (1 new)</p>
+<pre>
+flickcurl_place** flickcurl_places_placesForUser(flickcurl* fc, flickcurl_place_type place_type, int woe_id, const char* place_id, int threshold);
+</pre>
+
+
+<p><strong>1.5</strong>: flickr.tags.getClusters (1 new)</p>
+<pre>
+flickcurl_tag_clusters* flickcurl_tags_getClusters(flickcurl* fc, const char* tag);
+</pre>
+
+
+<p><strong>1.4</strong>: flickr.prefs.getGeoPerms (1 new)</p>
+<pre>
+int flickcurl_prefs_getGeoPerms(flickcurl* fc);
+</pre>
+
+
+<p><strong>1.3</strong>: flickr.prefs.getContentType, flickr.prefs.getHidden, flickr.prefs.getPrivacy, flickr.prefs.getSafetyLevel (4 new)</p>
+<pre>
+int flickcurl_prefs_getContentType(flickcurl* fc);
+int flickcurl_prefs_getHidden(flickcurl* fc);
+int flickcurl_prefs_getPrivacy(flickcurl* fc);
+int flickcurl_prefs_getSafetyLevel(flickcurl* fc);
+</pre>
+
+
+<p><strong>1.1</strong>: flickr.places.find, flickr.places.findByLatLon (2 new)</p>
+<pre>
+flickcurl_place** flickcurl_places_find(flickcurl* fc, const char* query);
+flickcurl_place* flickcurl_places_findByLatLon(flickcurl* fc, double lat, double lon, int accuracy);
+</pre>
+
+
+<p><strong>1.0</strong>: flickr.activity.userComments, flickr.activity.userPhotos, flickr.blogs.getList, flickr.blogs.postPhoto, flickr.favorites.add, flickr.favorites.getList, flickr.favorites.getPublicList, flickr.favorites.remove, flickr.places.resolvePlaceId, flickr.places.resolvePlaceURL, flickr.test.login, flickr.test.null (12 new)</p>
+<pre>
+flickcurl_activity** flickcurl_activity_userComments(flickcurl* fc, int per_page, int page);
+flickcurl_activity** flickcurl_activity_userPhotos(flickcurl* fc, const char* timeframe, int per_page, int page);
+flickcurl_blog** flickcurl_blogs_getList(flickcurl* fc);
+int flickcurl_blogs_postPhoto(flickcurl* fc, const char* blog_id, const char* photo_id, const char* title, const char* description, const char* blog_password);
+int flickcurl_favorites_add(flickcurl* fc, const char* photo_id);
+flickcurl_photos_list* flickcurl_favorites_getList_params(flickcurl* fc, const char* user_id, flickcurl_photos_list_params* list_params);
+flickcurl_photos_list* flickcurl_favorites_getPublicList_params(flickcurl* fc, const char* user_id, flickcurl_photos_list_params* list_params);
+int flickcurl_favorites_remove(flickcurl* fc, const char* photo_id);
+flickcurl_place* flickcurl_places_resolvePlaceId(flickcurl* fc, const char* place_id);
+flickcurl_place* flickcurl_places_resolvePlaceURL(flickcurl* fc, const char* url);
+char* flickcurl_test_login(flickcurl* fc);
+int flickcurl_test_null(flickcurl* fc);
+</pre>
+
+
+<p><strong>0.13</strong>: flickr.groups.browse, flickr.groups.getInfo, flickr.groups.search, flickr.interestingness.getList, flickr.people.getPublicGroups, flickr.people.getUploadStatus, flickr.photos.getCounts, flickr.photos.getSizes, flickr.photos.transform.rotate, flickr.photos.upload.checkTickets, flickr.photosets.addPhoto, flickr.photosets.create, flickr.photosets.delete, flickr.photosets.editMeta, flickr.photosets.editPhotos, flickr.photosets.getInfo, flickr.photosets.getList, flickr.photosets.getPhotos, flickr.photosets.orderSets, flickr.photosets.removePhoto (20 new)</p>
+<pre>
+flickcurl_category* flickcurl_groups_browse(flickcurl* fc, int cat_id);
+flickcurl_group* flickcurl_groups_getInfo(flickcurl* fc, const char* group_id, const char* lang);
+flickcurl_group** flickcurl_groups_search(flickcurl* fc, const char* text, int per_page, int page);
+flickcurl_photos_list* flickcurl_interestingness_getList_params(flickcurl* fc, const char* date, flickcurl_photos_list_params* list_params);
+flickcurl_group** flickcurl_people_getPublicGroups(flickcurl* fc, const char* user_id);
+flickcurl_user_upload_status* flickcurl_people_getUploadStatus(flickcurl* fc);
+int** flickcurl_photos_getCounts(flickcurl* fc, const char** dates_array, const char** taken_dates_array);
+flickcurl_size** flickcurl_photos_getSizes(flickcurl* fc, const char* photo_id);
+int flickcurl_photos_transform_rotate(flickcurl* fc, const char* photo_id, int degrees);
+flickcurl_ticket** flickcurl_photos_upload_checkTickets(flickcurl* fc, const char** tickets_ids);
+int flickcurl_photosets_addPhoto(flickcurl* fc, const char* photoset_id, const char* photo_id);
+char* flickcurl_photosets_create(flickcurl* fc, const char* title, const char* description, const char* primary_photo_id, char** photoset_url_p);
+int flickcurl_photosets_delete(flickcurl* fc, const char* photoset_id);
+int flickcurl_photosets_editMeta(flickcurl* fc, const char* photoset_id, const char* title, const char* description);
+int flickcurl_photosets_editPhotos(flickcurl* fc, const char* photoset_id, const char* primary_photo_id, const char** photo_ids_array);
+flickcurl_photoset* flickcurl_photosets_getInfo(flickcurl* fc, const char* photoset_id);
+flickcurl_photoset** flickcurl_photosets_getList(flickcurl* fc, const char* user_id);
+flickcurl_photos_list* flickcurl_photosets_getPhotos_params(flickcurl* fc, const char* photoset_id, int privacy_filter, flickcurl_photos_list_params* list_params);
+int flickcurl_photosets_orderSets(flickcurl* fc, const char** photoset_ids_array);
+int flickcurl_photosets_removePhoto(flickcurl* fc, const char* photoset_id, const char* photo_id);
+</pre>
+
+
+<p><strong>0.12</strong>: flickr.groups.pools.add, flickr.groups.pools.getGroups, flickr.groups.pools.getPhotos, flickr.groups.pools.remove, flickr.people.getPublicPhotos, flickr.photos.getContactsPublicPhotos, flickr.photos.getExif, flickr.photos.getFavorites, flickr.photos.getNotInSet, flickr.photos.getRecent, flickr.photos.getUntagged, flickr.photos.getWithGeoData, flickr.photos.getWithoutGeoData, flickr.photos.recentlyUpdated, flickr.photos.geo.getLocation, flickr.photos.geo.getPerms, flickr.photos.geo.removeLocation, flickr.photos.geo.setLocation, flickr.photos.geo.setPerms, flickr.photos.licenses.setLicense, flickr.photos.notes.add, flickr.photos.notes.delete, flickr.photos.notes.edit (23 new)</p>
+<pre>
+int flickcurl_groups_pools_add(flickcurl* fc, const char* photo_id, const char* group_id);
+flickcurl_group** flickcurl_groups_pools_getGroups(flickcurl* fc, int page, int per_page);
+flickcurl_photos_list* flickcurl_groups_pools_getPhotos_params(flickcurl* fc, const char* group_id, const char* tags, const char* user_id, flickcurl_photos_list_params* list_params);
+int flickcurl_groups_pools_remove(flickcurl* fc, const char* photo_id, const char* group_id);
+flickcurl_photos_list* flickcurl_people_getPublicPhotos_params(flickcurl* fc, const char* user_id,  flickcurl_photos_list_params* list_params);
+flickcurl_photos_list* flickcurl_photos_getContactsPublicPhotos_params(flickcurl* fc, const char* user_id, int photo_count, int just_friends,  int single_photo, int include_self, flickcurl_photos_list_params* list_params);
+flickcurl_exif** flickcurl_photos_getExif(flickcurl* fc, const char* photo_id, const char* secret);
+flickcurl_person** flickcurl_photos_getFavorites(flickcurl* fc, const char* photo_id, int page, int per_page);
+flickcurl_photos_list* flickcurl_photos_getNotInSet_params(flickcurl* fc, int min_upload_date, int max_upload_date, const char* min_taken_date, const char* max_taken_date, int privacy_filter, flickcurl_photos_list_params* list_params);
+flickcurl_photos_list* flickcurl_photos_getRecent_params(flickcurl* fc, flickcurl_photos_list_params* list_params);
+flickcurl_photos_list* flickcurl_photos_getUntagged_params(flickcurl* fc, int min_upload_date, int max_upload_date, const char* min_taken_date, const char* max_taken_date, int privacy_filter, flickcurl_photos_list_params* list_params);
+flickcurl_photos_list* flickcurl_photos_getWithGeoData_params(flickcurl* fc, int min_upload_date, int max_upload_date, const char* min_taken_date, const char* max_taken_date, int privacy_filter, flickcurl_photos_list_params* list_params);
+flickcurl_photos_list* flickcurl_photos_getWithoutGeoData_params(flickcurl* fc, int min_upload_date, int max_upload_date, const char* min_taken_date, const char* max_taken_date, int privacy_filter, flickcurl_photos_list_params* list_params);
+flickcurl_photos_list* flickcurl_photos_recentlyUpdated_params(flickcurl* fc, int min_date, flickcurl_photos_list_params* list_params);
+flickcurl_location* flickcurl_photos_geo_getLocation(flickcurl* fc, const char* photo_id);
+flickcurl_perms* flickcurl_photos_geo_getPerms(flickcurl* fc, const char* photo_id);
+int flickcurl_photos_geo_removeLocation(flickcurl* fc, const char* photo_id);
+int flickcurl_photos_geo_setLocation(flickcurl* fc, const char* photo_id, flickcurl_location* location);
+int flickcurl_photos_geo_setPerms(flickcurl* fc, const char* photo_id, flickcurl_perms* perms);
+int flickcurl_photos_licenses_setLicense(flickcurl* fc, const char* photo_id, int license_id);
+char* flickcurl_photos_notes_add(flickcurl* fc, const char* photo_id, int note_x, int note_y, int note_w, int note_h, const char* note_text);
+int flickcurl_photos_notes_delete(flickcurl* fc, const char* note_id);
+int flickcurl_photos_notes_edit(flickcurl* fc, const char* note_id, int note_x, int note_y, int note_w, int note_h, const char* note_text);
+</pre>
+
+
+<p><strong>0.11</strong>: flickr.contacts.getList, flickr.contacts.getPublicList, flickr.photos.getContactsPhotos, flickr.photos.getPerms, flickr.photos.search, flickr.photos.setContentType, flickr.photos.setDates, flickr.photos.setMeta, flickr.photos.setPerms, flickr.photos.setSafetyLevel (10 new)</p>
+<pre>
+flickcurl_contact** flickcurl_contacts_getList(flickcurl* fc, const char* filter, int page, int per_page);
+flickcurl_contact** flickcurl_contacts_getPublicList(flickcurl* fc, const char* user_id, int page, int per_page);
+flickcurl_photos_list* flickcurl_photos_getContactsPhotos_params(flickcurl* fc, int contact_count, int just_friends, int single_photo, int include_self, flickcurl_photos_list_params* list_params);
+flickcurl_perms* flickcurl_photos_getPerms(flickcurl* fc, const char* photo_id);
+flickcurl_photos_list* flickcurl_photos_search_params(flickcurl* fc, flickcurl_search_params* params, flickcurl_photos_list_params* list_params);
+int flickcurl_photos_setContentType(flickcurl* fc, const char* photo_id, int content_type);
+int flickcurl_photos_setDates(flickcurl* fc, const char* photo_id, int date_posted, int date_taken, int date_taken_granularity);
+int flickcurl_photos_setMeta(flickcurl* fc, const char* photo_id, const char* title, const char* description);
+int flickcurl_photos_setPerms(flickcurl* fc, const char* photo_id, flickcurl_perms* perms);
+int flickcurl_photos_setSafetyLevel(flickcurl* fc, const char* photo_id, int safety_level, int hidden);
+</pre>
+
+
+<p><strong>0.10</strong>: flickr.photos.comments.addComment, flickr.photos.comments.deleteComment, flickr.photos.comments.editComment, flickr.photos.comments.getList, flickr.photosets.comments.addComment, flickr.photosets.comments.deleteComment, flickr.photosets.comments.editComment, flickr.photosets.comments.getList, flickr.reflection.getMethods, flickr.reflection.getMethodInfo, Uploading Photos, Replacing Photos, Asynchronous Uploading (13 new)</p>
+<pre>
+char* flickcurl_photos_comments_addComment(flickcurl* fc, const char* photo_id, const char* comment_text);
+int flickcurl_photos_comments_deleteComment(flickcurl* fc, const char* comment_id);
+int flickcurl_photos_comments_editComment(flickcurl* fc, const char* comment_id, const char* comment_text);
+flickcurl_comment** flickcurl_photos_comments_getList(flickcurl* fc, const char* photo_id);
+char* flickcurl_photosets_comments_addComment(flickcurl* fc, const char* photoset_id, const char* comment_text);
+int flickcurl_photosets_comments_deleteComment(flickcurl* fc, const char* comment_id);
+int flickcurl_photosets_comments_editComment(flickcurl* fc, const char* comment_id, const char* comment_text);
+flickcurl_comment** flickcurl_photosets_comments_getList(flickcurl* fc, const char* photoset_id);
+char** flickcurl_reflection_getMethods(flickcurl* fc);
+flickcurl_method* flickcurl_reflection_getMethodInfo(flickcurl* fc, const char* name);
+</pre>
+
+
+<p><strong>0.9</strong>: flickr.auth.checkToken, flickr.auth.getFrob, flickr.auth.getToken, flickr.photos.addTags, flickr.photos.delete, flickr.photos.removeTag, flickr.photos.setTags, flickr.tags.getHotList, flickr.tags.getListPhoto, flickr.tags.getListUser, flickr.tags.getListUserPopular, flickr.tags.getListUserRaw, flickr.tags.getRelated, flickr.urls.getGroup, flickr.urls.getUserPhotos, flickr.urls.getUserProfile, flickr.urls.lookupGroup (17 new)</p>
+<pre>
+char* flickcurl_auth_checkToken(flickcurl* fc, const char* token);
+char* flickcurl_auth_getFrob(flickcurl* fc);
+char* flickcurl_auth_getToken(flickcurl* fc, const char* frob);
+int flickcurl_photos_addTags(flickcurl* fc, const char* photo_id, const char* tags);
+int flickcurl_photos_delete(flickcurl* fc, const char* photo_id);
+int flickcurl_photos_removeTag(flickcurl* fc, const char* tag_id);
+int flickcurl_photos_setTags(flickcurl* fc, const char* photo_id, const char* tags);
+flickcurl_tag** flickcurl_tags_getHotList(flickcurl* fc, const char* period, int tag_count);
+flickcurl_tag** flickcurl_tags_getListPhoto(flickcurl* fc, const char* photo_id);
+flickcurl_tag** flickcurl_tags_getListUser(flickcurl* fc, const char* user_id);
+flickcurl_tag** flickcurl_tags_getListUserPopular(flickcurl* fc, const char* user_id, int pop_count);
+flickcurl_tag** flickcurl_tags_getListUserRaw(flickcurl* fc, const char* tag);
+flickcurl_tag** flickcurl_tags_getRelated(flickcurl* fc, const char* tag);
+char* flickcurl_urls_getGroup(flickcurl* fc, const char* group_id);
+char* flickcurl_urls_getUserPhotos(flickcurl* fc, const char* user_id);
+char* flickcurl_urls_getUserProfile(flickcurl* fc, const char* user_id);
+char* flickcurl_urls_lookupGroup(flickcurl* fc, const char* url);
+</pre>
+
+
+<p><strong>0.8</strong>: flickr.people.findByEmail, flickr.people.findByUsername (2 new)</p>
+<pre>
+char* flickcurl_people_findByEmail(flickcurl* fc, const char* email);
+char* flickcurl_people_findByUsername(flickcurl* fc, const char* username);
+</pre>
+
+
+<p><strong>0.7</strong>: flickr.groups.pools.getContext, flickr.photos.getAllContexts, flickr.photos.getContext, flickr.photosets.getContext (4 new)</p>
+<pre>
+flickcurl_context** flickcurl_groups_pools_getContext(flickcurl* fc, const char* photo_id, const char* group_id);
+flickcurl_context** flickcurl_photos_getAllContexts(flickcurl* fc, const char* photo_id);
+flickcurl_context** flickcurl_photos_getContext(flickcurl* fc, const char* photo_id);
+flickcurl_context** flickcurl_photosets_getContext(flickcurl* fc, const char* photo_id, const char* photoset_id);
+</pre>
+
+
+<p><strong>0.6</strong>: flickr.people.getInfo, flickr.photos.licenses.getInfo, flickr.urls.lookupUser (3 new)</p>
+<pre>
+flickcurl_person* flickcurl_people_getInfo(flickcurl* fc, const char* user_id);
+flickcurl_license** flickcurl_photos_licenses_getInfo(flickcurl *fc);
+char* flickcurl_urls_lookupUser(flickcurl* fc, const char* url);
+</pre>
+
+
+<p><strong>0.5</strong>: flickr.auth.getFullToken, flickr.photos.getInfo, flickr.test.echo (3 new)</p>
+<pre>
+char* flickcurl_auth_getFullToken(flickcurl* fc, const char* frob);
+flickcurl_photo* flickcurl_photos_getInfo(flickcurl *fc, const char* photo_id);
+int flickcurl_test_echo(flickcurl* fc, const char* key, const char* value);
+</pre>
+
+
+
+<hr />
+
+<p>Copyright (C) 2007-2010
+<a href="http://www.dajobe.org/">Dave Beckett</a></p>
+
+</body>
+</html>
+

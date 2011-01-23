@@ -1,0 +1,976 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Photoset</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-photoslist.html" title="Photos List">
+<link rel="next" href="flickcurl-section-place.html" title="Place">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-photoslist.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="flickcurl-section-place.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-photoset.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-photoset.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Photoset">
+<a name="flickcurl-section-photoset"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-photoset.top_of_page"></a>Photoset</span></h2>
+<p>Photoset — Set of Photos.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-photoset.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset">flickcurl_photoset</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-photoset.html#flickcurl-free-photoset" title="flickcurl_free_photoset ()">flickcurl_free_photoset</a>             (<em class="parameter"><code><a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="type">flickcurl_photoset</span></a> *photoset</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-photoset.html#flickcurl-free-photosets" title="flickcurl_free_photosets ()">flickcurl_free_photosets</a>            (<em class="parameter"><code><a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="type">flickcurl_photoset</span></a> **photosets_object</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-addPhoto" title="flickcurl_photosets_addPhoto ()">flickcurl_photosets_addPhoto</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+<span class="returnvalue">char</span>*               <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-comments-addComment" title="flickcurl_photosets_comments_addComment ()">flickcurl_photosets_comments_addComment</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_text</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-comments-deleteComment" title="flickcurl_photosets_comments_deleteComment ()">flickcurl_photosets_comments_deleteComment</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_id</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-comments-editComment" title="flickcurl_photosets_comments_editComment ()">flickcurl_photosets_comments_editComment</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_text</code></em>);
+<a class="link" href="flickcurl-section-comment.html#flickcurl-comment" title="flickcurl_comment"><span class="returnvalue">flickcurl_comment</span></a>** <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-comments-getList" title="flickcurl_photosets_comments_getList ()">flickcurl_photosets_comments_getList</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);
+<span class="returnvalue">char</span>*               <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-create" title="flickcurl_photosets_create ()">flickcurl_photosets_create</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *title</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *description</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *primary_photo_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> **photoset_url_p</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-delete" title="flickcurl_photosets_delete ()">flickcurl_photosets_delete</a>          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-editMeta" title="flickcurl_photosets_editMeta ()">flickcurl_photosets_editMeta</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *title</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *description</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-editPhotos" title="flickcurl_photosets_editPhotos ()">flickcurl_photosets_editPhotos</a>      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *primary_photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photo_ids_array</code></em>);
+<a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="returnvalue">flickcurl_context</span></a>** <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-getContext" title="flickcurl_photosets_getContext ()">flickcurl_photosets_getContext</a>      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);
+<a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="returnvalue">flickcurl_photoset</span></a>* <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-getInfo" title="flickcurl_photosets_getInfo ()">flickcurl_photosets_getInfo</a>         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);
+<a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="returnvalue">flickcurl_photoset</span></a>** <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-getList" title="flickcurl_photosets_getList ()">flickcurl_photosets_getList</a>        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);
+<a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-getPhotos" title="flickcurl_photosets_getPhotos ()">flickcurl_photosets_getPhotos</a>       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-getPhotos-params" title="flickcurl_photosets_getPhotos_params ()">flickcurl_photosets_getPhotos_params</a>
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-orderSets" title="flickcurl_photosets_orderSets ()">flickcurl_photosets_orderSets</a>       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photoset_ids_array</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-removePhoto" title="flickcurl_photosets_removePhoto ()">flickcurl_photosets_removePhoto</a>     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-removePhotos" title="flickcurl_photosets_removePhotos ()">flickcurl_photosets_removePhotos</a>    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photo_ids_array</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-reorderPhotos" title="flickcurl_photosets_reorderPhotos ()">flickcurl_photosets_reorderPhotos</a>   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photo_ids_array</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-setPrimaryPhoto" title="flickcurl_photosets_setPrimaryPhoto ()">flickcurl_photosets_setPrimaryPhoto</a> (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-photoset.description"></a><h2>Description</h2>
+<p>
+Set of Photos.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-photoset.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_photoset">
+<a name="flickcurl-photoset"></a><h3>flickcurl_photoset</h3>
+<pre class="programlisting">typedef struct {
+  char *id;
+  char *primary;
+  char *secret;
+  int server;
+  int farm;
+  int photos_count;
+  char* title;
+  char *description;
+  struct flickcurl_photo_s** photos;
+} flickcurl_photoset;
+</pre>
+<p>
+A photoset.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-photoset.id"></a>id</code></em>;</span></p></td>
+<td>photoset ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-photoset.primary"></a>primary</code></em>;</span></p></td>
+<td>primary photo ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-photoset.secret"></a>secret</code></em>;</span></p></td>
+<td>secret
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-photoset.server"></a>server</code></em>;</span></p></td>
+<td>server
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-photoset.farm"></a>farm</code></em>;</span></p></td>
+<td>farm
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-photoset.photos-count"></a>photos_count</code></em>;</span></p></td>
+<td>count of photos in set
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-photoset.title"></a>title</code></em>;</span></p></td>
+<td>title of photoset
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">char</span> *<em class="structfield"><code><a name="flickcurl-photoset.description"></a>description</code></em>;</span></p></td>
+<td>description of photoset (may be NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term">struct <span class="type">flickcurl_photo_s</span> **<em class="structfield"><code><a name="flickcurl-photoset.photos"></a>photos</code></em>;</span></p></td>
+<td>photos in a photoset (may be NULL)
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_photoset ()">
+<a name="flickcurl-free-photoset"></a><h3>flickcurl_free_photoset ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_photoset             (<em class="parameter"><code><a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="type">flickcurl_photoset</span></a> *photoset</code></em>);</pre>
+<p>
+Destructor for photoset object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>photoset</code></em> :</span></p></td>
+<td>photoset object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_photosets ()">
+<a name="flickcurl-free-photosets"></a><h3>flickcurl_free_photosets ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_photosets            (<em class="parameter"><code><a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="type">flickcurl_photoset</span></a> **photosets_object</code></em>);</pre>
+<p>
+Destructor for array of photoset object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>photosets_object</code></em> :</span></p></td>
+<td>photoset object array
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_addPhoto ()">
+<a name="flickcurl-photosets-addPhoto"></a><h3>flickcurl_photosets_addPhoto ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_addPhoto        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Add a photo to the end of an existing photoset.
+</p>
+<p>
+Implements flickr.photosets.addPhoto (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to add a photo to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to add to the set.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_comments_addComment ()">
+<a name="flickcurl-photosets-comments-addComment"></a><h3>flickcurl_photosets_comments_addComment ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span>*               flickcurl_photosets_comments_addComment
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_text</code></em>);</pre>
+<p>
+Add a comment to a photoset.
+</p>
+<p>
+Implements flickr.photosets.comments.addComment (0.10)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to add a comment to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>comment_text</code></em> :</span></p></td>
+<td>Text of the comment
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> new comment ID or non-NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_comments_deleteComment ()">
+<a name="flickcurl-photosets-comments-deleteComment"></a><h3>flickcurl_photosets_comments_deleteComment ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_comments_deleteComment
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_id</code></em>);</pre>
+<p>
+Delete a photoset comment as the currently authenticated user.
+</p>
+<p>
+Implements flickr.photosets.comments.deleteComment (0.10)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>comment_id</code></em> :</span></p></td>
+<td>The id of the comment to delete from a photoset.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_comments_editComment ()">
+<a name="flickcurl-photosets-comments-editComment"></a><h3>flickcurl_photosets_comments_editComment ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_comments_editComment
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *comment_text</code></em>);</pre>
+<p>
+Edit the text of a comment as the currently authenticated user.
+</p>
+<p>
+Implements flickr.photosets.comments.editComment (0.10)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>comment_id</code></em> :</span></p></td>
+<td>The id of the comment to edit.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>comment_text</code></em> :</span></p></td>
+<td>Update the comment to this text.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_comments_getList ()">
+<a name="flickcurl-photosets-comments-getList"></a><h3>flickcurl_photosets_comments_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-comment.html#flickcurl-comment" title="flickcurl_comment"><span class="returnvalue">flickcurl_comment</span></a>** flickcurl_photosets_comments_getList
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);</pre>
+<p>
+Returns the comments for a photoset.
+</p>
+<p>
+Implements flickr.photosets.comments.getList (0.10)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to fetch comments for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of comments or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_create ()">
+<a name="flickcurl-photosets-create"></a><h3>flickcurl_photosets_create ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span>*               flickcurl_photosets_create          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *title</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *description</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *primary_photo_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> **photoset_url_p</code></em>);</pre>
+<p>
+Create a new photoset for the calling user.
+</p>
+<p>
+Implements flickr.photosets.create (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>title</code></em> :</span></p></td>
+<td>A title for the photoset.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>description</code></em> :</span></p></td>
+<td>A description of the photoset which may contain limited html (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>primary_photo_id</code></em> :</span></p></td>
+<td>The id of the photo to represent this set. The photo must belong to the calling user.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_url_p</code></em> :</span></p></td>
+<td>pointer to variable to store new photoset URL (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> photoset ID or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_delete ()">
+<a name="flickcurl-photosets-delete"></a><h3>flickcurl_photosets_delete ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_delete          (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);</pre>
+<p>
+Delete a photoset.
+</p>
+<p>
+Implements flickr.photosets.delete (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to delete. Must be owned by the calling user.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_editMeta ()">
+<a name="flickcurl-photosets-editMeta"></a><h3>flickcurl_photosets_editMeta ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_editMeta        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *title</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *description</code></em>);</pre>
+<p>
+Modify the meta-data for a photoset.
+</p>
+<p>
+Implements flickr.photosets.editMeta (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to modify.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>title</code></em> :</span></p></td>
+<td>The new title for the photoset.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>description</code></em> :</span></p></td>
+<td>A description of the photoset which may contain limited html (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_editPhotos ()">
+<a name="flickcurl-photosets-editPhotos"></a><h3>flickcurl_photosets_editPhotos ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_editPhotos      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *primary_photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photo_ids_array</code></em>);</pre>
+<p>
+Modify the photos in a photoset.
+</p>
+<p>
+Use this method to add, remove and re-order photos.
+</p>
+<p>
+Implements flickr.photosets.editPhotos (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to modify. Must belong to the calling user.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>primary_photo_id</code></em> :</span></p></td>
+<td>The id of the photo to use as the 'primary' photo for the set. This id must also be passed along in photo_ids list argument.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_ids_array</code></em> :</span></p></td>
+<td>Array of photo ids to include in the set. They will appear in the set in the order sent. This list MUST contain the primary photo id. All photos must belong to the owner of the set. This list of photos replaces the existing list. Call flickr.photosets.addPhoto to append a photo to a set.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_getContext ()">
+<a name="flickcurl-photosets-getContext"></a><h3>flickcurl_photosets_getContext ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-context.html#flickcurl-context" title="flickcurl_context"><span class="returnvalue">flickcurl_context</span></a>** flickcurl_photosets_getContext      (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);</pre>
+<p>
+Get next and previous photos for a photo in a set.
+</p>
+<p>
+Implements flickr.photosets.getContext (0.7)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>photo ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>photoset ID
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> an array of size 3 [prev, next, NULL] flickcurl_context*
+or NULL on error
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_getInfo ()">
+<a name="flickcurl-photosets-getInfo"></a><h3>flickcurl_photosets_getInfo ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="returnvalue">flickcurl_photoset</span></a>* flickcurl_photosets_getInfo         (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>);</pre>
+<p>
+Gets information about a photoset.
+</p>
+<p>
+Implements flickr.photosets.getInfo (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The ID of the photoset to fetch information for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_getList ()">
+<a name="flickcurl-photosets-getList"></a><h3>flickcurl_photosets_getList ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoset.html#flickcurl-photoset" title="flickcurl_photoset"><span class="returnvalue">flickcurl_photoset</span></a>** flickcurl_photosets_getList        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *user_id</code></em>);</pre>
+<p>
+Returns the photosets belonging to the specified user.
+</p>
+<p>
+Implements flickr.photosets.getList (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_id</code></em> :</span></p></td>
+<td>The NSID of the user to get a photoset list for. If none is specified, the calling user is assumed (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> array of photoset IDs or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_getPhotos ()">
+<a name="flickcurl-photosets-getPhotos"></a><h3>flickcurl_photosets_getPhotos ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photo.html#flickcurl-photo" title="flickcurl_photo"><span class="returnvalue">flickcurl_photo</span></a>**   flickcurl_photosets_getPhotos       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *extras</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> per_page</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> page</code></em>);</pre>
+<p>
+Get the list of photos in a set.
+</p>
+<p>
+See <a class="link" href="flickcurl-section-photoset.html#flickcurl-photosets-getPhotos-params" title="flickcurl_photosets_getPhotos_params ()"><code class="function">flickcurl_photosets_getPhotos_params()</code></a> for details of parameters.
+</p>
+<p>
+Implements flickr.photosets.getPhotos (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to return the photos for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extras</code></em> :</span></p></td>
+<td>A comma-delimited list of extra information to fetch for each returned record (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>privacy_filter</code></em> :</span></p></td>
+<td>Return photos only matching a certain privacy level 1-5 (or &lt;0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>per_page</code></em> :</span></p></td>
+<td>Number of photos to return per page. If this argument is omitted, it defaults to 500. The maximum allowed value is 500. (or &lt;0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>page</code></em> :</span></p></td>
+<td>The page of results to return. If this argument is omitted, it defaults to 1. (or &lt;0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> list of photos or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_getPhotos_params ()">
+<a name="flickcurl-photosets-getPhotos-params"></a><h3>flickcurl_photosets_getPhotos_params ()</h3>
+<pre class="programlisting"><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list" title="flickcurl_photos_list"><span class="returnvalue">flickcurl_photos_list</span></a>* flickcurl_photosets_getPhotos_params
+                                                        (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> privacy_filter</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> *list_params</code></em>);</pre>
+<p>
+Get the list of photos in a set.
+</p>
+<p>
+Currently supported extra fields are: license, date_upload,
+date_taken, owner_name, icon_server, original_format,
+last_update.
+</p>
+<p>
+Optional extra type 'media' that will return an extra media = VALUE
+for VALUE "photo" or "video".  API addition 2008-04-07.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to return the photos for.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>privacy_filter</code></em> :</span></p></td>
+<td>Return photos only matching a certain privacy level 1-5 (or &lt;0)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>list_params</code></em> :</span></p></td>
+<td>
+<a class="link" href="flickcurl-section-photoslist.html#flickcurl-photos-list-params" title="flickcurl_photos_list_params"><span class="type">flickcurl_photos_list_params</span></a> result parameters (or NULL)
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> list of photos or NULL on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_orderSets ()">
+<a name="flickcurl-photosets-orderSets"></a><h3>flickcurl_photosets_orderSets ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_orderSets       (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photoset_ids_array</code></em>);</pre>
+<p>
+Set the order of photosets for the calling user.
+</p>
+<p>
+Implements flickr.photosets.orderSets (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_ids_array</code></em> :</span></p></td>
+<td>Array of photoset IDs, ordered with the set to show first, first in the list. Any set IDs not given in the list will be set to appear at the end of the list, ordered by their IDs.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_removePhoto ()">
+<a name="flickcurl-photosets-removePhoto"></a><h3>flickcurl_photosets_removePhoto ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_removePhoto     (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Remove a photo from a photoset.
+</p>
+<p>
+Implements flickr.photosets.removePhoto (0.13)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to remove a photo from.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to remove from the set.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_removePhotos ()">
+<a name="flickcurl-photosets-removePhotos"></a><h3>flickcurl_photosets_removePhotos ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_removePhotos    (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photo_ids_array</code></em>);</pre>
+<p>
+Remove multiple photos from a photoset.
+</p>
+<p>
+Implements flickr.photosets.removePhotos (1.19)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to remove photos from.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_ids_array</code></em> :</span></p></td>
+<td>Array of photo ids to remove from the photoset.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_reorderPhotos ()">
+<a name="flickcurl-photosets-reorderPhotos"></a><h3>flickcurl_photosets_reorderPhotos ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_reorderPhotos   (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **photo_ids_array</code></em>);</pre>
+<p>
+(null)
+</p>
+<p>
+Implements flickr.photosets.reorderPhotos (1.19)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to reorder. The photoset must belong to the calling user.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_ids_array</code></em> :</span></p></td>
+<td>Array of Ordered list of photo ids.  Photos that are not in the list will keep their original order
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_photosets_setPrimaryPhoto ()">
+<a name="flickcurl-photosets-setPrimaryPhoto"></a><h3>flickcurl_photosets_setPrimaryPhoto ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 flickcurl_photosets_setPrimaryPhoto (<em class="parameter"><code><a class="link" href="flickcurl-section-core.html#flickcurl" title="flickcurl"><span class="type">flickcurl</span></a> *fc</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photoset_id</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *photo_id</code></em>);</pre>
+<p>
+Set photoset primary photo
+</p>
+<p>
+Implements flickr.photosets.setPrimaryPhoto (1.19)
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fc</code></em> :</span></p></td>
+<td>flickcurl context
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photoset_id</code></em> :</span></p></td>
+<td>The id of the photoset to set primary photo to.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>photo_id</code></em> :</span></p></td>
+<td>The id of the photo to set as primary.
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td> non-0 on failure
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>

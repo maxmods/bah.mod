@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Video</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="up" href="index.html" title="Flickcurl Flickr API Manual">
+<link rel="prev" href="flickcurl-section-urls.html" title="URLs">
+<link rel="next" href="indexes.html" title="Index">
+<meta name="generator" content="GTK-Doc V1.15 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="flickcurl-section-urls.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td> </td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Flickcurl Flickr API Manual</th>
+<td><a accesskey="n" href="indexes.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#flickcurl-section-video.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#flickcurl-section-video.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry" title="Video">
+<a name="flickcurl-section-video"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="flickcurl-section-video.top_of_page"></a>Video</span></h2>
+<p>Video — Video.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv" title="Synopsis">
+<a name="flickcurl-section-video.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="flickcurl-section-video.html#flickcurl-video" title="flickcurl_video">flickcurl_video</a>;
+<span class="returnvalue">void</span>                <a class="link" href="flickcurl-section-video.html#flickcurl-free-video" title="flickcurl_free_video ()">flickcurl_free_video</a>                (<em class="parameter"><code><a class="link" href="flickcurl-section-video.html#flickcurl-video" title="flickcurl_video"><span class="type">flickcurl_video</span></a> *video</code></em>);
+</pre>
+</div>
+<div class="refsect1" title="Description">
+<a name="flickcurl-section-video.description"></a><h2>Description</h2>
+<p>
+Video.
+</p>
+</div>
+<div class="refsect1" title="Details">
+<a name="flickcurl-section-video.details"></a><h2>Details</h2>
+<div class="refsect2" title="flickcurl_video">
+<a name="flickcurl-video"></a><h3>flickcurl_video</h3>
+<pre class="programlisting">typedef struct {
+  int ready;
+  int failed;
+  int pending;
+  int duration;
+  int width;
+  int height;
+} flickcurl_video;
+</pre>
+<p>
+A video.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-video.ready"></a>ready</code></em>;</span></p></td>
+<td>video is ready flag
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-video.failed"></a>failed</code></em>;</span></p></td>
+<td>video failed
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-video.pending"></a>pending</code></em>;</span></p></td>
+<td>video pending
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-video.duration"></a>duration</code></em>;</span></p></td>
+<td>video duration in seconds
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-video.width"></a>width</code></em>;</span></p></td>
+<td>video width
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="type">int</span> <em class="structfield"><code><a name="flickcurl-video.height"></a>height</code></em>;</span></p></td>
+<td>video height
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" title="flickcurl_free_video ()">
+<a name="flickcurl-free-video"></a><h3>flickcurl_free_video ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                flickcurl_free_video                (<em class="parameter"><code><a class="link" href="flickcurl-section-video.html#flickcurl-video" title="flickcurl_video"><span class="type">flickcurl_video</span></a> *video</code></em>);</pre>
+<p>
+Destructor for video object
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>video</code></em> :</span></p></td>
+<td>video object
+</td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.15</div>
+</body>
+</html>
