@@ -102,7 +102,7 @@ extern "C" {
 
 	ProfanityFilter * bmx_profanityfilter_new();
 	int bmx_profanityfilter_HasProfanity(ProfanityFilter * filter, BBString * text);
-	BBString * bmx_profanityfilter_FilterProfanity(ProfanityFilter * filter, BBString * text, int filter, int * ret);
+	BBString * bmx_profanityfilter_FilterProfanity(ProfanityFilter * filter, BBString * text, int f, int * ret);
 	int bmx_profanityfilter_Count(ProfanityFilter * filter);
 	void bmx_profanityfilter_AddWord(ProfanityFilter * filter, BBString * newWord);
 	void bmx_profanityfilter_free(ProfanityFilter * filter);
