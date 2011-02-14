@@ -1,49 +1,54 @@
 /*
-   +----------------------------------------------------------------------+   
-   |                                                                      |
-   |                     OCILIB - C Driver for Oracle                     |
-   |                                                                      |
-   |                      (C Wrapper for Oracle OCI)                      |
-   |                                                                      |
-   +----------------------------------------------------------------------+
-   |                      Website : http://www.ocilib.net                 |
-   +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
-   +----------------------------------------------------------------------+
-   | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Lesser General Public           |
-   | License as published by the Free Software Foundation; either         |
-   | version 2 of the License, or (at your option) any later version.     |
-   |                                                                      |
-   | This library is distributed in the hope that it will be useful,      |
-   | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
-   | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Lesser General Public License for more details.                      |
-   |                                                                      |
-   | You should have received a copy of the GNU Lesser General Public     |
-   | License along with this library; if not, write to the Free           |
-   | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
-   +----------------------------------------------------------------------+
-   |          Author: Vincent ROGIER <vince.rogier@gmail.com>             |
-   +----------------------------------------------------------------------+ 
+    +-----------------------------------------------------------------------------------------+
+    |                                                                                         |
+    |                               OCILIB - C Driver for Oracle                              |
+    |                                                                                         |
+    |                                (C Wrapper for Oracle OCI)                               |
+    |                                                                                         |
+    |                              Website : http://www.ocilib.net                            |
+    |                                                                                         |
+    |             Copyright (c) 2007-2010 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |                                                                                         |
+    +-----------------------------------------------------------------------------------------+
+    |                                                                                         |
+    |             This library is free software; you can redistribute it and/or               |
+    |             modify it under the terms of the GNU Lesser General Public                  |
+    |             License as published by the Free Software Foundation; either                |
+    |             version 2 of the License, or (at your option) any later version.            |
+    |                                                                                         |
+    |             This library is distributed in the hope that it will be useful,             |
+    |             but WITHOUT ANY WARRANTY; without even the implied warranty of              |
+    |             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU           |
+    |             Lesser General Public License for more details.                             |
+    |                                                                                         |
+    |             You should have received a copy of the GNU Lesser General Public            |
+    |             License along with this library; if not, write to the Free                  |
+    |             Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.          |
+    |                                                                                         |
+    +-----------------------------------------------------------------------------------------+
 */
 
-/* ------------------------------------------------------------------------ *
- * $Id: format.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
- * ------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------- *
+ * $Id: format.c, v 3.8.1 2010-12-13 00:00 Vincent Rogier $
+ * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
 
-/* ************************************************************************ *
+/* ********************************************************************************************* *
  *                             PRIVATE FUNCTIONS
- * ************************************************************************ */
+ * ********************************************************************************************* */
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_ParseSqlFmt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
-                    va_list *pargs)
+int OCI_ParseSqlFmt
+(
+    OCI_Statement *stmt,
+    mtext         *buf,
+    const mtext   *format,
+    va_list       *pargs
+)
 {
     int size        = 0;
     int len         = 0;
@@ -57,7 +62,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
     {
         if (*pf != MT('%'))
         {
-            if (buf != NULL) 
+            if (buf != NULL)
                 *(pb++) = *pf;
 
             size++;
@@ -100,7 +105,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
 
                         len+=2;
                     }
-                    else if (buf != NULL) 
+                    else if (buf != NULL)
                         mtscpy(pb, str);
                 }
                 else
@@ -108,8 +113,8 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                     if (*pf != MT('m'))
                     {
                         len = OCI_SIZE_NULL;
-                        
-                        if (buf != NULL) 
+
+                        if (buf != NULL)
                             mtscpy(pb, OCI_STRING_NULL);
                     }
                 }
@@ -123,23 +128,24 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                 {
                     if (date != NULL)
                     {
-                        mtsprintf(pb, OCI_SIZE_DATE,
-                                  MT("to_date(\'%02i%02i%04i%02i%02i%02i\',")
-                                  MT("\'DDMMYYYYHH24MISS\')"),
-                                  date->handle->OCIDateDD,
-                                  date->handle->OCIDateMM,
-                                  date->handle->OCIDateYYYY ,
-                                  date->handle->OCIDateTime.OCITimeHH,
-                                  date->handle->OCIDateTime.OCITimeMI,
-                                  date->handle->OCIDateTime.OCITimeSS);
+                        len = mtsprintf(pb, OCI_SIZE_DATE,
+                                        MT("to_date('%02i%02i%04i%02i%02i%02i',")
+                                        MT("'DDMMYYYYHH24MISS')"),
+                                        date->handle->OCIDateDD,
+                                        date->handle->OCIDateMM,
+                                        date->handle->OCIDateYYYY,
+                                        date->handle->OCIDateTime.OCITimeHH,
+                                        date->handle->OCIDateTime.OCITimeMI,
+                                        date->handle->OCIDateTime.OCITimeSS);
                     }
                     else
                     {
                         mtscpy(pb, OCI_STRING_NULL);
+                        len = OCI_SIZE_NULL;
                     }
                 }
-
-                len = ((date != NULL) ? OCI_SIZE_DATE : OCI_SIZE_NULL);
+                else
+                    len = ((date != NULL) ? OCI_SIZE_DATE : OCI_SIZE_NULL);
 
                 break;
             }
@@ -167,13 +173,14 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                         str_ff[2] = 0;
 
                         len = mtsprintf(pb, OCI_SIZE_TIMESTAMP,
-                                        MT("to_timestamp(\'%02i%02i%04i%02i%02i%02i%s\',")
-                                        MT("\'DDMMYYYYHH24MISSFF\')"),
+                                        MT("to_timestamp(%02i%02i%04i%02i%02i%02i%s,")
+                                        MT("DDMMYYYYHH24MISSFF)"),
                                         dd, mm, yy, hh, mi, ss, str_ff);
                     }
                     else
                     {
                         mtscpy(pb, OCI_STRING_NULL);
+                        len = OCI_SIZE_NULL;
                     }
                 }
                 else
@@ -192,32 +199,32 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                 if (itv != NULL)
                 {
                     OCI_IntervalToText(itv, 3, 3, (int) msizeof(temp)- 1, temp);
-                    
+
                     len = (int) mtslen(temp);
 
-                    if ((buf != NULL) && (len > 0)) 
+                    if ((buf != NULL) && (len > 0))
                         mtscpy(pb, temp);
                 }
                 else
                 {
                     len = OCI_SIZE_NULL;
-                    
-                    if ((buf != NULL) && (len > 0)) 
+
+                    if ((buf != NULL) && (len > 0))
                         mtscpy(pb, OCI_STRING_NULL);
                 }
-  
+
                 break;
             }
             case MT('i'):
             {
                 mtext temp[64];
-       
+
                 temp[0] = 0;
 
                 len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%i"),
                                       va_arg(*pargs, int));
 
-                if ((buf != NULL) && (len > 0)) 
+                if ((buf != NULL) && (len > 0))
                     mtscpy(pb, temp);
 
                 break;
@@ -225,13 +232,13 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
             case MT('u'):
             {
                 mtext temp[64];
-  
+
                 temp[0] = 0;
 
                 len = (int) mtsprintf(temp, (int)  msizeof(temp) - 1, MT("%u"),
                                       va_arg(*pargs, unsigned int));
 
-                if ((buf != NULL) && (len > 0)) 
+                if ((buf != NULL) && (len > 0))
                     mtscpy(pb, temp);
 
                 break;
@@ -257,7 +264,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                 else
                     len = 0;
 
-                if ((buf != NULL) && (len > 0)) 
+                if ((buf != NULL) && (len > 0))
                     mtscpy(pb, temp);
 
                 break;
@@ -265,7 +272,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
             case MT('h'):
             {
                 mtext temp[64];
-   
+
                 temp[0] = 0;
 
                 pf++;
@@ -285,7 +292,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                 else
                     len = 0;
 
-                if ((buf != NULL) && (len > 0)) 
+                if ((buf != NULL) && (len > 0))
                     mtscpy(pb, temp);
 
                 break;
@@ -293,13 +300,13 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
             case MT('g'):
             {
                 mtext temp[128];
-      
+
                 temp[0] = 0;
 
                 len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%f"),
                                       va_arg(*pargs, double));
 
-                if ((buf != NULL) && (len > 0)) 
+                if ((buf != NULL) && (len > 0))
                     mtscpy(pb, temp);
 
                 break;
@@ -315,20 +322,20 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                 if (ref != NULL)
                 {
                     OCI_RefToText(ref, (unsigned int) msizeof(temp) - 1, temp);
-                    
+
                     len = (int) mtslen(temp);
 
-                    if ((buf != NULL) && (len > 0)) 
+                    if ((buf != NULL) && (len > 0))
                         mtscpy(pb, temp);
                 }
                 else
                 {
                     len = OCI_SIZE_NULL;
-                    
-                    if ((buf != NULL) && (len > 0)) 
+
+                    if ((buf != NULL) && (len > 0))
                         mtscpy(pb, OCI_STRING_NULL);
                 }
-  
+
                 break;
             }
             default:
@@ -337,7 +344,6 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
 
                 return 0;
             }
-
         }
 
         if (buf != NULL)
@@ -346,7 +352,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
         size += len;
     }
 
-    if (buf != NULL) 
+    if (buf != NULL)
         *pb = 0;
 
     return size;

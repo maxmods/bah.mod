@@ -1,94 +1,92 @@
 /*
-   +----------------------------------------------------------------------+
-   |                                                                      |
-   |                     OCILIB - C Driver for Oracle                     |
-   |                                                                      |
-   |                      (C Wrapper for Oracle OCI)                      |
-   |                                                                      |
-   +----------------------------------------------------------------------+
-   |                      Website : http://www.ocilib.net                 |
-   +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
-   +----------------------------------------------------------------------+
-   | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Lesser General Public           |
-   | License as published by the Free Software Foundation; either         |
-   | version 2 of the License, or (at your option) any later version.     |
-   |                                                                      |
-   | This library is distributed in the hope that it will be useful,      |
-   | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
-   | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Lesser General Public License for more details.                      |
-   |                                                                      |
-   | You should have received a copy of the GNU Lesser General Public     |
-   | License along with this library; if not, write to the Free           |
-   | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
-   +----------------------------------------------------------------------+
-   |          Author: Vincent ROGIER <vince.rogier@gmail.com>             |
-   +----------------------------------------------------------------------+
+    +-----------------------------------------------------------------------------------------+
+    |                                                                                         |
+    |                               OCILIB - C Driver for Oracle                              |
+    |                                                                                         |
+    |                                (C Wrapper for Oracle OCI)                               |
+    |                                                                                         |
+    |                              Website : http://www.ocilib.net                            |
+    |                                                                                         |
+    |             Copyright (c) 2007-2010 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |                                                                                         |
+    +-----------------------------------------------------------------------------------------+
+    |                                                                                         |
+    |             This library is free software; you can redistribute it and/or               |
+    |             modify it under the terms of the GNU Lesser General Public                  |
+    |             License as published by the Free Software Foundation; either                |
+    |             version 2 of the License, or (at your option) any later version.            |
+    |                                                                                         |
+    |             This library is distributed in the hope that it will be useful,             |
+    |             but WITHOUT ANY WARRANTY; without even the implied warranty of              |
+    |             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU           |
+    |             Lesser General Public License for more details.                             |
+    |                                                                                         |
+    |             You should have received a copy of the GNU Lesser General Public            |
+    |             License along with this library; if not, write to the Free                  |
+    |             Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.          |
+    |                                                                                         |
+    +-----------------------------------------------------------------------------------------+
 */
 
-/* ------------------------------------------------------------------------ *
- * $Id: oci_import.h, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
- * ------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------- *
+ * $Id: oci_import.h, v 3.8.1 2010-12-13 00:00 Vincent Rogier $
+ * --------------------------------------------------------------------------------------------- */
 
 #ifndef OCILIB_OCI_IMPORT_H_INCLUDED
 #define OCILIB_OCI_IMPORT_H_INCLUDED
 
 #ifdef OCI_IMPORT_LINKAGE
 
-
 /* this is necessary because some Oracle headers do NOT include C++ checks !
    By example, the file orid.h is not protected !
 */
 
-#ifdef __cplusplus
+  #ifdef __cplusplus
 extern "C" {
-#endif  /* __cplusplus */
+  #endif /* __cplusplus */
 
-#include <oci.h>
-#include <orid.h>
-#include <oci8dp.h>
+  #include <oci.h>
+  #include <orid.h>
+  #include <oci8dp.h>
 
-#ifdef  __cplusplus
+  #ifdef  __cplusplus
 }
-#endif
+  #endif
 
-#ifdef _MSC_VER
-#pragma comment(lib, "oci.lib")
-#endif
+  #ifdef _MSC_VER
+    #pragma comment(lib, "oci.lib")
+  #endif
 
 #else
 
-#include "oci_loader.h"
-#include "oci_api.h"
+  #include "oci_loader.h"
+  #include "oci_api.h"
 
 /* Setup Oracle shared library name if not provided */
 
-#ifndef OCI_DL
-  #if defined(_WINDOWS)
-    #define OCI_DL                   oci.dll
-  #elif defined(__APPLE__)
-    #define OCI_DL                   libclntsh.dylib
-  #elif defined(__hppa)
-    #define OCI_DL                   libclntsh.sl
-  #else
-    #define OCI_DL                   libclntsh.so
+  #ifndef OCI_DL
+    #if defined(_WINDOWS)
+      #define OCI_DL                   oci.dll
+    #elif defined(__APPLE__)
+      #define OCI_DL                   libclntsh.dylib
+    #elif defined(__hppa)
+      #define OCI_DL                   libclntsh.sl
+    #else
+      #define OCI_DL                   libclntsh.so
+    #endif
   #endif
-#endif
 
 /* ANSI string version of Oracle shared lib */
 
-#define OCI_DL_ANSI_GET(s)  OCI_DL_ANSI_CVT(s)
-#define OCI_DL_ANSI_CVT(s)  #s
-#define OCI_DL_ANSI_NAME    OCI_DL_ANSI_GET(OCI_DL)
-
+  #define OCI_DL_ANSI_GET(s)  OCI_DL_ANSI_CVT(s)
+  #define OCI_DL_ANSI_CVT(s)  # s
+  #define OCI_DL_ANSI_NAME    OCI_DL_ANSI_GET(OCI_DL)
 
 /* Meta string version of Oracle shared lib */
 
-#define OCI_DL_META_GET(s)  OCI_DL_META_CVT(s)
-#define OCI_DL_META_CVT(s)  MT(#s)
-#define OCI_DL_META_NAME    OCI_DL_META_GET(OCI_DL)
+  #define OCI_DL_META_GET(s)  OCI_DL_META_CVT(s)
+  #define OCI_DL_META_CVT(s)  MT(# s)
+  #define OCI_DL_META_NAME    OCI_DL_META_GET(OCI_DL)
 
 /* symbol list */
 
@@ -212,7 +210,9 @@ extern OCISTRINGPTR                 OCIStringPtr;
 extern OCISTRINGASSIGNTEXT          OCIStringAssignText;
 extern OCIRAWPTR                    OCIRawPtr;
 extern OCIRAWASSIGNBYTES            OCIRawAssignBytes;
+extern OCIRAWRESIZE                 OCIRawResize;
 extern OCIRAWALLOCSIZE              OCIRawAllocSize;
+extern OCIRAWSIZE                   OCIRawSize;
 extern OCIOBJECTNEW                 OCIObjectNew;
 extern OCIOBJECTFREE                OCIObjectFree;
 extern OCIOBJECTSETATTR             OCIObjectSetAttr;
@@ -248,6 +248,10 @@ extern OCITHREADKEYSET              OCIThreadKeySet;
 extern OCITHREADKEYGET              OCIThreadKeyGet;
 extern OCICONNECTIONPOOLCREATE      OCIConnectionPoolCreate;
 extern OCICONNECTIONPOOLDESTROY     OCIConnectionPoolDestroy;
+extern OCISESSIONPOOLCREATE         OCISessionPoolCreate ;
+extern OCISESSIONPOOLDESTROY        OCISessionPoolDestroy;
+extern OCISESSIONGET                OCISessionGet;
+extern OCISESSIONRELEASE            OCISessionRelease;
 extern OCICOLLSIZE                  OCICollSize;
 extern OCICOLLMAX                   OCICollMax;
 extern OCICOLLGETITEM               OCICollGetElem;
@@ -260,7 +264,6 @@ extern OCIITERDELETE                OCIIterDelete;
 extern OCIITERINIT                  OCIIterInit;
 extern OCIITERNEXT                  OCIIterNext;
 extern OCIITERPREV                  OCIIterPrev;
-
 extern OCIDIRPATHABORT              OCIDirPathAbort;
 extern OCIDIRPATHDATASAVE           OCIDirPathDataSave;
 extern OCIDIRPATHFINISH             OCIDirPathFinish;
@@ -271,10 +274,17 @@ extern OCIDIRPATHCOLARRAYRESET      OCIDirPathColArrayReset;
 extern OCIDIRPATHCOLARRAYTOSTREAM   OCIDirPathColArrayToStream;
 extern OCIDIRPATHSTREAMRESET        OCIDirPathStreamReset;
 extern OCIDIRPATHFLUSHROW           OCIDirPathFlushRow;
-
 extern OCICACHEFREE                 OCICacheFree;
-
 extern OCIPING                      OCIPing;
+extern OCIAQENQ                     OCIAQEnq;
+extern OCIAQDEQ                     OCIAQDeq;
+extern OCIAQLISTEN                  OCIAQListen;
+extern OCIDBSTARTUP                 OCIDBStartup;
+extern OCIDBSHUTDOWN                OCIDBShutdown;
+extern OCISTMTPREPARE2              OCIStmtPrepare2;
+extern OCISTMTRELEASE               OCIStmtRelease;
+extern OCISUBSCRIPTIONREGISTER      OCISubscriptionRegister;
+extern OCISUBSCRIPTIONUNREGISTER    OCISubscriptionUnRegister;
 
 #ifdef ORAXB8_DEFINED
 
@@ -287,44 +297,35 @@ extern OCILOBTRIM2                  OCILobTrim2;
 extern OCILOBWRITE2                 OCILobWrite2;
 extern OCILOBWRITEAPPEND2           OCILobWriteAppend2;
 
-extern OCIDBSTARTUP                 OCIDBStartup;
-extern OCIDBSHUTDOWN                OCIDBShutdown;
-
-extern OCISTMTPREPARE2              OCIStmtPrepare2;
-extern OCISTMTRELEASE               OCIStmtRelease;
-
-extern OCISUBSCRIPTIONREGISTER      OCISubscriptionRegister;
-extern OCISUBSCRIPTIONUNREGISTER    OCISubscriptionUnRegister;
-
 #endif
 
-#define OCIDateGetTime(date, hour, min, sec) \
-  { \
-     *hour = (date)->OCIDateTime.OCITimeHH; \
-     *min = (date)->OCIDateTime.OCITimeMI; \
-     *sec = (date)->OCIDateTime.OCITimeSS; \
-  }
+  #define OCIDateGetTime(date, hour, min, sec) \
+    { \
+        *hour = (date)->OCIDateTime.OCITimeHH; \
+        *min  = (date)->OCIDateTime.OCITimeMI; \
+        *sec  = (date)->OCIDateTime.OCITimeSS; \
+    }
 
-#define OCIDateGetDate(date, year, month, day) \
-  { \
-     *year = (date)->OCIDateYYYY; \
-     *month = (date)->OCIDateMM; \
-     *day = (date)->OCIDateDD; \
-  }
+  #define OCIDateGetDate(date, year, month, day) \
+    { \
+        *year  = (date)->OCIDateYYYY; \
+        *month = (date)->OCIDateMM; \
+        *day   = (date)->OCIDateDD; \
+    }
 
-#define OCIDateSetTime(date, hour, min, sec) \
-  { \
-     (date)->OCIDateTime.OCITimeHH = hour; \
-     (date)->OCIDateTime.OCITimeMI = min; \
-     (date)->OCIDateTime.OCITimeSS = sec; \
-  }
+  #define OCIDateSetTime(date, hour, min, sec) \
+    { \
+        (date)->OCIDateTime.OCITimeHH = hour; \
+        (date)->OCIDateTime.OCITimeMI = min; \
+        (date)->OCIDateTime.OCITimeSS = sec; \
+    }
 
-#define OCIDateSetDate(date, year, month, day) \
-  { \
-     (date)->OCIDateYYYY = year; \
-     (date)->OCIDateMM = month; \
-     (date)->OCIDateDD = day; \
-  }
+  #define OCIDateSetDate(date, year, month, day) \
+    { \
+        (date)->OCIDateYYYY = year; \
+        (date)->OCIDateMM   = month; \
+        (date)->OCIDateDD   = day; \
+    }
 
 #endif
 

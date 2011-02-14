@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,12 @@ Module BaH.DBOracle
 ModuleInfo "Version: 1.00"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008-2009 Bruce A Henderson"
-ModuleInfo "Modserver: BRL"
+ModuleInfo "Copyright: 2008-2011 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release"
+ModuleInfo "History: 1.00 Initial Release (ocilib 3.8.1)"
 
 
-ModuleInfo "CC_OPTS: -fexceptions"
+ModuleInfo "CC_OPTS: -fexceptions -DOCI_CHARSET_MIXED"
 
 ?macos
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos/"
@@ -511,7 +510,7 @@ Type TOracleResultSet Extends TQueryResultSet
 		Local values:TDBType[] = boundValues
 
 		Local params:Byte Ptr[]
-		Local strings:Byte Ptr[]
+		Local strings:Short Ptr[]
 		Local blobs:Byte Ptr[]
 		Local dates:Byte Ptr[]
 
@@ -519,7 +518,7 @@ Type TOracleResultSet Extends TQueryResultSet
 			Local paramCount:Int = bindCount
 
 			params = New Byte Ptr[paramCount]
-			strings = New Byte Ptr[paramCount]
+			strings = New Short Ptr[paramCount]
 			blobs = New Byte Ptr[paramCount]
 			dates = New Byte Ptr[paramCount]
 			
@@ -552,7 +551,7 @@ Type TOracleResultSet Extends TQueryResultSet
 						Case DBTYPE_STRING
 	
 							Local s:String = values[i].getString()
-							strings[i] = s.toCString()
+							strings[i] = s.toWString()
 	
 							result = bmx_ora_bind_string(stmtHandle, params[i], strings[i], s.length)
 							
@@ -592,7 +591,7 @@ Type TOracleResultSet Extends TQueryResultSet
 						conn.setError("Error binding parameters", "", TDatabaseError.ERROR_STATEMENT, -1)
 
 						' free up the memory
-						freeMem(strings)
+						freeMem2(strings)
 						freeMem(params)
 						For Local i:Int = 0 Until paramCount
 							If blobs[i] Then
@@ -612,7 +611,7 @@ Type TOracleResultSet Extends TQueryResultSet
 				conn.setError("Error binding parameters", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
 
 				' free up the memory
-				freeMem(strings)
+				freeMem2(strings)
 				freeMem(params)
 				For Local i:Int = 0 Until paramCount
 					If blobs[i] Then
@@ -638,7 +637,7 @@ Type TOracleResultSet Extends TQueryResultSet
 
 			If strings Then
 				' free up the memory
-				freeMem(strings)
+				freeMem2(strings)
 				freeMem(params)
 				For Local i:Int = 0 Until blobs.length
 					If blobs[i] Then
@@ -655,7 +654,7 @@ Type TOracleResultSet Extends TQueryResultSet
 
 		' free up the memory
 		If strings Then
-			freeMem(strings)
+			freeMem2(strings)
 			freeMem(params)
 			For Local i:Int = 0 Until blobs.length
 				If blobs[i] Then
@@ -750,6 +749,14 @@ Type TOracleResultSet Extends TQueryResultSet
 	End Method
 	
 	Method freeMem(data:Byte Ptr[])
+		For Local i:Int = 0 Until data.length
+			If data[i] Then
+				MemFree(data[i])
+			End If
+		Next
+	End Method
+
+	Method freeMem2(data:Short Ptr[])
 		For Local i:Int = 0 Until data.length
 			If data[i] Then
 				MemFree(data[i])

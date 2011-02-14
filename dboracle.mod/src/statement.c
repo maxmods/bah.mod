@@ -1,48 +1,51 @@
 /*
-   +----------------------------------------------------------------------+
-   |                                                                      |
-   |                     OCILIB - C Driver for Oracle                     |
-   |                                                                      |
-   |                      (C Wrapper for Oracle OCI)                      |
-   |                                                                      |
-   +----------------------------------------------------------------------+
-   |                      Website : http://www.ocilib.net                 |
-   +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
-   +----------------------------------------------------------------------+
-   | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Lesser General Public           |
-   | License as published by the Free Software Foundation; either         |
-   | version 2 of the License, or (at your option) any later version.     |
-   |                                                                      |
-   | This library is distributed in the hope that it will be useful,      |
-   | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
-   | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Lesser General Public License for more details.                      |
-   |                                                                      |
-   | You should have received a copy of the GNU Lesser General Public     |
-   | License along with this library; if not, write to the Free           |
-   | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
-   +----------------------------------------------------------------------+
-   |          Author: Vincent ROGIER <vince.rogier@gmail.com>             |
-   +----------------------------------------------------------------------+
+    +-----------------------------------------------------------------------------------------+
+    |                                                                                         |
+    |                               OCILIB - C Driver for Oracle                              |
+    |                                                                                         |
+    |                                (C Wrapper for Oracle OCI)                               |
+    |                                                                                         |
+    |                              Website : http://www.ocilib.net                            |
+    |                                                                                         |
+    |             Copyright (c) 2007-2010 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |                                                                                         |
+    +-----------------------------------------------------------------------------------------+
+    |                                                                                         |
+    |             This library is free software; you can redistribute it and/or               |
+    |             modify it under the terms of the GNU Lesser General Public                  |
+    |             License as published by the Free Software Foundation; either                |
+    |             version 2 of the License, or (at your option) any later version.            |
+    |                                                                                         |
+    |             This library is distributed in the hope that it will be useful,             |
+    |             but WITHOUT ANY WARRANTY; without even the implied warranty of              |
+    |             MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU           |
+    |             Lesser General Public License for more details.                             |
+    |                                                                                         |
+    |             You should have received a copy of the GNU Lesser General Public            |
+    |             License along with this library; if not, write to the Free                  |
+    |             Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.          |
+    |                                                                                         |
+    +-----------------------------------------------------------------------------------------+
 */
 
-/* ------------------------------------------------------------------------ *
- * $Id: statement.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
- * ------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------- *
+ * $Id: statement.c, v 3.8.1 2010-12-13 00:00 Vincent Rogier $
+ * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
 
-/* ************************************************************************ *
+/* ********************************************************************************************* *
  *                             PRIVATE FUNCTIONS
- * ************************************************************************ */
+ * ********************************************************************************************* */
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindFreeAll
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_BindFreeAll(OCI_Statement *stmt)
+boolean OCI_BindFreeAll
+(
+    OCI_Statement *stmt
+)
 {
     int i;
 
@@ -78,11 +81,14 @@ boolean OCI_BindFreeAll(OCI_Statement *stmt)
     return TRUE;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindCheck
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_BindCheck(OCI_Statement *stmt)
+boolean OCI_BindCheck
+(
+    OCI_Statement *stmt
+)
 {
     boolean res   = TRUE;
     OCI_Bind *bnd = NULL;
@@ -100,7 +106,7 @@ boolean OCI_BindCheck(OCI_Statement *stmt)
         if (bnd->type == OCI_CDT_CURSOR)
         {
             OCI_Statement *bnd_stmt = (OCI_Statement *) bnd->buf.data;
-            
+
             OCI_StatementReset(bnd_stmt);
         }
 
@@ -118,33 +124,35 @@ boolean OCI_BindCheck(OCI_Statement *stmt)
 
         /* extra work for internal allocated binds buffers */
 
-        if (bnd->alloc == TRUE)
+        if (bnd->is_array == FALSE)
         {
-            if (bnd->is_array == FALSE)
+            /* - For big integer (64 bits), we use an OCINumber.
+
+               - Oracle date/time type is the only non scalar type
+                 implemented by oracle through a public structure instead
+                 of using a handle. So we need to copy the value
+            */
+
+            if ((bnd->type == OCI_CDT_NUMERIC) && (bnd->code == SQLT_VNU))
             {
-                /* - For big integer (64 bits), we use an OCINumber.
-
-                   - Oracle date/time type is the only non scalar type
-                     implemented by oracle through a public structure instead
-                     of using a handle. So we need to copy the value
-                */
-
-                if (bnd->type == OCI_CDT_NUMERIC)
+                res = OCI_NumberSet(stmt->con,
+                                    (OCINumber *) bnd->buf.data,
+                                    (void *) bnd->input,
+                                    (uword) sizeof(big_int),
+                                    bnd->subtype);
+            }
+            else if (bnd->alloc == TRUE)
+            {
+                if (bnd->type == OCI_CDT_DATETIME)
                 {
-                    res = OCI_NumberSet(stmt->con,
-                                        (OCINumber *) bnd->buf.data,
-                                        (void *) bnd->input,
-                                        (uword) sizeof(big_int),
-                                        bnd->subtype);
-                }
-                else if (bnd->type == OCI_CDT_DATETIME)
-                {
-                    memcpy((void *) bnd->buf.data,
-                           ((OCI_Date *) bnd->input)->handle,
-                           sizeof(OCIDate));
+                    if (bnd->input != NULL)
+                    {
+                        memcpy((void *) bnd->buf.data,
+                               ((OCI_Date *) bnd->input)->handle, sizeof(OCIDate));
+                    }
                 }
 
-#ifdef OCI_CHECK_DATASTRINGS
+                #ifdef OCI_CHECK_DATASTRINGS
 
                 else if (bnd->type == OCI_CDT_TEXT)
                 {
@@ -156,49 +164,73 @@ boolean OCI_BindCheck(OCI_Statement *stmt)
                                         sizeof(dtext), sizeof(odtext));
                 }
 
-#endif
+                #endif
 
                 else
                 {
-                    bnd->buf.data[0] = ((OCI_Datatype *) bnd->input)->handle;
-
-                    /* for handles, check anyway the value for null data */
-
-                    if (ind != NULL && *ind != -1)
-                        *ind = OCI_IND(bnd->buf.data);
+                    if (bnd->input != NULL)
+                    {
+                        bnd->buf.data[0] = ((OCI_Datatype *) bnd->input)->handle;
+                    }
                 }
-
-                if (res == FALSE)
-                    break;
             }
-            else
+
+            /* for handles, check anyway the value for null data */
+
+            if ((bnd->type != OCI_CDT_NUMERIC) &&
+                (bnd->type != OCI_CDT_TEXT   ) &&
+                (bnd->type != OCI_CDT_RAW    ))
             {
-                for (j = 0; j < bnd->buf.count; j++, ind++)
+                if (ind != NULL && *ind != -1)
+                {
+                    *ind = OCI_IND(bnd->buf.data);
+                }
+            }
+
+            /* update bind object indicator pointer with object indicator */
+
+            if (bnd->type == OCI_CDT_OBJECT)
+            {
+                bnd->buf.obj_inds[0] = ((OCI_Object *) bnd->input)->tab_ind;
+            }
+
+            if (res == FALSE)
+                break;
+        }
+        else
+        {
+            for (j = 0; j < bnd->buf.count; j++, ind++)
+            {
+
+                /* - For big integer (64 bits), we use an OCINumber.
+
+                   - Oracle date/time type is the only non scalar type
+                     implemented by oracle through a public structure instead
+                     of using a handle. So we need to copy the value
+                */
+
+                if ((bnd->type == OCI_CDT_NUMERIC) && (bnd->code == SQLT_VNU))
                 {
 
-                    /* - For big integer (64 bits), we use an OCINumber.
-
-                       - Oracle date/time type is the only non scalar type
-                         implemented by oracle through a public structure instead
-                         of using a handle. So we need to copy the value
-                    */
-
-                    if (bnd->type == OCI_CDT_NUMERIC)
+                    res = OCI_NumberSet(stmt->con,
+                                        (OCINumber *) ((ub1 *) bnd->buf.data +
+                                                       (size_t) (j*bnd->size)),
+                                        (void *) (((ub1 *) bnd->input) +
+                                                  (((size_t)j)*sizeof(big_int))),
+                                        (uword) sizeof(big_int), bnd->subtype);
+                }
+                else if (bnd->alloc == TRUE)
+                {
+                    if (bnd->type == OCI_CDT_DATETIME)
                     {
-
-                        res = OCI_NumberSet(stmt->con,
-                                           (OCINumber *) ((ub1 *) bnd->buf.data + (size_t) (j*bnd->size)),
-                                           (void *) (((ub1 *) bnd->input) +  (((size_t)j)*sizeof(big_int))),
-                                           (uword) sizeof(big_int), bnd->subtype);
-                    }
-                    else  if (bnd->type == OCI_CDT_DATETIME)
-                    {
-                        memcpy(((ub1 *) bnd->buf.data) + (size_t) (j*bnd->size),
-                               ((OCI_Date *) bnd->input[j])->handle,
-                               sizeof(OCIDate));
+                        if (bnd->input[j] != NULL)
+                        {
+                            memcpy(((ub1 *) bnd->buf.data) + (size_t) (j*bnd->size),
+                                   ((OCI_Date *) bnd->input[j])->handle, sizeof(OCIDate));
+                        }
                     }
 
-#ifdef OCI_CHECK_DATASTRINGS
+                    #ifdef OCI_CHECK_DATASTRINGS
 
                     else if (bnd->type == OCI_CDT_TEXT)
                     {
@@ -224,22 +256,38 @@ boolean OCI_BindCheck(OCI_Statement *stmt)
                         }
                     }
 
-#endif
+                    #endif
 
                     else
                     {
-                        bnd->buf.data[j] = ((OCI_Datatype *) bnd->input[j])->handle;
-
-                        /* for handles, check anyway the value for null data */
-
-                        if (ind != NULL && *ind != -1)
-                            *ind = OCI_IND(bnd->buf.data[j]);
+                        if (bnd->input[j] != NULL)
+                        {
+                            bnd->buf.data[j] = ((OCI_Datatype *) bnd->input[j])->handle;
+                        }
                     }
-
-
-                    if (res == FALSE)
-                        break;
                 }
+
+                /* for handles, check anyway the value for null data */
+
+                if ((bnd->type != OCI_CDT_NUMERIC) &&
+                    (bnd->type != OCI_CDT_TEXT   ) &&
+                    (bnd->type != OCI_CDT_RAW    ))
+                {
+                    if (ind != NULL && *ind != -1)
+                    {
+                        *ind = OCI_IND((((OCI_Datatype *) bnd->input[j])->handle));
+                    }
+                }
+
+                /* update bind object indicator pointer with object indicator */
+
+                if (bnd->type == OCI_CDT_OBJECT)
+                {
+                    bnd->buf.obj_inds[j] = ((OCI_Object *) bnd->input[j])->tab_ind;
+                }
+
+                if (res == FALSE)
+                    break;
             }
         }
     }
@@ -247,11 +295,14 @@ boolean OCI_BindCheck(OCI_Statement *stmt)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindReset
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_BindReset(OCI_Statement *stmt)
+boolean OCI_BindReset
+(
+    OCI_Statement *stmt
+)
 {
     ub4 i, j;
     boolean res = TRUE;
@@ -260,7 +311,7 @@ boolean OCI_BindReset(OCI_Statement *stmt)
     OCI_CHECK(stmt->ubinds == NULL, FALSE);
 
     /* avoid unused param warning from compiler */
-    
+
     i = j = 0;
 
     for(i = 0; i < stmt->nb_ubinds; i++)
@@ -270,27 +321,69 @@ boolean OCI_BindReset(OCI_Statement *stmt)
         if (bnd->type == OCI_CDT_CURSOR)
         {
             OCI_Statement *bnd_stmt = (OCI_Statement *) bnd->buf.data;
-            
-            bnd_stmt->status  = OCI_STMT_EXECUTED;
-            bnd_stmt->type    = OCI_CST_SELECT;
+
+            bnd_stmt->status = OCI_STMT_EXECUTED;
+            bnd_stmt->type   = OCI_CST_SELECT;
         }
 
         /* only reset bind indicators if bind was not a PL/SQL bind
            that can have oupout values
         */
-             
+
         if (stmt->type != OCI_CST_BEGIN && stmt->type != OCI_CST_DECLARE)
         {
             memset(bnd->buf.inds, 0, ((size_t) bnd->buf.count) * sizeof(sb2));
-        }       
+        }
         else
         {
             /* extra work for internal allocated binds buffers with PL/SQL */
 
-            if (bnd->alloc == TRUE)
+            if (bnd->is_array == FALSE)
             {
-                if (bnd->is_array == FALSE)
+                /* - For big integer (64 bits), we use an OCINumber.
+
+                   - Oracle date/time type is the only non scalar type
+                     implemented by oracle through a public structure instead
+                     of using a handle. So we need to copy the value
+                */
+
+                if ((bnd->type == OCI_CDT_NUMERIC) && (bnd->code == SQLT_VNU))
                 {
+                    res = OCI_NumberGet(stmt->con,
+                                        (OCINumber *) bnd->buf.data,
+                                        (void *) bnd->input,
+                                        (uword) sizeof(big_int),
+                                        bnd->subtype);
+                }
+                else if (bnd->alloc == TRUE)
+                {
+
+                    if (bnd->type == OCI_CDT_DATETIME)
+                    {
+                        if (bnd->input != NULL)
+                        {
+                            memcpy(((OCI_Date *) bnd->input)->handle,
+                                   (void *) bnd->buf.data, sizeof(OCIDate));
+                        }
+                    }
+
+                    /* update object indicator with bind object indicator
+                     *pointer */
+
+                    if (bnd->type == OCI_CDT_OBJECT)
+                    {
+                        if (bnd->input != NULL)
+                        {
+                            ((OCI_Object *) bnd->input)->tab_ind = bnd->buf.obj_inds[0];
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (j = 0; j < bnd->buf.count; j++)
+                {
+
                     /* - For big integer (64 bits), we use an OCINumber.
 
                        - Oracle date/time type is the only non scalar type
@@ -298,54 +391,44 @@ boolean OCI_BindReset(OCI_Statement *stmt)
                          of using a handle. So we need to copy the value
                     */
 
-                    if (bnd->type == OCI_CDT_NUMERIC)
+                    if ((bnd->type == OCI_CDT_NUMERIC) && (bnd->code == SQLT_VNU))
                     {
+
                         res = OCI_NumberGet(stmt->con,
-                                            (OCINumber *) bnd->buf.data,
-                                            (void *) bnd->input,
-                                            (uword) sizeof(big_int),
-                                            bnd->subtype);
+                                            (OCINumber *) ((ub1 *) bnd->buf.data +
+                                                           (size_t) (j*bnd->size)),
+                                            (void *) (((ub1 *) bnd->input) +
+                                                      (((size_t)j)*sizeof(big_int))),
+                                            (uword) sizeof(big_int), bnd->subtype);
                     }
-                    else if (bnd->type == OCI_CDT_DATETIME)
+                    else if (bnd->alloc == TRUE)
                     {
-                        memcpy(((OCI_Date *) bnd->input)->handle,
-                               (void *) bnd->buf.data,
-                               sizeof(OCIDate));
-                    }
-
-                }
-                else
-                {
-                    for (j = 0; j < bnd->buf.count; j++)
-                    {
-
-                        /* - For big integer (64 bits), we use an OCINumber.
-
-                           - Oracle date/time type is the only non scalar type
-                             implemented by oracle through a public structure instead
-                             of using a handle. So we need to copy the value
-                        */
-
-                        if (bnd->type == OCI_CDT_NUMERIC)
+                        if (bnd->type == OCI_CDT_DATETIME)
                         {
-
-                            res = OCI_NumberGet(stmt->con,
-                                               (OCINumber *) ((ub1 *) bnd->buf.data + (size_t) (j*bnd->size)),
-                                               (void *) (((ub1 *) bnd->input) +  (((size_t)j)*sizeof(big_int))),
-                                               (uword) sizeof(big_int), bnd->subtype);
+                            if (bnd->input[j] != NULL)
+                            {
+                                memcpy(((OCI_Date *) bnd->input[j])->handle,
+                                       ((ub1 *) bnd->buf.data) + (size_t) (j*bnd->size),
+                                       sizeof(OCIDate));
+                            }
                         }
-                        else  if (bnd->type == OCI_CDT_DATETIME)
+
+                        /* update bind object indicator pointer with object
+                         *indicator */
+
+                        if (bnd->type == OCI_CDT_OBJECT)
                         {
-                            memcpy(((OCI_Date *) bnd->input[j])->handle,
-                                   ((ub1 *) bnd->buf.data) + (size_t) (j*bnd->size),
-                                   sizeof(OCIDate));
+                            if (bnd->input != NULL)
+                            {
+                                ((OCI_Object *) bnd->input[j])->tab_ind = bnd->buf.obj_inds[j];
+                            }
                         }
                     }
                 }
             }
         }
 
-#ifdef OCI_CHECK_DATASTRINGS
+        #ifdef OCI_CHECK_DATASTRINGS
 
         if (bnd->type == OCI_CDT_TEXT)
         {
@@ -362,13 +445,13 @@ boolean OCI_BindReset(OCI_Statement *stmt)
 
                 if (bnd->size == (sb4) osize)
                     osize -= sizeof(odtext);
-                
+
                 OCI_GetOutputString(((ub1 *) bnd->buf.data) + (j*offset2),
                                     ((ub1 *) bnd->input)    + (j*offset1),
                                     &osize, sizeof(odtext), sizeof(dtext));
 
-                /* set zero terminal null character (sometimes it is not set 
-                   by OCI and causes problems if the string has been modified 
+                /* set zero terminal null character (sometimes it is not set
+                   by OCI and causes problems if the string has been modified
                    and its length reduced */
 
                 {
@@ -379,21 +462,30 @@ boolean OCI_BindReset(OCI_Statement *stmt)
                 }
             }
         }
-#endif
+        #endif
 
     }
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindData
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
-                     const mtext *name, ub1 type, unsigned int code,
-                     unsigned int mode, unsigned int subtype,
-                     OCI_TypeInfo *typinf, unsigned int nbelem)
+boolean OCI_BindData
+(
+    OCI_Statement *stmt,
+    void          *data,
+    ub4            size,
+    const mtext   *name,
+    ub1            type,
+    unsigned int   code,
+    unsigned int   mode,
+    unsigned int   subtype,
+    OCI_TypeInfo  *typinf,
+    unsigned int   nbelem
+)
 {
     boolean res      = TRUE;
     OCI_Bind *bnd    = NULL;
@@ -403,6 +495,8 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
     boolean reused   = FALSE;
     ub4 *pnbelem     = NULL;
     int index        = 0;
+    int prev_index   = -1;
+    size_t nballoc   = (size_t) nbelem;
 
     /* check index if necessary */
 
@@ -426,9 +520,9 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
     {
         if (mode == OCI_BIND_INPUT)
         {
-            int test_index = OCI_BindGetIndex(stmt, name);
+            prev_index = OCI_BindGetIndex(stmt, name);
 
-            if (test_index > 0)
+            if (prev_index > 0)
             {
                 if (stmt->bind_reuse == FALSE)
                 {
@@ -437,11 +531,18 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
                 }
                 else
                 {
-                    bnd = stmt->ubinds[test_index-1];
-                    reused = TRUE;
+                    bnd = stmt->ubinds[prev_index-1];
+
+                    if (bnd->type != type)
+                    {
+                        OCI_ExceptionRebindBadDatatype(stmt, name);
+                        res = FALSE;
+                    }
+                    else
+                        reused = TRUE;
                 }
 
-                index = test_index;
+                index = prev_index;
             }
         }
     }
@@ -484,7 +585,7 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
             {
                 stmt->rbinds = (OCI_Bind **) OCI_MemAlloc(OCI_IPC_BIND_ARRAY,
                                                           sizeof(*stmt->rbinds),
-                                                          (size_t) OCI_BIND_MAX, 
+                                                          (size_t) OCI_BIND_MAX,
                                                           TRUE);
             }
 
@@ -515,6 +616,14 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
         }
     }
 
+    if (res == TRUE)
+    {
+        if (nballoc < stmt->nb_iters_init)
+        {
+            nballoc = (size_t) stmt->nb_iters_init;
+        }
+    }
+
     /* create hash table for mapping bind names / index */
 
     if (res == TRUE)
@@ -533,8 +642,8 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
     {
         if (bnd == NULL)
         {
-            bnd = (OCI_Bind *) OCI_MemAlloc(OCI_IPC_BIND, sizeof(*bnd), 
-                                                          (size_t) 1, TRUE);
+            bnd = (OCI_Bind *) OCI_MemAlloc(OCI_IPC_BIND, sizeof(*bnd),
+                                            (size_t) 1, TRUE);
         }
 
         res = (bnd != NULL);
@@ -547,11 +656,25 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
         if (bnd->buf.inds == NULL)
         {
             bnd->buf.inds = (void *) OCI_MemAlloc(OCI_IPC_INDICATOR_ARRAY,
-                                                  sizeof(sb2), (size_t) nbelem, 
+                                                  sizeof(sb2), nballoc,
                                                   TRUE);
         }
 
         res = (bnd->buf.inds != NULL);
+    }
+
+    /* allocate object indicators pointer array */
+
+    if (res == TRUE)
+    {
+        if ((type == OCI_CDT_OBJECT) && (bnd->buf.obj_inds == NULL))
+        {
+            bnd->buf.obj_inds = (void *) OCI_MemAlloc(OCI_IPC_INDICATOR_ARRAY,
+                                                      sizeof(void *), nballoc,
+                                                      TRUE);
+
+            res = (bnd->buf.obj_inds != NULL);
+        }
     }
 
     /* check need for PL/SQL table extra info */
@@ -568,7 +691,7 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
             if (bnd->plrcds == NULL)
             {
                 bnd->plrcds = (ub2 *) OCI_MemAlloc(OCI_IPC_PLS_RCODE_ARRAY,
-                                                   sizeof(ub2), (size_t) nbelem, 
+                                                   sizeof(ub2), nballoc,
                                                    TRUE);
             }
 
@@ -581,32 +704,40 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
 
     if ((res == TRUE) && (mode == OCI_BIND_INPUT))
     {
-        if (type != OCI_CDT_RAW      &&
-            type != OCI_CDT_LONG     &&
-            type != OCI_CDT_CURSOR   &&
-
-#ifndef OCI_CHECK_DATASTRINGS
-
-            type != OCI_CDT_TEXT     &&
-
-#endif
-            (type != OCI_CDT_NUMERIC || code == SQLT_VNU)
-        )
+        if (stmt->bind_alloc_mode == OCI_BAM_EXTERNAL)
         {
-            bnd->alloc = TRUE;
+            if (type != OCI_CDT_RAW      &&
+                type != OCI_CDT_LONG     &&
+                type != OCI_CDT_CURSOR   &&
 
-            if (bnd->buf.data == NULL)
+                #ifndef OCI_CHECK_DATASTRINGS
+
+                type != OCI_CDT_TEXT     &&
+
+                #endif
+                (type != OCI_CDT_NUMERIC || code == SQLT_VNU)
+                )
             {
-                bnd->buf.data = (void **) OCI_MemAlloc(OCI_IPC_BUFF_ARRAY, 
-                                                       (size_t) size,
-                                                       (size_t) nbelem,
-                                                       TRUE);
-            }
+                bnd->alloc = TRUE;
 
-            res = (bnd->buf.data != NULL);
+                if ((reused == TRUE) && (bnd->buf.data != NULL) && (bnd->size != (sb4) size))
+                {
+                    OCI_FREE(bnd->buf.data);
+                }
+
+                if (bnd->buf.data == NULL)
+                {
+                    bnd->buf.data = (void **) OCI_MemAlloc(OCI_IPC_BUFF_ARRAY,
+                                                           (size_t) size,
+                                                           (size_t) nballoc,
+                                                           TRUE);
+                }
+
+                res = (bnd->buf.data != NULL);
+            }
+            else
+                bnd->buf.data = (void **) data;
         }
-        else
-            bnd->buf.data = (void **) data;
     }
 
     /* setup data length array */
@@ -616,7 +747,7 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
         if (bnd->buf.lens == NULL)
         {
             bnd->buf.lens = (void *) OCI_MemAlloc(OCI_IPC_LEN_ARRAY, sizeof(ub2),
-                                                  (size_t) nbelem, TRUE);
+                                                  nballoc, TRUE);
         }
 
         res = (bnd->buf.lens != NULL);
@@ -640,13 +771,14 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
     {
         /* initialize bind attributes */
 
-        bnd->stmt      = stmt;
-        bnd->input     = (void **) data;
-        bnd->type      = type;
-        bnd->size      = size;
-        bnd->code      = (ub2) code;
-        bnd->subtype   = (ub1) subtype;
-        bnd->is_array  = is_array;
+        bnd->stmt     = stmt;
+        bnd->input    = (void **) data;
+        bnd->type     = type;
+        bnd->size     = size;
+        bnd->code     = (ub2) code;
+        bnd->subtype  = (ub1) subtype;
+        bnd->is_array = is_array;
+        bnd->csfrm    = OCI_CSF_NONE;
 
         if (bnd->name == NULL)
         {
@@ -657,6 +789,13 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
 
         bnd->buf.count   = nbelem;
         bnd->buf.sizelen = sizeof(ub2);
+
+        /* internal allocation if needed */
+
+        if ((data == NULL) && (stmt->bind_alloc_mode == OCI_BAM_INTERNAL))
+        {
+            res = OCI_BindAllocData(bnd);
+        }
 
         /* if we bind an OCI_Long or any output bind, we need to change the
            execution mode to provide data at execute time */
@@ -672,7 +811,7 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
         }
     }
 
-   /* OCI binding */
+    /* OCI binding */
 
     if (res == TRUE)
     {
@@ -719,7 +858,7 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
 
                 OCIBindObject((OCIBind *) bnd->buf.handle, stmt->con->err,
                               (OCIType *) typinf->tdo, (void **) bnd->buf.data,
-                              (ub4 *) NULL, (void **) NULL,
+                              (ub4 *) NULL, (void **) bnd->buf.obj_inds,
                               (ub4 *) bnd->buf.inds)
             )
         }
@@ -737,69 +876,80 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
                                (dvoid *) bnd, OCI_ProcOutBind)
             )
         }
+    }
 
-        /* setup national charset from flag if needed */
+    /* set charset form */
 
-        if (
-            (
-                (bnd->type    == OCI_CDT_LOB) &&
-                (bnd->subtype == OCI_NCLOB)
-            )
-#ifdef OCI_USERDATA_UNICODE
-            ||
-            (
-                (bnd->type          == OCI_CDT_TEXT)             &&
-                (OCI_GetVersionConnection(stmt->con) >= OCI_9_0) &&
-                (bnd->buf.lens      == NULL)
-            )
-#endif
-           )
+    if (res == TRUE)
+    {
+        if ((bnd->type == OCI_CDT_LOB) && (bnd->subtype == OCI_NCLOB))
         {
             ub1 csfrm = SQLCS_NCHAR;
 
             OCI_CALL1
             (
-                res, stmt->con, stmt,
+                res, bnd->stmt->con, bnd->stmt,
 
-                OCIAttrSet((dvoid *) bnd->buf.handle, (ub4) OCI_HTYPE_BIND,
-                           (dvoid *) &csfrm, (ub4) sizeof(csfrm),
-                           (ub4) OCI_ATTR_CHARSET_FORM,  bnd->stmt->con->err)
+                OCIAttrSet((dvoid *) bnd->buf.handle,
+                           (ub4    ) OCI_HTYPE_BIND,
+                           (dvoid *) &csfrm,
+                           (ub4    ) sizeof(csfrm),
+                           (ub4    ) OCI_ATTR_CHARSET_FORM,
+                           bnd->stmt->con->err)
             )
         }
-
-
-        if (bnd->type == OCI_CDT_TEXT)
-        {
-            OCI_CALL1
-            (
-                res, stmt->con, stmt,
-
-                OCIAttrSet((dvoid *) bnd->buf.handle, (ub4) OCI_HTYPE_BIND,
-                           (dvoid *) &bnd->size, (ub4) sizeof(bnd->size),
-                           (ub4) OCI_ATTR_MAXDATA_SIZE,  bnd->stmt->con->err)
-            )
-        }
-
-#ifdef OCI_CHARSET_MIXED
-
-        /* setup Unicode mode for user data in mixed builds */
-
-        {
-            ub2 csid = OCI_UTF16ID;
-
-            OCI_CALL1
-            (
-                res, stmt->con, stmt,
-
-                OCIAttrSet((dvoid *) bnd->buf.handle, (ub4) OCI_HTYPE_BIND,
-                           (dvoid *) &csid,  (ub4) sizeof(csid),
-                           (ub4) OCI_ATTR_CHARSET_ID,  stmt->con->err)
-            )
-        }
-
-#endif
-
     }
+
+    /* set charset ID */
+
+    if (res == TRUE)
+    {
+        if ((bnd->type == OCI_CDT_TEXT)  ||
+            ((bnd->type == OCI_CDT_LOB)   && (bnd->subtype != OCI_BLOB))  ||
+            ((bnd->type == OCI_CDT_LONG)  && (bnd->subtype != OCI_BLONG)))
+        {
+
+            #ifdef OCI_CHARSET_MIXED
+
+            /* setup Unicode mode for user data on mixed builds */
+            {
+                ub2 csid = OCI_UTF16ID;
+
+                OCI_CALL1
+                (
+                    res, bnd->stmt->con, bnd->stmt,
+
+                    OCIAttrSet((dvoid *) bnd->buf.handle,
+                               (ub4    ) OCI_HTYPE_BIND,
+                               (dvoid *) &csid,
+                               (ub4    ) sizeof(csid),
+                               (ub4    ) OCI_ATTR_CHARSET_ID,
+                               bnd->stmt->con->err)
+                )
+            }
+
+            #endif
+
+        }
+    }
+
+/*
+    this call was removed in v3.6.0
+
+    It will be restored in future version, but need more testing on all
+    builds
+    if (bnd->type == OCI_CDT_TEXT)
+    {
+        OCI_CALL1
+        (
+            res, stmt->con, stmt,
+
+            OCIAttrSet((dvoid *) bnd->buf.handle, (ub4) OCI_HTYPE_BIND,
+                       (dvoid *) &bnd->size, (ub4) sizeof(bnd->size),
+                       (ub4) OCI_ATTR_MAXDATA_SIZE,  bnd->stmt->con->err)
+        )
+    }
+*/
 
     /* on success, we :
          - add the bind handle to the bind array
@@ -831,17 +981,28 @@ boolean OCI_BindData(OCI_Statement *stmt, void *data, ub4 size,
         }
     }
 
+    if (res == FALSE)
+    {
+        if ((bnd != NULL) && (prev_index  == -1))
+        {
+            OCI_BindFree(bnd);
+        }
+    }
+
     OCI_RESULT(res);
 
     return res;
 }
 
-
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindGetIndex
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-int OCI_BindGetIndex(OCI_Statement *stmt, const mtext *name)
+int OCI_BindGetIndex
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_HashEntry *he = NULL;
     int index         = -1;
@@ -878,19 +1039,23 @@ int OCI_BindGetIndex(OCI_Statement *stmt, const mtext *name)
     return index;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_FetchIntoUserVariables
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_FetchIntoUserVariables(OCI_Statement *stmt, va_list args)
+boolean OCI_FetchIntoUserVariables
+(
+    OCI_Statement *stmt,
+    va_list        args
+)
 {
     OCI_Resultset *rs = NULL;
-    boolean res = FALSE;
+    boolean res       = FALSE;
     int i, n;
 
     /* get resultset */
 
-    rs  = OCI_GetResultset(stmt);
+    rs = OCI_GetResultset(stmt);
 
     /* fetch data */
 
@@ -923,7 +1088,7 @@ boolean OCI_FetchIntoUserVariables(OCI_Statement *stmt, va_list args)
                 }
                 case OCI_ARG_USHORT:
                 {
-                   unsigned short src, *dst;
+                    unsigned short src, *dst;
 
                     src = OCI_GetUnsignedShort(rs, i);
                     dst = va_arg(args, unsigned short *);
@@ -947,7 +1112,7 @@ boolean OCI_FetchIntoUserVariables(OCI_Statement *stmt, va_list args)
                 }
                 case OCI_ARG_UINT:
                 {
-                   unsigned int src, *dst;
+                    unsigned int src, *dst;
 
                     src = OCI_GetUnsignedInt(rs, i);
                     dst = va_arg(args, unsigned int *);
@@ -971,7 +1136,7 @@ boolean OCI_FetchIntoUserVariables(OCI_Statement *stmt, va_list args)
                 }
                 case OCI_ARG_BIGUINT:
                 {
-                   big_uint src, *dst;
+                    big_uint src, *dst;
 
                     src = OCI_GetUnsignedBigInt(rs, i);
                     dst = va_arg(args, big_uint *);
@@ -1125,15 +1290,20 @@ boolean OCI_FetchIntoUserVariables(OCI_Statement *stmt, va_list args)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_StatementInit
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-OCI_Statement * OCI_StatementInit(OCI_Connection *con, OCI_Statement **pstmt,
-                                  OCIStmt *handle, OCI_Define *def)
+OCI_Statement * OCI_StatementInit
+(
+    OCI_Connection *con,
+    OCI_Statement **pstmt,
+    OCIStmt        *handle,
+    OCI_Define     *def
+)
 {
     OCI_Statement * stmt = NULL;
-    boolean res = TRUE;
+    boolean res          = TRUE;
 
     OCI_CHECK(pstmt == NULL, NULL);
 
@@ -1145,14 +1315,15 @@ OCI_Statement * OCI_StatementInit(OCI_Connection *con, OCI_Statement **pstmt,
     {
         stmt = *pstmt;
 
-        stmt->con           = con;
-        stmt->stmt          = handle;
+        stmt->con  = con;
+        stmt->stmt = handle;
 
-        stmt->exec_mode     = OCI_DEFAULT;
-        stmt->long_size     = OCI_SIZE_LONG;
-        stmt->bind_reuse    = FALSE;
-        stmt->bind_mode     = OCI_BIND_BY_NAME;
-        stmt->long_mode     = OCI_LONG_EXPLICIT;
+        stmt->exec_mode       = OCI_DEFAULT;
+        stmt->long_size       = OCI_SIZE_LONG;
+        stmt->bind_reuse      = FALSE;
+        stmt->bind_mode       = OCI_BIND_BY_NAME;
+        stmt->long_mode       = OCI_LONG_EXPLICIT;
+        stmt->bind_alloc_mode = OCI_BAM_EXTERNAL;
 
         /* reset statement */
 
@@ -1200,11 +1371,14 @@ OCI_Statement * OCI_StatementInit(OCI_Connection *con, OCI_Statement **pstmt,
     return stmt;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_StatementReset
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_StatementReset(OCI_Statement *stmt)
+boolean OCI_StatementReset
+(
+    OCI_Statement *stmt
+)
 {
     boolean res = TRUE;
 
@@ -1231,27 +1405,31 @@ boolean OCI_StatementReset(OCI_Statement *stmt)
 
     OCI_FREE(stmt->sql);
 
-    stmt->rsts        = NULL;
-    stmt->sql         = NULL;
-    stmt->map         = NULL;
-    stmt->batch       = NULL;
+    stmt->rsts  = NULL;
+    stmt->sql   = NULL;
+    stmt->map   = NULL;
+    stmt->batch = NULL;
 
-    stmt->status      = OCI_STMT_CLOSED;
-    stmt->type        = OCI_UNKNOWN;
-    stmt->bind_array  = FALSE;
+    stmt->status     = OCI_STMT_CLOSED;
+    stmt->type       = OCI_UNKNOWN;
+    stmt->bind_array = FALSE;
 
-    stmt->nb_iters     = 1;
-    stmt->dynidx       = 0;
-    stmt->err_pos      = 0;
+    stmt->nb_iters      = 1;
+    stmt->nb_iters_init = 1;
+    stmt->dynidx        = 0;
+    stmt->err_pos       = 0;
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_StatementClose
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_StatementClose(OCI_Statement *stmt)
+boolean OCI_StatementClose
+(
+    OCI_Statement *stmt
+)
 {
     boolean res    = TRUE;
     OCI_Error *err = NULL;
@@ -1277,12 +1455,17 @@ boolean OCI_StatementClose(OCI_Statement *stmt)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BatchErrorClear
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_BatchErrorClear(OCI_Statement *stmt)
+boolean OCI_BatchErrorClear
+(
+    OCI_Statement *stmt
+)
 {
+    boolean res = FALSE;
+
     if (stmt->batch != NULL)
     {
         /* free internal array of OCI_Errors */
@@ -1293,17 +1476,20 @@ boolean OCI_BatchErrorClear(OCI_Statement *stmt)
 
         OCI_FREE(stmt->batch);
 
-        stmt->batch = NULL;
+        res = TRUE;
     }
 
-    return TRUE;
+    return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BatchErrorsInit
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_BatchErrorInit(OCI_Statement *stmt)
+boolean OCI_BatchErrorInit
+(
+    OCI_Statement *stmt
+)
 {
     boolean res   = TRUE;
     ub4 err_count = 0;
@@ -1329,7 +1515,7 @@ boolean OCI_BatchErrorInit(OCI_Statement *stmt)
 
         res = (stmt->batch != NULL);
 
-         /* allocate array of error objects */
+        /* allocate array of error objects */
 
         if (res == TRUE)
         {
@@ -1390,7 +1576,7 @@ boolean OCI_BatchErrorInit(OCI_Statement *stmt)
 
                 osize = (int) msizeof(err->str) - 1;
 
-                ostr  = OCI_GetInputMetaString(err->str, &osize);
+                ostr = OCI_GetInputMetaString(err->str, &osize);
 
                 OCIErrorGet((dvoid *) hndl,
                             (ub4) 1,
@@ -1398,7 +1584,6 @@ boolean OCI_BatchErrorInit(OCI_Statement *stmt)
                             (OraText *) ostr,
                             (ub4) osize,
                             (ub4) OCI_HTYPE_ERROR);
-
 
                 OCI_GetOutputMetaString(ostr, err->str, &osize);
                 OCI_ReleaseMetaString(ostr);
@@ -1416,15 +1601,148 @@ boolean OCI_BatchErrorInit(OCI_Statement *stmt)
     return res;
 }
 
-/* ************************************************************************ *
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_ExecuteInternal
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_API OCI_ExecuteInternal
+(
+    OCI_Statement *stmt,
+    ub4            mode
+)
+{
+    boolean res  = TRUE;
+    sword status = OCI_SUCCESS;
+    ub4 iters    = 0;
+
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
+    OCI_CHECK_STMT_STATUS(stmt, OCI_STMT_CLOSED, FALSE);
+
+    /* set up iters and mode values for execution */
+
+    if (stmt->type == OCI_CST_SELECT)
+    {
+        mode = stmt->exec_mode;
+    }
+    else
+    {
+        iters = stmt->nb_iters;
+
+        /* for array DML, use batch error mode */
+
+        if (iters > 1)
+        {
+            mode = mode | OCI_BATCH_ERRORS;
+        }
+    }
+
+    /* reset batch errors */
+
+    res = OCI_BatchErrorClear(stmt);
+
+    /* check bind objects for updating their null indicator status */
+
+    res = OCI_BindCheck(stmt);
+
+    /* check current resultsets */
+
+    if ((res == TRUE) && (stmt->rsts != NULL))
+    {
+        /* resultsets are freed before any prepare operations.
+           So, if we got ones here, it means the same SQL order
+           is re-executed */
+
+        if (stmt->type == OCI_CST_SELECT)
+        {
+            /* just reinitialize the current resultet */
+
+            res = OCI_ResultsetInit(stmt->rsts[0]);
+        }
+        else
+        {
+            /* Must free previous resulsets for 'returning into'
+               SQL orders that can produce multiple resulsets */
+
+            res = OCI_ReleaseResultsets(stmt);
+        }
+    }
+
+    /* Oracle execute call */
+
+    status = OCIStmtExecute(stmt->con->cxt, stmt->stmt, stmt->con->err, iters,
+                            (ub4) 0, (OCISnapshot *) NULL, (OCISnapshot *) NULL,
+                            mode);
+
+    /* reset input binds indicators status even if execution failed */
+
+    OCI_BindReset(stmt);
+
+    /* check result */
+
+    res = ((status == OCI_SUCCESS) ||
+           (status == OCI_SUCCESS_WITH_INFO) ||
+           (status == OCI_NEED_DATA));
+
+    if (status == OCI_SUCCESS_WITH_INFO)
+    {
+        OCI_ExceptionOCI(stmt->con->err, stmt->con, stmt, TRUE);
+    }
+
+    /* on batch mode, check if any error occured */
+
+    if (mode & OCI_BATCH_ERRORS)
+    {
+        /* build batch error list if the statement is array DML */
+
+        OCI_BatchErrorInit(stmt);
+
+        if (stmt->batch != NULL)
+            res = (stmt->batch->count == 0);
+    }
+
+    /* update status on success */
+
+    if (res == TRUE)
+    {
+        stmt->status = OCI_STMT_EXECUTED;
+
+        /* commit if necessary */
+
+        if (stmt->con->autocom == TRUE)
+            OCI_Commit(stmt->con);
+    }
+    else
+    {
+        /* get parse error position type */
+
+        /* (one of the rare OCI call not enclosed with a OCI_CALLX macro ...) */
+
+        OCIAttrGet((dvoid *) stmt->stmt, (ub4) OCI_HTYPE_STMT,
+                   (dvoid *) &stmt->err_pos, (ub4 *) NULL,
+                   (ub4) OCI_ATTR_PARSE_ERROR_OFFSET, stmt->con->err);
+
+        /* raise exception */
+
+        OCI_ExceptionOCI(stmt->con->err, stmt->con, stmt, FALSE);
+    }
+
+    OCI_RESULT(res);
+
+    return res;
+}
+
+/* ********************************************************************************************* *
  *                            PUBLIC FUNCTIONS
- * ************************************************************************ */
+ * ********************************************************************************************* */
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_StatementCreate
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-OCI_Statement * OCI_API OCI_StatementCreate(OCI_Connection *con)
+OCI_Statement * OCI_API OCI_StatementCreate
+(
+    OCI_Connection *con
+)
 {
     OCI_Statement *stmt = NULL;
     OCI_Item *item      = NULL;
@@ -1445,11 +1763,14 @@ OCI_Statement * OCI_API OCI_StatementCreate(OCI_Connection *con)
     return stmt;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_StatementFree
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_StatementFree(OCI_Statement *stmt)
+boolean OCI_API OCI_StatementFree
+(
+    OCI_Statement *stmt
+)
 {
     boolean res = FALSE;
 
@@ -1468,13 +1789,16 @@ boolean OCI_API OCI_StatementFree(OCI_Statement *stmt)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_ReleaseResultsets
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_ReleaseResultsets(OCI_Statement *stmt)
+boolean OCI_API OCI_ReleaseResultsets
+(
+    OCI_Statement *stmt
+)
 {
-    boolean res   = TRUE;
+    boolean res = TRUE;
     ub4 i, nb_err = 0;
 
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
@@ -1500,15 +1824,19 @@ boolean OCI_API OCI_ReleaseResultsets(OCI_Statement *stmt)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_Prepare
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_Prepare(OCI_Statement *stmt, const mtext *sql)
+boolean OCI_API OCI_Prepare
+(
+    OCI_Statement *stmt,
+    const mtext   *sql
+)
 {
     boolean res = TRUE;
     void *ostr  = NULL;
-    int  osize  = -1;
+    int osize   = -1;
 
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
     OCI_CHECK_PTR(OCI_IPC_STRING, sql, FALSE);
@@ -1556,126 +1884,57 @@ boolean OCI_API OCI_Prepare(OCI_Statement *stmt, const mtext *sql)
 
     OCI_RESULT(res);
 
-   return res;
-}
-
-/* ------------------------------------------------------------------------ *
- * OCI_Execute
- * ------------------------------------------------------------------------ */
-
-boolean OCI_API OCI_Execute(OCI_Statement *stmt)
-{
-    boolean res   = TRUE;
-    sword status  = OCI_SUCCESS;
-    ub4 iters     = 0;
-    ub4 mode      = OCI_DEFAULT;
-
-    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
-    OCI_CHECK_STMT_STATUS(stmt, OCI_STMT_CLOSED, FALSE);
-
-    /* set up iters and mode values for execution */
-
-    if (stmt->type == OCI_CST_SELECT)
-        mode  = stmt->exec_mode;
-    else
-    {
-        iters = stmt->nb_iters;
-
-        /* for array DML, use batch error mode */
-
-        if (iters > 1)
-        {
-            mode = mode | OCI_BATCH_ERRORS;
-        }
-    }
-
-    /* reset batch errors */
-
-    res = OCI_BatchErrorClear(stmt);
-
-    /* check bind objects for updating their null indicator status */
-
-    res = OCI_BindCheck(stmt);
-
-    /* free previous resulsets in case of re-execution of the same SQL order */
-
-   if (res == TRUE)
-       res = OCI_ReleaseResultsets(stmt);
-
-    /* Oracle execute call */
-
-    status = OCIStmtExecute(stmt->con->cxt, stmt->stmt, stmt->con->err, iters,
-                            (ub4) 0, (OCISnapshot *) NULL, (OCISnapshot *) NULL,
-                            mode);
-
-    /* reset input binds indicators status even if execution failed */
-
-    OCI_BindReset(stmt);
-
-    /* check result */
-
-    res = ((status == OCI_SUCCESS) ||
-           (status == OCI_SUCCESS_WITH_INFO) || 
-           (status == OCI_NEED_DATA));
-
-    if (status == OCI_SUCCESS_WITH_INFO)
-    {
-        OCI_ExceptionOCI(stmt->con->err, stmt->con, stmt, TRUE);
-    }
-
-    /* update status on success */
-
-    if (res == TRUE)
-    {
-        stmt->status = OCI_STMT_EXECUTED;
-
-        /* commit if necessary */
-
-        if (stmt->con->autocom == TRUE)
-            OCI_Commit(stmt->con);
-    }
-    else
-    {
-        /* get parse error position type */
-
-        /* (one of the rare OCI call not enclosed with a OCI_CALLX macro ...) */
-
-
-        OCIAttrGet((dvoid *) stmt->stmt, (ub4) OCI_HTYPE_STMT,
-                   (dvoid *) &stmt->err_pos, (ub4 *) NULL,
-                   (ub4) OCI_ATTR_PARSE_ERROR_OFFSET, stmt->con->err);
-
-        /* raise exception */
-
-        OCI_ExceptionOCI(stmt->con->err, stmt->con, stmt, FALSE);
-
-        /* build batch error list if the statement is array DML */
-
-        if (mode & OCI_BATCH_ERRORS)
-        {
-            OCI_BatchErrorInit(stmt);
-        }
-    }
-
-    OCI_RESULT(res);
-
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
- * OCI_ExecuteStmt
- * ------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_Execute
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_ExecuteStmt(OCI_Statement *stmt, const mtext *sql)
+boolean OCI_API OCI_Execute
+(
+    OCI_Statement *stmt
+)
 {
-    return (OCI_Prepare(stmt, sql) && OCI_Execute(stmt));
+    return OCI_ExecuteInternal(stmt, OCI_DEFAULT);
 }
 
-/* ------------------------------------------------------------------------ *
- * OCI_PrepareFmt
- * ------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_ExecuteStmt
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_PrepareFmt(OCI_Statement *stmt, const mtext *sql, ...)
+boolean OCI_API OCI_ExecuteStmt
+(
+    OCI_Statement *stmt,
+    const mtext   *sql
+)
+{
+    return (OCI_Prepare(stmt, sql) && OCI_ExecuteInternal(stmt, OCI_DEFAULT));
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_Parse
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_API OCI_Parse
+(
+    OCI_Statement *stmt,
+    const mtext   *sql
+)
+{
+    return (OCI_Prepare(stmt, sql) && OCI_ExecuteInternal(stmt, OCI_PARSE_ONLY));
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_PrepareFmt
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_PrepareFmt
+(
+    OCI_Statement *stmt,
+    const mtext   *sql,
+    ...
+)
 {
     boolean res    = FALSE;
     mtext *sql_fmt = NULL;
@@ -1697,7 +1956,7 @@ boolean OCI_PrepareFmt(OCI_Statement *stmt, const mtext *sql, ...)
     {
         /* allocate buffer */
 
-        sql_fmt = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext), 
+        sql_fmt = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext),
                                          (size_t) (size+1), TRUE);
 
         if (sql_fmt != NULL)
@@ -1708,9 +1967,9 @@ boolean OCI_PrepareFmt(OCI_Statement *stmt, const mtext *sql, ...)
 
             if (OCI_ParseSqlFmt(stmt, sql_fmt, sql, &args) > 0)
             {
-               /* parse buffer */
+                /* parse buffer */
 
-               res = OCI_Prepare(stmt, sql_fmt);
+                res = OCI_Prepare(stmt, sql_fmt);
             }
 
             va_end(args);
@@ -1724,11 +1983,16 @@ boolean OCI_PrepareFmt(OCI_Statement *stmt, const mtext *sql, ...)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_ExecuteStmtFmt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_ExecuteStmtFmt(OCI_Statement *stmt, const mtext *sql, ...)
+boolean OCI_ExecuteStmtFmt
+(
+    OCI_Statement *stmt,
+    const mtext   *sql,
+    ...
+)
 {
     boolean res    = FALSE;
     mtext *sql_fmt = NULL;
@@ -1750,8 +2014,8 @@ boolean OCI_ExecuteStmtFmt(OCI_Statement *stmt, const mtext *sql, ...)
     {
         /* allocate buffer */
 
-        sql_fmt = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext), 
-                                        (size_t) (size+1), TRUE);
+        sql_fmt = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext),
+                                         (size_t) (size+1), TRUE);
 
         if (sql_fmt != NULL)
         {
@@ -1763,7 +2027,8 @@ boolean OCI_ExecuteStmtFmt(OCI_Statement *stmt, const mtext *sql, ...)
             {
                 /* prepare and execute SQL buffer */
 
-                res = (OCI_Prepare(stmt, sql_fmt) &&  OCI_Execute(stmt));
+                res = (OCI_Prepare(stmt, sql_fmt) &&
+                       OCI_ExecuteInternal(stmt, OCI_DEFAULT));
             }
 
             va_end(args);
@@ -1777,14 +2042,78 @@ boolean OCI_ExecuteStmtFmt(OCI_Statement *stmt, const mtext *sql, ...)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
- * OCI_Immediate
- * ------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_ParseFmt
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_Immediate(OCI_Connection *con, const mtext *sql, ...)
+boolean OCI_ParseFmt
+(
+    OCI_Statement *stmt,
+    const mtext   *sql,
+    ...
+)
+{
+    boolean res    = FALSE;
+    mtext *sql_fmt = NULL;
+    va_list args;
+    int size;
+
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
+    OCI_CHECK_PTR(OCI_IPC_STRING, sql, FALSE);
+
+    /* first, get buffer size */
+
+    va_start(args, sql);
+
+    size = OCI_ParseSqlFmt(stmt, NULL, sql, &args);
+
+    va_end(args);
+
+    if (size > 0)
+    {
+        /* allocate buffer */
+
+        sql_fmt = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext),
+                                         (size_t) (size+1), TRUE);
+
+        if (sql_fmt != NULL)
+        {
+            /* format buffer */
+
+            va_start(args, sql);
+
+            if (OCI_ParseSqlFmt(stmt, sql_fmt, sql, &args) > 0)
+            {
+                /* prepare and execute SQL buffer */
+
+                res = (OCI_Prepare(stmt, sql_fmt) &&
+                       OCI_ExecuteInternal(stmt, OCI_PARSE_ONLY));
+            }
+
+            va_end(args);
+
+            OCI_FREE(sql_fmt);
+        }
+    }
+
+    OCI_RESULT(res);
+
+    return res;
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_Immediate
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_Immediate
+(
+    OCI_Connection *con,
+    const mtext    *sql,
+    ...
+)
 {
     OCI_Statement *stmt = NULL;
-    boolean res = FALSE;
+    boolean res         = FALSE;
     va_list args;
 
     OCI_CHECK_PTR(OCI_IPC_CONNECTION, con, FALSE);
@@ -1794,7 +2123,7 @@ boolean OCI_Immediate(OCI_Connection *con, const mtext *sql, ...)
 
     stmt = OCI_StatementCreate(con);
 
-    if (stmt != NULL) 
+    if (stmt != NULL)
     {
         if (OCI_ExecuteStmt(stmt, sql))
         {
@@ -1818,15 +2147,20 @@ boolean OCI_Immediate(OCI_Connection *con, const mtext *sql, ...)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_ImmediateFmt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_ImmediateFmt(OCI_Connection *con, const mtext *sql, ...)
+boolean OCI_ImmediateFmt
+(
+    OCI_Connection *con,
+    const mtext    *sql,
+    ...
+)
 {
     OCI_Statement *stmt = NULL;
-    mtext *sql_fmt = NULL;
-    boolean res = FALSE;
+    mtext *sql_fmt      = NULL;
+    boolean res         = FALSE;
     va_list args;
     int size;
 
@@ -1862,7 +2196,8 @@ boolean OCI_ImmediateFmt(OCI_Connection *con, const mtext *sql, ...)
                 {
                     /* prepare and execute SQL buffer */
 
-                    res = (OCI_Prepare(stmt, sql_fmt) &&  OCI_Execute(stmt));
+                    res = (OCI_Prepare(stmt, sql_fmt) &&
+                           OCI_ExecuteInternal(stmt, OCI_DEFAULT));
 
                     /* get resultset and set up variables */
 
@@ -1886,11 +2221,15 @@ boolean OCI_ImmediateFmt(OCI_Connection *con, const mtext *sql, ...)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArraySetSize
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArraySetSize(OCI_Statement *stmt, unsigned int size)
+boolean OCI_API OCI_BindArraySetSize
+(
+    OCI_Statement *stmt,
+    unsigned int   size
+)
 {
     boolean res = TRUE;
 
@@ -1904,10 +2243,10 @@ boolean OCI_API OCI_BindArraySetSize(OCI_Statement *stmt, unsigned int size)
        not greater than the initial size
     */
 
-    if ((stmt->nb_ubinds > 0) && (size > stmt->ubinds[0]->buf.count))
+    if ((stmt->nb_ubinds > 0) && (stmt->nb_iters_init < size))
     {
-        OCI_ExceptionBindArraySize(stmt, stmt->ubinds[0]->buf.count,
-                                         stmt->nb_iters, size);
+        OCI_ExceptionBindArraySize(stmt, stmt->nb_iters_init,
+                                   stmt->nb_iters, size);
 
         res = FALSE;
     }
@@ -1915,6 +2254,9 @@ boolean OCI_API OCI_BindArraySetSize(OCI_Statement *stmt, unsigned int size)
     {
         stmt->nb_iters   = size;
         stmt->bind_array = TRUE;
+
+        if (stmt->nb_ubinds == 0)
+            stmt->nb_iters_init = stmt->nb_iters;
     }
 
     OCI_RESULT(res);
@@ -1922,11 +2264,14 @@ boolean OCI_API OCI_BindArraySetSize(OCI_Statement *stmt, unsigned int size)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayGetSize
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_BindArrayGetSize(OCI_Statement *stmt)
+unsigned int OCI_API OCI_BindArrayGetSize
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
 
@@ -1935,11 +2280,15 @@ unsigned int OCI_API OCI_BindArrayGetSize(OCI_Statement *stmt)
     return stmt->nb_iters;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_AllowRebinding
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-OCI_EXPORT boolean OCI_API OCI_AllowRebinding(OCI_Statement *stmt, boolean value)
+OCI_EXPORT boolean OCI_API OCI_AllowRebinding
+(
+    OCI_Statement *stmt,
+    boolean        value
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
 
@@ -1950,11 +2299,16 @@ OCI_EXPORT boolean OCI_API OCI_AllowRebinding(OCI_Statement *stmt, boolean value
     return TRUE;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindShort
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindShort(OCI_Statement *stmt, const mtext *name, short *data)
+boolean OCI_API OCI_BindShort
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    short         *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_SHORT);
 
@@ -1962,12 +2316,17 @@ boolean OCI_API OCI_BindShort(OCI_Statement *stmt, const mtext *name, short *dat
                         SQLT_INT, OCI_BIND_INPUT, OCI_NUM_SHORT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfShorts
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfShorts(OCI_Statement *stmt, const mtext *name,
-                                    short *data, unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfShorts
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    short         *data,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_SHORT);
 
@@ -1975,12 +2334,16 @@ boolean OCI_API OCI_BindArrayOfShorts(OCI_Statement *stmt, const mtext *name,
                         SQLT_INT, OCI_BIND_INPUT, OCI_NUM_SHORT, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindUnsignedShort
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindUnsignedShort(OCI_Statement *stmt, const mtext *name,
-                                    unsigned short *data)
+boolean OCI_API OCI_BindUnsignedShort
+(
+    OCI_Statement  *stmt,
+    const mtext    *name,
+    unsigned short *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_SHORT);
 
@@ -1988,14 +2351,17 @@ boolean OCI_API OCI_BindUnsignedShort(OCI_Statement *stmt, const mtext *name,
                         SQLT_UIN, OCI_BIND_INPUT, OCI_NUM_USHORT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfUnsignedShorts
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfUnsignedShorts(OCI_Statement *stmt,
-                                            const mtext *name,
-                                            unsigned short *data,
-                                            unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfUnsignedShorts
+(
+    OCI_Statement  *stmt,
+    const mtext    *name,
+    unsigned short *data,
+    unsigned int    nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_SHORT);
 
@@ -2003,11 +2369,16 @@ boolean OCI_API OCI_BindArrayOfUnsignedShorts(OCI_Statement *stmt,
                         SQLT_UIN, OCI_BIND_INPUT, OCI_NUM_USHORT, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindInt(OCI_Statement *stmt, const mtext *name, int *data)
+boolean OCI_API OCI_BindInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    int           *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_INT);
 
@@ -2015,25 +2386,34 @@ boolean OCI_API OCI_BindInt(OCI_Statement *stmt, const mtext *name, int *data)
                         SQLT_INT, OCI_BIND_INPUT, OCI_NUM_INT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfInts
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfInts(OCI_Statement *stmt, const mtext *name,
-                                    int *data, unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfInts
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    int           *data,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_INT);
 
-   return OCI_BindData(stmt, data, sizeof(int), name, OCI_CDT_NUMERIC,
-                       SQLT_INT, OCI_BIND_INPUT, OCI_NUM_INT, NULL, nbelem);
+    return OCI_BindData(stmt, data, sizeof(int), name, OCI_CDT_NUMERIC,
+                        SQLT_INT, OCI_BIND_INPUT, OCI_NUM_INT, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindUnsignedInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindUnsignedInt(OCI_Statement *stmt, const mtext *name,
-                                    unsigned int *data)
+boolean OCI_API OCI_BindUnsignedInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int  *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_INT);
 
@@ -2041,12 +2421,17 @@ boolean OCI_API OCI_BindUnsignedInt(OCI_Statement *stmt, const mtext *name,
                         SQLT_UIN, OCI_BIND_INPUT, OCI_NUM_UINT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfUnsignedInts
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfUnsignedInts(OCI_Statement *stmt, const mtext *name,
-                                            unsigned int *data, unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfUnsignedInts
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int  *data,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_INT);
 
@@ -2054,12 +2439,16 @@ boolean OCI_API OCI_BindArrayOfUnsignedInts(OCI_Statement *stmt, const mtext *na
                         SQLT_UIN, OCI_BIND_INPUT, OCI_NUM_UINT, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindBigInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindBigInt(OCI_Statement *stmt, const mtext *name,
-                               big_int *data)
+boolean OCI_API OCI_BindBigInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    big_int       *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_BIGINT);
 
@@ -2067,12 +2456,17 @@ boolean OCI_API OCI_BindBigInt(OCI_Statement *stmt, const mtext *name,
                         SQLT_VNU, OCI_BIND_INPUT, OCI_NUM_BIGINT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfBigInts
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfBigInts(OCI_Statement *stmt, const mtext *name,
-                                       big_int *data, unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfBigInts
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    big_int       *data,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_BIGINT);
 
@@ -2080,12 +2474,16 @@ boolean OCI_API OCI_BindArrayOfBigInts(OCI_Statement *stmt, const mtext *name,
                         SQLT_VNU, OCI_BIND_INPUT, OCI_NUM_BIGINT, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindUnsignedBigInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindUnsignedBigInt(OCI_Statement *stmt, const mtext *name,
-                                      big_uint *data)
+boolean OCI_API OCI_BindUnsignedBigInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    big_uint      *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_BIGINT);
 
@@ -2093,14 +2491,17 @@ boolean OCI_API OCI_BindUnsignedBigInt(OCI_Statement *stmt, const mtext *name,
                         SQLT_VNU, OCI_BIND_INPUT, OCI_NUM_BIGUINT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfUnsignedInts
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfUnsignedBigInts(OCI_Statement *stmt,
-                                               const mtext *name,
-                                               big_uint *data,
-                                               unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfUnsignedBigInts
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    big_uint      *data,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_BIGINT);
 
@@ -2108,12 +2509,17 @@ boolean OCI_API OCI_BindArrayOfUnsignedBigInts(OCI_Statement *stmt,
                         SQLT_VNU, OCI_BIND_INPUT, OCI_NUM_BIGUINT, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindString
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindString(OCI_Statement *stmt, const mtext *name,
-                               dtext *data, unsigned int len)
+boolean OCI_API OCI_BindString
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    dtext         *data,
+    unsigned int   len
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_STRING);
 
@@ -2124,28 +2530,38 @@ boolean OCI_API OCI_BindString(OCI_Statement *stmt, const mtext *name,
                         OCI_CDT_TEXT, SQLT_STR, OCI_BIND_INPUT, 0, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfStrings
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfStrings(OCI_Statement *stmt, const mtext *name,
-                                       dtext *data, unsigned int len,
-                                       unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfStrings
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    dtext         *data,
+    unsigned int   len,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_STRING);
 
     OCI_CHECK_MIN(stmt->con, stmt, len, 1, FALSE);
 
-    return OCI_BindData(stmt, data, (len + 1) * (ub4) sizeof(odtext), name, 
+    return OCI_BindData(stmt, data, (len + 1) * (ub4) sizeof(odtext), name,
                         OCI_CDT_TEXT, SQLT_STR, OCI_BIND_INPUT, 0, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindRaw
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindRaw(OCI_Statement *stmt, const mtext *name, void *data,
-                               unsigned int len)
+boolean OCI_API OCI_BindRaw
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    void          *data,
+    unsigned int   len
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_VOID);
 
@@ -2155,13 +2571,18 @@ boolean OCI_API OCI_BindRaw(OCI_Statement *stmt, const mtext *name, void *data,
                         SQLT_BIN, OCI_BIND_INPUT, 0, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfRaws
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfRaws(OCI_Statement *stmt, const mtext *name,
-                                       void  *data, unsigned int len,
-                                       unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfRaws
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    void          *data,
+    unsigned int   len,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_VOID);
 
@@ -2171,12 +2592,16 @@ boolean OCI_API OCI_BindArrayOfRaws(OCI_Statement *stmt, const mtext *name,
                         SQLT_BIN, OCI_BIND_INPUT, 0, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindDouble
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindDouble(OCI_Statement *stmt, const mtext *name,
-                               double *data)
+boolean OCI_API OCI_BindDouble
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    double        *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_DOUBLE);
 
@@ -2184,12 +2609,17 @@ boolean OCI_API OCI_BindDouble(OCI_Statement *stmt, const mtext *name,
                         SQLT_FLT, OCI_BIND_INPUT, 0, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfDoubles
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfDoubles(OCI_Statement *stmt, const mtext *name,
-                                       double *data, unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfDoubles
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    double        *data,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_DOUBLE);
 
@@ -2197,12 +2627,16 @@ boolean OCI_API OCI_BindArrayOfDoubles(OCI_Statement *stmt, const mtext *name,
                         SQLT_FLT, OCI_BIND_INPUT, 0, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindDate
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindDate(OCI_Statement *stmt, const mtext *name,
-                             OCI_Date *data)
+boolean OCI_API OCI_BindDate
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Date      *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_DATE);
 
@@ -2210,12 +2644,17 @@ boolean OCI_API OCI_BindDate(OCI_Statement *stmt, const mtext *name,
                         SQLT_ODT, OCI_BIND_INPUT, 0, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfDates
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfDates(OCI_Statement *stmt, const mtext *name,
-                                     OCI_Date **data, unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfDates
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Date     **data,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_DATE);
 
@@ -2223,12 +2662,16 @@ boolean OCI_API OCI_BindArrayOfDates(OCI_Statement *stmt, const mtext *name,
                         SQLT_ODT, OCI_BIND_INPUT, 0, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindTimestamp
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindTimestamp(OCI_Statement *stmt, const mtext *name,
-                                  OCI_Timestamp *data)
+boolean OCI_API OCI_BindTimestamp
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Timestamp *data
+)
 {
     int code    = 0;
     boolean res = FALSE;
@@ -2237,7 +2680,7 @@ boolean OCI_API OCI_BindTimestamp(OCI_Statement *stmt, const mtext *name,
 
     OCI_CHECK_TIMESTAMP_ENABLED(stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9_0
+    #if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* map oracle internal type */
 
@@ -2251,34 +2694,38 @@ boolean OCI_API OCI_BindTimestamp(OCI_Statement *stmt, const mtext *name,
     res = OCI_BindData(stmt, data, sizeof(OCIDateTime *), name, OCI_CDT_TIMESTAMP,
                        code, OCI_BIND_INPUT, data->type, NULL, 0);
 
-#else
+    #else
 
     OCI_NOT_USED(name);
     OCI_NOT_USED(code);
     OCI_NOT_USED(code);
 
-#endif
+    #endif
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfTimestamps
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfTimestamps(OCI_Statement *stmt, const mtext *name,
-                                          OCI_Timestamp **data,
-                                          unsigned int type,
-                                          unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfTimestamps
+(
+    OCI_Statement  *stmt,
+    const mtext    *name,
+    OCI_Timestamp **data,
+    unsigned int    type,
+    unsigned int    nbelem
+)
 {
-    unsigned int code    = 0;
-    boolean res          = FALSE;
+    unsigned int code = 0;
+    boolean res       = FALSE;
 
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_TIMESTAMP);
 
     OCI_CHECK_TIMESTAMP_ENABLED(stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9_0
+    #if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* map oracle internal type */
 
@@ -2292,24 +2739,28 @@ boolean OCI_API OCI_BindArrayOfTimestamps(OCI_Statement *stmt, const mtext *name
     res =  OCI_BindData(stmt, data, sizeof(OCIDateTime *), name, OCI_CDT_TIMESTAMP,
                         code, OCI_BIND_INPUT, type, NULL, nbelem);
 
-#else
+    #else
 
     OCI_NOT_USED(name);
     OCI_NOT_USED(type);
     OCI_NOT_USED(code);
     OCI_NOT_USED(nbelem);
 
-#endif
+    #endif
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindInterval
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindInterval(OCI_Statement *stmt, const mtext *name,
-                                  OCI_Interval *data)
+boolean OCI_API OCI_BindInterval
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Interval  *data
+)
 {
     int code    = 0;
     boolean res = FALSE;
@@ -2318,7 +2769,7 @@ boolean OCI_API OCI_BindInterval(OCI_Statement *stmt, const mtext *name,
 
     OCI_CHECK_INTERVAL_ENABLED(stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9_0
+    #if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* map oracle internal type */
 
@@ -2330,24 +2781,28 @@ boolean OCI_API OCI_BindInterval(OCI_Statement *stmt, const mtext *name,
     res = OCI_BindData(stmt, data, sizeof(OCIInterval *), name, OCI_CDT_INTERVAL,
                        code, OCI_BIND_INPUT, data->type, NULL, 0);
 
-#else
+    #else
 
     OCI_NOT_USED(name);
     OCI_NOT_USED(code);
 
-#endif
+    #endif
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfIntervals
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfIntervals(OCI_Statement *stmt, const mtext *name,
-                                         OCI_Interval **data,
-                                         unsigned int type,
-                                         unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfIntervals
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Interval **data,
+    unsigned int   type,
+    unsigned int   nbelem
+)
 {
     unsigned int code = 0;
     boolean res       = FALSE;
@@ -2356,7 +2811,7 @@ boolean OCI_API OCI_BindArrayOfIntervals(OCI_Statement *stmt, const mtext *name,
 
     OCI_CHECK_INTERVAL_ENABLED(stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9_0
+    #if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* map oracle internal type */
 
@@ -2368,24 +2823,28 @@ boolean OCI_API OCI_BindArrayOfIntervals(OCI_Statement *stmt, const mtext *name,
     res = OCI_BindData(stmt, data, sizeof(OCIInterval *), name, OCI_CDT_INTERVAL,
                        code, OCI_BIND_INPUT, type, NULL, nbelem);
 
-#else
+    #else
 
     OCI_NOT_USED(name);
     OCI_NOT_USED(type);
     OCI_NOT_USED(code);
     OCI_NOT_USED(nbelem);
 
-#endif
+    #endif
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindObject
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindObject(OCI_Statement *stmt, const mtext *name,
-                               OCI_Object *data)
+boolean OCI_API OCI_BindObject
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Object    *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_OBJECT);
 
@@ -2393,13 +2852,18 @@ boolean OCI_API OCI_BindObject(OCI_Statement *stmt, const mtext *name,
                         SQLT_NTY, OCI_BIND_INPUT, 0, data->typinf, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfObjects
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfObjects(OCI_Statement *stmt, const mtext *name,
-                                       OCI_Object **data, OCI_TypeInfo *typinf,
-                                       unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfObjects
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Object   **data,
+    OCI_TypeInfo  *typinf,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_OBJECT);
 
@@ -2409,12 +2873,16 @@ boolean OCI_API OCI_BindArrayOfObjects(OCI_Statement *stmt, const mtext *name,
                         SQLT_NTY, OCI_BIND_INPUT, 0, typinf, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindLob
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindLob(OCI_Statement *stmt, const mtext *name,
-                            OCI_Lob *data)
+boolean OCI_API OCI_BindLob
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Lob       *data
+)
 {
     int code = 0;
 
@@ -2431,13 +2899,18 @@ boolean OCI_API OCI_BindLob(OCI_Statement *stmt, const mtext *name,
                         code, OCI_BIND_INPUT, data->type, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfLobs
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfLobs(OCI_Statement *stmt, const mtext *name,
-                                    OCI_Lob **data, unsigned int type,
-                                    unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfLobs
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Lob      **data,
+    unsigned int   type,
+    unsigned int   nbelem
+)
 {
     unsigned int code = 0;
 
@@ -2454,12 +2927,16 @@ boolean OCI_API OCI_BindArrayOfLobs(OCI_Statement *stmt, const mtext *name,
                         code, OCI_BIND_INPUT, type, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindFile
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindFile(OCI_Statement *stmt, const mtext *name,
-                             OCI_File *data)
+boolean OCI_API OCI_BindFile
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_File      *data
+)
 {
     int code = 0;
 
@@ -2476,13 +2953,18 @@ boolean OCI_API OCI_BindFile(OCI_Statement *stmt, const mtext *name,
                         code, OCI_BIND_INPUT, data->type, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfFiles
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfFiles(OCI_Statement *stmt, const mtext *name,
-                                     OCI_File **data, unsigned int type,
-                                     unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfFiles
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_File     **data,
+    unsigned int   type,
+    unsigned int   nbelem
+)
 {
     unsigned int code = 0;
 
@@ -2499,11 +2981,16 @@ boolean OCI_API OCI_BindArrayOfFiles(OCI_Statement *stmt, const mtext *name,
                         code, OCI_BIND_INPUT, type, NULL, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindRef
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindRef(OCI_Statement *stmt, const mtext *name, OCI_Ref *data)
+boolean OCI_API OCI_BindRef
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Ref       *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_REF);
 
@@ -2511,13 +2998,18 @@ boolean OCI_API OCI_BindRef(OCI_Statement *stmt, const mtext *name, OCI_Ref *dat
                         SQLT_REF, OCI_BIND_INPUT, 0, data->typinf, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfRefs
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfRefs(OCI_Statement *stmt, const mtext *name,
-                                     OCI_Ref **data, OCI_TypeInfo *typinf,
-                                     unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfRefs
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Ref      **data,
+    OCI_TypeInfo  *typinf,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_REF);
 
@@ -2525,12 +3017,16 @@ boolean OCI_API OCI_BindArrayOfRefs(OCI_Statement *stmt, const mtext *name,
                         SQLT_REF, OCI_BIND_INPUT, 0, typinf, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindColl
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindColl(OCI_Statement *stmt, const mtext *name,
-                             OCI_Coll *data)
+boolean OCI_API OCI_BindColl
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Coll      *data
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_COLLECTION);
 
@@ -2539,14 +3035,18 @@ boolean OCI_API OCI_BindColl(OCI_Statement *stmt, const mtext *name,
                         data->typinf, 0);
 }
 
-
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindArrayOfColls
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindArrayOfColls(OCI_Statement *stmt, const mtext *name,
-                                     OCI_Coll **data, OCI_TypeInfo *typinf,
-                                     unsigned int nbelem)
+boolean OCI_API OCI_BindArrayOfColls
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Coll     **data,
+    OCI_TypeInfo  *typinf,
+    unsigned int   nbelem
+)
 {
     OCI_CHECK_BIND_CALL(stmt, name, data, OCI_IPC_COLLECTION);
 
@@ -2555,12 +3055,16 @@ boolean OCI_API OCI_BindArrayOfColls(OCI_Statement *stmt, const mtext *name,
                         typinf, nbelem);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindStatement
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindStatement(OCI_Statement *stmt, const mtext *name,
-                                  OCI_Statement *data)
+boolean OCI_API OCI_BindStatement
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Statement *data
+)
 {
     boolean res = FALSE;
 
@@ -2569,26 +3073,31 @@ boolean OCI_API OCI_BindStatement(OCI_Statement *stmt, const mtext *name,
     OCI_StatementReset(data);
 
     res = OCI_BindData(stmt, &data->stmt, sizeof(OCIStmt*), name, OCI_CDT_CURSOR,
-                      SQLT_RSET, OCI_BIND_INPUT, 0, NULL, 0);
+                       SQLT_RSET, OCI_BIND_INPUT, 0, NULL, 0);
 
     if (res == TRUE)
     {
         /* Once stmt is executed, Oracle provides a statement handle
            ready to be fetched  */
 
-        data->status  = OCI_STMT_EXECUTED;
-        data->type    = OCI_CST_SELECT;
+        data->status = OCI_STMT_EXECUTED;
+        data->type   = OCI_CST_SELECT;
     }
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_BindLong
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_BindLong(OCI_Statement *stmt, const mtext *name,
-                             OCI_Long *data, unsigned int size)
+boolean OCI_API OCI_BindLong
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_Long      *data,
+    unsigned int   size
+)
 {
     int code = 0;
 
@@ -2608,11 +3117,15 @@ boolean OCI_API OCI_BindLong(OCI_Statement *stmt, const mtext *name,
                         code, OCI_BIND_INPUT, data->type, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterShort
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterShort(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterShort
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2620,11 +3133,15 @@ boolean OCI_API OCI_RegisterShort(OCI_Statement *stmt, const mtext *name)
                         SQLT_VNU, OCI_BIND_OUTPUT, OCI_NUM_SHORT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterUnsignedShort
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterUnsignedShort(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterUnsignedShort
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2632,11 +3149,15 @@ boolean OCI_API OCI_RegisterUnsignedShort(OCI_Statement *stmt, const mtext *name
                         SQLT_VNU, OCI_BIND_OUTPUT, OCI_NUM_USHORT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterInt(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2644,11 +3165,15 @@ boolean OCI_API OCI_RegisterInt(OCI_Statement *stmt, const mtext *name)
                         SQLT_VNU, OCI_BIND_OUTPUT, OCI_NUM_INT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterUnsignedInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterUnsignedInt(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterUnsignedInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2656,11 +3181,15 @@ boolean OCI_API OCI_RegisterUnsignedInt(OCI_Statement *stmt, const mtext *name)
                         SQLT_VNU, OCI_BIND_OUTPUT, OCI_NUM_UINT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterBigInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterBigInt(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterBigInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2668,11 +3197,15 @@ boolean OCI_API OCI_RegisterBigInt(OCI_Statement *stmt, const mtext *name)
                         SQLT_VNU, OCI_BIND_OUTPUT, OCI_NUM_BIGINT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterUnsignedBigInt
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterUnsignedBigInt(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterUnsignedBigInt
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2680,12 +3213,16 @@ boolean OCI_API OCI_RegisterUnsignedBigInt(OCI_Statement *stmt, const mtext *nam
                         SQLT_VNU, OCI_BIND_OUTPUT, OCI_NUM_BIGUINT, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterString
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterString(OCI_Statement *stmt, const mtext *name,
-                                   unsigned int len)
+boolean OCI_API OCI_RegisterString
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int   len
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2695,12 +3232,16 @@ boolean OCI_API OCI_RegisterString(OCI_Statement *stmt, const mtext *name,
                         OCI_CDT_TEXT, SQLT_STR, OCI_BIND_OUTPUT, 0, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterRaw
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterRaw(OCI_Statement *stmt, const mtext *name,
-                                unsigned int len)
+boolean OCI_API OCI_RegisterRaw
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int   len
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2710,11 +3251,15 @@ boolean OCI_API OCI_RegisterRaw(OCI_Statement *stmt, const mtext *name,
                         SQLT_BIN, OCI_BIND_OUTPUT, 0, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterDouble
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterDouble(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterDouble
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2722,11 +3267,15 @@ boolean OCI_API OCI_RegisterDouble(OCI_Statement *stmt, const mtext *name)
                         SQLT_VNU, OCI_BIND_OUTPUT, OCI_NUM_DOUBLE, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterDate
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterDate(OCI_Statement *stmt, const mtext *name)
+boolean OCI_API OCI_RegisterDate
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     int code = SQLT_ODT;
     int size = sizeof(OCIDate);
@@ -2747,12 +3296,16 @@ boolean OCI_API OCI_RegisterDate(OCI_Statement *stmt, const mtext *name)
                         code, OCI_BIND_OUTPUT, 0, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterTimestamp
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterTimestamp(OCI_Statement *stmt, const mtext *name,
-                                      unsigned int type)
+boolean OCI_API OCI_RegisterTimestamp
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int   type
+)
 {
     int code    = 0;
     boolean res = FALSE;
@@ -2761,7 +3314,7 @@ boolean OCI_API OCI_RegisterTimestamp(OCI_Statement *stmt, const mtext *name,
 
     OCI_CHECK_TIMESTAMP_ENABLED(stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9_0
+    #if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* map oracle internal type */
 
@@ -2775,32 +3328,36 @@ boolean OCI_API OCI_RegisterTimestamp(OCI_Statement *stmt, const mtext *name,
     res = OCI_BindData(stmt, NULL, sizeof(OCIDateTime *), name, OCI_CDT_TIMESTAMP,
                        code, OCI_BIND_OUTPUT, type, NULL, 0);
 
-#else
+    #else
 
     OCI_NOT_USED(name);
     OCI_NOT_USED(type);
     OCI_NOT_USED(code);
 
-#endif
+    #endif
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterInterval
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterInterval(OCI_Statement *stmt, const mtext *name,
-                                     unsigned int type)
+boolean OCI_API OCI_RegisterInterval
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int   type
+)
 {
-    unsigned int code    = 0;
-    boolean res          = FALSE;
+    unsigned int code = 0;
+    boolean res       = FALSE;
 
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
     OCI_CHECK_INTERVAL_ENABLED(stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9_0
+    #if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* map oracle internal type */
 
@@ -2812,23 +3369,27 @@ boolean OCI_API OCI_RegisterInterval(OCI_Statement *stmt, const mtext *name,
     res = OCI_BindData(stmt, NULL, sizeof(OCIInterval *), name, OCI_CDT_INTERVAL,
                        code, OCI_BIND_OUTPUT, type, NULL, 0);
 
-#else
+    #else
 
     OCI_NOT_USED(name);
     OCI_NOT_USED(type);
     OCI_NOT_USED(code);
 
-#endif
+    #endif
 
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterObject
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterObject(OCI_Statement *stmt, const mtext *name,
-                                   OCI_TypeInfo *typinf)
+boolean OCI_API OCI_RegisterObject
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_TypeInfo  *typinf
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2838,12 +3399,16 @@ boolean OCI_API OCI_RegisterObject(OCI_Statement *stmt, const mtext *name,
                         SQLT_NTY, OCI_BIND_OUTPUT, 0, typinf, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterLob
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterLob(OCI_Statement *stmt, const mtext *name,
-                                unsigned int type)
+boolean OCI_API OCI_RegisterLob
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int   type
+)
 {
     unsigned int code = 0;
 
@@ -2860,12 +3425,16 @@ boolean OCI_API OCI_RegisterLob(OCI_Statement *stmt, const mtext *name,
                         code, OCI_BIND_OUTPUT, type, NULL, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterFile
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterFile(OCI_Statement *stmt, const mtext *name,
-                                 unsigned int type)
+boolean OCI_API OCI_RegisterFile
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    unsigned int   type
+)
 {
     unsigned int code;
 
@@ -2882,13 +3451,16 @@ boolean OCI_API OCI_RegisterFile(OCI_Statement *stmt, const mtext *name,
                         code, OCI_BIND_OUTPUT, type, NULL, 0);
 }
 
-
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_RegisterRef
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_RegisterRef(OCI_Statement *stmt, const mtext *name,
-                                OCI_TypeInfo *typinf)
+boolean OCI_API OCI_RegisterRef
+(
+    OCI_Statement *stmt,
+    const mtext   *name,
+    OCI_TypeInfo  *typinf
+)
 {
     OCI_CHECK_REGISTER_CALL(stmt, name);
 
@@ -2898,11 +3470,14 @@ boolean OCI_API OCI_RegisterRef(OCI_Statement *stmt, const mtext *name,
                         SQLT_REF, OCI_BIND_OUTPUT, 0, typinf, 0);
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetStatementType
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetStatementType(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetStatementType
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, OCI_UNKNOWN);
 
@@ -2911,11 +3486,15 @@ unsigned int OCI_API OCI_GetStatementType(OCI_Statement *stmt)
     return stmt->type;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_SetFetchMode
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_SetFetchMode(OCI_Statement *stmt, unsigned int mode)
+boolean OCI_API OCI_SetFetchMode
+(
+    OCI_Statement *stmt,
+    unsigned int   mode
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
 
@@ -2928,11 +3507,14 @@ boolean OCI_API OCI_SetFetchMode(OCI_Statement *stmt, unsigned int mode)
     return TRUE;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetFetchMode
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetFetchMode(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetFetchMode
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, OCI_UNKNOWN);
 
@@ -2943,11 +3525,15 @@ unsigned int OCI_API OCI_GetFetchMode(OCI_Statement *stmt)
     return stmt->exec_mode;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_SetBindMode
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_SetBindMode(OCI_Statement *stmt, unsigned int mode)
+boolean OCI_API OCI_SetBindMode
+(
+    OCI_Statement *stmt,
+    unsigned int   mode
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
 
@@ -2958,24 +3544,66 @@ boolean OCI_API OCI_SetBindMode(OCI_Statement *stmt, unsigned int mode)
     return TRUE;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetBindMode
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetBindMode(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetBindMode
+(
+    OCI_Statement *stmt
+)
 {
-    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, OCI_UNKNOWN);
 
     OCI_RESULT(TRUE);
 
     return stmt->bind_mode;
 }
 
-/* ------------------------------------------------------------------------ *
- * OCI_SetFetchSize
- * ------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_SetBindAllocation
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_SetFetchSize(OCI_Statement *stmt, unsigned int size)
+boolean OCI_API OCI_SetBindAllocation
+(
+    OCI_Statement *stmt,
+    unsigned int   mode
+)
+{
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
+
+    stmt->bind_alloc_mode = mode;
+
+    OCI_RESULT(TRUE);
+
+    return TRUE;
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_GetBindAllocation
+ * --------------------------------------------------------------------------------------------- */
+
+unsigned int OCI_API OCI_GetBindAllocation
+(
+    OCI_Statement *stmt
+)
+{
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, OCI_UNKNOWN);
+
+    OCI_RESULT(TRUE);
+
+    return stmt->bind_alloc_mode;
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_SetFetchSize
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_API OCI_SetFetchSize
+(
+    OCI_Statement *stmt,
+    unsigned int   size
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
 
@@ -2988,11 +3616,14 @@ boolean OCI_API OCI_SetFetchSize(OCI_Statement *stmt, unsigned int size)
     return TRUE;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetFetchSize
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetFetchSize(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetFetchSize
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
 
@@ -3001,11 +3632,15 @@ unsigned int OCI_API OCI_GetFetchSize(OCI_Statement *stmt)
     return stmt->fetch_size;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_SetPrefetchSize
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_SetPrefetchSize(OCI_Statement *stmt, unsigned int size)
+boolean OCI_API OCI_SetPrefetchSize
+(
+    OCI_Statement *stmt,
+    unsigned int   size
+)
 {
     boolean res = TRUE;
 
@@ -3029,11 +3664,14 @@ boolean OCI_API OCI_SetPrefetchSize(OCI_Statement *stmt, unsigned int size)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetPrefetchSize
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetPrefetchSize(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetPrefetchSize
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
 
@@ -3042,11 +3680,15 @@ unsigned int OCI_API OCI_GetPrefetchSize(OCI_Statement *stmt)
     return stmt->prefetch_size;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_SetPrefetchMemory
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_SetPrefetchMemory(OCI_Statement *stmt, unsigned int size)
+boolean OCI_API OCI_SetPrefetchMemory
+(
+    OCI_Statement *stmt,
+    unsigned int   size
+)
 {
     boolean res = TRUE;
 
@@ -3070,11 +3712,14 @@ boolean OCI_API OCI_SetPrefetchMemory(OCI_Statement *stmt, unsigned int size)
     return res;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetPrefetchMemory
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetPrefetchMemory(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetPrefetchMemory
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
 
@@ -3083,11 +3728,15 @@ unsigned int OCI_API OCI_GetPrefetchMemory(OCI_Statement *stmt)
     return stmt->prefetch_mem;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_SetLongMaxSize
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_SetLongMaxSize(OCI_Statement *stmt, unsigned int size)
+boolean OCI_API OCI_SetLongMaxSize
+(
+    OCI_Statement *stmt,
+    unsigned int   size
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt,  FALSE);
 
@@ -3100,11 +3749,14 @@ boolean OCI_API OCI_SetLongMaxSize(OCI_Statement *stmt, unsigned int size)
     return TRUE;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetLongMaxSize
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetLongMaxSize(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetLongMaxSize
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
 
@@ -3113,11 +3765,15 @@ unsigned int OCI_API OCI_GetLongMaxSize(OCI_Statement *stmt)
     return stmt->long_size;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_SetLongMode
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_SetLongMode(OCI_Statement *stmt, unsigned int mode)
+boolean OCI_API OCI_SetLongMode
+(
+    OCI_Statement *stmt,
+    unsigned int   mode
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
 
@@ -3128,37 +3784,46 @@ boolean OCI_API OCI_SetLongMode(OCI_Statement *stmt, unsigned int mode)
     return TRUE;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetLongMode
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetLongMode(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetLongMode
+(
+    OCI_Statement *stmt
+)
 {
-    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, OCI_UNKNOWN);
 
     OCI_RESULT(TRUE);
 
     return stmt->long_mode;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_StatementGetConnection
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-OCI_Connection * OCI_API OCI_StatementGetConnection(OCI_Statement *stmt)
+OCI_Connection * OCI_API OCI_StatementGetConnection
+(
+    OCI_Statement *stmt
+)
 {
-    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, NULL);
 
     OCI_RESULT(TRUE);
 
     return stmt->con;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetSql
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-const mtext * OCI_API OCI_GetSql(OCI_Statement *stmt)
+const mtext * OCI_API OCI_GetSql
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, NULL);
 
@@ -3167,11 +3832,14 @@ const mtext * OCI_API OCI_GetSql(OCI_Statement *stmt)
     return stmt->sql;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetSqlErrorPos
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetSqlErrorPos(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetSqlErrorPos
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
 
@@ -3180,16 +3848,19 @@ unsigned int OCI_API OCI_GetSqlErrorPos(OCI_Statement *stmt)
     return stmt->err_pos;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetAffecteddRows
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetAffectedRows(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetAffectedRows
+(
+    OCI_Statement *stmt
+)
 {
     boolean res = TRUE;
     ub4 count   = 0;
 
-    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt,  FALSE);
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt,  0);
 
     OCI_CALL1
     (
@@ -3205,11 +3876,14 @@ unsigned int OCI_API OCI_GetAffectedRows(OCI_Statement *stmt)
     return count;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetBindCount
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetBindCount(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetBindCount
+(
+    OCI_Statement *stmt
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
 
@@ -3218,11 +3892,15 @@ unsigned int OCI_API OCI_GetBindCount(OCI_Statement *stmt)
     return (unsigned int) stmt->nb_ubinds;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetBind
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-OCI_Bind * OCI_API OCI_GetBind(OCI_Statement *stmt, unsigned int index)
+OCI_Bind * OCI_API OCI_GetBind
+(
+    OCI_Statement *stmt,
+    unsigned int   index
+)
 {
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, NULL);
     OCI_CHECK_BOUND(stmt->con, index, 1, stmt->nb_ubinds, NULL);
@@ -3232,17 +3910,21 @@ OCI_Bind * OCI_API OCI_GetBind(OCI_Statement *stmt, unsigned int index)
     return stmt->ubinds[index-1];
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetBind2
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-OCI_Bind * OCI_API OCI_GetBind2(OCI_Statement *stmt, const mtext *name)
+OCI_Bind * OCI_API OCI_GetBind2
+(
+    OCI_Statement *stmt,
+    const mtext   *name
+)
 {
     OCI_Bind *bnd = NULL;
     int index     = -1;
 
-    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, FALSE);
-    OCI_CHECK_PTR(OCI_IPC_STRING, name, FALSE);
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, NULL);
+    OCI_CHECK_PTR(OCI_IPC_STRING, name, NULL);
 
     index =  OCI_BindGetIndex(stmt, name);
 
@@ -3254,12 +3936,14 @@ OCI_Bind * OCI_API OCI_GetBind2(OCI_Statement *stmt, const mtext *name)
     return bnd;
 }
 
-
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetSQLCommand
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetSQLCommand(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetSQLCommand
+(
+    OCI_Statement *stmt
+)
 {
     boolean res = TRUE;
     ub2 code    = OCI_UNKNOWN;
@@ -3280,14 +3964,17 @@ unsigned int OCI_API OCI_GetSQLCommand(OCI_Statement *stmt)
     return (unsigned int) code;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetSQLVerb
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-const mtext * OCI_API OCI_GetSQLVerb(OCI_Statement *stmt)
+const mtext * OCI_API OCI_GetSQLVerb
+(
+    OCI_Statement *stmt
+)
 {
-    mtext * desc       = NULL;
-    unsigned int code  = OCI_UNKNOWN;
+    mtext * desc      = NULL;
+    unsigned int code = OCI_UNKNOWN;
 
     int i;
 
@@ -3308,19 +3995,25 @@ const mtext * OCI_API OCI_GetSQLVerb(OCI_Statement *stmt)
     return desc;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetBatchError
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-OCI_Error * OCI_API OCI_GetBatchError(OCI_Statement *stmt)
+OCI_Error * OCI_API OCI_GetBatchError
+(
+    OCI_Statement *stmt
+)
 {
     OCI_Error *err = NULL;
 
-    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, OCI_UNKNOWN);
+    OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, NULL);
 
-    if (stmt->batch->cur < stmt->batch->count)
+    if (stmt->batch != NULL)
     {
-        err = &stmt->batch->errs[stmt->batch->cur++];
+        if (stmt->batch->cur < stmt->batch->count)
+        {
+            err = &stmt->batch->errs[stmt->batch->cur++];
+        }
     }
 
     OCI_RESULT(TRUE);
@@ -3328,15 +4021,25 @@ OCI_Error * OCI_API OCI_GetBatchError(OCI_Statement *stmt)
     return err;
 }
 
-/* ------------------------------------------------------------------------ *
+/* --------------------------------------------------------------------------------------------- *
  * OCI_GetBatchErrorCount
- * ------------------------------------------------------------------------ */
+ * --------------------------------------------------------------------------------------------- */
 
-unsigned int OCI_API OCI_GetBatchErrorCount(OCI_Statement *stmt)
+unsigned int OCI_API OCI_GetBatchErrorCount
+(
+    OCI_Statement *stmt
+)
 {
+    unsigned int count = 0;
+
     OCI_CHECK_PTR(OCI_IPC_STATEMENT, stmt, 0);
+
+    if (stmt->batch != NULL)
+    {
+        count = stmt->batch->count;
+    }
 
     OCI_RESULT(TRUE);
 
-    return stmt->batch->count;
+    return 0;
 }

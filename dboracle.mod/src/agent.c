@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: threadkey.c, v 3.8.1 2010-12-13 00:00 Vincent Rogier $
+ * $Id: agent.c, v 3.8.1 2010-12-13 00:00 Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -39,141 +39,79 @@
  * ********************************************************************************************* */
 
 /* --------------------------------------------------------------------------------------------- *
- * OCI_ThreadKeyCreateInternal
+ * OCI_AgentInit
  * --------------------------------------------------------------------------------------------- */
 
-OCI_ThreadKey * OCI_ThreadKeyCreateInternal
+OCI_Agent * OCI_AgentInit
 (
-    POCI_THREADKEYDEST destfunc
+    OCI_Connection *con,
+    OCI_Agent     **pagent,
+    OCIAQAgent     *handle,
+    const mtext    *name,
+    const mtext    *address
 )
 {
-    boolean res        = TRUE;
-    OCI_ThreadKey *key = NULL;
+    OCI_Agent *agent = NULL;
+    boolean res      = TRUE;
 
-    /* allocate key structure */
+    OCI_CHECK(pagent == NULL, NULL);
 
-    key = (OCI_ThreadKey *) OCI_MemAlloc(OCI_IPC_THREADKEY, sizeof(*key),
-                                         (size_t) 1, TRUE);
+    /* allocate agent structure */
 
-    if (key != NULL)
+    if (*pagent == NULL)
+        *pagent = (OCI_Agent *) OCI_MemAlloc(OCI_IPC_AGENT, sizeof(*agent),
+                                             (size_t) 1, TRUE);
+
+    if (*pagent != NULL)
     {
-        /* allocate error handle */
+        agent = *pagent;
 
-        res = (OCI_SUCCESS == OCI_HandleAlloc(OCILib.env,
-                                              (dvoid **) (void *) &key->err,
-                                              OCI_HTYPE_ERROR, (size_t) 0,
-                                              (dvoid **) NULL));
+        /* reinit */
 
-        /* key initialization */
+        OCI_FREE(agent->name);
+        OCI_FREE(agent->address);
 
-        OCI_CALL3
-        (
-            res, key->err,
+        agent->con    = con;
+        agent->handle = handle;
 
-            OCIThreadKeyInit(OCILib.env, key->err, &key->handle, destfunc)
-        )
+        if (handle == NULL)
+        {
+            agent->hstate = OCI_OBJECT_ALLOCATED;
+
+            res = (OCI_SUCCESS == OCI_DescriptorAlloc((dvoid * ) OCILib.env,
+                                                      (dvoid **) &agent->handle,
+                                                      OCI_DTYPE_AQAGENT,
+                                                      (size_t) 0, (dvoid **) NULL));
+        }
+        else
+            agent->hstate = OCI_OBJECT_FETCHED_CLEAN;
+
+        /* set name attribute if provided */
+
+        if ((res == TRUE) && (name != NULL) && (name[0] != 0))
+        {
+            res = OCI_AgentSetName(agent, name);
+        }
+
+        /* set address attribute if provided */
+
+        if ((res == TRUE) && (address != NULL) && (address[0] != 0))
+        {
+            res = OCI_AgentSetAddress(agent, address);
+        }
     }
     else
         res = FALSE;
 
-    /* check errors */
+    /* check for failure */
 
     if (res == FALSE)
     {
-        OCI_ThreadKeyFree(key);
-        key = NULL;
+        OCI_AgentFree(agent);
+        agent = NULL;
     }
 
-    return key;
-}
-
-/* --------------------------------------------------------------------------------------------- *
- * OCI_ThreadKeyFree
- * --------------------------------------------------------------------------------------------- */
-
-boolean OCI_ThreadKeyFree
-(
-    OCI_ThreadKey *key
-)
-{
-    boolean res = TRUE;
-
-    OCI_CHECK(key == NULL, FALSE);
-
-    /* close key handle */
-
-    if (key->handle != NULL)
-    {
-        OCI_CALL0
-        (
-            res, key->err,
-
-            OCIThreadKeyDestroy(OCILib.env, key->err, &key->handle)
-        )
-    }
-
-    /* close error handle */
-
-    if (key->err != NULL)
-    {
-        OCI_HandleFree(key->err, OCI_HTYPE_ERROR);
-    }
-
-    /* free key structure */
-
-    OCI_FREE(key);
-
-    OCI_RESULT(res);
-
-    return res;
-}
-
-/* --------------------------------------------------------------------------------------------- *
- * OCI_ThreadKeySet
- * --------------------------------------------------------------------------------------------- */
-
-boolean OCI_ThreadKeySet
-(
-    OCI_ThreadKey *key,
-    void          *value
-)
-{
-    boolean res = TRUE;
-
-    OCI_CHECK(key == NULL, FALSE);
-
-    OCI_CALL3
-    (
-        res, key->err,
-
-        OCIThreadKeySet(OCILib.env, key->err, key->handle, value)
-    )
-
-    return res;
-}
-
-/* --------------------------------------------------------------------------------------------- *
- * OCI_ThreadKeyGet
- * --------------------------------------------------------------------------------------------- */
-
-boolean OCI_ThreadKeyGet
-(
-    OCI_ThreadKey* key,
-    void         **value
-)
-{
-    boolean res = TRUE;
-
-    OCI_CHECK(key == NULL, FALSE);
-
-    OCI_CALL3
-    (
-        res, key->err,
-
-        OCIThreadKeyGet(OCILib.env, key->err, key->handle, value)
-    )
-
-    return res;
+    return agent;
 }
 
 /* ********************************************************************************************* *
@@ -181,51 +119,51 @@ boolean OCI_ThreadKeyGet
  * ********************************************************************************************* */
 
 /* --------------------------------------------------------------------------------------------- *
- * OCI_ThreadKeyCreate
+ * OCI_AgentCreate
  * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_ThreadKeyCreate
+OCI_Agent * OCI_API OCI_AgentCreate
 (
-    const mtext       *name,
-    POCI_THREADKEYDEST destfunc
+    OCI_Connection *con,
+    const mtext    *name,
+    const mtext    *address
 )
 {
-    OCI_ThreadKey *key = NULL;
-    boolean res        = TRUE;
+    OCI_Agent *agent = NULL;
 
-    OCI_CHECK_PTR(OCI_IPC_STRING, name, FALSE);
+    OCI_CHECK_INITIALIZED(NULL);
 
-    OCI_CHECK_INITIALIZED(FALSE);
+    OCI_CHECK_PTR(OCI_IPC_CONNECTION, con, NULL);
 
-    if (OCILib.key_map == NULL)
+    agent = OCI_AgentInit(con, &agent, NULL, name, address);
+
+    OCI_RESULT(agent != NULL);
+
+    return agent;
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_AgentFree
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_API OCI_AgentFree
+(
+    OCI_Agent *agent
+)
+{
+    boolean res = TRUE;
+
+    OCI_CHECK_PTR(OCI_IPC_AGENT, agent, FALSE);
+
+    if (agent->hstate == OCI_OBJECT_ALLOCATED)
     {
-        /* create the map at the first call to OCI_ThreadKeyCreate to save
-           time and memory when it's not needed */
-
-        OCILib.key_map = OCI_HashCreate(OCI_HASH_DEFAULT_SIZE, OCI_HASH_POINTER);
-
+        OCI_DescriptorFree((dvoid *) agent->handle, OCI_DTYPE_AQAGENT);
     }
 
-    res = (OCILib.key_map != NULL);
+    OCI_FREE(agent->address);
+    OCI_FREE(agent->name);
 
-    /* create key */
-
-    if (res == TRUE)
-    {
-        key = OCI_ThreadKeyCreateInternal(destfunc);
-
-        /* add key to internal key hash table */
-
-        if (key != NULL)
-            res = OCI_HashAddPointer(OCILib.key_map, name, key);
-        else
-            res = FALSE;
-    }
-
-    /* check errors */
-
-    if (res == FALSE)
-        OCI_ThreadKeyFree(key);
+    OCI_FREE(agent);
 
     OCI_RESULT(res);
 
@@ -233,49 +171,101 @@ boolean OCI_API OCI_ThreadKeyCreate
 }
 
 /* --------------------------------------------------------------------------------------------- *
- * OCI_ThreadKeySetValue
+ * OCI_AgentGetName
  * --------------------------------------------------------------------------------------------- */
 
-boolean OCI_API OCI_ThreadKeySetValue
+const mtext * OCI_API OCI_AgentGetName
 (
-    const mtext *name,
-    void        *value
+    OCI_Agent *agent
 )
 {
-    boolean res        = TRUE;
-    OCI_ThreadKey *key = NULL;
+    boolean res = TRUE;
 
-    OCI_CHECK_PTR(OCI_IPC_STRING, name, FALSE);
+    OCI_CHECK_PTR(OCI_IPC_AGENT, agent, NULL);
 
-    key = (OCI_ThreadKey *) OCI_HashGetPointer(OCILib.key_map, name);
-
-    res = OCI_ThreadKeySet(key, value);
+    if (agent->name == NULL)
+    {
+        res = OCI_StringGetFromAttrHandle(agent->con,
+                                          agent->handle,
+                                          OCI_DTYPE_AQAGENT,
+                                          OCI_ATTR_AGENT_NAME,
+                                          &agent->name);
+    }
 
     OCI_RESULT(res);
 
-    return TRUE;
+    return agent->name;
 }
 
 /* --------------------------------------------------------------------------------------------- *
- * OCI_ThreadKeyGetValue
+ * OCI_AgentSetName
  * --------------------------------------------------------------------------------------------- */
 
-void * OCI_API OCI_ThreadKeyGetValue
+boolean OCI_API OCI_AgentSetName
 (
+    OCI_Agent   *agent,
     const mtext *name
 )
 {
-    boolean res        = TRUE;
-    void * value       = NULL;
-    OCI_ThreadKey* key = NULL;
+    boolean res = TRUE;
 
-    OCI_CHECK_PTR(OCI_IPC_STRING, name, NULL);
+    OCI_CHECK_PTR(OCI_IPC_AGENT, agent, FALSE);
 
-    key = (OCI_ThreadKey *) OCI_HashGetPointer(OCILib.key_map, name);
-
-    res = OCI_ThreadKeyGet(key, &value);
+    res =  OCI_StringSetToAttrHandle(agent->con, agent->handle,
+                                     OCI_DTYPE_AQAGENT, OCI_ATTR_AGENT_NAME,
+                                     &agent->name, name);
 
     OCI_RESULT(res);
 
-    return value;
+    return res;
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_AgentGetAddress
+ * --------------------------------------------------------------------------------------------- */
+
+const mtext * OCI_API OCI_AgentGetAddress
+(
+    OCI_Agent *agent
+)
+{
+    boolean res = TRUE;
+
+    OCI_CHECK_PTR(OCI_IPC_AGENT, agent, NULL);
+
+    if (agent->name == NULL)
+    {
+        res = OCI_StringGetFromAttrHandle(agent->con,
+                                          agent->handle,
+                                          OCI_DTYPE_AQAGENT,
+                                          OCI_ATTR_AGENT_ADDRESS,
+                                          &agent->address);
+    }
+
+    OCI_RESULT(res);
+
+    return agent->address;
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_AgentSetAddress
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_API OCI_AgentSetAddress
+(
+    OCI_Agent   *agent,
+    const mtext *address
+)
+{
+    boolean res = TRUE;
+
+    OCI_CHECK_PTR(OCI_IPC_AGENT, agent, FALSE);
+
+    res = OCI_StringSetToAttrHandle(agent->con, agent->handle,
+                                    OCI_DTYPE_AQAGENT, OCI_ATTR_AGENT_ADDRESS,
+                                    &agent->address, address);
+
+    OCI_RESULT(res);
+
+    return res;
 }

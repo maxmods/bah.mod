@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2008-2009 Bruce A Henderson
+ Copyright (c) 2008-2011 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ extern "C" {
 
 	int bmx_ora_bind_int(OCI_Statement * stmt, char * name, int * value);
 	int bmx_ora_bind_double(OCI_Statement * stmt, char * name, double * value);
-	int bmx_ora_bind_string(OCI_Statement * stmt, char * name, char * str, unsigned int length);
+	int bmx_ora_bind_string(OCI_Statement * stmt, char * name, BBChar * str, unsigned int length);
 	int bmx_ora_bind_setnull(OCI_Statement * stmt, unsigned int index);
 	int bmx_ora_bind_long(OCI_Statement * stmt, char * name, big_int * value);
 	int bmx_ora_bind_blob(OCI_Statement * stmt, char * name, OCI_Lob * blob, void * data, unsigned int length);
@@ -89,12 +89,6 @@ extern "C" {
 }
 
 static bool oci_initialized = false;
-
-// ****************************************************
-
-BBString * bmx_stringToBBString(string s) {
-	return bbStringFromCString(s.c_str());
-}
 
 // ****************************************************
 
@@ -124,69 +118,6 @@ private:
 };
 
 // **********************************
-
-/*
-class MaxEnvironment
-{
-public:
-	MaxEnvironment()
-	{
-	}
-	
-	~MaxEnvironment()
-	{
-		if (errHandle) {
-			(void) OCIHandleFree((dvoid *) errHandle, OCI_HTYPE_ERROR);
-		}
-	
-		if (envHandle) {
-			(void) OCIHandleFree((dvoid *) envHandle, OCI_HTYPE_ENV);
-		}
-	}
-	
-	int Create() {
-		int err = OCIEnvCreate((OCIEnv **) &envHandle, (ub4) OCI_DEFAULT,
-
-                  (dvoid *) 0, (dvoid * (*)(dvoid *,size_t)) 0,
-
-                  (dvoid * (*)(dvoid *, dvoid *, size_t)) 0,
-
-                  (void (*)(dvoid *, dvoid *)) 0, (size_t) 0, (dvoid **) 0);
-
-		if (err == 0) {
-			(void) OCIHandleAlloc( (dvoid *) envHandle, (dvoid **) &errHandle, OCI_HTYPE_ERROR,
-
-                   (size_t) 0, (dvoid **) 0);
-		}
-
-		return err;
-	}
-
-	static MaxEnvironment * createEnvironment() {
-		MaxEnvironment * env = new MaxEnvironment();
-		int err = env->Create();
-		if (err != 0) {
-			delete env;
-			throw MaxSQLException(err, "OCIEnvCreate failed");
-		}
-		return env;
-	}
-	
-	
-private:
-	OCIEnv * envHandle;
-	OCIError * errHandle;
-};
-
-
-class MaxConnection
-{
-public:
-
-private:
-
-};
-*/
 
 #define STATEMENT_RESULT_SET_AVAILABLE  2
 #define STATEMENT_UPDATE_COUNT_AVAILABLE  3
@@ -595,7 +526,8 @@ BBString * bmx_ora_resultset_getColInfo(OCI_Resultset * rs, int index, int * dat
 		
 		const mtext * name = OCI_GetColumnName(col);
 		if (name) {
-			colName = bmx_stringToBBString(name);
+			string s(name);
+			colName = bbStringFromCString(s.c_str());
 		}
 		
 		*dataType = OCI_GetColumnType(col);
@@ -721,13 +653,13 @@ BBString * bmx_ora_resultset_getString(OCI_Resultset * rs, unsigned int index) {
 	BBString * value = &bbEmptyString;
 
 	try {
-		string v = OCI_GetString(rs, index);
+		const dtext * v = OCI_GetString(rs, index);
 		
 		if (hasError) {
 			throw MaxSQLException(lastErrorCode, lastErrorMessage);
 		}
 		
-		value = bmx_stringToBBString(v);
+		value = bbStringFromWString((const BBChar *)v);
 
 	} catch (MaxSQLException sqlEx) {
 		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
@@ -834,13 +766,13 @@ int bmx_ora_bind_double(OCI_Statement * stmt, char * name, double * value) {
 	return static_cast<int>(ret);
 }
 
-int bmx_ora_bind_string(OCI_Statement * stmt, char * name, char * str, unsigned int length) {
+int bmx_ora_bind_string(OCI_Statement * stmt, char * name, BBChar * str, unsigned int length) {
 	ocilib_error_reset();
 
 	bool ret = false;
 
 	try {
-		ret = OCI_BindString(stmt, name, str, length);
+		ret = OCI_BindString(stmt, name, (wchar_t*)str, length);
 
 		if (hasError) {
 			throw MaxSQLException(lastErrorCode, lastErrorMessage);
