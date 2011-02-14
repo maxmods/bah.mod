@@ -30,10 +30,12 @@ bbdoc: Rational Numbers (Fractions)
 End Rem
 Module BaH.Rational
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to Boost 1.42."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
