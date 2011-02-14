@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2010 Bruce A Henderson
+' Copyright (c) 2009-2011 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ Module BaH.MathToolkit
 
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009-2010 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Changed Location() to Scale() in Pareto Distribution."
