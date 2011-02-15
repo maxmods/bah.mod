@@ -19,7 +19,7 @@
 #include <boost/spirit/home/karma/auxiliary/lazy.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/common_terminals.hpp>
-#include <boost/spirit/home/support/attributes.hpp>
+#include <boost/spirit/home/karma/detail/attributes.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/fusion/include/at.hpp>
@@ -273,7 +273,7 @@ namespace boost { namespace spirit { namespace karma
         }
     };
 
-    // creates center(pad, width)[] directive generator
+    // creates center(width, pad)[] directive generator
     template <typename Width, typename Padding, typename Subject
       , typename Modifiers>
     struct make_directive<

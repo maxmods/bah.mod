@@ -13,7 +13,7 @@
 #include <iterator>
 #include <string>
 #include <boost/spirit/home/karma/generate.hpp>
-#include <boost/spirit/home/karma/stream/ostream_iterator.hpp>
+#include <boost/spirit/home/support/iterators/ostream_iterator.hpp>
 #include <boost/mpl/bool.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -202,7 +202,6 @@ namespace boost { namespace spirit { namespace karma { namespace detail
         }
         return os;
     }
-
 }}}}
 
 #endif

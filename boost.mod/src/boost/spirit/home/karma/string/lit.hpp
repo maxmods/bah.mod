@@ -78,7 +78,7 @@ namespace boost { namespace spirit { namespace karma
         typedef typename CharEncoding::char_type char_type;
         typedef CharEncoding char_encoding;
 
-        template <typename Context, typename Unused>
+        template <typename Context, typename Unused = unused_type>
         struct attribute
         {
             typedef std::basic_string<char_type> type;
@@ -94,9 +94,11 @@ namespace boost { namespace spirit { namespace karma
             if (!traits::has_optional_value(attr))
                 return false;
 
+            typedef typename attribute<Context>::type attribute_type;
             return 
                 karma::detail::string_generate(sink
-                  , traits::extract_from(attr, context), char_encoding(), Tag()) &&
+                  , traits::extract_from<attribute_type>(attr, context)
+                      , char_encoding(), Tag()) &&
                 karma::delimit_out(sink, d);      // always do post-delimiting
         }
 
@@ -134,7 +136,7 @@ namespace boost { namespace spirit { namespace karma
         char_type;
         typedef std::basic_string<char_type> string_type;
 
-        template <typename Context, typename Unused>
+        template <typename Context, typename Unused = unused_type>
         struct attribute
           : mpl::if_c<no_attribute, unused_type, string_type>
         {};
@@ -156,9 +158,11 @@ namespace boost { namespace spirit { namespace karma
                 return false;
 
             // fail if attribute isn't matched by immediate literal
+            typedef typename attribute<Context>::type attribute_type;
+
             using spirit::traits::get_c_string;
             if (!detail::string_compare(
-                    get_c_string(traits::extract_from(attr, context))
+                    get_c_string(traits::extract_from<attribute_type>(attr, context))
                   , get_c_string(str_), char_encoding(), Tag()))
             {
                 return false;
@@ -197,12 +201,12 @@ namespace boost { namespace spirit { namespace karma
       , Modifiers>
     {
         static bool const lower = 
-            has_modifier<Modifiers, tag::char_code<tag::lower, CharEncoding> >::value;
+            has_modifier<Modifiers, tag::char_code_base<tag::lower> >::value;
         static bool const upper = 
-            has_modifier<Modifiers, tag::char_code<tag::upper, CharEncoding> >::value;
+            has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
 
         typedef any_string<
-            typename spirit::detail::get_encoding<
+            typename spirit::detail::get_encoding_with_case<
                 Modifiers, CharEncoding, lower || upper>::type
           , typename detail::get_casetag<Modifiers, lower || upper>::type
         > result_type;
@@ -227,7 +231,7 @@ namespace boost { namespace spirit { namespace karma
         typedef typename add_const<T>::type const_string;
         typedef literal_string<
             const_string
-          , typename spirit::detail::get_encoding<
+          , typename spirit::detail::get_encoding_with_case<
                 Modifiers, unused_type, lower || upper>::type
           , typename detail::get_casetag<Modifiers, lower || upper>::type
           , true
@@ -248,14 +252,14 @@ namespace boost { namespace spirit { namespace karma
       , Modifiers>
     {
         static bool const lower = 
-            has_modifier<Modifiers, tag::char_code<tag::lower, CharEncoding> >::value;
+            has_modifier<Modifiers, tag::char_code_base<tag::lower> >::value;
         static bool const upper = 
-            has_modifier<Modifiers, tag::char_code<tag::upper, CharEncoding> >::value;
+            has_modifier<Modifiers, tag::char_code_base<tag::upper> >::value;
 
         typedef typename add_const<A0>::type const_string;
         typedef literal_string<
             const_string
-          , typename spirit::detail::get_encoding<
+          , typename spirit::detail::get_encoding_with_case<
                 Modifiers, unused_type, lower || upper>::type
           , typename detail::get_casetag<Modifiers, lower || upper>::type
           , false

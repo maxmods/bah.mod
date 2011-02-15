@@ -359,7 +359,7 @@ void r_c_shortest_paths_dispatch
       typename graph_traits<Graph>::vertex_descriptor cur_vertex = 
         cur_label->resident_vertex;
       typename graph_traits<Graph>::out_edge_iterator oei, oei_end;
-      for( tie( oei, oei_end ) = out_edges( cur_vertex, g ); 
+      for( boost::tie( oei, oei_end ) = out_edges( cur_vertex, g ); 
            oei != oei_end; 
            ++oei )
       {
@@ -559,8 +559,10 @@ void r_c_shortest_paths
                                dominance, 
                                la, 
                                vis );
-  pareto_optimal_solution = pareto_optimal_solutions[0];
-  pareto_optimal_resource_container = pareto_optimal_resource_containers[0];
+  if (!pareto_optimal_solutions.empty()) {
+    pareto_optimal_solution = pareto_optimal_solutions[0];
+    pareto_optimal_resource_container = pareto_optimal_resource_containers[0];
+  }
 }
 
 // third overload:
@@ -644,8 +646,10 @@ void r_c_shortest_paths
                                dominance, 
                                default_r_c_shortest_paths_allocator(), 
                                default_r_c_shortest_paths_visitor() );
-  pareto_optimal_solution = pareto_optimal_solutions[0];
-  pareto_optimal_resource_container = pareto_optimal_resource_containers[0];
+  if (!pareto_optimal_solutions.empty()) {
+    pareto_optimal_solution = pareto_optimal_solutions[0];
+    pareto_optimal_resource_container = pareto_optimal_resource_containers[0];
+  }
 }
 // r_c_shortest_paths
 

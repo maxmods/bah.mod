@@ -13,7 +13,7 @@
 
 #include <boost/spirit/home/qi/domain.hpp>
 #include <boost/spirit/home/qi/detail/pass_container.hpp>
-#include <boost/spirit/home/support/attributes.hpp>
+#include <boost/spirit/home/qi/detail/attributes.hpp>
 #include <boost/spirit/home/support/algorithm/any_if.hpp>
 #include <boost/spirit/home/support/detail/what_function.hpp>
 #include <boost/spirit/home/support/unused.hpp>
@@ -74,7 +74,10 @@ namespace boost { namespace spirit { namespace qi
             // attribute of this sequence is a single element tuple
             typedef typename attribute<Context, Iterator>::type_ attr_type_;
             typename traits::wrap_if_not_tuple<Attribute
-              , typename traits::one_element_sequence<attr_type_>::type 
+              , typename mpl::and_<
+                    traits::one_element_sequence<attr_type_>
+                  , mpl::not_<traits::one_element_sequence<Attribute> >
+                >::type 
             >::type attr(attr_);
 
             // return false if *any* of the parsers fail

@@ -23,7 +23,6 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_const.hpp>
-#include <boost/utility/enable_if.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace lex
@@ -157,7 +156,7 @@ namespace boost { namespace spirit { namespace lex
                 >::type
             context_type;
 
-            typedef typename context_type::token_value_type& type;
+            typedef typename context_type::get_value_type type;
         };
 
         template <typename Env>

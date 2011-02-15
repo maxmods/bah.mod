@@ -35,7 +35,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/prim_minimum_spanning_tree.hpp>
 #include <boost/graph/lookup_edge.hpp>
-
+#include <boost/throw_exception.hpp>
 
 namespace boost
 {
@@ -285,9 +285,9 @@ namespace boost
                 // would require revisiting the core algorithm.
                 Edge e;
                 bool found;
-                tie(e, found) = lookup_edge(previous_, v, g);
+                boost::tie(e, found) = lookup_edge(previous_, v, g);
                 if(!found) {
-                    throw not_complete();
+                    BOOST_THROW_EXCEPTION(not_complete());
                 }
 
                 tourlen_ += wmap_[e];

@@ -15,7 +15,7 @@
 #include <boost/spirit/home/karma/meta_compiler.hpp>
 #include <boost/spirit/home/karma/generator.hpp>
 #include <boost/spirit/home/karma/detail/output_iterator.hpp>
-#include <boost/spirit/home/support/attributes.hpp>
+#include <boost/spirit/home/karma/detail/attributes.hpp>
 #include <boost/spirit/home/support/info.hpp>
 
 namespace boost { namespace spirit
@@ -26,7 +26,6 @@ namespace boost { namespace spirit
     template <>
     struct use_operator<karma::domain, proto::tag::address_of> // enables &g
       : mpl::true_ {};
-
 }}
 
 namespace boost { namespace spirit { namespace karma
@@ -36,8 +35,7 @@ namespace boost { namespace spirit { namespace karma
     {
         typedef Subject subject_type;
         typedef mpl::int_<
-            generator_properties::countingbuffer | 
-            subject_type::properties::value
+            generator_properties::disabling | subject_type::properties::value
         > properties;
 
         template <typename Context, typename Iterator>
@@ -54,9 +52,8 @@ namespace boost { namespace spirit { namespace karma
         bool generate(OutputIterator& sink, Context& ctx, Delimiter const& d
           , Attribute const& attr) const
         {
-            // inhibits (redirects) output, disable counting
-            detail::enable_buffering<OutputIterator> buffering(sink);
-            detail::disable_counting<OutputIterator> nocounting(sink);
+            // inhibits output
+            detail::disable_output<OutputIterator> disable(sink);
             return subject.generate(sink, ctx, d, attr);
         }
 

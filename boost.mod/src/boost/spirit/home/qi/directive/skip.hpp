@@ -20,7 +20,7 @@
 #include <boost/spirit/home/qi/detail/unused_skipper.hpp>
 #include <boost/spirit/home/support/container.hpp>
 #include <boost/spirit/home/support/common_terminals.hpp>
-#include <boost/spirit/home/support/attributes.hpp>
+#include <boost/spirit/home/qi/detail/attributes.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/vector.hpp>
@@ -148,11 +148,11 @@ namespace boost { namespace spirit { namespace qi
         typedef skip_parser<Subject, skipper_type> result_type;
 
         template <typename Terminal>
-        result_type operator()(
-            Terminal const& term, Subject const& subject, unused_type) const
+        result_type operator()(Terminal const& term, Subject const& subject
+          , Modifiers const& modifiers) const
         {
             return result_type(subject
-              , compile<qi::domain>(fusion::at_c<0>(term.args)));
+              , compile<qi::domain>(fusion::at_c<0>(term.args), modifiers));
         }
     };
 

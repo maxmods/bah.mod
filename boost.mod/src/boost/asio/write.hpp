@@ -15,15 +15,12 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/push_options.hpp>
-
-#include <boost/asio/detail/push_options.hpp>
+#include <boost/asio/detail/config.hpp>
 #include <cstddef>
-#include <boost/config.hpp>
-#include <boost/asio/detail/pop_options.hpp>
-
-#include <boost/asio/basic_streambuf.hpp>
+#include <boost/asio/basic_streambuf_fwd.hpp>
 #include <boost/asio/error.hpp>
+
+#include <boost/asio/detail/push_options.hpp>
 
 namespace boost {
 namespace asio {
@@ -306,7 +303,10 @@ std::size_t write(SyncWriteStream& s, basic_streambuf<Allocator>& b,
  * @li An error occurred.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
- * async_write_some function.
+ * async_write_some function, and is known as a <em>composed operation</em>. The
+ * program must ensure that the stream performs no other write operations (such
+ * as async_write, the stream's async_write_some function, or any other composed
+ * operations that perform writes) until this operation completes.
  *
  * @param s The stream to which the data is to be written. The type must support
  * the AsyncWriteStream concept.
@@ -360,7 +360,10 @@ void async_write(AsyncWriteStream& s, const ConstBufferSequence& buffers,
  * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
- * async_write_some function.
+ * async_write_some function, and is known as a <em>composed operation</em>. The
+ * program must ensure that the stream performs no other write operations (such
+ * as async_write, the stream's async_write_some function, or any other composed
+ * operations that perform writes) until this operation completes.
  *
  * @param s The stream to which the data is to be written. The type must support
  * the AsyncWriteStream concept.
@@ -430,7 +433,10 @@ void async_write(AsyncWriteStream& s, const ConstBufferSequence& buffers,
  * @li An error occurred.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
- * async_write_some function.
+ * async_write_some function, and is known as a <em>composed operation</em>. The
+ * program must ensure that the stream performs no other write operations (such
+ * as async_write, the stream's async_write_some function, or any other composed
+ * operations that perform writes) until this operation completes.
  *
  * @param s The stream to which the data is to be written. The type must support
  * the AsyncWriteStream concept.
@@ -472,7 +478,10 @@ void async_write(AsyncWriteStream& s, basic_streambuf<Allocator>& b,
  * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
- * async_write_some function.
+ * async_write_some function, and is known as a <em>composed operation</em>. The
+ * program must ensure that the stream performs no other write operations (such
+ * as async_write, the stream's async_write_some function, or any other composed
+ * operations that perform writes) until this operation completes.
  *
  * @param s The stream to which the data is to be written. The type must support
  * the AsyncWriteStream concept.
@@ -523,8 +532,8 @@ void async_write(AsyncWriteStream& s, basic_streambuf<Allocator>& b,
 } // namespace asio
 } // namespace boost
 
-#include <boost/asio/impl/write.ipp>
-
 #include <boost/asio/detail/pop_options.hpp>
+
+#include <boost/asio/impl/write.hpp>
 
 #endif // BOOST_ASIO_WRITE_HPP

@@ -27,9 +27,10 @@
 #include <boost/interprocess/exceptions.hpp>
 #include <boost/interprocess/sync/xsi/basic_xsi_semaphore.hpp>
 #include <cstddef>
-#include <cassert>
+#include <boost/assert.hpp>
 #include <boost/cstdint.hpp>
 #include <string>
+#include <boost/assert.hpp>
 
 //!\file
 //!Describes a class representing a xsi-based named_mutex.
@@ -188,7 +189,7 @@ inline void xsi_named_mutex::priv_close()
 
 inline void xsi_named_mutex::lock()
 {
-	if(!xsi::simple_sem_op(m_semid, -1)){
+   if(!xsi::simple_sem_op(m_semid, -1)){
       error_info err = system_error_code();
       throw interprocess_exception(err);
    }
@@ -198,7 +199,7 @@ inline void xsi_named_mutex::unlock()
 {
    bool success = xsi::simple_sem_op(m_semid, 1);
    (void)success;
-   assert(success);
+   BOOST_ASSERT(success);
 }
 
 inline bool xsi_named_mutex::remove()

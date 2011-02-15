@@ -15,29 +15,13 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/push_options.hpp>
-
-#include <boost/asio/detail/push_options.hpp>
+#include <boost/asio/detail/config.hpp>
 #include <cstddef>
-#include <boost/config.hpp>
-#include <boost/asio/detail/pop_options.hpp>
-
+#include <boost/asio/detail/deadline_timer_service.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/time_traits.hpp>
-#include <boost/asio/detail/deadline_timer_service.hpp>
-#include <boost/asio/detail/service_base.hpp>
 
-#if defined(BOOST_ASIO_HAS_IOCP)
-# include <boost/asio/detail/win_iocp_io_service.hpp>
-#elif defined(BOOST_ASIO_HAS_EPOLL)
-# include <boost/asio/detail/epoll_reactor.hpp>
-#elif defined(BOOST_ASIO_HAS_KQUEUE)
-# include <boost/asio/detail/kqueue_reactor.hpp>
-#elif defined(BOOST_ASIO_HAS_DEV_POLL)
-# include <boost/asio/detail/dev_poll_reactor.hpp>
-#else
-# include <boost/asio/detail/select_reactor.hpp>
-#endif
+#include <boost/asio/detail/push_options.hpp>
 
 namespace boost {
 namespace asio {
@@ -70,22 +54,7 @@ public:
 
 private:
   // The type of the platform-specific implementation.
-#if defined(BOOST_ASIO_HAS_IOCP)
-  typedef detail::deadline_timer_service<
-    traits_type, detail::win_iocp_io_service> service_impl_type;
-#elif defined(BOOST_ASIO_HAS_EPOLL)
-  typedef detail::deadline_timer_service<
-    traits_type, detail::epoll_reactor<false> > service_impl_type;
-#elif defined(BOOST_ASIO_HAS_KQUEUE)
-  typedef detail::deadline_timer_service<
-    traits_type, detail::kqueue_reactor<false> > service_impl_type;
-#elif defined(BOOST_ASIO_HAS_DEV_POLL)
-  typedef detail::deadline_timer_service<
-    traits_type, detail::dev_poll_reactor<false> > service_impl_type;
-#else
-  typedef detail::deadline_timer_service<
-    traits_type, detail::select_reactor<false> > service_impl_type;
-#endif
+  typedef detail::deadline_timer_service<traits_type> service_impl_type;
 
 public:
   /// The implementation type of the deadline timer.
@@ -99,13 +68,14 @@ public:
   explicit deadline_timer_service(boost::asio::io_service& io_service)
     : boost::asio::detail::service_base<
         deadline_timer_service<TimeType, TimeTraits> >(io_service),
-      service_impl_(boost::asio::use_service<service_impl_type>(io_service))
+      service_impl_(io_service)
   {
   }
 
   /// Destroy all user-defined handler objects owned by the service.
   void shutdown_service()
   {
+    service_impl_.shutdown_service();
   }
 
   /// Construct a new timer implementation.
@@ -166,8 +136,8 @@ public:
   }
 
 private:
-  // The service that provides the platform-specific implementation.
-  service_impl_type& service_impl_;
+  // The platform-specific implementation.
+  service_impl_type service_impl_;
 };
 
 } // namespace asio

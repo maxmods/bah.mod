@@ -15,10 +15,11 @@
 #include <boost/spirit/home/karma/generator.hpp>
 #include <boost/spirit/home/karma/meta_compiler.hpp>
 #include <boost/spirit/home/karma/detail/output_iterator.hpp>
+#include <boost/spirit/home/karma/detail/get_stricttag.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/container.hpp>
-#include <boost/spirit/home/support/attributes.hpp>
+#include <boost/spirit/home/karma/detail/attributes.hpp>
 
 namespace boost { namespace spirit
 {
@@ -28,31 +29,50 @@ namespace boost { namespace spirit
     template <>
     struct use_operator<karma::domain, proto::tag::modulus> // enables g % d
       : mpl::true_ {};
-
 }}
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace karma
 {
-    template <typename Left, typename Right>
-    struct list : binary_generator<list<Left, Right> >
+    template <typename Left, typename Right, typename Strict, typename Derived>
+    struct base_list : binary_generator<Derived>
     {
     private:
         // iterate over the given container until its exhausted or the embedded
         // (left) generator succeeds
         template <
             typename OutputIterator, typename Context, typename Delimiter
-          , typename Iterator>
+          , typename Iterator, typename Attribute>
         bool generate_left(OutputIterator& sink, Context& ctx
-          , Delimiter const& d, Iterator& it, Iterator& end) const
+          , Delimiter const& d, Iterator& it, Iterator& end, Attribute const&) const
         {
-            while (!traits::compare(it, end))
-            {
-                if (left.generate(sink, ctx, d, traits::deref(it)))
-                    return true;
-                traits::next(it);
+            if (Strict::value) {
+                if (!traits::compare(it, end))
+                    return left.generate(sink, ctx, d, traits::deref(it));
+            }
+            else {
+                // Failing subject generators are just skipped. This allows to 
+                // selectively generate items in the provided attribute.
+                while (!traits::compare(it, end))
+                {
+                    if (left.generate(sink, ctx, d, traits::deref(it)))
+                        return true;
+                    traits::next(it);
+                }
             }
             return false;
+        }
+
+        template <
+            typename OutputIterator, typename Context, typename Delimiter
+          , typename Iterator>
+        bool generate_left(OutputIterator& sink, Context& ctx
+          , Delimiter const& d, Iterator&, Iterator&, unused_type) const
+        {
+            // There is no way to distinguish a failed generator from a 
+            // generator to be skipped. We assume the user takes responsibility
+            // for ending the loop if no attribute is specified.
+            return left.generate(sink, ctx, d, unused);
         }
 
     public:
@@ -75,7 +95,7 @@ namespace boost { namespace spirit { namespace karma
                 typename traits::attribute_of<Left, Context, Iterator>::type>
         {};
 
-        list(Left const& left, Right const& right)
+        base_list(Left const& left, Right const& right)
           : left(left), right(right) 
         {}
 
@@ -92,7 +112,7 @@ namespace boost { namespace spirit { namespace karma
             iterator_type it = traits::begin(attr);
             iterator_type end = traits::end(attr);
 
-            if (generate_left(sink, ctx, d, it, end))
+            if (generate_left(sink, ctx, d, it, end, attr))
             {
                 for (traits::next(it); !traits::compare(it, end); traits::next(it))
                 {
@@ -104,7 +124,7 @@ namespace boost { namespace spirit { namespace karma
                         if (!right.generate(sink, ctx, d, unused))
                             return false;     // shouldn't happen
 
-                        if (!generate_left(sink, ctx, d, it, end))
+                        if (!generate_left(sink, ctx, d, it, end, attr))
                             break;            // return true as one item succeeded
                     }
                     buffering.buffer_copy();
@@ -125,14 +145,46 @@ namespace boost { namespace spirit { namespace karma
         Right right;
     };
 
+    template <typename Left, typename Right>
+    struct list 
+      : base_list<Left, Right, mpl::false_, list<Left, Right> >
+    {
+        typedef base_list<Left, Right, mpl::false_, list> base_list_;
+
+        list(Left const& left, Right const& right)
+          : base_list_(left, right) {}
+    };
+
+    template <typename Left, typename Right>
+    struct strict_list 
+      : base_list<Left, Right, mpl::true_, strict_list<Left, Right> >
+    {
+        typedef base_list<Left, Right, mpl::true_, strict_list> base_list_;
+
+        strict_list (Left const& left, Right const& right)
+          : base_list_(left, right) {}
+    };
+
     ///////////////////////////////////////////////////////////////////////////
     // Generator generators: make_xxx function (objects)
     ///////////////////////////////////////////////////////////////////////////
-    template <typename Elements, typename Modifiers>
-    struct make_composite<proto::tag::modulus, Elements, Modifiers>
-      : make_binary_composite<Elements, list>
-    {};
+    namespace detail
+    {
+        template <typename Subject, bool strict_mode = false>
+        struct make_list 
+          : make_binary_composite<Subject, list>
+        {};
 
+        template <typename Subject>
+        struct make_list<Subject, true> 
+          : make_binary_composite<Subject, strict_list>
+        {};
+    }
+
+    template <typename Subject, typename Modifiers>
+    struct make_composite<proto::tag::modulus, Subject, Modifiers>
+      : detail::make_list<Subject, detail::get_stricttag<Modifiers>::value>
+    {};
 }}}
 
 namespace boost { namespace spirit { namespace traits
@@ -141,6 +193,9 @@ namespace boost { namespace spirit { namespace traits
     struct has_semantic_action<karma::list<Left, Right> >
       : binary_has_semantic_action<Left, Right> {};
 
+    template <typename Left, typename Right>
+    struct has_semantic_action<karma::strict_list<Left, Right> >
+      : binary_has_semantic_action<Left, Right> {};
 }}}
 
 #endif

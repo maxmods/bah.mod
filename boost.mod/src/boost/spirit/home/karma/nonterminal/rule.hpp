@@ -12,11 +12,12 @@
 #endif
 
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
 #include <boost/function.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/add_const.hpp>
 #include <boost/type_traits/add_reference.hpp>
-#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/size.hpp>
@@ -29,7 +30,7 @@
 #include <boost/spirit/home/support/argument.hpp>
 #include <boost/spirit/home/support/context.hpp>
 #include <boost/spirit/home/support/info.hpp>
-#include <boost/spirit/home/support/attributes.hpp>
+#include <boost/spirit/home/karma/detail/attributes.hpp>
 #include <boost/spirit/home/support/nonterminal/extract_param.hpp>
 #include <boost/spirit/home/support/nonterminal/locals.hpp>
 #include <boost/spirit/home/karma/reference.hpp>
@@ -67,24 +68,25 @@ namespace boost { namespace spirit { namespace karma
       , typename T1 = unused_type
       , typename T2 = unused_type
       , typename T3 = unused_type
+      , typename T4 = unused_type
     >
     struct rule
       : proto::extends<
             typename proto::terminal<
-                reference<rule<OutputIterator, T1, T2, T3> const>
+                reference<rule<OutputIterator, T1, T2, T3, T4> const>
             >::type
-          , rule<OutputIterator, T1, T2, T3>
+          , rule<OutputIterator, T1, T2, T3, T4>
         >
-      , generator<rule<OutputIterator, T1, T2, T3> >
+      , generator<rule<OutputIterator, T1, T2, T3, T4> >
     {
         typedef mpl::int_<generator_properties::all_properties> properties;
 
         typedef OutputIterator iterator_type;
-        typedef rule<OutputIterator, T1, T2, T3> this_type;
+        typedef rule<OutputIterator, T1, T2, T3, T4> this_type;
         typedef reference<this_type const> reference_;
         typedef typename proto::terminal<reference_>::type terminal;
         typedef proto::extends<terminal, this_type> base_type;
-        typedef mpl::vector<T1, T2, T3> template_params;
+        typedef mpl::vector<T1, T2, T3, T4> template_params;
 
         // the output iterator is always wrapped by karma
         typedef detail::output_iterator<OutputIterator, properties> 
@@ -101,9 +103,15 @@ namespace boost { namespace spirit { namespace karma
                 karma::domain, template_params>::type
         delimiter_type;
 
+        // The rule's signature
         typedef typename
             spirit::detail::extract_sig<template_params>::type
         sig_type;
+
+        // The rule's encoding type
+        typedef typename
+            spirit::detail::extract_encoding<template_params>::type
+        encoding_type;
 
         // This is the rule's attribute type
         typedef typename
@@ -132,6 +140,14 @@ namespace boost { namespace spirit { namespace karma
             bool(output_iterator&, context_type&, delimiter_type const&)>
         function_type;
 
+        typedef typename
+            mpl::if_<
+                is_same<encoding_type, unused_type>
+              , unused_type
+              , tag::char_code<tag::encoding, encoding_type>
+            >::type
+        encoding_modifier_type;
+
         explicit rule(std::string const& name_ = "unnamed-rule")
           : base_type(terminal::make(reference_(*this)))
           , name_(name_)
@@ -155,7 +171,8 @@ namespace boost { namespace spirit { namespace karma
             // the expression (expr) is not a valid spirit karma expression.
             BOOST_SPIRIT_ASSERT_MATCH(karma::domain, Expr);
 
-            f = detail::bind_generator<mpl::false_>(compile<karma::domain>(expr));
+            f = detail::bind_generator<mpl::false_>(
+                compile<karma::domain>(expr, encoding_modifier_type()));
         }
 
         rule& operator=(rule const& rhs)
@@ -189,10 +206,13 @@ namespace boost { namespace spirit { namespace karma
             // the expression (expr) is not a valid spirit karma expression.
             BOOST_SPIRIT_ASSERT_MATCH(karma::domain, Expr);
 
-            f = detail::bind_generator<mpl::false_>(compile<karma::domain>(expr));
+            f = detail::bind_generator<mpl::false_>(
+                compile<karma::domain>(expr, encoding_modifier_type()));
             return *this;
         }
 
+// VC7.1 has problems to resolve 'rule' without explicit template parameters
+#if !BOOST_WORKAROUND(BOOST_MSVC, < 1400)
         // g++ 3.3 barfs if this is a member function :(
         template <typename Expr>
         friend rule& operator%=(rule& r, Expr const& expr)
@@ -202,7 +222,8 @@ namespace boost { namespace spirit { namespace karma
             // the expression (expr) is not a valid spirit karma expression.
             BOOST_SPIRIT_ASSERT_MATCH(karma::domain, Expr);
 
-            r.f = detail::bind_generator<mpl::true_>(compile<karma::domain>(expr));
+            r.f = detail::bind_generator<mpl::true_>(
+                compile<karma::domain>(expr, encoding_modifier_type()));
             return r;
         }
 
@@ -212,6 +233,20 @@ namespace boost { namespace spirit { namespace karma
         {
             return r %= static_cast<Expr const&>(expr);
         }
+#else
+        // both friend functions have to be defined out of class as VC7.1
+        // will complain otherwise 
+        template <typename OutputIterator_, typename T1_, typename T2_
+          , typename T3_, typename T4_, typename Expr>
+        friend rule<OutputIterator_, T1_, T2_, T3_, T4_>& operator%=(
+            rule<OutputIterator_, T1_, T2_, T3_, T4_>&r, Expr const& expr);
+
+        // non-const version needed to suppress proto's %= kicking in
+        template <typename OutputIterator_, typename T1_, typename T2_
+          , typename T3_, typename T4_, typename Expr>
+        friend rule<OutputIterator_, T1_, T2_, T3_, T4_>& operator%=(
+            rule<OutputIterator_, T1_, T2_, T3_, T4_>& r, Expr& expr);
+#endif
 
         template <typename Context, typename Unused>
         struct attribute
@@ -228,12 +263,18 @@ namespace boost { namespace spirit { namespace karma
                 // Create an attribute if none is supplied. 
                 typedef traits::make_attribute<attr_type, Attribute> 
                     make_attribute;
+                typedef traits::transform_attribute<
+                    typename make_attribute::type, attr_type, domain> 
+                transform;
+
+                typename transform::type attr_ = 
+                    traits::pre_transform<domain, attr_type>(
+                        make_attribute::call(attr));
 
                 // If you are seeing a compilation error here, you are probably
                 // trying to use a rule or a grammar which has inherited
                 // attributes, without passing values for them.
-                context_type context(traits::pre_transform<attr_type>(
-                    make_attribute::call(attr)));
+                context_type context(attr_);
 
                 // If you are seeing a compilation error here stating that the 
                 // third parameter can't be converted to a karma::reference
@@ -241,6 +282,10 @@ namespace boost { namespace spirit { namespace karma
                 // an incompatible delimiter type.
                 if (f(sink, context, delim))
                 {
+                    // do a post-delimit if this is an implied verbatim
+                    if (is_same<delimiter_type, unused_type>::value)
+                        karma::delimit_out(sink, delim);
+
                     return true;
                 }
             }
@@ -258,12 +303,18 @@ namespace boost { namespace spirit { namespace karma
                 // Create an attribute if none is supplied. 
                 typedef traits::make_attribute<attr_type, Attribute> 
                     make_attribute;
+                typedef traits::transform_attribute<
+                    typename make_attribute::type, attr_type, domain> 
+                transform;
+
+                typename transform::type attr_ = 
+                    traits::pre_transform<domain, attr_type>(
+                        make_attribute::call(attr));
 
                 // If you are seeing a compilation error here, you are probably
                 // trying to use a rule or a grammar which has inherited
                 // attributes, passing values of incompatible types for them.
-                context_type context(traits::pre_transform<attr_type>(
-                    make_attribute::call(attr)), params, caller_context);
+                context_type context(attr_, params, caller_context);
 
                 // If you are seeing a compilation error here stating that the 
                 // third parameter can't be converted to a karma::reference
@@ -271,6 +322,10 @@ namespace boost { namespace spirit { namespace karma
                 // an incompatible delimiter type.
                 if (f(sink, context, delim))
                 {
+                    // do a post-delimit if this is an implied verbatim
+                    if (is_same<delimiter_type, unused_type>::value)
+                        karma::delimit_out(sink, delim);
+
                     return true;
                 }
             }
@@ -303,6 +358,35 @@ namespace boost { namespace spirit { namespace karma
         function_type f;
     };
 
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1400)
+    template <typename OutputIterator_, typename T1_, typename T2_
+      , typename T3_, typename T4_, typename Expr>
+    rule<OutputIterator_, T1_, T2_, T3_, T4_>& operator%=(
+        rule<OutputIterator_, T1_, T2_, T3_, T4_>&r, Expr const& expr)
+    {
+        // Report invalid expression error as early as possible.
+        // If you got an error_invalid_expression error message here, then
+        // the expression (expr) is not a valid spirit karma expression.
+        BOOST_SPIRIT_ASSERT_MATCH(karma::domain, Expr);
+
+        typedef typename 
+            rule<OutputIterator_, T1_, T2_, T3_, T4_>::encoding_modifier_type
+        encoding_modifier_type;
+
+        r.f = detail::bind_generator<mpl::true_>(
+            compile<karma::domain>(expr, encoding_modifier_type()));
+        return r;
+    }
+
+    // non-const version needed to suppress proto's %= kicking in
+    template <typename OutputIterator_, typename T1_, typename T2_
+      , typename T3_, typename T4_, typename Expr>
+    rule<OutputIterator_, T1_, T2_, T3_, T4_>& operator%=(
+        rule<OutputIterator_, T1_, T2_, T3_, T4_>& r, Expr& expr)
+    {
+        return r %= static_cast<Expr const&>(expr);
+    }
+#endif
 }}}
 
 #if defined(BOOST_MSVC)

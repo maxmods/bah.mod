@@ -15,10 +15,11 @@
 #include <boost/spirit/home/karma/generator.hpp>
 #include <boost/spirit/home/karma/meta_compiler.hpp>
 #include <boost/spirit/home/karma/detail/output_iterator.hpp>
+#include <boost/spirit/home/karma/detail/get_stricttag.hpp>
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/support/container.hpp>
-#include <boost/spirit/home/support/attributes.hpp>
+#include <boost/spirit/home/karma/detail/attributes.hpp>
 
 #include <boost/type_traits/add_const.hpp>
 
@@ -30,15 +31,46 @@ namespace boost { namespace spirit
     template <>
     struct use_operator<karma::domain, proto::tag::unary_plus> // enables +g
       : mpl::true_ {};
-
 }}
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace karma
 {
-    template <typename Subject>
-    struct plus : unary_generator<plus<Subject> >
+    template <typename Subject, typename Strict, typename Derived>
+    struct base_plus : unary_generator<Derived>
     {
+    private:
+        template <
+            typename OutputIterator, typename Context, typename Delimiter
+          , typename Attribute>
+        bool generate_subject(OutputIterator& sink, Context& ctx
+          , Delimiter const& d, Attribute const& attr, bool& result) const
+        {
+            // Ignore return value, failing subject generators are just 
+            // skipped. This allows to selectively generate items in the 
+            // provided attribute.
+            if (subject.generate(sink, ctx, d, attr)) {
+                result = true;
+                return true;
+            }
+            return !Strict::value;
+        }
+
+        template <typename OutputIterator, typename Context, typename Delimiter>
+        bool generate_subject(OutputIterator& sink, Context& ctx
+          , Delimiter const& d, unused_type, bool& result) const
+        {
+            // There is no way to distinguish a failed generator from a 
+            // generator to be skipped. We assume the user takes responsibility
+            // for ending the loop if no attribute is specified.
+            if (subject.generate(sink, ctx, d, unused)) {
+                result = true;
+                return true;
+            }
+            return false;
+        }
+
+    public:
         typedef Subject subject_type;
         typedef typename subject_type::properties properties;
 
@@ -52,7 +84,7 @@ namespace boost { namespace spirit { namespace karma
             >
         {};
 
-        plus(Subject const& subject)
+        base_plus(Subject const& subject)
           : subject(subject) {}
 
         template <
@@ -78,8 +110,8 @@ namespace boost { namespace spirit { namespace karma
             for (/**/; detail::sink_is_good(sink) && !traits::compare(it, end); 
                  traits::next(it))
             {
-                if (subject.generate(sink, ctx, d, traits::deref(it)))
-                    result = true;
+                if (!generate_subject(sink, ctx, d, traits::deref(it), result))
+                    break;
             }
             return result && detail::sink_is_good(sink);
         }
@@ -93,15 +125,46 @@ namespace boost { namespace spirit { namespace karma
         Subject subject;
     };
 
+    template <typename Subject>
+    struct plus 
+      : base_plus<Subject, mpl::false_, plus<Subject> >
+    {
+        typedef base_plus<Subject, mpl::false_, plus> base_plus_;
+
+        plus(Subject const& subject)
+          : base_plus_(subject) {}
+    };
+
+    template <typename Subject>
+    struct strict_plus 
+      : base_plus<Subject, mpl::true_, strict_plus<Subject> >
+    {
+        typedef base_plus<Subject, mpl::true_, strict_plus> base_plus_;
+
+        strict_plus(Subject const& subject)
+          : base_plus_(subject) {}
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     // Generator generators: make_xxx function (objects)
     ///////////////////////////////////////////////////////////////////////////
+    namespace detail
+    {
+        template <typename Elements, bool strict_mode = false>
+        struct make_plus 
+          : make_unary_composite<Elements, plus>
+        {};
+
+        template <typename Elements>
+        struct make_plus<Elements, true> 
+          : make_unary_composite<Elements, strict_plus>
+        {};
+    }
+
     template <typename Elements, typename Modifiers>
     struct make_composite<proto::tag::unary_plus, Elements, Modifiers>
-      : make_unary_composite<Elements, plus>
+      : detail::make_plus<Elements, detail::get_stricttag<Modifiers>::value>
     {};
-
 }}}
 
 namespace boost { namespace spirit { namespace traits
@@ -110,6 +173,9 @@ namespace boost { namespace spirit { namespace traits
     struct has_semantic_action<karma::plus<Subject> >
       : unary_has_semantic_action<Subject> {};
 
+    template <typename Subject>
+    struct has_semantic_action<karma::strict_plus<Subject> >
+      : unary_has_semantic_action<Subject> {};
 }}}
 
 #endif
