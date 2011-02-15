@@ -28,6 +28,7 @@ namespace std{
 #endif
 
 #include <boost/cstdint.hpp>
+#include <boost/integer_traits.hpp>
 #include <boost/archive/polymorphic_iarchive.hpp>
 #include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
@@ -70,10 +71,10 @@ private:
     ){
         return ArchiveImplementation::load_pointer(t, bpis_ptr, finder);
     }
-    virtual void set_library_version(version_type archive_library_version){
+    virtual void set_library_version(library_version_type archive_library_version){
         ArchiveImplementation::set_library_version(archive_library_version);
     }
-    virtual unsigned int get_library_version() const{
+    virtual library_version_type get_library_version() const{
         return ArchiveImplementation::get_library_version();
     }
     virtual unsigned int get_flags() const {
@@ -129,11 +130,18 @@ private:
     virtual void load(unsigned long & t){
         ArchiveImplementation::load(t);
     }
-    #if !defined(BOOST_NO_INTRINSIC_INT64_T)
-    virtual void load(boost::int64_t & t){
+    #if defined(BOOST_HAS_LONG_LONG)
+    virtual void load(boost::long_long_type & t){
         ArchiveImplementation::load(t);
     }
-    virtual void load(boost::uint64_t & t){
+    virtual void load(boost::ulong_long_type & t){
+        ArchiveImplementation::load(t);
+    }
+    #elif defined(BOOST_HAS_MS_INT64)
+    virtual void load(__int64 & t){
+        ArchiveImplementation::load(t);
+    }
+    virtual void load(unsigned __int64 & t){
         ArchiveImplementation::load(t);
     }
     #endif
@@ -172,13 +180,17 @@ public:
     polymorphic_iarchive & operator>>(T & t){
         return polymorphic_iarchive::operator>>(t);
     }
-
     // the & operator
     template<class T>
     polymorphic_iarchive & operator&(T & t){
         return polymorphic_iarchive::operator&(t);
     }
-
+    // register type function
+    template<class T>
+    const basic_pointer_iserializer * 
+    register_type(T * t = NULL){
+        return ArchiveImplementation::register_type(t);
+    }
     // all current archives take a stream as constructor argument
     template <class _Elem, class _Tr>
     polymorphic_iarchive_route(
