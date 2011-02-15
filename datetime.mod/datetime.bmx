@@ -30,11 +30,13 @@ bbdoc: Date Time
 End Rem
 Module BaH.DateTime
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007-2011 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Updated to boost 1.45"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to boost 1.42"
 ModuleInfo "History: 1.01"

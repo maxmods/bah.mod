@@ -30,10 +30,12 @@ bbdoc: Math Toolkit
 End Rem
 Module BaH.MathToolkit
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to Boost 1.45"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Changed Location() to Scale() in Pareto Distribution."
 ModuleInfo "History: 1.00"
