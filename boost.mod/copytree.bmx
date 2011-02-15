@@ -10,7 +10,7 @@ Extern
 End Extern
 
 
-Local fromBase:String = "/Volumes/MiscData/Downloads/boost_1_42_0/boost/"
+Local fromBase:String = "/Volumes/MiscData/Downloads/boost_1_45_0/boost/"
 Local toBase:String = "/Applications/BlitzMax/mod/bah.mod/boost.mod/src/boost/"
 
 processDir(fromBase, toBase)
