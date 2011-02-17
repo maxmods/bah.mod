@@ -1,4 +1,4 @@
-' Copyright (c) 2010 Bruce A Henderson
+' Copyright (c) 2010-2011 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ Module BaH.Libtorrent
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: libtorrent - 2003-2006 Arvid Norberg"
-ModuleInfo "Copyright: Wrapper - 2010 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (libtorrent 0.14.9)"
@@ -42,6 +42,8 @@ ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE"
 ?linux
 ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
+?win32
+ModuleInfo "CC_OPTS: -DBOOST_THREAD_USE_LIB"
 ?
 
 Import "core.bmx"
