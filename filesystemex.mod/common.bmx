@@ -63,6 +63,8 @@ Extern
 	Function bmx_filesystem_copydir:Int(src:String, dst:String)
 	Function bmx_filesystem_deletedir:Int(path:String, recurse:Int)
 	Function bmx_filesystem_changedir:Int(path:String)
+	Function bmx_filesystem_filetime:Int(path:String)
+	Function bmx_filesystem_loaddir:String[](dir:String)
 
 End Extern
 

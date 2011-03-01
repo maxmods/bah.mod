@@ -52,6 +52,8 @@ extern "C" {
 	int bmx_filesystem_copydir(BBString * src, BBString * dst);
 	int bmx_filesystem_deletedir(BBString * path, int recurse);
 	int bmx_filesystem_changedir(BBString * path);
+	int bmx_filesystem_filetime(BBString * path);
+	BBArray * bmx_filesystem_loaddir(BBString * dir, int skip_dots);
 
 }
 
@@ -208,4 +210,36 @@ int bmx_filesystem_changedir(BBString * path) {
 	return !e;
 }
 
+int bmx_filesystem_filetime(BBString * path) {
+	boost::filesystem::path p(bbStringToPath(path));
+
+	return last_write_time(p);
+}
+
+BBArray * bmx_filesystem_loaddir(BBString * dir, int skip_dots) {
+	boost::filesystem::path p(bbStringToPath(dir));
+	std::vector<boost::filesystem::path> v;
+
+	copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+	
+	
+	int n = v.size();
+	
+	if (n > 0) {
+		int i = 0;
+		
+		BBArray *arr = bbArrayNew1D( "$",n );
+		BBString **s = (BBString**)BBARRAYDATA( arr, arr->dims );
+	
+		for (std::vector<boost::filesystem::path>::const_iterator it (v.begin()); it != v.end(); ++it) {
+			boost::filesystem::path path((*it).filename());
+			s[i] = bbStringFromPath( path );
+			BBRETAIN( s[i] );
+			i++;
+		}
+		return arr;
+	} else {
+		return &bbEmptyArray;
+	}
+}
 

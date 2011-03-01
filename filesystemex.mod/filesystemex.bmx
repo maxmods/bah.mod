@@ -101,7 +101,7 @@ bbdoc: Get file time
 returns: The time the file at @path was last modified 
 End Rem
 Function FileTime:Int(path:String)
-	' TODO
+	Return bmx_filesystem_filetime(path)
 End Function
 
 Rem
@@ -237,7 +237,15 @@ about: The @skip_dots parameter, if true, removes the '.' (current) and '..'
 (parent) directories from the returned array.
 end rem
 Function LoadDir:String[](dir:String, skip_dots:Int = True)
-' TODO
+	If FileType(dir) <> FILETYPE_DIR Then
+		Return Null
+	End If
+	Local d:String[] = bmx_filesystem_loaddir(dir)
+	If Not skip_dots And d Then
+		Return [".", ".."] + d
+	Else
+		Return d
+	End If
 End Function
 
 
