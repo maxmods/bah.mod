@@ -212,7 +212,7 @@ bbdoc: Open a directory
 returns: An integer directory handle, or 0 if the directory does not exist
 End Rem
 Function ReadDir:Int(path:String)
-	' TODO
+	Return bmx_filesystem_readdir(path)
 End Function
 
 Rem
@@ -220,14 +220,14 @@ bbdoc: Return next file in a directory
 returns: File name of next file in directory opened using #ReadDir, or an empty string if there are no more files to read.
 End Rem
 Function NextFile:String(dir:Int)
-	' TODO
+	Return bmx_filesystem_nextfile(dir)
 End Function
 
 Rem
 bbdoc: Close a directory
 End Rem
 Function CloseDir(dir:Int)
-	' TODO
+	bmx_filesystem_closedir(dir)
 End Function
 
 Rem

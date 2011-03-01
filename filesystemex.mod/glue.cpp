@@ -29,8 +29,7 @@
 #include <sstream>
 #include <iostream>
 
-//#include "../boost.mod/src/libs/filesystem/src/utf8_codecvt_facet.cpp"
-
+class MaxDirectoryIterator;
 
 extern "C" {
 
@@ -53,9 +52,35 @@ extern "C" {
 	int bmx_filesystem_deletedir(BBString * path, int recurse);
 	int bmx_filesystem_changedir(BBString * path);
 	int bmx_filesystem_filetime(BBString * path);
-	BBArray * bmx_filesystem_loaddir(BBString * dir, int skip_dots);
+	BBArray * bmx_filesystem_loaddir(BBString * dir);
+	MaxDirectoryIterator * bmx_filesystem_readdir(BBString * path);
+	BBString * bmx_filesystem_nextfile(MaxDirectoryIterator * iter);
+	void bmx_filesystem_closedir(MaxDirectoryIterator * iter);
 
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class MaxDirectoryIterator
+{
+public:
+	MaxDirectoryIterator(boost::filesystem::path & path)
+		: iter(path)
+	{
+	}
+	
+	boost::filesystem::path NextFile() {
+		boost::filesystem::path p;
+		
+		if (iter != boost::filesystem::directory_iterator()) {
+			p = *iter++;
+		}
+		return p;
+	}
+
+private:
+	boost::filesystem::directory_iterator iter;
+};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -134,6 +159,7 @@ int bmx_filesystem_filetype(BBString * path) {
 }
 
 int bmx_filesystem_filemode(BBString * path) {
+	// TODO : implement if boost ever supports file permissions...
 	return 0;
 }
 
@@ -216,30 +242,51 @@ int bmx_filesystem_filetime(BBString * path) {
 	return last_write_time(p);
 }
 
-BBArray * bmx_filesystem_loaddir(BBString * dir, int skip_dots) {
+BBArray * bmx_filesystem_loaddir(BBString * dir) {
 	boost::filesystem::path p(bbStringToPath(dir));
 	std::vector<boost::filesystem::path> v;
 
-	copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
-	
-	
-	int n = v.size();
-	
-	if (n > 0) {
-		int i = 0;
+	if (boost::filesystem::exists(p)) {
+		copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
 		
-		BBArray *arr = bbArrayNew1D( "$",n );
-		BBString **s = (BBString**)BBARRAYDATA( arr, arr->dims );
-	
-		for (std::vector<boost::filesystem::path>::const_iterator it (v.begin()); it != v.end(); ++it) {
-			boost::filesystem::path path((*it).filename());
-			s[i] = bbStringFromPath( path );
-			BBRETAIN( s[i] );
-			i++;
+		
+		int n = v.size();
+		
+		if (n > 0) {
+			int i = 0;
+			
+			BBArray *arr = bbArrayNew1D( "$",n );
+			BBString **s = (BBString**)BBARRAYDATA( arr, arr->dims );
+		
+			for (std::vector<boost::filesystem::path>::const_iterator it (v.begin()); it != v.end(); ++it) {
+				boost::filesystem::path path((*it).filename());
+				s[i] = bbStringFromPath( path );
+				BBRETAIN( s[i] );
+				i++;
+			}
+			return arr;
 		}
-		return arr;
-	} else {
-		return &bbEmptyArray;
 	}
+	
+	return &bbEmptyArray;
+}
+
+MaxDirectoryIterator * bmx_filesystem_readdir(BBString * path) {
+	boost::filesystem::path p(bbStringToPath(path));
+	
+	if (boost::filesystem::exists(p)) {
+		return new MaxDirectoryIterator(p);
+	} else {
+		return 0;
+	}
+}
+
+BBString * bmx_filesystem_nextfile(MaxDirectoryIterator * iter) {
+	boost::filesystem::path p(iter->NextFile().filename());
+	return bbStringFromPath(p);
+}
+
+void bmx_filesystem_closedir(MaxDirectoryIterator * iter) {
+	delete iter;
 }
 
