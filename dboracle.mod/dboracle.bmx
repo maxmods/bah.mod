@@ -31,7 +31,7 @@ ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2008-2011 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (ocilib 3.8.1)"
+ModuleInfo "History: 1.00 Initial Release (ocilib 3.9.0)"
 
 
 ModuleInfo "CC_OPTS: -fexceptions -DOCI_CHARSET_MIXED"
@@ -194,7 +194,24 @@ Type TDBOracle Extends TDBConnection
 			Next
 			
 			cols.Clear()
-			
+
+Rem
+SELECT   table_name, column_name, data_type, data_type_mod, data_type_owner,
+         DECODE (data_type,
+                 'CHAR', char_length,
+                 'VARCHAR', char_length,
+                 'VARCHAR2', char_length,
+                 'NCHAR', char_length,
+                 'NVARCHAR', char_length,
+                 'NVARCHAR2', char_length,
+                 data_length
+                ) data_length,
+         data_precision, data_scale, nullable, char_used, USER owner
+    FROM SYS.user_tab_columns c
+   WHERE 1 = 1 AND table_name = 'THE TABLE NAME'
+ORDER BY table_name, column_id
+End Rem
+
 		End If
 
 		Return table

@@ -1,98 +1,111 @@
 ****************************************************************************
  
-                 OCILIB Copyright (c) 2007-2008 Vincent Rogier
-
-                           (WINDOWS PACKAGE)
+   +----------------------------------------------------------------------+   
+   |                                                                      |
+   |                     OCILIB - C Driver for Oracle                     |
+   |                                                                      |
+   |                      (C Wrapper for Oracle OCI)                      |
+   |                                                                      |
+   +----------------------------------------------------------------------+
+   |                                                                      |
+   |                     Website : http://www.ocilib.net                  |
+   |                                                                      |
+   +----------------------------------------------------------------------+
+   |                                                                      |
+   |               Copyright (c) 2007-2011 Vincent ROGIER                |
+   |                                                                      |
+   +----------------------------------------------------------------------+
+   |                                                                      |
+   |                              (GNU PACKAGE)                           |
+   |                                                                      |
+   +----------------------------------------------------------------------+   
 
 ****************************************************************************
 
 DESCRIPTION 
 ===========
 
-OCILIB is a ISO C encapsulation of the Oracle OCI API
+OCILIB is an open source and portable Oracle Driver that delivers really fast and reliable access to Oracle databases.
 
-This library encapsulates OCI complexity around a more simple, readable and reusable API.
+The OCILIB library :
+
+    * offers a rich, full featured and easy to use API
+    * runs on all Oracle platforms
+    * is written in pure ISO C code with native ISO C Unicode support
+    * encapsulates OCI (Oracle Call Interface)
+    * is the most complete available OCI wrapper
  
 VERSION 
 ========
 
-2.5.1
+see VERSION file.
 
 
 FEATURES 
 ========
    
- * - Data binding
- * - Integrated smart define and fetch mecanisms
- * - FULL Unicode support on all platorms
- * - Multi row fetching
- * - Binding array Interface for fast and massive bulk operations
- * - Reusable Statements
- * - Global Transactions
- * - Connection Pooling
- * - Returning DML feature support
- * - ROWIDs support
- * - Named Types (Object types) support (User or Builtin)
- * - Cursors
- * - PL/SQL Tables
- * - PL/SQL blocks
- * - PL/SQL Ref cursors and Nested tables
- * - LOB (BLOBs/ FILEs)
- * - Supports lobs > 4Go
- * - Long datatype (piecewise operations)
- * - Provides "All in one" Formatted functions (printf's like)
- * - Smallest memory usage possible
- * - Date/time management
- * - Timestamps and Intervals support 
- * - Error handling
- * - Describe database schema objects
- * - Access columns by index or name
- * - Hash tables API
- * - Portable Threads and mutexes API
- * - Supports static / shared oracle linkage
- * - Can be compile as a static lib or a shared lib
- * - Support runtime loading (no OCI libs required at compile / time)
- * - Great performances (straight OCI encapsulation)
+    * Full Ansi and Unicode support on all platforms (ISO C wide strings or UTF8 strings)
+    * Full 32/64 bits compatibility
+    * Comptabile with all Oracle version >= 8i
+    * Automatic adaptation to the runtime Oracle client version
+    * Runtime loading of Oracle libraries
+    * Builtin error handling (global and thread context)
+    * Full support for SQL API and Object API
+    * Full support for ALL Oracle SQL and PL/SQL datatypes (scalars, objects, refs, collections, ..)
+    * Full support for PL/SQL (blocks, cursors, Index by Tables and Nested tables)
+    * Support for non scalar datatype with trough library objects 
+    * Oracle Pooling (connections and sessions pools)
+    * Oracle XA connectivity (X/Open Distributed Transaction Processing XA interface)
+    * Oracle AQ (Advanded Queues)
+    * Oracle TAF (Transparent Application Failover) and HA (High availabality) support 
+    * Binding array Interface
+    * Returning DML feature
+    * Scrollable statements
+    * Statement cache
+    * Direct Path loading
+    * Remote Instances Startup/Shutdown
+    * Oracle Database Change notification / Continuous Query Notification
+    * Oracle warnings support
+    * Global and local transactions 
+    * Describe database schema objects
+    * Hash tables API
+    * Portable Threads and mutexes API
 
-DOWNLOAD
+DOWNLOAD 
 ========
 
-Available at Sourceforge.net:
+Available at :
 
 URL : http://orclib.sourceforge.net
 
 LICENSE
 =======
 
-The source code is free source code.
+see COPYING file.
 
-It's licensed under GNU LESSER GENERAL PUBLIC LICENSE (LGPL).
-
-(see the file lgpl-license.txt)
-
-COMPATIBILITY 
+COMPATIBILITY
 =============
 
 This current source is pure ISO C and should compile with any C90 Compliant compiler
 for ansi version and C99 for unicode versions.
  
- Validated Platforms : 
+ Validated Platforms (32/64bits): 
  
  - Windows 
  - UP/UX 
  - Linux 
  - Solaris 
- - AIX 
- - Mac OSX
- - OpenVMS
+ - AIX
+ - Mac OS X
+ - OpenvMS (full validation pending)
 
  Validated Compilers : 
 
  - GCC / MinGW
  - MS Compilers 
  - XLC  
- - CCs
- - LabView 
+ - CCs 
+ - LabView
 
  Validated Oracle versions : 
  
@@ -101,125 +114,113 @@ for ansi version and C99 for unicode versions.
  - Oracle 10g 
  - Oracle 11g 
 
+INSTALLATION AND LIBRARY BUILDS  
+===============================
 
-INSTALLATION (WINDOWS)
-============
+see INSTALL file for installation options.
 
-Precompiled OCILIB libraries are provided for Microsoft Windows :
+To install, use GNU install :
 
-     - ocilib\lib32 : 32bits binairies
-     - ocilib\lib64 : 64bits binairies
+>./configure
+>./make
+>./make install
 
-Two methods :
+you migth need to `su` to make install
 
-1/
-     - add the ocilib\src directory to your include's path
-     - add the ocilib\lib32|64 directory to your libraries path
-     - add the ocilib\lib32|64 directory to your windows path
+Make sure Oracle library path and the ocilib library path are defined in
+your shared library variable (LB_LIBRARY_PATH, LDPATH, SHLIB_PATH....)
 
-2/
-     - copy  ocilib\inc\ocilib.h to any place located in your include's path
-     - copy  ocilib\lib32|64\ocilib[x].lib to any place located in your libraries path
-     - copy  ocilib\lib32|64\ocilib[x].dll to any place located in your windows path
- 
-LIBRARY BUILDS (WINDOWS)
-==============
+Custom install options
 
-OCILIB supports 3 builds options :
+`--with-oracle-charset'
 
-1/ oracle import (linkage or runtime loading)
+     Specify charset uses with Oracle OCI libraries
+     Possible values are : ansi|wide|mixed
+     Default is : ansi
 
-On win32, the provided build were compiled using is runtime loading.
-If you want to import Oracle OCI at linkage time , you need to rebuild the libraries
+`--with-oracle-import'
 
-Defines :
+     Specify how OCILIB is importing Oracle OCI libraries
+     Possible values are : linkage|runtime
+     Default is : linkage
+     in runtime import mode, Oracle libraries and environnement are 
+     not checked during compilation time.
 
-     - OCI_IMPORT_LINKAGE for linkage at compile time
-     - OCI_IMPORT_RUNTIME for runtime loading
+`--with-oracle-home'
 
-if no import mode is set, the library sets the default to OCI_IMPORT_LINKAGE
+     Specify your Oracle home location.  (for regular Oracle client installation)
+     Default is $ORACLE_HOME
+     Only used if import mode is linkage
 
-2/ charset (ansi, unicode, mixed)
+`--with-oracle-headers-path'
 
-this pakcages provides 3 builds of OCILIB :
+     Specify your OCI public headers path (for Oracle Instant client)
+     Only used if import mode is linkage
 
-      - ociliba.dll (ANSI version)
-      - ocilibw.dll (UNICODE/UFT16/USC2/wchar_t version)
-      - ocilibm.dll (ANSI for meta data, UNICODE for user data - often used with Oracle 8i)     
+`--with-oracle-lib-path'
 
-Defines :
+     Specify your OCI shared library path (for Oracle Instant client)
+     this directory must contains the libclntsh library.
+     You might need to create a symbolic link without version number.
+     Only used if import mode is linkage
 
-     - OCI_CHARSET_ANSI for ansi
-     - OCI_CHARSET_UNICODE for unicode
-     - OCI_CHARSET_MIXED for third mixed mode (often used with Oracle 8i)
+`--with-custom-loader'
 
-if no charset mode is set, the library sets the default to OCI_CHARSET_ANSI 
-
-3/ calling convention
-
-On win32, the default calling convention is __sdtcall.
-So the OCILIB function using a variable number or parameters (OCI_xxxxFmt) won't work
-If you need them, modify the preprocessor options to change OCI_API to __cdecl and rebuild !
-
-Defines :
-
-     - OCI_API =  __sdtcall to link OCILIB to any langage independant module
-     - OCI_API = __cdecl (or no value) for C/C++ only !
-
-if no charset mode is set, the library sets the default to no value
+     Specify the linker the flag for adding support for loaders other than ld
+     Default value is '-ldl'.
+     Only used if import mode is runtime
 
 
-To reduild the libraries :
-
-      - open the dll project ocilib\proj\dll\ocilib_dll_vs200x.sln
-      - change preprocessors options in project settings
-      - do a batch build
-
-BUILD DEMO (WINDOWS) 
+BUILD DEMO
 ==========
 
-1/ run an already built demo
+copy demo.c and Makefile_demo from the folder $(OCILIB_PREFIX)/share/doc/ocilib/demo
 
-     - run ocilib_demo.exe located in ocilib\proj\test\Win32|64\release [build]
+(OCILIB_PREFIX is the installation lib folder - default is /usr/local)
 
-2/ build a demo
+to any of our full access directory and then compile :
 
-     - open the test project ocilib\proj\test\ocilib_demo_vs200x.sln
-     - choose an configuration
-     - build
+>make -f Makefile_demo
 
-MAKE ANY PROGRAM WITH OCILIB (WINDOWS)
+MAKE ANY PROGRAM WITH OCILIB
 ============================
 
-1/ use the libraries
+Add the following to your makefile
 
-     - add ocilib[x].lib to your linking options (linker option or by a pragma - see demo source code)
-     - add OCI_API macro definition to your preprocessor options (usually __stdcall)
+1/ define charset
 
-2/ link source code
+add -DOCI_CHARSET_xxxx  to your CFLAGS
 
-     - add ocilib.c to your project and defines 3 build options
+where xxxx can be : ANSI | WIDE | MIXED
 
-FEED BACK, BUG REPORTS 
+2 / link OCILIB library
+
+add -L$(OCILIB_PREFIX)/lib -locilib to your LDFLAGS
+
+where OCILIB_PREFIX is the installation lib folder - default is /usr/local
+
+2 / link Oracle library (if import mode = linkage which is default)
+
+add -L$(ORACLE_HOME)/lib -lclntsh to your LDFLAGS
+
+
+FEED BACK, BUG REPORTS
 ======================
 
-URL : http://sourceforge.net/projects/orclib
+URL : http://orclib.sourceforge.net
 
-DOCUMENTATION (WIN32)
+DOCUMENTATION
 =============
 
-Included in the archive  : ocilib\doc\html folder (index.html)
+Included in the library archive, it's installed in $(OCILIB_PREFIX)/share/doc/ocilib/html/
 
-Online URL : http://orclib.sourceforge.net/doc/index.html
+Online : http://orclib.sourceforge.net/doc/html
 
 USE OF OCILIB
 =============
 
 Please, Let me know about projects using OCILIB.
 
-Send me a mail at <vince.rogier@gmail.com> with a brief description of your project
+Send me a mail at <vince.rogier@ocilib.net> with a brief description of your project
 
 Thanks.
-
-
-
