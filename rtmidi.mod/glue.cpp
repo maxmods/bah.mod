@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2010 Bruce A Henderson
+ Copyright (c) 2010-2011 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ extern "C" {
 }
 
 void bmx_rtmidi_throw(RtError &error) {
-	bbExThrow(_bah_rtmidi_TRtError__create(bbStringFromCString(error.getMessageString()), (int)error.getType()));
+	bbExThrow(_bah_rtmidi_TRtError__create(bbStringFromCString(error.what()), (int)error.getType()));
 }
 
 RtMidiIn * bmx_rtmidiin_create(BBString * clientName) {
