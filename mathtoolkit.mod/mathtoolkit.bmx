@@ -35,13 +35,15 @@ ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.02"
-ModuleInfo "History: Update to Boost 1.45"
+ModuleInfo "History: Update to Boost 1.46"
+ModuleInfo "History: Added TInverseChiSquaredDistribution and TInverseGammaDistribution."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Changed Location() to Scale() in Pareto Distribution."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
 ModuleInfo "CC_OPTS: -fexceptions"
+'ModuleInfo "CC_OPTS: -traditional"
 
 
 Import "common.bmx"
@@ -1587,6 +1589,126 @@ Type TChiSquaredDistribution Extends TDistribution
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_chi_squared_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TInverseChiSquaredDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom.
+	about: Requires @v &gt; 0, otherwise throws TDomainException. 
+	End Rem
+	Function CreateInverseChiSquared:TInverseChiSquaredDistribution(v:Double)
+		Return New TInverseChiSquaredDistribution.Create(v)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom.
+	about: Requires @v &gt; 0, otherwise throws TDomainException. 
+	End Rem
+	Method Create:TInverseChiSquaredDistribution(v:Double)
+		objectPtr = bmx_boost_math_inverse_chi_squared_distribution_create(v)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom.
+	about: Requires @v &gt; 0, otherwise throws TDomainException. 
+	End Rem
+	Function CreateScaledInverseChiSquared:TInverseChiSquaredDistribution(v:Double, scale:Double = 0)
+		Return New TInverseChiSquaredDistribution.CreateScaled(v, scale)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom.
+	about: Requires @v &gt; 0, otherwise throws TDomainException. 
+	End Rem
+	Method CreateScaled:TInverseChiSquaredDistribution(v:Double, scale:Double = 0)
+		objectPtr = bmx_boost_math_inverse_scaled_chi_squared_distribution_create(v, scale)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the parameter @v from which this object was constructed.
+	End Rem
+	Method DegreesOfFreedom:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_degreesoffreedom(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_inverse_chi_squared_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_inverse_chi_squared_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_inverse_chi_squared_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_inverse_chi_squared_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_inverse_chi_squared_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_inverse_chi_squared_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_inverse_chi_squared_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_inverse_chi_squared_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_inverse_chi_squared_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_inverse_chi_squared_distribution_free(objectPtr)
 			objectPtr = Null
 		End If
 	End Method
@@ -4167,6 +4289,139 @@ Type TGammaDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: An inverse gamma distribution.
+about: This distribution is a continuous probability distribution of the reciprocal of a variable distributed according to the gamma distribution.
+<p>
+The inverse gamma distribution is used in Bayesian statistics. 
+</p>
+<p>
+For shape parameter &#945; and scale parameter &#946;, it is defined by the probability density function (PDF):
+</p>
+<p>
+&#8192;&#8192; f(x;&#945;, &#946;) = &#946;<sup>&#945;</sup> * (1/x) <sup>&#945;+1</sup> exp(-&#946;/x) / &#915;(&#945;)
+</p>
+<p>
+and cumulative density function (CDF)
+</p>
+<p>
+&#8192;&#8192; F(x;&#945;, &#946;) = &#915;(&#945;, &#946;/x) / &#915;(&#945;)
+</p>
+<p>
+The following graphs illustrate how the PDF and CDF of the inverse gamma distribution varies as the parameters vary: 
+</p>
+<p>
+<img src="inverse_gamma_pdf.png" align="middle">
+</p>
+<p>
+<img src="inverse_gamma_cdf.png" align="middle">
+</p>
+End Rem
+Type TInverseGammaDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Constructs an inverse gamma distribution with shape @shape and scale @scale.
+	about: Requires that the shape and scale parameters are greater than zero, otherwise throws TDomainException.
+	End Rem
+	Function CreateInverseGamma:TInverseGammaDistribution(shape:Double, scale:Double = 1)
+		Return New TInverseGammaDistribution.Create(shape, scale)
+	End Function
+	
+	Rem
+	bbdoc: Constructs a inverse gamma distribution with shape @shape and scale @scale.
+	about: Requires that the shape and scale parameters are greater than zero, otherwise throws TDomainException.
+	End Rem
+	Method Create:TInverseGammaDistribution(shape:Double, scale:Double = 1)
+		objectPtr = bmx_boost_math_inverse_gamma_distribution_create(shape, scale)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the @shape parameter of this distribution.
+	End Rem
+	Method Shape:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_shape(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the @scale parameter of this distribution.
+	End Rem
+	Method Scale:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_scale(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_inverse_gamma_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_inverse_gamma_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_inverse_gamma_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_inverse_gamma_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_inverse_gamma_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_inverse_gamma_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_inverse_gamma_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_inverse_gamma_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_inverse_gamma_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_inverse_gamma_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
 
 
 

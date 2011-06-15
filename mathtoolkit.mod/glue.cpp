@@ -38,6 +38,7 @@
 #include <boost/math/distributions/beta.hpp>
 #include <boost/math/distributions/cauchy.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
+#include <boost/math/distributions/inverse_chi_squared.hpp>
 #include <boost/math/distributions/exponential.hpp>
 #include <boost/math/distributions/extreme_value.hpp>
 #include <boost/math/distributions/normal.hpp>
@@ -56,6 +57,7 @@
 #include <boost/math/distributions/triangular.hpp>
 #include <boost/math/distributions/uniform.hpp>
 #include <boost/math/distributions/gamma.hpp>
+#include <boost/math/distributions/inverse_gamma.hpp>
 
 extern "C" {
 
@@ -204,6 +206,27 @@ extern "C" {
 	double bmx_boost_math_chi_squared_distribution_variance(boost::math::chi_squared_distribution<double> * dist);
 	double bmx_boost_math_chi_squared_distribution_kurtosis(boost::math::chi_squared_distribution<double> * dist);
 	double bmx_boost_math_chi_squared_distribution_kurtosisexcess(boost::math::chi_squared_distribution<double> * dist);
+
+	boost::math::inverse_chi_squared_distribution<double> * bmx_boost_math_inverse_chi_squared_distribution_create(double i);
+	boost::math::inverse_chi_squared_distribution<double> * bmx_boost_math_inverse_scaled_chi_squared_distribution_create(double i, double scale);
+	double bmx_boost_math_inverse_chi_squared_distribution_degreesoffreedom(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_mean(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_mode(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_standarddeviation(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_skewness(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_pdf(boost::math::inverse_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_chi_squared_distribution_cdf(boost::math::inverse_chi_squared_distribution<double> * dist, double k);
+	void bmx_boost_math_inverse_chi_squared_distribution_free(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_quantile(boost::math::inverse_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_chi_squared_distribution_cdfcomplement(boost::math::inverse_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_chi_squared_distribution_quantilecomplement(boost::math::inverse_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_chi_squared_distribution_hazard(boost::math::inverse_chi_squared_distribution<double> * dist, double x);
+	double bmx_boost_math_inverse_chi_squared_distribution_chf(boost::math::inverse_chi_squared_distribution<double> * dist, double x);
+	double bmx_boost_math_inverse_chi_squared_distribution_median(boost::math::inverse_chi_squared_distribution<double> * dist);
+	void bmx_boost_math_inverse_chi_squared_distribution_range(boost::math::inverse_chi_squared_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_inverse_chi_squared_distribution_variance(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_kurtosis(boost::math::inverse_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_inverse_chi_squared_distribution_kurtosisexcess(boost::math::inverse_chi_squared_distribution<double> * dist);
 
 	
 	boost::math::exponential_distribution<double> * bmx_boost_math_exponential_distribution_create(double lambda);
@@ -592,6 +615,27 @@ extern "C" {
 	double bmx_boost_math_gamma_distribution_variance(boost::math::gamma_distribution<double> * dist);
 	double bmx_boost_math_gamma_distribution_kurtosis(boost::math::gamma_distribution<double> * dist);
 	double bmx_boost_math_gamma_distribution_kurtosisexcess(boost::math::gamma_distribution<double> * dist);
+
+	boost::math::inverse_gamma_distribution<double> * bmx_boost_math_inverse_gamma_distribution_create(double shape, double scale);
+	double bmx_boost_math_inverse_gamma_distribution_shape(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_scale(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_mean(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_mode(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_standarddeviation(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_skewness(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_pdf(boost::math::inverse_gamma_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_gamma_distribution_cdf(boost::math::inverse_gamma_distribution<double> * dist, double k);
+	void bmx_boost_math_inverse_gamma_distribution_free(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_quantile(boost::math::inverse_gamma_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_gamma_distribution_cdfcomplement(boost::math::inverse_gamma_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_gamma_distribution_quantilecomplement(boost::math::inverse_gamma_distribution<double> * dist, double k);
+	double bmx_boost_math_inverse_gamma_distribution_hazard(boost::math::inverse_gamma_distribution<double> * dist, double x);
+	double bmx_boost_math_inverse_gamma_distribution_chf(boost::math::inverse_gamma_distribution<double> * dist, double x);
+	double bmx_boost_math_inverse_gamma_distribution_median(boost::math::inverse_gamma_distribution<double> * dist);
+	void bmx_boost_math_inverse_gamma_distribution_range(boost::math::inverse_gamma_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_inverse_gamma_distribution_variance(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_kurtosis(boost::math::inverse_gamma_distribution<double> * dist);
+	double bmx_boost_math_inverse_gamma_distribution_kurtosisexcess(boost::math::inverse_gamma_distribution<double> * dist);
 
 }
 
@@ -1462,6 +1506,166 @@ double bmx_boost_math_chi_squared_distribution_kurtosis(boost::math::chi_squared
 }
 
 double bmx_boost_math_chi_squared_distribution_kurtosisexcess(boost::math::chi_squared_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
+
+boost::math::inverse_chi_squared_distribution<double> * bmx_boost_math_inverse_chi_squared_distribution_create(double i) {
+	try {
+		return new boost::math::inverse_chi_squared_distribution<double>(i);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+boost::math::inverse_chi_squared_distribution<double> * bmx_boost_math_inverse_scaled_chi_squared_distribution_create(double i, double scale) {
+	try {
+		if (scale == 0.0f) {
+			return new boost::math::inverse_chi_squared_distribution<double>(i);
+		} else {
+			return new boost::math::inverse_chi_squared_distribution<double>(i, scale);
+		}
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_degreesoffreedom(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	return dist->degrees_of_freedom();
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_mean(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_mode(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_standarddeviation(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_skewness(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_pdf(boost::math::inverse_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_cdf(boost::math::inverse_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_inverse_chi_squared_distribution_free(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_quantile(boost::math::inverse_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_cdfcomplement(boost::math::inverse_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_quantilecomplement(boost::math::inverse_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_hazard(boost::math::inverse_chi_squared_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_chf(boost::math::inverse_chi_squared_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_median(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_inverse_chi_squared_distribution_range(boost::math::inverse_chi_squared_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_variance(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_kurtosis(boost::math::inverse_chi_squared_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_chi_squared_distribution_kurtosisexcess(boost::math::inverse_chi_squared_distribution<double> * dist) {
 	try {
 		return kurtosis_excess(*dist);
 	} catch(...) {
@@ -4188,6 +4392,159 @@ double bmx_boost_math_gamma_distribution_kurtosisexcess(boost::math::gamma_distr
 
 
 // ************************************************
+
+
+boost::math::inverse_gamma_distribution<double> * bmx_boost_math_inverse_gamma_distribution_create(double shape, double scale) {
+	try {
+		return new boost::math::inverse_gamma_distribution<double>(shape, scale);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_shape(boost::math::inverse_gamma_distribution<double> * dist) {
+	return dist->shape();
+}
+
+double bmx_boost_math_inverse_gamma_distribution_scale(boost::math::inverse_gamma_distribution<double> * dist) {
+	return dist->scale();
+}
+
+double bmx_boost_math_inverse_gamma_distribution_mean(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_mode(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_standarddeviation(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_skewness(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_pdf(boost::math::inverse_gamma_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_cdf(boost::math::inverse_gamma_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_inverse_gamma_distribution_free(boost::math::inverse_gamma_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_inverse_gamma_distribution_quantile(boost::math::inverse_gamma_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_cdfcomplement(boost::math::inverse_gamma_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_quantilecomplement(boost::math::inverse_gamma_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_hazard(boost::math::inverse_gamma_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_chf(boost::math::inverse_gamma_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_median(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_inverse_gamma_distribution_range(boost::math::inverse_gamma_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_inverse_gamma_distribution_variance(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_kurtosis(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_inverse_gamma_distribution_kurtosisexcess(boost::math::inverse_gamma_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
 
 
 
