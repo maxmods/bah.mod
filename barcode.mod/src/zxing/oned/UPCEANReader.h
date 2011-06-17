@@ -34,8 +34,10 @@ namespace zxing {
 		class UPCEANReader : public OneDReader {
 
 		private:
-			static const unsigned int MAX_AVG_VARIANCE = (unsigned int) (PATTERN_MATCH_RESULT_SCALE_FACTOR * 0.42f);
-			static const int MAX_INDIVIDUAL_VARIANCE = (int) (PATTERN_MATCH_RESULT_SCALE_FACTOR * 0.7f);
+			//static const unsigned int MAX_AVG_VARIANCE = (unsigned int) (PATTERN_MATCH_RESULT_SCALE_FACTOR * 0.42f);
+      enum {MAX_AVG_VARIANCE = (unsigned int) (PATTERN_MATCH_RESULT_SCALE_FACTOR * 0.42f)};
+			//static const int MAX_INDIVIDUAL_VARIANCE = (int) (PATTERN_MATCH_RESULT_SCALE_FACTOR * 0.7f);
+      enum {MAX_INDIVIDUAL_VARIANCE = (int) (PATTERN_MATCH_RESULT_SCALE_FACTOR * 0.7f)};
 
 			static bool findStartGuardPattern(Ref<BitArray> row, int* rangeStart, int* rangeEnd);
 
@@ -46,7 +48,7 @@ namespace zxing {
 			static bool findGuardPattern(Ref<BitArray> row, int rowOffset, bool whiteFirst,
 			    const int pattern[], int patternLen, int* start, int* end);
 
-			virtual const int getMIDDLE_PATTERN_LEN();
+			virtual int getMIDDLE_PATTERN_LEN();
 			virtual const int* getMIDDLE_PATTERN();
 
 		public:

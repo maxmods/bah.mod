@@ -1,4 +1,4 @@
-' Copyright 2010 Bruce A Henderson
+' Copyright 2010-2011 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ bbdoc: Barcode Reader
 End Rem
 Module BaH.Barcode
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: ZXing - 2010 ZXing authors All rights reserved"
-ModuleInfo "Copyright: Wrapper - 2010 Bruce A Henderson"
+ModuleInfo "Copyright: ZXing - 2011 ZXing authors All rights reserved"
+ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to ZXIng 1.7."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (ZXing - SVN rev 1633)"
 
