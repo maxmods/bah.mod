@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -144,7 +144,7 @@ Extern
 	Function FMOD_System_Get3DSettings:Int(handle:Byte Ptr, dopplerScale:Float Ptr, distanceFactor:Float Ptr, rollOffScale:Float Ptr)
 	Function FMOD_System_Get3DSpeakerPosition:Int(handle:Byte Ptr, speaker:Int, x:Float Ptr, y:Float Ptr, active:Int Ptr)
 	Function FMOD_System_GetCPUUsage:Int(handle:Byte Ptr, dsp:Float Ptr, stream:Float Ptr, geometry:Float Ptr, update:Float Ptr, total:Float Ptr)
-	Function FMOD_System_GetHardwareChannels:Int(handle:Byte Ptr, num2D:Int Ptr, num3D:Int Ptr, total:Int Ptr)
+	Function FMOD_System_GetHardwareChannels:Int(handle:Byte Ptr,numHardwareChannels:Int Ptr)
 	Function FMOD_System_GetVersion:Int(handle:Byte Ptr, version:Int Ptr)
 	Function FMOD_System_GetNumCDROMDrives:Int(handle:Byte Ptr, numDrives:Int Ptr)
 	Function FMOD_System_GetSoundRAM:Int(handle:Byte Ptr, currentAlloced:Int Ptr, maxAlloced:Int Ptr, total:Int Ptr)
@@ -169,12 +169,12 @@ Extern
 	Function FMOD_System_GetDSPBufferSize:Int(handle:Byte Ptr, bufferLength:Int Ptr, numBuffers:Int Ptr)
 	Function FMOD_System_GetDSPClock:Int(handle:Byte Ptr, hi:Int Ptr, lo:Int Ptr)
 	Function FMOD_System_GetDriver:Int(handle:Byte Ptr, driver:Int Ptr)
-	Function FMOD_System_GetDriverCaps:Int(handle:Byte Ptr, id:Int, caps:Int Ptr, minFrequency:Int Ptr, maxFrequency:Int Ptr, controlPanelSpeakerMode:Int Ptr)
+	Function FMOD_System_GetDriverCaps:Int(handle:Byte Ptr, id:Int, caps:Int Ptr, controlpanelOutputRate:Int Ptr, controlPanelSpeakerMode:Int Ptr)
 	Function FMOD_System_GetGeometrySettings:Int(handle:Byte Ptr, maxWorldSize:Float Ptr)
 	Function FMOD_System_SetDSPBufferSize:Int(handle:Byte Ptr, bufferLength:Int, numBuffers:Int)
 	Function FMOD_System_SetDriver:Int(handle:Byte Ptr, driver:Int)
 	Function FMOD_System_SetGeometrySettings:Int(handle:Byte Ptr, maxWorldSize:Float)
-	Function FMOD_System_SetHardwareChannels:Int(handle:Byte Ptr, min2d:Int, max2d:Int, min3d:Int, max3d:Int)
+	Function FMOD_System_SetHardwareChannels:Int(handle:Byte Ptr, numHardwareChannels:Int)
 	Function FMOD_System_SetNetworkProxy:Int(handle:Byte Ptr, s:Byte Ptr)
 	Function FMOD_System_SetNetworkTimeout:Int(handle:Byte Ptr, timeout:Int)
 	Function FMOD_System_SetOutput:Int(handle:Byte Ptr, output:Int)
@@ -209,7 +209,7 @@ Extern
 	Function FMOD_Sound_GetFormat:Int(handle:Byte Ptr, soundType:Int Ptr, soundFormat:Int Ptr, channels:Int Ptr, bits:Int Ptr)
 	Function FMOD_Sound_GetNumSubSounds:Int(handle:Byte Ptr, numSubSounds:Int Ptr)
 	Function FMOD_Sound_GetNumTags:Int(handle:Byte Ptr, numTags:Int Ptr, numTagsUpdated:Int Ptr)
-	Function FMOD_Sound_GetOpenState:Int(handle:Byte Ptr, openState:Int Ptr, percentBuffered:Int Ptr, starving:Int Ptr)
+	Function FMOD_Sound_GetOpenState:Int(handle:Byte Ptr, openState:Int Ptr, percentBuffered:Int Ptr, starving:Int Ptr, diskBusy:Int Ptr)
 	Function FMOD_Sound_GetName:Int(handle:Byte Ptr, vstr:Byte Ptr, length:Int)
 	Function FMOD_Sound_SetSubSound:Int(handle:Byte Ptr, index:Int, subsound:Byte Ptr)
 		
@@ -497,7 +497,7 @@ Extern
 		Field RoomRolloffFactor:Float
 		Field AirAbsorptionFactor:Float
 		Field Flags:Int
-End Type
+	End Type
 	
 End Extern
 
@@ -1870,3 +1870,49 @@ End Rem
 Const FMOD_DSP_FFT_WINDOW_MAX:Int = 6
 Const FMOD_DSP_FFT_WINDOW_FORCEINT:Int = 65536
 
+Rem
+bbdoc: There is no specific speakermode.
+about: Sound channels are mapped in order of input to output. 
+Use System::setSoftwareFormat to specify speaker count. See remarks for more information. 
+End Rem
+Const FMOD_SPEAKERMODE_RAW:Int = 0
+Rem
+bbdoc: The speakers are monaural. 
+End Rem
+Const FMOD_SPEAKERMODE_MONO:Int = 1
+Rem
+bbdoc: The speakers are stereo (DEFAULT). 
+End Rem
+Const FMOD_SPEAKERMODE_STEREO:Int = 2
+Rem
+bbdoc: 4 speaker setup.
+about: This includes front left, front right, rear left, rear right.  
+End Rem
+Const FMOD_SPEAKERMODE_QUAD:Int = 3
+Rem
+bbdoc: 5 speaker setup.
+about: This includes front left, front right, center, rear left, rear right. 
+End Rem
+Const FMOD_SPEAKERMODE_SURROUND:Int = 4
+Rem
+bbdoc: 5.1 speaker setup.
+about: This includes front left, front right, center, rear left, rear right and a subwoofer. 
+End Rem
+Const FMOD_SPEAKERMODE_5POINT1:Int = 5
+Rem
+bbdoc: 7.1 speaker setup.
+about: This includes front left, front right, center, rear left, rear right, side left, side right and a subwoofer. 
+End Rem
+Const FMOD_SPEAKERMODE_7POINT1:Int = 6
+Rem
+bbdoc: Stereo output, but data is encoded to be played on a Prologic 2 / CircleSurround decoder in 5.1 via an analog connection.  See remarks about limitations. 
+End Rem
+Const FMOD_SPEAKERMODE_PROLOGIC:Int = 7
+Rem
+bbdoc: Stereo output, but data is encoded using personalized HRTF algorithms.  See myears.net.au 
+End Rem
+Const FMOD_SPEAKERMODE_MYEARS:Int = 8
+Rem
+bbdoc: Maximum number of speaker modes supported. 
+End Rem
+Const FMOD_SPEAKERMODE_MAX:Int = 9

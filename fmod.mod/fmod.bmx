@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ Module BaH.FMOD
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FMOD - See http://www.fmod.org"
-ModuleInfo "Copyright: Wrapper - 2008-2010 Bruce A Henderson"
-ModuleInfo "Copyright: FMOD - 2004-2008 Firelight Technologies, Pty, Ltd"
+ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
+ModuleInfo "Copyright: FMOD - 2004-2010 Firelight Technologies, Pty, Ltd"
 
 
 ?win32
@@ -585,8 +585,8 @@ Type TFMODSystem
 	Rem
 	bbdoc: Returns information on capabilities of the current output mode for the selected sound device.
 	End Rem
-	Method GetDriverCaps:Int(id:Int, caps:Int Var, minFrequency:Int Var, maxFrequency:Int Var, controlPanelSpeakerMode:Int Var)
-		Return FMOD_System_GetDriverCaps(systemPtr, id, Varptr caps, Varptr minFrequency, Varptr maxFrequency, Varptr controlPanelSpeakerMode)
+	Method GetDriverCaps:Int(id:Int, caps:Int Var, controlpanelOutputRate:Int Var, controlPanelSpeakerMode:Int Var)
+		Return FMOD_System_GetDriverCaps(systemPtr, id, Varptr caps, Varptr controlpanelOutputRate, Varptr controlPanelSpeakerMode)
 	End Method
 	
 	'Method GetDriverInfo()
@@ -602,8 +602,8 @@ Type TFMODSystem
 	Rem
 	bbdoc: Returns the number of available hardware mixed 2d and 3d channels.  
 	End Rem
-	Method GetHardwareChannels:Int(num2D:Int Var, num3D:Int Var, total:Int Var)
-		Return FMOD_System_GetHardwareChannels(systemPtr, Varptr num2D, Varptr num3D, Varptr total)
+	Method GetHardwareChannels:Int(numHardwareChannels:Int Var)
+		Return FMOD_System_GetHardwareChannels(systemPtr, Varptr numHardwareChannels)
 	End Method
 	
 	Rem
@@ -881,8 +881,8 @@ Type TFMODSystem
 	Rem
 	bbdoc: Allows the user to request a minimum number of hardware voices to be present on the soundcard to allow hardware 3D sound acceleration, or clamp the number of hardware 3D voices to a maximum value.
 	End Rem
-	Method SetHardwareChannels:Int(min2d:Int, max2d:Int, min3d:Int, max3d:Int)
-		Return FMOD_System_SetHardwareChannels(systemPtr, min2d, max2d, min3d, max3d)
+	Method SetHardwareChannels:Int(numHardwareChannels:Int)
+		Return FMOD_System_SetHardwareChannels(systemPtr, numHardwareChannels)
 	End Method
 	
 	Rem
@@ -1217,8 +1217,8 @@ Type TFMODSound
 	starving any more. 
 	</p>
 	End Rem
-	Method GetOpenState:Int(openState:Int Var, percentBuffered:Int Var, starving:Int Var)
-		Return FMOD_Sound_GetOpenState(soundPtr, Varptr openState, Varptr percentBuffered, Varptr starving)
+	Method GetOpenState:Int(openState:Int Var, percentBuffered:Int Var, starving:Int Var, diskBusy:Int Var)
+		Return FMOD_Sound_GetOpenState(soundPtr, Varptr openState, Varptr percentBuffered, Varptr starving, Varptr diskBusy)
 	End Method
 	
 	Rem

@@ -1,7 +1,6 @@
-/*$ preserve start $*/
 
 /* ============================================================================================== */
-/* FMOD Ex - Error string header file. Copyright (c), Firelight Technologies Pty, Ltd. 2004-2009. */
+/* FMOD Ex - Error string header file. Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011. */
 /*                                                                                                */
 /* Use this header if you want to store or display a string version / english explanation of      */
 /* the FMOD error codes.                                                                          */
@@ -21,7 +20,6 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
 {
     switch (errcode)
     {
-/*$ preserve end $*/
         case FMOD_ERR_ALREADYLOCKED:          return "Tried to call lock a second time before unlock was called. ";
         case FMOD_ERR_BADCOMMAND:             return "Tried to call a function on a data type that does not allow this type of functionality (ie calling Sound::lock on a streaming sound). ";
         case FMOD_ERR_CDDA_DRIVERS:           return "Neither NTSCSI nor ASPI could be initialised. ";
@@ -73,17 +71,16 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
         case FMOD_ERR_INVALID_SPEAKER:        return "An invalid speaker was passed to this function based on the current speaker mode. ";
         case FMOD_ERR_INVALID_SYNCPOINT:      return "The syncpoint did not come from this sound handle. ";
         case FMOD_ERR_INVALID_VECTOR:         return "The vectors passed in are not unit length, or perpendicular. ";
-        case FMOD_ERR_IRX:                    return "PS2 only.  fmodex.irx failed to initialize.  This is most likely because you forgot to load it. ";
         case FMOD_ERR_MAXAUDIBLE:             return "Reached maximum audible playback count for this sound's soundgroup. ";
         case FMOD_ERR_MEMORY:                 return "Not enough memory or resources. ";
         case FMOD_ERR_MEMORY_CANTPOINT:       return "Can't use FMOD_OPENMEMORY_POINT on non PCM source data, or non mp3/xma/adpcm data if FMOD_CREATECOMPRESSEDSAMPLE was used. ";
-        case FMOD_ERR_MEMORY_IOP:             return "PS2 only.  Not enough memory or resources on PlayStation 2 IOP ram. ";
         case FMOD_ERR_MEMORY_SRAM:            return "Not enough memory or resources on console sound ram. ";
+        case FMOD_ERR_MUSIC_NOCALLBACK:       return "The music callback is required, but it has not been set. ";
         case FMOD_ERR_MUSIC_NOTFOUND:         return "The requested music entity could not be found. ";
         case FMOD_ERR_MUSIC_UNINITIALIZED:    return "Music system is not initialized probably because no music data is loaded. ";
         case FMOD_ERR_NEEDS2D:                return "Tried to call a command on a 3d sound when the command was meant for 2d sound. ";
         case FMOD_ERR_NEEDS3D:                return "Tried to call a command on a 2d sound when the command was meant for 3d sound. ";
-        case FMOD_ERR_NEEDSHARDWARE:          return "Tried to use a feature that requires hardware support.  (ie trying to play a VAG compressed sound in software on PS2). ";
+        case FMOD_ERR_NEEDSHARDWARE:          return "Tried to use a feature that requires hardware support.  (ie trying to play a GCADPCM compressed sound in software on Wii). ";
         case FMOD_ERR_NEEDSSOFTWARE:          return "Tried to use a feature that requires the software engine.  Software engine has either been turned off, or command was executed on a hardware channel which does not support this feature. ";
         case FMOD_ERR_NET_CONNECT:            return "Couldn't connect to the specified host. ";
         case FMOD_ERR_NET_SOCKET_ERROR:       return "A socket error occurred.  This is a catch-all for socket-related errors not listed elsewhere. ";
@@ -106,8 +103,8 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
         case FMOD_ERR_PRELOADED:              return "The specified sound is still in use by the event system, call EventSystem::unloadFSB before trying to release it. ";
         case FMOD_ERR_PROGRAMMERSOUND:        return "The specified sound is still in use by the event system, wait for the event which is using it finish with it. ";
         case FMOD_ERR_RECORD:                 return "An error occured trying to initialize the recording device. ";
-        case FMOD_ERR_REVERB_INSTANCE:        return "Specified Instance in FMOD_REVERB_PROPERTIES couldn't be set. Most likely because it is an invalid instance number, or another application has locked the EAX4 FX slot. ";
-        case FMOD_ERR_SUBSOUNDS:              return "The error occured because the sound referenced contains subsounds.  The operation cannot be performed on a parent sound, or a parent sound was played without setting up a sentence first. ";
+        case FMOD_ERR_REVERB_INSTANCE:        return "Specified instance in FMOD_REVERB_PROPERTIES couldn't be set. Most likely because it is an invalid instance number or the reverb doesnt exist. ";
+        case FMOD_ERR_SUBSOUNDS:              return "The error occured because the sound referenced contains subsounds when it shouldn't have, or it doesn't contain subsounds when it should have.  The operation may also not be able to be performed on a parent sound, or a parent sound was played without setting up a sentence first. ";
         case FMOD_ERR_SUBSOUND_ALLOCATED:     return "This subsound is already being used by another sound, you cannot have more than one parent to a sound.  Null out the other parent's entry first. ";
         case FMOD_ERR_SUBSOUND_CANTMOVE:      return "Shared subsounds cannot be replaced or moved from their parent stream, such as when the parent stream is an FSB file. ";
         case FMOD_ERR_SUBSOUND_MODE:          return "The subsound's mode bits do not match with the parent sound's mode bits.  See documentation for function that it was called with. ";
@@ -120,9 +117,7 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
         case FMOD_ERR_VERSION:                return "The version number of this file format is not supported. ";
         case FMOD_OK:                         return "No errors.";
         default :                             return "Unknown error.";
-/*$ preserve start $*/
     };
 }
 
 #endif
-/*$ preserve end $*/
