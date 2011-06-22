@@ -85,12 +85,13 @@ ScrollablePane::ScrollablePane(const String& type, const String& name) :
             d_name + ScrolledContainerNameSuffix));
 
     // add scrolled container widget as child
-    addChild(container);
+    addChildWindow(container);
 }
 
 //----------------------------------------------------------------------------//
 ScrollablePane::~ScrollablePane(void)
-{}
+{
+}
 
 //----------------------------------------------------------------------------//
 const ScrolledContainer* ScrollablePane::getContentPane(void) const
@@ -455,7 +456,7 @@ void ScrollablePane::addChild_impl(Window* wnd)
     {
         // container should always be valid by the time we're adding client
         // controls
-        getScrolledContainer()->addChild(wnd);
+        getScrolledContainer()->addChildWindow(wnd);
     }
 }
 
@@ -478,7 +479,7 @@ void ScrollablePane::removeChild_impl(Window* wnd)
     {
         // container should always be valid by the time we're handling client
         // controls
-        getScrolledContainer()->removeChild(wnd);
+        getScrolledContainer()->removeChildWindow(wnd);
     }
 }
 

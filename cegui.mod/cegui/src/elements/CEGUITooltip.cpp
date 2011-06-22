@@ -94,7 +94,7 @@ namespace CEGUI
         Rect tipRect(getUnclippedOuterRect());
         const Image* mouseImage = cursor.getImage();
 
-        Vector2 mousePos(cursor.getPosition());
+        Point mousePos(cursor.getPosition());
         Size mouseSz(0,0);
 
         if (mouseImage)
@@ -102,7 +102,7 @@ namespace CEGUI
             mouseSz = mouseImage->getSize();
         }
 
-        Vector2 tmpPos(mousePos.d_x + mouseSz.d_width, mousePos.d_y + mouseSz.d_height);
+        Point tmpPos(mousePos.d_x + mouseSz.d_width, mousePos.d_y + mouseSz.d_height);
         tipRect.setPosition(tmpPos);
 
         // if tooltip would be off the right of the screen,
@@ -146,7 +146,7 @@ namespace CEGUI
         {
             if (d_target != wnd)
             {
-                System::getSingleton().getGUISheet()->addChild(this);
+                System::getSingleton().getGUISheet()->addChildWindow(this);
                 d_target = wnd;
             }
 
@@ -326,7 +326,7 @@ namespace CEGUI
         d_elapsed = 0;
 
         if (d_parent)
-            d_parent->removeChild(this);
+            d_parent->removeChildWindow(this);
 
         // fire event before target gets reset in case that information is required in handler.
         WindowEventArgs args(this);

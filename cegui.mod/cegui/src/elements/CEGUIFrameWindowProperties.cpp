@@ -43,85 +43,85 @@ namespace FrameWindowProperties
 {
 String	SizingEnabled::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const FrameWindow*>(receiver)->isSizingEnabled());
+	return PropertyHelper::boolToString(static_cast<const FrameWindow*>(receiver)->isSizingEnabled());
 }
 
 
 void	SizingEnabled::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<FrameWindow*>(receiver)->setSizingEnabled(PropertyHelper<bool>::fromString(value));
+	static_cast<FrameWindow*>(receiver)->setSizingEnabled(PropertyHelper::stringToBool(value));
 }
 
 
 String	FrameEnabled::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const FrameWindow*>(receiver)->isFrameEnabled());
+	return PropertyHelper::boolToString(static_cast<const FrameWindow*>(receiver)->isFrameEnabled());
 }
 
 
 void	FrameEnabled::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<FrameWindow*>(receiver)->setFrameEnabled(PropertyHelper<bool>::fromString(value));
+	static_cast<FrameWindow*>(receiver)->setFrameEnabled(PropertyHelper::stringToBool(value));
 }
 
 
 String	TitlebarEnabled::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const FrameWindow*>(receiver)->isTitleBarEnabled());
+	return PropertyHelper::boolToString(static_cast<const FrameWindow*>(receiver)->isTitleBarEnabled());
 }
 
 
 void	TitlebarEnabled::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<FrameWindow*>(receiver)->setTitleBarEnabled(PropertyHelper<bool>::fromString(value));
+	static_cast<FrameWindow*>(receiver)->setTitleBarEnabled(PropertyHelper::stringToBool(value));
 }
 
 
 String	CloseButtonEnabled::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const FrameWindow*>(receiver)->isCloseButtonEnabled());
+	return PropertyHelper::boolToString(static_cast<const FrameWindow*>(receiver)->isCloseButtonEnabled());
 }
 
 
 void	CloseButtonEnabled::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<FrameWindow*>(receiver)->setCloseButtonEnabled(PropertyHelper<bool>::fromString(value));
+	static_cast<FrameWindow*>(receiver)->setCloseButtonEnabled(PropertyHelper::stringToBool(value));
 }
 
 
 String	DragMovingEnabled::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const FrameWindow*>(receiver)->isDragMovingEnabled());
+	return PropertyHelper::boolToString(static_cast<const FrameWindow*>(receiver)->isDragMovingEnabled());
 }
 
 
 void	DragMovingEnabled::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<FrameWindow*>(receiver)->setDragMovingEnabled(PropertyHelper<bool>::fromString(value));
+	static_cast<FrameWindow*>(receiver)->setDragMovingEnabled(PropertyHelper::stringToBool(value));
 }
 
 
 String	RollUpEnabled::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const FrameWindow*>(receiver)->isRollupEnabled());
+	return PropertyHelper::boolToString(static_cast<const FrameWindow*>(receiver)->isRollupEnabled());
 }
 
 
 void	RollUpEnabled::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<FrameWindow*>(receiver)->setRollupEnabled(PropertyHelper<bool>::fromString(value));
+	static_cast<FrameWindow*>(receiver)->setRollupEnabled(PropertyHelper::stringToBool(value));
 }
 
 
 String	RollUpState::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const FrameWindow*>(receiver)->isRolledup());
+	return PropertyHelper::boolToString(static_cast<const FrameWindow*>(receiver)->isRolledup());
 }
 
 
 void	RollUpState::set(PropertyReceiver* receiver, const String& value)
 {
-	bool reqState = PropertyHelper<bool>::fromString(value);
+	bool reqState = PropertyHelper::stringToBool(value);
 
 	if (reqState != static_cast<FrameWindow*>(receiver)->isRolledup())
 	{
@@ -133,58 +133,58 @@ void	RollUpState::set(PropertyReceiver* receiver, const String& value)
 
 String	SizingBorderThickness::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<float>::toString(static_cast<const FrameWindow*>(receiver)->getSizingBorderThickness());
+	return PropertyHelper::floatToString(static_cast<const FrameWindow*>(receiver)->getSizingBorderThickness());
 }
 
 
 void	SizingBorderThickness::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<FrameWindow*>(receiver)->setSizingBorderThickness(PropertyHelper<float>::fromString(value));
+	static_cast<FrameWindow*>(receiver)->setSizingBorderThickness(PropertyHelper::stringToFloat(value));
 }
 
 
 String NSSizingCursorImage::get(const PropertyReceiver* receiver) const
 {
     const Image* img = static_cast<const FrameWindow*>(receiver)->getNSSizingCursorImage();
-    return img ?PropertyHelper<Image*>::toString(img) : String("");
+    return img ? PropertyHelper::imageToString(img) : String("");
 }
 
 void NSSizingCursorImage::set(PropertyReceiver* receiver, const String &value)
 {
-    static_cast<FrameWindow*>(receiver)->setNSSizingCursorImage(PropertyHelper<Image*>::fromString(value));
+    static_cast<FrameWindow*>(receiver)->setNSSizingCursorImage(PropertyHelper::stringToImage(value));
 }
 
 String EWSizingCursorImage::get(const PropertyReceiver* receiver) const
 {
     const Image* img = static_cast<const FrameWindow*>(receiver)->getEWSizingCursorImage();
-    return img ?PropertyHelper<Image*>::toString(img) : String("");
+    return img ? PropertyHelper::imageToString(img) : String("");
 }
 
 void EWSizingCursorImage::set(PropertyReceiver* receiver, const String &value)
 {
-    static_cast<FrameWindow*>(receiver)->setEWSizingCursorImage(PropertyHelper<Image*>::fromString(value));
+    static_cast<FrameWindow*>(receiver)->setEWSizingCursorImage(PropertyHelper::stringToImage(value));
 }
 
 String NWSESizingCursorImage::get(const PropertyReceiver* receiver) const
 {
     const Image* img = static_cast<const FrameWindow*>(receiver)->getNWSESizingCursorImage();
-    return img ?PropertyHelper<Image*>::toString(img) : String("");
+    return img ? PropertyHelper::imageToString(img) : String("");
 }
 
 void NWSESizingCursorImage::set(PropertyReceiver* receiver, const String &value)
 {
-    static_cast<FrameWindow*>(receiver)->setNWSESizingCursorImage(PropertyHelper<Image*>::fromString(value));
+    static_cast<FrameWindow*>(receiver)->setNWSESizingCursorImage(PropertyHelper::stringToImage(value));
 }
 
 String NESWSizingCursorImage::get(const PropertyReceiver* receiver) const
 {
     const Image* img = static_cast<const FrameWindow*>(receiver)->getNESWSizingCursorImage();
-    return img ?PropertyHelper<Image*>::toString(img) : String("");
+    return img ? PropertyHelper::imageToString(img) : String("");
 }
 
 void NESWSizingCursorImage::set(PropertyReceiver* receiver, const String &value)
 {
-    static_cast<FrameWindow*>(receiver)->setNESWSizingCursorImage(PropertyHelper<Image*>::fromString(value));
+    static_cast<FrameWindow*>(receiver)->setNESWSizingCursorImage(PropertyHelper::stringToImage(value));
 }
 
 

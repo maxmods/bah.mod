@@ -41,37 +41,37 @@ namespace ThumbProperties
 {
 String	HotTracked::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const Thumb*>(receiver)->isHotTracked());
+	return PropertyHelper::boolToString(static_cast<const Thumb*>(receiver)->isHotTracked());
 }
 
 
 void	HotTracked::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Thumb*>(receiver)->setHotTracked(PropertyHelper<bool>::fromString(value));
+	static_cast<Thumb*>(receiver)->setHotTracked(PropertyHelper::stringToBool(value));
 }
 
 
 String	VertFree::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const Thumb*>(receiver)->isVertFree());
+	return PropertyHelper::boolToString(static_cast<const Thumb*>(receiver)->isVertFree());
 }
 
 
 void	VertFree::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Thumb*>(receiver)->setVertFree(PropertyHelper<bool>::fromString(value));
+	static_cast<Thumb*>(receiver)->setVertFree(PropertyHelper::stringToBool(value));
 }
 
 
 String	HorzFree::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const Thumb*>(receiver)->isHorzFree());
+	return PropertyHelper::boolToString(static_cast<const Thumb*>(receiver)->isHorzFree());
 }
 
 
 void	HorzFree::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Thumb*>(receiver)->setHorzFree(PropertyHelper<bool>::fromString(value));
+	static_cast<Thumb*>(receiver)->setHorzFree(PropertyHelper::stringToBool(value));
 }
 
 

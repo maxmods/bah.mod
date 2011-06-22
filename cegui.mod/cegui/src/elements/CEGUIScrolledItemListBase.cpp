@@ -103,7 +103,7 @@ void ScrolledItemListBase::initialiseComponents()
         // allow propagation back to us
         d_pane->setMouseInputPropagationEnabled(true);
 
-        addChild(d_pane);
+        addChildWindow(d_pane);
     }
 
     // base class handling

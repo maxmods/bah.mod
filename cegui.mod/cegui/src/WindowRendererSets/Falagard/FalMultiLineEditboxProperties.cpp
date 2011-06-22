@@ -40,7 +40,7 @@ String BlinkCaret::get(const PropertyReceiver* receiver) const
     FalagardMultiLineEditbox* wr = static_cast<FalagardMultiLineEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    return PropertyHelper<bool>::toString(wr->isCaretBlinkEnabled());
+    return PropertyHelper::boolToString(wr->isCaretBlinkEnabled());
 }
 
 //----------------------------------------------------------------------------//
@@ -49,7 +49,7 @@ void BlinkCaret::set(PropertyReceiver* receiver, const String& value)
     FalagardMultiLineEditbox* wr = static_cast<FalagardMultiLineEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    wr->setCaretBlinkEnabled(PropertyHelper<bool>::fromString(value));
+    wr->setCaretBlinkEnabled(PropertyHelper::stringToBool(value));
 }
 
 //----------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ String BlinkCaretTimeout::get(const PropertyReceiver* receiver) const
     FalagardMultiLineEditbox* wr = static_cast<FalagardMultiLineEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    return PropertyHelper<float>::toString(wr->getCaretBlinkTimeout());
+    return PropertyHelper::floatToString(wr->getCaretBlinkTimeout());
 }
 
 //----------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ void BlinkCaretTimeout::set(PropertyReceiver* receiver, const String& value)
     FalagardMultiLineEditbox* wr = static_cast<FalagardMultiLineEditbox*>(
         static_cast<const Window*>(receiver)->getWindowRenderer());
 
-    wr->setCaretBlinkTimeout(PropertyHelper<float>::fromString(value));
+    wr->setCaretBlinkTimeout(PropertyHelper::stringToFloat(value));
 }
 
 } // End of FalagardMultiLineEditboxProperties namespace section

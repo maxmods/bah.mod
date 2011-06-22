@@ -4,7 +4,7 @@
     author:     Paul D Turner (parts based on original code by Thomas Suter)
 *************************************************************************/
 /***************************************************************************
- *   Copyright (C) 2004 - 2010 Paul D Turner & The CEGUI Development Team
+ *   Copyright (C) 2004 - 2009 Paul D Turner & The CEGUI Development Team
  *
  *   Permission is hereby granted, free of charge, to any person obtaining
  *   a copy of this software and associated documentation files (the
@@ -41,6 +41,7 @@ namespace CEGUI
 IrrlichtGeometryBuffer::IrrlichtGeometryBuffer(irr::video::IVideoDriver& driver):
     d_driver(driver),
     d_activeTexture(0),
+    d_clipRect(0, 0, 0, 0),
     d_translation(0, 0, 0),
     d_rotation(0, 0, 0),
     d_pivot(0, 0, 0),
@@ -53,10 +54,17 @@ IrrlichtGeometryBuffer::IrrlichtGeometryBuffer(irr::video::IVideoDriver& driver)
     d_material.Lighting = false;
     d_material.ZBuffer = 0;
     d_material.ZWriteEnable = false;
-
-    // force upate of blending options to suit the default 'normal' mode
-    d_blendMode = BM_INVALID;
-    setBlendMode(BM_NORMAL);
+    #if CEGUI_IRR_SDK_VERSION >= 16
+        d_material.MaterialType = irr::video::EMT_ONETEXTURE_BLEND;
+        d_material.MaterialTypeParam = irr::video::pack_texureBlendFunc(
+                irr::video::EBF_SRC_ALPHA,
+                irr::video::EBF_ONE_MINUS_SRC_ALPHA,
+                irr::video::EMFN_MODULATE_1X,
+                irr::video::EAS_NONE);
+    #else
+        d_material.MaterialType = irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+        d_material.MaterialTypeParam = 0;
+    #endif
 }
 
 //----------------------------------------------------------------------------//
@@ -161,10 +169,10 @@ void IrrlichtGeometryBuffer::setPivot(const Vector3& p)
 //----------------------------------------------------------------------------//
 void IrrlichtGeometryBuffer::setClippingRegion(const Rect& region)
 {
-    d_clipRect.d_top    = PixelAligned(region.d_top);
-    d_clipRect.d_bottom = PixelAligned(region.d_bottom);
-    d_clipRect.d_left   = PixelAligned(region.d_left);
-    d_clipRect.d_right  = PixelAligned(region.d_right);
+    d_clipRect.d_top    = ceguimax(0.0f, PixelAligned(region.d_top));
+    d_clipRect.d_bottom = ceguimax(0.0f, PixelAligned(region.d_bottom));
+    d_clipRect.d_left   = ceguimax(0.0f, PixelAligned(region.d_left));
+    d_clipRect.d_right  = ceguimax(0.0f, PixelAligned(region.d_right));
 }
 
 //----------------------------------------------------------------------------//
@@ -247,52 +255,6 @@ void IrrlichtGeometryBuffer::setRenderEffect(RenderEffect* effect)
 RenderEffect* IrrlichtGeometryBuffer::getRenderEffect()
 {
     return d_effect;
-}
-
-//----------------------------------------------------------------------------//
-void IrrlichtGeometryBuffer::setBlendMode(const BlendMode mode)
-{
-    // if blend mode is already set to this, ignore.
-    if (d_blendMode == mode)
-        return;
-
-    // call default to set mode field (in case we change how that's done)
-    GeometryBuffer::setBlendMode(mode);
-
-#if CEGUI_IRR_SDK_VERSION >= 16
-    // FIXME: Here we just use the 'best of a bad situation' option
-    // FIXME: which results in incorrect accumulation of alpha values
-    // FIXME: in texture based targets.  There is no fix for this that is
-    // FIXME: possible with the stock Irrlicht; while we could creata an
-    // FIXME: appropriate custom material, it would involve directly linking
-    // FIXME: with the various underlying rendering APIs - which is fine for
-    // FIXME: an end user, but is definitely not what _we_ want to be doing.
-    //
-    // If anybody knows the above information to be incorrect, and has a fix
-    // for this issue, please let us know! :)
-
-/*    if (d_blendMode == BM_RTT_PREMULTIPLIED)
-    {
-        d_material.MaterialType = irr::video::EMT_ONETEXTURE_BLEND;
-        d_material.MaterialTypeParam = irr::video::pack_texureBlendFunc(
-                irr::video::EBF_ONE,
-                irr::video::EBF_ONE_MINUS_SRC_ALPHA,
-                irr::video::EMFN_MODULATE_1X,
-                irr::video::EAS_NONE);
-    }
-    else */
-    {
-        d_material.MaterialType = irr::video::EMT_ONETEXTURE_BLEND;
-        d_material.MaterialTypeParam = irr::video::pack_texureBlendFunc(
-                irr::video::EBF_SRC_ALPHA,
-                irr::video::EBF_ONE_MINUS_SRC_ALPHA,
-                irr::video::EMFN_MODULATE_1X,
-                irr::video::EAS_NONE);
-    }
-#else
-    d_material.MaterialType = irr::video::EMT_TRANSPARENT_ALPHA_CHANNEL;
-    d_material.MaterialTypeParam = 0;
-#endif
 }
 
 //----------------------------------------------------------------------------//

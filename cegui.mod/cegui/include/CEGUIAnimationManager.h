@@ -44,9 +44,7 @@
 namespace CEGUI
 {
 
-class CEGUIEXPORT AnimationManager :
-    public Singleton <AnimationManager>,
-    public AllocatedObject<AnimationManager>
+class CEGUIEXPORT AnimationManager : public Singleton <AnimationManager>
 {
 public:
     /*************************************************************************
@@ -105,7 +103,7 @@ public:
     \see
         Animation
     */
-    Animation* createAnimation(const String& name);
+    Animation* createAnimation(const String& name = "");
 
     /*!
     \brief
@@ -230,13 +228,26 @@ public:
         return s_defaultResourceGroup;
     }
 
+    /*!
+    \brief
+        Examines the list of Animations to see if one exists with the given name
+
+    \param name
+        String holding the name of the Animation to look for.
+
+    \return
+        true if an Animation was found with a name matching \a name.  false if
+        no matching Animation was found.
+    */
+    bool isAnimationPresent(const String& name) const;
+
 private:
-    typedef std::map<String, Interpolator*, std::less<String>
-        CEGUI_MAP_ALLOC(String, Interpolator*)> InterpolatorMap;
+    String generateUniqueAnimationName();
+    
+    typedef std::map<String, Interpolator*> InterpolatorMap;
     //! stores available interpolators
     InterpolatorMap d_interpolators;
-    typedef std::vector<Interpolator*
-        CEGUI_VECTOR_ALLOC(Interpolator*)> BasicInterpolatorList;
+    typedef std::vector<Interpolator*> BasicInterpolatorList;
     //! stores interpolators that are inbuilt in CEGUI
     BasicInterpolatorList d_basicInterpolators;
 
@@ -244,14 +255,17 @@ private:
     //! all defined animations
     AnimationMap d_animations;
 
-    typedef std::multimap<Animation*, AnimationInstance*, std::less<Animation*>
-        CEGUI_MULTIMAP_ALLOC(Animation*, AnimationInstance*)> AnimationInstanceMap;
+    typedef std::multimap<Animation*, AnimationInstance*> AnimationInstanceMap;
     //! all instances of animations
     AnimationInstanceMap d_animationInstances;
     //! Name of the schema used for loading animation xml files.
     static const String s_xmlSchemaName;
     //! Default resource group used when loading animation xml files.
     static String s_defaultResourceGroup;
+    //! Base name to use for generated window names.
+    static const String GeneratedAnimationNameBase;
+    //! Counter used to generate unique animation names.
+    unsigned long d_uid_counter;
 };
 
 } // End of  CEGUI namespace section

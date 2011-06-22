@@ -36,7 +36,7 @@
 #include <map>
 
 #if (defined( __WIN32__ ) || defined( _WIN32 )) && !defined(CEGUI_STATIC)
-#   ifdef CEGUINULLRENDERER_EXPORTS
+#   ifdef NULL_GUIRENDERER_EXPORTS
 #       define NULL_GUIRENDERER_API __declspec(dllexport)
 #   else
 #       define NULL_GUIRENDERER_API __declspec(dllimport)

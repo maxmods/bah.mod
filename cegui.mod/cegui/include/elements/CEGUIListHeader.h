@@ -197,8 +197,7 @@ public:
     /*************************************************************************
         Child Widget name suffix constants
     *************************************************************************/
-    //! Widget name suffix for header segments.
-    static const String SegmentNameSuffix;
+    static const char SegmentNameSuffix[];          //!< Widget name suffix for header segments.
 
 
 	/*************************************************************************
@@ -953,8 +952,7 @@ protected:
 	/*************************************************************************
 		Implementation Data
 	*************************************************************************/
-	typedef	std::vector<ListHeaderSegment*
-        CEGUI_VECTOR_ALLOC(ListHeaderSegment*)> SegmentList;
+	typedef	std::vector<ListHeaderSegment*>		SegmentList;
 	SegmentList	d_segments;			//!< Attached segment windows in header order.
 	ListHeaderSegment*	d_sortSegment;	//!< Pointer to the segment that is currently set as the sork-key,
 	bool	d_sizingEnabled;		//!< true if segments can be sized by the user.

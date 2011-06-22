@@ -6,7 +6,7 @@
     purpose:	Defines the RawDataContainer
 *************************************************************************/
 /***************************************************************************
- *   Copyright (C) 2004 - 2006 Paul D Turner & The CEGUI Development Team
+ *   Copyright (C) 2004 - 2011 Paul D Turner & The CEGUI Development Team
  *
  *   Permission is hereby granted, free of charge, to any person obtaining
  *   a copy of this software and associated documentation files (the
@@ -35,12 +35,10 @@ namespace CEGUI
 
 void RawDataContainer::release(void)
 {
-    if (mData)
+    if(mData)
     {
-        CEGUI_DELETE_ARRAY_PT(mData, uint8, mSize, RawDataContainer);
-
+        delete [] mData;
         mData = 0;
-        mSize = 0;
     }
 }
 

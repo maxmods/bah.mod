@@ -61,7 +61,7 @@ namespace CEGUI
                              selection area.)
 
     NamedAreas:
-        - TextArea: area where text, selection, and caret imagery will appear.
+        - TextArea: area where text, selection, and carat imagery will appear.
 
     PropertyDefinitions (optional)
         - NormalTextColour: property that accesses a colour value to be used to
@@ -72,7 +72,7 @@ namespace CEGUI
                               not defined, the colour defaults to black.
 
     Imagery Sections:
-        - Caret
+        - Carat
 */
 class FALAGARDBASE_API FalagardEditbox : public EditboxWindowRenderer
 {
@@ -100,7 +100,7 @@ public:
     \return
         colour value describing the colour to be used.
     */
-    Colour getUnselectedTextColour() const;
+    colour getUnselectedTextColour() const;
 
     /*!
     \brief
@@ -110,7 +110,7 @@ public:
     \return
         colour value describing the colour to be used.
     */
-    Colour getSelectedTextColour() const;
+    colour getSelectedTextColour() const;
 
     /*!
     \brief
@@ -121,7 +121,7 @@ public:
         String object holding the name of the property to be accessed if it
         exists.
     */
-    Colour getOptionalPropertyColour(const String& propertyName) const;
+    colour getOptionalPropertyColour(const String& propertyName) const;
 
     //! return whether the blinking caret is enabled.
     bool isCaretBlinkEnabled() const;
@@ -149,7 +149,7 @@ public:
     void render();
 
     // overridden from EditboxWindowRenderer base class.
-    size_t getTextIndexFromPosition(const Vector2& pt) const;
+    size_t getTextIndexFromPosition(const Point& pt) const;
     // overridden from WindowRenderer class
     void update(float elapsed);
 

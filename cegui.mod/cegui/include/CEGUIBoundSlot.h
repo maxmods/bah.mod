@@ -42,8 +42,7 @@ namespace CEGUI
     reference counted pointer.  When a BoundSlot is deleted, the connection is
     unsubscribed and the SubscriberSlot is deleted.
 */
-class CEGUIEXPORT BoundSlot :
-    public AllocatedObject<BoundSlot>
+class CEGUIEXPORT BoundSlot
 {
 public:
     typedef unsigned int Group;

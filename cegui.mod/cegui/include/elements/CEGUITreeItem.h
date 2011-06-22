@@ -58,16 +58,15 @@ namespace CEGUI
 class CEGUIEXPORT TreeItem
 {
 public:
-    typedef std::vector<TreeItem*
-        CEGUI_VECTOR_ALLOC(TreeItem*)>  LBItemList;
+    typedef std::vector<TreeItem*>  LBItemList;
 
     /*************************************************************************
         Constants
      *************************************************************************/
     //! Default text colour.
-    static const Colour DefaultTextColour;
+    static const colour DefaultTextColour;
     //! Default selection brush colour.
-    static const Colour DefaultSelectionColour;
+    static const colour DefaultSelectionColour;
 
     /*************************************************************************
         Construction and Destruction
@@ -174,8 +173,8 @@ public:
      \return
         Nothing.
      */
-    void setTextColours(Colour top_left_colour, Colour top_right_colour,
-                        Colour bottom_left_colour, Colour bottom_right_colour);
+    void setTextColours(colour top_left_colour, colour top_right_colour,
+                        colour bottom_left_colour, colour bottom_right_colour);
 
     /*!
      \brief
@@ -187,7 +186,7 @@ public:
      \return
         Nothing.
      */
-    void setTextColours(Colour col)
+    void setTextColours(colour col)
     { setTextColours(col, col, col, col); }
 
     /*!
@@ -478,10 +477,10 @@ public:
      \return
         Nothing.
      */
-    void setSelectionColours(Colour top_left_colour,
-                             Colour top_right_colour,
-                             Colour bottom_left_colour,
-                             Colour bottom_right_colour);
+    void setSelectionColours(colour top_left_colour,
+                             colour top_right_colour,
+                             colour bottom_left_colour,
+                             colour bottom_right_colour);
 
     /*!
      \brief
@@ -493,7 +492,7 @@ public:
      \return
         Nothing.
      */
-    void setSelectionColours(Colour col)
+    void setSelectionColours(colour col)
     { setSelectionColours(col, col, col, col); }
 
 
@@ -626,7 +625,7 @@ protected:
          Return a colour value describing the colour specified by \a col after
          having its alpha component modulated by the value \a alpha.
      */
-    Colour calculateModulatedAlphaColour(Colour col, float alpha) const;
+    colour calculateModulatedAlphaColour(colour col, float alpha) const;
 
     //! parse the text visual string into a RenderString representation.
     void parseTextString() const;
@@ -637,7 +636,7 @@ protected:
     //! Text for this tree item.  If not rendered, still used for sorting.
     String               d_textLogical;            //!< text rendered by this component.
     //! pointer to bidirection support object
-    BidiVisualMapping* d_bidiVisualMapping;
+    BiDiVisualMapping* d_bidiVisualMapping;
     //! whether bidi visual mapping has been updated since last text change.
     mutable bool d_bidiDataValid;
     //! Text for the individual tooltip of this item.

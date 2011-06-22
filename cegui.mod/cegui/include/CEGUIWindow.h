@@ -33,12 +33,10 @@
 #include "CEGUIBase.h"
 #include "CEGUIString.h"
 #include "CEGUIVector.h"
-#include "CEGUIQuaternion.h"
 #include "CEGUIRect.h"
 #include "CEGUISize.h"
 #include "CEGUIEventSet.h"
 #include "CEGUIPropertySet.h"
-#include "CEGUITplProperty.h"
 #include "CEGUISystem.h"
 #include "CEGUIInputEvent.h"
 #include "CEGUIWindowProperties.h"
@@ -137,10 +135,7 @@ enum WindowUpdateMode
     and specifies the minimal interface required to be implemented by derived
     classes.
 */
-class CEGUIEXPORT Window :
-    public PropertySet,
-    public EventSet,
-    public AllocatedObject<Window>
+class CEGUIEXPORT Window : public PropertySet, public EventSet
 {
 public:
     /*************************************************************************
@@ -153,7 +148,7 @@ public:
     /** Event fired as part of the time based update of the window.
      * Handlers are passed a const UpdateEventArgs reference.
      */
-    static const String EventUpdated;
+    static const String EventWindowUpdated;
     /** Event fired when the parent of this Window has been re-sized.
      * Handlers are passed a const WindowEventArgs reference with
      * WindowEventArgs::window pointing to the <em>parent window</em> that
@@ -393,7 +388,7 @@ public:
      * For an alternative version of this event see the
      * Window::EventMouseEntersArea event.
      */
-    static const String EventMouseEntersSurface;
+    static const String EventMouseEnters;
     /** Event fired when the mouse cursor is no longer over the Window's surface
      * area.
      * Handlers are passed a const MouseEventArgs reference with all fields
@@ -404,7 +399,7 @@ public:
      * actually 'left' this Window's area).  For an alternative version of this
      * event see the Window::EventMouseLeavesArea event.
      */
-    static const String EventMouseLeavesSurface;
+    static const String EventMouseLeaves;
     /** Event fired when the mouse cursor moves within the area of the Window.
      * Handlers are passed a const MouseEventArgs reference with all fields
      * valid.
@@ -1638,6 +1633,9 @@ public:
     const Window* getRootWindow() const;
     Window* getRootWindow();
 
+    //! return the rotations set for this window.
+    const Vector3& getRotation() const;
+
     /*!
     \brief
         Return whether the Window is a non-client window.
@@ -1918,7 +1916,7 @@ public:
         thrown if Window \a name is an ancestor of this Window, to prevent
         cyclic Window structures.
     */
-    void addChild(const String& name);
+    void addChildWindow(const String& name);
 
     /*!
     \brief
@@ -1936,7 +1934,7 @@ public:
         thrown if Window \a window is an ancestor of this Window, to prevent
         cyclic Window structures.
     */
-    void addChild(Window* window);
+    void addChildWindow(Window* window);
 
     /*!
     \brief
@@ -1949,7 +1947,7 @@ public:
     \return
         Nothing.
     */
-    void removeChild(const String& name);
+    void removeChildWindow(const String& name);
 
     /*!
     \brief
@@ -1962,7 +1960,7 @@ public:
     \return
         Nothing.
     */
-    void removeChild(Window* window);
+    void removeChildWindow(Window* window);
 
     /*!
     \brief
@@ -1977,47 +1975,7 @@ public:
     \return
         Nothing.
     */
-    void removeChild(uint ID);
-
-    /*!
-	\brief
-		Creates a child window attached to this window.
-	
-	\param type
-		String that describes the type of Window to be created.  A valid WindowFactory for the specified type must be registered.
-
-	\param name
-		String that holds a unique name that is to be given to the new window.  If this string is empty (""), a name
-		will be generated for the window.
-	
-	\param nameLocal
-		If true, the name is considered local (the absolute name will be ParentWindowName/Name)
-
-	\return
-		Pointer to the newly created child Window object.
-	*/
-    Window* createChild(const String& type, const String& name, bool nameLocal = true);
-
-    /*!
-    \brief
-        Destroys a child window of this window
-
-    \param wnd
-        The child window to destroy
-    */
-    void destroyChild(Window* wnd);
-
-    /*!
-    \brief
-        Destroys a child window of this window
-
-    \param name
-        Name of the child window to destroy
-
-    \param nameLocal
-        If true, the name is considered local (the absolute name will be ParentWindowName/Name)
-    */
-    void destroyChild(const String& name, bool nameLocal = true);
+    void removeChildWindow(uint ID);
 
     /*!
     \brief
@@ -2120,7 +2078,7 @@ public:
     \return
         Nothing
     */
-    void setRestoreOldCapture(bool setting);
+    void setRestoreCapture(bool setting);
 
     /*!
     \brief
@@ -2142,7 +2100,7 @@ public:
     \return
         Nothing
     */
-    void setAlpha(const float alpha);
+    void setAlpha(float alpha);
 
     /*!
     \brief
@@ -2198,7 +2156,7 @@ public:
     \return
         Nothing.
     */
-    void setMouseCursor(const Image* image)     {d_mouseCursor = image;}
+    void setMouseCursor(const Image* image);
 
     /*!
     \brief
@@ -2210,8 +2168,7 @@ public:
     \return
         Nothing.
     */
-    void setMouseCursor(MouseCursorImage image)
-    {d_mouseCursor = (const Image*)image;}
+    void setMouseCursor(MouseCursorImage image);
 
     /*!
     \brief
@@ -3152,25 +3109,8 @@ public:
     */
     void setUsingAutoRenderingSurface(bool setting);
 
-    /*!
-    \brief sets rotation of this widget
-
-    \param rotation
-        A Quaternion describing the rotation
-
-    CEGUI used Euler angles previously. Whilst this is easy to use and seems
-    intuitive, it causes Gimbal locks when animating and is just the worse
-    solution than using Quaternions. You can still use Euler angles, see
-    the \a Quaternion class for more info about that.
-    */
-    void setRotation(const Quaternion& rotation);
-
-    /*!
-    \brief retrieves rotation of this widget
-
-    \see Window::setRotation
-    */
-    const Quaternion& getRotation() const;
+    //! set the rotations for this window.
+    void setRotation(const Vector3& rotation);
 
     /*!
     \brief
@@ -3209,8 +3149,8 @@ public:
     //! return Vector2 \a pos after being fully unprojected for this Window.
     Vector2 getUnprojectedPosition(const Vector2& pos) const;
 
-    //! return the pointer to the BidiVisualMapping for this window, if any.
-    const BidiVisualMapping* getBidiVisualMapping() const
+    //! return the pointer to the BiDiVisualMapping for this window, if any.
+    const BiDiVisualMapping* getBiDiVisualMapping() const
         {return d_bidiVisualMapping;}
 
     //! Add the named property to the XML ban list for this window.
@@ -4218,25 +4158,21 @@ protected:
     /*************************************************************************
         Properties for Window base class
     *************************************************************************/
-    static TplProperty<Window, bool>            d_alwaysOnTopProperty;
-    static TplProperty<Window, bool>            d_clippedByParentProperty;
-    static TplProperty<Window, bool>            d_destroyedByParentProperty;
-
+    static  WindowProperties::Alpha             d_alphaProperty;
+    static  WindowProperties::AlwaysOnTop       d_alwaysOnTopProperty;
+    static  WindowProperties::ClippedByParent   d_clippedByParentProperty;
+    static  WindowProperties::DestroyedByParent d_destroyedByParentProperty;
     static  WindowProperties::Disabled          d_disabledProperty;
     static  WindowProperties::Font              d_fontProperty;
-
-    static TplProperty<Window, uint>            d_IDProperty;
-    static TplProperty<Window, bool>            d_inheritsAlphaProperty;
-    //static TplProperty<Window, Image*>          d_mouseCursorProperty;
+    static  WindowProperties::ID                d_IDProperty;
+    static  WindowProperties::InheritsAlpha     d_inheritsAlphaProperty;
     static  WindowProperties::MouseCursorImage  d_mouseCursorProperty;
-    static TplProperty<Window, bool>            d_restoreOldCaptureProperty;
-    static TplProperty<Window, String>          d_textProperty;
-    //static TplProperty<Window, bool>            d_visibleProperty;
+    static  WindowProperties::RestoreOldCapture d_restoreOldCaptureProperty;
+    static  WindowProperties::Text              d_textProperty;
     static  WindowProperties::Visible           d_visibleProperty;
-    static TplProperty<Window, bool>            d_zOrderChangeProperty;
-    static TplProperty<Window, bool>            d_wantsMultiClicksProperty;
-    static TplProperty<Window, bool>            d_mouseButtonAutoRepeatProperty;
-    
+    static  WindowProperties::ZOrderChangeEnabled   d_zOrderChangeProperty;
+    static  WindowProperties::WantsMultiClickEvents d_wantsMultiClicksProperty;
+    static  WindowProperties::MouseButtonDownAutoRepeat d_autoRepeatProperty;
     static  WindowProperties::AutoRepeatDelay   d_autoRepeatDelayProperty;
     static  WindowProperties::AutoRepeatRate    d_autoRepeatRateProperty;
     static  WindowProperties::DistributeCapturedInputs d_distInputsProperty;
@@ -4261,6 +4197,9 @@ protected:
     static  WindowProperties::DragDropTarget    d_dragDropTargetProperty;
     static  WindowProperties::AutoRenderingSurface d_autoRenderingSurfaceProperty;
     static  WindowProperties::Rotation d_rotationProperty;
+    static  WindowProperties::XRotation d_xRotationProperty;
+    static  WindowProperties::YRotation d_yRotationProperty;
+    static  WindowProperties::ZRotation d_zRotationProperty;
     static  WindowProperties::NonClient d_nonClientProperty;
     static  WindowProperties::TextParsingEnabled d_textParsingEnabledProperty;
     static  WindowProperties::Margin d_marginProperty;
@@ -4271,14 +4210,11 @@ protected:
         Implementation Data
     *************************************************************************/
     //! definition of type used for the list of attached child windows.
-    typedef std::vector<Window*
-        CEGUI_VECTOR_ALLOC(Window*)> ChildList;
+    typedef std::vector<Window*> ChildList;
     //! definition of type used for the UserString dictionary.
-    typedef std::map<String, String, String::FastLessCompare
-        CEGUI_MAP_ALLOC(String, String)> UserStringMap;
+    typedef std::map<String, String, String::FastLessCompare> UserStringMap;
     //! definition of type used to track properties banned from writing XML.
-    typedef std::set<String, String::FastLessCompare
-        CEGUI_SET_ALLOC(String)> BannedXMLPropertySet;
+    typedef std::set<String, String::FastLessCompare> BannedXMLPropertySet;
 
     //! type of Window (also the name of the WindowFactory that created us)
     const String d_type;
@@ -4349,7 +4285,7 @@ protected:
     //! Holds the text / label / caption for this Window.
     String d_textLogical;
     //! pointer to bidirection support object
-    BidiVisualMapping* d_bidiVisualMapping;
+    BiDiVisualMapping* d_bidiVisualMapping;
     //! whether bidi visual mapping has been updated since last text change.
     mutable bool d_bidiDataValid;
     //! RenderedString representation of text string as ouput from a parser.
@@ -4428,8 +4364,8 @@ protected:
     HorizontalAlignment d_horzAlign;
     //! Specifies the base for vertical alignment.
     VerticalAlignment d_vertAlign;
-    //! Rotation of this window (relative to the parent)
-    Quaternion d_rotation;
+    //! Rotation angles for this window
+    Vector3 d_rotation;
 
     //! outer area rect in screen pixels
     mutable Rect d_outerUnclippedRect;

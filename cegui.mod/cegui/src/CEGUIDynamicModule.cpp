@@ -42,7 +42,11 @@
 #   include <windows.h>
 #endif
 
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
+#if defined(__APPLE_CC__)
+#   include "macPlugins.h"
+#endif
+
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
 #   include "dlfcn.h"
 #endif
 
@@ -50,39 +54,49 @@
 // Start of CEGUI namespace section
 namespace CEGUI
 {
-// return whether module name has it's extension in place
-bool hasDynamicLibraryExtension(const String& name)
-{
-    #if defined(__WIN32__) || defined(_WIN32)
-        return name.substr(name.length() - 4, 4) == ".dll";
-    #elif defined(__APPLE__)
-        return name.substr(name.length() - 6, 6) == ".dylib";
-    #else
-        return name.substr(name.length() - 3, 3) == ".so";
-    #endif
-}
-
-void appendDynamicLibraryExtension(String& name)
-{
-    #if defined(__WIN32__) || defined(_WIN32)
-        name.append(".dll");
-    #elif defined(__APPLE__)
-        name.append(".dylib");
-    #else
-        name.append(".so");
-    #endif
-}
-
 DynamicModule::DynamicModule(const String& name) :
-    d_moduleName(name),
-    d_handle(0)
+    d_moduleName(name)
 {
-	if (name.empty())
+	//If nothing is passed, don't load anything...
+	if(name.empty())
+	{
+		d_handle = 0;
 		return;
+	} // if(name.empty())
 
-    if (!hasDynamicLibraryExtension(d_moduleName))
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__)  || defined(__HAIKU__)
+    #if defined(CEGUI_HAS_VERSION_SUFFIX) || defined(CEGUI_HAS_BUILD_SUFFIX)
+        // check if we are being asked to open a CEGUI .so, if so postfix the
+        // name with our package version
+        if (d_moduleName.substr(0, 5) == "CEGUI" ||
+            d_moduleName.substr(0, 8) == "libCEGUI")
+        {
+            // strip .so extension before postfixing, will get added again below
+            if (d_moduleName.substr(d_moduleName.length() - 3, 3) == ".so")
+                d_moduleName = d_moduleName.substr(0, d_moduleName.length() - 3);
+
+            #ifdef CEGUI_HAS_BUILD_SUFFIX
+                // append a suffix (like _d for debug builds, etc)
+                d_moduleName += CEGUI_BUILD_SUFFIX;
+            #endif
+
+            #ifdef CEGUI_HAS_VERSION_SUFFIX
+                d_moduleName += "-";
+                d_moduleName += CEGUI_VERSION_SUFFIX;
+            #endif
+        }
+    #endif
+    // dlopen() does not add .so to the filename, like windows does for .dll
+    if (d_moduleName.substr(d_moduleName.length() - 3, 3) != ".so")
+        d_moduleName += ".so";
+#endif
+    // Optionally add a _d to the module name for the debug config on Win32
+#if defined(__WIN32__) || defined(_WIN32)
+    // if name has .dll extension, assume it's complete and do not touch it.
+    if (d_moduleName.substr(d_moduleName.length() - 4, 4) != ".dll")
     {
         #ifdef CEGUI_HAS_BUILD_SUFFIX
+            // append a suffix (like _d for debug builds, etc)
             d_moduleName += CEGUI_BUILD_SUFFIX;
         #endif
 
@@ -90,29 +104,20 @@ DynamicModule::DynamicModule(const String& name) :
             d_moduleName += "-";
             d_moduleName += CEGUI_VERSION_SUFFIX;
         #endif
-        
-        appendDynamicLibraryExtension(d_moduleName);
     }
+#endif
 
-    #ifdef __APPLE__
-        String fullpath("@executable_path/../Frameworks/" + d_moduleName);
-        d_handle = DYNLIB_LOAD(fullpath.c_str());
-    #else
-        d_handle = DYNLIB_LOAD(d_moduleName.c_str());
-    #endif
+    d_handle = DYNLIB_LOAD(d_moduleName.c_str());
 
-
-#if defined(__linux__) || defined(__APPLE__) || defined(__MINGW32__) || defined(__FreeBSD__) || defined(__NetBSD__)
-    // see if adding a leading 'lib' helps us to open the library
-    if (!d_handle && d_moduleName.substr(0, 3) != "lib")
+#if defined(__linux__) || defined(__MINGW32__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
+    if (!d_handle)
     {
-        d_moduleName.insert(0, "lib");
-        #ifdef __APPLE__
-            String fullpath("@executable_path/../Frameworks/" + d_moduleName);
-            d_handle = DYNLIB_LOAD(fullpath.c_str());
-        #else
+        // see if we need to add the leading 'lib'
+        if (d_moduleName.substr(0, 3) != "lib")
+        {
+            d_moduleName.insert(0, "lib");
             d_handle = DYNLIB_LOAD(d_moduleName.c_str());
-        #endif
+        }
     }
 #endif
 
@@ -145,7 +150,7 @@ void* DynamicModule::getSymbolAddress(const String& symbol) const
 String DynamicModule::getFailureString() const
 {
     String retMsg;
-#if defined(__linux__) || defined (__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
+#if defined(__linux__) || defined (__APPLE_CC__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     retMsg = DYNLIB_ERROR();
 #elif defined(__WIN32__) || defined(_WIN32)
     LPVOID msgBuffer;

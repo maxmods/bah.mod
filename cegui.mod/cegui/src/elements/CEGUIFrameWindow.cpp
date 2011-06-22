@@ -134,7 +134,7 @@ void FrameWindow::initialiseComponents(void)
 *************************************************************************/
 bool FrameWindow::isTitleBarEnabled(void) const
 {
-    return !getTitlebar()->isDisabled();
+    return !getTitlebar()->isDisabled(true);
 }
 
 
@@ -143,7 +143,7 @@ bool FrameWindow::isTitleBarEnabled(void) const
 *************************************************************************/
 bool FrameWindow::isCloseButtonEnabled(void) const
 {
-    return !getCloseButton()->isDisabled();
+    return !getCloseButton()->isDisabled(true);
 }
 
 
@@ -239,7 +239,7 @@ void FrameWindow::offsetPixelPosition(const Vector2& offset)
 	SizingLocation enumerated values depending where the point falls on
 	the sizing border.
 *************************************************************************/
-FrameWindow::SizingLocation FrameWindow::getSizingBorderAtPoint(const Vector2& pt) const
+FrameWindow::SizingLocation FrameWindow::getSizingBorderAtPoint(const Point& pt) const
 {
 	Rect	frame(getSizingRect());
 
@@ -495,7 +495,7 @@ bool FrameWindow::closeClickHandler(const EventArgs&)
 	Set the appropriate mouse cursor for the given window-relative pixel
 	point.
 *************************************************************************/
-void FrameWindow::setCursorForPoint(const Vector2& pt) const
+void FrameWindow::setCursorForPoint(const Point& pt) const
 {
 	switch(getSizingBorderAtPoint(pt))
 	{
@@ -535,7 +535,8 @@ void FrameWindow::onRollupToggled(WindowEventArgs& e)
 {
     invalidate(true);
     notifyClippingChanged();
-    notifyScreenAreaChanged(true);
+    WindowEventArgs size_args(e);
+    onSized(size_args);
 
 	fireEvent(EventRollupToggled, e, EventNamespace);
 }
@@ -566,7 +567,7 @@ void FrameWindow::onMouseMove(MouseEventArgs& e)
 
 	if (isSizingEnabled())
 	{
-		Vector2 localMousePos(CoordConverter::screenToWindow(*this, e.position));
+		Point localMousePos(CoordConverter::screenToWindow(*this, e.position));
 
 		if (d_beingSized)
 		{
@@ -625,7 +626,7 @@ void FrameWindow::onMouseButtonDown(MouseEventArgs& e)
 		if (isSizingEnabled())
 		{
 			// get position of mouse as co-ordinates local to this window.
-			Vector2 localPos(CoordConverter::screenToWindow(*this, e.position));
+			Point localPos(CoordConverter::screenToWindow(*this, e.position));
 
 			// if the mouse is on the sizing border
 			if (getSizingBorderAtPoint(localPos) != SizingNone)

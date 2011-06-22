@@ -65,14 +65,14 @@ public:
 
     String get(const PropertyReceiver* receiver) const
     {
-        return PropertyHelper<Size>::toString(
+        return PropertyHelper::sizeToString(
             static_cast<const Font*>(receiver)->getNativeResolution());
     }
 
     void set(PropertyReceiver* receiver, const String& value)
     {
         static_cast<Font*>(receiver)->
-            setNativeResolution(PropertyHelper<Size>::fromString(value));
+            setNativeResolution(PropertyHelper::stringToSize(value));
     }
 };
 
@@ -110,14 +110,14 @@ public:
 
     String get(const PropertyReceiver* receiver) const
     {
-        return PropertyHelper<bool>::toString(
+        return PropertyHelper::boolToString(
             static_cast<const Font*>(receiver)->isAutoScaled());
     }
 
     void set(PropertyReceiver* receiver, const String& value)
     {
         static_cast<Font*>(receiver)->setAutoScaled(
-            PropertyHelper<bool>::fromString(value));
+            PropertyHelper::stringToBool(value));
     }
 };
 
@@ -133,14 +133,14 @@ public:
 
     String get(const PropertyReceiver* receiver) const
     {
-        return PropertyHelper<float>::toString(
+        return PropertyHelper::floatToString(
             static_cast<const FreeTypeFont*>(receiver)->getPointSize());
     }
 
     void set(PropertyReceiver* receiver, const String& value)
     {
         static_cast<FreeTypeFont*>(receiver)->
-            setPointSize(PropertyHelper<float>::fromString(value));
+            setPointSize(PropertyHelper::stringToFloat (value));
     }
 };
 
@@ -156,14 +156,14 @@ public:
 
     String get(const PropertyReceiver* receiver) const
     {
-        return PropertyHelper<bool>::toString(
+        return PropertyHelper::boolToString(
             static_cast<const FreeTypeFont*>(receiver)->isAntiAliased());
     }
 
     void set(PropertyReceiver* receiver, const String& value)
     {
         static_cast<FreeTypeFont*>(receiver)->
-            setAntiAliased(PropertyHelper<bool>::fromString(value));
+            setAntiAliased(PropertyHelper::stringToBool(value));
 }
 };
 #endif // CEGUI_HAS_FREETYPE

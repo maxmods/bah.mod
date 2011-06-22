@@ -157,7 +157,7 @@ MaxConnection * bmx_cegui_eventset_subscribeevent(CEGUI::Window * handle, const 
 
 // *************************************************
 
-MaxCEColour::MaxCEColour(CEGUI::Colour col)
+MaxCEColour::MaxCEColour(CEGUI::colour col)
 	: colour(col)
 {
 }
@@ -166,7 +166,7 @@ MaxCEColour::~MaxCEColour()
 {
 }
 
-CEGUI::Colour MaxCEColour::Colour() {
+CEGUI::colour MaxCEColour::Colour() {
 	return colour;
 }
 
@@ -811,7 +811,7 @@ void bmx_cegui_window_setminsize(CEGUI::Window * window, float width, float heig
 
 void bmx_cegui_window_addchildwindow(CEGUI::Window * window, CEGUI::Window * win) {
 	try {
-		window->addChild(win);
+		window->addChildWindow(win);
 	} catch (CEGUI::InvalidRequestException &e) {
 		bmx_cegui_throw_invalidrequestexception(e);
 	} catch (CEGUI::Exception &e) {
@@ -821,7 +821,7 @@ void bmx_cegui_window_addchildwindow(CEGUI::Window * window, CEGUI::Window * win
 
 void bmx_cegui_window_addchild(CEGUI::Window * window, const CEGUI::utf8 * name) {
 	try {
-		window->addChild(name);
+		window->addChildWindow(name);
 	} catch (CEGUI::UnknownObjectException &e) {
 		bmx_cegui_throw_unknownobjectexception(e);
 	} catch (CEGUI::InvalidRequestException &e) {
@@ -1188,15 +1188,15 @@ void bmx_cegui_window_setfontbyname(CEGUI::Window * window, const CEGUI::utf8 * 
 }
 
 void bmx_cegui_window_removechild(CEGUI::Window * window, CEGUI::Window * win) {
-	window->removeChild(win);
+	window->removeChildWindow(win);
 }
 
 void bmx_cegui_window_removechildname(CEGUI::Window * window, const CEGUI::utf8 * name) {
-	window->removeChild(name);
+	window->removeChildWindow(name);
 }
 
 void bmx_cegui_window_removechildforid(CEGUI::Window * window, CEGUI::uint ID) {
-	window->removeChild(ID);
+	window->removeChildWindow(ID);
 }
 
 void bmx_cegui_window_movetofront(CEGUI::Window * window) {
@@ -1216,7 +1216,7 @@ void bmx_cegui_window_releaseinput(CEGUI::Window * window) {
 }
 
 void bmx_cegui_window_setrestoreoldcapture(CEGUI::Window * window, int setting) {
-	window->setRestoreOldCapture(setting);
+	//window->setRestoreOldCapture(setting);
 }
 
 void bmx_cegui_window_setalpha(CEGUI::Window * window, float alpha) {
@@ -1498,7 +1498,8 @@ void bmx_cegui_window_setusingautorenderingsurface(CEGUI::Window * window, int s
 }
 
 void bmx_cegui_window_setrotation(CEGUI::Window * window, float x, float y, float z) {
-	window->setRotation(CEGUI::Quaternion::eulerAnglesDegrees(x, y, z));
+//	window->setRotation(CEGUI::Quaternion::eulerAnglesDegrees(x, y, z));
+	window->setRotation(CEGUI::Vector3(x, y, z));
 }
 
 void bmx_cegui_window_setnonclientwindow(CEGUI::Window * window, int setting) {
@@ -1699,7 +1700,7 @@ BBString * bmx_cegui_editbox_getvalidationstring(CEGUI::Editbox * eb) {
 }
 
 int bmx_cegui_editbox_getcaretindex(CEGUI::Editbox * eb) {
-	return eb->getCaretIndex();
+	return eb->getCaratIndex();
 }
 
 int bmx_cegui_editbox_getselectionstartindex(CEGUI::Editbox * eb) {
@@ -1731,7 +1732,7 @@ void bmx_cegui_editbox_setvalidationstring(CEGUI::Editbox * eb, const CEGUI::utf
 }
 
 void bmx_cegui_editbox_setcaretindex(CEGUI::Editbox * eb, int caretPos) {
-	eb->setCaretIndex(caretPos);
+	eb->setCaratIndex(caretPos);
 }
 
 void bmx_cegui_editbox_setselection(CEGUI::Editbox * eb, int startPos, int endPos) {
@@ -1941,7 +1942,7 @@ int bmx_cegui_multilineeditbox_isreadonly(CEGUI::MultiLineEditbox * eb) {
 }
 
 int bmx_cegui_multilineeditbox_getcaretindex(CEGUI::MultiLineEditbox * eb) {
-	return eb->getCaretIndex();
+	return eb->getCaratIndex();
 }
 
 int bmx_cegui_multilineeditbox_getselectionstartindex(CEGUI::MultiLineEditbox * eb) {
@@ -1993,7 +1994,7 @@ void bmx_cegui_multilineeditbox_setreadonly(CEGUI::MultiLineEditbox * eb, int se
 }
 
 void bmx_cegui_multilineeditbox_setcaretindex(CEGUI::MultiLineEditbox * eb, int caretPos) {
-	eb->setCaretIndex(caretPos);
+	eb->setCaratIndex(caretPos);
 }
 
 void bmx_cegui_multilineeditbox_setselection(CEGUI::MultiLineEditbox * eb, int startPos, int endPos) {
@@ -2005,7 +2006,7 @@ void bmx_cegui_multilineeditbox_setmaxtextlength(CEGUI::MultiLineEditbox * eb, i
 }
 
 void bmx_cegui_multilineeditbox_ensurecaretisvisible(CEGUI::MultiLineEditbox * eb) {
-	eb->ensureCaretIsVisible();
+	eb->ensureCaratIsVisible();
 }
 
 void bmx_cegui_multilineeditbox_setwordwrapping(CEGUI::MultiLineEditbox * eb, int setting) {
@@ -3143,7 +3144,7 @@ BBObject * bmx_cegui_dragcontainer_getcurrentdroptarget(CEGUI::DragContainer * d
 // *************************************************
 
 MaxCEColour * bmx_cegui_colour_create(float red, float green, float blue, float alpha) {
-	return new MaxCEColour(CEGUI::Colour(red, green, blue, alpha));
+	return new MaxCEColour(CEGUI::colour(red, green, blue, alpha));
 }
 
 void bmx_cegui_colour_delete(MaxCEColour * col) {
@@ -4413,7 +4414,7 @@ BBString * bmx_cegui_combobox_getvalidationstring(CEGUI::Combobox * cb) {
 }
 
 int bmx_cegui_combobox_getcaretindex(CEGUI::Combobox * cb) {
-	return cb->getCaretIndex();
+	return cb->getCaratIndex();
 }
 
 int bmx_cegui_combobox_getselectionstartindex(CEGUI::Combobox * cb) {
@@ -4493,7 +4494,7 @@ void bmx_cegui_combobox_setvalidationstring(CEGUI::Combobox * cb, const CEGUI::u
 }
 
 void bmx_cegui_combobox_setcaretindex(CEGUI::Combobox * cb, int caretPos) {
-	cb->setCaretIndex(caretPos);
+	cb->setCaratIndex(caretPos);
 }
 
 void bmx_cegui_combobox_setselection(CEGUI::Combobox * cb, int startPos, int endPos) {
@@ -4692,7 +4693,7 @@ BBString * bmx_cegui_font_getpropertydefault(CEGUI::Font * font, const CEGUI::ut
 
 int bmx_cegui_font_getpropertyasbool(CEGUI::Font * font, const CEGUI::utf8 * name) {
 	try {
-		return static_cast<int>(CEGUI::PropertyHelper<bool>::fromString(font->getProperty(name).data()));
+		return static_cast<int>(CEGUI::PropertyHelper::stringToBool(font->getProperty(name).data()));
 	} catch (CEGUI::UnknownObjectException &e) {
 		bmx_cegui_throw_unknownobjectexception(e);
 	} catch (CEGUI::Exception &e) {
@@ -4702,7 +4703,7 @@ int bmx_cegui_font_getpropertyasbool(CEGUI::Font * font, const CEGUI::utf8 * nam
 
 int bmx_cegui_font_getpropertyasint(CEGUI::Font * font, const CEGUI::utf8 * name) {
 	try {
-		return CEGUI::PropertyHelper<int>::fromString(font->getProperty(name).data());
+		return CEGUI::PropertyHelper::stringToInt(font->getProperty(name).data());
 	} catch (CEGUI::UnknownObjectException &e) {
 		bmx_cegui_throw_unknownobjectexception(e);
 	} catch (CEGUI::Exception &e) {
@@ -4712,7 +4713,7 @@ int bmx_cegui_font_getpropertyasint(CEGUI::Font * font, const CEGUI::utf8 * name
 
 void bmx_cegui_font_setpropertyasbool(CEGUI::Font * font, const CEGUI::utf8 * name, int value) {
 	try {
-		font->setProperty(name, CEGUI::PropertyHelper<bool>::toString(static_cast<bool>(value)));
+		font->setProperty(name, CEGUI::PropertyHelper::boolToString(static_cast<bool>(value)));
 	} catch (CEGUI::UnknownObjectException &e) {
 		bmx_cegui_throw_unknownobjectexception(e);
 	} catch (CEGUI::InvalidRequestException &e) {

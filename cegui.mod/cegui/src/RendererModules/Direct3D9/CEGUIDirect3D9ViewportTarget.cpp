@@ -46,7 +46,7 @@ Direct3D9ViewportTarget::Direct3D9ViewportTarget(Direct3D9Renderer& owner) :
             "required view port information from Direct3DDevice9."));
 
     Rect area(
-        Vector2(static_cast<float>(vp.X), static_cast<float>(vp.Y)),
+        Point(static_cast<float>(vp.X), static_cast<float>(vp.Y)),
         Size(static_cast<float>(vp.Width), static_cast<float>(vp.Height))
     );
 

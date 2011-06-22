@@ -166,11 +166,6 @@ Rect CoordConverter::screenToWindow(const Window& window, const Rect& rect)
 
 //----------------------------------------------------------------------------//
 
-CoordConverter::CoordConverter()
-{}
-
-//----------------------------------------------------------------------------//
-
 float CoordConverter::getBaseXValue(const Window& window)
 {
     const Window* parent = window.getParent();

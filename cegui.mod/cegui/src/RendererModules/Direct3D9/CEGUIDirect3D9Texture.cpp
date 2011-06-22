@@ -105,17 +105,6 @@ Direct3D9Texture::~Direct3D9Texture()
     cleanupDirect3D9Texture();
 }
 
-void Direct3D9Texture::blitFromMemory(void* sourceData, const Rect& area)
-{
-
-
-}
-
-void Direct3D9Texture::blitToMemory(void* targetData)
-{
-
-}
-
 //----------------------------------------------------------------------------//
 void Direct3D9Texture::setDirect3D9Texture(LPDIRECT3DTEXTURE9 tex)
 {

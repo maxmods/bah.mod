@@ -25,7 +25,7 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
-#ifndef _CEGUIRenderEffectManager_h
+#ifndef _CEGUIRenderEffectManager_h_
 #define _CEGUIRenderEffectManager_h_
 
 #include "CEGUISingleton.h"
@@ -48,18 +48,16 @@ namespace CEGUI
     Singleton class that manages creation and destruction of RenderEffect based
     objects.
 */
-class CEGUIEXPORT RenderEffectManager :
-    public Singleton<RenderEffectManager>,
-    public AllocatedObject<RenderEffectManager>
+class CEGUIEXPORT RenderEffectManager : public Singleton<RenderEffectManager>
 {
 private:
     //! Collection type used for the render effect registry
-    typedef std::map<String, RenderEffectFactory*, String::FastLessCompare
-        CEGUI_MAP_ALLOC(String, RenderEffectFactory*)> RenderEffectRegistry;
+    typedef std::map<String,
+                     RenderEffectFactory*,
+                     String::FastLessCompare> RenderEffectRegistry;
 
     //! Collection type to track which effects we created with which factories
-    typedef std::map<RenderEffect*, RenderEffectFactory*, std::less<RenderEffect*>
-        CEGUI_MAP_ALLOC(RenderEffect*, RenderEffectFactory*)> EffectCreatorMap;
+    typedef std::map<RenderEffect*, RenderEffectFactory*> EffectCreatorMap;
 
     //! Collection of registered render effects
     RenderEffectRegistry d_effectRegistry;
@@ -179,7 +177,7 @@ void RenderEffectManager::addEffect(const String& name)
             name + "'"));
 
     // create an instance of a factory to create effects of type T
-    d_effectRegistry[name] = CEGUI_NEW_AO TplRenderEffectFactory<T>;
+    d_effectRegistry[name] = new TplRenderEffectFactory<T>;
 
     Logger::getSingleton().logEvent(
         "Registered RenderEffect named '" + name + "'");

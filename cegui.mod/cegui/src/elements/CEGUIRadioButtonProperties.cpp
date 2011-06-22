@@ -40,25 +40,25 @@ namespace RadioButtonProperties
 {
 String Selected::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const RadioButton*>(receiver)->isSelected());
+	return PropertyHelper::boolToString(static_cast<const RadioButton*>(receiver)->isSelected());
 }
 
 
 void Selected::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<RadioButton*>(receiver)->setSelected(PropertyHelper<bool>::fromString(value));
+	static_cast<RadioButton*>(receiver)->setSelected(PropertyHelper::stringToBool(value));
 }
 
 
 String GroupID::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<uint>::toString(static_cast<const RadioButton*>(receiver)->getGroupID());
+	return PropertyHelper::uintToString(static_cast<const RadioButton*>(receiver)->getGroupID());
 }
 
 
 void GroupID::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<RadioButton*>(receiver)->setGroupID(PropertyHelper<uint>::fromString(value));
+	static_cast<RadioButton*>(receiver)->setGroupID(PropertyHelper::stringToUint(value));
 }
 
 

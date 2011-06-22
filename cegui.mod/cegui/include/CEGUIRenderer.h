@@ -77,8 +77,7 @@ enum BlendMode
     or API to draw CEGUI imagery requires that an appropriate Renderer object be
     available.
 */
-class CEGUIEXPORT Renderer :
-    public AllocatedObject<Renderer>
+class CEGUIEXPORT Renderer
 {
 public:
     /*!

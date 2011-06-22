@@ -54,8 +54,7 @@ namespace CEGUI
 \brief
 	Class that represents a single Image of an Imageset.
 */
-class CEGUIEXPORT Image :
-    public AllocatedObject<Image>
+class CEGUIEXPORT Image
 {
 public:
 	/*!
@@ -95,7 +94,7 @@ public:
 	\return
 		Point object containing the offsets applied when rendering this Image
 	*/
-	Vector2	getOffsets(void) const		{return d_scaledOffset;}
+	Point	getOffsets(void) const		{return d_scaledOffset;}
 
 
 	/*!
@@ -204,10 +203,10 @@ public:
     */
     void draw(GeometryBuffer& buffer, const Vector2& position, const Size& size,
               const Rect* clip_rect,
-              const Colour& top_left_colour = 0xFFFFFFFF,
-              const Colour& top_right_colour = 0xFFFFFFFF,
-              const Colour& bottom_left_colour = 0xFFFFFFFF,
-              const Colour& bottom_right_colour = 0xFFFFFFFF,
+              const colour& top_left_colour = 0xFFFFFFFF,
+              const colour& top_right_colour = 0xFFFFFFFF,
+              const colour& bottom_left_colour = 0xFFFFFFFF,
+              const colour& bottom_right_colour = 0xFFFFFFFF,
               QuadSplitMode quad_split_mode = TopLeftToBottomRight) const
     {
         draw(buffer, Rect(position.d_x, position.d_y,
@@ -265,10 +264,10 @@ public:
     */
     void draw(GeometryBuffer& buffer, const Rect& dest_rect,
               const Rect* clip_rect,
-              const Colour& top_left_colour = 0xFFFFFFFF,
-              const Colour& top_right_colour = 0xFFFFFFFF,
-              const Colour& bottom_left_colour = 0xFFFFFFFF,
-              const Colour& bottom_right_colour = 0xFFFFFFFF,
+              const colour& top_left_colour = 0xFFFFFFFF,
+              const colour& top_right_colour = 0xFFFFFFFF,
+              const colour& bottom_left_colour = 0xFFFFFFFF,
+              const colour& bottom_right_colour = 0xFFFFFFFF,
               QuadSplitMode quad_split_mode = TopLeftToBottomRight) const
     {
         draw(buffer, dest_rect, clip_rect,
@@ -418,10 +417,10 @@ public:
     */
     void draw(GeometryBuffer& buffer, const Vector2& position,
               const Rect* clip_rect,
-              const Colour& top_left_colour = 0xFFFFFFFF,
-              const Colour& top_right_colour = 0xFFFFFFFF,
-              const Colour& bottom_left_colour = 0xFFFFFFFF,
-              const Colour& bottom_right_colour = 0xFFFFFFFF,
+              const colour& top_left_colour = 0xFFFFFFFF,
+              const colour& top_right_colour = 0xFFFFFFFF,
+              const colour& bottom_left_colour = 0xFFFFFFFF,
+              const colour& bottom_right_colour = 0xFFFFFFFF,
               QuadSplitMode quad_split_mode = TopLeftToBottomRight) const
     {
         draw(buffer, Rect(position.d_x, position.d_y,
@@ -525,7 +524,7 @@ public:
 
 	\exception NullObjectException	Thrown if \a owner was NULL.
 	*/
-	Image(const Imageset* owner, const String& name, const Rect& area, const Vector2& render_offset, float horzScaling = 1.0f, float vertScaling = 1.0f);
+	Image(const Imageset* owner, const String& name, const Rect& area, const Point& render_offset, float horzScaling = 1.0f, float vertScaling = 1.0f);
 
 
 
@@ -584,12 +583,12 @@ private:
 	*************************************************************************/
 	const Imageset*	d_owner;		//!< Link back to Imageset that owns this image
 	Rect			d_area;			//!< Rect defining the area on the texture that makes up this image.
-	Vector2			d_offset;		//!< Offset to use when rendering
+	Point			d_offset;		//!< Offset to use when rendering
 
 	// image auto-scaling fields.
 	float	d_scaledWidth;		//!< scaled image width.
 	float	d_scaledHeight;		//!< scaled image height.
-	Vector2	d_scaledOffset;		//!< scaled rendering offset.
+	Point	d_scaledOffset;		//!< scaled rendering offset.
 	String	d_name;				//!< name of this image.
 };
 

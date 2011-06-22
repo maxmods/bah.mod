@@ -110,7 +110,7 @@ double SimpleTimer::currentTime()
     return timeGetTime() / 1000.0;
 }
 
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)  || defined(__HAIKU__)
 #include <sys/time.h>
 double SimpleTimer::currentTime()
 {
@@ -230,7 +230,7 @@ System::System(Renderer& renderer,
     // seeing its configuration overwritten by this.
 #ifdef CEGUI_HAS_DEFAULT_LOGGER
     if (d_ourLogger)
-        CEGUI_NEW_AO DefaultLogger();
+        new DefaultLogger();
 #endif
 
     Logger& logger(Logger::getSingleton());
@@ -238,7 +238,7 @@ System::System(Renderer& renderer,
     // create default resource provider, unless one was already provided
     if (!d_resourceProvider)
     {
-        d_resourceProvider = CEGUI_NEW_AO DefaultResourceProvider();
+        d_resourceProvider = new DefaultResourceProvider;
         d_ourResourceProvider = true;
     }
 
@@ -259,7 +259,7 @@ System::System(Renderer& renderer,
         {
             // cleanup XML stuff
             d_xmlParser->cleanup();
-            CEGUI_DELETE_AO d_xmlParser;
+            delete d_xmlParser;
             CEGUI_RETHROW;
         }
     }
@@ -295,6 +295,9 @@ System::System(Renderer& renderer,
 
     // add the window factories for the core window types
     addStandardWindowFactories();
+
+    // GUISheet's name was changed, register an alias so both can be used
+    WindowFactoryManager::getSingleton().addWindowTypeAlias("DefaultGUISheet", GUISheet::WidgetTypeName);
 
     char addr_buff[32];
     sprintf(addr_buff, "(%p)", static_cast<void*>(this));
@@ -367,7 +370,7 @@ System::~System(void)
 
     // cleanup resource provider if we own it
     if (d_ourResourceProvider)
-        CEGUI_DELETE_AO d_resourceProvider;
+        delete d_resourceProvider;
 
     char addr_buff[32];
     sprintf(addr_buff, "(%p)", static_cast<void*>(this));
@@ -378,7 +381,7 @@ System::~System(void)
 #ifdef CEGUI_HAS_DEFAULT_LOGGER
     // delete the Logger object only if we created it.
     if (d_ourLogger)
-        CEGUI_DELETE_AO Logger::getSingletonPtr();
+        delete Logger::getSingletonPtr();
 #endif
 
 	delete d_clickTrackerPimpl;
@@ -479,8 +482,11 @@ void System::setDefaultFont(Font* font)
 *************************************************************************/
 void System::setDefaultMouseCursor(const Image* image)
 {
+    const Image* const default_cursor =
+        reinterpret_cast<const Image*>(DefaultMouseCursor);
+
     // the default, default, is for nothing!
-    if (image == (const Image*)DefaultMouseCursor)
+    if (image == default_cursor)
         image = 0;
 
     // if mouse cursor is set to the current default we *may* need to
@@ -493,7 +499,8 @@ void System::setDefaultMouseCursor(const Image* image)
     if (MouseCursor::getSingleton().getImage() == d_defaultMouseCursor)
     {
         // does the window containing the mouse use the default cursor?
-        if ((d_wndWithMouse) && (0 == d_wndWithMouse->getMouseCursor(false)))
+        if ((d_wndWithMouse) &&
+            (default_cursor == d_wndWithMouse->getMouseCursor(false)))
         {
             // default cursor is active, update the image immediately
             MouseCursor::getSingleton().setImage(image);
@@ -764,7 +771,7 @@ bool System::injectMouseButtonDown(MouseButton button)
         // build new allowable area for multi-clicks
         tkr.d_click_area.setPosition(ma.position);
         tkr.d_click_area.setSize(d_dblclick_size);
-        tkr.d_click_area.offset(Vector2(-(d_dblclick_size.d_width / 2), -(d_dblclick_size.d_height / 2)));
+        tkr.d_click_area.offset(Point(-(d_dblclick_size.d_width / 2), -(d_dblclick_size.d_height / 2)));
 
         // set target window for click events on this tracker
         tkr.d_target_window = ma.window;
@@ -954,7 +961,7 @@ bool System::injectMouseWheelChange(float delta)
 *************************************************************************/
 bool System::injectMousePosition(float x_pos, float y_pos)
 {
-    const Vector2 new_position(x_pos, y_pos);
+    const Point new_position(x_pos, y_pos);
     MouseCursor& mouse(MouseCursor::getSingleton());
 
     // setup mouse movement event args object.
@@ -1000,7 +1007,7 @@ bool System::injectTimePulse(float timeElapsed)
 /*************************************************************************
 	Return window that should get mouse inouts when mouse it at 'pt'
 *************************************************************************/
-Window* System::getTargetWindow(const Vector2& pt,
+Window* System::getTargetWindow(const Point& pt,
                                 const bool allow_disabled) const
 {
     // if there is no GUI sheet visible, then there is nowhere to send input
@@ -1342,8 +1349,8 @@ void System::notifyDisplaySizeChanged(const Size& new_size)
 
     Logger::getSingleton().logEvent(
         "Display resize:"
-        " w=" + PropertyHelper<float>::toString(new_size.d_width) +
-        " h=" + PropertyHelper<float>::toString(new_size.d_height));
+        " w=" + PropertyHelper::floatToString(new_size.d_width) +
+        " h=" + PropertyHelper::floatToString(new_size.d_height));
 }
 
 
@@ -1395,11 +1402,16 @@ void System::setDefaultTooltip(const String& tooltipType)
 //----------------------------------------------------------------------------//
 void System::createSystemOwnedDefaultTooltipWindow() const
 {
-    d_defaultTooltip = static_cast<Tooltip*>(
-        WindowManager::getSingleton().createWindow(
-            d_defaultTooltipType, "CEGUI::System::default__auto_tooltip__"));
-    d_defaultTooltip->setWritingXMLAllowed(false);
-    d_weOwnTooltip = true;
+    WindowManager& winmgr(WindowManager::getSingleton());
+
+    if (!winmgr.isLocked())
+    {
+        d_defaultTooltip = static_cast<Tooltip*>(
+            winmgr.createWindow(d_defaultTooltipType,
+                                "CEGUI::System::default__auto_tooltip__"));
+        d_defaultTooltip->setWritingXMLAllowed(false);
+        d_weOwnTooltip = true;
+    }
 }
 
 //----------------------------------------------------------------------------//
@@ -1452,7 +1464,7 @@ void System::outputLogHeader()
 void System::addStandardWindowFactories()
 {
     // Add factories for types all base elements
-    WindowFactoryManager::addFactory< TplWindowFactory<DefaultWindow> >();
+    WindowFactoryManager::addFactory< TplWindowFactory<GUISheet> >();
     WindowFactoryManager::addFactory< TplWindowFactory<DragContainer> >();
     WindowFactoryManager::addFactory< TplWindowFactory<ScrolledContainer> >();
     WindowFactoryManager::addFactory< TplWindowFactory<ClippedContainer> >();
@@ -1493,32 +1505,32 @@ void System::addStandardWindowFactories()
 void System::createSingletons()
 {
     // cause creation of other singleton objects
-    CEGUI_NEW_AO ImagesetManager();
-    CEGUI_NEW_AO FontManager();
-    CEGUI_NEW_AO WindowFactoryManager();
-    CEGUI_NEW_AO WindowManager();
-    CEGUI_NEW_AO SchemeManager();
-    CEGUI_NEW_AO MouseCursor();
-    CEGUI_NEW_AO GlobalEventSet();
-    CEGUI_NEW_AO AnimationManager();
-    CEGUI_NEW_AO WidgetLookManager();
-    CEGUI_NEW_AO WindowRendererManager();
-    CEGUI_NEW_AO RenderEffectManager();
+    new ImagesetManager();
+    new FontManager();
+    new WindowFactoryManager();
+    new WindowManager();
+    new SchemeManager();
+    new MouseCursor();
+    new GlobalEventSet();
+    new AnimationManager();
+    new WidgetLookManager();
+    new WindowRendererManager();
+    new RenderEffectManager();
 }
 
 void System::destroySingletons()
 {
-    CEGUI_DELETE_AO SchemeManager::getSingletonPtr();
-    CEGUI_DELETE_AO WindowManager::getSingletonPtr();
-    CEGUI_DELETE_AO WindowFactoryManager::getSingletonPtr();
-    CEGUI_DELETE_AO WidgetLookManager::getSingletonPtr();
-    CEGUI_DELETE_AO WindowRendererManager::getSingletonPtr();
-    CEGUI_DELETE_AO AnimationManager::getSingletonPtr();
-    CEGUI_DELETE_AO RenderEffectManager::getSingletonPtr();
-    CEGUI_DELETE_AO FontManager::getSingletonPtr();
-    CEGUI_DELETE_AO MouseCursor::getSingletonPtr();
-    CEGUI_DELETE_AO ImagesetManager::getSingletonPtr();
-    CEGUI_DELETE_AO GlobalEventSet::getSingletonPtr();
+    delete  SchemeManager::getSingletonPtr();
+    delete  WindowManager::getSingletonPtr();
+    delete  WindowFactoryManager::getSingletonPtr();
+    delete  WidgetLookManager::getSingletonPtr();
+    delete  WindowRendererManager::getSingletonPtr();
+    delete  AnimationManager::getSingletonPtr();
+    delete  RenderEffectManager::getSingletonPtr();
+    delete  FontManager::getSingletonPtr();
+    delete  MouseCursor::getSingletonPtr();
+    delete  ImagesetManager::getSingletonPtr();
+    delete  GlobalEventSet::getSingletonPtr();
 }
 
 //----------------------------------------------------------------------------//
@@ -1566,7 +1578,7 @@ void System::cleanupXMLParser()
         deleteFunc(d_xmlParser);
 
         // delete the dynamic module for the xml parser
-        CEGUI_DELETE_AO d_parserModule;
+        delete d_parserModule;
         d_parserModule = 0;
     }
 #ifdef CEGUI_STATIC
@@ -1584,7 +1596,7 @@ void System::setXMLParser(const String& parserName)
 #ifndef CEGUI_STATIC
     cleanupXMLParser();
     // load dynamic module
-    d_parserModule = CEGUI_NEW_AO DynamicModule(String("CEGUI") + parserName);
+    d_parserModule = new DynamicModule(String("CEGUI") + parserName);
     // get pointer to parser creation function
     XMLParser* (*createFunc)(void) =
         (XMLParser* (*)(void))d_parserModule->getSymbolAddress("createParser");
@@ -1790,7 +1802,7 @@ void System::cleanupImageCodec()
         ((void(*)(ImageCodec*))d_imageCodecModule->
             getSymbolAddress("destroyImageCodec"))(d_imageCodec);
 
-        CEGUI_DELETE_AO d_imageCodecModule;
+        delete d_imageCodecModule;
         d_imageCodecModule = 0;
     }
 #if defined(CEGUI_STATIC)
@@ -1816,9 +1828,9 @@ const String& System::getDefaultImageCodecName()
 //----------------------------------------------------------------------------//
 void System::initialiseVersionString()
 {
-    d_strVersion = PropertyHelper<uint>::toString(CEGUI_VERSION_MAJOR) + "." +
-       PropertyHelper<uint>::toString(CEGUI_VERSION_MINOR) + "." +
-       PropertyHelper<uint>::toString(CEGUI_VERSION_PATCH);
+    d_strVersion = PropertyHelper::uintToString(CEGUI_VERSION_MAJOR) + "." +
+       PropertyHelper::uintToString(CEGUI_VERSION_MINOR) + "." +
+       PropertyHelper::uintToString(CEGUI_VERSION_PATCH);
 
     d_strVersion += " (Build: " __DATE__;
 
@@ -1884,14 +1896,14 @@ System& System::create(Renderer& renderer, ResourceProvider* resourceProvider,
                        ScriptModule* scriptModule, const String& configFile,
                        const String& logFile)
 {
-    return *CEGUI_NEW_AO System(renderer, resourceProvider, xmlParser, imageCodec,
+    return *new System(renderer, resourceProvider, xmlParser, imageCodec,
                        scriptModule, configFile, logFile);
 }
 
 //----------------------------------------------------------------------------//
 void System::destroy()
 {
-    CEGUI_DELETE_AO System::getSingletonPtr();
+    delete System::getSingletonPtr();
 }
 
 //----------------------------------------------------------------------------//

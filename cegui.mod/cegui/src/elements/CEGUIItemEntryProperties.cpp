@@ -37,22 +37,22 @@ namespace ItemEntryProperties
 {
     String Selectable::get(const PropertyReceiver* receiver) const
     {
-        return PropertyHelper<bool>::toString(static_cast<const ItemEntry*>(receiver)->isSelectable());
+        return PropertyHelper::boolToString(static_cast<const ItemEntry*>(receiver)->isSelectable());
     }
 
     void Selectable::set(PropertyReceiver* receiver, const String& value)
     {
-        static_cast<ItemEntry*>(receiver)->setSelectable(PropertyHelper<bool>::fromString(value));
+        static_cast<ItemEntry*>(receiver)->setSelectable(PropertyHelper::stringToBool(value));
     }
 
     String Selected::get(const PropertyReceiver* receiver) const
     {
-        return PropertyHelper<bool>::toString(static_cast<const ItemEntry*>(receiver)->isSelected());
+        return PropertyHelper::boolToString(static_cast<const ItemEntry*>(receiver)->isSelected());
     }
 
     void Selected::set(PropertyReceiver* receiver, const String& value)
     {
-        static_cast<ItemEntry*>(receiver)->setSelected(PropertyHelper<bool>::fromString(value));
+        static_cast<ItemEntry*>(receiver)->setSelected(PropertyHelper::stringToBool(value));
     }
 
 } // End of  ItemListBaseProperties namespace section

@@ -52,7 +52,7 @@ public:
     /**
      * enumerates auto positioning methods for the grid - these allow you to
      * fill the grid without specifying gridX and gridY positions for each
-     * addChild.
+     * addChildWindow.
      */
     enum AutoPositioning
     {
@@ -91,7 +91,7 @@ public:
     static const String EventNamespace;
 
     //! fired when child windows get rearranged
-    static const String EventChildOrderChanged;
+    static const String EventChildWindowOrderChanged;
 
     /*************************************************************************
         Construction and Destruction
@@ -145,14 +145,14 @@ public:
     /*!
     \brief
         Sets the next auto positioning "sequence position", this will be used
-        next time when addChild is called.
+        next time when addChildWindow is called.
     */
     void setNextAutoPositioningIdx(size_t idx);
 
     /*!
     \brief
         Retrieves auto positioning "sequence position", this will be used next
-        time when addChild is called.
+        time when addChildWindow is called.
     */
     size_t getNextAutoPositioningIdx() const;
 
@@ -177,9 +177,9 @@ public:
         setAutoPositioningIdx(..) to set it's starting point back
 
     \see
-        Window::addChild
+        Window::addChildWindow
     */
-    void addChildToPosition(Window* window, size_t gridX, size_t gridY);
+    void addChildWindowToPosition(Window* window, size_t gridX, size_t gridY);
 
     /*!
     \brief
@@ -196,24 +196,24 @@ public:
         setAutoPositioningIdx(..) to set it's starting point back
 
     \see
-        Window::addChild
+        Window::addChildWindow
     */
-    void addChildToPosition(const String& name, size_t gridX, size_t gridY);
+    void addChildWindowToPosition(const String& name, size_t gridX, size_t gridY);
 
     /*!
     \brief
         Retrieves child window that is currently at given grid position
     */
-    Window* getChildAtPosition(size_t gridX, size_t gridY);
+    Window* getChildWindowAtPosition(size_t gridX, size_t gridY);
 
     /*!
     \brief
         Removes the child window that is currently at given grid position
 
     \see
-        Window::removeChild
+        Window::removeChildWindow
     */
-    void removeChildFromPosition(size_t gridX, size_t gridY);
+    void removeChildWindowFromPosition(size_t gridX, size_t gridY);
 
     /*!
     \brief
@@ -222,44 +222,44 @@ public:
     \par
         For advanced users only!
     */
-    virtual void swapChildPositions(size_t wnd1, size_t wnd2);
+    virtual void swapChildWindowPositions(size_t wnd1, size_t wnd2);
 
     /*!
     \brief
         Swaps positions of 2 windows given by grid positions
     */
-    void swapChildPositions(size_t gridX1, size_t gridY1,
+    void swapChildWindowPositions(size_t gridX1, size_t gridY1,
                                   size_t gridX2, size_t gridY2);
 
     /*!
     \brief
         Swaps positions of given windows
     */
-    void swapChildren(Window* wnd1, Window* wnd2);
+    void swapChildWindows(Window* wnd1, Window* wnd2);
 
     /*!
     \brief
         Swaps positions of given windows
     */
-    void swapChildren(Window* wnd1, const String& wnd2);
+    void swapChildWindows(Window* wnd1, const String& wnd2);
 
     /*!
     \brief
         Swaps positions of given windows
     */
-    void swapChildren(const String& wnd1, Window* wnd2);
+    void swapChildWindows(const String& wnd1, Window* wnd2);
 
     /*!
     \brief
         Moves given child window to given grid position
     */
-    void moveChildToPosition(Window* wnd, size_t gridX, size_t gridY);
+    void moveChildWindowToPosition(Window* wnd, size_t gridX, size_t gridY);
 
     /*!
     \brief
         Moves named child window to given grid position
     */
-    void moveChildToPosition(const String& wnd,
+    void moveChildWindowToPosition(const String& wnd,
                                    size_t gridX, size_t gridY);
 
     //! @copydoc LayoutContainer::layout
@@ -274,7 +274,7 @@ protected:
         WindowEventArgs object whose 'window' field is set this layout
         container.
     */
-    virtual void onChildOrderChanged(WindowEventArgs& e);
+    virtual void onChildWindowOrderChanged(WindowEventArgs& e);
 
     //! converts from grid cell position to idx
     size_t mapFromGridToIdx(size_t gridX, size_t gridY,

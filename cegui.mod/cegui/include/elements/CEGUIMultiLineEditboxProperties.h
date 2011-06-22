@@ -98,21 +98,21 @@ public:
 
 /*!
 \brief
-	Property to access the current caret index.
+	Property to access the current carat index.
 
 	\par Usage:
-		- Name: CaretIndex
+		- Name: CaratIndex
 		- Format: "[uint]"
 
 	\par Where:
-		- [uint] is the zero based index of the caret position within the text.
+		- [uint] is the zero based index of the carat position within the text.
 */
-class CaretIndex : public Property
+class CaratIndex : public Property
 {
 public:
-	CaretIndex() : Property(
-		"CaretIndex",
-		"Property to get/set the current caret index.  Value is \"[uint]\".",
+	CaratIndex() : Property(
+		"CaratIndex",
+		"Property to get/set the current carat index.  Value is \"[uint]\".",
 		"0")
 	{}
 

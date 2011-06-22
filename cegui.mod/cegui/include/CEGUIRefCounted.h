@@ -35,9 +35,6 @@ namespace CEGUI
 \brief
     Simple, generic, reference counted pointer class.  This is primarily here
     for use by the Events system to track when to delete slot bindings.
-
-\note
-    Only safe to use with AllocatedObject<T> derived classes!
 */
 template<typename T>
 class RefCounted
@@ -59,7 +56,6 @@ public:
     */
     RefCounted(T* ob) :
         d_object(ob),
-        // use system heap for this! no CEGUI_NEW_PT!
         d_count((ob != 0) ? new unsigned int(1) : 0)
     {
     }
@@ -187,10 +183,7 @@ private:
     {
         if (!--*d_count)
         {
-            // use CEGUI allocators for the object
-            CEGUI_DELETE_AO d_object;
-
-            // use system heap for this! no CEGUI_DELETE_PT!
+            delete d_object;
             delete d_count;
             d_object = 0;
             d_count = 0;

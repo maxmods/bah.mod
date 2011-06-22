@@ -47,10 +47,7 @@ namespace CEGUI
     to events; which means you can subscribe to some event that does not actually
     exist (yet).
 */
-class CEGUIEXPORT GlobalEventSet :
-    public EventSet,
-    public Singleton<GlobalEventSet>,
-    public AllocatedObject<GlobalEventSet>
+class CEGUIEXPORT GlobalEventSet : public EventSet, public Singleton<GlobalEventSet>
 {
 public:
 	GlobalEventSet();

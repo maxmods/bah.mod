@@ -39,28 +39,28 @@ namespace FalagardProgressBarProperties
     {
         FalagardProgressBar* pb = static_cast<FalagardProgressBar*>(
             static_cast<const Window*>(receiver)->getWindowRenderer());
-        return PropertyHelper<bool>::toString(pb->isVertical());
+        return PropertyHelper::boolToString(pb->isVertical());
     }
 
     void VerticalProgress::set(PropertyReceiver* receiver, const String& value)
     {
         FalagardProgressBar* pb = static_cast<FalagardProgressBar*>(
             static_cast<Window*>(receiver)->getWindowRenderer());
-        pb->setVertical(PropertyHelper<bool>::fromString(value));
+        pb->setVertical(PropertyHelper::stringToBool(value));
     }
 
     String ReversedProgress::get(const PropertyReceiver* receiver) const
     {
         FalagardProgressBar* pb = static_cast<FalagardProgressBar*>(
             static_cast<const Window*>(receiver)->getWindowRenderer());
-        return PropertyHelper<bool>::toString(pb->isReversed());
+        return PropertyHelper::boolToString(pb->isReversed());
     }
 
     void ReversedProgress::set(PropertyReceiver* receiver, const String& value)
     {
         FalagardProgressBar* pb = static_cast<FalagardProgressBar*>(
             static_cast<Window*>(receiver)->getWindowRenderer());
-        pb->setReversed(PropertyHelper<bool>::fromString(value));
+        pb->setReversed(PropertyHelper::stringToBool(value));
     }
 }
 

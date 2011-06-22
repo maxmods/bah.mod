@@ -58,9 +58,8 @@ namespace CEGUI
 	WindowFactoryManager.  Additionally, the WindowManager tracks every Window object created, and can be
 	used to access those Window objects by name.
 */
-class CEGUIEXPORT WindowManager : public Singleton<WindowManager>,
-                                  public EventSet,
-                                  public AllocatedObject<WindowManager>
+class CEGUIEXPORT WindowManager : public Singleton <WindowManager>,
+                                  public EventSet
 {
 public:
     /*************************************************************************
@@ -484,13 +483,11 @@ private:
 	/*************************************************************************
 		Implementation Data
 	*************************************************************************/
-	typedef std::map<String, Window*, String::FastLessCompare
-        CEGUI_MAP_ALLOC(String, Window*)> WindowRegistry; //!< Type used to implement registry of Window objects
-    typedef std::vector<Window*
-        CEGUI_VECTOR_ALLOC(Window*)> WindowVector; //!< Type to use for a collection of Window pointers.
+	typedef std::map<String, Window*, String::FastLessCompare>			WindowRegistry;				//!< Type used to implement registry of Window objects
+    typedef std::vector<Window*>    WindowVector;   //!< Type to use for a collection of Window pointers.
 
-	WindowRegistry d_windowRegistry;			//!< The container that forms the Window registry
-    WindowVector d_deathrow; //!< Collection of 'destroyed' windows.
+	WindowRegistry			d_windowRegistry;			//!< The container that forms the Window registry
+    WindowVector    d_deathrow;     //!< Collection of 'destroyed' windows.
 
     unsigned long   d_uid_counter;  //!< Counter used to generate unique window names.
     static String d_defaultResourceGroup;   //!< holds default resource group

@@ -121,7 +121,7 @@ void WindowFactoryManager::removeFactory(const String& name)
                                         (*j)->getTypeName() +
                                         "' windows.");
 
-        CEGUI_DELETE_AO (*j);
+        delete (*j);
         d_ownedFactories.erase(j);
     }
 }
@@ -258,7 +258,7 @@ void WindowFactoryManager::removeWindowTypeAlias(const String& aliasName, const 
 	if (pos != d_aliasRegistry.end())
 	{
 		// find the specified target for this alias
-		AliasTargetStack::TargetTypeStack::iterator aliasPos = std::find(pos->second.d_targetStack.begin(), pos->second.d_targetStack.end(), targetType);
+		std::vector<String>::iterator aliasPos = std::find(pos->second.d_targetStack.begin(), pos->second.d_targetStack.end(), targetType);
 
 		// if the target exists for this alias
 		if (aliasPos != pos->second.d_targetStack.end())

@@ -31,7 +31,7 @@
 #include "elements/CEGUITabControl.h"
 #include "elements/CEGUITabButton.h"
 #include "elements/CEGUIPushButton.h"
-#include "elements/CEGUIDefaultWindow.h"
+#include "elements/CEGUIGUISheet.h"
 #include "CEGUIFont.h"
 #include "CEGUIWindowManager.h"
 #include "CEGUIPropertyHelper.h"
@@ -61,7 +61,7 @@ TabControlProperties::TabPanePosition		    TabControl::d_tabPanePosition;
 	Constants
 *************************************************************************/
 // event names
-const String TabControl::EventSelectionChanged( "SelectionChanged" );
+const String TabControl::EventSelectionChanged( "TabSelectionChanged" );
 
 /*************************************************************************
     Child Widget name suffix constants
@@ -254,7 +254,7 @@ void TabControl::addTab(Window* wnd)
     // Create a new TabButton
     addButtonForTabContent(wnd);
     // Add the window to the content pane
-    getTabPane()->addChild(wnd);
+    getTabPane()->addChildWindow(wnd);
     // Auto-select?
     if (getTabCount() == 1)
         setSelectedTab(wnd->getName());
@@ -307,7 +307,7 @@ void TabControl::addButtonForTabContent(Window* wnd)
     // Instert into map
     d_tabButtonVector.push_back(tb);
     // add the button
-    getTabButtonPane()->addChild(tb);
+    getTabButtonPane()->addChildWindow(tb);
     // Subscribe to clicked event so that we can change tab
     tb->subscribeEvent(TabButton::EventClicked,
         Event::Subscriber(&TabControl::handleTabButtonClicked, this));
@@ -344,7 +344,7 @@ void TabControl::removeButtonForTabContent(Window* wnd)
             d_tabButtonVector.erase (i);
             break;
         }
-    getTabButtonPane()->removeChild(tb);
+    getTabButtonPane()->removeChildWindow(tb);
 	// destroy
 	WindowManager::getSingleton().destroyWindow(tb);
 }
@@ -788,7 +788,7 @@ void TabControl::removeTab_impl(Window* window)
     // Was this selected?
     bool reselect = window->isVisible();
     // Tab buttons are the 2nd onward children
-    getTabPane()->removeChild(window);
+    getTabPane()->removeChildWindow(window);
 
     // remove button too
     removeButtonForTabContent(window);

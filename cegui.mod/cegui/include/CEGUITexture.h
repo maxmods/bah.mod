@@ -47,8 +47,7 @@ namespace CEGUI
     for the rest of the system to work.  Texture objects are only created
     through the Renderer object's texture creation functions.
 */
-class CEGUIEXPORT Texture :
-    public AllocatedObject<Texture>
+class CEGUIEXPORT Texture
 {
 public:
     /*!
@@ -145,22 +144,6 @@ public:
         the required pixel dimensions can be established by calling getSize.
     */
     virtual void saveToMemory(void* buffer) = 0;
-
-    /*!
-    \brief
-        Performs an area memory blit to the texture
-
-    \param sourceData
-        input data, the size must match area described by the given Rect
-
-    \param area
-        area where the blit will happen
-
-    \note The pixel format must match current Texture's pixel format!
-    */
-    virtual void blitFromMemory(void* sourceData, const Rect& area) = 0;
-
-    virtual void blitToMemory(void* targetData) = 0;
 
     /*!
     \brief

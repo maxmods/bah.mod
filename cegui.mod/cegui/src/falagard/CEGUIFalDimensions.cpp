@@ -49,7 +49,7 @@ namespace CEGUI
 
     BaseDim::~BaseDim()
     {
-        CEGUI_DELETE_AO d_operand;
+        delete d_operand;
     }
 
     float BaseDim::getValue(const Window& wnd) const
@@ -147,8 +147,7 @@ namespace CEGUI
     void BaseDim::setOperand(const BaseDim& operand)
     {
         // release old operand, if any.
-        if(d_operand)
-            CEGUI_DELETE_AO d_operand;
+        if(d_operand) delete d_operand;
 
         d_operand = operand.clone();
     }
@@ -194,7 +193,7 @@ namespace CEGUI
 
     BaseDim* AbsoluteDim::clone_impl() const
     {
-        AbsoluteDim* ndim = CEGUI_NEW_AO AbsoluteDim(d_val);
+        AbsoluteDim* ndim = new AbsoluteDim(d_val);
         return ndim;
     }
 
@@ -205,7 +204,7 @@ namespace CEGUI
 
     void AbsoluteDim::writeXMLElementAttributes_impl(XMLSerializer& xml_stream) const
     {
-        xml_stream.attribute("value", PropertyHelper<float>::toString(d_val));
+        xml_stream.attribute("value", PropertyHelper::floatToString(d_val));
     }
 
 
@@ -285,7 +284,7 @@ namespace CEGUI
 
     BaseDim* ImageDim::clone_impl() const
     {
-        ImageDim* ndim = CEGUI_NEW_AO ImageDim(d_imageset, d_image, d_what);
+        ImageDim* ndim = new ImageDim(d_imageset, d_image, d_what);
         return ndim;
     }
 
@@ -388,7 +387,7 @@ namespace CEGUI
 
     BaseDim* WidgetDim::clone_impl() const
     {
-        WidgetDim* ndim = CEGUI_NEW_AO WidgetDim(d_widgetName, d_what);
+        WidgetDim* ndim = new WidgetDim(d_widgetName, d_what);
         return ndim;
     }
 
@@ -455,7 +454,7 @@ namespace CEGUI
 
     BaseDim* FontDim::clone_impl() const
     {
-        FontDim* ndim = CEGUI_NEW_AO FontDim(d_childSuffix, d_font, d_text, d_metric, d_padding);
+        FontDim* ndim = new FontDim(d_childSuffix, d_font, d_text, d_metric, d_padding);
         return ndim;
     }
 
@@ -476,7 +475,7 @@ namespace CEGUI
             xml_stream.attribute("string", d_text);
 
         if (d_padding != 0)
-            xml_stream.attribute("padding", PropertyHelper<float>::toString(d_padding));
+            xml_stream.attribute("padding", PropertyHelper::floatToString(d_padding));
 
         xml_stream.attribute("type", FalagardXMLHelper::fontMetricTypeToString(d_metric));
     }
@@ -498,9 +497,9 @@ namespace CEGUI
 
         if (d_type == DT_INVALID)
             // return float property value.
-            return PropertyHelper<float>::fromString(sourceWindow.getProperty(d_property));
+            return PropertyHelper::stringToFloat(sourceWindow.getProperty(d_property));
 
-        UDim d = PropertyHelper<UDim>::fromString(sourceWindow.getProperty(d_property));
+        UDim d = PropertyHelper::stringToUDim(sourceWindow.getProperty(d_property));
         Size s = sourceWindow.getPixelSize();
 
         switch (d_type)
@@ -523,7 +522,7 @@ namespace CEGUI
 
     BaseDim* PropertyDim::clone_impl() const
     {
-        PropertyDim* ndim = CEGUI_NEW_AO PropertyDim(d_childSuffix, d_property, d_type);
+        PropertyDim* ndim = new PropertyDim(d_childSuffix, d_property, d_type);
         return ndim;
     }
 
@@ -552,7 +551,7 @@ namespace CEGUI
     Dimension::~Dimension()
     {
         if (d_value)
-            CEGUI_DELETE_AO d_value;
+            delete d_value;
     }
 
     Dimension::Dimension(const BaseDim& dim, DimensionType type)
@@ -570,8 +569,7 @@ namespace CEGUI
     Dimension& Dimension::operator=(const Dimension& other)
     {
         // release old value, if any.
-        if (d_value)
-            CEGUI_DELETE_AO d_value;
+        if (d_value)  delete d_value;
 
         d_value = other.d_value ? other.d_value->clone() : 0;
         d_type = other.d_type;
@@ -588,8 +586,7 @@ namespace CEGUI
     void Dimension::setBaseDimension(const BaseDim& dim)
     {
         // release old value, if any.
-        if (d_value)
-            CEGUI_DELETE_AO d_value;
+        if (d_value)  delete d_value;
 
         d_value = dim.clone();
     }
@@ -676,7 +673,7 @@ namespace CEGUI
 
     BaseDim* UnifiedDim::clone_impl() const
     {
-        UnifiedDim* ndim = CEGUI_NEW_AO UnifiedDim(d_value, d_what);
+        UnifiedDim* ndim = new UnifiedDim(d_value, d_what);
         return ndim;
     }
 
@@ -688,10 +685,10 @@ namespace CEGUI
     void UnifiedDim::writeXMLElementAttributes_impl(XMLSerializer& xml_stream) const
     {
         if (d_value.d_scale != 0)
-            xml_stream.attribute("scale", PropertyHelper<float>::toString(d_value.d_scale));
+            xml_stream.attribute("scale", PropertyHelper::floatToString(d_value.d_scale));
 
         if (d_value.d_offset != 0)
-            xml_stream.attribute("offset", PropertyHelper<float>::toString(d_value.d_offset));
+            xml_stream.attribute("offset", PropertyHelper::floatToString(d_value.d_offset));
 
         xml_stream.attribute("type", FalagardXMLHelper::dimensionTypeToString(d_what));
     }
@@ -705,7 +702,7 @@ namespace CEGUI
         // use a property?
         if (isAreaFetchedFromProperty())
         {
-            pixelRect = PropertyHelper<URect>::fromString(wnd.getProperty(d_areaProperty)).asAbsolute(wnd.getPixelSize());
+            pixelRect = PropertyHelper::stringToURect(wnd.getProperty(d_areaProperty)).asAbsolute(wnd.getPixelSize());
         }
         // not via property - calculate using Dimensions
         else
@@ -740,7 +737,7 @@ namespace CEGUI
         // use a property?
         if (isAreaFetchedFromProperty())
         {
-            pixelRect = PropertyHelper<URect>::fromString(wnd.getProperty(d_areaProperty)).asAbsolute(wnd.getPixelSize());
+            pixelRect = PropertyHelper::stringToURect(wnd.getProperty(d_areaProperty)).asAbsolute(wnd.getPixelSize());
         }
         // not via property - calculate using Dimensions
         else

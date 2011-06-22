@@ -1231,13 +1231,13 @@ private:
 class MaxCEColour
 {
 public:
-	MaxCEColour(CEGUI::Colour col);
+	MaxCEColour(CEGUI::colour col);
 	~MaxCEColour();
 
-	CEGUI::Colour Colour();
+	CEGUI::colour Colour();
 	
 private:
-	CEGUI::Colour colour;
+	CEGUI::colour colour;
 };
 
 class MaxCEColourRect

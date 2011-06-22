@@ -64,10 +64,10 @@ void GroupBox::addChild_impl(Window* wnd)
     // Only add it when it's not the __auto_contentpane__ (auto-child) itself
 	if (wnd && wnd->getName().find(ContentPaneNameSuffix) == String::npos)
 	{
-		Window* pane = getContentPane();
+		Window * pane = getContentPane();
 		if (pane)
 		{
-			pane->addChild(wnd);
+			pane->addChildWindow(wnd);
 		}
 		else
 		{
@@ -90,7 +90,7 @@ void GroupBox::removeChild_impl(Window* wnd)
             Window* wndPane = getContentPane();
             if (wndPane)
             {
-                wndPane->removeChild(wnd);
+                wndPane->removeChildWindow(wnd);
 		        if (wnd->isDestroyedByParent())
 		        {
 			        WindowManager::getSingleton().destroyWindow(wnd);

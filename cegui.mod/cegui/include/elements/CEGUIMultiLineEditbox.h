@@ -113,7 +113,7 @@ public:
      * WindowEventArgs::window set to the MultiLineEditbox whose caret position
      * has changed.
      */
-	static const String EventCaretMoved;
+	static const String EventCaratMoved;
     /** Event fired when the current text selection for the edit box is changed.
      * Handlers are passed a const WindowEventArgs reference with
      * WindowEventArgs::window set to the MultiLineEditbox whose text selection
@@ -162,8 +162,7 @@ public:
         size_t  d_length;       //!< Code point length of this line.
         float   d_extent;       //!< Rendered extent of this line.
     };
-    typedef std::vector<LineInfo
-        CEGUI_VECTOR_ALLOC(LineInfo)>   LineList;   //!< Type for collection of LineInfos.
+    typedef std::vector<LineInfo>   LineList;   //!< Type for collection of LineInfos.
 
 	/*************************************************************************
 		Accessor Functions
@@ -192,12 +191,12 @@ public:
 
 	/*!
 	\brief
-		return the current position of the caret.
+		return the current position of the carat.
 
 	\return
-		Index of the insert caret relative to the start of the text.
+		Index of the insert carat relative to the start of the text.
 	*/
-	size_t	getCaretIndex(void) const		{return d_caretPos;}
+	size_t	getCaratIndex(void) const		{return d_caratPos;}
 
 
 	/*!
@@ -206,7 +205,7 @@ public:
 
 	\return
 		Index of the selection start point relative to the start of the text.  If no selection is defined this function returns
-		the position of the caret.
+		the position of the carat.
 	*/
 	size_t	getSelectionStartIndex(void) const;
 
@@ -217,7 +216,7 @@ public:
 
 	\return
 		Index of the selection end point relative to the start of the text.  If no selection is defined this function returns
-		the position of the caret.
+		the position of the carat.
 	*/
 	size_t	getSelectionEndIndex(void) const;
 
@@ -342,16 +341,16 @@ public:
 
 	/*!
 	\brief
-		Set the current position of the caret.
+		Set the current position of the carat.
 
-	\param caret_pos
-		New index for the insert caret relative to the start of the text.  If the value specified is greater than the
-		number of characters in the edit box, the caret is positioned at the end of the text.
+	\param carat_pos
+		New index for the insert carat relative to the start of the text.  If the value specified is greater than the
+		number of characters in the edit box, the carat is positioned at the end of the text.
 
 	\return
 		Nothing.
 	*/
-	void	setCaretIndex(size_t caret_pos);
+	void	setCaratIndex(size_t carat_pos);
 
 
 	/*!
@@ -387,9 +386,9 @@ public:
 
 	/*!
 	\brief
-		Scroll the view so that the current caret position is visible.
+		Scroll the view so that the current carat position is visible.
 	*/
-	void	ensureCaretIsVisible(void);
+	void	ensureCaratIsVisible(void);
 
 
 	/*!
@@ -505,7 +504,7 @@ protected:
 	\return
 		Code point index into the text that is rendered closest to screen position \a pt.
 	*/
-	size_t	getTextIndexFromPosition(const Vector2& pt) const;
+	size_t	getTextIndexFromPosition(const Point& pt) const;
 
 
 	/*!
@@ -541,70 +540,70 @@ protected:
 
 	/*!
 	\brief
-		Processing to move caret one character left
+		Processing to move carat one character left
 	*/
 	void	handleCharLeft(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret one word left
+		Processing to move carat one word left
 	*/
 	void	handleWordLeft(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret one character right
+		Processing to move carat one character right
 	*/
 	void	handleCharRight(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret one word right
+		Processing to move carat one word right
 	*/
 	void	handleWordRight(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret to the start of the text.
+		Processing to move carat to the start of the text.
 	*/
 	void	handleDocHome(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret to the end of the text
+		Processing to move carat to the end of the text
 	*/
 	void	handleDocEnd(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret to the start of the current line.
+		Processing to move carat to the start of the current line.
 	*/
 	void	handleLineHome(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret to the end of the current line
+		Processing to move carat to the end of the current line
 	*/
 	void	handleLineEnd(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret up a line.
+		Processing to move carat up a line.
 	*/
 	void	handleLineUp(uint sysKeys);
 
 
 	/*!
 	\brief
-		Processing to move caret down a line.
+		Processing to move carat down a line.
 	*/
 	void	handleLineDown(uint sysKeys);
 
@@ -692,9 +691,9 @@ protected:
 
 	/*!
 	\brief
-		Handler called when the caret moves.
+		Handler called when the carat moves.
 	*/
-	void	onCaretMoved(WindowEventArgs& e);
+	void	onCaratMoved(WindowEventArgs& e);
 
 
 	/*!
@@ -746,7 +745,7 @@ protected:
 	*************************************************************************/
 	bool	d_readOnly;			//!< true if the edit box is in read-only mode
 	size_t	d_maxTextLen;		//!< Maximum number of characters for this Editbox.
-	size_t	d_caretPos;			//!< Position of the caret / insert-point.
+	size_t	d_caratPos;			//!< Position of the carat / insert-point.
 	size_t	d_selectionStart;	//!< Start of selection area.
 	size_t	d_selectionEnd;		//!< End of selection area.
 	bool	d_dragging;			//!< true when a selection is being dragged.
@@ -771,7 +770,7 @@ private:
 	*************************************************************************/
 	static MultiLineEditboxProperties::ReadOnly					d_readOnlyProperty;
 	static MultiLineEditboxProperties::WordWrap					d_wordWrapProperty;
-	static MultiLineEditboxProperties::CaretIndex				d_caretIndexProperty;
+	static MultiLineEditboxProperties::CaratIndex				d_caratIndexProperty;
 	static MultiLineEditboxProperties::SelectionStart			d_selectionStartProperty;
 	static MultiLineEditboxProperties::SelectionLength			d_selectionLengthProperty;
 	static MultiLineEditboxProperties::MaxTextLength			d_maxTextLengthProperty;

@@ -38,8 +38,7 @@ namespace CEGUI
     Interface for objects that hook into RenderingWindow to affect the rendering
     process, thus allowing various effects to be achieved.
 */
-class CEGUIEXPORT RenderEffect :
-    public AllocatedObject<RenderEffect>
+class CEGUIEXPORT RenderEffect
 {
 public:
     /*!

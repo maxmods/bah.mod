@@ -28,13 +28,13 @@
 #ifndef _CEGUIFribidiVisualMapping_h_
 #define _CEGUIFribidiVisualMapping_h_
 
-#include "CEGUIBidiVisualMapping.h"
+#include "CEGUIBiDiVisualMapping.h"
 
 // Start of CEGUI namespace section
 namespace CEGUI
 {
-//! fribidi based implementation of BidiVisualMapping.
-class FribidiVisualMapping : public BidiVisualMapping
+//! fribidi based implementation of BiDiVisualMapping.
+class FribidiVisualMapping : public BiDiVisualMapping
 {
 public:
     // implement required interface.

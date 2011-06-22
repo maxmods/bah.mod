@@ -41,8 +41,7 @@ namespace CEGUI
 \brief
 	Class encapsulating operations on a Rectangle
 */
-class CEGUIEXPORT Rect :
-    public AllocatedObject<Rect>
+class CEGUIEXPORT Rect
 {
 public:
 	Rect(void) {}
@@ -54,14 +53,14 @@ public:
 	*/
 	Rect(float left, float top, float right, float bottom);
 
-    Rect(Vector2 pos, Size sz);
+    Rect(Point pos, Size sz);
 
 
 	/*!
 	\brief
 		Return top-left postion of Rect as a Point
 	*/
-	Vector2	getPosition(void) const		{return Vector2(d_left, d_top);}
+	Point	getPosition(void) const		{return Point(d_left, d_top);}
 
 	/*!
 	\brief
@@ -88,7 +87,7 @@ public:
 	\brief
 		set the position of the Rect (leaves size in tact)
 	*/
-	void	setPosition(const Vector2& pt);
+	void	setPosition(const Point& pt);
 
 
 	/*!
@@ -132,7 +131,7 @@ public:
 	\return
 		this Rect after the offset is performed
 	*/
-	Rect&	offset(const Vector2& pt);
+	Rect&	offset(const Point& pt);
 
 
 	/*!
@@ -145,7 +144,7 @@ public:
 	\return
 		true if position \a pt is within this Rect's area, else false
 	*/
-	bool	isPointInRect(const Vector2& pt) const;
+	bool	isPointInRect(const Point& pt) const;
 
 
 	/*!

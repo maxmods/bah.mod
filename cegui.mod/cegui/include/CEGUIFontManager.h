@@ -57,8 +57,7 @@ class PixmapFont;
 */
 class CEGUIEXPORT FontManager :
         public Singleton<FontManager>,
-        public NamedXMLResourceManager<Font, Font_xmlHandler>,
-        public AllocatedObject<FontManager>
+        public NamedXMLResourceManager<Font, Font_xmlHandler>
 {
 public:
     //! Constructor.

@@ -54,7 +54,7 @@ const String Combobox::WidgetTypeName("CEGUI/Combobox");
 *************************************************************************/
 ComboboxProperties::ReadOnly					Combobox::d_readOnlyProperty;
 ComboboxProperties::ValidationString			Combobox::d_validationStringProperty;
-ComboboxProperties::CaretIndex					Combobox::d_caretIndexProperty;
+ComboboxProperties::CaratIndex					Combobox::d_caratIndexProperty;
 ComboboxProperties::EditSelectionStart			Combobox::d_selStartProperty;
 ComboboxProperties::EditSelectionLength			Combobox::d_selLengthProperty;
 ComboboxProperties::MaxEditTextLength			Combobox::d_maxTextLengthProperty;
@@ -68,15 +68,15 @@ ComboboxProperties::SingleClickMode				Combobox::d_singleClickOperationProperty;
 	Constants
 *************************************************************************/
 // event names from edit box
-const String Combobox::EventReadOnlyModeChanged( "ReadOnlyModeChanged" );
+const String Combobox::EventReadOnlyModeChanged( "ReadOnlyChanged" );
 const String Combobox::EventValidationStringChanged( "ValidationStringChanged" );
 const String Combobox::EventMaximumTextLengthChanged( "MaximumTextLengthChanged" );
-const String Combobox::EventTextInvalidated( "TextInvalidated" );
+const String Combobox::EventTextInvalidated( "TextInvalidatedEvent" );
 const String Combobox::EventInvalidEntryAttempted( "InvalidEntryAttempted" );
-const String Combobox::EventCaretMoved( "CaretMoved" );
+const String Combobox::EventCaratMoved( "CaratMoved" );
 const String Combobox::EventTextSelectionChanged( "TextSelectionChanged" );
-const String Combobox::EventEditboxFull( "EditboxFull" );
-const String Combobox::EventTextAccepted( "TextAccepted" );
+const String Combobox::EventEditboxFull( "EditboxFullEvent" );
+const String Combobox::EventTextAccepted( "TextAcceptedEvent" );
 
 // event names from list box
 const String Combobox::EventListContentsChanged( "ListContentsChanged" );
@@ -141,7 +141,7 @@ void Combobox::initialiseComponents(void)
 	editbox->subscribeEvent(Editbox::EventMaximumTextLengthChanged, Event::Subscriber(&CEGUI::Combobox::editbox_MaximumTextLengthChangedHandler, this));
 	editbox->subscribeEvent(Editbox::EventTextInvalidated, Event::Subscriber(&CEGUI::Combobox::editbox_TextInvalidatedEventHandler, this));
 	editbox->subscribeEvent(Editbox::EventInvalidEntryAttempted, Event::Subscriber(&CEGUI::Combobox::editbox_InvalidEntryAttemptedHandler, this));
-	editbox->subscribeEvent(Editbox::EventCaretMoved, Event::Subscriber(&CEGUI::Combobox::editbox_CaretMovedHandler, this));
+	editbox->subscribeEvent(Editbox::EventCaratMoved, Event::Subscriber(&CEGUI::Combobox::editbox_CaratMovedHandler, this));
 	editbox->subscribeEvent(Editbox::EventTextSelectionChanged, Event::Subscriber(&CEGUI::Combobox::editbox_TextSelectionChangedHandler, this));
 	editbox->subscribeEvent(Editbox::EventEditboxFull, Event::Subscriber(&CEGUI::Combobox::editbox_EditboxFullEventHandler, this));
 	editbox->subscribeEvent(Editbox::EventTextAccepted, Event::Subscriber(&CEGUI::Combobox::editbox_TextAcceptedEventHandler, this));
@@ -223,11 +223,11 @@ const String& Combobox::getValidationString(void) const
 
 
 /*************************************************************************
-	return the current position of the caret.
+	return the current position of the carat.
 *************************************************************************/
-size_t Combobox::getCaretIndex(void) const
+size_t Combobox::getCaratIndex(void) const
 {
-	return getEditbox()->getCaretIndex();
+	return getEditbox()->getCaratIndex();
 }
 
 
@@ -286,11 +286,11 @@ void Combobox::setValidationString(const String& validation_string)
 
 
 /*************************************************************************
-	Set the current position of the caret.
+	Set the current position of the carat.
 *************************************************************************/
-void Combobox::setCaretIndex(size_t caret_pos)
+void Combobox::setCaratIndex(size_t carat_pos)
 {
-	getEditbox()->setCaretIndex(caret_pos);
+	getEditbox()->setCaratIndex(carat_pos);
 }
 
 
@@ -547,9 +547,9 @@ void Combobox::onInvalidEntryAttempted(WindowEventArgs& e)
 /*************************************************************************
 	Handler for when
 *************************************************************************/
-void Combobox::onCaretMoved(WindowEventArgs& e)
+void Combobox::onCaratMoved(WindowEventArgs& e)
 {
-	fireEvent(EventCaretMoved, e, EventNamespace);
+	fireEvent(EventCaratMoved, e, EventNamespace);
 }
 
 
@@ -728,14 +728,14 @@ bool Combobox::droplist_SelectionAcceptedHandler(const EventArgs& e)
 		// Put the text from the list item into the edit box
 		editbox->setText(item->getText());
 
-		// select text if it's editable, and move caret to end
+		// select text if it's editable, and move carat to end
 		if (!isReadOnly())
 		{
 			editbox->setSelection(0, item->getText().length());
-			editbox->setCaretIndex(item->getText().length());
+			editbox->setCaratIndex(item->getText().length());
 		}
 
-		editbox->setCaretIndex(0);
+		editbox->setCaratIndex(0);
 		editbox->activate();
 
 		// fire off an event of our own
@@ -829,7 +829,7 @@ void Combobox::addComboboxProperties(void)
 	addProperty(&d_maxTextLengthProperty);
 	addProperty(&d_selStartProperty);
 	addProperty(&d_selLengthProperty);
-	addProperty(&d_caretIndexProperty);
+	addProperty(&d_caratIndexProperty);
 	addProperty(&d_singleClickOperationProperty);
 }
 
@@ -992,10 +992,10 @@ bool Combobox::editbox_InvalidEntryAttemptedHandler(const EventArgs&)
 }
 
 
-bool Combobox::editbox_CaretMovedHandler(const EventArgs&)
+bool Combobox::editbox_CaratMovedHandler(const EventArgs&)
 {
 	WindowEventArgs	args(this);
-	onCaretMoved(args);
+	onCaratMoved(args);
 
 	return true;
 }

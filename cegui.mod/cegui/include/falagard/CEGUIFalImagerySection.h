@@ -45,8 +45,7 @@ namespace CEGUI
     \brief
         Class that encapsulates a re-usable collection of imagery specifications.
     */
-    class CEGUIEXPORT ImagerySection :
-        public AllocatedObject<ImagerySection>
+    class CEGUIEXPORT ImagerySection
     {
     public:
         /*!
@@ -253,12 +252,9 @@ namespace CEGUI
         void initMasterColourRect(const Window& wnd, ColourRect& cr) const;
 
     private:
-        typedef std::vector<ImageryComponent
-            CEGUI_VECTOR_ALLOC(ImageryComponent)> ImageryList;
-        typedef std::vector<TextComponent
-            CEGUI_VECTOR_ALLOC(TextComponent)> TextList;
-        typedef std::vector<FrameComponent
-            CEGUI_VECTOR_ALLOC(FrameComponent)> FrameList;
+        typedef std::vector<ImageryComponent> ImageryList;
+        typedef std::vector<TextComponent> TextList;
+        typedef std::vector<FrameComponent> FrameList;
 
         CEGUI::String       d_name;             //!< Holds the name of the ImagerySection.
         CEGUI::ColourRect   d_masterColours;    //!< Naster colours for the the ImagerySection (combined with colours of each ImageryComponent).

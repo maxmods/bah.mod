@@ -128,9 +128,9 @@ void PixmapFont::writeXMLToStream_impl (XMLSerializer& xml_stream) const
     {
         xml_stream.openTag("Mapping")
             .attribute(Font_xmlHandler::MappingCodepointAttribute,
-                       PropertyHelper<uint>::toString(i->first))
+                       PropertyHelper::uintToString(i->first))
             .attribute(Font_xmlHandler::MappingHorzAdvanceAttribute,
-                       PropertyHelper<float>::toString(i->second.getAdvance() * advscale))
+                       PropertyHelper::floatToString(i->second.getAdvance() * advscale))
             .attribute(Font_xmlHandler::MappingImageAttribute,
                        i->second.getImage()->getName());
 

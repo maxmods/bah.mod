@@ -101,8 +101,7 @@ namespace CEGUI
         };
 
         //! type used for the collection of targets.
-        typedef std::vector<LinkTarget
-            CEGUI_VECTOR_ALLOC(LinkTarget)> LinkTargetCollection;
+        typedef std::vector<LinkTarget> LinkTargetCollection;
 
         //! collection of targets for this PropertyLinkDefinition.
         LinkTargetCollection d_targets;

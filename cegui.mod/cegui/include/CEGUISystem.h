@@ -6,7 +6,7 @@
 	purpose:	Defines interface for main GUI system class
 *************************************************************************/
 /***************************************************************************
- *   Copyright (C) 2004 - 2009 Paul D Turner & The CEGUI Development Team
+ *   Copyright (C) 2004 - 2011 Paul D Turner & The CEGUI Development Team
  *
  *   Permission is hereby granted, free of charge, to any person obtaining
  *   a copy of this software and associated documentation files (the
@@ -61,10 +61,7 @@ struct MouseClickTrackerImpl;
 	an initialised Renderer object which it can use to interface to whatever rendering system will be
 	used to display the GUI imagery.
 */
-class CEGUIEXPORT System :
-    public Singleton<System>,
-    public EventSet,
-    public AllocatedObject<System>
+class CEGUIEXPORT System : public Singleton<System>, public EventSet
 {
 public:
 	static const String EventNamespace;				//!< Namespace for global events
@@ -1145,7 +1142,7 @@ private:
 	\return
 		Pointer to a Window object that should receive mouse input with the system in its current state and the mouse at location \a pt.
 	*/
-	Window*	getTargetWindow(const Vector2& pt, const bool allow_disabled) const;
+	Window*	getTargetWindow(const Point& pt, const bool allow_disabled) const;
 
 
 	/*!

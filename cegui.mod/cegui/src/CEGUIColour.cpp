@@ -1,5 +1,5 @@
 /***********************************************************************
-	filename: 	CEGUIColour.cpp
+	filename: 	CEGUIcolour.cpp
 	created:	20/8/2004
 	author:		Paul D Turner (with code from Jeff Leigh)
 	
@@ -27,7 +27,7 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
-#include "CEGUIColour.h"
+#include "CEGUIcolour.h"
 
 
 // Start of CEGUI namespace section
@@ -36,7 +36,7 @@ namespace CEGUI
 /*************************************************************************
 	Construction & Destruction
 *************************************************************************/
-Colour::Colour(void) :
+colour::colour(void) :
 	d_alpha(1.0f),
 	d_red(0.0f),
 	d_green(0.0f),
@@ -47,13 +47,13 @@ Colour::Colour(void) :
 }
 
 
-Colour::Colour(const Colour& val)
+colour::colour(const colour& val)
 {
 	this->operator=(val);
 }
 
 
-Colour::Colour(float red, float green, float blue, float alpha) :
+colour::colour(float red, float green, float blue, float alpha) :
 	d_alpha(alpha),
 	d_red(red),
 	d_green(green),
@@ -63,13 +63,13 @@ Colour::Colour(float red, float green, float blue, float alpha) :
 }
 
 
-Colour::Colour(argb_t argb)
+colour::colour(argb_t argb)
 {
 	setARGB(argb);
 }
 
 
-float Colour::getHue(void) const
+float colour::getHue(void) const
 {
 	float pRed = d_red;
 	float pGreen = d_green;
@@ -108,7 +108,7 @@ float Colour::getHue(void) const
 }
 
 
-float Colour::getSaturation(void) const
+float colour::getSaturation(void) const
 {
 	float pMax = ceguimax(ceguimax(d_red, d_green), d_blue);
 	float pMin = ceguimin(ceguimin(d_red, d_green), d_blue);
@@ -132,7 +132,7 @@ float Colour::getSaturation(void) const
 }
 
 
-float Colour::getLumination(void) const
+float colour::getLumination(void) const
 {
 	float pMax = ceguimax(ceguimax(d_red, d_green), d_blue);
 	float pMin = ceguimin(ceguimin(d_red, d_green), d_blue);
@@ -142,7 +142,7 @@ float Colour::getLumination(void) const
 }
 
 
-void Colour::setARGB(argb_t argb)
+void colour::setARGB(argb_t argb)
 {
 	d_argb = argb;
 
@@ -158,7 +158,7 @@ void Colour::setARGB(argb_t argb)
 }
 
 
-void Colour::setHSL(float hue, float saturation, float luminance, float alpha)
+void colour::setHSL(float hue, float saturation, float luminance, float alpha)
 {
 	d_alpha = alpha;
 
@@ -232,7 +232,7 @@ void Colour::setHSL(float hue, float saturation, float luminance, float alpha)
 }
 
 
-argb_t Colour::calculateARGB(void) const
+argb_t colour::calculateARGB(void) const
 {
     return (
 		static_cast<argb_t>(d_alpha * 255) << 24 |
@@ -243,7 +243,7 @@ argb_t Colour::calculateARGB(void) const
 }
 
 
-void Colour::invertColour(void)
+void colour::invertColour(void)
 {
 	d_red	= 1.0f - d_red;
 	d_green	= 1.0f - d_green;
@@ -251,7 +251,7 @@ void Colour::invertColour(void)
 }
 
 
-void Colour::invertColourWithAlpha(void)
+void colour::invertColourWithAlpha(void)
 {
 	d_alpha	= 1.0f - d_alpha;
 	d_red	= 1.0f - d_red;

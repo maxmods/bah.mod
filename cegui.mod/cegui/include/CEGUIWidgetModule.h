@@ -57,9 +57,9 @@ class className ## Factory : public WindowFactory\
 public:\
     className ## Factory(void) : WindowFactory(className::WidgetTypeName) { }\
     Window* createWindow(const String& name)\
-    { return CEGUI_NEW_AO className(d_type, name); }\
+    { return new className(d_type, name); }\
     void destroyWindow(Window* window)\
-    { CEGUI_DELETE_AO window; }\
+    { delete window; }\
 };\
 }\
 static CEGUI::className ## Factory  s_ ## className ## Factory;

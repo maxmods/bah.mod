@@ -25,7 +25,7 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
-#ifndef _CEGUIRenderEffectFactory_h
+#ifndef _CEGUIRenderEffectFactory_h_
 #define _CEGUIRenderEffectFactory_h_
 
 // Start of CEGUI namespace section
@@ -38,8 +38,7 @@ class RenderEffect;
     Interface for factory objects that create RenderEffect instances.
     Currently this interface is intended for internal use only.
 */
-class RenderEffectFactory : public
-    AllocatedObject<RenderEffectFactory>
+class RenderEffectFactory
 {
 public:
     //! base class virtual destructor.
@@ -66,14 +65,14 @@ public:
 template <typename T>
 RenderEffect& TplRenderEffectFactory<T>::create()
 {
-    return *CEGUI_NEW_AO T;
+    return *new T;
 }
 
 //---------------------------------------------------------------------------//
 template <typename T>
 void TplRenderEffectFactory<T>::destroy(RenderEffect& effect)
 {
-    CEGUI_DELETE_AO &effect;
+    delete &effect;
 }
 
 //---------------------------------------------------------------------------//

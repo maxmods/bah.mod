@@ -38,8 +38,9 @@ namespace CEGUI
 OpenGLGeometryBuffer::OpenGLGeometryBuffer(OpenGLRenderer& owner) :
     d_owner(&owner),
     d_activeTexture(0),
+    d_clipRect(0, 0, 0, 0),
     d_translation(0, 0, 0),
-    d_rotation(Quaternion::IDENTITY),
+    d_rotation(0, 0, 0),
     d_pivot(0, 0, 0),
     d_effect(0),
     d_matrixValid(false)
@@ -112,7 +113,7 @@ void OpenGLGeometryBuffer::setTranslation(const Vector3& v)
 }
 
 //----------------------------------------------------------------------------//
-void OpenGLGeometryBuffer::setRotation(const Quaternion& r)
+void OpenGLGeometryBuffer::setRotation(const Vector3& r)
 {
     d_rotation = r;
     d_matrixValid = false;
@@ -128,10 +129,10 @@ void OpenGLGeometryBuffer::setPivot(const Vector3& p)
 //----------------------------------------------------------------------------//
 void OpenGLGeometryBuffer::setClippingRegion(const Rect& region)
 {
-    d_clipRect.d_top    = PixelAligned(region.d_top);
-    d_clipRect.d_bottom = PixelAligned(region.d_bottom);
-    d_clipRect.d_left   = PixelAligned(region.d_left);
-    d_clipRect.d_right  = PixelAligned(region.d_right);
+    d_clipRect.d_top    = ceguimax(0.0f, PixelAligned(region.d_top));
+    d_clipRect.d_bottom = ceguimax(0.0f, PixelAligned(region.d_bottom));
+    d_clipRect.d_left   = ceguimax(0.0f, PixelAligned(region.d_left));
+    d_clipRect.d_right  = ceguimax(0.0f, PixelAligned(region.d_right));
 }
 
 //----------------------------------------------------------------------------//
@@ -235,35 +236,14 @@ void OpenGLGeometryBuffer::updateMatrix() const
     glPushMatrix();
 
     const Vector3 final_trans(d_translation.d_x + d_pivot.d_x,
-                              d_translation.d_y + d_pivot.d_y,
-                              d_translation.d_z + d_pivot.d_z);
+                            d_translation.d_y + d_pivot.d_y,
+                            d_translation.d_z + d_pivot.d_z);
 
     glLoadIdentity();
     glTranslatef(final_trans.d_x, final_trans.d_y, final_trans.d_z);
-
-    float rotation_matrix[16];
-    rotation_matrix[ 0] = 1.0f - 2.0f * (d_rotation.d_y * d_rotation.d_y + d_rotation.d_z * d_rotation.d_z);
-    rotation_matrix[ 1] = 2.0f * (d_rotation.d_x * d_rotation.d_y + d_rotation.d_z * d_rotation.d_w);
-    rotation_matrix[ 2] = 2.0f * (d_rotation.d_x * d_rotation.d_z - d_rotation.d_y * d_rotation.d_w);
-    rotation_matrix[ 3] = 0.0f;
-
-    rotation_matrix[ 4] = 2.0f * (d_rotation.d_x * d_rotation.d_y - d_rotation.d_z * d_rotation.d_w);
-    rotation_matrix[ 5] = 1.0f - 2.0f * (d_rotation.d_x * d_rotation.d_x + d_rotation.d_z * d_rotation.d_z);
-    rotation_matrix[ 6] = 2.0f * (d_rotation.d_z * d_rotation.d_y + d_rotation.d_x * d_rotation.d_w);
-    rotation_matrix[ 7] = 0.0f;
-
-    rotation_matrix[ 8] = 2.0f * (d_rotation.d_x * d_rotation.d_z + d_rotation.d_y * d_rotation.d_w);
-    rotation_matrix[ 9] = 2.0f * (d_rotation.d_y * d_rotation.d_z - d_rotation.d_x * d_rotation.d_w);
-    rotation_matrix[10] = 1.0f - 2.0f * (d_rotation.d_x * d_rotation.d_x + d_rotation.d_y * d_rotation.d_y);
-    rotation_matrix[11] = 0.0f;
-
-    rotation_matrix[12] = 0.0f;
-    rotation_matrix[13] = 0.0f;
-    rotation_matrix[14] = 0.0f;
-    rotation_matrix[15] = 1.0f;
-
-    glMultMatrixf(rotation_matrix);
-
+    glRotatef(d_rotation.d_z, 0.0f, 0.0f, 1.0f);
+    glRotatef(d_rotation.d_y, 0.0f, 1.0f, 0.0f);
+    glRotatef(d_rotation.d_x, 1.0f, 0.0f, 0.0f);
     glTranslatef(-d_pivot.d_x, -d_pivot.d_y, -d_pivot.d_z);
 
     glGetDoublev(GL_MODELVIEW_MATRIX, d_matrix);

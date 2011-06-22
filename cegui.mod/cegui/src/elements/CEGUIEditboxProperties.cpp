@@ -45,37 +45,37 @@ namespace EditboxProperties
 
 String ReadOnly::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const Editbox*>(receiver)->isReadOnly());
+	return PropertyHelper::boolToString(static_cast<const Editbox*>(receiver)->isReadOnly());
 }
 
 
 void ReadOnly::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Editbox*>(receiver)->setReadOnly(PropertyHelper<bool>::fromString(value));
+	static_cast<Editbox*>(receiver)->setReadOnly(PropertyHelper::stringToBool(value));
 }
 
 
 String MaskText::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<bool>::toString(static_cast<const Editbox*>(receiver)->isTextMasked());
+	return PropertyHelper::boolToString(static_cast<const Editbox*>(receiver)->isTextMasked());
 }
 
 
 void MaskText::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Editbox*>(receiver)->setTextMasked(PropertyHelper<bool>::fromString(value));
+	static_cast<Editbox*>(receiver)->setTextMasked(PropertyHelper::stringToBool(value));
 }
 
 
 String MaskCodepoint::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<uint>::toString(static_cast<const Editbox*>(receiver)->getMaskCodePoint());
+	return PropertyHelper::uintToString(static_cast<const Editbox*>(receiver)->getMaskCodePoint());
 }
 
 
 void MaskCodepoint::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Editbox*>(receiver)->setMaskCodePoint(PropertyHelper<uint>::fromString(value));
+	static_cast<Editbox*>(receiver)->setMaskCodePoint(PropertyHelper::stringToUint(value));
 }
 
 
@@ -91,55 +91,55 @@ void ValidationString::set(PropertyReceiver* receiver, const String& value)
 }
 
 
-String CaretIndex::get(const PropertyReceiver* receiver) const
+String CaratIndex::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<uint>::toString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getCaretIndex()));
+	return PropertyHelper::uintToString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getCaratIndex()));
 }
 
 
-void CaretIndex::set(PropertyReceiver* receiver, const String& value)
+void CaratIndex::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Editbox*>(receiver)->setCaretIndex(PropertyHelper<uint>::fromString(value));
+	static_cast<Editbox*>(receiver)->setCaratIndex(PropertyHelper::stringToUint(value));
 }
 
 
 String SelectionStart::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<uint>::toString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getSelectionStartIndex()));
+	return PropertyHelper::uintToString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getSelectionStartIndex()));
 }
 
 
 void SelectionStart::set(PropertyReceiver* receiver, const String& value)
 {
 	Editbox* eb = static_cast<Editbox*>(receiver);
-	uint selStart = PropertyHelper<uint>::fromString(value);
+	uint selStart = PropertyHelper::stringToUint(value);
 	eb->setSelection(selStart, selStart + eb->getSelectionLength());
 }
 
 
 String SelectionLength::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<uint>::toString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getSelectionLength()));
+	return PropertyHelper::uintToString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getSelectionLength()));
 }
 
 
 void SelectionLength::set(PropertyReceiver* receiver, const String& value)
 {
 	Editbox* eb = static_cast<Editbox*>(receiver);
-	uint selLen = PropertyHelper<uint>::fromString(value);
+	uint selLen = PropertyHelper::stringToUint(value);
 	eb->setSelection(eb->getSelectionStartIndex(), eb->getSelectionStartIndex() + selLen);
 }
 
 
 String MaxTextLength::get(const PropertyReceiver* receiver) const
 {
-	return PropertyHelper<uint>::toString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getMaxTextLength()));
+	return PropertyHelper::uintToString(static_cast<uint>(static_cast<const Editbox*>(receiver)->getMaxTextLength()));
 }
 
 
 void MaxTextLength::set(PropertyReceiver* receiver, const String& value)
 {
-	static_cast<Editbox*>(receiver)->setMaxTextLength(PropertyHelper<uint>::fromString(value));
+	static_cast<Editbox*>(receiver)->setMaxTextLength(PropertyHelper::stringToUint(value));
 }
 
 } // End of  EditboxProperties namespace section

@@ -59,7 +59,7 @@ public:
     static const String EventNamespace;
 
     //! fired when child windows get rearranged
-    static const String EventChildOrderChanged;
+    static const String EventChildWindowOrderChanged;
 
     /*!
     \brief
@@ -83,49 +83,49 @@ public:
     \brief
         Gets the position of given child window
     */
-    size_t getPositionOfChild(Window* wnd) const;
+    size_t getPositionOfChildWindow(Window* wnd) const;
 
     /*!
     \brief
         Gets the position of given child window
     */
-    size_t getPositionOfChild(const String& wnd) const;
+    size_t getPositionOfChildWindow(const String& wnd) const;
 
     /*!
     \brief
         Gets the child window that currently is at given position
     */
-    Window* getChildAtPosition(size_t position) const;
+    Window* getChildWindowAtPosition(size_t position) const;
 
     /*!
     \brief
         Swaps windows at given positions
     */
-    virtual void swapChildPositions(size_t wnd1, size_t wnd2);
+    virtual void swapChildWindowPositions(size_t wnd1, size_t wnd2);
 
     /*!
     \brief
         Swaps positions of given windows
     */
-    void swapChildren(Window* wnd1, Window* wnd2);
+    void swapChildWindows(Window* wnd1, Window* wnd2);
 
     /*!
     \brief
         Swaps positions of given windows
     */
-    void swapChildren(const String& wnd1, Window* wnd2);
+    void swapChildWindows(const String& wnd1, Window* wnd2);
 
     /*!
     \brief
         Swaps positions of given windows
     */
-    void swapChildren(Window* wnd1, const String& wnd2);
+    void swapChildWindows(Window* wnd1, const String& wnd2);
 
     /*!
     \brief
         Swaps positions of given windows
     */
-    void swapChildren(const String& wnd1, const String& wnd2);
+    void swapChildWindows(const String& wnd1, const String& wnd2);
 
     /*!
     \brief
@@ -134,7 +134,7 @@ public:
         that is smaller than given position, given position is
         automatically decremented
     */
-    virtual void moveChildToPosition(Window* wnd, size_t position);
+    virtual void moveChildWindowToPosition(Window* wnd, size_t position);
 
     /*!
     \brief
@@ -143,7 +143,7 @@ public:
         that is smaller than given position, given position is
         automatically decremented
     */
-    void moveChildToPosition(const String& wnd, size_t position);
+    void moveChildWindowToPosition(const String& wnd, size_t position);
 
     /*!
     \brief
@@ -154,25 +154,25 @@ public:
         The amount of steps the window will be moved
         (old position + delta = new position)
     */
-    void moveChild(Window* window, int delta = 1);
+    void moveChildWindow(Window* window, int delta = 1);
 
     /*!
     \brief
         Adds a window to given position
     */
-    void addChildToPosition(Window* window, size_t position);
+    void addChildWindowToPosition(Window* window, size_t position);
 
     /*!
     \brief
         Adds a window to given position
     */
-    void addChildToPosition(const String& window, size_t position);
+    void addChildWindowToPosition(const String& window, size_t position);
 
     /*!
     \brief
         Removes a window from given position
     */
-    void removeChildFromPosition(size_t position);
+    void removeChildWindowFromPosition(size_t position);
 
 protected:
     /*!
@@ -183,7 +183,7 @@ protected:
         WindowEventArgs object whose 'window' field is set this layout
         container.
     */
-    virtual void onChildOrderChanged(WindowEventArgs& e);
+    virtual void onChildWindowOrderChanged(WindowEventArgs& e);
 
     //! @copydoc Window::testClassName_impl
     virtual bool    testClassName_impl(const String& class_name) const

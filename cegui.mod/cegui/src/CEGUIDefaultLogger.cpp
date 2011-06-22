@@ -158,7 +158,7 @@ namespace CEGUI
         {
             d_caching = false;
 
-            Cache::iterator iter = d_cache.begin();
+            std::vector<std::pair<String, LoggingLevel> >::iterator iter = d_cache.begin();
 
             while (iter != d_cache.end())
             {

@@ -93,7 +93,7 @@ void RenderedStringImageComponent::setColours(const ColourRect& cr)
 }
 
 //----------------------------------------------------------------------------//
-void RenderedStringImageComponent::setColours(const Colour& c)
+void RenderedStringImageComponent::setColours(const colour& c)
 {
     d_colours.setColours(c);
 }
@@ -201,7 +201,7 @@ RenderedStringImageComponent* RenderedStringImageComponent::split(
 //----------------------------------------------------------------------------//
 RenderedStringImageComponent* RenderedStringImageComponent::clone() const
 {
-    return CEGUI_NEW_AO RenderedStringImageComponent(*this);
+    return new RenderedStringImageComponent(*this);
 }
 
 //----------------------------------------------------------------------------//

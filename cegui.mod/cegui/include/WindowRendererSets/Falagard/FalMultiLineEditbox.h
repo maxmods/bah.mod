@@ -52,7 +52,7 @@ namespace CEGUI
         - Disabled  - Rendering for when the editbox is disabled.
 
     NamedAreas:
-        TextArea         - area where text, selection, and caret imagery will appear.
+        TextArea         - area where text, selection, and carat imagery will appear.
         TextAreaHScroll  - TextArea when only horizontal scrollbar is visible.
         TextAreaVScroll  - TextArea when only vertical scrollbar is visible.
         TextAreaHVScroll - TextArea when both horizontal and vertical scrollbar is visible.
@@ -64,7 +64,7 @@ namespace CEGUI
         - InactiveSelectionColour - property that accesses a colour value to be used to render inactive selection highlight.
 
     Imagery Sections:
-        - Caret
+        - Carat
 
     Child Widgets:
         Scrollbar based widget with name suffix "__auto_vscrollbar__"
@@ -121,12 +121,12 @@ protected:
 
     /*!
     \brief
-        Render the caret.
+        Render the carat.
 
     \return
         Nothing
     */
-    void cacheCaretImagery(const Rect& textArea);
+    void cacheCaratImagery(const Rect& textArea);
 
     /*!
     \brief
@@ -142,7 +142,7 @@ protected:
     \return
         colour value describing the colour to be used.
     */
-    Colour getUnselectedTextColour() const;
+    colour getUnselectedTextColour() const;
 
     /*!
     \brief
@@ -152,7 +152,7 @@ protected:
     \return
         colour value describing the colour to be used.
     */
-    Colour getActiveSelectionColour() const;
+    colour getActiveSelectionColour() const;
 
     /*!
     \brief
@@ -162,7 +162,7 @@ protected:
     \return
         colour value describing the colour to be used.
     */
-    Colour getInactiveSelectionColour() const;
+    colour getInactiveSelectionColour() const;
 
     /*!
     \brief
@@ -172,7 +172,7 @@ protected:
     \return
         colour value describing the colour to be used.
     */
-    Colour getSelectedTextColour() const;
+    colour getSelectedTextColour() const;
 
     /*!
     \brief
@@ -183,7 +183,7 @@ protected:
         String object holding the name of the property to be accessed if it
         exists.
     */
-    Colour getOptionalPropertyColour(const String& propertyName) const;
+    colour getOptionalPropertyColour(const String& propertyName) const;
 
     // properties
     static FalagardMultiLineEditboxProperties::BlinkCaret d_blinkCaretProperty;

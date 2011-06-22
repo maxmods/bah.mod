@@ -111,8 +111,9 @@ OgreGeometryBuffer::OgreGeometryBuffer(OgreRenderer& owner,
     d_owner(owner),
     d_renderSystem(rs),
     d_activeTexture(0),
+    d_clipRect(0, 0, 0, 0),
     d_translation(0, 0, 0),
-    d_rotation(Quaternion::IDENTITY),
+    d_rotation(0, 0, 0),
     d_pivot(0, 0, 0),
     d_effect(0),
     d_texelOffset(rs.getHorizontalTexelOffset(), rs.getVerticalTexelOffset()),
@@ -179,7 +180,7 @@ void OgreGeometryBuffer::setTranslation(const Vector3& v)
 }
 
 //----------------------------------------------------------------------------//
-void OgreGeometryBuffer::setRotation(const Quaternion& r)
+void OgreGeometryBuffer::setRotation(const Vector3& r)
 {
     d_rotation = r;
     d_matrixValid = false;
@@ -195,10 +196,10 @@ void OgreGeometryBuffer::setPivot(const Vector3& p)
 //----------------------------------------------------------------------------//
 void OgreGeometryBuffer::setClippingRegion(const Rect& region)
 {
-    d_clipRect.d_top    = PixelAligned(region.d_top);
-    d_clipRect.d_bottom = PixelAligned(region.d_bottom);
-    d_clipRect.d_left   = PixelAligned(region.d_left);
-    d_clipRect.d_right  = PixelAligned(region.d_right);
+    d_clipRect.d_top    = ceguimax(0.0f, PixelAligned(region.d_top));
+    d_clipRect.d_bottom = ceguimax(0.0f, PixelAligned(region.d_bottom));
+    d_clipRect.d_left   = ceguimax(0.0f, PixelAligned(region.d_left));
+    d_clipRect.d_right  = ceguimax(0.0f, PixelAligned(region.d_right));
 }
 
 //----------------------------------------------------------------------------//
@@ -287,7 +288,7 @@ RenderEffect* OgreGeometryBuffer::getRenderEffect()
 }
 
 //----------------------------------------------------------------------------//
-Ogre::RGBA OgreGeometryBuffer::colourToOgre(const Colour& col) const
+Ogre::RGBA OgreGeometryBuffer::colourToOgre(const colour& col) const
 {
     Ogre::ColourValue ocv(col.getRed(),
                           col.getGreen(),
@@ -310,8 +311,13 @@ void OgreGeometryBuffer::updateMatrix() const
                     d_translation.d_z + d_pivot.d_z);
 
     // rotation
-    Ogre::Matrix4 rot(Ogre::Quaternion(
-        d_rotation.d_w, d_rotation.d_x, d_rotation.d_y, d_rotation.d_z));
+    Ogre::Quaternion qz(Ogre::Degree(d_rotation.d_z),
+                        Ogre::Vector3::UNIT_Z);
+    Ogre::Quaternion qy(Ogre::Degree(d_rotation.d_y),
+                        Ogre::Vector3::UNIT_Y);
+    Ogre::Quaternion qx(Ogre::Degree(d_rotation.d_x),
+                        Ogre::Vector3::UNIT_X);
+    Ogre::Matrix4 rot(qz * qy * qx);
 
     // translation to remove rotation pivot offset
     Ogre::Matrix4 inv_pivot_trans;

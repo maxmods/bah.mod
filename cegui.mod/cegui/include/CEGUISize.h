@@ -40,8 +40,7 @@ namespace CEGUI
 \brief
 	Class that holds the size (width & height) of something.
 */
-class CEGUIEXPORT Size :
-    public AllocatedObject<Size>
+class CEGUIEXPORT Size
 {
 public:
 	Size(void) {}

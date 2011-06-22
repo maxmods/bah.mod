@@ -167,8 +167,7 @@ protected:
     //! Font file data
     RawDataContainer d_fontData;
     //! Type definition for ImagesetVector.
-    typedef std::vector<Imageset*
-        CEGUI_VECTOR_ALLOC(Imageset*)> ImagesetVector;
+    typedef std::vector<Imageset*> ImagesetVector;
     //! Imagesets that holds the glyphs for this font.
     mutable ImagesetVector d_glyphImages;
 };

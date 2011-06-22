@@ -44,8 +44,7 @@ namespace CEGUI
     \brief
         Class the encapsulates imagery for a given widget state.
     */
-    class CEGUIEXPORT StateImagery :
-        public AllocatedObject<StateImagery>
+    class CEGUIEXPORT StateImagery
     {
     public:
         /*!

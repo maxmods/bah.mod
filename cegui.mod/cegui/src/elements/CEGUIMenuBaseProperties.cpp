@@ -38,33 +38,33 @@ namespace MenuBaseProperties
 
 String ItemSpacing::get(const PropertyReceiver* receiver) const
 {
-    return PropertyHelper<float>::toString(static_cast<const MenuBase*>(receiver)->getItemSpacing());
+    return PropertyHelper::floatToString(static_cast<const MenuBase*>(receiver)->getItemSpacing());
 }
 
 void ItemSpacing::set(PropertyReceiver* receiver, const String& value)
 {
-    static_cast<MenuBase*>(receiver)->setItemSpacing(PropertyHelper<float>::fromString(value));
+    static_cast<MenuBase*>(receiver)->setItemSpacing(PropertyHelper::stringToFloat(value));
 }
 
 
 String AllowMultiplePopups::get(const PropertyReceiver* receiver) const
 {
-    return PropertyHelper<bool>::toString(static_cast<const MenuBase*>(receiver)->isMultiplePopupsAllowed());
+    return PropertyHelper::boolToString(static_cast<const MenuBase*>(receiver)->isMultiplePopupsAllowed());
 }
 
 void AllowMultiplePopups::set(PropertyReceiver* receiver, const String& value)
 {
-    static_cast<MenuBase*>(receiver)->setAllowMultiplePopups(PropertyHelper<bool>::fromString(value));
+    static_cast<MenuBase*>(receiver)->setAllowMultiplePopups(PropertyHelper::stringToBool(value));
 }
 
 String AutoCloseNestedPopups::get(const PropertyReceiver* receiver) const
 {
-    return PropertyHelper<bool>::toString(static_cast<const MenuBase*>(receiver)->getAutoCloseNestedPopups());
+    return PropertyHelper::boolToString(static_cast<const MenuBase*>(receiver)->getAutoCloseNestedPopups());
 }
 
 void AutoCloseNestedPopups::set(PropertyReceiver* receiver, const String& value)
 {
-    static_cast<MenuBase*>(receiver)->setAutoCloseNestedPopups(PropertyHelper<bool>::fromString(value));
+    static_cast<MenuBase*>(receiver)->setAutoCloseNestedPopups(PropertyHelper::stringToBool(value));
 }
 
 } // End of  MenuBaseProperties namespace section
