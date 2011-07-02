@@ -32,6 +32,7 @@ ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to RTMidi 1.0.14"
+ModuleInfo "History: Fixed Windows unicode device name issue."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (RTMidi 1.0.11)"
 
@@ -42,11 +43,15 @@ ModuleInfo "CC_OPTS: -D__MACOSX_CORE__"
 ?linux
 ModuleInfo "CC_OPTS: -D__LINUX_ALSASEQ__"
 ?win32
-ModuleInfo "CC_OPTS: -D__WINDOWS_MM__"
+ModuleInfo "CC_OPTS: -D__WINDOWS_MM__ -DUNICODE"
 ?
 
 Import "common.bmx"
 
+'
+' RtMidi.cpp
+'   Win32 getPortName() functions modified for proper unicode functionality - converting to utf8.
+'
 
 Type TRtMidi
 

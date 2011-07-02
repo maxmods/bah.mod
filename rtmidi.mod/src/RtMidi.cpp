@@ -2205,14 +2205,13 @@ std::string RtMidiIn :: getPortName( unsigned int portNumber )
   MIDIINCAPS deviceCaps;
   midiInGetDevCaps( portNumber, &deviceCaps, sizeof(MIDIINCAPS));
 
-  // For some reason, we need to copy character by character with
-  // UNICODE (thanks to Eduardo Coutinho!).
-  //std::string stringName = std::string( deviceCaps.szPname );
-  char nameString[MAXPNAMELEN];
-  for( int i=0; i<MAXPNAMELEN; ++i )
-    nameString[i] = (char)( deviceCaps.szPname[i] );
+  // BaH - fix for Unicode handling.
+  int length = MAXPNAMELEN;
+  char buf[256];
+ 
+  length = WideCharToMultiByte(CP_UTF8, 0, deviceCaps.szPname, length, buf, 256, NULL, NULL);
 
-  stringName = nameString;
+  stringName = buf;
   return stringName;
 }
 
@@ -2242,14 +2241,13 @@ std::string RtMidiOut :: getPortName( unsigned int portNumber )
   MIDIOUTCAPS deviceCaps;
   midiOutGetDevCaps( portNumber, &deviceCaps, sizeof(MIDIOUTCAPS));
 
-  // For some reason, we need to copy character by character with
-  // UNICODE (thanks to Eduardo Coutinho!).
-  //std::string stringName = std::string( deviceCaps.szPname );
-  char nameString[MAXPNAMELEN];
-  for( int i=0; i<MAXPNAMELEN; ++i )
-    nameString[i] = (char)( deviceCaps.szPname[i] );
+  // BaH - fix for Unicode handling.
+  int length = MAXPNAMELEN;
+  char buf[256];
+ 
+  length = WideCharToMultiByte(CP_UTF8, 0, deviceCaps.szPname, length, buf, 256, NULL, NULL);
 
-  stringName = nameString;
+  stringName = buf;
   return stringName;
 }
 
