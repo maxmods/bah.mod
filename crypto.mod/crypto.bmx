@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,12 @@ Module BaH.Crypto
 
 ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
 ModuleInfo "History: Removed support for MD2. (deprecated)"
+ModuleInfo "History: Added GetBlockSize() and large data encrpyt/decrypt example."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added TStream support for the 'easy' digest API."
 ModuleInfo "History: Added AES cipher support."
@@ -279,6 +280,13 @@ Type EVP_CIPHER_CTX
 		Return EVP_CipherFinal_ex(ctxPtr, outm, Varptr outl)
 	End Method
 
+	Rem
+	bbdoc: Returns the current cipher block size.
+	End Rem
+	Method GetBlockSize:Int()
+		Return bmx_EVP_CIPHER_CTX_block_size(ctxPtr)
+	End Method
+	
 	Method Delete()
 		If ctxPtr Then
 			bmx_EVP_CIPHER_CTX_delete(ctxPtr)

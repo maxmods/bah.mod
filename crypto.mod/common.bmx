@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,8 @@ Extern
 	Function bmx_EVP_CipherInit_ex:Int(ctxPtr:Byte Ptr, cipherType:Byte Ptr, impl:Byte Ptr, key:Byte Ptr, kLen:Int, iv:Byte Ptr, vLen:Int, enc:Int)
 	Function EVP_CipherUpdate:Int(handle:Byte Ptr, out:Byte Ptr, outl:Int Ptr, in:Byte Ptr, inl:Int)
 	Function EVP_CipherFinal_ex:Int(handle:Byte Ptr, out:Byte Ptr, outl:Int Ptr)
+	
+	Function bmx_EVP_CIPHER_CTX_block_size:Int(handle:Byte Ptr)
 
 	Function EVP_des_cbc:Byte Ptr()
 	Function EVP_des_ecb:Byte Ptr()

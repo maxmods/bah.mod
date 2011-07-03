@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2010 Bruce A Henderson
+ Copyright (c) 2007-2011 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@ extern "C" {
 	int bmx_EVP_CipherInit_ex(EVP_CIPHER_CTX * ctx, EVP_CIPHER * type, ENGINE * impl,
 		unsigned char * key, int kLen, unsigned char * iv, int vLen, int enc);		
 
+	int bmx_EVP_CIPHER_CTX_block_size(EVP_CIPHER_CTX * ctx);
 
 }
 
@@ -71,6 +72,9 @@ int bmx_EVP_CipherInit_ex(EVP_CIPHER_CTX * ctx, EVP_CIPHER * type, ENGINE * impl
 	return EVP_CipherInit_ex(ctx, type, impl, (kLen > 0) ? key : NULL, (vLen > 0) ? iv : NULL, enc);
 }
 
+int bmx_EVP_CIPHER_CTX_block_size(EVP_CIPHER_CTX * ctx) {
+	return EVP_CIPHER_CTX_block_size(ctx);
+}
 
 // *******************************************************
 
