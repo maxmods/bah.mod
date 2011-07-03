@@ -36,10 +36,10 @@ ModuleInfo "Copyright: libtorrent - 2003-2006 Arvid Norberg"
 ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (libtorrent 0.14.9)"
+ModuleInfo "History: Initial Release. (libtorrent 0.15.6)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
-ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE"
+ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE -DBOOST_FILESYSTEM_VERSION=2"
 ?linux
 ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
 ?win32

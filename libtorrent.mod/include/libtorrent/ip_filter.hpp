@@ -34,7 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_IP_FILTER_HPP
 
 #include <set>
-#include <iostream>
 
 #ifdef _MSC_VER
 #pragma warning(push, 1)
@@ -88,16 +87,14 @@ namespace detail
 	Addr plus_one(Addr const& a)
 	{
 		Addr tmp(a);
-		typedef typename Addr::reverse_iterator iter;
-		for (iter i = tmp.rbegin()
-			, end(tmp.rend()); i != end; ++i)
+		for (int i = int(tmp.size()) - 1; i >= 0; --i)
 		{
-			if (*i < (std::numeric_limits<typename iter::value_type>::max)())
+			if (tmp[i] < (std::numeric_limits<typename Addr::value_type>::max)())
 			{
-				*i += 1;
+				tmp[i] += 1;
 				break;
 			}
-			*i = 0;
+			tmp[i] = 0;
 		}
 		return tmp;
 	}
@@ -108,16 +105,14 @@ namespace detail
 	Addr minus_one(Addr const& a)
 	{
 		Addr tmp(a);
-		typedef typename Addr::reverse_iterator iter;
-		for (iter i = tmp.rbegin()
-			, end(tmp.rend()); i != end; ++i)
+		for (int i = int(tmp.size()) - 1; i >= 0; --i)
 		{
-			if (*i > 0)
+			if (tmp[i] > 0)
 			{
-				*i -= 1;
+				tmp[i] -= 1;
 				break;
 			}
-			*i = (std::numeric_limits<typename iter::value_type>::max)();
+			tmp[i] = (std::numeric_limits<typename Addr::value_type>::max)();
 		}
 		return tmp;
 	}
@@ -248,7 +243,7 @@ namespace detail
 	
 		struct range
 		{
-			range(Addr addr, int access = 0): start(addr), access(access) {}
+			range(Addr addr, int a = 0): start(addr), access(a) {}
 			bool operator<(range const& r) const
 			{ return start < r.start; }
 			bool operator<(Addr const& a) const
@@ -266,10 +261,8 @@ namespace detail
 
 }
 
-class TORRENT_EXPORT ip_filter
+struct TORRENT_EXPORT ip_filter
 {
-public:
-
 	enum access_flags
 	{
 		blocked = 1
@@ -290,7 +283,9 @@ public:
 private:
 
 	detail::filter_impl<address_v4::bytes_type> m_filter4;
+#if TORRENT_USE_IPV6
 	detail::filter_impl<address_v6::bytes_type> m_filter6;
+#endif
 };
 
 class TORRENT_EXPORT port_filter

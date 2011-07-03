@@ -42,12 +42,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <algorithm>
 
-using boost::bind;
-
 namespace libtorrent {
 
 enum { max_bottled_buffer = 1024 * 1024 };
-
 
 void http_connection::get(std::string const& url, time_duration timeout, int prio
 	, proxy_settings const* ps, int handle_redirects, std::string const& user_agent
@@ -57,11 +54,11 @@ void http_connection::get(std::string const& url, time_duration timeout, int pri
 	std::string auth;
 	std::string hostname;
 	std::string path;
-	char const* error;
+	error_code ec;
 	int port;
 
-	boost::tie(protocol, auth, hostname, port, path, error)
-		= parse_url_components(url);
+	boost::tie(protocol, auth, hostname, port, path)
+		= parse_url_components(url, ec);
 
 	int default_port = protocol == "https" ? 443 : 80;
 
@@ -69,9 +66,22 @@ void http_connection::get(std::string const& url, time_duration timeout, int pri
 	// deletes this object
 	boost::shared_ptr<http_connection> me(shared_from_this());
 
-	if (error)
+	if (protocol != "http"
+#ifdef TORRENT_USE_OPENSSL
+		&& protocol != "https"
+#endif
+		)
 	{
-		callback(asio::error::socket_type_not_supported);
+		error_code ec(errors::unsupported_url_protocol);
+		m_resolver.get_io_service().post(boost::bind(&http_connection::callback
+			, me, ec, (char*)0, 0));
+		return;
+	}
+
+	if (ec)
+	{
+		m_resolver.get_io_service().post(boost::bind(&http_connection::callback
+			, me, ec, (char*)0, 0));
 		return;
 	}
 
@@ -79,49 +89,48 @@ void http_connection::get(std::string const& url, time_duration timeout, int pri
 
 	bool ssl = false;
 	if (protocol == "https") ssl = true;
-#ifndef TORRENT_USE_OPENSSL
-	if (ssl)
-	{
-		callback(asio::error::socket_type_not_supported);
-		return;
-	}
-#endif
 	
-	std::stringstream headers;
+	char request[2048];
+	char* end = request + sizeof(request);
+	char* ptr = request;
+
+#define APPEND_FMT(fmt) ptr += snprintf(ptr, end - ptr, fmt)
+#define APPEND_FMT1(fmt, arg) ptr += snprintf(ptr, end - ptr, fmt, arg)
+#define APPEND_FMT2(fmt, arg1, arg2) ptr += snprintf(ptr, end - ptr, fmt, arg1, arg2)
+
 	if (ps && (ps->type == proxy_settings::http
 		|| ps->type == proxy_settings::http_pw)
 		&& !ssl)
 	{
 		// if we're using an http proxy and not an ssl
 		// connection, just do a regular http proxy request
-		headers << "GET " << url << " HTTP/1.0\r\n";
+		APPEND_FMT1("GET %s HTTP/1.0\r\n", url.c_str());
 		if (ps->type == proxy_settings::http_pw)
-			headers << "Proxy-Authorization: Basic " << base64encode(
-				ps->username + ":" + ps->password) << "\r\n";
+			APPEND_FMT1("Proxy-Authorization: Basic %s\r\n", base64encode(
+				ps->username + ":" + ps->password).c_str());
 		hostname = ps->hostname;
 		port = ps->port;
-		ps = 0;
 	}
 	else
 	{
-		headers << "GET " << path << " HTTP/1.0\r\n"
-			"Host: " << hostname;
-		if (port != default_port) headers << ":" << to_string(port).elems;
-		headers << "\r\n";
+		APPEND_FMT2("GET %s HTTP/1.0\r\n"
+			"Host: %s", path.c_str(), hostname.c_str());
+		if (port != default_port) APPEND_FMT1(":%d\r\n", port);
+		else APPEND_FMT("\r\n");
 	}
 
 	if (!auth.empty())
-		headers << "Authorization: Basic " << base64encode(auth) << "\r\n";
+		APPEND_FMT1("Authorization: Basic %s\r\n", base64encode(auth).c_str());
 
 	if (!user_agent.empty())
-		headers << "User-Agent: " << user_agent << "\r\n";
+		APPEND_FMT1("User-Agent: %s\r\n", user_agent.c_str());
 	
-	headers <<
-		"Connection: close\r\n"
-		"Accept-Encoding: gzip\r\n"
-		"\r\n";
+	if (m_bottled)
+		APPEND_FMT("Accept-Encoding: gzip\r\n");
 
-	sendbuffer = headers.str();
+	APPEND_FMT("Connection: close\r\n\r\n");
+
+	sendbuffer.assign(request);
 	m_url = url;
 	start(hostname, to_string(port).elems, timeout, prio
 		, ps, ssl, handle_redirects, bind_addr);
@@ -136,24 +145,25 @@ void http_connection::start(std::string const& hostname, std::string const& port
 	m_redirects = handle_redirects;
 	if (ps) m_proxy = *ps;
 
+	// keep ourselves alive even if the callback function
+	// deletes this object
+	boost::shared_ptr<http_connection> me(shared_from_this());
+
 	m_timeout = timeout;
 	error_code ec;
 	m_timer.expires_from_now(m_timeout, ec);
-	m_timer.async_wait(bind(&http_connection::on_timeout
-		, boost::weak_ptr<http_connection>(shared_from_this()), _1));
+	m_timer.async_wait(boost::bind(&http_connection::on_timeout
+		, boost::weak_ptr<http_connection>(me), _1));
 	m_called = false;
 	m_parser.reset();
 	m_recvbuffer.clear();
 	m_read_pos = 0;
 	m_priority = prio;
 
-	// keep ourselves alive even if the callback function
-	// deletes this object
-	boost::shared_ptr<http_connection> me(shared_from_this());
-
 	if (ec)
 	{
-		callback(ec);
+		m_resolver.get_io_service().post(boost::bind(&http_connection::callback
+			, me, ec, (char*)0, 0));
 		return;
 	}
 
@@ -161,7 +171,7 @@ void http_connection::start(std::string const& hostname, std::string const& port
 		&& m_ssl == ssl && m_bind_addr == bind_addr)
 	{
 		async_write(m_sock, asio::buffer(sendbuffer)
-			, bind(&http_connection::on_write, shared_from_this(), _1));
+			, boost::bind(&http_connection::on_write, me, _1));
 	}
 	else
 	{
@@ -170,23 +180,37 @@ void http_connection::start(std::string const& hostname, std::string const& port
 		error_code ec;
 		m_sock.close(ec);
 
+		// in this case, the upper layer is assumed to have taken
+		// care of the proxying already. Don't instantiate the socket
+		// with this proxy
+		if (ps && (ps->type == proxy_settings::http
+			|| ps->type == proxy_settings::http_pw)
+			&& !ssl)
+		{
+			ps = 0;
+		}
+		proxy_settings null_proxy;
+
 #ifdef TORRENT_USE_OPENSSL
 		if (m_ssl)
 		{
 			m_sock.instantiate<ssl_stream<socket_type> >(m_resolver.get_io_service());
 			ssl_stream<socket_type>* s = m_sock.get<ssl_stream<socket_type> >();
-			bool ret = instantiate_connection(m_resolver.get_io_service(), m_proxy, s->next_layer());
+			TORRENT_ASSERT(s);
+			bool ret = instantiate_connection(m_resolver.get_io_service()
+				, ps ? *ps : null_proxy, s->next_layer());
 			TORRENT_ASSERT(ret);
 		}
 		else
 		{
 			m_sock.instantiate<socket_type>(m_resolver.get_io_service());
 			bool ret = instantiate_connection(m_resolver.get_io_service()
-				, m_proxy, *m_sock.get<socket_type>());
+				, ps ? *ps : null_proxy, *m_sock.get<socket_type>());
 			TORRENT_ASSERT(ret);
 		}
 #else
-		bool ret = instantiate_connection(m_resolver.get_io_service(), m_proxy, m_sock);
+		bool ret = instantiate_connection(m_resolver.get_io_service()
+			, ps ? *ps : null_proxy, m_sock);
 		TORRENT_ASSERT(ret);
 #endif
 		if (m_bind_addr != address_v4::any())
@@ -196,14 +220,16 @@ void http_connection::start(std::string const& hostname, std::string const& port
 			m_sock.bind(tcp::endpoint(m_bind_addr, 0), ec);
 			if (ec)
 			{
-				callback(ec);
+				m_resolver.get_io_service().post(boost::bind(&http_connection::callback
+					, me, ec, (char*)0, 0));
 				return;
 			}
 		}
 
+		m_endpoints.clear();
 		tcp::resolver::query query(hostname, port);
-		m_resolver.async_resolve(query, bind(&http_connection::on_resolve
-			, shared_from_this(), _1, _2));
+		m_resolver.async_resolve(query, boost::bind(&http_connection::on_resolve
+			, me, _1, _2));
 		m_hostname = hostname;
 		m_port = port;
 	}
@@ -238,14 +264,14 @@ void http_connection::on_timeout(boost::weak_ptr<http_connection> p
 
 	if (e == asio::error::operation_aborted) return;
 
-	if (c->m_last_receive + c->m_timeout < time_now())
+	if (c->m_last_receive + c->m_timeout < time_now_hires())
 	{
 		if (c->m_connection_ticket > -1 && !c->m_endpoints.empty())
 		{
 			error_code ec;
 			c->m_sock.close(ec);
 			c->m_timer.expires_at(c->m_last_receive + c->m_timeout, ec);
-			c->m_timer.async_wait(bind(&http_connection::on_timeout, p, _1));
+			c->m_timer.async_wait(boost::bind(&http_connection::on_timeout, p, _1));
 		}
 		else
 		{
@@ -258,7 +284,7 @@ void http_connection::on_timeout(boost::weak_ptr<http_connection> p
 	if (!c->m_sock.is_open()) return;
 	error_code ec;
 	c->m_timer.expires_at(c->m_last_receive + c->m_timeout, ec);
-	c->m_timer.async_wait(bind(&http_connection::on_timeout, p, _1));
+	c->m_timer.async_wait(boost::bind(&http_connection::on_timeout, p, _1));
 }
 
 void http_connection::close()
@@ -290,6 +316,13 @@ void http_connection::on_resolve(error_code const& e
 	std::transform(i, tcp::resolver::iterator(), std::back_inserter(m_endpoints)
 		, boost::bind(&tcp::resolver::iterator::value_type::endpoint, _1));
 
+	if (m_filter_handler) m_filter_handler(*this, m_endpoints);
+	if (m_endpoints.empty())
+	{
+		close();
+		return;
+	}
+
 	// The following statement causes msvc to crash (ICE). Since it's not
 	// necessary in the vast majority of cases, just ignore the endpoint
 	// order for windows
@@ -297,8 +330,10 @@ void http_connection::on_resolve(error_code const& e
 	// sort the endpoints so that the ones with the same IP version as our
 	// bound listen socket are first. So that when contacting a tracker,
 	// we'll talk to it from the same IP that we're listening on
-	std::partition(m_endpoints.begin(), m_endpoints.end()
-		, boost::bind(&address::is_v4, boost::bind(&tcp::endpoint::address, _1)) == m_bind_addr.is_v4());
+	if (m_bind_addr != address_v4::any())
+		std::partition(m_endpoints.begin(), m_endpoints.end()
+			, boost::bind(&address::is_v4, boost::bind(&tcp::endpoint::address, _1))
+				== m_bind_addr.is_v4());
 #endif
 
 	queue_connect();
@@ -310,8 +345,8 @@ void http_connection::queue_connect()
 	tcp::endpoint target = m_endpoints.front();
 	m_endpoints.pop_front();
 
-	m_cc.enqueue(bind(&http_connection::connect, shared_from_this(), _1, target)
-		, bind(&http_connection::on_connect_timeout, shared_from_this())
+	m_cc.enqueue(boost::bind(&http_connection::connect, shared_from_this(), _1, target)
+		, boost::bind(&http_connection::on_connect_timeout, shared_from_this())
 		, m_timeout, m_priority);
 }
 
@@ -330,12 +365,12 @@ void http_connection::on_connect(error_code const& e)
 		m_connection_ticket = -1;
 	}
 
-	m_last_receive = time_now();
+	m_last_receive = time_now_hires();
 	if (!e)
 	{ 
 		if (m_connect_handler) m_connect_handler(*this);
 		async_write(m_sock, asio::buffer(sendbuffer)
-			, bind(&http_connection::on_write, shared_from_this(), _1));
+			, boost::bind(&http_connection::on_write, shared_from_this(), _1));
 	}
 	else if (!m_endpoints.empty() && !m_abort)
 	{
@@ -354,30 +389,29 @@ void http_connection::on_connect(error_code const& e)
 
 void http_connection::callback(error_code const& e, char const* data, int size)
 {
-	if (!m_bottled || !m_called)
+	if (m_bottled && m_called) return;
+
+	std::vector<char> buf;
+	if (data && m_bottled && m_parser.header_finished())
 	{
-		std::vector<char> buf;
-		if (m_bottled && m_parser.header_finished())
+		std::string const& encoding = m_parser.header("content-encoding");
+		if ((encoding == "gzip" || encoding == "x-gzip") && size > 0 && data)
 		{
-			std::string const& encoding = m_parser.header("content-encoding");
-			if ((encoding == "gzip" || encoding == "x-gzip") && size > 0 && data)
+			std::string error;
+			if (inflate_gzip(data, size, buf, max_bottled_buffer, error))
 			{
-				std::string error;
-				if (inflate_gzip(data, size, buf, max_bottled_buffer, error))
-				{
-					if (m_handler) m_handler(asio::error::fault, m_parser, data, size, *this);
-					close();
-					return;
-				}
-				size = int(buf.size());
-				data = size == 0 ? 0 : &buf[0];
+				if (m_handler) m_handler(errors::http_failed_decompress, m_parser, data, size, *this);
+				close();
+				return;
 			}
+			size = int(buf.size());
+			data = size == 0 ? 0 : &buf[0];
 		}
-		m_called = true;
-		error_code ec;
-		m_timer.cancel(ec);
-		if (m_handler) m_handler(e, m_parser, data, size, *this);
 	}
+	m_called = true;
+	error_code ec;
+	m_timer.cancel(ec);
+	if (m_handler) m_handler(e, m_parser, data, size, *this);
 }
 
 void http_connection::on_write(error_code const& e)
@@ -406,8 +440,8 @@ void http_connection::on_write(error_code const& e)
 	}
 	m_sock.async_read_some(asio::buffer(&m_recvbuffer[0] + m_read_pos
 		, amount_to_read)
-		, bind(&http_connection::on_read
-		, shared_from_this(), _1, _2));
+		, boost::bind(&http_connection::on_read
+			, shared_from_this(), _1, _2));
 }
 
 void http_connection::on_read(error_code const& e
@@ -461,7 +495,7 @@ void http_connection::on_read(error_code const& e
 		if (error)
 		{
 			// HTTP parse error
-			error_code ec = asio::error::fault;
+			error_code ec = errors::http_parse_error;
 			callback(ec, 0, 0);
 			return;
 		}
@@ -478,7 +512,7 @@ void http_connection::on_read(error_code const& e
 				if (location.empty())
 				{
 					// missing location header
-					callback(asio::error::fault);
+					callback(error_code(errors::http_missing_location));
 					close();
 					return;
 				}
@@ -486,10 +520,9 @@ void http_connection::on_read(error_code const& e
 				error_code ec;
 				m_sock.close(ec);
 				using boost::tuples::ignore;
-				char const* error;
-				boost::tie(ignore, ignore, ignore, ignore, ignore, error)
-					= parse_url_components(location);
-				if (error == 0)
+				boost::tie(ignore, ignore, ignore, ignore, ignore)
+					= parse_url_components(location, ec);
+				if (!ec)
 				{
 					get(location, m_timeout, m_priority, &m_proxy, m_redirects - 1);
 				}
@@ -521,7 +554,7 @@ void http_connection::on_read(error_code const& e
 				callback(e, &m_recvbuffer[0] + m_parser.body_start()
 					, m_read_pos - m_parser.body_start());
 			m_read_pos = 0;
-			m_last_receive = time_now();
+			m_last_receive = time_now_hires();
 		}
 		else if (m_bottled && m_parser.finished())
 		{
@@ -535,7 +568,7 @@ void http_connection::on_read(error_code const& e
 		TORRENT_ASSERT(!m_bottled);
 		callback(e, &m_recvbuffer[0], m_read_pos);
 		m_read_pos = 0;
-		m_last_receive = time_now();
+		m_last_receive = time_now_hires();
 	}
 
 	if (int(m_recvbuffer.size()) == m_read_pos)
@@ -559,8 +592,8 @@ void http_connection::on_read(error_code const& e
 	}
 	m_sock.async_read_some(asio::buffer(&m_recvbuffer[0] + m_read_pos
 		, amount_to_read)
-		, bind(&http_connection::on_read
-		, me, _1, _2));
+		, boost::bind(&http_connection::on_read
+			, me, _1, _2));
 }
 
 void http_connection::on_assign_bandwidth(error_code const& e)
@@ -587,13 +620,13 @@ void http_connection::on_assign_bandwidth(error_code const& e)
 
 	m_sock.async_read_some(asio::buffer(&m_recvbuffer[0] + m_read_pos
 		, amount_to_read)
-		, bind(&http_connection::on_read
-		, shared_from_this(), _1, _2));
+		, boost::bind(&http_connection::on_read
+			, shared_from_this(), _1, _2));
 
 	error_code ec;
 	m_limiter_timer_active = true;
 	m_limiter_timer.expires_from_now(milliseconds(250), ec);
-	m_limiter_timer.async_wait(bind(&http_connection::on_assign_bandwidth
+	m_limiter_timer.async_wait(boost::bind(&http_connection::on_assign_bandwidth
 		, shared_from_this(), _1));
 }
 
@@ -606,7 +639,7 @@ void http_connection::rate_limit(int limit)
 		error_code ec;
 		m_limiter_timer_active = true;
 		m_limiter_timer.expires_from_now(milliseconds(250), ec);
-		m_limiter_timer.async_wait(bind(&http_connection::on_assign_bandwidth
+		m_limiter_timer.async_wait(boost::bind(&http_connection::on_assign_bandwidth
 			, shared_from_this(), _1));
 	}
 	m_rate_limit = limit;

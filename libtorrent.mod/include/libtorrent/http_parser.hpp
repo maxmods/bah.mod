@@ -43,7 +43,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/cstdint.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/lexical_cast.hpp>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -56,7 +55,13 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent
 {
 	
-	class http_parser
+	// return true if the status code is 200, 206, or in the 300-400 range
+	bool is_ok_status(int http_status);
+
+	// return true if the status code is a redirect
+	bool is_redirect(int http_status);
+
+	class TORRENT_EXPORT http_parser
 	{
 	public:
 		http_parser();
@@ -81,6 +86,8 @@ namespace libtorrent
 			, bool& error);
 		int body_start() const { return m_body_start_pos; }
 		size_type content_length() const { return m_content_length; }
+		std::pair<size_type, size_type> content_range() const
+		{ return std::make_pair(m_range_start, m_range_end); }
 
 		void reset();
 
@@ -95,6 +102,8 @@ namespace libtorrent
 		std::string m_server_message;
 
 		size_type m_content_length;
+		size_type m_range_start;
+		size_type m_range_end;
 
 		enum { read_status, read_header, read_body, error_state } m_state;
 

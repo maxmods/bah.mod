@@ -78,6 +78,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <ifaddrs.h>
 #endif
 
 namespace libtorrent { namespace
@@ -91,6 +93,7 @@ namespace libtorrent { namespace
 		return address_v4(b);
 	}
 
+#if TORRENT_USE_IPV6
 	address inaddr6_to_address(in6_addr const* ina6)
 	{
 		typedef asio::ip::address_v6::bytes_type bytes_t;
@@ -98,13 +101,16 @@ namespace libtorrent { namespace
 		std::memcpy(&b[0], ina6, b.size());
 		return address_v6(b);
 	}
+#endif
 
 	address sockaddr_to_address(sockaddr const* sin)
 	{
 		if (sin->sa_family == AF_INET)
 			return inaddr_to_address(&((sockaddr_in const*)sin)->sin_addr);
+#if TORRENT_USE_IPV6
 		else if (sin->sa_family == AF_INET6)
 			return inaddr6_to_address(&((sockaddr_in6 const*)sin)->sin6_addr);
+#endif
 		return address();
 	}
 
@@ -192,7 +198,11 @@ namespace libtorrent { namespace
 		if (sa == 0
 			|| rti_info[RTAX_DST] == 0
 			|| rti_info[RTAX_NETMASK] == 0
-			|| (sa->sa_family != AF_INET && sa->sa_family != AF_INET6))
+			|| (sa->sa_family != AF_INET
+#if TORRENT_USE_IPV6
+				&& sa->sa_family != AF_INET6
+#endif
+				))
 			return false;
 
 		rt_info->gateway = sockaddr_to_address(rti_info[RTAX_GATEWAY]);
@@ -209,8 +219,39 @@ namespace libtorrent { namespace
 	{
 		return (sin->sin_len == sizeof(sockaddr_in)
 			&& sin->sin_family == AF_INET)
+#if TORRENT_USE_IPV6
 			|| (sin->sin_len == sizeof(sockaddr_in6)
-				&& sin->sin_family == AF_INET6);
+				&& sin->sin_family == AF_INET6)
+#endif
+			;
+	}
+#endif
+
+#if defined TORRENT_LINUX
+	bool iface_from_ifaddrs(ifaddrs *ifa, ip_interface &rv, error_code& ec)
+	{
+		int family = ifa->ifa_addr->sa_family;
+
+		if (family != AF_INET
+#if TORRENT_USE_IPV6
+			&& family != AF_INET6
+#endif
+		)
+		{
+			return false;
+		}
+
+		strncpy(rv.name, ifa->ifa_name, sizeof(rv.name));
+		rv.name[sizeof(rv.name)-1] = 0;
+
+		// determine address
+		rv.interface_address = sockaddr_to_address(ifa->ifa_addr);
+		// determine netmask
+		if (ifa->ifa_netmask != NULL)
+		{
+			rv.netmask = sockaddr_to_address(ifa->ifa_netmask);
+		}
+		return true;
 	}
 #endif
 
@@ -247,8 +288,34 @@ namespace libtorrent
 	std::vector<ip_interface> enum_net_interfaces(io_service& ios, error_code& ec)
 	{
 		std::vector<ip_interface> ret;
-// covers linux, MacOS X and BSD distributions
-#if defined TORRENT_LINUX || defined TORRENT_BSD || defined TORRENT_SOLARIS
+#if defined TORRENT_LINUX
+		ifaddrs *ifaddr;
+		if (getifaddrs(&ifaddr) == -1)
+		{
+			ec = error_code(errno, asio::error::system_category);
+			return ret;
+		}
+
+		for (ifaddrs* ifa = ifaddr; ifa; ifa = ifa->ifa_next)
+		{
+			if (ifa->ifa_addr == 0) continue;
+			if ((ifa->ifa_flags & IFF_UP) == 0) continue;
+
+			int family = ifa->ifa_addr->sa_family;
+			if (family == AF_INET
+#if TORRENT_USE_IPV6
+				|| family == AF_INET6
+#endif
+				)
+			{
+				ip_interface iface;
+				if (iface_from_ifaddrs(ifa, iface, ec))
+					ret.push_back(iface);
+			}
+		}
+		freeifaddrs(ifaddr);
+// MacOS X, BSD and solaris
+#elif defined TORRENT_BSD || defined TORRENT_SOLARIS
 		int s = socket(AF_INET, SOCK_DGRAM, 0);
 		if (s < 0)
 		{
@@ -274,7 +341,10 @@ namespace libtorrent
 			ifreq const& item = *reinterpret_cast<ifreq*>(ifr);
 
 			if (item.ifr_addr.sa_family == AF_INET
-				|| item.ifr_addr.sa_family == AF_INET6)
+#if TORRENT_USE_IPV6
+				|| item.ifr_addr.sa_family == AF_INET6
+#endif
+				)
 			{
 				ip_interface iface;
 				iface.interface_address = sockaddr_to_address(&item.ifr_addr);

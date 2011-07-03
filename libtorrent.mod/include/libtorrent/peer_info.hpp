@@ -58,7 +58,8 @@ namespace libtorrent
 			seed = 0x400,
 			optimistic_unchoke = 0x800,
 			snubbed = 0x1000,
-			upload_only = 0x2000
+			upload_only = 0x2000,
+			endgame_mode = 0x4000
 #ifndef TORRENT_DISABLE_ENCRYPTION
 			, rc4_encrypted = 0x100000,
 			plaintext_encrypted = 0x200000
@@ -80,20 +81,24 @@ namespace libtorrent
 		int source;
 
 		// bw_idle: the channel is not used
-		// bw_torrent: the channel is waiting for torrent quota
-		// bw_global: the channel is waiting for global quota
+		// bw_limit: the channel is waiting for quota
 		// bw_network: the channel is waiting for an async write
 		//   for read operation to complete
-		enum bw_state { bw_idle, bw_torrent, bw_global, bw_network };
+		// bw_disk: the peer is waiting for the disk io thread
+		//   to catch up
+		enum bw_state { bw_idle, bw_limit, bw_network, bw_disk };
+#ifndef TORRENT_NO_DEPRECATE
+		enum bw_state_deprecated { bw_torrent = bw_limit, bw_global = bw_limit };
+#endif
 
 		char read_state;
 		char write_state;
 		
 		tcp::endpoint ip;
-		float up_speed;
-		float down_speed;
-		float payload_up_speed;
-		float payload_down_speed;
+		int up_speed;
+		int down_speed;
+		int payload_up_speed;
+		int payload_down_speed;
 		size_type total_download;
 		size_type total_upload;
 		peer_id pid;
@@ -106,6 +111,11 @@ namespace libtorrent
 
 		// time since last download or upload
 		time_duration last_active;
+
+		// the time until all blocks in the request
+		// queue will be d
+		time_duration download_queue_time;
+		int queue_bytes;
 
 		// the number of seconds until the current
 		// pending request times out
@@ -175,7 +185,8 @@ namespace libtorrent
 		enum
 		{
 			standard_bittorrent = 0,
-			web_seed = 1
+			web_seed = 1,
+			http_seed = 2
 		};
 		int connection_type;
 		
@@ -193,12 +204,16 @@ namespace libtorrent
 		// estimated rtt to peer, in milliseconds
 		int rtt;
 
+		// the number of pieces this peer has
+		int num_pieces;
+
 		// the highest transfer rates seen for this peer
 		int download_rate_peak;
 		int upload_rate_peak;
 		
 		// the peers progress
-		float progress;
+		float progress; // [0, 1]
+		int progress_ppm; // [0, 1000000]
 	};
 
 	struct TORRENT_EXPORT peer_list_entry
@@ -213,6 +228,9 @@ namespace libtorrent
 		boost::uint8_t failcount;
 		boost::uint8_t source;
 	};
+
+	// defined in policy.cpp
+	int source_rank(int source_bitmask);
 }
 
 #endif // TORRENT_PEER_INFO_HPP_INCLUDED

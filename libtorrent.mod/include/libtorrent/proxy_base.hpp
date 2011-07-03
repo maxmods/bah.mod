@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/io.hpp"
 #include "libtorrent/socket.hpp"
 #include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/function.hpp>
 #if BOOST_VERSION < 103500
 #include <asio/read.hpp>
@@ -58,6 +57,7 @@ public:
 
 	explicit proxy_base(io_service& io_service)
 		: m_sock(io_service)
+		, m_port(0)
 		, m_resolver(io_service)
 	{}
 
@@ -167,6 +167,7 @@ public:
 
 	endpoint_type remote_endpoint(error_code& ec) const
 	{
+		if (!m_sock.is_open()) ec = asio::error::not_connected;
 		return m_remote_endpoint;
 	}
 

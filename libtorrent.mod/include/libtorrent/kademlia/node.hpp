@@ -50,8 +50,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/optional.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 #include <boost/ref.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/optional.hpp>
 
 #include "libtorrent/socket.hpp"
+
+namespace libtorrent {
+	
+	namespace aux { struct session_impl; }
+	struct session_status;
+
+}
 
 namespace libtorrent { namespace dht
 {
@@ -59,6 +68,8 @@ namespace libtorrent { namespace dht
 #ifdef TORRENT_DHT_VERBOSE_LOGGING
 TORRENT_DECLARE_LOG(node);
 #endif
+
+struct traversal_algorithm;
 
 // this is the entry for every peer
 // the timestamp is there to make it possible
@@ -90,7 +101,7 @@ public:
 	announce_observer(boost::pool<>& allocator
 		, sha1_hash const& info_hash
 		, int listen_port
-		, entry const& write_token)
+		, std::string const& write_token)
 		: observer(allocator)
 		, m_info_hash(info_hash)
 		, m_listen_port(listen_port)
@@ -111,56 +122,14 @@ public:
 private:
 	sha1_hash m_info_hash;
 	int m_listen_port;
-	entry m_token;
+	std::string m_token;
 };
-
-class get_peers_observer : public observer
-{
-public:
-	get_peers_observer(sha1_hash const& info_hash
-		, int listen_port
-		, rpc_manager& rpc
-		, boost::function<void(std::vector<tcp::endpoint> const&, sha1_hash const&)> f)
-		: observer(rpc.allocator())
-		, m_info_hash(info_hash)
-		, m_listen_port(listen_port)
-		, m_rpc(rpc)
-		, m_fun(f)
-	{}
-
-	void send(msg& m)
-	{
-		m.port = m_listen_port;
-		m.info_hash = m_info_hash;
-	}
-
-	void timeout() {}
-	void reply(msg const& r)
-	{
-		observer_ptr o(new (m_rpc.allocator().malloc()) announce_observer(
-			m_rpc.allocator(), m_info_hash, m_listen_port, r.write_token));
-#ifdef TORRENT_DEBUG
-		o->m_in_constructor = false;
-#endif
-		m_rpc.invoke(messages::announce_peer, r.addr, o);
-		m_fun(r.peers, m_info_hash);
-	}
-	void abort() {}
-
-private:
-	sha1_hash m_info_hash;
-	int m_listen_port;
-	rpc_manager& m_rpc;
-	boost::function<void(std::vector<tcp::endpoint> const&, sha1_hash const&)> m_fun;
-};
-
-
 
 class node_impl : boost::noncopyable
 {
 typedef std::map<node_id, torrent_entry> table_t;
 public:
-	node_impl(boost::function<void(msg const&)> const& f
+	node_impl(libtorrent::aux::session_impl& ses, boost::function<void(msg const&)> const& f
 		, dht_settings const& settings, boost::optional<node_id> nid);
 
 	virtual ~node_impl() {}
@@ -202,11 +171,10 @@ public:
 #endif
 
 	void announce(sha1_hash const& info_hash, int listen_port
-		, boost::function<void(std::vector<tcp::endpoint> const&
-			, sha1_hash const&)> f);
+		, boost::function<void(std::vector<tcp::endpoint> const&)> f);
 
 	bool verify_token(msg const& m);
-	entry generate_token(msg const& m);
+	std::string generate_token(msg const& m);
 	
 	// the returned time is the delay until connection_timeout()
 	// should be called again the next time
@@ -224,6 +192,22 @@ public:
 	void replacement_cache(bucket_t& nodes) const
 	{ m_table.replacement_cache(nodes); }
 
+	int branch_factor() const { return m_settings.search_branching; }
+
+	void add_traversal_algorithm(traversal_algorithm* a)
+	{
+		mutex_t::scoped_lock l(m_mutex);
+		m_running_requests.insert(a);
+	}
+
+	void remove_traversal_algorithm(traversal_algorithm* a)
+	{
+		mutex_t::scoped_lock l(m_mutex);
+		m_running_requests.erase(a);
+	}
+
+	void status(libtorrent::session_status& s);
+
 protected:
 	// is called when a find data request is received. Should
 	// return false if the data is not stored on this node. If
@@ -236,23 +220,31 @@ protected:
 
 	dht_settings const& m_settings;
 	
-	// the maximum number of peers to send in a get_peers
-	// reply. Ordinary trackers usually limit this to 50.
-	// 50 => 6 * 50 = 250 bytes + packet overhead
-	int m_max_peers_reply;
-
 private:
+	typedef boost::mutex mutex_t;
+	mutex_t m_mutex;
+
+	// this list must be destructed after the rpc manager
+	// since it might have references to it
+	std::set<traversal_algorithm*> m_running_requests;
+
 	void incoming_request(msg const& h);
 
 	node_id m_id;
+
+public:
 	routing_table m_table;
 	rpc_manager m_rpc;
+
+private:
 	table_t m_map;
 	
 	ptime m_last_tracker_tick;
 
 	// secret random numbers used to create write tokens
 	int m_secret[2];
+
+	libtorrent::aux::session_impl& m_ses;
 };
 
 

@@ -37,7 +37,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <ctime>
 #include <algorithm>
 #include <vector>
-#include <deque>
 #include <string>
 
 #include "libtorrent/debug.hpp"
@@ -105,6 +104,8 @@ namespace libtorrent
 
 		void start();
 
+		enum { upload_only_msg = 2 };
+
 		~bt_peer_connection();
 		
 #ifndef TORRENT_DISABLE_ENCRYPTION
@@ -132,7 +133,7 @@ namespace libtorrent
 			msg_have_none,
 			msg_reject_request,
 			msg_allowed_fast,
-			
+
 			// extension protocol message
 			msg_extended = 20,
 
@@ -215,8 +216,8 @@ namespace libtorrent
 		void write_handshake();
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		void write_extensions();
+		void write_upload_only();
 #endif
-		void write_chat_message(const std::string& msg);
 		void write_metadata(std::pair<int, int> req);
 		void write_metadata_request(std::pair<int, int> req);
 		void write_keepalive();
@@ -275,6 +276,7 @@ public:
 		// these functions encrypt the send buffer if m_rc4_encrypted
 		// is true, otherwise it passes the call to the
 		// peer_connection functions of the same names
+		virtual void append_const_send_buffer(char const* buffer, int size);
 		void send_buffer(char const* buf, int size, int flags = 0);
 		buffer::interval allocate_send_buffer(int size);
 		template <class Destructor>
@@ -363,17 +365,21 @@ private:
 		};
 		static bool range_below_zero(const range& r)
 		{ return r.start < 0; }
-		std::deque<range> m_payloads;
+		std::vector<range> m_payloads;
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
+		// the message ID for upload only message
+		// 0 if not supported
+		int m_upload_only_id;
+
+		char m_reserved_bits[8];
 		// this is set to true if the handshake from
 		// the peer indicated that it supports the
 		// extension protocol
-		bool m_supports_extensions;
-		char m_reserved_bits[20];
+		bool m_supports_extensions:1;
 #endif
-		bool m_supports_dht_port;
-		bool m_supports_fast;
+		bool m_supports_dht_port:1;
+		bool m_supports_fast:1;
 
 #ifndef TORRENT_DISABLE_ENCRYPTION
 		// this is set to true after the encryption method has been
@@ -425,6 +431,7 @@ private:
 		// the number of bytes in the send buffer
 		// that have been encrypted (only used for
 		// encrypted connections)
+public:
 		int m_encrypted_bytes;
 #endif
 

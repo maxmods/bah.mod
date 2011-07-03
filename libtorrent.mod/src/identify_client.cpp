@@ -69,7 +69,7 @@ namespace
 	{
 		fingerprint ret("..", 0, 0, 0, 0);
 
-		if (id[0] != '-' || !isprint(id[1]) || (id[2] < '0')
+		if (id[0] != '-' || !is_print(id[1]) || (id[2] < '0')
 			|| (id[3] < '0') || (id[4] < '0')
 			|| (id[5] < '0') || (id[6] < '0')
 			|| id[7] != '-')
@@ -131,7 +131,7 @@ namespace
 		ret.tag_version = 0;
 		if (sscanf(ids, "%c%d-%d-%d--", &ret.name[0], &ret.major_version, &ret.minor_version
 			, &ret.revision_version) != 4
-			|| !isprint(ret.name[0]))
+			|| !is_print(ret.name[0]))
 			return boost::optional<fingerprint>();
 
 		return boost::optional<fingerprint>(ret);
@@ -150,6 +150,7 @@ namespace
 		{"A",  "ABC"}
 		, {"AG",  "Ares"}
 		, {"AR", "Arctic Torrent"}
+		, {"AT", "Artemis"}
 		, {"AV", "Avicora"}
 		, {"AX", "BitPump"}
 		, {"AZ", "Azureus"}
@@ -158,34 +159,52 @@ namespace
 		, {"BC", "BitComet"}
 		, {"BF", "Bitflu"}
 		, {"BG", "BTG"}
+		, {"BL", "BitBlinder"}
+		, {"BP", "BitTorrent Pro"}
 		, {"BR", "BitRocket"}
 		, {"BS", "BTSlave"}
+		, {"BW", "BitWombat"}
 		, {"BX", "BittorrentX"}
 		, {"CD", "Enhanced CTorrent"}
 		, {"CT", "CTorrent"}
-		, {"DE", "Deluge Torrent"}
+		, {"DE", "Deluge"}
+		, {"DP", "Propagate Data Client"}
 		, {"EB", "EBit"}
 		, {"ES", "electric sheep"}
+		, {"FC", "FileCroc"}
+		, {"FT", "FoxTorrent"}
+		, {"GS", "GSTorrent"}
+		, {"HK", "Hekate"}
 		, {"HL", "Halite"}
 		, {"HN", "Hydranode"}
+		, {"KG", "KGet"}
 		, {"KT", "KTorrent"}
 		, {"LC", "LeechCraft"}
+		, {"LH", "LH-ABC"}
 		, {"LK", "Linkage"}
 		, {"LP", "lphant"}
 		, {"LT", "libtorrent"}
+		, {"LW", "Limewire"}
 		, {"M",  "Mainline"}
 		, {"ML", "MLDonkey"}
 		, {"MO", "Mono Torrent"}
 		, {"MP", "MooPolice"}
 		, {"MR", "Miro"}
 		, {"MT", "Moonlight Torrent"}
+		, {"NX", "Net Transport"}
 		, {"O",  "Osprey Permaseed"}
+		, {"OS",  "OneSwarm"}
+		, {"OT",  "OmegaTorrent"}
 		, {"PD",  "Pando"}
 		, {"Q", "BTQueue"}
+		, {"QD", "QQDownload"}
 		, {"QT", "Qt 4"}
 		, {"R",  "Tribler"}
+		, {"RT",  "Retriever"}
+		, {"RZ",  "RezTorrent"}
 		, {"S",  "Shadow"}
 		, {"SB", "Swiftbit"}
+		, {"SD", "Xunlei"}
 		, {"SN", "ShareNet"}
 		, {"SS", "SwarmScope"}
 		, {"ST", "SymTorrent"}
@@ -198,8 +217,13 @@ namespace
 		, {"TT", "TuoTu"}
 		, {"U",  "UPnP"}
 		, {"UL", "uLeecher"}
+		, {"UM", "uTorrent Mac"}
 		, {"UT", "uTorrent"}
+		, {"VG", "Vagaa"}
+		, {"WT", "BitLet"}
+		, {"WY", "FireTorrent"}
 		, {"XL", "Xunlei"}
+		, {"XS", "XSwifter"}
 		, {"XT", "XanTorrent"}
 		, {"XX", "Xtorrent"}
 		, {"ZT", "ZipTorrent"}
@@ -260,7 +284,7 @@ namespace
 
 	std::string lookup(fingerprint const& f)
 	{
-		std::stringstream identity;
+		char identity[200];
 
 		const int size = sizeof(name_map)/sizeof(name_map[0]);
 		map_entry tmp = {f.name, ""};
@@ -268,7 +292,7 @@ namespace
 			std::lower_bound(name_map, name_map + size
 				, tmp, &compare_id);
 
-#ifdef TORRENT_DEBUG
+#ifndef NDEBUG
 		for (int i = 1; i < size; ++i)
 		{
 			TORRENT_ASSERT(compare_id(name_map[i-1]
@@ -276,22 +300,31 @@ namespace
 		}
 #endif
 
+		char temp[3];
+		char const* name = 0;
 		if (i < name_map + size && std::equal(f.name, f.name + 2, i->id))
-			identity << i->name;
+		{
+			name = i->name;
+		}
 		else
 		{
-			identity << f.name[0];
-			if (f.name[1] != 0) identity << f.name[1];
+			// if we don't have this client in the list
+			// just use the one or two letter code
+			memcpy(temp, f.name, 2);
+			temp[2] = 0;
+			name = temp;
 		}
 
-		identity << " " << (int)f.major_version
-			<< "." << (int)f.minor_version
-			<< "." << (int)f.revision_version;
+		int num_chars = snprintf(identity, sizeof(identity), "%s %u.%u.%u", name
+			, f.major_version, f.minor_version, f.revision_version);
 
 		if (f.tag_version != 0)
-			identity << "." << (int)f.tag_version;
+		{
+			snprintf(identity + num_chars, sizeof(identity) - num_chars
+				, ".%u", f.tag_version);
+		}
 
-		return identity.str();
+		return identity;
 	}
 
 	bool find_string(unsigned char const* id, char const* search)
@@ -340,12 +373,12 @@ namespace libtorrent
 		}
 
 		if (find_string(PID, "-BOW") && PID[7] == '-')
-			return "Bits on Wheels " + std::string(PID + 4, PID + 7);
+			return "Bits on Wheels " + std::string((char const*)PID + 4, (char const*)PID + 7);
 		
 
 		if (find_string(PID, "eX"))
 		{
-			std::string user(PID + 2, PID + 14);
+			std::string user((char const*)PID + 2, (char const*)PID + 14);
 			return std::string("eXeem ('") + user.c_str() + "')"; 
 		}
 
@@ -355,7 +388,7 @@ namespace libtorrent
 		if (std::equal(PID, PID + 13, "\0\0\0\0\0\0\0\0\0\0\0\0\0"))
 			return "Experimental 3.1";
 
-		
+
 		// look for azureus style id
 		f = parse_az_style(p);
 		if (f) return lookup(*f);
@@ -367,15 +400,15 @@ namespace libtorrent
 		// look for mainline style id
 		f = parse_mainline_style(p);
 		if (f) return lookup(*f);
-														
-		
+
+
 		if (std::equal(PID, PID + 12, "\0\0\0\0\0\0\0\0\0\0\0\0"))
 			return "Generic";
 
 		std::string unknown("Unknown [");
 		for (peer_id::const_iterator i = p.begin(); i != p.end(); ++i)
 		{
-			unknown += isprint(char(*i))?*i:'.';
+			unknown += is_print(char(*i))?*i:'.';
 		}
 		unknown += "]";
 		return unknown;

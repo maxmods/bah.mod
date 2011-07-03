@@ -474,16 +474,16 @@ Type TSessionSettings
 	bbdoc: The number of unchoke intervals between each optimistic unchoke interval.
 	about: On this timer, the currently optimistically unchoked peer will change.
 	End Rem
-	Method optimisticUnchokeMultiplier:Int()
-		Return bmx_torrent_sessionsettings_optimistic_unchoke_multiplier(settingsPtr)
+	Method optimisticUnchokeInterval:Int()
+		Return bmx_torrent_sessionsettings_optimistic_unchoke_interval(settingsPtr)
 	End Method
 	
 	Rem
 	bbdoc: The number of unchoke intervals between each optimistic unchoke interval.
 	about: On this timer, the currently optimistically unchoked peer will change.
 	End Rem
-	Method setOptimisticUnchokeMultiplier(value:Int)
-		bmx_torrent_sessionsettings_set_optimistic_unchoke_multiplier(settingsPtr, value)
+	Method setOptimisticUnchokeInterval(value:Int)
+		bmx_torrent_sessionsettings_set_optimistic_unchoke_interval(settingsPtr, value)
 	End Method
 	
 	'Method announceIp:address()
@@ -546,16 +546,16 @@ Type TSessionSettings
 	bbdoc: The number of bytes each connection is allowed to have waiting in the disk I/O queue before it is throttled back.
 	about: This limit is meant to stop fast internet connections to queue up bufferes indefinitely on slow hard-drives or storage.
 	End Rem
-	Method maxOutstandingDiskBytesPerConnection:Int()
-		Return bmx_torrent_sessionsettings_max_outstanding_disk_bytes_per_connection(settingsPtr)
+	Method maxQueuedDiskBytes:Int()
+		Return bmx_torrent_sessionsettings_max_queued_disk_bytes(settingsPtr)
 	End Method
 	
 	Rem
 	bbdoc: The number of bytes each connection is allowed to have waiting in the disk I/O queue before it is throttled back.
 	about: This limit is meant to stop fast internet connections to queue up bufferes indefinitely on slow hard-drives or storage.
 	End Rem
-	Method setMaxOutstandingDiskBytesPerConnection(value:Int)
-		bmx_torrent_sessionsettings_set_max_outstanding_disk_bytes_per_connection(settingsPtr, value)
+	Method setMaxQueuedDiskBytes(value:Int)
+		bmx_torrent_sessionsettings_set_max_queued_disk_bytes(settingsPtr, value)
 	End Method
 	
 	Rem

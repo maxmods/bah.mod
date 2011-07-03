@@ -45,6 +45,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma warning(pop)
 #endif
 
+#include "libtorrent/config.hpp"
+#include "libtorrent/lazy_entry.hpp"
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/tracker_manager.hpp"
 #include "libtorrent/config.hpp"
@@ -57,6 +59,7 @@ namespace libtorrent
 	class http_parser;
 	class connection_queue;
 	struct session_settings;
+	namespace aux { struct session_impl; }
 
 	class TORRENT_EXPORT http_tracker_connection
 		: public tracker_connection
@@ -69,9 +72,8 @@ namespace libtorrent
 			, connection_queue& cc
 			, tracker_manager& man
 			, tracker_request const& req
-			, address bind_infc
 			, boost::weak_ptr<request_callback> c
-			, session_settings const& stn
+			, aux::session_impl const& ses
 			, proxy_settings const& ps
 			, std::string const& password = "");
 
@@ -83,18 +85,20 @@ namespace libtorrent
 		boost::intrusive_ptr<http_tracker_connection> self()
 		{ return boost::intrusive_ptr<http_tracker_connection>(this); }
 
+		void on_filter(http_connection& c, std::list<tcp::endpoint>& endpoints);
+		void on_connect(http_connection& c);
 		void on_response(error_code const& ec, http_parser const& parser
 			, char const* data, int size);
 
-		virtual void on_timeout() {}
+		virtual void on_timeout(error_code const& ec) {}
 
-		void parse(int status_code, const entry& e);
-		bool extract_peer_info(const entry& e, peer_entry& ret);
+		void parse(int status_code, lazy_entry const& e);
+		bool extract_peer_info(lazy_entry const& e, peer_entry& ret);
 
 		tracker_manager& m_man;
 		boost::shared_ptr<http_connection> m_tracker_connection;
-		session_settings const& m_settings;
-		address m_bind_iface;
+		aux::session_impl const& m_ses;
+		address m_tracker_ip;
 		proxy_settings const& m_ps;
 		connection_queue& m_cc;
 		io_service& m_ios;

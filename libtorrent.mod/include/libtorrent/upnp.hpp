@@ -47,10 +47,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 
 
-#if (defined(TORRENT_LOGGING) || defined(TORRENT_VERBOSE_LOGGING)) && !defined (TORRENT_UPNP_LOGGING)
-#define TORRENT_UPNP_LOGGING
-#endif
-
 #if defined(TORRENT_UPNP_LOGGING)
 #include <fstream>
 #endif
@@ -58,18 +54,55 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent
 {
 
+	namespace upnp_errors
+	{
+		enum error_code_enum
+		{
+			no_error = 0,
+			invalid_argument = 402,
+			action_failed = 501,
+			value_not_in_array = 714,
+			source_ip_cannot_be_wildcarded = 715,
+			external_port_cannot_be_wildcarded = 716,
+			port_mapping_conflict = 718,
+			internal_port_must_match_external = 724,
+			only_permanent_leases_supported = 725,
+			remote_host_must_be_wildcard = 726,
+			external_port_must_be_wildcard = 727
+		};
+	}
+
+#if BOOST_VERSION < 103500
+	extern asio::error::error_category upnp_category;
+#else
+
+	struct TORRENT_EXPORT upnp_error_category : boost::system::error_category
+	{
+		virtual const char* name() const;
+		virtual std::string message(int ev) const;
+		virtual boost::system::error_condition default_error_condition(int ev) const
+		{ return boost::system::error_condition(ev, *this); }
+	};
+
+	extern TORRENT_EXPORT upnp_error_category upnp_category;
+#endif
+
 // int: port-mapping index
 // int: external port
 // std::string: error message
 // an empty string as error means success
-typedef boost::function<void(int, int, std::string const&)> portmap_callback_t;
+// a port-mapping index of -1 means it's
+// an informational log message
+typedef boost::function<void(int, int, error_code const&)> portmap_callback_t;
+typedef boost::function<void(char const*)> log_callback_t;
 
-class upnp : public intrusive_ptr_base<upnp>
+class TORRENT_EXPORT upnp : public intrusive_ptr_base<upnp>
 {
 public:
 	upnp(io_service& ios, connection_queue& cc
 		, address const& listen_interface, std::string const& user_agent
-		, portmap_callback_t const& cb, bool ignore_nonrouters, void* state = 0);
+		, portmap_callback_t const& cb, log_callback_t const& lcb
+		, bool ignore_nonrouters, void* state = 0);
 	~upnp();
 
 	void* drain_state();
@@ -77,6 +110,7 @@ public:
 	enum protocol_type { none = 0, udp = 1, tcp = 2 };
 	int add_mapping(protocol_type p, int external_port, int local_port);
 	void delete_mapping(int mapping_index);
+	bool get_mapping(int mapping_index, int& local_port, int& external_port, int& protocol) const;
 
 	void discover_device();
 	void close();
@@ -89,7 +123,9 @@ public:
 
 private:
 
-	void discover_device_impl();
+	typedef boost::mutex mutex_t;
+
+	void discover_device_impl(mutex_t::scoped_lock& l);
 	static address_v4 upnp_multicast_address;
 	static udp::endpoint upnp_multicast_endpoint;
 
@@ -104,8 +140,8 @@ private:
 		, std::size_t bytes_transferred);
 
 	struct rootdevice;
-	void next(rootdevice& d, int i);
-	void update_map(rootdevice& d, int i);
+	void next(rootdevice& d, int i, mutex_t::scoped_lock& l);
+	void update_map(rootdevice& d, int i, mutex_t::scoped_lock& l);
 
 	
 	void on_upnp_xml(error_code const& e
@@ -119,13 +155,14 @@ private:
 		, int mapping, http_connection& c);
 	void on_expire(error_code const& e);
 
-	void disable(char const* msg);
-	void return_error(int mapping, int code);
+	void disable(error_code const& ec, mutex_t::scoped_lock& l);
+	void return_error(int mapping, int code, mutex_t::scoped_lock& l);
+	void log(char const* msg, mutex_t::scoped_lock& l);
 
 	void delete_port_mapping(rootdevice& d, int i);
 	void create_port_mapping(http_connection& c, rootdevice& d, int i);
-	void post(upnp::rootdevice const& d, std::string const& soap
-		, std::string const& soap_action);
+	void post(upnp::rootdevice const& d, char const* soap
+		, char const* soap_action, mutex_t::scoped_lock& l);
 
 	int num_mappings() const { return int(m_mappings.size()); }
 
@@ -176,6 +213,7 @@ private:
 	struct rootdevice
 	{
 		rootdevice(): service_namespace(0)
+			, port(0)
 			, lease_duration(default_lease_time)
 			, supports_specific_external(true)
 			, disabled(false)
@@ -249,6 +287,7 @@ private:
 	std::set<rootdevice> m_devices;
 	
 	portmap_callback_t m_callback;
+	log_callback_t m_log_callback;
 
 	// current retry count
 	int m_retry_count;
@@ -272,14 +311,9 @@ private:
 
 	connection_queue& m_cc;
 
-	typedef boost::mutex mutex_t;
 	mutex_t m_mutex;
 
 	std::string m_model;
-
-#ifdef TORRENT_UPNP_LOGGING
-	std::ofstream m_log;
-#endif
 };
 
 }

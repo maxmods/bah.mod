@@ -35,10 +35,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/traversal_algorithm.hpp>
 #include <libtorrent/kademlia/routing_table.hpp>
 #include <libtorrent/kademlia/rpc_manager.hpp>
+#include <libtorrent/kademlia/node.hpp>
+#include <libtorrent/session_status.hpp>
 
 #include <boost/bind.hpp>
-
-using boost::bind;
 
 namespace libtorrent { namespace dht
 {
@@ -61,10 +61,10 @@ void traversal_algorithm::add_entry(node_id const& id, udp::endpoint addr, unsig
 		m_results.begin()
 		, m_results.end()
 		, entry
-		, bind(
+		, boost::bind(
 			compare_ref
-			, bind(&result::id, _1)
-			, bind(&result::id, _2)
+			, boost::bind(&result::id, _1)
+			, boost::bind(&result::id, _2)
 			, m_target
 		)
 	);
@@ -72,7 +72,7 @@ void traversal_algorithm::add_entry(node_id const& id, udp::endpoint addr, unsig
 	if (i == m_results.end() || i->id != id)
 	{
 		TORRENT_ASSERT(std::find_if(m_results.begin(), m_results.end()
-			, bind(&result::id, _1) == id) == m_results.end());
+			, boost::bind(&result::id, _1) == id) == m_results.end());
 #ifdef TORRENT_DHT_VERBOSE_LOGGING
 		TORRENT_LOG(traversal) << "adding result: " << id << " " << addr;
 #endif
@@ -82,7 +82,7 @@ void traversal_algorithm::add_entry(node_id const& id, udp::endpoint addr, unsig
 
 boost::pool<>& traversal_algorithm::allocator() const
 {
-	return m_rpc.allocator();
+	return m_node.m_rpc.allocator();
 }
 
 void traversal_algorithm::traverse(node_id const& id, udp::endpoint addr)
@@ -96,6 +96,7 @@ void traversal_algorithm::traverse(node_id const& id, udp::endpoint addr)
 
 void traversal_algorithm::finished(node_id const& id)
 {
+	++m_responses;
 	--m_invoke_count;
 	add_requests();
 	if (m_invoke_count == 0) done();
@@ -106,7 +107,7 @@ void traversal_algorithm::finished(node_id const& id)
 // So, if this is true, don't make another request
 void traversal_algorithm::failed(node_id const& id, bool prevent_request)
 {
-	m_invoke_count--;
+	--m_invoke_count;
 
 	TORRENT_ASSERT(!id.is_all_zeros());
 	std::vector<result>::iterator i = std::find_if(
@@ -131,8 +132,9 @@ void traversal_algorithm::failed(node_id const& id, bool prevent_request)
 		// don't tell the routing table about
 		// node ids that we just generated ourself
 		if ((i->flags & result::no_id) == 0)
-			m_table.node_failed(id);
+			m_node.m_table.node_failed(id);
 		m_results.erase(i);
+		++m_timeouts;
 	}
 	if (prevent_request)
 	{
@@ -182,11 +184,44 @@ void traversal_algorithm::add_requests()
 	}
 }
 
+void traversal_algorithm::add_router_entries()
+{
+#ifdef TORRENT_DHT_VERBOSE_LOGGING
+	TORRENT_LOG(traversal) << " using router nodes to initiate traversal algorithm. "
+		<< std::distance(m_node.m_table.router_begin(), m_node.m_table.router_end()) << " routers";
+#endif
+	for (routing_table::router_iterator i = m_node.m_table.router_begin()
+		, end(m_node.m_table.router_end()); i != end; ++i)
+	{
+		add_entry(node_id(0), *i, result::initial);
+	}
+}
+
+void traversal_algorithm::init()
+{
+	m_branch_factor = m_node.branch_factor();
+	m_node.add_traversal_algorithm(this);
+}
+
+traversal_algorithm::~traversal_algorithm()
+{
+	m_node.remove_traversal_algorithm(this);
+}
+
+void traversal_algorithm::status(dht_lookup& l)
+{
+	l.timeouts = m_timeouts;
+	l.responses = m_responses;
+	l.outstanding_requests = m_invoke_count;
+	l.branch_factor = m_branch_factor;
+	l.type = name();
+}
+
 std::vector<traversal_algorithm::result>::iterator traversal_algorithm::last_iterator()
 {
-	return (int)m_results.size() >= m_max_results ?
-		m_results.begin() + m_max_results
-		: m_results.end();
+	int max_results = m_node.m_table.bucket_size();
+	return (int)m_results.size() >= max_results ?
+		m_results.begin() + max_results : m_results.end();
 }
 
 } } // namespace libtorrent::dht

@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <string>
 #include <vector>
+#include <ctime>
 
 #ifdef _MSC_VER
 #pragma warning(push, 1)
@@ -56,7 +57,11 @@ namespace libtorrent
 
 	struct TORRENT_EXPORT file_entry
 	{
-		file_entry(): offset(0), size(0), file_base(0) {}
+		file_entry(): offset(0), size(0), file_base(0)
+			, mtime(0), pad_file(false), hidden_attribute(false)
+			, executable_attribute(false)
+			, symlink_attribute(false)
+		{}
 
 		fs::path path;
 		size_type offset; // the offset of this file inside the torrent
@@ -65,6 +70,12 @@ namespace libtorrent
 		// This is always 0 unless parts of the torrent is
 		// compressed into a single file, such as a so-called part file.
 		size_type file_base;
+		std::time_t mtime;
+		bool pad_file:1;
+		bool hidden_attribute:1;
+		bool executable_attribute:1;
+		bool symlink_attribute:1;
+		fs::path symlink_path;
 	};
 
 	struct TORRENT_EXPORT file_slice
@@ -83,9 +94,23 @@ namespace libtorrent
 
 		bool is_valid() const { return m_piece_length > 0; }
 
+		enum flags_t
+		{
+			pad_file = 1,
+			attribute_hidden = 2,
+			attribute_executable = 4,
+			attribute_symlink = 8
+		};
+
 		void add_file(file_entry const& e);
-		void add_file(fs::path const& p, size_type size);
+		void add_file(fs::path const& p, size_type size, int flags = 0, std::time_t mtime = 0, fs::path const& s_p = "");
 		void rename_file(int index, std::string const& new_filename);
+
+#ifndef BOOST_FILESYSTEM_NARROW_ONLY
+		void add_file(fs::wpath const& p, size_type size, int flags = 0, std::time_t mtime = 0, fs::path const& s_p = "");
+		void rename_file(int index, std::wstring const& new_filename);
+		void set_name(std::wstring const& n);
+#endif
 
 		std::vector<file_slice> map_block(int piece, size_type offset
 			, int size) const;
@@ -116,7 +141,7 @@ namespace libtorrent
 		int piece_size(int index) const;
 
 		void set_name(std::string const& n) { m_name = n; }
-		const std::string& name() const { TORRENT_ASSERT(m_piece_length > 0); return m_name; }
+		const std::string& name() const { return m_name; }
 
 		void swap(file_storage& ti)
 		{
@@ -127,6 +152,11 @@ namespace libtorrent
 			swap(ti.m_num_pieces, m_num_pieces);
 			swap(ti.m_name, m_name);
 		}
+
+		// if pad_file_limit >= 0, files larger than
+		// that limit will be padded, default is to
+		// not add any padding
+		void optimize(int pad_file_limit = -1);
 
 	private:
 		int m_piece_length;

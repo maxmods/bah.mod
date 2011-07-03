@@ -35,11 +35,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <utility>
 #include <vector>
-#include <iosfwd>
 #include <string>
 #include "libtorrent/config.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/size_type.hpp"
+
+#if TORRENT_USE_IOSTREAM
+#include <iosfwd>
+#endif
 
 namespace libtorrent
 {
@@ -50,6 +53,8 @@ namespace libtorrent
 	// return 0 = success
 	TORRENT_EXPORT int lazy_bdecode(char const* start, char const* end, lazy_entry& ret, int depth_limit = 1000);
 
+	struct lazy_dict_entry;
+
 	struct TORRENT_EXPORT lazy_entry
 	{
 		enum entry_type_t
@@ -57,7 +62,7 @@ namespace libtorrent
 			none_t, dict_t, list_t, string_t, int_t
 		};
 
-		lazy_entry() : m_type(none_t), m_begin(0), m_end(0)
+		lazy_entry() : m_type(none_t), m_size(0), m_capacity(0), m_begin(0), m_end(0)
 		{ m_data.start = 0; }
 
 		entry_type_t type() const { return m_type; }
@@ -128,14 +133,9 @@ namespace libtorrent
 		lazy_entry const* dict_find_dict(char const* name) const;
 		lazy_entry const* dict_find_list(char const* name) const;
 		lazy_entry const* dict_find_string(char const* name) const;
+		lazy_entry const* dict_find_int(char const* name) const;
 
-		std::pair<std::string, lazy_entry const*> dict_at(int i) const
-		{
-			TORRENT_ASSERT(m_type == dict_t);
-			TORRENT_ASSERT(i < m_size);
-			std::pair<char const*, lazy_entry> const& e = m_data.dict[i];
-			return std::make_pair(std::string(e.first, e.second.m_begin - e.first), &e.second);
-		}
+		std::pair<std::string, lazy_entry const*> dict_at(int i) const;
 
 		int dict_size() const
 		{
@@ -215,19 +215,33 @@ namespace libtorrent
 		entry_type_t m_type;
 		union data_t
 		{
-			std::pair<char const*, lazy_entry>* dict;
+			lazy_dict_entry* dict;
 			lazy_entry* list;
 			char const* start;
 		} m_data;
+
 		int m_size; // if list or dictionary, the number of items
 		int m_capacity; // if list or dictionary, allocated number of items
 		// used for dictionaries and lists to record the range
 		// in the original buffer they are based on
 		char const* m_begin;
 		char const* m_end;
+
+		// non-copyable
+		lazy_entry(lazy_entry const&);
+		lazy_entry const& operator=(lazy_entry const&);
 	};
 
+	struct lazy_dict_entry
+	{
+		char const* name;
+		lazy_entry val;
+	};
+
+	TORRENT_EXPORT std::string print_entry(lazy_entry const& e);
+#if TORRENT_USE_IOSTREAM
 	TORRENT_EXPORT std::ostream& operator<<(std::ostream& os, lazy_entry const& e);
+#endif
 
 }
 

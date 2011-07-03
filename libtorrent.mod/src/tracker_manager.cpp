@@ -33,10 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/pch.hpp"
 
 #include <vector>
-#include <iostream>
 #include <cctype>
-#include <iomanip>
-#include <sstream>
 
 #include <boost/bind.hpp>
 
@@ -47,11 +44,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/bencode.hpp"
 #include "libtorrent/torrent.hpp"
 #include "libtorrent/peer_connection.hpp"
+#include "libtorrent/aux_/session_impl.hpp"
 
 using namespace libtorrent;
 using boost::tuples::make_tuple;
 using boost::tuples::tuple;
-using boost::bind;
 
 namespace
 {
@@ -66,8 +63,8 @@ namespace
 namespace libtorrent
 {
 	timeout_handler::timeout_handler(io_service& ios)
-		: m_start_time(time_now())
-		, m_read_time(time_now())
+		: m_start_time(time_now_hires())
+		, m_read_time(m_start_time)
 		, m_timeout(ios)
 		, m_completion_timeout(0)
 		, m_read_timeout(0)
@@ -78,21 +75,30 @@ namespace libtorrent
 	{
 		m_completion_timeout = completion_timeout;
 		m_read_timeout = read_timeout;
-		m_start_time = m_read_time = time_now();
+		m_start_time = m_read_time = time_now_hires();
+
+		TORRENT_ASSERT(completion_timeout > 0 || read_timeout > 0);
 
 		if (m_abort) return;
 
-		int timeout = (std::min)(
-			m_read_timeout, (std::min)(m_completion_timeout, m_read_timeout));
+		int timeout = 0;
+		if (m_read_timeout > 0) timeout = m_read_timeout;
+		if (m_completion_timeout > 0)
+		{
+			timeout = timeout == 0
+				? m_completion_timeout
+				: (std::min)(m_completion_timeout, timeout);
+		}
+
 		error_code ec;
 		m_timeout.expires_at(m_read_time + seconds(timeout), ec);
-		m_timeout.async_wait(bind(
+		m_timeout.async_wait(boost::bind(
 			&timeout_handler::timeout_callback, self(), _1));
 	}
 
 	void timeout_handler::restart_read_timeout()
 	{
-		m_read_time = time_now();
+		m_read_time = time_now_hires();
 	}
 
 	void timeout_handler::cancel()
@@ -105,41 +111,43 @@ namespace libtorrent
 
 	void timeout_handler::timeout_callback(error_code const& error)
 	{
-		if (error) return;
-		if (m_completion_timeout == 0) return;
-		
-		ptime now(time_now());
+		if (m_abort) return;
+
+		ptime now = time_now_hires();
 		time_duration receive_timeout = now - m_read_time;
 		time_duration completion_timeout = now - m_start_time;
 		
-		if (m_read_timeout
-			< total_seconds(receive_timeout)
-			|| m_completion_timeout
-			< total_seconds(completion_timeout))
+		if ((m_read_timeout
+				&& m_read_timeout <= total_seconds(receive_timeout))
+			|| (m_completion_timeout
+				&& m_completion_timeout <= total_seconds(completion_timeout))
+			|| error)
 		{
-			on_timeout();
+			on_timeout(error);
 			return;
 		}
 
-		if (m_abort) return;
-
-		int timeout = (std::min)(
-			m_read_timeout, (std::min)(m_completion_timeout, m_read_timeout));
+		int timeout = 0;
+		if (m_read_timeout > 0) timeout = m_read_timeout;
+		if (m_completion_timeout > 0)
+		{
+			timeout = timeout == 0
+				? m_completion_timeout - total_seconds(m_read_time - m_start_time)
+				: (std::min)(m_completion_timeout  - total_seconds(m_read_time - m_start_time), timeout);
+		}
 		error_code ec;
 		m_timeout.expires_at(m_read_time + seconds(timeout), ec);
 		m_timeout.async_wait(
-			bind(&timeout_handler::timeout_callback, self(), _1));
+			boost::bind(&timeout_handler::timeout_callback, self(), _1));
 	}
 
 	tracker_connection::tracker_connection(
 		tracker_manager& man
 		, tracker_request const& req
 		, io_service& ios
-		, address bind_interface_
 		, boost::weak_ptr<request_callback> r)
 		: timeout_handler(ios)
 		, m_requester(r)
-		, m_bind_interface(bind_interface_)
 		, m_man(man)
 		, m_req(req)
 	{}
@@ -149,11 +157,22 @@ namespace libtorrent
 		return m_requester.lock();
 	}
 
-	void tracker_connection::fail(int code, char const* msg)
+	void tracker_connection::fail(int code, char const* msg, int interval, int min_interval)
 	{
 		boost::shared_ptr<request_callback> cb = requester();
-		if (cb) cb->tracker_request_error(m_req, code, msg);
+		if (cb) cb->tracker_request_error(m_req, code, msg
+			, interval == 0 ? min_interval : interval);
 		close();
+	}
+
+	void tracker_connection::sent_bytes(int bytes)
+	{
+		m_man.sent_bytes(bytes);
+	}
+
+	void tracker_connection::received_bytes(int bytes)
+	{
+		m_man.received_bytes(bytes);
 	}
 
 	void tracker_connection::fail_timeout()
@@ -167,6 +186,24 @@ namespace libtorrent
 	{
 		cancel();
 		m_man.remove_request(this);
+	}
+
+	tracker_manager::~tracker_manager()
+	{
+		TORRENT_ASSERT(m_abort);
+		abort_all_requests(true);
+	}
+
+	void tracker_manager::sent_bytes(int bytes)
+	{
+//		aux::session_impl::mutex_t::scoped_lock l(m_ses.m_mutex);
+		m_ses.m_stat.sent_tracker_bytes(bytes);
+	}
+
+	void tracker_manager::received_bytes(int bytes)
+	{
+		aux::session_impl::mutex_t::scoped_lock l(m_ses.m_mutex);
+		m_ses.m_stat.received_tracker_bytes(bytes);
 	}
 
 	void tracker_manager::remove_request(tracker_connection const* c)
@@ -185,11 +222,12 @@ namespace libtorrent
 		, connection_queue& cc
 		, tracker_request req
 		, std::string const& auth
-		, address bind_infc
 		, boost::weak_ptr<request_callback> c)
 	{
 		mutex_t::scoped_lock l(m_mutex);
 		TORRENT_ASSERT(req.num_want >= 0);
+		TORRENT_ASSERT(!m_abort);
+		if (m_abort) return;
 		if (req.event == tracker_request::stopped)
 			req.num_want = 0;
 
@@ -208,20 +246,21 @@ namespace libtorrent
 #endif
 		{
 			con = new http_tracker_connection(
-				ios, cc, *this, req, bind_infc, c
-				, m_settings, m_proxy, auth);
+				ios, cc, *this, req, c
+				, m_ses, m_proxy, auth);
 		}
 		else if (protocol == "udp")
 		{
 			con = new udp_tracker_connection(
-				ios, cc, *this, req, bind_infc
-				, c, m_settings, m_proxy);
+				ios, cc, *this, req , c, m_ses
+				, m_proxy);
 		}
 		else
 		{
+			// we need to post the error to avoid deadlock
 			if (boost::shared_ptr<request_callback> r = c.lock())
-				r->tracker_request_error(req, -1, "unknown protocol in tracker url: "
-					+ req.url);
+				ios.post(boost::bind(&request_callback::tracker_request_error, r, req, -1
+					, "unknown protocol in tracker url: " + req.url, 0));
 			return;
 		}
 
@@ -232,11 +271,10 @@ namespace libtorrent
 		con->start();
 	}
 
-	void tracker_manager::abort_all_requests()
+	void tracker_manager::abort_all_requests(bool all)
 	{
 		// removes all connections from m_connections
-		// except those with a requester == 0 (since those are
-		// 'event=stopped'-requests)
+		// except 'event=stopped'-requests
 		mutex_t::scoped_lock l(m_mutex);
 
 		m_abort = true;
@@ -251,7 +289,7 @@ namespace libtorrent
 				continue;
 			}
 			tracker_request const& req = c->tracker_req();
-			if (req.event == tracker_request::stopped)
+			if (req.event == tracker_request::stopped && !all)
 			{
 				keep_connections.push_back(c);
 				m_connections.pop_back();

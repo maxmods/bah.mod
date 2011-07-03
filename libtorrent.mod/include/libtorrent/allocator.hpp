@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007, Arvid Norberg
+Copyright (c) 2009, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,61 +30,25 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_SOCKS4_STREAM_HPP_INCLUDED
-#define TORRENT_SOCKS4_STREAM_HPP_INCLUDED
+#ifndef TORRENT_ALLOCATOR_HPP_INCLUDED
+#define TORRENT_ALLOCATOR_HPP_INCLUDED
 
-#include "libtorrent/proxy_base.hpp"
+#include <cstddef>
+#include "libtorrent/config.hpp"
 
-namespace libtorrent {
-
-class socks4_stream : public proxy_base
+namespace libtorrent
 {
-public:
 
-	explicit socks4_stream(io_service& io_service_)
-		: proxy_base(io_service_)
-	{}
+	TORRENT_EXPORT int page_size();
 
-	void set_username(std::string const& user)
+	struct TORRENT_EXPORT page_aligned_allocator
 	{
-		m_user = user;
-	}
+		typedef std::size_t size_type;
+		typedef std::ptrdiff_t difference_type;
 
-	typedef boost::function<void(error_code const&)> handler_type;
-
-	template <class Handler>
-	void async_connect(endpoint_type const& endpoint, Handler const& handler)
-	{
-		m_remote_endpoint = endpoint;
-
-		// the connect is split up in the following steps:
-		// 1. resolve name of proxy server
-		// 2. connect to proxy server
-		// 3. send SOCKS4 CONNECT message
-
-		// to avoid unnecessary copying of the handler,
-		// store it in a shaed_ptr
-		boost::shared_ptr<handler_type> h(new handler_type(handler));
-
-		tcp::resolver::query q(m_hostname
-			, boost::lexical_cast<std::string>(m_port));
-		m_resolver.async_resolve(q, boost::bind(
-			&socks4_stream::name_lookup, this, _1, _2, h));
-	}
-
-private:
-
-	void name_lookup(error_code const& e, tcp::resolver::iterator i
-		, boost::shared_ptr<handler_type> h);
-	void connected(error_code const& e, boost::shared_ptr<handler_type> h);
-	void handshake1(error_code const& e, boost::shared_ptr<handler_type> h);
-	void handshake2(error_code const& e, boost::shared_ptr<handler_type> h);
-
-	// send and receive buffer
-	std::vector<char> m_buffer;
-	// proxy authentication
-	std::string m_user;
-};
+		static char* malloc(const size_type bytes);
+		static void free(char* const block);
+	};
 
 }
 

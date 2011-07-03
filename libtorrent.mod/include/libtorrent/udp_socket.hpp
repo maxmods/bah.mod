@@ -34,10 +34,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_UDP_SOCKET_HPP_INCLUDED
 
 #include "libtorrent/socket.hpp"
-#include "libtorrent/buffer.hpp"
 #include "libtorrent/session_settings.hpp"
+#include "libtorrent/buffer.hpp"
 
-#include <vector>
+#include <deque>
 #include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
 
@@ -54,7 +54,14 @@ namespace libtorrent
 		udp_socket(io_service& ios, callback_t const& c, connection_queue& cc);
 		~udp_socket();
 
-		bool is_open() const { return m_ipv4_sock.is_open() || m_ipv6_sock.is_open(); }
+		bool is_open() const
+		{
+			return m_ipv4_sock.is_open()
+#if TORRENT_USE_IPV6
+				|| m_ipv6_sock.is_open()
+#endif
+				;
+		}
 		io_service& get_io_service() { return m_ipv4_sock.get_io_service(); }
 
 		void send(udp::endpoint const& ep, char const* p, int len, error_code& ec);
@@ -66,6 +73,8 @@ namespace libtorrent
 		void set_proxy_settings(proxy_settings const& ps);
 		proxy_settings const& get_proxy_settings() { return m_proxy_settings; }
 
+		bool is_closed() const { return m_abort; }
+
 	protected:
 
 		struct queued_packet
@@ -75,6 +84,10 @@ namespace libtorrent
 		};
 
 	private:
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+	// necessary for logging member offsets
+	public:
+#endif
 
 		callback_t m_callback;
 
@@ -92,20 +105,30 @@ namespace libtorrent
 		void socks_forward_udp(mutex_t::scoped_lock& l);
 		void connect1(error_code const& e);
 		void connect2(error_code const& e);
+		void hung_up(error_code const& e);
 
 		void wrap(udp::endpoint const& ep, char const* p, int len, error_code& ec);
 		void unwrap(error_code const& e, char const* buf, int size);
 
+		bool maybe_clear_callback(mutex_t::scoped_lock& l);
+
 		mutable mutex_t m_mutex;
 
 		udp::socket m_ipv4_sock;
-		udp::socket m_ipv6_sock;
 		udp::endpoint m_v4_ep;
-		udp::endpoint m_v6_ep;
 		char m_v4_buf[1600];
+
+#if TORRENT_USE_IPV6
+		udp::socket m_ipv6_sock;
+		udp::endpoint m_v6_ep;
 		char m_v6_buf[1600];
-		int m_bind_port;
-		char m_outstanding;
+#endif
+
+		boost::uint16_t m_bind_port;
+		boost::uint8_t m_v4_outstanding;
+#if TORRENT_USE_IPV6
+		boost::uint8_t m_v6_outstanding;
+#endif
 
 		tcp::socket m_socks5_sock;
 		int m_connection_ticket;
@@ -120,11 +143,36 @@ namespace libtorrent
 		// while we're connecting to the proxy
 		// we have to queue the packets, we'll flush
 		// them once we're connected
-		std::list<queued_packet> m_queue;
+		std::deque<queued_packet> m_queue;
+
+		// counts the number of outstanding async
+		// operations hanging on this socket
+		int m_outstanding_ops;
+
 #ifdef TORRENT_DEBUG
 		bool m_started;
 		int m_magic;
+		int m_outstanding_when_aborted;
 #endif
+	};
+
+	struct rate_limited_udp_socket : public udp_socket
+	{
+		rate_limited_udp_socket(io_service& ios, callback_t const& c, connection_queue& cc);
+		void set_rate_limit(int limit) { m_rate_limit = limit; }
+		bool can_send() const { return int(m_queue.size()) >= m_queue_size_limit; }
+		bool send(udp::endpoint const& ep, char const* p, int len, error_code& ec, int flags = 0);
+		void close();
+
+	private:
+		void on_tick(error_code const& e);
+
+		deadline_timer m_timer;
+		int m_queue_size_limit;
+		int m_rate_limit;
+		int m_quota;
+		ptime m_last_tick;
+		std::deque<queued_packet> m_queue;
 	};
 }
 

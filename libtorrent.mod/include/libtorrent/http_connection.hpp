@@ -65,20 +65,25 @@ typedef boost::function<void(error_code const&
 
 typedef boost::function<void(http_connection&)> http_connect_handler;
 
-// TODO: add bind interface
+typedef boost::function<void(http_connection&, std::list<tcp::endpoint>&)> http_filter_handler;
 
 // when bottled, the last two arguments to the handler
 // will always be 0
-struct http_connection : boost::enable_shared_from_this<http_connection>, boost::noncopyable
+struct TORRENT_EXPORT http_connection : boost::enable_shared_from_this<http_connection>, boost::noncopyable
 {
 	http_connection(io_service& ios, connection_queue& cc
 		, http_handler const& handler, bool bottled = true
-		, http_connect_handler const& ch = http_connect_handler())
+		, http_connect_handler const& ch = http_connect_handler()
+		, http_filter_handler const& fh = http_filter_handler())
 		: m_sock(ios)
+#if TORRENT_USE_I2P
+		, m_i2p_conn(0)
+#endif
 		, m_read_pos(0)
 		, m_resolver(ios)
 		, m_handler(handler)
 		, m_connect_handler(ch)
+		, m_filter_handler(fh)
 		, m_timer(ios)
 		, m_last_receive(time_now())
 		, m_bottled(bottled)
@@ -120,6 +125,8 @@ struct http_connection : boost::enable_shared_from_this<http_connection>, boost:
 #else
 	socket_type const& socket() const { return m_sock; }
 #endif
+
+	std::list<tcp::endpoint> const& endpoints() const { return m_endpoints; }
 	
 private:
 
@@ -148,6 +155,7 @@ private:
 	http_parser m_parser;
 	http_handler m_handler;
 	http_connect_handler m_connect_handler;
+	http_filter_handler m_filter_handler;
 	deadline_timer m_timer;
 	time_duration m_timeout;
 	ptime m_last_receive;

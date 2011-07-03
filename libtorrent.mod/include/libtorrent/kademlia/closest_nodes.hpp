@@ -57,28 +57,18 @@ public:
 		void(std::vector<node_entry> const&)
 	> done_callback;
 
-	static void initiate(
-		node_id target
-		, int branch_factor
-		, int max_results
-		, routing_table& table
-		, rpc_manager& rpc
+	closest_nodes(
+		node_impl& node
+		, node_id target
 		, done_callback const& callback
 	);
+
+	virtual char const* name() const { return "closest nodes"; }
 
 private:
 	void done();
 	void invoke(node_id const& id, udp::endpoint addr);
 	
-	closest_nodes(
-		node_id target
-		, int branch_factor
-		, int max_results
-		, routing_table& table
-		, rpc_manager& rpc
-		, done_callback const& callback
-	);
-
 	done_callback m_done_callback;
 };
 
@@ -87,18 +77,16 @@ class closest_nodes_observer : public observer
 public:
 	closest_nodes_observer(
 		boost::intrusive_ptr<traversal_algorithm> const& algorithm
-		, node_id self
-		, node_id target)
+		, node_id self)
 		: observer(algorithm->allocator())
 		, m_algorithm(algorithm)
-		, m_target(target) 
 		, m_self(self)
 	{}
 	~closest_nodes_observer();
 
 	void send(msg& p)
 	{
-		p.info_hash = m_target;
+		p.info_hash = m_algorithm->target();
 	}
 
 	void timeout();
@@ -107,7 +95,6 @@ public:
 
 private:
 	boost::intrusive_ptr<traversal_algorithm> m_algorithm;
-	node_id const m_target;
 	node_id const m_self;
 };
 

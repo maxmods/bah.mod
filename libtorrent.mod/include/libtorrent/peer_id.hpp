@@ -33,8 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_PEER_ID_HPP_INCLUDED
 #define TORRENT_PEER_ID_HPP_INCLUDED
 
-#include <iostream>
-#include <iomanip>
 #include <cctype>
 #include <algorithm>
 #include <string>
@@ -43,6 +41,19 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/escape_string.hpp"
+
+#if TORRENT_USE_IOSTREAM
+#include <iostream>
+#include <iomanip>
+#endif
+
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
 
 namespace libtorrent
 {
@@ -54,7 +65,7 @@ namespace libtorrent
 	public:
 		enum { size = number_size };
 
-		big_number() {}
+		big_number() { clear(); }
 
 		explicit big_number(char const* s)
 		{
@@ -76,14 +87,14 @@ namespace libtorrent
 			std::memcpy(m_number, &s[0], sl);
 		}
 
-		void clear()
-		{
-			std::fill(m_number,m_number+number_size,0);
-		}
+		void assign(char const* str) { std::memcpy(m_number, str, size); }
+		void clear() { std::memset(m_number, 0, number_size); }
 
 		bool is_all_zeros() const
 		{
-			return std::count(m_number,m_number+number_size,0) == number_size;
+			for (const unsigned char* i = m_number; i < m_number+number_size; ++i)
+				if (*i != 0) return false;
+			return true;
 		}
 
 		bool operator==(big_number const& n) const
@@ -162,41 +173,23 @@ namespace libtorrent
 	typedef big_number peer_id;
 	typedef big_number sha1_hash;
 
+#if TORRENT_USE_IOSTREAM
 	inline std::ostream& operator<<(std::ostream& os, big_number const& peer)
 	{
-		for (big_number::const_iterator i = peer.begin();
-			i != peer.end(); ++i)
-		{
-			os << std::hex << std::setw(2) << std::setfill('0')
-				<< static_cast<unsigned int>(*i);
-		}
-		os << std::dec << std::setfill(' ');
-		return os;
+		char out[41];
+		to_hex((char const*)&peer[0], big_number::size, out);
+		return os << out;
 	}
 
 	inline std::istream& operator>>(std::istream& is, big_number& peer)
 	{
-		for (big_number::iterator i = peer.begin();
-			i != peer.end(); ++i)
-		{
-			char c[2];
-			is >> c[0] >> c[1];
-			c[0] = tolower(c[0]);
-			c[1] = tolower(c[1]);
-			if (
-				((c[0] < '0' || c[0] > '9') && (c[0] < 'a' || c[0] > 'f'))
-				|| ((c[1] < '0' || c[1] > '9') && (c[1] < 'a' || c[1] > 'f'))
-				|| is.fail())
-			{
-				is.setstate(std::ios_base::failbit);
-				return is;
-			}
-			*i = ((is_digit(c[0])?c[0]-'0':c[0]-'a'+10) << 4)
-				+ (is_digit(c[1])?c[1]-'0':c[1]-'a'+10);
-		}
+		char hex[40];
+		is.read(hex, 40);
+		if (!from_hex(hex, 40, (char*)&peer[0]))
+			is.setstate(std::ios_base::failbit);
 		return is;
 	}
-
+#endif // TORRENT_USE_IOSTREAM
 }
 
 #endif // TORRENT_PEER_ID_HPP_INCLUDED

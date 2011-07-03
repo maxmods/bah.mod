@@ -69,11 +69,10 @@ public:
 		// 4. read CONNECT response
 
 		// to avoid unnecessary copying of the handler,
-		// store it in a shaed_ptr
+		// store it in a shared_ptr
 		boost::shared_ptr<handler_type> h(new handler_type(handler));
 
-		tcp::resolver::query q(m_hostname
-			, boost::lexical_cast<std::string>(m_port));
+		tcp::resolver::query q(m_hostname, to_string(m_port).elems);
 		m_resolver.async_resolve(q, boost::bind(
 			&http_stream::name_lookup, this, _1, _2, h));
 	}

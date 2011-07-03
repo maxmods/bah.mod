@@ -1070,12 +1070,12 @@ void bmx_torrent_sessionsettings_set_unchoke_interval(libtorrent::session_settin
 	s->unchoke_interval = value;
 }
 
-int bmx_torrent_sessionsettings_optimistic_unchoke_multiplier(libtorrent::session_settings * s) {
-	return s->optimistic_unchoke_multiplier;
+int bmx_torrent_sessionsettings_optimistic_unchoke_interval(libtorrent::session_settings * s) {
+	return s->optimistic_unchoke_interval;
 }
 
-void bmx_torrent_sessionsettings_set_optimistic_unchoke_multiplier(libtorrent::session_settings * s, int value) {
-	s->optimistic_unchoke_multiplier = value;
+void bmx_torrent_sessionsettings_set_optimistic_unchoke_interval(libtorrent::session_settings * s, int value) {
+	s->optimistic_unchoke_interval = value;
 }
 
 int bmx_torrent_sessionsettings_num_want(libtorrent::session_settings * s) {
@@ -1102,12 +1102,12 @@ void bmx_torrent_sessionsettings_set_allowed_fast_set_size(libtorrent::session_s
 	s->allowed_fast_set_size = value;
 }
 
-int bmx_torrent_sessionsettings_max_outstanding_disk_bytes_per_connection(libtorrent::session_settings * s) {
-	return s->max_outstanding_disk_bytes_per_connection;
+int bmx_torrent_sessionsettings_max_queued_disk_bytes(libtorrent::session_settings * s) {
+	return s->max_queued_disk_bytes;
 }
 
-void bmx_torrent_sessionsettings_set_max_outstanding_disk_bytes_per_connection(libtorrent::session_settings * s, int value) {
-	s->max_outstanding_disk_bytes_per_connection = value;
+void bmx_torrent_sessionsettings_set_max_queued_disk_bytes(libtorrent::session_settings * s, int value) {
+	s->max_queued_disk_bytes = value;
 }
 
 int bmx_torrent_sessionsettings_handshake_timeout(libtorrent::session_settings * s) {
@@ -1892,7 +1892,7 @@ void bmx_torrent_blockinfo_free(Max_block_info * i) {
 }
 
 BBString * bmx_torrent_blockinfo_peer(Max_block_info * i) {
-	return bbStringFromUTF8String(i->Info().peer.address().to_string().c_str());
+	return bbStringFromUTF8String(i->Info().peer().address().to_string().c_str());
 }
 
 int bmx_torrent_blockinfo_state(Max_block_info * i) {
