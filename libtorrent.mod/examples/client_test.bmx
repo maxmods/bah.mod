@@ -563,11 +563,12 @@ Type TMainProcess
 				Continue
 			End If
 				
+			color()
+			
 			If print_ip Then
-				' TODO
+				DrawText info.ip(), xOffset, yOffset
 				xOffset:+ 115
 			End If
-		
 
 			' Downloads
 			color(COLOR_GREEN)
