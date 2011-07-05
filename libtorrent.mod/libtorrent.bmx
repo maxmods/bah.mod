@@ -46,6 +46,14 @@ ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
 ModuleInfo "CC_OPTS: -DBOOST_THREAD_USE_LIB"
 ?
 
+
+' escape_string.cpp
+'   Fixed iconv param to be const.
+'
+' file.cpp
+'   Added extern of GetFileSizeEx for Win32. Not finding it in winbase.h for some reason...
+'
+
 Import "core.bmx"
 
 Rem

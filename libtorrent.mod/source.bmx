@@ -36,6 +36,7 @@ Import "../../pub.mod/zlib.mod/*.h"
 Import "../boost.mod/src/*.hpp"
 
 ?win32
+Import "../libiconv.mod/include/*.h"
 Import "../crypto.mod/ssl/include/*.h"
 ?
 

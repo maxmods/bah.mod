@@ -28,9 +28,11 @@
 #include "glue.h"
 
 #ifdef WIN32
-    extern "C" void tss_cleanup_implemented(void)
+namespace boost {
+    void tss_cleanup_implemented(void)
     {
     }
+}
 #endif
 
 

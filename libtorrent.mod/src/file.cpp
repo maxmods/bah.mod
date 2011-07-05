@@ -51,6 +51,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <windows.h>
 #include <winioctl.h>
 
+// BaH - don't ask...
+extern "C" BOOL WINAPI GetFileSizeEx(HANDLE,PLARGE_INTEGER);
+
 #ifndef PtrToPtr64
 #define PtrToPtr64(x) (x)
 #endif
@@ -898,6 +901,7 @@ namespace libtorrent
 #ifdef TORRENT_WINDOWS
 		LARGE_INTEGER offs;
 		LARGE_INTEGER cur_size;
+
 		if (GetFileSizeEx(m_file_handle, &cur_size) == FALSE)
 		{
 			ec = error_code(GetLastError(), get_system_category());
