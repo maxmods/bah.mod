@@ -20,15 +20,28 @@
  THE SOFTWARE.
 */
 
+#ifndef __WIN32__
+#include <iconv.h>
+#include <errno.h>
+#else
 #include "iconv.h"
+#endif
 
 extern "C" {
+#ifdef __APPLE__
+	size_t bmx_iconv(iconv_t handle, char ** inbuf, size_t * inBytesLeft, char ** outbuf, size_t * outBytesLeft);
+#else
 	size_t bmx_iconv(iconv_t handle, const char ** inbuf, size_t * inBytesLeft, char ** outbuf, size_t * outBytesLeft);
+#endif
 	int bmx_getErrno();
 }
 
 
+#ifdef __APPLE__
+size_t bmx_iconv(iconv_t handle, char ** inbuf, size_t * inBytesLeft, char ** outbuf, size_t * outBytesLeft) {
+#else
 size_t bmx_iconv(iconv_t handle, const char ** inbuf, size_t * inBytesLeft, char ** outbuf, size_t * outBytesLeft) {
+#endif
 #ifdef __WIN32__
 	return libiconv(handle, inbuf, inBytesLeft, outbuf, outBytesLeft);
 #else

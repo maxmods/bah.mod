@@ -23,8 +23,9 @@ SuperStrict
 ?Not linux
 Import "-liconv"
 ?
-
+?win32
 Import "include/*.h"
+?
 Import "glue.cpp"
 
 Extern
