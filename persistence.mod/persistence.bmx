@@ -202,7 +202,7 @@ Type TPersist
 							Local objRef:String = GetObjRef(aObj)
 							
 							' file version 5 ... array cells can contain references
-							If Not objectMap.Contains(objRef) Then
+							If Not Contains(objRef, aObj) Then
 								SerializeObject(aObj, elementNode)
 							Else
 								elementNode.setAttribute("ref", objRef)
@@ -247,7 +247,7 @@ Type TPersist
 			
 			Local objRef:String = GetObjRef(obj)
 			node.setAttribute("ref", objRef)
-			objectMap.Insert(objRef, objRef)
+			objectMap.Insert(objRef, obj)
 
 			' is this a TMap object?
 			If tidName = "TMap" Then
@@ -257,10 +257,10 @@ Type TPersist
 				' We add a specific reference to nil, which we'll use to re-reference when we de-serialize.
 
 				Local ref:String = GetObjRef(New TMap._root)
-				If Not objectMap.ValueForKey(ref) Then
+				If Not Contains(ref, New TMap._root) Then
 					'Local node:TxmlNode = parent.addChild("TMap_nil")
 					node.setAttribute("nil", ref)
-					objectMap.Insert(ref, ref)
+					objectMap.Insert(ref, New TMap._root)
 				End If
 			End If
 
@@ -371,7 +371,7 @@ Type TPersist
 								Local fieldRef:String = GetObjRef(fieldObject)
 
 								If fieldObject Then
-									If Not objectMap.Contains(fieldRef) Then
+									If Not Contains(fieldRef, fieldObject) Then
 										SerializeObject(fieldObject, fieldNode)
 									Else
 										fieldNode.setAttribute("ref", fieldRef)
@@ -387,6 +387,21 @@ Type TPersist
 	
 		End If
 		
+	End Method
+	
+	Method Contains:Int(ref:String, obj:Object)
+		Local cobj:Object = objectMap.ValueForKey(ref)
+		If Not cobj Then
+			Return False
+		End If
+		
+		' same object already exists!
+		If cobj = obj Then
+			Return True
+		End If
+		
+		' same ref but different object????
+		Throw TPersistCollisionException.CreateException(ref, obj, cobj)
 	End Method
 
 	Method Delete()
@@ -734,5 +749,30 @@ Type TPersist
 		Next
 		Return String.FromShorts( buf,6 )
 	End Function
+
+End Type
+
+Type TPersistCollisionException Extends TPersistException
+
+	Field ref:String
+	Field obj1:Object
+	Field obj2:Object
+	
+	Function CreateException:TPersistCollisionException(ref:String, obj1:Object, obj2:Object)
+		Local e:TPersistCollisionException = New TPersistCollisionException
+		e.ref = ref
+		e.obj1 = obj1
+		e.obj2 = obj2
+		Return e
+	End Function
+	
+	Method ToString:String()
+		Return "Persist Collision. Matching ref '" + ref + "' for different objects"
+	End Method
+
+End Type
+
+Type TPersistException Extends TRuntimeException
+
 
 End Type
