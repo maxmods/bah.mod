@@ -23,6 +23,8 @@ Type TObj
 	Field emptyList:TList = New TList
 	Field list:TList = New TList
 	Field rect:TRect = New TRect
+	
+	Field map:TMap = New TMap
 		
 	Function Set:TObj()
 		Local this:TObj = New TObj
@@ -41,6 +43,8 @@ Type TObj
 		this.rect.y = 200
 		this.rect.w = 300
 		this.rect.h = 400
+		
+		this.map.Insert("Key 1", "Value 1")
 		
 		Return this
 	End Function

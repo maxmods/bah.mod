@@ -93,8 +93,8 @@ Type TPersist
 		If doc Then
 			doc.Free()
 			doc = Null
-			objectMap.Clear()
 		End If
+		objectMap.Clear()
 	End Method
 	
 	Rem
@@ -122,6 +122,7 @@ Type TPersist
 			End If
 			doc.saveFormatFile(filename, format)
 		End If
+		Free()
 	End Method
 	
 	Rem
@@ -134,6 +135,7 @@ Type TPersist
 		
 		Local exportDoc:TxmlDoc = doc
 		doc = Null
+		Free()
 		Return exportDoc
 	End Method
 
@@ -148,6 +150,7 @@ Type TPersist
 		If doc Then
 			stream.WriteString(ToString())
 		End If
+		Free()
 	End Method
 
 	Rem
@@ -439,6 +442,7 @@ Type TPersist
 		fileVersion = root.GetAttribute("ver").ToInt() ' get the format version
 		Local obj:Object = DeSerializeObject("", root)
 		doc = Null
+		Free()
 		Return obj
 	End Method
 
@@ -455,8 +459,7 @@ Type TPersist
 			Local root:TxmlNode = doc.GetRootElement()
 			fileVersion = root.GetAttribute("ver").ToInt() ' get the format version
 			Local obj:Object = DeSerializeObject("", root)
-			doc.Free()
-			doc = Null
+			Free()
 			Return obj
 		End If
 	End Method
@@ -476,8 +479,7 @@ Type TPersist
 		Wend
 	
 		Local obj:Object = DeSerializeObject(data)
-		doc.Free()
-		doc = Null
+		Free()
 		Return obj
 	End Method
 	
