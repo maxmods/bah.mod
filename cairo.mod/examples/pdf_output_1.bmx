@@ -64,7 +64,7 @@ cairo.SetFontSize(14)
 cairo.MoveTo( 80, 80)
 cairo.ShowText( "Just when you thought it was safe to venture out into the playground...")
 
-'cairo.stroke()  ' this is a hack to stop a line appearing on the page
+cairo.stroke()  ' this is a hack to stop a line appearing on the page
 
 
 ' Draw some circles

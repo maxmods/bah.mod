@@ -431,6 +431,11 @@
 .endif
 .endm
 
+.macro fetch_mask_pixblock
+    pixld       pixblock_size, mask_bpp, \
+                (mask_basereg - pixblock_size * mask_bpp / 64), MASK
+.endm
+
 /*
  * Macro which is used to process leading pixels until destination
  * pointer is properly aligned (at 16 bytes boundary). When destination
@@ -1152,4 +1157,21 @@ fname:
     vshll.u8    tmp2, in_b, #8
     vsri.u16    out, tmp1, #5
     vsri.u16    out, tmp2, #11
+.endm
+
+/*
+ * Conversion of four r5g6b5 pixels (in) to four x8r8g8b8 pixels
+ * returned in (out0, out1) registers pair. Requires one temporary
+ * 64-bit register (tmp). 'out1' and 'in' may overlap, the original
+ * value from 'in' is lost
+ */
+.macro convert_four_0565_to_x888_packed in, out0, out1, tmp
+    vshl.u16    out0, in,   #5  /* G top 6 bits */
+    vshl.u16    tmp,  in,   #11 /* B top 5 bits */
+    vsri.u16    in,   in,   #5  /* R is ready in top bits */
+    vsri.u16    out0, out0, #6  /* G is ready in top bits */
+    vsri.u16    tmp,  tmp,  #5  /* B is ready in top bits */
+    vshr.u16    out1, in,   #8  /* R is in place */
+    vsri.u16    out0, tmp,  #8  /* G & B is in place */
+    vzip.u16    out0, out1      /* everything is in place */
 .endm

@@ -1,3 +1,19 @@
+' Copyright (c) 2006-2011 Bruce A Henderson
+'
+'  The contents of this file are subject to the Mozilla Public License
+'  Version 1.1 (the "License"); you may not use this file except in
+'  compliance with the License. You may obtain a copy of the License at
+'  http://www.mozilla.org/MPL/
+'  
+'  Software distributed under the License is distributed on an "AS IS"
+'  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+'  License for the specific language governing rights and limitations
+'  under the License.
+'  
+'  The Original Code is BaH.Cairo.
+'  
+'  The Initial Developer of the Original Code is Duncan Cross.
+'
 SuperStrict
 
 
@@ -14,7 +30,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.24"
 ModuleInfo "History: Cairo update to 1.10.2."
-ModuleInfo "History: Pixman update to 0.21.2."
+ModuleInfo "History: Pixman update to 0.22.2."
 ModuleInfo "History: Added support for TStream surface writing (PDF, PS, etc)"
 ModuleInfo "History: Fixed CopyPath and CopyPathFlat not returning value."
 ModuleInfo "History: Added TCairoRegion and TCairoRectangleInt."
@@ -92,6 +108,9 @@ ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX -DHAVE_PTHREAD_SETSPECIFIC"
 '
 ' cairo-ft-font.c
 '  Commented out references to fontconfig
+'
+' pixman-region.c
+'  Commented out region 1 test in (_union), which prevented all paged surfaces to output correctly.
 '
 
 Import BRL.Pixmap

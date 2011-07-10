@@ -30,7 +30,6 @@
 #include <assert.h>
 
 #include "pixman-private.h"
-#include "pixman-combine32.h"
 
 pixman_bool_t
 _pixman_init_gradient (gradient_t *                  gradient,
@@ -48,43 +47,6 @@ _pixman_init_gradient (gradient_t *                  gradient,
     gradient->n_stops = n_stops;
 
     return TRUE;
-}
-
-/*
- * By default, just evaluate the image at 32bpp and expand.  Individual image
- * types can plug in a better scanline getter if they want to. For example
- * we  could produce smoother gradients by evaluating them at higher color
- * depth, but that's a project for the future.
- */
-void
-_pixman_image_get_scanline_generic_64 (pixman_image_t * image,
-                                       int              x,
-                                       int              y,
-                                       int              width,
-                                       uint32_t *       buffer,
-                                       const uint32_t * mask)
-{
-    uint32_t *mask8 = NULL;
-
-    /* Contract the mask image, if one exists, so that the 32-bit fetch
-     * function can use it.
-     */
-    if (mask)
-    {
-	mask8 = pixman_malloc_ab (width, sizeof(uint32_t));
-	if (!mask8)
-	    return;
-
-	pixman_contract (mask8, (uint64_t *)mask, width);
-    }
-
-    /* Fetch the source image into the first half of buffer. */
-    _pixman_image_get_scanline_32 (image, x, y, width, (uint32_t*)buffer, mask8);
-
-    /* Expand from 32bpp to 64bpp in place. */
-    pixman_expand ((uint64_t *)buffer, buffer, PIXMAN_a8r8g8b8, width);
-
-    free (mask8);
 }
 
 pixman_image_t *
@@ -109,7 +71,7 @@ _pixman_image_allocate (void)
 	common->alpha_map = NULL;
 	common->component_alpha = FALSE;
 	common->ref_count = 1;
-	common->classify = NULL;
+	common->property_changed = NULL;
 	common->client_clip = FALSE;
 	common->destroy_func = NULL;
 	common->destroy_data = NULL;
@@ -117,44 +79,6 @@ _pixman_image_allocate (void)
     }
 
     return image;
-}
-
-source_image_class_t
-_pixman_image_classify (pixman_image_t *image,
-                        int             x,
-                        int             y,
-                        int             width,
-                        int             height)
-{
-    if (image->common.classify)
-	return image->common.classify (image, x, y, width, height);
-    else
-	return SOURCE_IMAGE_CLASS_UNKNOWN;
-}
-
-void
-_pixman_image_get_scanline_32 (pixman_image_t *image,
-                               int             x,
-                               int             y,
-                               int             width,
-                               uint32_t *      buffer,
-                               const uint32_t *mask)
-{
-    image->common.get_scanline_32 (image, x, y, width, buffer, mask);
-}
-
-/* Even thought the type of buffer is uint32_t *, the function actually expects
- * a uint64_t *buffer.
- */
-void
-_pixman_image_get_scanline_64 (pixman_image_t *image,
-                               int             x,
-                               int             y,
-                               int             width,
-                               uint32_t *      buffer,
-                               const uint32_t *unused)
-{
-    image->common.get_scanline_64 (image, x, y, width, buffer, unused);
 }
 
 static void
@@ -286,7 +210,24 @@ compute_image_info (pixman_image_t *image)
 	    if (image->common.transform->matrix[0][1] == 0 &&
 		image->common.transform->matrix[1][0] == 0)
 	    {
+		if (image->common.transform->matrix[0][0] == -pixman_fixed_1 &&
+		    image->common.transform->matrix[1][1] == -pixman_fixed_1)
+		{
+		    flags |= FAST_PATH_ROTATE_180_TRANSFORM;
+		}
 		flags |= FAST_PATH_SCALE_TRANSFORM;
+	    }
+	    else if (image->common.transform->matrix[0][0] == 0 &&
+	             image->common.transform->matrix[1][1] == 0)
+	    {
+		pixman_fixed_t m01 = image->common.transform->matrix[0][1];
+		if (m01 == -image->common.transform->matrix[1][0])
+		{
+			if (m01 == -pixman_fixed_1)
+			    flags |= FAST_PATH_ROTATE_90_TRANSFORM;
+			else if (m01 == pixman_fixed_1)
+			    flags |= FAST_PATH_ROTATE_270_TRANSFORM;
+		}
 	    }
 	}
 
@@ -478,7 +419,8 @@ _pixman_image_validate (pixman_image_t *image)
 	 * property_changed() can make use of the flags
 	 * to set up accessors etc.
 	 */
-	image->common.property_changed (image);
+	if (image->common.property_changed)
+	    image->common.property_changed (image);
 
 	image->common.dirty = FALSE;
     }
@@ -559,13 +501,19 @@ pixman_image_set_transform (pixman_image_t *          image,
     if (common->transform == transform)
 	return TRUE;
 
-    if (memcmp (&id, transform, sizeof (pixman_transform_t)) == 0)
+    if (!transform || memcmp (&id, transform, sizeof (pixman_transform_t)) == 0)
     {
 	free (common->transform);
 	common->transform = NULL;
 	result = TRUE;
 
 	goto out;
+    }
+
+    if (common->transform &&
+	memcmp (common->transform, transform, sizeof (pixman_transform_t) == 0))
+    {
+	return TRUE;
     }
 
     if (common->transform == NULL)
@@ -592,6 +540,9 @@ PIXMAN_EXPORT void
 pixman_image_set_repeat (pixman_image_t *image,
                          pixman_repeat_t repeat)
 {
+    if (image->common.repeat == repeat)
+	return;
+
     image->common.repeat = repeat;
 
     image_property_changed (image);
@@ -636,6 +587,9 @@ PIXMAN_EXPORT void
 pixman_image_set_source_clipping (pixman_image_t *image,
                                   pixman_bool_t   clip_sources)
 {
+    if (image->common.clip_sources == clip_sources)
+	return;
+
     image->common.clip_sources = clip_sources;
 
     image_property_changed (image);
@@ -650,6 +604,9 @@ pixman_image_set_indexed (pixman_image_t *        image,
                           const pixman_indexed_t *indexed)
 {
     bits_image_t *bits = (bits_image_t *)image;
+
+    if (bits->indexed == indexed)
+	return;
 
     bits->indexed = indexed;
 
@@ -713,6 +670,9 @@ PIXMAN_EXPORT void
 pixman_image_set_component_alpha   (pixman_image_t *image,
                                     pixman_bool_t   component_alpha)
 {
+    if (image->common.component_alpha == component_alpha)
+	return;
+
     image->common.component_alpha = component_alpha;
 
     image_property_changed (image);
@@ -795,12 +755,18 @@ pixman_image_get_format (pixman_image_t *image)
 }
 
 uint32_t
-_pixman_image_get_solid (pixman_image_t *     image,
-                         pixman_format_code_t format)
+_pixman_image_get_solid (pixman_implementation_t *imp,
+			 pixman_image_t *         image,
+                         pixman_format_code_t     format)
 {
     uint32_t result;
+    pixman_iter_t iter;
 
-    _pixman_image_get_scanline_32 (image, 0, 0, 1, &result, NULL);
+    _pixman_implementation_src_iter_init (
+	imp, &iter, image, 0, 0, 1, 1,
+	(uint8_t *)&result, ITER_NARROW);
+
+    result = *iter.get_scanline (&iter, NULL);
 
     /* If necessary, convert RGB <--> BGR. */
     if (PIXMAN_FORMAT_TYPE (format) != PIXMAN_TYPE_ARGB)

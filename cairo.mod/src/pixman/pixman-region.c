@@ -1404,8 +1404,9 @@ PREFIX (_union) (region_type_t *new_reg,
      */
     if (PIXREGION_NIL (reg1))
     {
-        if (PIXREGION_NAR (reg1))
-	    return pixman_break (new_reg);
+    	// BaH
+        //if (PIXREGION_NAR (reg1))
+	    //return pixman_break (new_reg);
 
         if (new_reg != reg2)
 	    return PREFIX (_copy) (new_reg, reg2);
@@ -2545,8 +2546,7 @@ bitmap_addrect (region_type_t *reg,
 	   ((r-1)->y1 == ry1) && ((r-1)->y2 == ry2) &&
 	   ((r-1)->x1 <= rx1) && ((r-1)->x2 >= rx2))))
     {
-	if (!reg->data ||
-	    reg->data->numRects == reg->data->size)
+	if (reg->data->numRects == reg->data->size)
 	{
 	    if (!pixman_rect_alloc (reg, 1))
 		return NULL;
@@ -2589,6 +2589,8 @@ PREFIX (_init_from_image) (region_type_t *region,
     int width, height, stride;
 
     PREFIX(_init) (region);
+
+    critical_if_fail (region->data);
 
     return_if_fail (image->type == BITS);
     return_if_fail (image->bits.format == PIXMAN_a1);
