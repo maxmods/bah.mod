@@ -1,4 +1,4 @@
-' Copyright (c) 2010 Bruce A Henderson
+' Copyright (c) 2010-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,16 @@ Type TSpeech Extends TSpeechBase
 		speech.GetStatus(status, Null)
 		char = status.ulInputWordPos
 		length = status.ulInputWordLen
+	End Method
+	
+	Method setRate(rate:Int)
+		speech.SetRate(rate)
+	End Method
+	
+	Method getRate:Int()
+		Local v:Int
+		speech.GetRate(v)
+		Return v
 	End Method
 
 	Method Delete()

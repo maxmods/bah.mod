@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010 Bruce A Henderson
+  Copyright (c) 2010-2011 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -84,4 +84,21 @@ void bmx_speech_setVolume(NSSpeechSynthesizer *synth, float v) {
 float bmx_speech_getVolume(NSSpeechSynthesizer *synth) {
 	return [synth volume];
 }
+
+void bmx_speech_setRate(NSSpeechSynthesizer *synth, float rate) {
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_5
+	[synth setRate:rate];
+#endif
+}
+
+float bmx_speech_rate(NSSpeechSynthesizer *synth) {
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_5
+	return [synth rate];
+#else
+	return 0;
+#endif
+}
+
+
+
 

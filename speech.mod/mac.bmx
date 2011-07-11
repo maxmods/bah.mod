@@ -1,4 +1,4 @@
-' Copyright (c) 2010 Bruce A Henderson
+' Copyright (c) 2010-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,14 @@ Type TSpeech Extends TSpeechBase
 	End Method
 
 	Method getPosition(char:Int Var, length:Int Var)
+	End Method
+	
+	Method setRate(rate:Float)
+		bmx_speech_setRate(speechPtr, rate:Float)
+	End Method
+	
+	Method getRate:Float()
+		Return bmx_speech_rate(speechPtr)
 	End Method
 
 	Method Delete()

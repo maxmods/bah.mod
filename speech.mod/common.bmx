@@ -59,6 +59,8 @@ Extern
 	Function bmx_speech_resume(handle:Byte Ptr)
 	Function bmx_speech_setVolume(handle:Byte Ptr, v:Float)
 	Function bmx_speech_getVolume:Float(handle:Byte Ptr)
+	Function bmx_speech_setRate(handle:Byte Ptr, rate:Float)
+	Function bmx_speech_rate:Float(handle:Byte Ptr)
 End Extern
 
 ?win32
