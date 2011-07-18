@@ -82,7 +82,7 @@ Type TSpeech Extends TSpeechBase
 	
 	Method getRate:Int()
 		Local v:Int
-		speech.GetRate(v)
+		speech.GetRate(Varptr v)
 		Return v
 	End Method
 
