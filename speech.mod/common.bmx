@@ -70,6 +70,8 @@ Function CoInitialize:Int(p:Byte Ptr)
 Function CoUninitialize:Int()
 Function CoCreateInstance(rclsid:Byte Ptr,pUnkOuter:Byte Ptr,dwClsContext:Int,riid:Byte Ptr,ppv:Byte Ptr)
 
+Function SpEnumTokens:Int(pszCategoryId$w, pszReqAttribs$w, pszOptAttribs$w, ppEnum:Byte Ptr)
+
 Type ISpNotifySource Extends IUnknown
 	Method SetNotifySink:Int(pNotifySink:Byte Ptr)
 	Method SetNotifyWindowMessage:Int(hWnd:Int, Msg:Int, wParam:Int, lParam:Int)
@@ -114,6 +116,52 @@ Type ISpVoice Extends ISpEventSource
 	Method DisplayUI:Int(hwndParent:Int, pszTitle$w, pszTypeOfUI$w, pvExtraData:Byte Ptr, cbExtraData:Int)
 End Type
 
+Type IEnumSpObjectTokens Extends IUnknown
+	Method GetNext:Int(celt:Int, pelt:Byte Ptr, pceltFetched:Int Ptr) = "Next"
+	Method Skip:Int(celt:Int)
+	Method Reset:Int()
+	Method Clone:Int(ppEnum:Byte Ptr)
+	Method Item:Int(Index:Int, ppToken:Byte Ptr)
+	Method GetCount:Int(pCount:Int Ptr)
+End Type
+
+Type ISpDataKey Extends IUnknown
+	Method SetData:Int(pszValueName$w, cbData:Int, pData:Byte Ptr)
+	Method GetData:Int(pszValueName$w, pcbData:Int Ptr, pData:Byte Ptr)
+	Method SetStringValue:Int(pszValueName$w, pszValue$w)
+	Method GetStringValue:Int(pszValueName$w, ppszValue:Short Ptr Ptr)
+	Method SetDWORD:Int(pszValueName$w, dwValue:Short)
+	Method GetDWORD:Int(pszValueName$w, pdwValue:Short Ptr)
+	Method OpenKey:Int(pszSubKeyName$w, ppSubKey:Byte Ptr Ptr)
+	Method CreateKey:Int(pszSubKey$w, ppSubKey:Byte Ptr Ptr)
+	Method DeleteKey:Int(pszSubKey$w)
+	Method DeleteValue:Int(pszValueName$w)
+	Method EnumKeys:Int(Index:Int, ppszSubKeyName:Short Ptr Ptr)
+	Method EnumValues:Int(Index:Int, ppszValueName:Short Ptr Ptr)
+End Type
+
+Type ISpObjectToken Extends ISpDataKey
+	Method SetId:Int(pszCategoryId$w, pszTokenId$w, fCreateIfNotExist:Int)
+	Method GetId:Int(ppszCoMemTokenId:Short Ptr Ptr)
+	Method GetCategory:Int(ppTokenCategory:Byte Ptr Ptr)
+	Method CreateInstance(pUnkOuter:Byte Ptr, dwClsContext:Short, riid:Int, ppvObject:Byte Ptr Ptr)
+	Method GetStorageFileName:Int(clsidCaller:Int, pszValueName$w, pszFileNameSpecifier$w, nFolder:Int, ppszFilePath:Short Ptr Ptr)
+	Method RemoveStorageFileName:Int(clsidCaller:Int, pszKeyName$w, fDeleteFile:Int)
+	Method Remove:Int(pclsidCaller:Byte Ptr)
+	Method IsUISupported:Int(pszTypeOfUI$w, pvExtraData:Byte Ptr, cbExtraData:Int, punkObject:Byte Ptr, pfSupported:Int Ptr)
+	Method DisplayUI:Int(hwndParent:Int, pszTitle$w, pszTypeOfUI$w, pvExtraData:Byte Ptr, cbExtraData:Int, punkObject:Byte Ptr)
+	Method MatchesAttributes:Int( pszAttributes$w, pfMatches:Int Ptr)
+End Type
+
+Type ISpObjectTokenCategory Extends ISpDataKey
+	Method SetId:Int(pszCategoryId$w, fCreateIfNotExist:Int)
+	Method GetId:Int(ppszCoMemCategoryId:Short Ptr Ptr)
+	Method GetDataKey:Int(spdkl:Int, ppDataKey:Byte Ptr)
+	Method EnumTokens:Int(pzsReqAttribs$w, pszOptAttribs$w, ppEnum:Byte Ptr)
+	Method SetDefaultTokenId:Int(pszTokenId$w)
+	Method GetDefaultTokenId:Int(ppszCoMemTokenId:Short Ptr Ptr)
+End Type
+
 End Extern
 
 Type SPVOICESTATUS
@@ -144,11 +192,45 @@ Const SPF_NLP_MASK:Int = SPF_NLP_SPEAK_PUNC
 Const SPF_VOICE_MASK:Int = SPF_ASYNC | SPF_PURGEBEFORESPEAK | SPF_IS_FILENAME | SPF_IS_XML | SPF_IS_NOT_XML | SPF_NLP_MASK | SPF_PERSIST_XML
 Const SPF_UNUSED_FLAGS:Int = ~SPF_VOICE_MASK
 
-
+' link for GUIDS...
+' http://www.koders.com/cpp/fidF0E86202FDD224D20CA8E3ECB9A9DD0A3D36E9C4.aspx
 Global IID_ISpVoice:Int[]=[$6c44df74, $499272b9, $99efeca1, $d422046e]
 Global CLSID_SpVoice:Int[]=[$96749377, $11d23391, $c000e39e, $9673794f]
+Global IID_ISpObjectTokenCategory:Int[] = [$2D3D3845, $485039AF, $B440F9BB, $1D018097]
+Global CLSID_SpObjectTokenCategory:Int[]=[$A910187F, $45AC0C7A, $ED59CC92, $537BB7AF]
+
 Rem
 Dim IID_ISpVoice As GUID => ( &H6c44df74, &H72b9, &H4992, {&Ha1, &Hec, &Hef, &H99, &H6e, &H04, &H22, &Hd4 })
 Dim CLSID_SpVoice As GUID => ( &H96749377, &H3391, &H11d2, {&H9e, &He3, &H00, &Hc0, &H4f, &H79, &H73, &H96 })
 End Rem
+
+Const SPREG_USER_ROOT:String = "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech"
+Const SPREG_LOCAL_MACHINE_ROOT:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech"
+Const SPCAT_AUDIOOUT:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioOutput"
+Const SPCAT_AUDIOIN:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioInput"
+Const SPCAT_VOICES:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices"
+Const SPCAT_RECOGNIZERS:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Recognizers"
+Const SPCAT_APPLEXICONS:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AppLexicons"
+Const SPCAT_PHONECONVERTERS:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\PhoneConverters"
+Const SPCAT_RECOPROFILES:String = "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech\RecoProfiles"
+Const SPMMSYS_AUDIO_IN_TOKEN_ID:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioInput\TokenEnums\MMAudioIn\"
+Const SPMMSYS_AUDIO_OUT_TOKEN_ID:String = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioOutput\TokenEnums\MMAudioOut\"
+Const SPCURRENT_USER_LEXICON_TOKEN_ID:String = "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech\CurrentUserLexicon"
+Const SPTOKENVALUE_CLSID:String = "CLSID"
+Const SPTOKENKEY_FILES:String = "Files"
+Const SPTOKENKEY_UI:String = "UI"
+Const SPTOKENKEY_ATTRIBUTES:String = "Attributes"
+Const SPVOICECATEGORY_TTSRATE:String = "DefaultTTSRate"
+Const SPPROP_RESOURCE_USAGE:String = "ResourceUsage"
+Const SPPROP_HIGH_CONFIDENCE_THRESHOLD:String = "HighConfidenceThreshold"
+Const SPPROP_NORMAL_CONFIDENCE_THRESHOLD:String = "NormalConfidenceThreshold"
+Const SPPROP_LOW_CONFIDENCE_THRESHOLD:String = "LowConfidenceThreshold"
+Const SPPROP_RESPONSE_SPEED:String = "ResponseSpeed"
+Const SPPROP_COMPLEX_RESPONSE_SPEED:String = "ComplexResponseSpeed"
+Const SPPROP_ADAPTATION_ON:String = "AdaptationOn"
+Const SPTOPIC_SPELLING:String = "Spelling"
+Const SPWILDCARD:String = "..."
+Const SPDICTATION:String = "*"
+Const SPINFDICTATION:String = "*+"
+
 ?

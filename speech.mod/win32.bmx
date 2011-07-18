@@ -45,11 +45,71 @@ Type TSpeech Extends TSpeechBase
 	End Method
 	
 	Function availableVoices:String[]()
-		'Return bmx_speech_availableVoices()
+		Local category:ISpObjectTokenCategory
+		CoCreateInstance(CLSID_SpObjectTokenCategory, Null, CLSCTX_ALL, IID_ISpObjectTokenCategory, Varptr category)
+
+		category.SetId(SPCAT_VOICES, False)
+
+
+		Local enum:IEnumSpObjectTokens
+		category.EnumTokens("", "", Varptr enum)
+		
+		Local count:Int
+		
+		enum.GetCount(Varptr count)
+		
+		Local list:String[] = New String[count]
+	
+		For Local i:Int = 0 Until count
+			Local token:ISpObjectToken
+			Local text:Short Ptr
+			
+			enum.GetNext(1, Varptr token, Null)
+			
+			token.GetStringValue("", Varptr text)
+			list[i] = String.FromWString(text)
+			
+			token.release_
+		Next
+		
+		category.release_
+		
+		Return list
 	End Function
 	
 	Method setVoice(voice:String)
-		'bmx_speech_setVoice(speechPtr, voice)
+		Local category:ISpObjectTokenCategory
+		CoCreateInstance(CLSID_SpObjectTokenCategory, Null, CLSCTX_ALL, IID_ISpObjectTokenCategory, Varptr category)
+
+		category.SetId(SPCAT_VOICES, False)
+
+
+		Local enum:IEnumSpObjectTokens
+		category.EnumTokens("", "", Varptr enum)
+		
+		Local count:Int
+		
+		enum.GetCount(Varptr count)
+
+		For Local i:Int = 0 Until count
+			Local token:ISpObjectToken
+			Local text:Short Ptr
+			
+			enum.GetNext(1, Varptr token, Null)
+			
+			token.GetStringValue("", Varptr text)
+			Local v:String = String.FromWString(text)
+			
+			If v = voice Then
+				speech.SetVoice(token)
+				token.release_
+				Exit
+			End If
+			
+			token.release_
+		Next
+		
+		category.release_
 	End Method
 
 	Method pause()
