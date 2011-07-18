@@ -1,4 +1,4 @@
-' Copyright (c) 2010 Bruce A Henderson
+' Copyright (c) 2010-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,14 @@ Import "glue.m"
 Import pub.win32
 Import "-lsapi"
 Import "-lole32"
+?linux
+Import "-lFestival"
+Import "-lestools"
+Import "-lestbase"
+Import "-leststring"
+Import "/usr/include/festival/*.h"
+Import "/usr/include/speech_tools/*.h"
+Import "glue.cpp"
 ?
 
 
@@ -47,7 +55,7 @@ End Type
 
 
 
-?Not win32
+?macosx
 Extern
 	Function bmx_speech_new:Byte Ptr()
 	Function bmx_speech_speak:Int(handle:Byte Ptr, text:String)
@@ -233,4 +241,11 @@ Const SPWILDCARD:String = "..."
 Const SPDICTATION:String = "*"
 Const SPINFDICTATION:String = "*+"
 
+?linux
+Extern
+	Function bmx_festival_initialize(load_init_files:Int, heapsize:Int)
+	Function bmx_festival_say_text:Int(s:Byte Ptr)
+End Extern
 ?
+
+

@@ -37,5 +37,8 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 Import "mac.bmx"
 ?win32
 Import "win32.bmx"
+?linux
+Import "linux.bmx"
 ?
+
 
