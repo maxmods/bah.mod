@@ -16,7 +16,7 @@ ModuleInfo "History: OSMesa port from original BRL.GLMax2D module"
 
 ?linux
 
-Import BRL.Max2D
+Import BaH.OSMesaMax2DBase
 Import BaH.OSMesaGraphics
 
 Private
@@ -332,6 +332,7 @@ Type TOSMesaGLMax2DDriver Extends TMax2DDriver
 	Method SetBlend( blend )
 		If blend=state_blend Return
 		state_blend=blend
+
 		Select blend
 		Case MASKBLEND
 			glDisable GL_BLEND
@@ -518,7 +519,7 @@ Function OSMesaMax2DDriver:TOSMesaGLMax2DDriver()
 End Function
 
 Local driver:TOSMesaGLMax2DDriver=OSMesaMax2DDriver()
-If driver SetGraphicsDriver driver
+If driver BaH.OSMesaGraphicsBase.SetGraphicsDriver driver
 
 ?
 

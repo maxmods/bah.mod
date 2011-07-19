@@ -23,7 +23,7 @@ Import "include/*.h"
 Import "osmesagraphics.linux.c"
 
 
-Import BRL.Graphics
+Import BaH.OSMesaGraphicsBase
 Import BRL.Pixmap
 Import Pub.OpenGL
 
