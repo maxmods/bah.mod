@@ -1,4 +1,4 @@
-/* $Id: tiffio.h,v 1.28 2009/11/07 19:18:27 drolon Exp $ */
+/* $Id: tiffio.h,v 1.36 2011/01/06 20:52:32 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -517,3 +517,10 @@ extern void TIFFYCbCrtoRGB(TIFFYCbCrToRGB *, uint32, int32, int32,
 #endif /* _TIFFIO_ */
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

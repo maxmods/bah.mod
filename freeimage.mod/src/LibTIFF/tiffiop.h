@@ -1,4 +1,4 @@
-/* $Id: tiffiop.h,v 1.28 2009/11/07 19:18:27 drolon Exp $ */
+/* $Id: tiffiop.h,v 1.36 2011/01/06 20:52:32 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -61,7 +61,7 @@ extern void *lfind(const void *, const void *, size_t *, size_t,
   Libtiff itself does not require a 64-bit type, but bundled TIFF
   utilities may use it.
 */
-#define TIFF_INT64_T  signed long long
+#define TIFF_INT64_T signed long long
 #define TIFF_UINT64_T unsigned long long
 
 #include "tiffio.h"
@@ -236,9 +236,14 @@ struct tiff {
 #endif
 
 /* NB: the uint32 casts are to silence certain ANSI-C compilers */
-#define TIFFhowmany(x, y) ((((uint32)(x))+(((uint32)(y))-1))/((uint32)(y)))
+#define TIFFhowmany(x, y) (((uint32)x < (0xffffffff - (uint32)(y-1))) ?	\
+			   ((((uint32)(x))+(((uint32)(y))-1))/((uint32)(y))) : \
+			   0U)
 #define TIFFhowmany8(x) (((x)&0x07)?((uint32)(x)>>3)+1:(uint32)(x)>>3)
 #define	TIFFroundup(x, y) (TIFFhowmany(x,y)*(y))
+
+/* Safe multiply which returns zero if there is an integer overflow */
+#define TIFFSafeMultiply(t,v,m) ((((t)m != (t)0) && (((t)((v*m)/m)) == (t)v)) ? (t)(v*m) : (t)0)
 
 #define TIFFmax(A,B) ((A)>(B)?(A):(B))
 #define TIFFmin(A,B) ((A)<(B)?(A):(B))
@@ -336,3 +341,10 @@ extern	TIFFCodec _TIFFBuiltinCODECS[];
 #endif /* _TIFFIOP_ */
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -58,8 +58,10 @@ Import "src/FreeImage/Conversion24.cpp"
 Import "src/FreeImage/Conversion32.cpp"
 Import "src/FreeImage/Conversion4.cpp"
 Import "src/FreeImage/Conversion8.cpp"
+Import "src/FreeImage/ConversionFloat.cpp"
 Import "src/FreeImage/ConversionRGBF.cpp"
 Import "src/FreeImage/ConversionType.cpp"
+Import "src/FreeImage/ConversionUINT16.cpp"
 Import "src/FreeImage/FreeImage.cpp"
 Import "src/FreeImage/FreeImageC.c"
 Import "src/FreeImage/FreeImageIO.cpp"
@@ -350,6 +352,9 @@ Import "src/OpenEXR/IlmThread/IlmThread.cpp"
 Import "src/OpenEXR/IlmThread/IlmThreadMutex.cpp"
 Import "src/OpenEXR/IlmThread/IlmThreadPool.cpp"
 Import "src/OpenEXR/IlmThread/IlmThreadSemaphore.cpp"
+Import "src/OpenEXR/IlmImf/ImfAcesFile.cpp"
+Import "src/OpenEXR/IlmImf/ImfMultiView.cpp"
+Import "src/OpenEXR/IlmImf/ImfStringVectorAttribute.cpp"
 
 'Import "src/LibRawLite/internal/dcraw_common.cpp"
 'Import "src/LibRawLite/internal/dcraw_fileio.cpp"

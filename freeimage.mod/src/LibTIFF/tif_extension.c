@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_extension.c,v 1.28 2009/11/07 19:18:27 drolon Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_extension.c,v 1.36 2011/01/06 20:52:31 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -109,3 +109,10 @@ void TIFFSetClientInfo( TIFF *tif, void *data, const char *name )
 
     tif->tif_clientinfo = link;
 }
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

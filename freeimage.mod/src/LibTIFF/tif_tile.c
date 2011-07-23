@@ -1,4 +1,4 @@
-/* $Id: tif_tile.c,v 1.28 2009/11/07 19:18:27 drolon Exp $ */
+/* $Id: tif_tile.c,v 1.36 2011/01/06 20:52:31 drolon Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler
@@ -271,3 +271,10 @@ _TIFFDefaultTileSize(TIFF* tif, uint32* tw, uint32* th)
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

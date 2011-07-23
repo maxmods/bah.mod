@@ -1,4 +1,4 @@
-/* $Id: tif_codec.c,v 1.28 2009/11/07 19:18:27 drolon Exp $ */
+/* $Id: tif_codec.c,v 1.36 2011/01/06 20:52:31 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -151,3 +151,10 @@ TIFFIsCODECConfigured(uint16 scheme)
 	return 0;
 }
 
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

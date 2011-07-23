@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -268,7 +268,6 @@ Const EXR_PXR24:Int = $0010    ' save with lossy 24-bit Float compression
 Const EXR_B44:Int = $0020      ' save with lossy 44% Float compression - goes To 22% when combined with EXR_LC
 Const EXR_LC:Int = $0040       ' save images with one luminance And two chroma channels, rather than as RGB (lossy compression)
 
-
 Const JPEG_DEFAULT:Int = 0
 Const JPEG_FAST:Int = $0001
 Const JPEG_ACCURATE:Int = $0002
@@ -279,9 +278,54 @@ Const JPEG_QUALITYNORMAL:Int = $0200
 Const JPEG_QUALITYAVERAGE:Int = $0400
 Const JPEG_QUALITYBAD:Int = $0800
 Const JPEG_PROGRESSIVE:Int = $2000
+Const JPEG_SUBSAMPLING_411:Int = $1000		' save with high 4x1 chroma subsampling (4:1:1) 
+Const JPEG_SUBSAMPLING_420:Int = $4000		' save with medium 2x2 medium chroma subsampling (4:2:0) - Default value
+Const JPEG_SUBSAMPLING_422:Int = $8000		' save with low 2x1 chroma subsampling (4:2:2) 
+Const JPEG_SUBSAMPLING_444:Int = $10000	' save with no chroma subsampling (4:4:4)
+Const JPEG_OPTIMIZE:Int = $20000		' on saving, compute optimal Huffman coding tables (can reduce a few percent of file size)
+Const JPEG_BASELINE:Int = $40000		' save basic JPEG, without metadata Or any markers
+
+Const KOALA_DEFAULT:Int = 0
+Const LBM_DEFAULT:Int = 0
+Const MNG_DEFAULT:Int = 0
+Const PCD_DEFAULT:Int = 0
+Const PCD_BASE:Int = 1		' Load the bitmap sized 768 x 512
+Const PCD_BASEDIV4:Int = 2		' Load the bitmap sized 384 x 256
+Const PCD_BASEDIV16:Int = 3		' Load the bitmap sized 192 x 128
+Const PCX_DEFAULT:Int = 0
+Const PFM_DEFAULT:Int = 0
+Const PICT_DEFAULT:Int = 0
+
+Const PNG_DEFAULT:Int = 0
+Const PNG_IGNOREGAMMA:Int = 1		' loading: avoid Gamma correction
+Const PNG_Z_BEST_SPEED:Int = $0001	' save using ZLib level 1 compression flag (Default value is 6)
+Const PNG_Z_DEFAULT_COMPRESSION:Int = $0006	' save using ZLib level 6 compression flag (Default recommended value)
+Const PNG_Z_BEST_COMPRESSION:Int = $0009	' save using ZLib level 9 compression flag (Default value is 6)
+Const PNG_Z_NO_COMPRESSION:Int = $0100	' save without ZLib compression
+Const PNG_INTERLACED:Int = $0200	' save using Adam7 interlacing (use | To combine with other save flags)
+
 Const PNM_DEFAULT:Int = 0
 Const PNM_SAVE_RAW:Int = 0
 Const PNM_SAVE_ASCII:Int = 1
+
+Const PSD_DEFAULT:Int = 0
+Const PSD_CMYK:Int = 1		' reads tags For separated CMYK (Default is conversion To RGB)
+Const PSD_LAB:Int = 2		' reads tags For CIELab (Default is conversion To RGB)
+
+Const RAS_DEFAULT:Int = 0
+Const RAW_DEFAULT:Int = 0		' Load the file as linear RGB 48-bit
+Const RAW_PREVIEW:Int = 1		' Try To Load the embedded JPEG preview with included Exif Data Or Default To RGB 24-bit
+Const RAW_DISPLAY:Int = 2		' Load the file as RGB 24-bit
+Const SGI_DEFAULT:Int = 0
+
+Const TARGA_DEFAULT:Int = 0
+Const TARGA_LOAD_RGB888:Int = 1       ' If set the loader converts RGB555 And ARGB8888 -> RGB888.
+Const TARGA_SAVE_RLE:Int = 2		' If set, the writer saves with RLE compression
+
+Const WBMP_DEFAULT:Int = 0
+Const XBM_DEFAULT:Int = 0
+Const XPM_DEFAULT:Int = 0
+
 Const TIFF_DEFAULT:Int = 0
 Const TIFF_CMYK:Int = $0001
 Const TIFF_PACKBITS:Int = $0100
@@ -292,6 +336,7 @@ Const TIFF_CCITTFAX3:Int = $1000
 Const TIFF_CCITTFAX4:Int = $2000
 Const TIFF_LZW:Int = $4000
 Const TIFF_JPEG:Int = $8000
+Const TIFF_LOGLUV:Int = $10000	' save using LogLuv compression
 
 Const FID_FS:Int = 0
 Const FID_BAYER4x4	:Int = 1
@@ -321,6 +366,7 @@ Const FIMD_XMP:Int = 7            ' Abobe XMP metadata
 Const FIMD_GEOTIFF:Int = 8        ' GeoTIFF metadata
 Const FIMD_ANIMATION:Int = 9      ' Animation metadata
 Const FIMD_CUSTOM:Int = 10        ' Used To attach other metadata types To a dib
+Const FIMD_EXIF_RAW:Int = 11      ' Exif metadata as a raw buffer
 
 Const FIDT_NOTYPE:Int = 0     ' placeholder 
 Const FIDT_BYTE:Int = 1       ' 8-bit unsigned integer 
@@ -361,4 +407,10 @@ Const FIJPEG_OP_TRANSVERSE:Int = 4    ' transpose across UR-to-LL axis
 Const FIJPEG_OP_ROTATE_90:Int = 5    ' 90-degree clockwise rotation
 Const FIJPEG_OP_ROTATE_180:Int = 6    ' 180-degree rotation
 Const FIJPEG_OP_ROTATE_270:Int = 7    ' 270-degree clockwise (or 90 ccw)
+
+Const FI_COLOR_IS_RGB_COLOR	:Int = $00	' RGBQUAD color is a RGB color (contains no valid alpha channel)
+Const FI_COLOR_IS_RGBA_COLOR:Int = $01	' RGBQUAD color is a RGBA color (contains a valid alpha channel)
+Const FI_COLOR_FIND_EQUAL_COLOR:Int = $02	' For palettized images: lookup equal RGB color from palette
+Const FI_COLOR_ALPHA_IS_INDEX:Int = $04	' The color's rgbReserved member (alpha) contains the palette index to be used
+Const FI_COLOR_PALETTE_SEARCH_MASK:Int = (FI_COLOR_FIND_EQUAL_COLOR | FI_COLOR_ALPHA_IS_INDEX)	' No color lookup is performed
 

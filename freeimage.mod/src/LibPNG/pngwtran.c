@@ -1,8 +1,8 @@
 
 /* pngwtran.c - transforms the data in a row for PNG writers
  *
- * Last changed in libpng 1.2.41 [December 3, 2009]
- * Copyright (c) 1998-2009 Glenn Randers-Pehrson
+ * Last changed in libpng 1.4.1 [February 25, 2010]
+ * Copyright (c) 1998-2010 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
  * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  *
@@ -11,10 +11,10 @@
  * and license in png.h
  */
 
-#define PNG_INTERNAL
 #define PNG_NO_PEDANTIC_WARNINGS
 #include "png.h"
 #ifdef PNG_WRITE_SUPPORTED
+#include "pngpriv.h"
 
 /* Transform the data according to the user's wishes.  The order of
  * transformations is significant.
@@ -30,7 +30,8 @@ png_do_write_transformations(png_structp png_ptr)
 #ifdef PNG_WRITE_USER_TRANSFORM_SUPPORTED
    if (png_ptr->transformations & PNG_USER_TRANSFORM)
       if (png_ptr->write_user_transform_fn != NULL)
-        (*(png_ptr->write_user_transform_fn)) /* User write transform function */
+        (*(png_ptr->write_user_transform_fn)) /* User write transform
+                                                 function */
           (png_ptr,                    /* png_ptr */
            &(png_ptr->row_info),       /* row_info:     */
              /*  png_uint_32 width;          width of row */
@@ -93,9 +94,6 @@ png_do_pack(png_row_infop row_info, png_bytep row, png_uint_32 bit_depth)
    png_debug(1, "in png_do_pack");
 
    if (row_info->bit_depth == 8 &&
-#ifdef PNG_USELESS_TESTS_SUPPORTED
-       row != NULL && row_info != NULL &&
-#endif
       row_info->channels == 1)
    {
       switch ((int)bit_depth)
@@ -197,6 +195,9 @@ png_do_pack(png_row_infop row_info, png_bytep row, png_uint_32 bit_depth)
                *dp = (png_byte)v;
             break;
          }
+
+         default:
+            break;
       }
       row_info->bit_depth = (png_byte)bit_depth;
       row_info->pixel_depth = (png_byte)(bit_depth * row_info->channels);
@@ -219,11 +220,7 @@ png_do_shift(png_row_infop row_info, png_bytep row, png_color_8p bit_depth)
 {
    png_debug(1, "in png_do_shift");
 
-#ifdef PNG_USELESS_TESTS_SUPPORTED
-   if (row != NULL && row_info != NULL &&
-#else
    if (
-#endif
       row_info->color_type != PNG_COLOR_TYPE_PALETTE)
    {
       int shift_start[4], shift_dec[4];
@@ -344,9 +341,6 @@ png_do_write_swap_alpha(png_row_infop row_info, png_bytep row)
 {
    png_debug(1, "in png_do_write_swap_alpha");
 
-#ifdef PNG_USELESS_TESTS_SUPPORTED
-   if (row != NULL && row_info != NULL)
-#endif
    {
       if (row_info->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
       {
@@ -433,9 +427,6 @@ png_do_write_invert_alpha(png_row_infop row_info, png_bytep row)
 {
    png_debug(1, "in png_do_write_invert_alpha");
 
-#ifdef PNG_USELESS_TESTS_SUPPORTED
-   if (row != NULL && row_info != NULL)
-#endif
    {
       if (row_info->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
       {
@@ -525,9 +516,6 @@ png_do_write_intrapixel(png_row_infop row_info, png_bytep row)
    png_debug(1, "in png_do_write_intrapixel");
 
    if (
-#ifdef PNG_USELESS_TESTS_SUPPORTED
-       row != NULL && row_info != NULL &&
-#endif
        (row_info->color_type & PNG_COLOR_MASK_COLOR))
    {
       int bytes_per_pixel;
