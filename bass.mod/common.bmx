@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -291,6 +291,11 @@ Const BASS_CONFIG_UPDATETHREADS:Int = 24
 ?linux
 Const BASS_CONFIG_DEV_BUFFER:Int = 27
 ?
+Const BASS_CONFIG_DEV_DEFAULT:Int = 36
+
+Const BASS_CONFIG_NET_READTIMEOUT:Int = 37
+
+
 ' BASS_SetConfigPtr options
 Const BASS_CONFIG_NET_AGENT:Int = 16
 Const BASS_CONFIG_NET_PROXY:Int = 17
@@ -304,7 +309,7 @@ Const BASS_DEVICE_CPSPEAKERS:Int = 1024 ' detect speakers via Windows control pa
 Const BASS_DEVICE_SPEAKERS:Int = 2048 ' force enabling of speaker assignment
 Const BASS_DEVICE_NOSPEAKER:Int = 4096 ' ignore speaker arrangement
 ?linux
-Const BASS_DEVICE_DMIX:Int = 8192 ' use "dmix" (shared) output
+Const BASS_DEVICE_DMIX:Int = 8192 ' use ALSA "dmix" plugin
 ?
 
 ' DirectSound interfaces (for use with BASS_GetDSoundObject)
@@ -451,6 +456,9 @@ Const BASS_CTYPE_MUSIC_MO3:Int = $00100 ' MO3 flag
 Const BASS_POS_BYTE:Int = 0		' byte position
 Const BASS_POS_MUSIC_ORDER:Int = 1		' order.row position, MAKELONG(order,row)
 Const BASS_POS_DECODE:Int = $10000000 ' flag: get the decoding (not playing) position
+Const BASS_POS_DECODETO:Int = $20000000 ' flag: decode To the position instead of seeking
+
+
 
 ' BASS_ChannelIsActive return values
 Const BASS_ACTIVE_STOPPED:Int = 0
@@ -492,6 +500,8 @@ Const BASS_ATTRIB_FREQ:Int = 1
 Const BASS_ATTRIB_VOL:Int = 2
 Const BASS_ATTRIB_PAN:Int = 3
 Const BASS_ATTRIB_EAXMIX:Int = 4
+Const BASS_ATTRIB_NOBUFFER:Int = 5
+
 Const BASS_ATTRIB_MUSIC_AMPLIFY:Int = $100
 Const BASS_ATTRIB_MUSIC_PANSEP:Int = $101
 Const BASS_ATTRIB_MUSIC_PSCALER:Int = $102
@@ -510,6 +520,8 @@ Const BASS_DATA_FFT1024:Int = $80000002	' 1024 FFT
 Const BASS_DATA_FFT2048:Int = $80000003	' 2048 FFT
 Const BASS_DATA_FFT4096:Int = $80000004	' 4096 FFT
 Const BASS_DATA_FFT8192:Int = $80000005	' 8192 FFT
+Const BASS_DATA_FFT16384:Int = $80000006	' 16384 FFT
+
 Const BASS_DATA_FFT_INDIVIDUAL:Int = $10	' FFT flag: FFT for each channel, else all combined
 Const BASS_DATA_FFT_NOWINDOW:Int = $20	' FFT flag: no Hanning window
 
@@ -520,12 +532,16 @@ Const BASS_TAG_OGG:Int = 2	' OGG comments : series of null-terminated UTF-8 stri
 Const BASS_TAG_HTTP:Int = 3	' HTTP headers : series of null-terminated ANSI strings
 Const BASS_TAG_ICY:Int = 4	' ICY headers : series of null-terminated ANSI strings
 Const BASS_TAG_META:Int = 5	' ICY metadata : ANSI string
+Const BASS_TAG_APE:Int = 6	' APE tags : series of Null-terminated UTF-8 strings
+
 Const BASS_TAG_VENDOR:Int = 9	' OGG encoder : UTF-8 string
 Const BASS_TAG_LYRICS3:Int = 10	' Lyric3v2 tag : ASCII string
 Const BASS_TAG_CA_CODEC:Int = 11 ' CoreAudio codec info : TAG_CA_CODEC structure
 Const BASS_TAG_RIFF_INFO:Int = $100 ' RIFF/WAVE tags : series of null-terminated ANSI strings
 Const BASS_TAG_RIFF_BEXT:Int = $101 ' RIFF/BWF "bext" tags : TAG_BEXT structure
 Const BASS_TAG_RIFF_CART:Int = $102 ' RIFF/BWF "cart" tags : TAG_CART structure
+Const BASS_TAG_RIFF_DISP:Int = $103 ' RIFF "DISP" text tag : ANSI String
+
 Const BASS_TAG_MUSIC_NAME:Int = $10000	' MOD music name : ANSI string
 Const BASS_TAG_MUSIC_MESSAGE:Int = $10001	' MOD message : ANSI string
 Const BASS_TAG_MUSIC_ORDERS:Int = $10002	' MOD order list : BYTE array of pattern numbers

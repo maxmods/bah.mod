@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.Bass
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: BASS - see http://www.un4seen.com/bass.html#license"
-ModuleInfo "Copyright: Wrapper - 2008-2010 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
 ModuleInfo "Copyright: BASS - 1999-2010 Un4seen Developments Ltd."
 
 ModuleInfo "History: 1.00 Initial Release"
