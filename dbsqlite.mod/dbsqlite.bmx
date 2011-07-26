@@ -41,6 +41,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.12"
 ModuleInfo "History: Update to SQLite 3.7.7.1."
 ModuleInfo "History: Updated documentation."
+ModuleInfo "History: Added loadOrSaveDB() function."
 ModuleInfo "History: 1.11"
 ModuleInfo "History: Update to SQLite 3.6.15."
 ModuleInfo "History: Fixed prepared statement reuse issue."
@@ -233,12 +234,13 @@ Type TDBSQLite Extends TDBConnection
 			close()
 		End If
 		
-		If sqlite3_open(convertISO8859toUTF8(_dbname), Varptr handle) = SQLITE_OK Then
+		Local ret:Int = sqlite3_open(convertISO8859toUTF8(_dbname), Varptr handle)
+		If ret = SQLITE_OK Then
 			_isOpen = True
 
 			Return True
 		Else
-			
+			setError("Error opening database", Null, TDatabaseError.ERROR_CONNECTION, ret)
 		End If
 		
 		Return False
@@ -672,6 +674,46 @@ Type TSQLiteResultSet Extends TQueryResultSet
 
 End Type
 
+Rem
+bbdoc: Loads an SQLite database from file into an already open in-memory database, or saves an in-memory database to a file.
+End Rem
+Function loadOrSaveDB:Int(inMemory:TDBSQLite, filename:String, isSave:Int, database:String = "main")
+
+	Local db:TDBSQLite = TDBSQLite(TDBSQLite.Create(filename))
+	
+	Local rc:Int
+	
+	If db.isOpen() Then
+		Local toHandle:Byte Ptr
+		Local fromHandle:Byte Ptr
+		
+		If isSave Then
+			fromHandle = inMemory.handle
+			toHandle = db.handle
+		Else
+			fromHandle = db.handle
+			toHandle = inMemory.handle
+		End If
+		
+		Local d:Byte Ptr = database.ToUTF8String()
+		Local backup:Byte Ptr = sqlite3_backup_init(toHandle, d, fromHandle, d)
+		
+		If backup Then
+			sqlite3_backup_step(backup, -1)
+			sqlite3_backup_finish(backup)
+		End If
+		
+		rc = sqlite3_errcode(toHandle)
+		
+		db.close()
+	Else
+		If db.hasError() Then
+			rc = db.error().errorValue
+		End If
+	End If
+	
+	Return rc
+End Function
 
 
 Type TSQLiteDatabaseLoader Extends TDatabaseLoader

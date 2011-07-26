@@ -99,7 +99,11 @@ Extern
 	Function sqlite3_bind_blob:Int(stmtHandle:Byte Ptr, index:Int, value:Byte Ptr, size:Int, how:Int)
 	Function sqlite3_changes:Int(handle:Byte Ptr)
 	Function sqlite3_errmsg:Byte Ptr(handle:Byte Ptr)
-	
+	Function sqlite3_backup_init:Byte Ptr(toHandle:Byte Ptr, dbTo:Byte Ptr, fromHandle:Byte Ptr, dbFrom:Byte Ptr)
+	Function sqlite3_backup_step:Int(handle:Byte Ptr, page:Int)
+	Function sqlite3_backup_finish:Int(handle:Byte Ptr)
+	Function sqlite3_errcode:Int(handle:Byte Ptr)
+
 	Function bmx_sqlite3_column_int64(stmtHandle:Byte Ptr, index:Int, value:Long Ptr)
 	Function bmx_sqlite3_last_insert_rowid(handle:Byte Ptr, id:Long Ptr)
 
