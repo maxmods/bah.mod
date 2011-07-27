@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,11 @@ SuperStrict
 Import BRL.Blitz
 Import BRL.FileSystem
 
+?linux
+Import "-lIrrKlang"
+?Not linux
 Import "-lirrKlang"
+?
 
 Import "include/*.h"
 Import "glue.cpp"
