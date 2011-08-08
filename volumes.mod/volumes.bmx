@@ -25,11 +25,13 @@ bbdoc: Volumes
 End Rem
 Module BaH.Volumes
 
-ModuleInfo "Version: 1.07"
+ModuleInfo "Version: 1.08"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "Copyright: (c) 2006-2011 Bruce A Henderson"
 
+ModuleInfo "History: 1.08"
+ModuleInfo "History: Added support for FOLDERID paths for Win32. Automatically maps CSIDL to FOLDERID."
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Added support for all native CSIDL paths on Win32 using GetCustomDir."
 ModuleInfo "History: Added support for 'k' paths on Mac using GetCustomDir."
