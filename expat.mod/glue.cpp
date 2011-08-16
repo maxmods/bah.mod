@@ -198,7 +198,7 @@ void XMLCALL bmx_expat_StartElementHandler(void *userData, const char *name, con
 	BBArray *p = bbArrayNew1D( "$",n );
 	BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
 	for( int i = 0; i < n; ++i ){
-		s[i] = bbStringFromUTF8String(atts[n]);
+		s[i] = bbStringFromUTF8String(atts[i]);
 		BBRETAIN(s[i]);
 	}
 
