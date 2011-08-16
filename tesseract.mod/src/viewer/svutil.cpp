@@ -22,10 +22,6 @@
 
 #include <stdio.h>
 #ifdef WIN32
-#ifndef __GNUC__
-#include <windows.h>
-#include <winsock.h>
-#endif
 struct addrinfo {
   struct sockaddr* ai_addr;
   int ai_addrlen;
@@ -68,7 +64,7 @@ const int kMaxMsgSize = 4096;
 // Signals a thread to exit.
 void SVSync::ExitThread() {
 #ifdef WIN32
-  //ExitThread(0);
+  // ExitThread(0);
 #else
   pthread_exit(0);
 #endif
@@ -250,7 +246,7 @@ char* SVNetwork::Receive() {
     msg_buffer_in_[i] = '\0';
     has_content = true;
 #ifdef WIN32
-    return strtok(msg_buffer_in_,"\n");
+    return strtok(msg_buffer_in_, "\n");
 #else
     // Setup a new string tokenizer.
     return strtok_r(msg_buffer_in_, "\n", &buffer_ptr_);

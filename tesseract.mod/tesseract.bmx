@@ -26,8 +26,9 @@ ModuleInfo "License: Apache 2.0"
 ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Update to Tesseract-3.x SVN rev 551."
+ModuleInfo "History: Update to Tesseract-3.x SVN rev 605."
 ModuleInfo "History: Renamed Tess type to Tesseract. Tesseract can now use multiple instances instead of one global instance."
+ModuleInfo "History: Latest Tesseract supports MinGW out of the box! :)"
 ModuleInfo "History: "
 ModuleInfo "History: 1.00 Initial Release (Tesseract-2.03 SVNr205)"
 
@@ -42,21 +43,6 @@ Import BRL.Pixmap
 
 Import "common.bmx"
 
-
-'
-' NOTES:
-'
-' Changes to support compilation under MinGW on Win32.
-'
-' ambigs.cpp      - Win32 __GNUC__ changes
-' platform.h      - Win32 __GNUC__ changes
-' dawg.h          - Win32 __GNUC__ changes
-' pagesegmain.cpp - Win32 __GNUC__ changes
-' ocrclass.h      - Win32 __GNUC__ changes
-' svutil.h        - Win32 __GNUC__ changes
-' svutil.cpp      - Win32 __GNUC__ changes
-' cube/const.h    - Win32 __GNUC__ changes
-'
 
 Rem
 bbdoc: The Tesseract OCR engine.
@@ -116,16 +102,10 @@ Type Tesseract
 	<li><b>value</b> : New value for the variable.</li>
 	</ul>
 	</p>
+	Note: Must be called after Init().
 	End Rem
 	Method SetVariable:Int(name:String, value:String)
 		Return bmx_tess_setvariable(tessPtr, name, value)
-	End Method
-	
-	Rem
-	bbdoc: Same as SetVariable, but the parameter is set only if it is one of the 'init' parameters (defined with *_INIT_* macro).
-	End Rem
-	Method SetVariableIfInit:Int(name:String, value:String)
-		Return bmx_tess_setvariableifinit(tessPtr, name, value)
 	End Method
 	
 	Rem

@@ -24,8 +24,8 @@
  *
  *********************************************************************************/
 
-#ifndef DAWG_H
-#define DAWG_H
+#ifndef DICT_DAWG_H_
+#define DICT_DAWG_H_
 
 /*----------------------------------------------------------------------
               I n c l u d e s
@@ -35,15 +35,13 @@
 #include "ratngs.h"
 #include "params.h"
 
-#ifdef __MSW32__
 #ifndef __GNUC__
-#define NO_EDGE                (inT64) 0xffffffffffffffffll
+#ifdef __MSW32__
+#define NO_EDGE                (inT64) 0xffffffffffffffffi64
+#endif  /*__MSW32__*/
 #else
-#define NO_EDGE                (inT64) 0x001fffffffffffffLL
-#endif
-#else
 #define NO_EDGE                (inT64) 0xffffffffffffffffll
-#endif
+#endif /*__GNUC__*/
 
 /*----------------------------------------------------------------------
               T y p e s
@@ -330,21 +328,6 @@ class DawgInfoVector : public GenericVector<DawgInfo> {
     }
     return true;
   }
-  /// Removes an entry that equals to the given DawgInfo.
-  /// This function assumes that the entries in the vector are unique.
-  /// Returns true if an entry was found and removed.
-  inline bool remove(const DawgInfo &info) {
-    for (int i = 0; i < size_used_; ++i) {
-      if (data_[i] == info) {
-        for (int j = i + 1; j < size_used_; ++j) {
-          data_[j-1] = data_[j];
-        }
-        size_used_--;
-        return true;
-      }
-    }
-    return false;
-  }
 };
 
 //
@@ -500,4 +483,4 @@ class SquishedDawg : public Dawg {
 
 }  // namespace tesseract
 
-#endif
+#endif  // DICT_DAWG_H_

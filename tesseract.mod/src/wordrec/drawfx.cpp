@@ -18,9 +18,10 @@
  **********************************************************************/
 
 #include "mfcpch.h"
-#include          "debugwin.h"
-#include          "werd.h"
 #include          "drawfx.h"
+#include          "debugwin.h"
+#include          "normalis.h"
+#include          "werd.h"
 
 // Include automatically generated configuration file if running autoconf.
 #ifdef HAVE_CONFIG_H
@@ -94,5 +95,5 @@ void create_fxdebug_win() {  //make gradients win
   //                      DEBUG_XPOS,DEBUG_YPOS,
   //                      DEBUG_XSIZE,DEBUG_YSIZE);
   //      else
-  //              fx_debug=fopen(fx_debugfile.string(),"w");
+  //              fx_debug=fopen(fx_debugfile.string(),"wb");
 }

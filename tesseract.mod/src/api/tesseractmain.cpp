@@ -54,9 +54,9 @@ int main(int argc, char **argv) {
   bindtextdomain (PACKAGE, LOCALEDIR);
   textdomain (PACKAGE);
 #endif
-  if (argc == 2 && strcmp(argv[1], "-v") == 0) {
-    fprintf(stderr, "tesseract-%s\n", tesseract::TessBaseAPI::Version());
-    exit(1);
+  if ((argc == 2 && strcmp(argv[1], "-v") == 0) || (argc == 2 && strcmp(argv[1], "--version") == 0)) {
+    fprintf(stderr, "tesseract %s\n", tesseract::TessBaseAPI::Version());
+    exit(0);
   }
   // Make the order of args a bit more forgiving than it used to be.
   const char* lang = "eng";
@@ -103,11 +103,26 @@ int main(int argc, char **argv) {
 
   api.SetOutputName(output);
   api.Init(argv[0], lang, tesseract::OEM_DEFAULT,
-           &(argv[arg]), argc - arg, false);
+           &(argv[arg]), argc - arg, NULL, NULL, false);
   api.SetPageSegMode(pagesegmode);
-
+  
   tprintf(_("Tesseract Open Source OCR Engine v%s with Leptonica\n"),
            tesseract::TessBaseAPI::Version());
+
+  
+  FILE* fin = fopen(image, "rb");
+  if (fin == NULL) {
+    printf("Cannot open input file: %s\n", image);
+    exit(2);
+  } 
+  fclose(fin);
+  
+  PIX   *pixs;
+  if ((pixs = pixRead(image)) == NULL) {
+    printf("Unsupported image type.\n");
+    exit(3);
+  }
+  pixDestroy(&pixs);
 
   STRING text_out;
   if (!api.ProcessPages(image, NULL, 0, &text_out)) {
@@ -119,10 +134,9 @@ int main(int argc, char **argv) {
   api.GetBoolVariable("tessedit_create_boxfile", &output_box);
   STRING outfile = output;
   outfile += output_hocr ? ".html" : output_box ? ".box" : ".txt";
-  FILE* fout = fopen(outfile.string(), "w");
+  FILE* fout = fopen(outfile.string(), "wb");
   if (fout == NULL) {
     tprintf(_("Cannot create output file %s\n"), outfile.string());
-    fclose(fout);
     exit(1);
   }
   fwrite(text_out.string(), 1, text_out.length(), fout);
@@ -133,7 +147,7 @@ int main(int argc, char **argv) {
 
 #ifdef __MSW32__
 
-char szAppName[] = "Tessedit";   //app name
+char szAppName[] = "Tesseract";   //app name
 int initialized = 0;
 
 /**********************************************************************

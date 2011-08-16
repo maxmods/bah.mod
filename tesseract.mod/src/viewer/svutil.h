@@ -32,17 +32,16 @@
 #define vsnprintf _vsnprintf
 #endif
 #pragma warning(disable:4786)
-#include <string>
 #else
-#include <string>
 #include "platform.h"
 #include <windows.h>
 #endif
 #else
 #include <pthread.h>
 #include <semaphore.h>
-#include <string>
 #endif
+
+#include <string>
 
 #ifndef MAX
 #define MAX(a, b)  ((a > b) ? a : b)
@@ -135,7 +134,7 @@ class SVNetwork {
   /// Stores the messages which are supposed to go out.
   std::string msg_buffer_out_;
 
-  bool has_content; // Win32 (strtok)
+  bool has_content;  // Win32 (strtok)
   /// Where we are at in our msg_buffer_in_
   char* buffer_ptr_;  // Unix (strtok_r)
 };

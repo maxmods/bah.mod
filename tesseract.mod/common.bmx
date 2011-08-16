@@ -29,7 +29,6 @@ Extern
 	Function bmx_tess_clearadaptiveclassifier(handle:Byte Ptr)
 	Function bmx_tess_end(handle:Byte Ptr)
 	Function bmx_tess_isvalidword:Int(handle:Byte Ptr, word:String)
-	Function bmx_tess_setvariableifinit:Int(handle:Byte Ptr, name:String, value:String)
 	Function bmx_tess_getintvariable:Int(handle:Byte Ptr, name:String, value:Int Ptr)
 	Function bmx_tess_getboolvariable:Int(handle:Byte Ptr, name:String, value:Int Ptr)
 	Function bmx_tess_getdoublevariable:Int(handle:Byte Ptr, name:String, value:Double Ptr)

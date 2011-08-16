@@ -18,6 +18,9 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
+#include <string>
+#include <algorithm>
+
 #include "ambigs.h"
 #include "helpers.h"
 
@@ -25,9 +28,9 @@
 #ifndef __GNUC__
 #define strtok_r strtok_s
 #else
-char *strtok_r(char *str, const char *delim, char **save);
-#endif
-#endif
+#include "strtok_r.h"
+#endif /* __GNUC__ */
+#endif /* WIN32 */
 
 namespace tesseract {
 

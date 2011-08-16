@@ -39,7 +39,6 @@ extern "C" {
 	void bmx_tess_clearadaptiveclassifier(tesseract::TessBaseAPI * api);
 	void bmx_tess_end(tesseract::TessBaseAPI * api);
 	int bmx_tess_isvalidword(tesseract::TessBaseAPI * api, BBString * word);
-	int bmx_tess_setvariableifinit(tesseract::TessBaseAPI * api, BBString * name, BBString * value);
 	int bmx_tess_getintvariable(tesseract::TessBaseAPI * api, BBString * name, int * value);
 	int bmx_tess_getboolvariable(tesseract::TessBaseAPI * api, BBString * name, int * value);
 	int bmx_tess_getdoublevariable(tesseract::TessBaseAPI * api, BBString * name, double * value);
@@ -98,15 +97,6 @@ void bmx_tess_end(tesseract::TessBaseAPI * api) {
 int bmx_tess_isvalidword(tesseract::TessBaseAPI * api, BBString * word) {
 	char * p = bbStringToCString(word);
 	int res = api->IsValidWord(p);
-	bbMemFree(p);
-	return res;
-}
-
-int bmx_tess_setvariableifinit(tesseract::TessBaseAPI * api, BBString * name, BBString * value) {
-	char * d = bbStringToCString(name);
-	char * p = bbStringToCString(value);
-	int res = static_cast<int>(api->SetVariableIfInit(d, p));
-	bbMemFree(d);
 	bbMemFree(p);
 	return res;
 }
