@@ -15,8 +15,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -28,7 +28,9 @@
 
 #include "taglib_export.h"
 #include "tfile.h"
+#include "tlist.h"
 
+#include "flacpicture.h"
 #include "flacproperties.h"
 
 namespace TagLib {
@@ -181,6 +183,24 @@ namespace TagLib {
        * \deprecated This method will not be public in a future release.
        */
       long streamLength();  // BIC: remove
+
+      /*!
+       * Returns a list of pictures attached to the FLAC file.
+       */
+      List<Picture *> pictureList();
+
+      /*!
+       * Remove all attached images.
+       */
+      void removePictures();
+
+      /*!
+       * Add a new picture to the file. The file takes ownership of the
+       * picture and will handle freeing its memory.
+       *
+       * \note The file will be saved only after calling save().
+       */
+      void addPicture(Picture *picture);
 
     private:
       File(const File &);

@@ -15,8 +15,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -36,7 +36,8 @@ class RIFF::WAV::File::FilePrivate
 public:
   FilePrivate() :
     properties(0),
-    tag(0)
+    tag(0),
+    tagChunkID("ID3 ")
   {
 
   }
@@ -49,6 +50,7 @@ public:
 
   Properties *properties;
   ID3v2::Tag *tag;
+  ByteVector tagChunkID;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +87,7 @@ bool RIFF::WAV::File::save()
     return false;
   }
 
-  setChunkData("ID3 ", d->tag->render());
+  setChunkData(d->tagChunkID, d->tag->render());
 
   return true;
 }
@@ -96,12 +98,21 @@ bool RIFF::WAV::File::save()
 
 void RIFF::WAV::File::read(bool readProperties, Properties::ReadStyle propertiesStyle)
 {
+  ByteVector formatData;
+  uint streamLength = 0;
   for(uint i = 0; i < chunkCount(); i++) {
-    if(chunkName(i) == "ID3 ")
+    if(chunkName(i) == "ID3 " || chunkName(i) == "id3 ") {
+      d->tagChunkID = chunkName(i);
       d->tag = new ID3v2::Tag(this, chunkOffset(i));
+    }
     else if(chunkName(i) == "fmt " && readProperties)
-      d->properties = new Properties(chunkData(i), propertiesStyle);
+      formatData = chunkData(i);
+    else if(chunkName(i) == "data" && readProperties)
+      streamLength = chunkDataSize(i);
   }
+
+  if(!formatData.isEmpty())
+    d->properties = new Properties(formatData, streamLength, propertiesStyle);
 
   if(!d->tag)
     d->tag = new ID3v2::Tag;

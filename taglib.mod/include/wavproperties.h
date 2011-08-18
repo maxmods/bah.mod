@@ -15,8 +15,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -26,6 +26,7 @@
 #ifndef TAGLIB_WAVPROPERTIES_H
 #define TAGLIB_WAVPROPERTIES_H
 
+#include "taglib.h"
 #include "audioproperties.h"
 
 namespace TagLib {
@@ -55,6 +56,12 @@ namespace TagLib {
 	Properties(const ByteVector &data, ReadStyle style);
 
 	/*!
+	 * Create an instance of WAV::Properties with the data read from the
+	 * ByteVector \a data and the length calculated using \a streamLength.
+	 */
+	Properties(const ByteVector &data, uint streamLength, ReadStyle style);
+
+	/*!
 	 * Destroys this WAV::Properties instance.
 	 */
 	virtual ~Properties();
@@ -65,6 +72,8 @@ namespace TagLib {
 	virtual int bitrate() const;
 	virtual int sampleRate() const;
 	virtual int channels() const;
+
+	int sampleWidth() const;
 
       private:
 	Properties(const Properties &);

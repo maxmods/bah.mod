@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2010 Bruce A Henderson
+' Copyright (c) 2009-2011 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -28,17 +28,23 @@ Import "taglib/tagunion.cpp"
 Import "taglib/fileref.cpp"
 Import "taglib/tag.cpp"
 
+Import "taglib/ape/apefile.cpp"
 Import "taglib/ape/apefooter.cpp"
 Import "taglib/ape/apetag.cpp"
 Import "taglib/ape/apeitem.cpp"
+Import "taglib/ape/apeproperties.cpp"
 
 Import "taglib/asf/asfattribute.cpp"
 Import "taglib/asf/asftag.cpp"
 Import "taglib/asf/asffile.cpp"
+Import "taglib/asf/asfpicture.cpp"
 Import "taglib/asf/asfproperties.cpp"
 
 Import "taglib/flac/flacfile.cpp"
+Import "taglib/flac/flacmetadatablock.cpp"
+Import "taglib/flac/flacpicture.cpp"
 Import "taglib/flac/flacproperties.cpp"
+Import "taglib/flac/flacunknownmetadatablock.cpp"
 
 Import "taglib/mp4/mp4atom.cpp"
 Import "taglib/mp4/mp4tag.cpp"

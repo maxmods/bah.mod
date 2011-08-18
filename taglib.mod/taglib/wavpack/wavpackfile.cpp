@@ -19,8 +19,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -53,7 +53,6 @@ public:
     APESize(0),
     ID3v1Location(-1),
     properties(0),
-    scanned(false),
     hasAPE(false),
     hasID3v1(false) {}
 
@@ -70,7 +69,6 @@ public:
   TagUnion tag;
 
   Properties *properties;
-  bool scanned;
 
   // These indicate whether the file *on disk* has these tags, not if
   // this data structure does.  This is used in computing offsets.
@@ -232,8 +230,7 @@ void WavPack::File::read(bool readProperties, Properties::ReadStyle /* propertie
 
   if(readProperties) {
     seek(0);
-    d->properties = new Properties(readBlock(WavPack::HeaderSize),
-                                   length() - d->APESize);
+    d->properties = new Properties(this, length() - d->APESize);
   }
 }
 

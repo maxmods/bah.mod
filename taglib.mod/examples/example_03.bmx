@@ -11,7 +11,7 @@ Import brl.bankstream
 Import bah.freeimage
 
 ' path to an mp3...
-Local path:String = "C:/000_programming/blitz/music/01 - Our moon.mp3"
+Local path:String = "/Volumes/media/Music/Pink Floyd/the division bell/08 coming back to life.mp3"
 
 Graphics 800, 600, 0
 

@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2010 Bruce A Henderson
+' Copyright (c) 2009-2011 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -25,9 +25,9 @@ Module BaH.TagLib
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MPL"
 ModuleInfo "Copyright: TagLib - Scott Wheeler"
-ModuleInfo "Copyright: Wrapper - 2009-2010 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (TagLib 1.6.3)"
+ModuleInfo "History: 1.00 Initial Release (TagLib 1.7.0)"
 
 ModuleInfo "CC_OPTS: -DHAVE_ZLIB -DWITH_MP4 -DWITH_ASF -DTAGLIB_STATIC"
 
@@ -984,6 +984,9 @@ Type TTLMP4CoverArt
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TTLMP4CoverArtList
 
 	Field coverArtListPtr:Byte Ptr

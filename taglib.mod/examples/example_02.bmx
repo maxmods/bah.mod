@@ -8,7 +8,7 @@ Import BRL.StandardIO
 Import BRL.FileSystem
 
 ' A folder which contains some audio files
-Local path:String = "/Volumes/Audio Library/Pink Floyd/Dark Side Of The Moon/"
+Local path:String = "/Volumes/media/Music/Pink Floyd/Dark Side Of The Moon/"
 ChangeDir(path)
 
 Local dir:Int = ReadDir(path)

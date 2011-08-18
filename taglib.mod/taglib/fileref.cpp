@@ -1,6 +1,10 @@
 /***************************************************************************
     copyright            : (C) 2002 - 2008 by Scott Wheeler
     email                : wheeler@kde.org
+    
+    copyright            : (C) 2010 by Alex Novichkov
+    email                : novichko@atnet.ru
+                           (added APE file support)
  ***************************************************************************/
 
 /***************************************************************************
@@ -15,8 +19,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -44,6 +48,7 @@
 #include "trueaudiofile.h"
 #include "aifffile.h"
 #include "wavfile.h"
+#include "apefile.h"
 
 using namespace TagLib;
 
@@ -156,6 +161,7 @@ StringList FileRef::defaultFileExtensions()
   l.append("aif");
   l.append("aiff");
   l.append("wav");
+  l.append("ape");
 
   return l;
 }
@@ -248,12 +254,12 @@ File *FileRef::create(FileName fileName, bool readAudioProperties,
     if(ext == "WMA" || ext == "ASF")
       return new ASF::File(fileName, readAudioProperties, audioPropertiesStyle);
 #endif
-    if(ext == "AIF")
+    if(ext == "AIF" || ext == "AIFF")
       return new RIFF::AIFF::File(fileName, readAudioProperties, audioPropertiesStyle);
     if(ext == "WAV")
       return new RIFF::WAV::File(fileName, readAudioProperties, audioPropertiesStyle);
-    if(ext == "AIFF")
-      return new RIFF::AIFF::File(fileName, readAudioProperties, audioPropertiesStyle);
+    if(ext == "APE")
+      return new APE::File(fileName, readAudioProperties, audioPropertiesStyle);
   }
 
   return 0;

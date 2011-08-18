@@ -15,8 +15,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -52,6 +52,7 @@ public:
   int sampleRate;
   int sampleWidth;
   int channels;
+  ByteVector signature;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +99,11 @@ int FLAC::Properties::sampleWidth() const
 int FLAC::Properties::channels() const
 {
   return d->channels;
+}
+
+ByteVector FLAC::Properties::signature() const
+{
+  return d->signature;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,4 +153,6 @@ void FLAC::Properties::read()
   // Real bitrate:
 
   d->bitrate = d->length > 0 ? ((d->streamLength * 8UL) / d->length) / 1000 : 0;
+
+  d->signature = d->data.mid(pos, 32);
 }

@@ -15,8 +15,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -206,6 +206,11 @@ void APE::Tag::addValue(const String &key, const String &value, bool replace)
 void APE::Tag::setItem(const String &key, const Item &item)
 {
   d->itemListMap.insert(key.upper(), item);
+}
+
+bool APE::Tag::isEmpty() const
+{
+  return d->itemListMap.isEmpty();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
