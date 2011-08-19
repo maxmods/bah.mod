@@ -39,6 +39,7 @@ class MaxID3v2FrameList;
 class MaxMP4ItemListMap;
 class MaxMP4CoverArtList;
 class MaxByteVector;
+class MaxOggFieldListMap;
 
 extern "C" {
 
@@ -144,6 +145,15 @@ extern "C" {
 	void bmx_taglib_oggvorbisfile_free(TagLib::Ogg::Vorbis::File * file);
 	TagLib::Vorbis::Properties * bmx_taglib_oggvorbisfile_audioproperties(TagLib::Ogg::Vorbis::File * file);
 	int bmx_taglib_oggvorbisfile_save(TagLib::Ogg::Vorbis::File * file);
+	TagLib::Ogg::XiphComment * bmx_taglib_oggvorbisfile_tag(TagLib::Ogg::Vorbis::File * file);
+
+	MaxOggFieldListMap * bmx_taglib_oggxiphcomment_fieldlistmap(TagLib::Ogg::XiphComment * comment);
+	BBString * bmx_taglib_oggfieldlistmap_field(MaxOggFieldListMap * list, BBString * key);
+	int bmx_taglib_oggfieldlistmap_isempty(MaxOggFieldListMap * list);
+	int bmx_taglib_oggfieldlistmap_size(MaxOggFieldListMap * list);
+	void bmx_taglib_oggfieldlistmap_reset(MaxOggFieldListMap * list);
+	void bmx_taglib_oggfieldlistmap_free(MaxOggFieldListMap * list);
+	BBArray * bmx_taglib_oggfieldlistmap_nextfield(MaxOggFieldListMap * list);
 
 	int bmx_taglib_vorbisproperties_vorbisversion(TagLib::Vorbis::Properties * prop);
 	int bmx_taglib_vorbisproperties_bitratemaximum(TagLib::Vorbis::Properties * prop);
@@ -178,6 +188,14 @@ extern "C" {
 	void bmx_taglib_id3v2urllinkframe_seturl(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text);
 	void bmx_taglib_id3v2urllinkframe_settext(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text);
 	BBString * bmx_taglib_id3v2urllinkframe_tostring(TagLib::ID3v2::UrlLinkFrame * frame);
+
+	BBString * bmx_taglib_id3v2commentsframe_tostring(TagLib::ID3v2::CommentsFrame * frame);
+	BBString * bmx_taglib_id3v2commentsframe_description(TagLib::ID3v2::CommentsFrame * frame);
+	BBString * bmx_taglib_id3v2commentsframe_text(TagLib::ID3v2::CommentsFrame * frame);
+	int bmx_taglib_id3v2commentsframe_textencoding(TagLib::ID3v2::CommentsFrame * frame);
+	void bmx_taglib_id3v2commentsframe_settextencoding(TagLib::ID3v2::CommentsFrame * frame, TagLib::String::Type encoding);
+	void bmx_taglib_id3v2commentsframe_setdescription(TagLib::ID3v2::CommentsFrame * frame, BBString * description);
+	void bmx_taglib_id3v2commentsframe_settext(TagLib::ID3v2::CommentsFrame * frame, BBString * text);
 
 	TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle);
 	TagLib::MP4::Properties * bmx_taglib_mp4file_audioproperties(TagLib::MP4::File * file);
@@ -215,6 +233,19 @@ extern "C" {
 	void bmx_taglib_mp4item_tointpair(TagLib::MP4::Item * item, int * _first, int * _second);
 	BBArray * bmx_taglib_mp4item_tostrings(TagLib::MP4::Item * item);
 
+}
+
+// ****************************************
+
+BBArray * bmx_taglib_stringlistToBBArray(const TagLib::StringList & list) {
+	int n = list.size();
+	BBArray *p = bbArrayNew1D("$",n);
+	BBString **s=(BBString**)BBARRAYDATA( p,p->dims );
+	for( int i=0;i<n;++i ){
+		s[i] = bbStringFromUTF8String(list[i].toCString(true));
+		BBRETAIN( s[i] );
+	}
+	return p;
 }
 
 // ****************************************
@@ -347,6 +378,43 @@ private:
 	TagLib::MP4::CoverArtList::ConstIterator it;
 };
 
+// ****************************************
+
+class MaxOggFieldListMap
+{
+public:
+	MaxOggFieldListMap(const TagLib::Ogg::FieldListMap & f)
+		: fieldList(f)
+	{
+		it = fieldList.begin();
+	}
+	
+	~MaxOggFieldListMap()
+	{
+	}
+	
+	BBArray * nextField() {
+		if (it != fieldList.end()) {
+			return bmx_taglib_stringlistToBBArray((*it++).second);
+		} else {
+			return &bbEmptyArray;
+		}
+	}
+	
+	void reset() {
+		it = fieldList.begin();
+	}
+	
+	TagLib::Ogg::FieldListMap & List() {
+		return fieldList;
+	}
+
+private:
+	TagLib::Ogg::FieldListMap fieldList;
+	TagLib::Ogg::FieldListMap::ConstIterator it;
+};
+
+// ****************************************
 
 BBObject * getID3v2Header(TagLib::ID3v2::Header * header) {
 
@@ -798,6 +866,10 @@ int bmx_taglib_oggvorbisfile_save(TagLib::Ogg::Vorbis::File * file){
 	return static_cast<int>(file->save());
 }
 
+TagLib::Ogg::XiphComment * bmx_taglib_oggvorbisfile_tag(TagLib::Ogg::Vorbis::File * file) {
+	return file->tag();
+}
+
 
 // ****************************************
 
@@ -943,7 +1015,8 @@ void bmx_taglib_id3v2textidentificationframe_settextencoding(TagLib::ID3v2::Text
 
 BBArray * bmx_taglib_id3v2textidentificationframe_fieldlist(TagLib::ID3v2::TextIdentificationFrame * frame) {
 	TagLib::StringList list = frame->fieldList();
-	
+	return bmx_taglib_stringlistToBBArray(list);
+/*	
 	int n = list.size();
 	BBArray *p = bbArrayNew1D("$",n);
 	BBString **s=(BBString**)BBARRAYDATA( p,p->dims );
@@ -952,6 +1025,7 @@ BBArray * bmx_taglib_id3v2textidentificationframe_fieldlist(TagLib::ID3v2::TextI
 		BBRETAIN( s[i] );
 	}
 	return p;
+*/
 }
 
 // ****************************************
@@ -980,6 +1054,46 @@ void bmx_taglib_id3v2urllinkframe_settext(TagLib::ID3v2::UrlLinkFrame * frame, B
 
 BBString * bmx_taglib_id3v2urllinkframe_tostring(TagLib::ID3v2::UrlLinkFrame * frame) {
 	return bbStringFromUTF8String(frame->toString().toCString(true));
+}
+
+// ****************************************
+
+BBString * bmx_taglib_id3v2commentsframe_tostring(TagLib::ID3v2::CommentsFrame * frame) {
+	return bbStringFromUTF8String(frame->toString().toCString(true));
+}
+
+BBString * bmx_taglib_id3v2commentsframe_description(TagLib::ID3v2::CommentsFrame * frame) {
+	return bbStringFromUTF8String(frame->description().toCString(true));
+}
+
+BBString * bmx_taglib_id3v2commentsframe_text(TagLib::ID3v2::CommentsFrame * frame) {
+	return bbStringFromUTF8String(frame->text().toCString(true));
+}
+
+int bmx_taglib_id3v2commentsframe_textencoding(TagLib::ID3v2::CommentsFrame * frame) {
+	return frame->textEncoding();
+}
+
+void bmx_taglib_id3v2commentsframe_settextencoding(TagLib::ID3v2::CommentsFrame * frame, TagLib::String::Type encoding) {
+	frame->setTextEncoding(encoding);
+}
+
+void bmx_taglib_id3v2commentsframe_setdescription(TagLib::ID3v2::CommentsFrame * frame, BBString * description) {
+	char * d = 0;
+	if (description != &bbEmptyString) {
+		d = bbStringToUTF8String(description);
+	}
+	frame->setDescription((d) ? TagLib::String(d, TagLib::String::UTF8) : TagLib::String::null);
+	if (d) bbMemFree(d);
+}
+
+void bmx_taglib_id3v2commentsframe_settext(TagLib::ID3v2::CommentsFrame * frame, BBString * text) {
+	char * t = 0;
+	if (text != &bbEmptyString) {
+		t = bbStringToUTF8String(text);
+	}
+	frame->setText((t) ? TagLib::String(t, TagLib::String::UTF8) : TagLib::String::null);
+	if (t) bbMemFree(t);
 }
 
 // ****************************************
@@ -1151,4 +1265,36 @@ BBArray * bmx_taglib_mp4item_tostrings(TagLib::MP4::Item * item) {
 	}
 	return p;
 }
+
+// ****************************************
+
+MaxOggFieldListMap * bmx_taglib_oggxiphcomment_fieldlistmap(TagLib::Ogg::XiphComment * comment) {
+	return new MaxOggFieldListMap(comment->fieldListMap());
+}
+
+BBString * bmx_taglib_oggfieldlistmap_field(MaxOggFieldListMap * list, BBString * key) {
+
+}
+
+int bmx_taglib_oggfieldlistmap_isempty(MaxOggFieldListMap * list) {
+
+}
+
+int bmx_taglib_oggfieldlistmap_size(MaxOggFieldListMap * list) {
+
+}
+
+void bmx_taglib_oggfieldlistmap_reset(MaxOggFieldListMap * list) {
+
+}
+
+void bmx_taglib_oggfieldlistmap_free(MaxOggFieldListMap * list) {
+
+}
+
+BBArray * bmx_taglib_oggfieldlistmap_nextfield(MaxOggFieldListMap * list) {
+
+}
+
+// ****************************************
 

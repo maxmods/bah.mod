@@ -652,7 +652,11 @@ Type TTLOggVorbisFile Extends TTLOggFile
 		Return Self
 	End Method
 
+	Rem
+	bbdoc: Returns the #TTLOggXiphComment for this file. 
+	End Rem
 	Method tag:TTLOggXiphComment()
+		Return TTLOggXiphComment._create(bmx_taglib_oggvorbisfile_tag(filePtr))
 	End Method
 	
 	Rem
@@ -688,8 +692,108 @@ Type TTLOggVorbisFile Extends TTLOggFile
 
 End Type
 
+Rem
+bbdoc: Ogg Vorbis comment implementation. 
+about: An implementation of the Ogg Vorbis comment specification, to be found in section 5 of the Ogg Vorbis specification.
+Because this format is also used in other (currently unsupported) Xiph.org formats, it has been made part of a generic implementation rather
+than being limited to strictly Vorbis.
+<p>
+Vorbis comments are a simple vector of keys and values, called fields. Multiple values for a given key are supported.
+</p>
+End Rem
 Type TTLOggXiphComment Extends TTLTag
 
+	Function _create:TTLOggXiphComment(tagPtr:Byte Ptr)
+		If tagPtr Then
+			Local this:TTLOggXiphComment = New TTLOggXiphComment
+			this.tagPtr = tagPtr
+			Return this
+		End If
+	End Function
+
+	Method fieldCount:Int()
+	End Method
+	
+	Method fieldListMap:TTLOggFieldListMap()
+		Return TTLOggFieldListMap._create(bmx_taglib_oggxiphcomment_fieldlistmap(tagPtr))
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TTLOggFieldListMap
+
+	Field fieldListPtr:Byte Ptr
+	
+	Function _create:TTLOggFieldListMap(fieldListPtr:Byte Ptr)
+		If fieldListPtr Then
+			Local this:TTLOggFieldListMap = New TTLOggFieldListMap
+			this.fieldListPtr = fieldListPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Returns the field for the specified key.
+	End Rem
+	Method getField:String(key:String)
+		Return bmx_taglib_oggfieldlistmap_field(fieldListPtr, key)
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the list is empty.
+	End Rem
+	Method isEmpty:Int()
+		Return bmx_taglib_oggfieldlistmap_isempty(fieldListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the size of the list.
+	End Rem
+	Method size:Int()
+		Return bmx_taglib_oggfieldlistmap_size(fieldListPtr)
+	End Method
+
+	Method ObjectEnumerator:TTLOggFieldListMapEnumerator()
+		' Reset the iterator
+		bmx_taglib_oggfieldlistmap_reset(fieldListPtr)
+	
+		Local enum:TTLOggFieldListMapEnumerator = New TTLOggFieldListMapEnumerator
+		enum.list = Self
+		Return enum
+	End Method
+
+	Method Delete()
+		If fieldListPtr Then
+			bmx_taglib_oggfieldlistmap_free(fieldListPtr)
+			fieldListPtr = Null
+		End If
+	End Method
+
+End Type
+
+' internal support for EachIn
+Type TTLOggFieldListMapEnumerator
+	Field list:TTLOggFieldListMap
+	Field nextField:String[]
+
+	Method HasNext:Int()
+		If Not nextField Then
+			nextField = bmx_taglib_oggfieldlistmap_nextfield(list.fieldListPtr)
+		End If
+		
+		If nextField Then
+			Return True
+		End If
+	End Method
+	
+	Method NextObject:Object()
+		Local tmpList:String[] = nextField
+		nextField = Null
+		Return tmpList
+	End Method
 End Type
 
 Rem
@@ -1130,6 +1234,7 @@ Also ID3v2 tags are built up from a list of frames, which are in turn have a hea
 accessing the list of frames that are in a given ID3v2 tag. The first is simply via the frameList() method. This is just a list of references
 to the frames. The second is a map from the frame type -- i.e. "COMM" for comments -- and a list of frames of that type. (In some cases
 ID3v2 allows for multiple frames of the same type, hence this being a map to a list rather than just a map to an individual frame.)
+</p>
 <p>
 More information on the structure of frames can be found in the #TTLID3v2Frame type.
 </p>
@@ -1574,6 +1679,10 @@ Type TTLID3v2AttachedPictureFrame Extends TTLID3v2Frame
 	
 End Type
 
+Rem
+bbdoc: An implementation of ID3v2 comments. 
+about: An ID3v2 comment consists of a language encoding, a description and a single text field. 
+End Rem
 Type TTLID3v2CommentsFrame Extends TTLID3v2Frame
 
 	Function _create:TTLID3v2CommentsFrame(headerPtr:Byte Ptr)
@@ -1584,31 +1693,69 @@ Type TTLID3v2CommentsFrame Extends TTLID3v2Frame
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the text of this comment.
+	End Rem
 	Method toString:String()
+		Return bmx_taglib_id3v2commentsframe_tostring(headerPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method language:TTLByteVector()
+		' TODO
 	End Method
 	
+	Rem
+	bbdoc: Returns the description of this comment.
+	about: Note: Most taggers simply ignore this value.
+	End Rem
 	Method description:String()
+		Return bmx_taglib_id3v2commentsframe_description(headerPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the text of this comment.
+	End Rem
 	Method text:String()
+		Return bmx_taglib_id3v2commentsframe_text(headerPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setLanguage(languageCode:TTLByteVector)
+		' TODO
 	End Method
 	
+	Rem
+	bbdoc: Sets the description of the comment. 
+	End Rem
 	Method setDescription(description:String)
+		bmx_taglib_id3v2commentsframe_setdescription(headerPtr, description)
 	End Method
 	
+	Rem
+	bbdoc: Sets the text portion of the comment.
+	End Rem
 	Method setText(text:String)
+		bmx_taglib_id3v2commentsframe_settext(headerPtr, text)
 	End Method
 	
+	Rem
+	bbdoc: Returns the text encoding that will be used in rendering this frame.
+	about: This defaults to the type that was either specified in the constructor or read from the frame when parsed.
+	End Rem
 	Method textEncoding:Int()
+		Return bmx_taglib_id3v2commentsframe_textencoding(headerPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the text encoding to be used when rendering this frame to encoding.
+	End Rem
 	Method setTextEncoding(encoding:Int)
+		bmx_taglib_id3v2commentsframe_settextencoding(headerPtr, encoding)
 	End Method
 
 End Type

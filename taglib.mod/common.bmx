@@ -104,6 +104,16 @@ Extern
 	Function bmx_taglib_oggvorbisfile_free(handle:Byte Ptr)
 	Function bmx_taglib_oggvorbisfile_audioproperties:Byte Ptr(handle:Byte Ptr)
 	Function bmx_taglib_oggvorbisfile_save:Int(handle:Byte Ptr)
+	Function bmx_taglib_oggvorbisfile_tag:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_taglib_oggxiphcomment_fieldlistmap:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_taglib_oggfieldlistmap_field:String(handle:Byte Ptr, key:String)
+	Function bmx_taglib_oggfieldlistmap_isempty:Int(handle:Byte Ptr)
+	Function bmx_taglib_oggfieldlistmap_size:Int(handle:Byte Ptr)
+	Function bmx_taglib_oggfieldlistmap_reset(handle:Byte Ptr)
+	Function bmx_taglib_oggfieldlistmap_free(handle:Byte Ptr)
+	Function bmx_taglib_oggfieldlistmap_nextfield:String[](handle:Byte Ptr)
 
 	Function bmx_taglib_vorbisproperties_vorbisversion:Int(handle:Byte Ptr)
 	Function bmx_taglib_vorbisproperties_bitratemaximum:Int(handle:Byte Ptr)
@@ -138,6 +148,14 @@ Extern
 	Function bmx_taglib_id3v2urllinkframe_seturl(handle:Byte Ptr, text:String)
 	Function bmx_taglib_id3v2urllinkframe_settext(handle:Byte Ptr, text:String)
 	Function bmx_taglib_id3v2urllinkframe_tostring:String(handle:Byte Ptr)
+
+	Function bmx_taglib_id3v2commentsframe_tostring:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2commentsframe_description:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2commentsframe_text:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2commentsframe_textencoding:Int(handle:Byte Ptr)
+	Function bmx_taglib_id3v2commentsframe_settextencoding(handle:Byte Ptr, encoding:Int)
+	Function bmx_taglib_id3v2commentsframe_setdescription(handle:Byte Ptr, description:String)
+	Function bmx_taglib_id3v2commentsframe_settext(handle:Byte Ptr, text:String)
 
 	Function bmx_taglib_mp4file_create:Byte Ptr(filename:String, readProperties:Int, propertiesStyle:Int)
 	Function bmx_taglib_mp4file_audioproperties:Byte Ptr(handle:Byte Ptr)
