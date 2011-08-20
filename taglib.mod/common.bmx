@@ -107,14 +107,19 @@ Extern
 	Function bmx_taglib_oggvorbisfile_tag:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_taglib_oggxiphcomment_fieldlistmap:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_oggxiphcomment_fieldcount:Int(handle:Byte Ptr)
+	Function bmx_taglib_oggxiphcomment_vendorid:String(handle:Byte Ptr)
+	Function bmx_taglib_oggxiphcomment_addfield(handle:Byte Ptr, key:String, value:String, _replace:Int)
+	Function bmx_taglib_oggxiphcomment_removefield(handle:Byte Ptr, key:String, value:String)
+	Function bmx_taglib_oggxiphcomment_contains:Int(handle:Byte Ptr, key:String)
 
-	Function bmx_taglib_oggfieldlistmap_field:String(handle:Byte Ptr, key:String)
+	Function bmx_taglib_oggfieldlistmap_field:String[](handle:Byte Ptr, key:String)
 	Function bmx_taglib_oggfieldlistmap_isempty:Int(handle:Byte Ptr)
 	Function bmx_taglib_oggfieldlistmap_size:Int(handle:Byte Ptr)
 	Function bmx_taglib_oggfieldlistmap_reset(handle:Byte Ptr)
 	Function bmx_taglib_oggfieldlistmap_free(handle:Byte Ptr)
 	Function bmx_taglib_oggfieldlistmap_nextfield:String[](handle:Byte Ptr)
-
+	
 	Function bmx_taglib_vorbisproperties_vorbisversion:Int(handle:Byte Ptr)
 	Function bmx_taglib_vorbisproperties_bitratemaximum:Int(handle:Byte Ptr)
 	Function bmx_taglib_vorbisproperties_bitratenominal:Int(handle:Byte Ptr)
@@ -192,6 +197,8 @@ Extern
 	Function bmx_taglib_mp4item_tobool:Int(handle:Byte Ptr)
 	Function bmx_taglib_mp4item_tointpair(handle:Byte Ptr, _first:Int Ptr, _second:Int Ptr)
 	Function bmx_taglib_mp4item_tostrings:String[](handle:Byte Ptr)
+
+	Function bmx_taglib_mp4properties_bitspersample:Int(handle:Byte Ptr)
 
 End Extern
 
