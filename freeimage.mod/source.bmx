@@ -258,9 +258,6 @@ Import "src/LibPNG/pngwio.c"
 Import "src/LibPNG/pngwrite.c"
 Import "src/LibPNG/pngwtran.c"
 Import "src/LibPNG/pngwutil.c"
-?MacosX86
-Import "src/LibPNG/pnggccrd.c"
-?
 
 Import "src/LibOpenJPEG/bio.c"
 Import "src/LibOpenJPEG/cio.c"
