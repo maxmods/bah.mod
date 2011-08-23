@@ -1,4 +1,4 @@
-/* $Id: tif_dirwrite.c,v 1.36 2011/01/06 20:52:31 drolon Exp $ */
+/* $Id: tif_dirwrite.c,v 1.37 2011/04/10 17:14:09 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -1041,7 +1041,7 @@ TIFFWriteRationalArray(TIFF* tif, TIFFDirEntry* dir, float* v)
 			while (fv < 1L<<(31-3) && den < 1L<<(31-3))
 				fv *= 1<<3, den *= 1L<<3;
 		}
-		t[2*i+0] = (uint32) (sign * (fv + 0.5));
+		t[2*i+0] = (uint32) (sign * (int32)(fv + 0.5));
 		t[2*i+1] = den;
 	}
 	status = TIFFWriteData(tif, dir, (char *)t);

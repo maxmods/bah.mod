@@ -80,6 +80,7 @@ extern "C" {
 	FIBITMAP * bmx_freeimage_ConvertTo16Bits565(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_ColorQuantize(MaxFreeImage * freeimage, FREE_IMAGE_QUANTIZE quantize);
 	FIBITMAP * bmx_freeimage_ConvertToType(MaxFreeImage * freeimage, FREE_IMAGE_TYPE destType, int scaleLinear);
+	FIBITMAP * bmx_freeimage_convertToRGB16(MaxFreeImage * freeimage);	
 
 	
 	FIBITMAP * bmx_freeimage_Rotate(MaxFreeImage * freeimage, double angle, RGBQUAD * color);
@@ -386,6 +387,7 @@ public:
 	FIBITMAP * ConvertTo24Bits();
 	FIBITMAP * ConvertToGreyscale();
 	FIBITMAP * ConvertToType(FREE_IMAGE_TYPE dst_type, BOOL scale_linear);
+	FIBITMAP * ConvertToRGB16();
 	BOOL isTransparent();
 	FIBITMAP * Rotate(double angle, RGBQUAD * color);
 	FIBITMAP * RotateEx(double angle, double xShift, double yShift, double xOrigin, double yOrigin, BOOL useMask);
@@ -549,6 +551,10 @@ void MaxFreeImage::selfConvertTo8Bits() {
 
 FIBITMAP * MaxFreeImage::ConvertToRGBF() {
 	return FreeImage_ConvertToRGBF(bitmap);
+}
+
+FIBITMAP * MaxFreeImage::ConvertToRGB16() {
+	return FreeImage_ConvertToRGB16(bitmap);
 }
 
 FIBITMAP * MaxFreeImage::ConvertTo32Bits() {
@@ -877,6 +883,9 @@ FIBITMAP * bmx_freeimage_convertToRGBF(MaxFreeImage * freeimage) {
 	return freeimage->ConvertToRGBF();
 }
 
+FIBITMAP * bmx_freeimage_convertToRGB16(MaxFreeImage * freeimage) {
+	return freeimage->ConvertToRGB16();
+}
 
 FIBITMAP * bmx_freeimage_convertTo32Bits(MaxFreeImage * freeimage) {
 	return freeimage->ConvertTo32Bits();

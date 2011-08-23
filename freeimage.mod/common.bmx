@@ -75,6 +75,7 @@ Extern
 	Function bmx_freeimage_ConvertTo16Bits565:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_ColorQuantize:Byte Ptr(handle:Byte Ptr, quantize:Int)
 	Function bmx_freeimage_ConvertToType:Byte Ptr(handle:Byte Ptr, dstType:Int, scaleLinear:Int)
+	Function bmx_freeimage_convertToRGB16:Byte Ptr(handle:Byte Ptr)
 	
 	Function bmx_freeimage_Rotate:Byte Ptr(handle:Byte Ptr, angle:Double, color:Byte Ptr)
 	Function bmx_freeimage_RotateEx:Byte Ptr(handle:Byte Ptr, angle:Double, xShift:Double, yShift:Double, xOrigin:Double, yOrigin:Double, useMask:Int)

@@ -32,8 +32,8 @@ it under the terms of the one of three licenses as you choose:
 #if defined (_OPENMP) 
 
 #if defined(WIN32) 
-# if defined (_MSC_VER) && (_MSC_VER >= 1600) 
-/* VS2010+ : OpenMP works OK */
+# if defined (_MSC_VER) && (_MSC_VER >= 1600 || (_MSC_VER == 1500 && _MSC_FULL_VER >= 150030729) ) 
+/* VS2010+ : OpenMP works OK, VS2008: have tested by cgilles */
 #   define LIBRAW_USE_OPENMP
 #elif defined (__INTEL_COMPILER) && (__INTEL_COMPILER >=910)
 /*  Have not tested on 9.x and 10.x, but Intel documentation claims OpenMP 2.5 support in 9.1 */
@@ -41,7 +41,7 @@ it under the terms of the one of three licenses as you choose:
 #else
 #  undef LIBRAW_USE_OPENMP
 #endif
-// Not Win32
+/* Not Win32 */
 # elif (defined(__APPLE__) || defined(__MACOSX__)) && defined(_REENTRANT)
 #   undef LIBRAW_USE_OPENMP
 # else 

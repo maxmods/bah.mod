@@ -1,4 +1,4 @@
-/* $Id: tif_win32.c,v 1.34 2011/01/06 20:52:31 drolon Exp $ */
+/* $Id: tif_win32.c,v 1.35 2011/04/10 17:14:09 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

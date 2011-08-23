@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Hervé Drolon, FreeImage Team
+ * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * Copyright (c) 2007, Callum Lerwick <seg@haxxed.com>
  * All rights reserved.
  *
@@ -71,7 +71,7 @@ Allocate memory aligned to a 16 byte boundry
 /* FIXME: These should be set with cmake tests, but we're currently not requiring use of cmake */
 #ifdef _WIN32
 	/* Someone should tell the mingw people that their malloc.h ought to provide _mm_malloc() */
-	#ifndef __GNUC__
+	#ifdef __GNUC__
 		#include <mm_malloc.h>
 		#define HAVE_MM_MALLOC
 	#else /* MSVC, Intel C++ */

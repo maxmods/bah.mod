@@ -1,4 +1,4 @@
-/* $Id: tiffiop.h,v 1.36 2011/01/06 20:52:32 drolon Exp $ */
+/* $Id: tiffiop.h,v 1.37 2011/04/10 17:14:09 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -59,10 +59,13 @@ extern void *lfind(const void *, const void *, size_t *, size_t,
 
 /*
   Libtiff itself does not require a 64-bit type, but bundled TIFF
-  utilities may use it.
+  utilities may use it.  
 */
+
+#if !defined(__xlC__) && !defined(__xlc__) // Already defined there (#2301)
 #define TIFF_INT64_T signed long long
 #define TIFF_UINT64_T unsigned long long
+#endif
 
 #include "tiffio.h"
 #include "tif_dir.h"
