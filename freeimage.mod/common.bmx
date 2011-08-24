@@ -89,6 +89,8 @@ Extern
 	Function bmx_freeimage_Invert(handle:Byte Ptr)
 	Function bmx_freeimage_GetChannel:Byte Ptr(handle:Byte Ptr, channel:Int)
 	Function bmx_freeimage_SetChannel:Int(handle:Byte Ptr, src:Byte Ptr, channel:Int)
+	Function bmx_freeimage_GetComplexChannel:Byte Ptr(handle:Byte Ptr, channel:Int)
+	Function bmx_freeimage_SetComplexChannel:Int(handle:Byte Ptr, src:Byte Ptr, channel:Int)
 	
 	Function bmx_freeimage_Copy:Byte Ptr(handle:Byte Ptr, x0:Int, y0:Int, x1:Int, y1:Int)
 	Function bmx_freeimage_Paste:Int(handle:Byte Ptr, source:Byte Ptr, x:Int, y:Int, alpha:Int)
@@ -178,6 +180,9 @@ Extern
 	Function bmx_rgbquad_setgreen(handle:Byte Ptr, g:Int)
 	Function bmx_rgbquad_setblue(handle:Byte Ptr, b:Int)
 	Function bmx_rgbquad_setalpha(handle:Byte Ptr, a:Int)
+
+	Function FreeImage_GetCopyrightMessage:Byte Ptr()
+	Function bmx_freeimage_getImageType:Int(handle:Byte Ptr)
 
 End Extern
 

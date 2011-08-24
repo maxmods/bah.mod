@@ -95,6 +95,8 @@ extern "C" {
 	void bmx_freeimage_Invert(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_GetChannel(MaxFreeImage * freeimage, FREE_IMAGE_COLOR_CHANNEL channel);
 	BOOL bmx_freeimage_SetChannel(MaxFreeImage * freeimage, MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel);
+	FIBITMAP * bmx_freeimage_GetComplexChannel(MaxFreeImage * freeimage, FREE_IMAGE_COLOR_CHANNEL channel);
+	BOOL bmx_freeimage_SetComplexChannel(MaxFreeImage * freeimage, MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel);
 	
 	FIBITMAP * bmx_freeimage_Copy(MaxFreeImage * freeimage, int x0, int y0, int x1, int y1);
 	BOOL bmx_freeimage_Paste(MaxFreeImage * freeimage, MaxFreeImage * source, int x, int y, int alpha);
@@ -179,6 +181,8 @@ extern "C" {
 	void bmx_rgbquad_setgreen(MaxRGBQUAD * quad, int g);
 	void bmx_rgbquad_setblue(MaxRGBQUAD * quad, int b);
 	void bmx_rgbquad_setalpha(MaxRGBQUAD * quad, int a);
+
+	FREE_IMAGE_TYPE bmx_freeimage_getImageType(MaxFreeImage * freeimage);
 
 }
 
@@ -400,6 +404,8 @@ public:
 	void Invert();
 	FIBITMAP * GetChannel(FREE_IMAGE_COLOR_CHANNEL channel);
 	BOOL SetChannel(MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel);
+	FIBITMAP * GetComplexChannel(FREE_IMAGE_COLOR_CHANNEL channel);
+	BOOL SetComplexChannel(MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel);
 	FIBITMAP * Copy(int x0, int y0, int x1, int y1);
 	BOOL Paste(MaxFreeImage * source, int x, int y, int alpha);
 	FREE_IMAGE_COLOR_TYPE GetColorType();
@@ -429,6 +435,7 @@ public:
 	BOOL SetBackgroundColor(RGBQUAD *bkcolor);
 	BOOL GetPixelColor(unsigned x, unsigned y, RGBQUAD *value);
 	BOOL SetPixelColor(unsigned x, unsigned y, RGBQUAD *value);
+	FREE_IMAGE_TYPE GetImageType();
 
 	~MaxFreeImage()
 	{
@@ -623,6 +630,14 @@ BOOL MaxFreeImage::SetChannel(MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL chann
 	return FreeImage_SetChannel(bitmap, src->getBitmap(), channel);
 }
 
+FIBITMAP * MaxFreeImage::GetComplexChannel(FREE_IMAGE_COLOR_CHANNEL channel) {
+	return FreeImage_GetComplexChannel(bitmap, channel);
+}
+
+BOOL MaxFreeImage::SetComplexChannel(MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel) {
+	return FreeImage_SetComplexChannel(bitmap, src->getBitmap(), channel);
+}
+
 FIBITMAP * MaxFreeImage::Copy(int x0, int y0, int x1, int y1) {
 	return FreeImage_Copy(bitmap, x0, y0, x1, y1);
 }
@@ -749,6 +764,9 @@ BOOL MaxFreeImage::SetPixelColor(unsigned x, unsigned y, RGBQUAD *value) {
 	return FreeImage_SetPixelColor(bitmap, x, y, value);
 }
 
+FREE_IMAGE_TYPE MaxFreeImage::GetImageType() {
+	return FreeImage_GetImageType(bitmap);
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++
 
@@ -875,6 +893,14 @@ FIBITMAP * bmx_freeimage_GetChannel(MaxFreeImage * freeimage, FREE_IMAGE_COLOR_C
 
 BOOL bmx_freeimage_SetChannel(MaxFreeImage * freeimage, MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel) {
 	return freeimage->SetChannel(src, channel);
+}
+
+FIBITMAP * bmx_freeimage_GetComplexChannel(MaxFreeImage * freeimage, FREE_IMAGE_COLOR_CHANNEL channel) {
+	return freeimage->GetComplexChannel(channel);
+}
+
+BOOL bmx_freeimage_SetComplexChannel(MaxFreeImage * freeimage, MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel) {
+	return freeimage->SetComplexChannel(src, channel);
 }
 
 FIBITMAP * bmx_freeimage_Copy(MaxFreeImage * freeimage, int x0, int y0, int x1, int y1) {
@@ -1071,6 +1097,9 @@ void bmx_freeimage_setPixelColor(MaxFreeImage * freeimage, int x, int y, MaxRGBQ
 	freeimage->SetPixelColor(x, y, color->Quad());
 }
 
+FREE_IMAGE_TYPE bmx_freeimage_getImageType(MaxFreeImage * freeimage) {
+	return freeimage->GetImageType();
+}
 
 // ***********************************
 
