@@ -88,6 +88,7 @@ Extern
 	Function bmx_freeimage_AdjustContrast(handle:Byte Ptr, percentage:Double)
 	Function bmx_freeimage_Invert(handle:Byte Ptr)
 	Function bmx_freeimage_GetChannel:Byte Ptr(handle:Byte Ptr, channel:Int)
+	Function bmx_freeimage_SetChannel:Int(handle:Byte Ptr, src:Byte Ptr, channel:Int)
 	
 	Function bmx_freeimage_Copy:Byte Ptr(handle:Byte Ptr, x0:Int, y0:Int, x1:Int, y1:Int)
 	Function bmx_freeimage_Paste:Int(handle:Byte Ptr, source:Byte Ptr, x:Int, y:Int, alpha:Int)

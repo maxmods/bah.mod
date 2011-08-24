@@ -94,6 +94,7 @@ extern "C" {
 	void bmx_freeimage_AdjustContrast(MaxFreeImage * freeimage, double percentage);
 	void bmx_freeimage_Invert(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_GetChannel(MaxFreeImage * freeimage, FREE_IMAGE_COLOR_CHANNEL channel);
+	BOOL bmx_freeimage_SetChannel(MaxFreeImage * freeimage, MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel);
 	
 	FIBITMAP * bmx_freeimage_Copy(MaxFreeImage * freeimage, int x0, int y0, int x1, int y1);
 	BOOL bmx_freeimage_Paste(MaxFreeImage * freeimage, MaxFreeImage * source, int x, int y, int alpha);
@@ -398,6 +399,7 @@ public:
 	void AdjustContrast(double percentage);
 	void Invert();
 	FIBITMAP * GetChannel(FREE_IMAGE_COLOR_CHANNEL channel);
+	BOOL SetChannel(MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel);
 	FIBITMAP * Copy(int x0, int y0, int x1, int y1);
 	BOOL Paste(MaxFreeImage * source, int x, int y, int alpha);
 	FREE_IMAGE_COLOR_TYPE GetColorType();
@@ -615,6 +617,10 @@ void MaxFreeImage::Invert() {
 
 FIBITMAP * MaxFreeImage::GetChannel(FREE_IMAGE_COLOR_CHANNEL channel) {
 	return FreeImage_GetChannel(bitmap, channel);
+}
+
+BOOL MaxFreeImage::SetChannel(MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel) {
+	return FreeImage_SetChannel(bitmap, src->getBitmap(), channel);
 }
 
 FIBITMAP * MaxFreeImage::Copy(int x0, int y0, int x1, int y1) {
@@ -865,6 +871,10 @@ void bmx_freeimage_Invert(MaxFreeImage * freeimage) {
 
 FIBITMAP * bmx_freeimage_GetChannel(MaxFreeImage * freeimage, FREE_IMAGE_COLOR_CHANNEL channel) {
 	return freeimage->GetChannel(channel);
+}
+
+BOOL bmx_freeimage_SetChannel(MaxFreeImage * freeimage, MaxFreeImage * src, FREE_IMAGE_COLOR_CHANNEL channel) {
+	return freeimage->SetChannel(src, channel);
 }
 
 FIBITMAP * bmx_freeimage_Copy(MaxFreeImage * freeimage, int x0, int y0, int x1, int y1) {
