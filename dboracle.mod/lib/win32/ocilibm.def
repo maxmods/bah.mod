@@ -96,6 +96,7 @@ OCI_CollInit
 OCI_CollSetAt
 OCI_CollTrim
 OCI_ColumnDescribe
+OCI_ColumnGetAttrInfo
 OCI_ColumnGetCharsetForm
 OCI_ColumnGetCharUsed
 OCI_ColumnGetFractionalPrecision
@@ -154,6 +155,7 @@ OCI_DefineAlloc
 OCI_DefineDef
 OCI_DefineGetData
 OCI_DefineGetNumber
+OCI_DefineIsDataNotNull
 OCI_DefineRequestBuffer
 OCI_DequeueCreate
 OCI_DequeueFree
@@ -618,6 +620,7 @@ OCI_ObjectGetTypeInfo
 OCI_ObjectGetUnsignedBigInt
 OCI_ObjectGetUnsignedInt
 OCI_ObjectGetUnsignedShort
+OCI_ObjectGetUserStructSize
 OCI_ObjectInit
 OCI_ObjectIsNull
 OCI_ObjectNew
@@ -713,7 +716,6 @@ OCI_ReleaseMetaString
 OCI_ReleaseResultsets
 OCI_ResultsetCreate
 OCI_ResultsetFree
-OCI_ResultsetGetAttrInfo
 OCI_ResultsetGetStatement
 OCI_ResultsetInit
 OCI_Rollback

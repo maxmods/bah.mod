@@ -1,8 +1,8 @@
 Rem DLL build script for Win32
 Rem 
 Rem 
-Rem SET ORACLE_INCLUDES=C:\000_programming\instantclient_11_2\sdk\include
-Rem SET ORACLE_LIBS=C:\000_programming\instantclient_11_2
+Rem SET ORACLE_INCLUDES=C:\000_programming\instantclient_11_2x\sdk\include
+Rem SET ORACLE_LIBS=C:\000_programming\instantclient_11_2x
 SET ORACLE_INCLUDES=C:\000_programming\instantclient_11_2\sdk\include
 SET ORACLE_LIBS=C:\000_programming\instantclient_11_2
 

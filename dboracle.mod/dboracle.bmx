@@ -31,7 +31,7 @@ ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2008-2011 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (ocilib 3.9.0)"
+ModuleInfo "History: 1.00 Initial Release (ocilib 3.9.2)"
 
 
 ModuleInfo "CC_OPTS: -fexceptions -DOCI_CHARSET_MIXED"
