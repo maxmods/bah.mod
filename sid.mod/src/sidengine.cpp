@@ -66,7 +66,7 @@ static int modes[256]= {
 };
 
 
-inline int SID::GenerateDigi(int sIn)
+inline int SIDEngine::GenerateDigi(int sIn)
 {
     static int last_sample = 0;
     static int sample = 0;
@@ -138,7 +138,7 @@ inline int SID::GenerateDigi(int sIn)
 
 // initialize SID and frequency dependant values
 
-void SID::synth_init   (dword mixfrq)
+void SIDEngine::synth_init   (dword mixfrq)
 {
   int i;
   mixing_frequency = mixfrq;
@@ -157,7 +157,7 @@ void SID::synth_init   (dword mixfrq)
 }
 
 // render a buffer of n samples with the actual register contents
-void SID::synth_render (word *buffer, dword len)
+void SIDEngine::synth_render (word *buffer, dword len)
 {
   byte v, refosc, outv;
   dword bp;
@@ -361,7 +361,7 @@ void SID::synth_render (word *buffer, dword len)
   }
 }
 
-void SID::sidPoke(int reg, unsigned char val)
+void SIDEngine::sidPoke(int reg, unsigned char val)
 {  	
       int voice=0;
 
@@ -409,13 +409,13 @@ void SID::sidPoke(int reg, unsigned char val)
 }
 
 
-byte SID::getmem(word addr)
+byte SIDEngine::getmem(word addr)
 {
   if (addr == 0xdd0d) memory[addr]=0;
   return memory[addr];
 }
 
-void SID::setmem(word addr, byte value)
+void SIDEngine::setmem(word addr, byte value)
 {
   
     memory[addr]=value;
@@ -486,7 +486,7 @@ void SID::setmem(word addr, byte value)
 
 }
 
-byte SID::getaddr(int mode)
+byte SIDEngine::getaddr(int mode)
 {
   word ad,ad2;  
   switch(mode)
@@ -557,7 +557,7 @@ byte SID::getaddr(int mode)
 }
 
 
-void SID::setaddr(int mode, byte val)
+void SIDEngine::setaddr(int mode, byte val)
 {
   word ad,ad2;
   switch(mode)
@@ -595,7 +595,7 @@ void SID::setaddr(int mode, byte val)
 }
 
 
-void SID::putaddr(int mode, byte val)
+void SIDEngine::putaddr(int mode, byte val)
 {
   word ad,ad2;
   switch(mode)
@@ -664,7 +664,7 @@ void SID::putaddr(int mode, byte val)
 }
 
 
-inline void SID::setflags(int flag, int cond)
+inline void SIDEngine::setflags(int flag, int cond)
 {
   // cond?p|=flag:p&=~flag;
   if (cond) p|=flag;
@@ -672,19 +672,19 @@ inline void SID::setflags(int flag, int cond)
 }
 
 
-inline void SID::push(byte val)
+inline void SIDEngine::push(byte val)
 {
   setmem(0x100+s,val);
   if (s) s--;
 }
 
-inline byte SID::pop()
+inline byte SIDEngine::pop()
 {
   if (s<0xff) s++;
   return getmem(0x100+s);
 }
 
-void SID::branch(int flag)
+void SIDEngine::branch(int flag)
 {
   signed char dist;
   dist=(signed char)getaddr(imm);
@@ -696,7 +696,7 @@ void SID::branch(int flag)
   }
 }
 
-void SID::cpuReset()
+void SIDEngine::cpuReset()
 {
   a=x=y=0;
   p=0;
@@ -704,7 +704,7 @@ void SID::cpuReset()
   pc=getaddr(0xfffc);
 }
 
-void SID::cpuResetTo(word npc)
+void SIDEngine::cpuResetTo(word npc)
 {
   a=0;
   x=0;
@@ -714,7 +714,7 @@ void SID::cpuResetTo(word npc)
   pc=npc;
 }
 
-inline void SID::cpuParse()
+inline void SIDEngine::cpuParse()
 {
     unsigned char opc=getmem(pc++);
     int cmd=opcodes[opc];
@@ -1001,7 +1001,7 @@ inline void SID::cpuParse()
     }        
 }
 
-int SID::cpuJSR(word npc, byte na)
+int SIDEngine::cpuJSR(word npc, byte na)
 {
   int ccl;
   
@@ -1024,7 +1024,7 @@ int SID::cpuJSR(word npc, byte na)
 
 
 
-void SID::c64Init(void)
+void SIDEngine::c64Init(void)
 {
   int i;
   
@@ -1039,7 +1039,7 @@ void SID::c64Init(void)
   sidPoke(24,15);
 }
 
-unsigned short SID::LoadSIDFromMemory(void *pSidData, unsigned short *load_addr,
+unsigned short SIDEngine::LoadSIDFromMemory(void *pSidData, unsigned short *load_addr,
                                  unsigned short *init_addr, unsigned short *play_addr, unsigned char *subsongs, unsigned char *startsong, unsigned char *speed, unsigned short size)
 {
     unsigned char *pData;
@@ -1086,7 +1086,7 @@ unsigned short SID::LoadSIDFromMemory(void *pSidData, unsigned short *load_addr,
     return *load_addr;
 }
 
-word SID::c64SidLoad(unsigned char *data, int size, word *init_addr, word *play_addr, byte *sub_song_start, byte *max_sub_songs, byte *speed, char *name, char *author, char *copyright)
+word SIDEngine::c64SidLoad(unsigned char *data, int size, word *init_addr, word *play_addr, byte *sub_song_start, byte *max_sub_songs, byte *speed, char *name, char *author, char *copyright)
 {
 
 	if (size <= 100) return(0);

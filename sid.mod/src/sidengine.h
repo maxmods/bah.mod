@@ -116,7 +116,7 @@ static float decayReleaseTimes[16] =
 
 
 
-class SID
+class SIDEngine
 {
 public:
 
@@ -154,7 +154,7 @@ public:
 	word pc;
 	float filterl1,filterb1,freq,filterrez;
 
-	SID()
+	SIDEngine()
 		: filterl1(0), filterb1(0), freq(0.8), filterrez(0.1), fracPos(0)
 	{
 	}

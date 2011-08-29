@@ -63,7 +63,7 @@ public:
 			sid = 0;
 		}
 	
-		sid = new SID();
+		sid = new SIDEngine();
 		
 		sid->c64Init();
 		
@@ -119,7 +119,7 @@ public:
 	int play_active;
 	int ever_played;
 	
-	SID * sid;
+	SIDEngine * sid;
 	
 };
 
