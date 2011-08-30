@@ -37,6 +37,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to boost 1.45"
+ModuleInfo "History: Added TTimeFacet, and format methods for TTime and TTimeDuration."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to boost 1.42"
 ModuleInfo "History: 1.01"
@@ -1467,6 +1468,13 @@ Type TTime
 		Return bmx_ptime_equal(ptimePtr, time.ptimePtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method format:String(f:String)
+		Return convertUTF8toISO8859(bmx_ptime_asformat(ptimePtr, f))
+	End Method
+
 	' for sorting !
 	Method compare:Int(obj:Object)
 	
@@ -1781,6 +1789,13 @@ Type TTimeDuration
 	End Rem
 	Method isEqual:Int(duration:TTimeDuration)
 		Return bmx_time_duration_equal(durationPtr, duration.durationPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method format:String(f:String)
+		Return convertUTF8toISO8859(bmx_time_duration_asformat(durationPtr, f))
 	End Method
 
 	' for sorting !
@@ -2796,7 +2811,14 @@ bbdoc: The default date facet
 End Rem
 Global defaultDateFacet:TDateFacet = TDateFacet.Create()
 
+Rem
+bbdoc: The default time facet
+End Rem
+Global defaultTimeFacet:TTimeFacet = TTimeFacet.Create()
+
+
 SetCurrentDateFacet(defaultDateFacet)
+SetCurrentTimeFacet(defaultTimeFacet)
 
 Type TLocaleFacet
 ?linux
@@ -2916,7 +2938,7 @@ Type TDateFacet Extends TLocaleFacet
 	End Rem
 	Method setLongWeekdayNames(names:String[])	
 		Assert names, "weekday names array cannot be null"
-		Assert names.length = 7, "weekday names array requires 12 entries"
+		Assert names.length = 7, "weekday names array requires 7 entries"
 
 		Local a:Byte Ptr = arrayToCStrings(names)
 		
@@ -2924,6 +2946,68 @@ Type TDateFacet Extends TLocaleFacet
 		
 		freeCStringArray(a, 7)
 
+	End Method
+	
+End Type
+
+Type TTimeFacet Extends TDateFacet
+
+	Function Create:TTimeFacet()
+		Return CreateForLocale(defaultLocale)
+	End Function
+
+	Function CreateForLocale:TTimeFacet(locale:String)
+		Local this:TTimeFacet = New TTimeFacet
+
+		this.facetPtr = bmx_timefacet_new()
+		this.localePtr = bmx_locale_new(this.facetPtr, locale)
+		this.locale = locale
+		
+		Return this
+	End Function
+	
+	Rem
+	bbdoc: Set the format for dates.
+	End Rem
+	Method format(fmt:String)
+		bmx_time_facet_format(facetPtr, fmt)
+	End Method
+	
+	Rem
+	bbdoc: Sets the date format to ISO.
+	End Rem
+	Method setISOFormat()
+		bmx_time_facet_set_iso_format(facetPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the date format to ISO Extended.
+	End Rem
+	Method setISOExtendedFormat()
+		bmx_time_facet_set_iso_extended_format(facetPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set the format for months when they are output individually.
+	End Rem
+	Method monthFormat(fmt:String)
+		bmx_time_facet_month_format(facetPtr, fmt)
+	End Method
+	
+	Rem
+	bbdoc: Set the format for weekdays when they are output individually.
+	End Rem
+	Method weekdayFormat(fmt:String)
+		bmx_time_facet_weekday_format(facetPtr, fmt)
+	End Method
+	
+	Rem
+	bbdoc: Sets the time_duration format.
+	about: The time duration format has the ability to display the sign of the duration.
+	The '%+' flag will always display the sign. The '%-' will only display if the sign is negative. Currently the '-' and '+' characters are used to denote the sign.
+	End Rem
+	Method timeDurationFormat(fmt:String)
+		bmx_time_facet_time_duration_format(facetPtr, fmt)
 	End Method
 	
 End Type
@@ -2957,6 +3041,13 @@ Function SetCurrentDateFacet(facet:TDateFacet)
 	bmx_datefacet_setcurrent(facet.localePtr, facet.facetPtr)
 End Function
 
+Rem
+bbdoc: Sets the current time facet.
+about: This controls the appearance of time and time duration information.
+End Rem
+Function SetCurrentTimeFacet(facet:TTimeFacet)
+	bmx_timefacet_setcurrent(facet.localePtr, facet.facetPtr)
+End Function
 
 Rem
 bbdoc: Return the number of ticks in a second.

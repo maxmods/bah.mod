@@ -146,7 +146,8 @@ extern "C" {
 	bool bmx_time_duration_less(time_duration * d1, time_duration * d2);
 	bool bmx_time_duration_greater(time_duration * d1, time_duration * d2);
 	bool bmx_time_duration_equal(time_duration * d1, time_duration * d2);
-	
+	BBString * bmx_time_duration_asformat(time_duration * d, const char * format);
+
 	int bmx_time_ticks_per_second();
 	int bmx_time_num_fractional_digits();
 	
@@ -171,7 +172,8 @@ extern "C" {
 	bool bmx_ptime_greater(ptime * p1, ptime * p2);
 	bool bmx_ptime_equal(ptime * p1, ptime * p2);
 	ptime * bmx_ptime_from_time_t(std::time_t * t);
-	
+	BBString * bmx_ptime_asformat(ptime * p, const char * f);
+
 	partial_date * bmx_partial_date_new(int day, int month);
 	date * bmx_partial_date_get_date(partial_date *  p, int year);
 	void bmx_partial_date_delete(partial_date *  p);
@@ -188,6 +190,8 @@ extern "C" {
 	void bmx_datefacet_setcurrent(std::locale * loc, date_facet * d);
 	BBString * bmx_date_asformat(date * d, const char * format);
 	std::locale * bmx_locale_new(date_facet * d, const char * loc);
+	time_facet * bmx_timefacet_new();
+	void bmx_timefacet_setcurrent(std::locale * loc, time_facet * d);
 	
 	void bmx_char_free(char * s);
 	
@@ -240,6 +244,13 @@ extern "C" {
 	void bmx_date_facet_long_weekday_names(date_facet * f, const char ** names);
 	void bmx_date_facet_month_format(date_facet * f, const char * fmt);
 	void bmx_date_facet_weekday_format(date_facet * f, const char * fmt);
+
+	void bmx_time_facet_format(time_facet * f, const char * fmt);
+	void bmx_time_facet_set_iso_format(time_facet * f);
+	void bmx_time_facet_set_iso_extended_format(time_facet * f);
+	void bmx_time_facet_month_format(time_facet * f, const char * fmt);
+	void bmx_time_facet_weekday_format(time_facet * f, const char * fmt);
+	void bmx_time_facet_time_duration_format(time_facet * f, const char * fmt);
 	
 	nth_day_of_the_week_in_month * bmx_nth_day_of_week_in_month_new(int nth, int weekday, int month);
 	date * bmx_nth_day_of_week_in_month_get_date(nth_day_of_the_week_in_month *  p, int year);
@@ -299,7 +310,8 @@ extern "C" {
 	int bmx_end_of_month_day(int y, int m);
 }
 
-static date_facet * currentDateFacet;
+static date_facet * currentDateFacet = 0;
+static time_facet * currentTimeFacet = 0;
 static std::stringstream outputStringStream;
 
 
@@ -743,6 +755,12 @@ bool bmx_time_duration_equal(time_duration * d1, time_duration * d2) {
 	return *d1 == *d2;
 }
 
+BBString * bmx_time_duration_asformat(time_duration * d, const char * format) {
+	currentTimeFacet->time_duration_format(format);
+	outputStringStream << *d;
+	return bmx_BBString_from_stream();
+}
+
 ptime * bmx_ptime_new(date * d, time_duration * t) {
 	return new ptime(*d, *t);
 }
@@ -824,6 +842,12 @@ bool bmx_ptime_equal(ptime * p1, ptime * p2) {
 	return *p1 == *p2;
 }
 
+BBString * bmx_ptime_asformat(ptime * p, const char * format) {
+	currentTimeFacet->format(format);
+	outputStringStream << *p;
+	return bmx_BBString_from_stream();
+}
+
 partial_date * bmx_partial_date_new(int day, int month) {
 	return new partial_date(day, month);
 }
@@ -870,8 +894,23 @@ date_facet * bmx_datefacet_new() {
 	return new date_facet;
 }
 
+time_facet * bmx_timefacet_new() {
+	return new time_facet;
+}
+
 void bmx_datefacet_setcurrent(std::locale * loc, date_facet * d) {
+	if (currentDateFacet) {
+		delete currentDateFacet;
+	}
 	currentDateFacet = d;
+	outputStringStream.imbue(*loc);
+}
+
+void bmx_timefacet_setcurrent(std::locale * loc, time_facet * t) {
+	if (currentTimeFacet) {
+		delete currentTimeFacet;
+	}
+	currentTimeFacet = t;
 	outputStringStream.imbue(*loc);
 }
 
@@ -1103,6 +1142,30 @@ void bmx_date_facet_month_format(date_facet * f, const char * fmt) {
 
 void bmx_date_facet_weekday_format(date_facet * f, const char * fmt) {
 	f->weekday_format(fmt);
+}
+
+void bmx_time_facet_format(time_facet * f, const char * fmt) {
+	f->format(fmt);
+}
+
+void bmx_time_facet_set_iso_format(time_facet * f) {
+	f->set_iso_format();
+}
+
+void bmx_time_facet_set_iso_extended_format(time_facet * f) {
+	f->set_iso_extended_format();
+}
+
+void bmx_time_facet_month_format(time_facet * f, const char * fmt) {
+	f->month_format(fmt);
+}
+
+void bmx_time_facet_weekday_format(time_facet * f, const char * fmt) {
+	f->weekday_format(fmt);
+}
+
+void bmx_time_facet_time_duration_format(time_facet * f, const char * fmt) {
+	f->time_duration_format(fmt);
 }
 
 nth_day_of_the_week_in_month * bmx_nth_day_of_week_in_month_new(int nth, int weekday, int month) {

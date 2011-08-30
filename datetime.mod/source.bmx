@@ -149,6 +149,7 @@ Extern
 	Function bmx_time_duration_less:Int(d1:Byte Ptr, d2:Byte Ptr)
 	Function bmx_time_duration_greater:Int(d1:Byte Ptr, d2:Byte Ptr)
 	Function bmx_time_duration_equal:Int(d1:Byte Ptr, d2:Byte Ptr)
+	Function bmx_time_duration_asformat:String(duration:Byte Ptr, f:Byte Ptr)
 	
 	Function bmx_time_ticks_per_second:Int()
 	Function bmx_time_num_fractional_digits:Int()
@@ -173,6 +174,7 @@ Extern
 	Function bmx_ptime_greater:Int(t1:Byte Ptr, t2:Byte Ptr)
 	Function bmx_ptime_equal:Int(t1:Byte Ptr, t2:Byte Ptr)
 	Function bmx_ptime_from_time_t:Byte Ptr(time:Byte Ptr)
+	Function bmx_ptime_asformat:String(time:Byte Ptr, f:Byte Ptr)
 	
 	Function bmx_partial_date_new:Byte Ptr(day:Int, Month:Int)
 	Function bmx_partial_date_get_date:Byte Ptr(ybg:Byte Ptr, year:Int)
@@ -192,6 +194,8 @@ Extern
 	Function bmx_locale_new:Byte Ptr(facet:Byte Ptr, locale:Byte Ptr)
 	Function bmx_datefacet_setcurrent(locale:Byte Ptr, facet:Byte Ptr)
 	Function bmx_date_asformat:String(date:Byte Ptr, format:Byte Ptr)
+	Function bmx_timefacet_new:Byte Ptr()
+	Function bmx_timefacet_setcurrent(locale:Byte Ptr, facet:Byte Ptr)
 
 	Function _strlen:Int(s:Byte Ptr) = "strlen"
 	Function bmx_char_free(s:Byte Ptr)
@@ -246,7 +250,14 @@ Extern
 	Function bmx_date_facet_long_weekday_names(facet:Byte Ptr, names:Byte Ptr)
 	Function bmx_date_facet_month_format(facet:Byte Ptr, fmt:Byte Ptr)
 	Function bmx_date_facet_weekday_format(facet:Byte Ptr, fmt:Byte Ptr)
-	
+
+	Function bmx_time_facet_format(facet:Byte Ptr, fmt:Byte Ptr)
+	Function bmx_time_facet_set_iso_format(facet:Byte Ptr)
+	Function bmx_time_facet_set_iso_extended_format(facet:Byte Ptr)
+	Function bmx_time_facet_month_format(facet:Byte Ptr, fmt:Byte Ptr)
+	Function bmx_time_facet_weekday_format(facet:Byte Ptr, fmt:Byte Ptr)
+	Function bmx_time_facet_time_duration_format(facet:Byte Ptr, fmt:Byte Ptr)
+
 	Function bmx_nth_day_of_week_in_month_new:Byte Ptr(nth:Int, WeekDay:Int, Month:Int)
 	Function bmx_nth_day_of_week_in_month_get_date:Byte Ptr(ybg:Byte Ptr, year:Int)
 	Function bmx_nth_day_of_week_in_month_delete(ybg:Byte Ptr)
