@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2007, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,7 +18,6 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: strtoofft.c,v 1.13 2007-11-05 09:45:09 bagder Exp $
  ***************************************************************************/
 
 #include "setup.h"
@@ -111,9 +110,9 @@ curlx_strtoll(const char *nptr, char **endptr, int base)
   /* Loop handling digits. */
   value = 0;
   overflow = 0;
-  for (i = get_char(end[0], base);
-       i != -1;
-       end++, i = get_char(end[0], base)) {
+  for(i = get_char(end[0], base);
+      i != -1;
+      end++, i = get_char(end[0], base)) {
     newval = base * value + i;
     if(newval < value) {
       /* We've overflowed. */
@@ -132,9 +131,9 @@ curlx_strtoll(const char *nptr, char **endptr, int base)
   }
   else {
     if(is_negative)
-      value = CURL_LLONG_MIN;
+      value = CURL_OFF_T_MIN;
     else
-      value = CURL_LLONG_MAX;
+      value = CURL_OFF_T_MAX;
 
     SET_ERRNO(ERANGE);
   }

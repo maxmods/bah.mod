@@ -1,4 +1,25 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* curl_config.h.in.  Generated automatically from configure.in by autoheader. /***************************************************************************
+ *                                  _   _ ____  _
+ *  Project                     ___| | | |  _ \| |
+ *                             / __| | | | |_) | |
+ *                            | (__| |_| |  _ <| |___
+ *                             \___|\___/|_| \_\_____|
+ *
+ * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ *
+ * This software is licensed as described in the file COPYING, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://curl.haxx.se/docs/copyright.html.
+ *
+ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+ * copies of the Software, and permit persons to whom the Software is
+ * furnished to do so, under the terms of the COPYING file.
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+ * KIND, either express or implied.
+ *
+ ***************************************************************************/
+ */
 /* Name of this package! */
 #undef PACKAGE
 
@@ -29,9 +50,6 @@
 /* Define if you have the gethostbyname_r() function with 6 arguments */
 #undef HAVE_GETHOSTBYNAME_R_6
 
-/* Define if you have the inet_ntoa_r function declared. */
-#undef HAVE_INET_NTOA_R_DECL
-
 /* Define if you need the _REENTRANT define for some functions */
 #undef NEED_REENTRANT
 
@@ -41,11 +59,11 @@
 /* Define if you want to enable IPv6 support */
 #undef ENABLE_IPV6
 
+/* Define if struct sockaddr_in6 has the sin6_scope_id member */
+#define HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID 1
+
 /* Define this to 'int' if ssize_t is not an available typedefed type */
 #undef ssize_t
-
-/* Define this to 'int' if socklen_t is not an available typedefed type */
-#undef socklen_t
 
 /* Define this as a suitable file to read random data from */
 #undef RANDOM_FILE
@@ -53,11 +71,11 @@
 /* Define this to your Entropy Gathering Daemon socket pathname */
 #undef EGD_SOCKET
 
-/* Set to explicitly specify we don't want to use thread-safe functions */
-#define DISABLED_THREADSAFE
-
 /* Define if you want to enable IPv6 support */
 #undef ENABLE_IPV6
+
+/* Define to 1 if you have the alarm function. */
+#define HAVE_ALARM 1
 
 /* Define if you have the <alloca.h> header file. */
 #define HAVE_ALLOCA_H
@@ -118,12 +136,6 @@
 
 /* Define if you have the `inet_addr' function. */
 #undef HAVE_INET_ADDR
-
-/* Define if you have the `inet_ntoa' function. */
-#undef HAVE_INET_NTOA
-
-/* Define if you have the `inet_ntoa_r' function. */
-#undef HAVE_INET_NTOA_R
 
 /* Define if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H
@@ -347,11 +359,20 @@
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
 
-/* The size of a `long double', as computed by sizeof. */
+/* The size of `int', as computed by sizeof. */
+#define SIZEOF_INT 4
+
+/* The size of `long double', as computed by sizeof. */
 #undef SIZEOF_LONG_DOUBLE
 
-/* The size of a `long long', as computed by sizeof. */
+/* The size of `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
+
+/* The size of `short', as computed by sizeof. */
+#define SIZEOF_SHORT 2
+
+/* The size of `size_t', as computed by sizeof. */
+#define SIZEOF_SIZE_T 4
 
 /* Define if you have the ANSI C header files. */
 #undef STDC_HEADERS
@@ -381,18 +402,14 @@
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
 
-/* type to use in place of socklen_t if not defined */
-#undef socklen_t
-
 /* Define to `int' if <sys/types.h> does not define. */
 #undef ssize_t
 
-/* this is a quick hack.  I hope it's correct. */
-#define ifr_dstaddr ifr_addr
+/* Define if you have the ioctl function. */
+#define HAVE_IOCTL
 
-#define IOCTL_3_ARGS
-
-#define HAVE_FIONBIO
+/* Define if you have a working ioctl FIONBIO function. */
+#define HAVE_IOCTL_FIONBIO
 
 /* to disable LDAP */
 #define CURL_DISABLE_LDAP
@@ -432,6 +449,33 @@
 
 /* Define to the function return type for recv. */
 #define RECV_TYPE_RETV ssize_t
+
+/* Define 1 if you have the recvfrom function. */
+#define HAVE_RECVFROM 1
+
+/* Define to the type of arg 1 for recvfrom. */
+#define RECVFROM_TYPE_ARG1 int
+
+/* Define to the type pointed by arg 2 for recvfrom. */
+#define RECVFROM_TYPE_ARG2 void
+
+/* Define to 1 if the type pointed by arg 2 for recvfrom is void. */
+#define RECVFROM_TYPE_ARG2_IS_VOID 1
+
+/* Define to the type of arg 3 for recvfrom. */
+#define RECVFROM_TYPE_ARG3 size_t
+
+/* Define to the type of arg 4 for recvfrom. */
+#define RECVFROM_TYPE_ARG4 int
+
+/* Define to the type pointed by arg 5 for recvfrom. */
+#define RECVFROM_TYPE_ARG5 struct sockaddr
+
+/* Define to the type pointed by arg 6 for recvfrom. */
+#define RECVFROM_TYPE_ARG6 int
+
+/* Define to the function return type for recvfrom. */
+#define RECVFROM_TYPE_RETV ssize_t
 
 /* Define if you have the send function. */
 #define HAVE_SEND 1

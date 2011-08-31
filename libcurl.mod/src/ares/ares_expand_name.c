@@ -1,4 +1,3 @@
-/* $Id: ares_expand_name.c,v 1.17 2008-11-29 00:26:07 danf Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -15,7 +14,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -69,22 +68,33 @@ int ares_expand_name(const unsigned char *encoded, const unsigned char *abuf,
   int len, indir = 0;
   char *q;
   const unsigned char *p;
+  union {
+    ssize_t sig;
+     size_t uns;
+  } nlen;
 
-  len = name_length(encoded, abuf, alen);
-  if (len == -1)
+  nlen.sig = name_length(encoded, abuf, alen);
+  if (nlen.sig < 0)
     return ARES_EBADNAME;
 
-  *s = malloc(len + 1);
+  *s = malloc(nlen.uns + 1);
   if (!*s)
     return ARES_ENOMEM;
   q = *s;
 
-  if (len == 0) {
+  if (nlen.uns == 0) {
     /* RFC2181 says this should be ".": the root of the DNS tree.
      * Since this function strips trailing dots though, it becomes ""
      */
     q[0] = '\0';
-    *enclen = 1;  /* the caller should move one byte to get past this */
+
+    /* indirect root label (like 0xc0 0x0c) is 2 bytes long (stupid, but
+       valid) */
+    if ((*encoded & INDIR_MASK) == INDIR_MASK)
+      *enclen = 2;
+    else
+      *enclen = 1;  /* the caller should move one byte to get past this */
+
     return ARES_SUCCESS;
   }
 
@@ -176,4 +186,15 @@ static int name_length(const unsigned char *encoded, const unsigned char *abuf,
    * less than the number of labels, so subtract one.
    */
   return (n) ? n - 1 : n;
+}
+
+/* Like ares_expand_name but returns EBADRESP in case of invalid input. */
+int ares__expand_name_for_response(const unsigned char *encoded,
+                                   const unsigned char *abuf, int alen,
+                                   char **s, long *enclen)
+{
+  int status = ares_expand_name(encoded, abuf, alen, s, enclen);
+  if (status == ARES_EBADNAME)
+    status = ARES_EBADRESP;
+  return status;
 }

@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2007, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,7 +18,6 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: share.c,v 1.23 2007-11-07 09:21:36 bagder Exp $
  ***************************************************************************/
 
 #include "setup.h"
@@ -28,7 +27,7 @@
 #include <curl/curl.h>
 #include "urldata.h"
 #include "share.h"
-#include "memory.h"
+#include "curl_memory.h"
 
 /* The last #include file should be: */
 #include "memdebug.h"
@@ -36,16 +35,14 @@
 CURLSH *
 curl_share_init(void)
 {
-  struct Curl_share *share =
-    (struct Curl_share *)malloc(sizeof(struct Curl_share));
-  if(share) {
-    memset (share, 0, sizeof(struct Curl_share));
+  struct Curl_share *share = calloc(1, sizeof(struct Curl_share));
+  if(share)
     share->specifier |= (1<<CURL_LOCK_DATA_SHARE);
-  }
 
   return share;
 }
 
+#undef curl_share_setopt
 CURLSHcode
 curl_share_setopt(CURLSH *sh, CURLSHoption option, ...)
 {
@@ -99,32 +96,31 @@ curl_share_setopt(CURLSH *sh, CURLSHoption option, ...)
     /* this is a type this share will no longer share */
     type = va_arg(param, int);
     share->specifier &= ~(1<<type);
-    switch( type )
-    {
-      case CURL_LOCK_DATA_DNS:
-        if(share->hostcache) {
-          Curl_hash_destroy(share->hostcache);
-          share->hostcache = NULL;
-        }
-        break;
+    switch( type ) {
+    case CURL_LOCK_DATA_DNS:
+      if(share->hostcache) {
+        Curl_hash_destroy(share->hostcache);
+        share->hostcache = NULL;
+      }
+      break;
 
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_COOKIES)
-      case CURL_LOCK_DATA_COOKIE:
-        if(share->cookies) {
-          Curl_cookie_cleanup(share->cookies);
-          share->cookies = NULL;
-        }
-        break;
+    case CURL_LOCK_DATA_COOKIE:
+      if(share->cookies) {
+        Curl_cookie_cleanup(share->cookies);
+        share->cookies = NULL;
+      }
+      break;
 #endif   /* CURL_DISABLE_HTTP */
 
-      case CURL_LOCK_DATA_SSL_SESSION:
-        break;
+    case CURL_LOCK_DATA_SSL_SESSION:
+      break;
 
-      case CURL_LOCK_DATA_CONNECT:
-        break;
+    case CURL_LOCK_DATA_CONNECT:
+      break;
 
-      default:
-        return CURLSHE_BAD_OPTION;
+    default:
+      return CURLSHE_BAD_OPTION;
     }
     break;
 
@@ -168,13 +164,13 @@ curl_share_cleanup(CURLSH *sh)
     return CURLSHE_IN_USE;
   }
 
-  if(share->hostcache)
+  if(share->hostcache) {
     Curl_hash_destroy(share->hostcache);
+    share->hostcache = NULL;
+  }
 
-#if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_COOKIES)
   if(share->cookies)
     Curl_cookie_cleanup(share->cookies);
-#endif   /* CURL_DISABLE_HTTP */
 
   if(share->unlockfunc)
     share->unlockfunc(NULL, CURL_LOCK_DATA_SHARE, share->clientdata);

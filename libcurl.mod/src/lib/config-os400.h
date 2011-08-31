@@ -1,6 +1,27 @@
 /* ================================================================ */
 /*    lib/config-os400.h - Hand crafted config file for OS/400      */
 /* ================================================================ */
+/***************************************************************************
+ *                                  _   _ ____  _
+ *  Project                     ___| | | |  _ \| |
+ *                             / __| | | | |_) | |
+ *                            | (__| |_| |  _ <| |___
+ *                             \___|\___/|_| \_\_____|
+ *
+ * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ *
+ * This software is licensed as described in the file COPYING, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://curl.haxx.se/docs/copyright.html.
+ *
+ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+ * copies of the Software, and permit persons to whom the Software is
+ * furnished to do so, under the terms of the COPYING file.
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+ * KIND, either express or implied.
+ *
+ ***************************************************************************/
 
 #pragma enum(int)
 
@@ -24,20 +45,18 @@
 /* Define if you have the gethostbyaddr_r() function with 8 arguments */
 #undef HAVE_GETHOSTBYADDR_R_8
 
-/* Define if you have the gethostbyname_r() function with 3 arguments */
-#define HAVE_GETHOSTBYNAME_R_3
-
-/* Define if you have the gethostbyname_r() function with 5 arguments */
+/* OS400 supports a 3-argument ASCII version of gethostbyaddr_r(), but its
+ *  prototype is incompatible with the "standard" one (1st argument is not
+ *  const). However, getaddrinfo() is supported (ASCII version defined as
+ *  a local wrapper in setup-os400.h) in a threadsafe way: we can then
+ *  configure getaddrinfo() as such and get rid of gethostbyname_r() without
+ *  loss of threadsafeness. */
+#undef HAVE_GETHOSTBYNAME_R
+#undef HAVE_GETHOSTBYNAME_R_3
 #undef HAVE_GETHOSTBYNAME_R_5
-
-/* Define if you have the gethostbyname_r() function with 6 arguments */
 #undef HAVE_GETHOSTBYNAME_R_6
-
-/* Define if you have the inet_ntoa_r function declared. */
-#define HAVE_INET_NTOA_R_DECL
-
-/* Define if the inet_ntoa_r function returns an int. */
-#define HAVE_INT_INET_NTOA_R
+#define HAVE_GETADDRINFO
+#define HAVE_GETADDRINFO_THREADSAFE
 
 /* Define if you need the _REENTRANT define for some functions */
 #undef NEED_REENTRANT
@@ -48,11 +67,11 @@
 /* Define if you want to enable IPv6 support */
 #define ENABLE_IPV6
 
+/* Define if struct sockaddr_in6 has the sin6_scope_id member */
+#define HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID 1
+
 /* Define this to 'int' if ssize_t is not an available typedefed type */
 #undef ssize_t
-
-/* Define this to 'int' if socklen_t is not an available typedefed type */
-#undef socklen_t
 
 /* Define this as a suitable file to read random data from */
 #undef RANDOM_FILE
@@ -60,8 +79,8 @@
 /* Define this to your Entropy Gathering Daemon socket pathname */
 #undef EGD_SOCKET
 
-/* Set to explicitly specify we don't want to use thread-safe functions */
-#undef DISABLED_THREADSAFE
+/* Define to 1 if you have the alarm function. */
+#define HAVE_ALARM 1
 
 /* Define if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
@@ -84,10 +103,6 @@
 /* Define if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H
 
-/* Define if getaddrinfo exists and works */
-/* OS400 has no ASCII version of this procedure. */
-#undef HAVE_GETADDRINFO
-
 /* Define if you have the `geteuid' function. */
 #define HAVE_GETEUID
 
@@ -96,9 +111,6 @@
 
 /* Define if you have the `gethostbyaddr_r' function. */
 #define HAVE_GETHOSTBYADDR_R
-
-/* Define if you have the `gethostbyname_r' function. */
-#define HAVE_GETHOSTBYNAME_R
 
 /* Define if you have the `gethostname' function. */
 #define HAVE_GETHOSTNAME
@@ -123,12 +135,6 @@
 
 /* Define if you have the `inet_addr' function. */
 #define HAVE_INET_ADDR
-
-/* Define if you have the `inet_ntoa' function. */
-#define HAVE_INET_NTOA
-
-/* Define if you have the `inet_ntoa_r' function. */
-#define HAVE_INET_NTOA_R
 
 /* Define if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H
@@ -292,6 +298,9 @@
 /* Define if you have the `strlcpy' function. */
 #undef HAVE_STRLCPY
 
+/* Define if you have the <stropts.h> header file. */
+#undef HAVE_STROPTS_H
+
 /* Define if you have the `strstr' function. */
 #define HAVE_STRSTR
 
@@ -321,6 +330,9 @@
 
 /* Define if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H
+
+/* Define if you have the <sys/un.h> header file. */
+#define HAVE_SYS_UN_H
 
 /* Define if you have the <sys/ioctl.h> header file. */
 #define HAVE_SYS_IOCTL_H
@@ -358,26 +370,30 @@
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
 
+/* The size of `int', as computed by sizeof. */
+#define SIZEOF_INT              4
+
 /* The size of a `long double', as computed by sizeof. */
 #define SIZEOF_LONG_DOUBLE      8
 
-/* Define if 64 bit integers are supported. */
+/* Define if the compiler supports the 'long long' data type. */
 #define HAVE_LONGLONG
 
 /* The size of a `long long', as computed by sizeof. */
 #define SIZEOF_LONG_LONG        8
 
+/* The size of `short', as computed by sizeof. */
+#define SIZEOF_SHORT            2
+
+/* The size of `size_t', as computed by sizeof. */
+#define SIZEOF_SIZE_T           8
+
 /* Whether long long constants must be suffixed by LL. */
 
 #define HAVE_LL
 
-/* The size of `curl_off_t', as computed by sizeof. */
-
-#ifndef _LARGE_FILES
-#define _LARGE_FILES
-#endif
-
-#define SIZEOF_CURL_OFF_T 8
+/* Define this if you have struct sockaddr_storage */
+#define HAVE_STRUCT_SOCKADDR_STORAGE
 
 /* Define if you have the ANSI C header files. */
 #define STDC_HEADERS
@@ -392,7 +408,7 @@
 #undef _FILE_OFFSET_BITS
 
 /* Define for large files, on AIX-style hosts. */
-#undef _LARGE_FILES
+#define _LARGE_FILES
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
@@ -403,19 +419,30 @@
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
 
-#define IOCTL_3_ARGS
+/* Define if you have the ioctl function. */
+#define HAVE_IOCTL
 
-#define HAVE_FIONBIO
+/* Define if you have a working ioctl FIONBIO function. */
+#define HAVE_IOCTL_FIONBIO
 
-/* to disable LDAP */
+/* Define if you have a working ioctl SIOCGIFADDR function. */
+#define HAVE_IOCTL_SIOCGIFADDR
+
+/* To disable LDAP */
 #undef CURL_DISABLE_LDAP
+
+/* To avoid external use of library hidden symbols */
+#define CURL_HIDDEN_SYMBOLS
+
+/* External symbols need no special keyword. */
+#define CURL_EXTERN_SYMBOL
 
 /* Define if you have the ldap_url_parse procedure. */
 /* #define HAVE_LDAP_URL_PARSE */    /* Disabled because of an IBM bug. */
 
 /* Define if you have the getnameinfo function. */
-/* OS400 has no ASCII version of this procedure. */
-#undef HAVE_GETNAMEINFO
+/* OS400 has no ASCII version of this procedure: wrapped in setup-os400.h. */
+#define HAVE_GETNAMEINFO
 
 /* Define to the type qualifier of arg 1 for getnameinfo. */
 #define GETNAMEINFO_QUAL_ARG1 const
@@ -450,6 +477,30 @@
 /* Define to the function return type for recv. */
 #define RECV_TYPE_RETV int
 
+/* Define if you have the recvfrom function. */
+#define HAVE_RECVFROM
+
+/* Define to the type of arg 1 for recvfrom. */
+#define RECVFROM_TYPE_ARG1 int
+
+/* Define to the type pointed by arg 2 for recvfrom. */
+#define RECVFROM_TYPE_ARG2 char
+
+/* Define to the type of arg 3 for recvfrom. */
+#define RECVFROM_TYPE_ARG3 int
+
+/* Define to the type of arg 4 for recvfrom. */
+#define RECVFROM_TYPE_ARG4 int
+
+/* Define to the type pointed by arg 5 for recvfrom. */
+#define RECVFROM_TYPE_ARG5 struct sockaddr
+
+/* Define to the type pointed by arg 6 for recvfrom. */
+#define RECVFROM_TYPE_ARG6 int
+
+/* Define to the function return type for recvfrom. */
+#define RECVFROM_TYPE_RETV int
+
 /* Define if you have the send function. */
 #define HAVE_SEND
 
@@ -476,3 +527,15 @@
 
 /* Use the system keyring as the default CA bundle. */
 #define CURL_CA_BUNDLE  "/QIBM/UserData/ICSS/Cert/Server/DEFAULT.KDB"
+
+/* ---------------------------------------------------------------- */
+/*                       ADDITIONAL DEFINITIONS                     */
+/* ---------------------------------------------------------------- */
+
+/* The following must be defined BEFORE system header files inclusion. */
+
+#define __ptr128                       /* No teraspace. */
+#define qadrt_use_fputc_inline         /* Generate fputc() wrapper inline. */
+#define qadrt_use_fread_inline         /* Generate fread() wrapper inline. */
+#define qadrt_use_fwrite_inline        /* Generate fwrite() wrapper inline. */
+

@@ -1,6 +1,5 @@
-#include "setup.h"
+#include "ares_setup.h"
 
-/* $Id: windows_port.c,v 1.21 2008-09-17 01:02:57 yangtse Exp $ */
 
 /* only do the following on windows
  */

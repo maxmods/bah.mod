@@ -1,4 +1,3 @@
-/* $Id: ares_timeout.c,v 1.12 2008-05-15 22:57:33 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -15,7 +14,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

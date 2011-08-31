@@ -1,7 +1,6 @@
 #ifndef HEADER_CARES_STRCASECMP_H
 #define HEADER_CARES_STRCASECMP_H
 
-/* $Id: ares_strcasecmp.h,v 1.1 2008-09-15 15:28:26 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -18,7 +17,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifndef HAVE_STRCASECMP
 extern int ares_strcasecmp(const char *a, const char *b);

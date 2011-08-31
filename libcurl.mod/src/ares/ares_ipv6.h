@@ -1,4 +1,3 @@
-/* $Id: ares_ipv6.h,v 1.8 2007-12-10 16:14:02 giva Exp $ */
 
 /* Copyright (C) 2005 by Dominick Meglio
  *
@@ -22,23 +21,14 @@
 #define PF_INET6 AF_INET6
 #endif
 
-#if !defined(HAVE_STRUCT_IN6_ADDR) && !defined(s6_addr)
-struct in6_addr {
-  union {
-    unsigned char _S6_u8[16];
-  } _S6_un;
-};
-#define s6_addr _S6_un._S6_u8
-#endif
-
 #ifndef HAVE_STRUCT_SOCKADDR_IN6
 struct sockaddr_in6
 {
-  unsigned short  sin6_family;
-  unsigned short  sin6_port;
-  unsigned long   sin6_flowinfo;
-  struct in6_addr sin6_addr;
-  unsigned int    sin6_scope_id;
+  unsigned short       sin6_family;
+  unsigned short       sin6_port;
+  unsigned long        sin6_flowinfo;
+  struct ares_in6_addr sin6_addr;
+  unsigned int         sin6_scope_id;
 };
 #endif
 
@@ -49,7 +39,7 @@ struct addrinfo
   int              ai_family;
   int              ai_socktype;
   int              ai_protocol;
-  socklen_t        ai_addrlen;   /* Follow rfc3493 struct addrinfo */
+  ares_socklen_t   ai_addrlen;   /* Follow rfc3493 struct addrinfo */
   char            *ai_canonname;
   struct sockaddr *ai_addr;
   struct addrinfo *ai_next;
@@ -80,5 +70,9 @@ struct addrinfo
 #define IF_NAMESIZE 256
 #endif
 #endif
+
+/* Defined in ares_net_pton.c for no particular reason. */
+extern const struct ares_in6_addr ares_in6addr_any; /* :: */
+
 
 #endif /* ARES_IPV6_H */

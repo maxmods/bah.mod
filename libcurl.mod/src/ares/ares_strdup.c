@@ -1,5 +1,4 @@
 
-/* $Id: ares_strdup.c,v 1.2 2008-09-12 05:08:18 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -16,7 +15,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 #include "ares_strdup.h"
 
 #ifndef HAVE_STRDUP

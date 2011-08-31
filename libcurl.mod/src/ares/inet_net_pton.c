@@ -1,4 +1,3 @@
-/* $Id: inet_net_pton.c,v 1.15 2008-09-24 19:13:02 yangtse Exp $ */
 
 /*
  * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
@@ -17,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -38,15 +37,20 @@
 #endif
 
 #include <ctype.h>
-#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+#include "ares.h"
 #include "ares_ipv6.h"
+#include "ares_nowarn.h"
 #include "inet_net_pton.h"
 
-#if !defined(HAVE_INET_NET_PTON) || !defined(HAVE_INET_NET_PTON_IPV6)
+
+const struct ares_in6_addr ares_in6addr_any = { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } } };
+
+
+#ifndef HAVE_INET_NET_PTON
 
 /*
  * static int
@@ -79,45 +83,46 @@ inet_net_pton_ipv4(const char *src, unsigned char *dst, size_t size)
 
   ch = *src++;
   if (ch == '0' && (src[0] == 'x' || src[0] == 'X')
+      && ISASCII(src[1])
       && ISXDIGIT(src[1])) {
     /* Hexadecimal: Eat nybble string. */
-    if (size <= 0U)
+    if (!size)
       goto emsgsize;
     dirty = 0;
     src++;  /* skip x or X. */
-    while ((ch = *src++) != '\0' && ISXDIGIT(ch)) {
+    while ((ch = *src++) != '\0' && ISASCII(ch) && ISXDIGIT(ch)) {
       if (ISUPPER(ch))
         ch = tolower(ch);
-      n = (int)(strchr(xdigits, ch) - xdigits);
+      n = aresx_sztosi(strchr(xdigits, ch) - xdigits);
       if (dirty == 0)
         tmp = n;
       else
         tmp = (tmp << 4) | n;
       if (++dirty == 2) {
-        if (size-- <= 0U)
+        if (!size--)
           goto emsgsize;
         *dst++ = (unsigned char) tmp;
         dirty = 0;
       }
     }
     if (dirty) {  /* Odd trailing nybble? */
-      if (size-- <= 0U)
+      if (!size--)
         goto emsgsize;
       *dst++ = (unsigned char) (tmp << 4);
     }
-  } else if (ISDIGIT(ch)) {
+  } else if (ISASCII(ch) && ISDIGIT(ch)) {
     /* Decimal: eat dotted digit string. */
     for (;;) {
       tmp = 0;
       do {
-        n = (int)(strchr(digits, ch) - digits);
+        n = aresx_sztosi(strchr(digits, ch) - digits);
         tmp *= 10;
         tmp += n;
         if (tmp > 255)
           goto enoent;
       } while ((ch = *src++) != '\0' &&
-               ISDIGIT(ch));
-      if (size-- <= 0U)
+               ISASCII(ch) && ISDIGIT(ch));
+      if (!size--)
         goto emsgsize;
       *dst++ = (unsigned char) tmp;
       if (ch == '\0' || ch == '/')
@@ -125,27 +130,27 @@ inet_net_pton_ipv4(const char *src, unsigned char *dst, size_t size)
       if (ch != '.')
         goto enoent;
       ch = *src++;
-      if (!ISDIGIT(ch))
+      if (!ISASCII(ch) || !ISDIGIT(ch))
         goto enoent;
     }
   } else
     goto enoent;
 
   bits = -1;
-  if (ch == '/' &&
+  if (ch == '/' && ISASCII(src[0]) &&
       ISDIGIT(src[0]) && dst > odst) {
     /* CIDR width specifier.  Nothing can follow it. */
     ch = *src++;    /* Skip over the /. */
     bits = 0;
     do {
-      n = (int)(strchr(digits, ch) - digits);
+      n = aresx_sztosi(strchr(digits, ch) - digits);
       bits *= 10;
       bits += n;
-    } while ((ch = *src++) != '\0' && ISDIGIT(ch));
+      if (bits > 32)
+        goto enoent;
+    } while ((ch = *src++) != '\0' && ISASCII(ch) && ISDIGIT(ch));
     if (ch != '\0')
       goto enoent;
-    if (bits > 32)
-      goto emsgsize;
   }
 
   /* Firey death and destruction unless we prefetched EOS. */
@@ -169,7 +174,7 @@ inet_net_pton_ipv4(const char *src, unsigned char *dst, size_t size)
       bits = 8;
     /* If imputed mask is narrower than specified octets, widen. */
     if (bits < ((dst - odst) * 8))
-      bits = (int)(dst - odst) * 8;
+      bits = aresx_sztosi(dst - odst) * 8;
     /*
      * If there are no additional bits specified for a class D
      * address adjust bits to 4.
@@ -179,7 +184,7 @@ inet_net_pton_ipv4(const char *src, unsigned char *dst, size_t size)
   }
   /* Extend network to cover the actual mask. */
   while (bits > ((dst - odst) * 8)) {
-    if (size-- <= 0U)
+    if (!size--)
       goto emsgsize;
     *dst++ = '\0';
   }
@@ -212,7 +217,7 @@ getbits(const char *src, int *bitsp)
       if (n++ != 0 && val == 0)       /* no leading zeros */
         return (0);
       val *= 10;
-      val += (pch - digits);
+      val += aresx_sztosi(pch - digits);
       if (val > 128)                  /* range */
         return (0);
       continue;
@@ -244,7 +249,7 @@ getv4(const char *src, unsigned char *dst, int *bitsp)
       if (n++ != 0 && val == 0)       /* no leading zeros */
         return (0);
       val *= 10;
-      val += (pch - digits);
+      val += aresx_sztoui(pch - digits);
       if (val > 255)                  /* range */
         return (0);
       continue;
@@ -265,8 +270,8 @@ getv4(const char *src, unsigned char *dst, int *bitsp)
     return (0);
   if (dst - odst > 3)             /* too many octets? */
     return (0);
-  *dst++ = (unsigned char)val;
-  return (1);
+  *dst = (unsigned char)val;
+  return 1;
 }
 
 static int
@@ -304,7 +309,7 @@ inet_net_pton_ipv6(const char *src, unsigned char *dst, size_t size)
       pch = strchr((xdigits = xdigits_u), ch);
     if (pch != NULL) {
       val <<= 4;
-      val |= (pch - xdigits);
+      val |= aresx_sztoui(pch - xdigits);
       if (++digits > 4)
         goto enoent;
       saw_xdigit = 1;
@@ -360,14 +365,14 @@ inet_net_pton_ipv6(const char *src, unsigned char *dst, size_t size)
      * Since some memmove()'s erroneously fail to handle
      * overlapping regions, we'll do the shift by hand.
      */
-    const int n = (int)(tp - colonp);
-    int i;
+    const ssize_t n = tp - colonp;
+    ssize_t i;
 
     if (tp == endp)
       goto enoent;
     for (i = 1; i <= n; i++) {
-      endp[- i] = colonp[n - i];
-      colonp[n - i] = 0;
+      *(endp - i) = *(colonp + n - i);
+      *(colonp + n - i) = 0;
     }
     tp = endp;
   }
@@ -421,17 +426,18 @@ ares_inet_net_pton(int af, const char *src, void *dst, size_t size)
   }
 }
 
-#endif
+#endif /* HAVE_INET_NET_PTON */
 
 #ifndef HAVE_INET_PTON
 int ares_inet_pton(int af, const char *src, void *dst)
 {
-  int size, result;
+  int result;
+  size_t size;
 
   if (af == AF_INET)
     size = sizeof(struct in_addr);
   else if (af == AF_INET6)
-    size = sizeof(struct in6_addr);
+    size = sizeof(struct ares_in6_addr);
   else
   {
     SET_ERRNO(EAFNOSUPPORT);

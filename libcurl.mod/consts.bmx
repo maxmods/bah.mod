@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -1309,6 +1309,246 @@ End Rem
 Const CURLOPT_NEW_DIRECTORY_PERMS:Int = CURLOPTTYPE_LONG + 160
 
 Rem
+bbdoc: Set the behaviour of POST when redirecting.
+about: Values must be set to one of CURL_REDIR* defines below. This used to be called CURLOPT_POST301 
+End Rem
+Const CURLOPT_POSTREDIR:Int = CURLOPTTYPE_LONG + 161
+
+Rem
+bbdoc: used by scp/sftp to verify the host's public key 
+End Rem
+Const CURLOPT_SSH_HOST_PUBLIC_KEY_MD5:Int = OBJECTPOINT + 162
+
+Rem
+bbdoc: Callback function for opening socket (instead of socket(2)).
+about: Optionally, callback is able change the address or refuse to connect returning CURL_SOCKET_BAD.
+The callback should have type curl_opensocket_callback 
+End Rem
+Const CURLOPT_OPENSOCKETFUNCTION:Int = FUNCTIONPOINT + 163
+Const CURLOPT_OPENSOCKETDATA:Int = OBJECTPOINT + 164
+
+Rem
+bbdoc: POST volatile input fields. 
+End Rem
+Const CURLOPT_COPYPOSTFIELDS:Int = OBJECTPOINT + 165
+
+Rem
+bbdoc: Set transfer mode (;type=&lt;a|i&gt;) when doing FTP via an HTTP proxy 
+End Rem
+Const CURLOPT_PROXY_TRANSFER_MODE:Int = CURLOPTTYPE_LONG + 166
+
+Rem
+bbdoc: Callback function for seeking in the input stream 
+End Rem
+Const CURLOPT_SEEKFUNCTION:Int = FUNCTIONPOINT + 167
+Const CURLOPT_SEEKDATA:Int = OBJECTPOINT + 168
+
+Rem
+bbdoc: CRL file 
+End Rem
+Const CURLOPT_CRLFILE:Int = OBJECTPOINT + 169
+
+Rem
+bbdoc: Issuer certificate 
+End Rem
+Const CURLOPT_ISSUERCERT:Int = OBJECTPOINT + 170
+
+Rem
+bbdoc: (IPv6) Address scope 
+End Rem
+Const CURLOPT_ADDRESS_SCOPE:Int = CURLOPTTYPE_LONG + 171
+
+Rem
+bbdoc: Collect certificate chain info and allow it to get retrievable with CURLINFO_CERTINFO after the transfer is complete.
+about: (Unfortunately) only working with OpenSSL-powered builds. 
+End Rem
+Const CURLOPT_CERTINFO:Int = CURLOPTTYPE_LONG + 172
+
+Rem
+bbdoc: "name" and "pwd" to use when fetching. 
+End Rem
+Const CURLOPT_USERNAME:Int = OBJECTPOINT + 173
+Const CURLOPT_PASSWORD:Int = OBJECTPOINT + 174
+
+Rem
+bbdoc: "name" and "pwd" to use with Proxy when fetching. 
+End Rem
+Const CURLOPT_PROXYUSERNAME:Int = OBJECTPOINT + 175
+Const CURLOPT_PROXYPASSWORD:Int = OBJECTPOINT + 176
+
+Rem
+bbdoc: Comma separated list of hostnames defining no-proxy zones.
+about: These should match both hostnames directly, and hostnames within a domain. For example, local.com will match local.com and www.local.com, but NOT
+notlocal.com or www.notlocal.com. For compatibility with other implementations of this, .local.com will be considered to be the same as
+local.com. A single * is the only valid wildcard, and effectively disables the use of proxy. 
+End Rem
+Const CURLOPT_NOPROXY:Int = OBJECTPOINT + 177
+
+Rem
+bbdoc: block size for TFTP transfers 
+End Rem
+Const CURLOPT_TFTP_BLKSIZE:Int = CURLOPTTYPE_LONG + 178
+
+Rem
+bbdoc: Socks Service 
+End Rem
+Const CURLOPT_SOCKS5_GSSAPI_SERVICE:Int = OBJECTPOINT + 179
+
+Rem
+bbdoc: Socks Service 
+End Rem
+Const CURLOPT_SOCKS5_GSSAPI_NEC:Int = CURLOPTTYPE_LONG + 180
+
+Rem
+bbdoc: Set the bitmask for the protocols that are allowed to be used for the transfer, which thus helps the app which takes URLs from users or other external inputs and want to restrict what protocol(s) to deal with.
+about: Defaults to CURLPROTO_ALL. 
+End Rem
+Const CURLOPT_PROTOCOLS:Int = CURLOPTTYPE_LONG + 181
+
+Rem
+bbdoc: Set the bitmask for the protocols that libcurl is allowed to follow to, as a subset of the CURLOPT_PROTOCOLS ones.
+about: That means the protocol needs to be set in both bitmasks to be allowed to get redirected to. Defaults to all protocols except FILE and SCP. 
+End Rem
+Const CURLOPT_REDIR_PROTOCOLS:Int = CURLOPTTYPE_LONG + 182
+
+Rem
+bbdoc: set the SSH knownhost file name to use 
+End Rem
+Const CURLOPT_SSH_KNOWNHOSTS:Int = OBJECTPOINT + 183
+
+Rem
+bbdoc: set the SSH host key callback, must point to a curl_sshkeycallback function 
+End Rem
+Const CURLOPT_SSH_KEYFUNCTION:Int = FUNCTIONPOINT + 184
+
+Rem
+bbdoc: set the SSH host key callback custom pointer 
+End Rem
+Const CURLOPT_SSH_KEYDATA:Int = OBJECTPOINT + 185
+
+Rem
+bbdoc: set the SMTP mail originator 
+End Rem
+Const CURLOPT_MAIL_FROM:Int = OBJECTPOINT + 186
+
+Rem
+bbdoc: set the SMTP mail receiver(s) 
+End Rem
+Const CURLOPT_MAIL_RCPT:Int = OBJECTPOINT + 187
+
+Rem
+bbdoc: FTP: send PRET before PASV 
+End Rem
+Const CURLOPT_FTP_USE_PRET:Int = CURLOPTTYPE_LONG + 188
+
+Rem
+bbdoc: RTSP request method (OPTIONS, SETUP, PLAY, etc...) 
+End Rem
+Const CURLOPT_RTSP_REQUEST:Int = CURLOPTTYPE_LONG + 189
+
+Rem
+bbdoc: The RTSP session identifier 
+End Rem
+Const CURLOPT_RTSP_SESSION_ID:Int = OBJECTPOINT + 190
+
+Rem
+bbdoc: The RTSP stream URI 
+End Rem
+Const CURLOPT_RTSP_STREAM_URI:Int = OBJECTPOINT + 191
+
+Rem
+bbdoc: The Transport: header to use in RTSP requests 
+End Rem
+Const CURLOPT_RTSP_TRANSPORT:Int = OBJECTPOINT + 192
+
+Rem
+bbdoc: Manually initialize the client RTSP CSeq for this handle 
+End Rem
+Const CURLOPT_RTSP_CLIENT_CSEQ:Int = CURLOPTTYPE_LONG + 193
+
+Rem
+bbdoc: Manually initialize the server RTSP CSeq for this handle 
+End Rem
+Const CURLOPT_RTSP_SERVER_CSEQ:Int = CURLOPTTYPE_LONG + 194
+
+Rem
+bbdoc: The stream to pass to INTERLEAVEFUNCTION. 
+End Rem
+Const CURLOPT_INTERLEAVEDATA:Int = OBJECTPOINT + 195
+
+Rem
+bbdoc: Let the application define a custom write method for RTP data 
+End Rem
+Const CURLOPT_INTERLEAVEFUNCTION:Int = FUNCTIONPOINT + 196
+
+Rem
+bbdoc: Turn on wildcard matching 
+End Rem
+Const CURLOPT_WILDCARDMATCH:Int = CURLOPTTYPE_LONG + 197
+
+Rem
+bbdoc: Directory matching callback called before downloading of an individual file (chunk) started 
+End Rem
+Const CURLOPT_CHUNK_BGN_FUNCTION:Int = FUNCTIONPOINT + 198
+
+Rem
+bbdoc: Directory matching callback called after the file (chunk)
+     was downloaded, or skipped 
+End Rem
+Const CURLOPT_CHUNK_END_FUNCTION:Int = FUNCTIONPOINT + 199
+
+Rem
+bbdoc: Change match (fnmatch-like) callback for wildcard matching 
+End Rem
+Const CURLOPT_FNMATCH_FUNCTION:Int = FUNCTIONPOINT + 200
+
+Rem
+bbdoc: Let the application define custom chunk data pointer 
+End Rem
+Const CURLOPT_CHUNK_DATA:Int = OBJECTPOINT + 201
+
+Rem
+bbdoc: FNMATCH_FUNCTION user pointer 
+End Rem
+Const CURLOPT_FNMATCH_DATA:Int = OBJECTPOINT + 202
+
+Rem
+bbdoc: send linked-list of name:port:address sets 
+End Rem
+Const CURLOPT_RESOLVE:Int = OBJECTPOINT + 203
+
+Rem
+bbdoc: Set a username for authenticated TLS 
+End Rem
+Const CURLOPT_TLSAUTH_USERNAME:Int = OBJECTPOINT + 204
+
+Rem
+bbdoc: Set a password for authenticated TLS 
+End Rem
+Const CURLOPT_TLSAUTH_PASSWORD:Int = OBJECTPOINT + 205
+
+Rem
+bbdoc: Set authentication type for authenticated TLS 
+End Rem
+Const CURLOPT_TLSAUTH_TYPE:Int = OBJECTPOINT + 206
+
+Rem
+bbdoc: Set to 1 to enable the "TE:" header in HTTP requests to ask for compressed transfer-encoded responses. Set to 0 to disable the use of TE: in outgoing requests.
+about: The current default is 0, but it might change in a future libcurl release.
+     libcurl will ask for the compressed methods it knows of, and if that
+     isn't any, it will not ask for transfer-encoding at all even if this
+     option is set to 1.
+End Rem
+Const CURLOPT_TRANSFER_ENCODING:Int = CURLOPTTYPE_LONG + 207
+
+Rem
+bbdoc: Callback function for closing socket (instead of close(2)).
+about: The callback should have type curl_closesocket_callback 
+End Rem
+Const CURLOPT_CLOSESOCKETFUNCTION:Int = FUNCTIONPOINT + 208
+Const CURLOPT_CLOSESOCKETDATA:Int = OBJECTPOINT + 209
+
+Rem
 bbdoc: No authentication
 End Rem
 Const CURLAUTH_NONE:Int = 0
@@ -1757,6 +1997,38 @@ Rem
 bbdoc: Error code - Failed to shut down the SSL connection.
 End Rem
 Const CURLE_SSL_SHUTDOWN_FAILED:Int = 80
+Rem
+bbdoc: Error code - Socket is not ready for send/recv, wait till it's ready and try again.
+End Rem
+Const CURLE_AGAIN:Int = 81
+Rem
+bbdoc: Error code - Could not load CRL file, missing or wrong format.
+End Rem
+Const CURLE_SSL_CRL_BADFILE:Int = 82
+Rem
+bbdoc: Error code - Issuer check failed.
+End Rem
+Const CURLE_SSL_ISSUER_ERROR:Int = 83
+Rem
+bbdoc: Error code - A PRET command failed.
+End Rem
+Const CURLE_FTP_PRET_FAILED:Int = 84
+Rem
+bbdoc: Error code - Mismatch of RTSP CSeq numbers.
+End Rem
+Const CURLE_RTSP_CSEQ_ERROR:Int = 85
+Rem
+bbdoc: Error code - Mismatch of RTSP Session Ids.
+End Rem
+Const CURLE_RTSP_SESSION_ERROR:Int = 86
+Rem
+bbdoc: Error code - Unable to parse FTP file list.
+End Rem
+Const CURLE_FTP_BAD_FILE_LIST:Int = 87
+Rem
+bbdoc: Error code - Chunk callback reported error.
+End Rem
+Const CURLE_CHUNK_FAILED:Int = 88
 
 Rem
 bbdoc: The library will ignore the file and use only the information in the URL.
@@ -1845,6 +2117,18 @@ Const CURLINFO_SSL_ENGINES:Int = CURLINFO_SLIST  + 27
 Const CURLINFO_COOKIELIST:Int = CURLINFO_SLIST  + 28
 Const CURLINFO_LASTSOCKET:Int = CURLINFO_LONG   + 29
 Const CURLINFO_FTP_ENTRY_PATH:Int = CURLINFO_STRING + 30
+Const CURLINFO_REDIRECT_URL:Int = CURLINFO_STRING + 31
+Const CURLINFO_PRIMARY_IP:Int = CURLINFO_STRING + 32
+Const CURLINFO_APPCONNECT_TIME:Int = CURLINFO_DOUBLE + 33
+Const CURLINFO_CERTINFO:Int = CURLINFO_SLIST  + 34
+Const CURLINFO_CONDITION_UNMET:Int = CURLINFO_LONG   + 35
+Const CURLINFO_RTSP_SESSION_ID:Int = CURLINFO_STRING + 36
+Const CURLINFO_RTSP_CLIENT_CSEQ:Int = CURLINFO_LONG   + 37
+Const CURLINFO_RTSP_SERVER_CSEQ:Int = CURLINFO_LONG   + 38
+Const CURLINFO_RTSP_CSEQ_RECV:Int = CURLINFO_LONG   + 39
+Const CURLINFO_PRIMARY_PORT:Int = CURLINFO_LONG   + 40
+Const CURLINFO_LOCAL_IP:Int = CURLINFO_STRING + 41
+Const CURLINFO_LOCAL_PORT:Int = CURLINFO_LONG   + 42
 
 Const CURLFTPSSL_CCC_NONE:Int = 0
 Const CURLFTPSSL_CCC_PASSIVE:Int = 1

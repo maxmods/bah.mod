@@ -1,4 +1,3 @@
-/* $Id: ares_fds.c,v 1.11 2007-09-29 18:18:47 sesse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -15,13 +14,14 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 
 #include "ares.h"
+#include "ares_nowarn.h"
 #include "ares_private.h"
 
 int ares_fds(ares_channel channel, fd_set *read_fds, fd_set *write_fds)

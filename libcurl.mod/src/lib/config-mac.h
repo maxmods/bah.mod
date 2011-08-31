@@ -1,3 +1,33 @@
+#ifndef __LIB_CONFIG_MAC_H
+#define __LIB_CONFIG_MAC_H
+/***************************************************************************
+ *                                  _   _ ____  _
+ *  Project                     ___| | | |  _ \| |
+ *                             / __| | | | |_) | |
+ *                            | (__| |_| |  _ <| |___
+ *                             \___|\___/|_| \_\_____|
+ *
+ * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ *
+ * This software is licensed as described in the file COPYING, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://curl.haxx.se/docs/copyright.html.
+ *
+ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+ * copies of the Software, and permit persons to whom the Software is
+ * furnished to do so, under the terms of the COPYING file.
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+ * KIND, either express or implied.
+ *
+ ***************************************************************************/
+
+/* =================================================================== */
+/*   lib/config-mac.h - Hand crafted config file for Mac OS 9          */
+/* =================================================================== */
+/*  On Mac OS X you must run configure to generate curl_config.h file  */
+/* =================================================================== */
+
 #define OS "mac"
 
 #define HAVE_NETINET_IN_H       1
@@ -19,9 +49,9 @@
 
 #define TIME_WITH_SYS_TIME      1
 
+#define HAVE_ALARM              1
 #define HAVE_STRDUP             1
 #define HAVE_UTIME              1
-#define HAVE_INET_NTOA          1
 #define HAVE_SETVBUF            1
 #define HAVE_STRFTIME           1
 #define HAVE_INET_ADDR          1
@@ -45,9 +75,14 @@
 #define HAVE_RAND_STATUS        1
 #define HAVE_RAND_EGD           1
 
-#define HAVE_FIONBIO            1
+#define HAVE_IOCTL              1
+#define HAVE_IOCTL_FIONBIO      1
 
 #define RETSIGTYPE void
+
+#define SIZEOF_INT              4
+#define SIZEOF_SHORT            2
+#define SIZEOF_SIZE_T           4
 
 #define HAVE_GETNAMEINFO 1
 #define GETNAMEINFO_QUAL_ARG1 const
@@ -63,6 +98,16 @@
 #define RECV_TYPE_ARG4 int
 #define RECV_TYPE_RETV ssize_t
 
+#define HAVE_RECVFROM 1
+#define RECVFROM_TYPE_ARG1 int
+#define RECVFROM_TYPE_ARG2 void
+#define RECVFROM_TYPE_ARG3 size_t
+#define RECVFROM_TYPE_ARG4 int
+#define RECVFROM_TYPE_ARG5 struct sockaddr
+#define RECVFROM_TYPE_ARG6 int
+#define RECVFROM_TYPE_RETV ssize_t
+#define RECVFROM_TYPE_ARG2_IS_VOID 1
+
 #define HAVE_SEND 1
 #define SEND_TYPE_ARG1 int
 #define SEND_QUAL_ARG2 const
@@ -71,5 +116,7 @@
 #define SEND_TYPE_ARG4 int
 #define SEND_TYPE_RETV ssize_t
 
-#include <extra/stricmp.h>
-#include <extra/strdup.h>
+#define HAVE_EXTRA_STRICMP_H 1
+#define HAVE_EXTRA_STRDUP_H  1
+
+#endif /* __LIB_CONFIG_MAC_H */
