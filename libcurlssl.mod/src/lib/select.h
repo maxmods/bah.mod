@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2008, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -20,7 +20,6 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: select.h,v 1.15 2008-01-22 14:52:54 yangtse Exp $
  ***************************************************************************/
 
 #include "setup.h"
@@ -37,14 +36,16 @@
 
 #if defined(USE_WINSOCK) && (USE_WINSOCK > 1) && \
     defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0600)
-#undef  HAVE_POLL
-#define HAVE_POLL 1
-#undef  HAVE_POLL_FINE
-#define HAVE_POLL_FINE 1
-#define poll(x,y,z) WSAPoll((x),(y),(z))
-#if defined(_MSC_VER) && defined(POLLRDNORM)
-#define HAVE_STRUCT_POLLFD 1
-#endif
+#  undef  HAVE_POLL
+#  define HAVE_POLL 1
+#  undef  HAVE_POLL_FINE
+#  define HAVE_POLL_FINE 1
+#  define poll(x,y,z) WSAPoll((x),(y),(z))
+#  if defined(_MSC_VER) && defined(POLLRDNORM)
+#    undef  POLLPRI
+#    define POLLPRI POLLRDBAND
+#    define HAVE_STRUCT_POLLFD 1
+#  endif
 #endif
 
 /*
@@ -84,7 +85,7 @@ struct pollfd
 #endif
 
 int Curl_socket_ready(curl_socket_t readfd, curl_socket_t writefd,
-                      int timeout_ms);
+                      long timeout_ms);
 
 int Curl_poll(struct pollfd ufds[], unsigned int nfds, int timeout_ms);
 

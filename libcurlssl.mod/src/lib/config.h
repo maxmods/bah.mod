@@ -689,7 +689,7 @@
 /* #undef USE_GNUTLS */
 
 /* if libSSH2 is in use */
-/* #define USE_LIBSSH2 1 */
+/* #undef USE_LIBSSH2 */
 
 /* If you want to build curl with the built-in manual */
 #define USE_MANUAL 1
@@ -710,7 +710,7 @@
 /* #undef USE_YASSLEMUL */
 
 /* Version number of package */
-#define VERSION "7.16.4"
+#define VERSION "7.21.7"
 
 /* Define to avoid automatic inclusion of winsock.h */
 /* #undef WIN32_LEAN_AND_MEAN */

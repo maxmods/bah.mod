@@ -1,13 +1,13 @@
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
-* Permission to use, copy, modify, and distribute this
+ * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
-* fee is hereby granted, provided that the above copyright
+ * fee is hereby granted, provided that the above copyright
  * notice appear in all copies and that both that copyright
  * notice and this permission notice appear in supporting
-* documentation, and that the name of M.I.T. not be used in
+ * documentation, and that the name of M.I.T. not be used in
  * advertising or publicity pertaining to distribution of the
-* software without specific, written prior permission.
+ * software without specific, written prior permission.
  * M.I.T. makes no representations about the suitability of
  * this software for any purpose.  It is provided "as is"
  * without express or implied warranty.
@@ -18,7 +18,7 @@
  *      on behalf of AVIRA Gmbh - http://www.avira.com
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -73,7 +73,7 @@ int ares_parse_ns_reply( const unsigned char* abuf, int alen,
 
   /* Expand the name from the question, and skip past the question. */
   aptr = abuf + HFIXEDSZ;
-  status = ares_expand_name( aptr, abuf, alen, &hostname, &len );
+  status = ares__expand_name_for_response( aptr, abuf, alen, &hostname, &len);
   if ( status != ARES_SUCCESS )
     return status;
   if ( aptr + len + QFIXEDSZ > abuf + alen )
@@ -96,13 +96,14 @@ int ares_parse_ns_reply( const unsigned char* abuf, int alen,
   for ( i = 0; i < ( int ) ancount; i++ )
   {
     /* Decode the RR up to the data field. */
-    status = ares_expand_name( aptr, abuf, alen, &rr_name, &len );
+    status = ares__expand_name_for_response( aptr, abuf, alen, &rr_name, &len );
     if ( status != ARES_SUCCESS )
       break;
     aptr += len;
     if ( aptr + RRFIXEDSZ > abuf + alen )
     {
       status = ARES_EBADRESP;
+      free(rr_name);
       break;
     }
     rr_type = DNS_RR_TYPE( aptr );
@@ -113,9 +114,11 @@ int ares_parse_ns_reply( const unsigned char* abuf, int alen,
     if ( rr_class == C_IN && rr_type == T_NS )
     {
       /* Decode the RR data and add it to the nameservers list */
-      status = ares_expand_name( aptr, abuf, alen, &rr_data, &len );
+      status = ares__expand_name_for_response( aptr, abuf, alen, &rr_data,
+                                               &len);
       if ( status != ARES_SUCCESS )
       {
+        free(rr_name);
         break;
       }
 

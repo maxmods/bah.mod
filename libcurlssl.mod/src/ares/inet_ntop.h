@@ -1,7 +1,6 @@
 #ifndef __ARES_INET_NTOP_H
 #define __ARES_INET_NTOP_H
 
-/* $Id: inet_ntop.h,v 1.4 2008-09-24 16:43:12 yangtse Exp $ */
 
 /* Copyright (C) 2005 by Dominick Meglio
  *

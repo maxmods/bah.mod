@@ -1,4 +1,3 @@
-/* $Id: ares_expand_string.c,v 1.9 2008-11-29 00:26:07 danf Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -15,7 +14,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -46,26 +45,30 @@ int ares_expand_string(const unsigned char *encoded,
                        long *enclen)
 {
   unsigned char *q;
-  long len;
+  union {
+    ssize_t sig;
+     size_t uns;
+  } elen;
+
   if (encoded == abuf+alen)
     return ARES_EBADSTR;
 
-  len = *encoded;
-  if (encoded+len+1 > abuf+alen)
+  elen.uns = *encoded;
+  if (encoded+elen.sig+1 > abuf+alen)
     return ARES_EBADSTR;
 
   encoded++;
 
-  *s = malloc(len+1);
+  *s = malloc(elen.uns+1);
   if (*s == NULL)
     return ARES_ENOMEM;
   q = *s;
-  strncpy((char *)q, (char *)encoded, len);
-  q[len] = '\0';
+  strncpy((char *)q, (char *)encoded, elen.uns);
+  q[elen.uns] = '\0';
 
   *s = q;
 
-  *enclen = len+1;
+  *enclen = (long)(elen.sig+1);
 
   return ARES_SUCCESS;
 }

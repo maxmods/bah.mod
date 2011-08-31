@@ -1,6 +1,5 @@
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
- * $Id: ahost.c,v 1.24 2008-09-15 15:28:26 yangtse Exp $
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -15,7 +14,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #if !defined(WIN32) || defined(WATT32)
 #ifdef HAVE_SYS_TIME_H
@@ -42,6 +41,8 @@
 #include "inet_ntop.h"
 #include "inet_net_pton.h"
 #include "ares_getopt.h"
+#include "ares_ipv6.h"
+#include "ares_nowarn.h"
 
 #ifndef HAVE_STRDUP
 #  include "ares_strdup.h"
@@ -68,13 +69,20 @@ int main(int argc, char **argv)
   fd_set read_fds, write_fds;
   struct timeval *tvp, tv;
   struct in_addr addr4;
-  struct in6_addr addr6;
+  struct ares_in6_addr addr6;
 
 #ifdef USE_WINSOCK
   WORD wVersionRequested = MAKEWORD(USE_WINSOCK,USE_WINSOCK);
   WSADATA wsaData;
   WSAStartup(wVersionRequested, &wsaData);
 #endif
+
+  status = ares_library_init(ARES_LIB_INIT_ALL);
+  if (status != ARES_SUCCESS)
+    {
+      fprintf(stderr, "ares_library_init: %s\n", ares_strerror(status));
+      return 1;
+    }
 
   while ((c = ares_getopt(argc,argv,"dt:h")) != -1)
     {
@@ -132,7 +140,7 @@ int main(int argc, char **argv)
     }
 
   /* Wait for all queries to complete. */
-  while (1)
+  for (;;)
     {
       FD_ZERO(&read_fds);
       FD_ZERO(&write_fds);
@@ -145,6 +153,8 @@ int main(int argc, char **argv)
     }
 
   ares_destroy(channel);
+
+  ares_library_cleanup();
 
 #ifdef USE_WINSOCK
   WSACleanup();

@@ -1,7 +1,6 @@
 #ifndef HEADER_CARES_WRITEV_H
 #define HEADER_CARES_WRITEV_H
 
-/* $Id: ares_writev.h,v 1.1 2008-09-16 16:42:48 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -18,7 +17,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 #include "ares.h"
 
 #ifndef HAVE_WRITEV

@@ -31,7 +31,6 @@
 #endif
 #endif
 
-
 /*
  * Include configuration script results or hand-crafted
  * configuration file for platforms which lack config tool.

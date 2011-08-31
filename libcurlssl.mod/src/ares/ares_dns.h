@@ -1,4 +1,3 @@
-/* $Id: ares_dns.h,v 1.8 2007-02-16 14:22:08 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *

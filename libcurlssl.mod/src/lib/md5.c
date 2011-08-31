@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2007, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,17 +18,54 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: md5.c,v 1.12 2007-11-07 09:21:35 bagder Exp $
  ***************************************************************************/
 
 #include "setup.h"
 
 #ifndef CURL_DISABLE_CRYPTO_AUTH
 
-#if !defined(USE_SSLEAY) || !defined(USE_OPENSSL)
-/* This code segment is only used if OpenSSL is not provided, as if it is
-   we use the MD5-function provided there instead. No good duplicating
-   code! */
+#include <string.h>
+
+#include "curl_md5.h"
+#include "curl_hmac.h"
+
+#ifdef USE_GNUTLS
+
+#include <gcrypt.h>
+
+typedef gcry_md_hd_t MD5_CTX;
+
+static void MD5_Init(MD5_CTX * ctx)
+{
+  gcry_md_open(ctx, GCRY_MD_MD5, 0);
+}
+
+static void MD5_Update(MD5_CTX * ctx,
+                       const unsigned char * input,
+                       unsigned int inputLen)
+{
+  gcry_md_write(*ctx, input, inputLen);
+}
+
+static void MD5_Final(unsigned char digest[16], MD5_CTX * ctx)
+{
+  memcpy(digest, gcry_md_read(*ctx, 0), 16);
+  gcry_md_close(*ctx);
+}
+
+#else
+
+#ifdef USE_SSLEAY
+/* When OpenSSL is available we use the MD5-function from OpenSSL */
+
+#  ifdef USE_OPENSSL
+#    include <openssl/md5.h>
+#  else
+#    include <md5.h>
+#  endif
+
+#else /* USE_SSLEAY */
+/* When OpenSSL is not available we use this code segment */
 
 /* Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All
 rights reserved.
@@ -51,8 +88,6 @@ without express or implied warranty of any kind.
 These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
-
-#include <string.h>
 
 /* UINT4 defines a four byte word */
 typedef unsigned int UINT4;
@@ -170,10 +205,10 @@ static void MD5_Update (struct md5_ctx *context,    /* context */
 
   /* Transform as many times as possible. */
   if(inputLen >= partLen) {
-    memcpy((void *)&context->buffer[bufindex], (void *)input, partLen);
+    memcpy(&context->buffer[bufindex], input, partLen);
     MD5Transform(context->state, context->buffer);
 
-    for (i = partLen; i + 63 < inputLen; i += 64)
+    for(i = partLen; i + 63 < inputLen; i += 64)
       MD5Transform(context->state, &input[i]);
 
     bufindex = 0;
@@ -182,7 +217,7 @@ static void MD5_Update (struct md5_ctx *context,    /* context */
     i = 0;
 
   /* Buffer remaining input */
-  memcpy((void *)&context->buffer[bufindex], (void *)&input[i], inputLen-i);
+  memcpy(&context->buffer[bufindex], &input[i], inputLen-i);
 }
 
 /* MD5 finalization. Ends an MD5 message-digest operation, writing the
@@ -310,7 +345,7 @@ static void Encode (unsigned char *output,
 {
   unsigned int i, j;
 
-  for (i = 0, j = 0; j < len; i++, j += 4) {
+  for(i = 0, j = 0; j < len; i++, j += 4) {
     output[j] = (unsigned char)(input[i] & 0xff);
     output[j+1] = (unsigned char)((input[i] >> 8) & 0xff);
     output[j+2] = (unsigned char)((input[i] >> 16) & 0xff);
@@ -327,18 +362,26 @@ static void Decode (UINT4 *output,
 {
   unsigned int i, j;
 
-  for (i = 0, j = 0; j < len; i++, j += 4)
+  for(i = 0, j = 0; j < len; i++, j += 4)
     output[i] = ((UINT4)input[j]) | (((UINT4)input[j+1]) << 8) |
       (((UINT4)input[j+2]) << 16) | (((UINT4)input[j+3]) << 24);
 }
 
-#else
-/* If OpenSSL is present */
-#include <openssl/md5.h>
-#include <string.h>
-#endif
+#endif /* USE_SSLEAY */
 
-#include "md5.h"
+#endif /* USE_GNUTLS */
+
+const HMAC_params Curl_HMAC_MD5[] = {
+  {
+    (HMAC_hinit_func) MD5_Init,           /* Hash initialization function. */
+    (HMAC_hupdate_func) MD5_Update,       /* Hash update function. */
+    (HMAC_hfinal_func) MD5_Final,         /* Hash computation end function. */
+    sizeof(MD5_CTX),                      /* Size of hash context structure. */
+    64,                                   /* Maximum key length. */
+    16                                    /* Result size. */
+  }
+};
+
 
 void Curl_md5it(unsigned char *outbuffer, /* 16 bytes */
                 const unsigned char *input)
@@ -349,4 +392,4 @@ void Curl_md5it(unsigned char *outbuffer, /* 16 bytes */
   MD5_Final(outbuffer, &ctx);
 }
 
-#endif
+#endif /* CURL_DISABLE_CRYPTO_AUTH */

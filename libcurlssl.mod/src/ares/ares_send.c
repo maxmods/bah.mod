@@ -1,4 +1,3 @@
-/* $Id: ares_send.c,v 1.20 2008-11-29 00:26:07 danf Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -15,7 +14,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -97,7 +96,7 @@ void ares_send(ares_channel channel, const unsigned char *qbuf, int qlen,
   query->arg = arg;
 
   /* Initialize query status. */
-  query->try = 0;
+  query->try_count = 0;
 
   /* Choose the server to send the query to. If rotation is enabled, keep track
    * of the next server we want to use. */

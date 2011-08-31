@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 2004 - 2007, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 2004 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,16 +18,20 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: strerror.c,v 1.49 2007-11-07 09:21:36 bagder Exp $
  ***************************************************************************/
 
 #include "setup.h"
 
 #ifdef HAVE_STRERROR_R
-#if !defined(HAVE_POSIX_STRERROR_R) && !defined(HAVE_GLIBC_STRERROR_R)
-#error "you MUST have either POSIX or glibc strerror_r if strerror_r is found"
-#endif /* !POSIX && !glibc */
-#endif /* HAVE_STRERROR_R */
+#  if (!defined(HAVE_POSIX_STRERROR_R) && \
+       !defined(HAVE_GLIBC_STRERROR_R) && \
+       !defined(HAVE_VXWORKS_STRERROR_R)) || \
+      (defined(HAVE_POSIX_STRERROR_R) && defined(HAVE_VXWORKS_STRERROR_R)) || \
+      (defined(HAVE_GLIBC_STRERROR_R) && defined(HAVE_VXWORKS_STRERROR_R)) || \
+      (defined(HAVE_POSIX_STRERROR_R) && defined(HAVE_GLIBC_STRERROR_R))
+#    error "strerror_r MUST be either POSIX, glibc or vxworks-style"
+#  endif
+#endif
 
 #include <curl/curl.h>
 #include <stdlib.h>
@@ -43,14 +47,6 @@
 #define _MPRINTF_REPLACE /* use our functions only */
 #include <curl/mprintf.h>
 
-#if defined(HAVE_STRERROR_R) && defined(HAVE_NO_STRERROR_R_DECL)
-#ifdef HAVE_POSIX_STRERROR_R
-/* seen on AIX 5100-02 gcc 2.9 */
-extern int strerror_r(int errnum, char *strerrbuf, size_t buflen);
-#else
-extern char *strerror_r(int errnum, char *buf, size_t buflen);
-#endif
-#endif
 
 const char *
 curl_easy_strerror(CURLcode error)
@@ -69,6 +65,10 @@ curl_easy_strerror(CURLcode error)
   case CURLE_URL_MALFORMAT:
     return "URL using bad/illegal format or missing URL";
 
+  case CURLE_NOT_BUILT_IN:
+    return "A requested feature, protocol or option was not found built-in in"
+      " this libcurl due to a build-time decision.";
+
   case CURLE_COULDNT_RESOLVE_PROXY:
     return "Couldn't resolve proxy name";
 
@@ -83,6 +83,9 @@ curl_easy_strerror(CURLcode error)
 
   case CURLE_REMOTE_ACCESS_DENIED:
     return "Access denied to remote resource";
+
+  case CURLE_FTP_PRET_FAILED:
+    return "FTP: The server did not accept the PRET command.";
 
   case CURLE_FTP_WEIRD_PASS_REPLY:
     return "FTP: unknown PASS reply";
@@ -168,14 +171,14 @@ curl_easy_strerror(CURLcode error)
   case CURLE_TOO_MANY_REDIRECTS :
     return "Number of redirects hit maximum amount";
 
-  case CURLE_UNKNOWN_TELNET_OPTION:
-    return "User specified an unknown telnet option";
+  case CURLE_UNKNOWN_OPTION:
+    return "An unknown option was passed in to libcurl";
 
   case CURLE_TELNET_OPTION_SYNTAX :
     return "Malformed telnet option";
 
   case CURLE_PEER_FAILED_VERIFICATION:
-    return "SSL peer certificate or SSH md5 fingerprint was not OK";
+    return "SSL peer certificate or SSH remote key was not OK";
 
   case CURLE_GOT_NOTHING:
     return "Server returned nothing (no headers, no data)";
@@ -202,13 +205,14 @@ curl_easy_strerror(CURLcode error)
     return "Couldn't use specified SSL cipher";
 
   case CURLE_SSL_CACERT:
-    return "Peer certificate cannot be authenticated with known CA certificates";
+    return "Peer certificate cannot be authenticated with given CA "
+      "certificates";
 
   case CURLE_SSL_CACERT_BADFILE:
     return "Problem with the SSL CA cert (path? access rights?)";
 
   case CURLE_BAD_CONTENT_ENCODING:
-    return "Unrecognized HTTP Content-Encoding";
+    return "Unrecognized or bad HTTP Content or Transfer-Encoding";
 
   case CURLE_LDAP_INVALID_URL:
     return "Invalid LDAP URL";
@@ -221,6 +225,12 @@ curl_easy_strerror(CURLcode error)
 
   case CURLE_SSL_SHUTDOWN_FAILED:
     return "Failed to shut down the SSL connection";
+
+  case CURLE_SSL_CRL_BADFILE:
+    return "Failed to load CRL file (path? access rights?, format?)";
+
+  case CURLE_SSL_ISSUER_ERROR:
+    return "Issuer check against peer certificate failed";
 
   case CURLE_SEND_FAIL_REWIND:
     return "Send failed since rewinding of the data stream failed";
@@ -261,8 +271,22 @@ curl_easy_strerror(CURLcode error)
   case CURLE_SSH:
     return "Error in the SSH layer";
 
+  case CURLE_AGAIN:
+    return "Socket not ready for send/recv";
+
+  case CURLE_RTSP_CSEQ_ERROR:
+    return "RTSP CSeq mismatch or invalid CSeq";
+
+  case CURLE_RTSP_SESSION_ERROR:
+    return "RTSP session error";
+
+  case CURLE_FTP_BAD_FILE_LIST:
+    return "Unable to parse FTP file list";
+
+  case CURLE_CHUNK_FAILED:
+    return "Chunk callback failed";
+
     /* error codes not used by current libcurl */
-  case CURLE_OBSOLETE4:
   case CURLE_OBSOLETE10:
   case CURLE_OBSOLETE12:
   case CURLE_OBSOLETE16:
@@ -581,6 +605,7 @@ const char *Curl_strerror(struct connectdata *conn, int err)
 {
   char *buf, *p;
   size_t max;
+  int old_errno = ERRNO;
 
   DEBUGASSERT(conn);
   DEBUGASSERT(err >= 0);
@@ -592,17 +617,15 @@ const char *Curl_strerror(struct connectdata *conn, int err)
 #ifdef USE_WINSOCK
 
 #ifdef _WIN32_WCE
-  buf[0]=0;
   {
     wchar_t wbuf[256];
+    wbuf[0] = L'\0';
 
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err,
                   LANG_NEUTRAL, wbuf, sizeof(wbuf)/sizeof(wchar_t), NULL);
     wcstombs(buf,wbuf,max);
   }
-
 #else
-
   /* 'sys_nerr' is the maximum errno number, it is not widely portable */
   if(err >= 0 && err < sys_nerr)
     strncpy(buf, strerror(err), max);
@@ -613,34 +636,55 @@ const char *Curl_strerror(struct connectdata *conn, int err)
       snprintf(buf, max, "Unknown error %d (%#x)", err, err);
   }
 #endif
+
 #else /* not USE_WINSOCK coming up */
 
-  /* These should be atomic and hopefully thread-safe */
-#ifdef HAVE_STRERROR_R
-  /* There are two different APIs for strerror_r(). The POSIX and the GLIBC
-     versions. */
-#ifdef HAVE_POSIX_STRERROR_R
-  strerror_r(err, buf, max);
-  /* this may set errno to ERANGE if insufficient storage was supplied via
-     'strerrbuf' and 'buflen' to contain the generated message string, or
-     EINVAL if the value of 'errnum' is not a valid error number.*/
-#else
+#if defined(HAVE_STRERROR_R) && defined(HAVE_POSIX_STRERROR_R)
+ /*
+  * The POSIX-style strerror_r() may set errno to ERANGE if insufficient
+  * storage is supplied via 'strerrbuf' and 'buflen' to hold the generated
+  * message string, or EINVAL if 'errnum' is not a valid error number.
+  */
+  if(0 != strerror_r(err, buf, max)) {
+    if('\0' == buf[0])
+      snprintf(buf, max, "Unknown error %d", err);
+  }
+#elif defined(HAVE_STRERROR_R) && defined(HAVE_GLIBC_STRERROR_R)
+ /*
+  * The glibc-style strerror_r() only *might* use the buffer we pass to
+  * the function, but it always returns the error message as a pointer,
+  * so we must copy that string unconditionally (if non-NULL).
+  */
   {
-    /* HAVE_GLIBC_STRERROR_R */
     char buffer[256];
     char *msg = strerror_r(err, buffer, sizeof(buffer));
-    /* this version of strerror_r() only *might* use the buffer we pass to
-       the function, but it always returns the error message as a pointer,
-       so we must copy that string unconditionally (if non-NULL) */
     if(msg)
       strncpy(buf, msg, max);
     else
       snprintf(buf, max, "Unknown error %d", err);
   }
-#endif /* end of HAVE_GLIBC_STRERROR_R */
-#else /* HAVE_STRERROR_R */
-  strncpy(buf, strerror(err), max);
-#endif /* end of HAVE_STRERROR_R */
+#elif defined(HAVE_STRERROR_R) && defined(HAVE_VXWORKS_STRERROR_R)
+ /*
+  * The vxworks-style strerror_r() does use the buffer we pass to the function.
+  * The buffer size should be at least MAXERRSTR_SIZE (150) defined in rtsold.h
+  */
+  {
+    char buffer[256];
+    if(OK == strerror_r(err, buffer))
+      strncpy(buf, buffer, max);
+    else
+      snprintf(buf, max, "Unknown error %d", err);
+  }
+#else
+  {
+    char *msg = strerror(err);
+    if(msg)
+      strncpy(buf, msg, max);
+    else
+      snprintf(buf, max, "Unknown error %d", err);
+  }
+#endif
+
 #endif /* end of ! USE_WINSOCK */
 
   buf[max] = '\0'; /* make sure the string is zero terminated */
@@ -650,6 +694,10 @@ const char *Curl_strerror(struct connectdata *conn, int err)
      *p = '\0';
   if((p = strrchr(buf,'\r')) != NULL && (p - buf) >= 1)
      *p = '\0';
+
+  if(old_errno != ERRNO)
+    SET_ERRNO(old_errno);
+
   return buf;
 }
 
@@ -671,6 +719,7 @@ const char *Curl_idn_strerror (struct connectdata *conn, int err)
 
   buf = conn->syserr_buf;
   max = sizeof(conn->syserr_buf)-1;
+  *buf = '\0';
 
 #ifndef CURL_DISABLE_VERBOSE_STRINGS
   switch ((Idna_rc)err) {
@@ -711,7 +760,7 @@ const char *Curl_idn_strerror (struct connectdata *conn, int err)
       str = "dlopen() error";
       break;
     default:
-      snprintf(buf, max, "error %d", (int)err);
+      snprintf(buf, max, "error %d", err);
       str = NULL;
       break;
   }

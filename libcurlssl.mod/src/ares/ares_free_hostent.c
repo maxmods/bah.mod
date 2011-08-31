@@ -1,4 +1,3 @@
-/* $Id: ares_free_hostent.c,v 1.10 2007-06-04 21:04:14 bagder Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -15,10 +14,10 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 #include <stdlib.h>
 
-#if !defined(WIN32) || defined(WATT32)
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
 
@@ -28,6 +27,9 @@
 void ares_free_hostent(struct hostent *host)
 {
   char **p;
+
+  if (!host)
+    return;
 
   free((char *)(host->h_name));
   for (p = host->h_aliases; *p; p++)

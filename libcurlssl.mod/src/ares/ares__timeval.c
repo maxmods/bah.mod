@@ -1,4 +1,3 @@
-/* $Id: ares__timeval.c,v 1.5 2008-07-02 03:04:56 yangtse Exp $ */
 
 /* Copyright (C) 2008 by Daniel Stenberg et al
  *
@@ -13,7 +12,7 @@
  * without express or implied warranty.
  */
 
-#include "setup.h"
+#include "ares_setup.h"
 #include "ares.h"
 #include "ares_private.h"
 
