@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2010 Bruce A Henderson
+  Copyright (c) 2008-2011 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -51,13 +51,12 @@ extern "C" {
 	void bmx_muparser_parserbase_definefun4(mu::ParserBase * par, BBString * name, mu::fun_type4 func, bool allowOpt);
 	void bmx_muparser_parserbase_definefun5(mu::ParserBase * par, BBString * name, mu::fun_type5 func, bool allowOpt);
 	void bmx_muparser_parserbase_definemultfun(mu::ParserBase * par, BBString * name, mu::multfun_type func, bool allowOpt);
-	void bmx_muparser_parserbase_defineoprt(mu::ParserBase * par, BBString * name, mu::fun_type2 func, unsigned priority, bool allowOpt);
+	void bmx_muparser_parserbase_defineoprt(mu::ParserBase * par, BBString * name, mu::fun_type2 func, unsigned priority, int associativity, bool allowOpt);
 	void bmx_muparser_parserbase_definepostfixoprt(mu::ParserBase * par, BBString * name, mu::fun_type1 func, bool allowOpt);
 	void bmx_muparser_parserbase_defineinfixoprt(mu::ParserBase * par, BBString * name, mu::fun_type1 func, int precidence, bool allowOpt);
 
 	void bmx_muparser_parserbase_removevar(mu::ParserBase * par, BBString * name);
 	void bmx_muparser_parserbase_enableoptimizer(mu::ParserBase * par, bool isOn);
-	void bmx_muparser_parserbase_enablebytecode(mu::ParserBase * par, bool isOn);
 	void bmx_muparser_parserbase_enablebuiltintoprt(mu::ParserBase * par, bool isOn);
 	bool bmx_muparser_parserbase_hasbuiltinoprt(mu::ParserBase * par);
 
@@ -277,16 +276,6 @@ void bmx_muparser_parserbase_enableoptimizer(mu::ParserBase * par, bool isOn) {
 	}
 }
 
-void bmx_muparser_parserbase_enablebytecode(mu::ParserBase * par, bool isOn) {
-	try {
-	
-		par->EnableByteCode(isOn);
-
-	} catch (mu::Parser::exception_type &e) {
-		bmx_muparser_throw(e);
-	}
-}
-
 void bmx_muparser_parserbase_enablebuiltintoprt(mu::ParserBase * par, bool isOn) {
 	try {
 	
@@ -327,10 +316,10 @@ void bmx_muparser_parserbase_definestrconst(mu::ParserBase * par, BBString * nam
 	}
 }
 
-void bmx_muparser_parserbase_defineoprt(mu::ParserBase * par, BBString * name, mu::fun_type2 func, unsigned priority, bool allowOpt) {
+void bmx_muparser_parserbase_defineoprt(mu::ParserBase * par, BBString * name, mu::fun_type2 func, unsigned priority, int associativity, bool allowOpt) {
 	try {
 	
-		par->DefineOprt(bbStringToStringType(name), func, priority, allowOpt);
+		par->DefineOprt(bbStringToStringType(name), func, priority, (mu::EOprtAssociativity)associativity, allowOpt);
 
 	} catch (mu::Parser::exception_type &e) {
 		bmx_muparser_throw(e);

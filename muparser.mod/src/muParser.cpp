@@ -6,7 +6,7 @@
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
 
-  Copyright (C) 2010 Ingo Berg
+  Copyright (C) 2011 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -50,8 +50,6 @@ using namespace std;
 /** \brief Namespace for mathematical applications. */
 namespace mu
 {
-  std::locale Parser::s_locale;
-
   //---------------------------------------------------------------------------
   // Trigonometric function
   value_type Parser::Sin(value_type v)   { return sin(v * DEG_TO_RAD);  } // BaH
@@ -80,18 +78,6 @@ namespace mu
   value_type Parser::Sqrt(value_type v) { return sqrt(v);  }
   value_type Parser::Rint(value_type v) { return floor(v + (value_type)0.5); }
   value_type Parser::Sign(value_type v) { return (value_type)((v<0) ? -1 : (v>0) ? 1 : 0); }
-
-  //---------------------------------------------------------------------------
-  /** \brief Conditional (if then else).
-      \param v1 Condition
-      \param v2 First value
-      \param v3 Second value
-      \return v2 if v1!=0 v3 otherwise.
-  */
-  value_type Parser::Ite(value_type v1, value_type v2, value_type v3) 
-  { 
-    return (v1) ? v2 : v3; 
-  }
 
   //---------------------------------------------------------------------------
   /** \brief Callback for the unary minus operator.
@@ -130,7 +116,7 @@ namespace mu
 
     value_type fRes=0;
     for (int i=0; i<a_iArgc; ++i) fRes += a_afArg[i];
-    return fRes/(double)a_iArgc;
+    return fRes/(value_type)a_iArgc;
   }
 
 
@@ -202,15 +188,6 @@ namespace mu
   Parser::Parser()
     :ParserBase()
   {
-    // For some reason locale initialization in the dll fails when done in the static
-    // constructor. I have to do it here
-    static bool bInitLocale = true;
-    if (bInitLocale)
-    {
-      Parser::s_locale = std::locale(std::locale::classic(), new change_dec_sep<char_type>('.'));
-      bInitLocale = false;
-    }
-
     AddValIdent(IsVal);
 
     InitCharSets();
@@ -229,7 +206,7 @@ namespace mu
   void Parser::InitCharSets()
   {
     DefineNameChars( _T("0123456789_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") );
-    DefineOprtChars( _T("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*^/?<>=#!$%&|~'_") );
+    DefineOprtChars( _T("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*^/?<>=#!$§%&|~'_{}") );
     DefineInfixOprtChars( _T("/+-*^?<>=#!$%&|~'_") );
   }
 
@@ -264,7 +241,6 @@ namespace mu
     DefineFun(_T("sign"), Sign);
     DefineFun(_T("rint"), Rint);
     DefineFun(_T("abs"), Abs);
-    DefineFun(_T("if"), Ite);
     // Functions with variable number of arguments
     DefineFun(_T("sum"), Sum);
     DefineFun(_T("avg"), Avg);
@@ -282,46 +258,6 @@ namespace mu
   {
     DefineConst(_T("pi"), (value_type)PARSER_CONST_PI); // BaH
     DefineConst(_T("_e"), (value_type)PARSER_CONST_E);
-  }
-
-  //---------------------------------------------------------------------------
-  /** \brief Set the decimal separator.
-      \param cDecSep Decimal separator as a character value.
-      \sa SetThousandsSep
-
-      By default muparser uses the "C" locale. The decimal separator of this
-      locale is overwritten by the one provided here.
-  */
-  void Parser::SetDecSep(char_type cDecSep)
-  {
-    char_type cThousandsSep = std::use_facet< change_dec_sep<char_type> >(s_locale).thousands_sep();
-    s_locale = std::locale(std::locale("C"), new change_dec_sep<char_type>(cDecSep, cThousandsSep));
-  }
-  
-  //---------------------------------------------------------------------------
-  /** \brief Sets the thousands operator. 
-      \param cThousandsSep The thousands separator as a character
-      \sa SetDecSep
-
-      By default muparser uses the "C" locale. The thousands separator of this
-      locale is overwritten by the one provided here.
-  */
-  void Parser::SetThousandsSep(char_type cThousandsSep)
-  {
-    char_type cDecSep = std::use_facet< change_dec_sep<char_type> >(s_locale).decimal_point();
-    s_locale = std::locale(std::locale("C"), new change_dec_sep<char_type>(cDecSep, cThousandsSep));
-  }
-
-  //---------------------------------------------------------------------------
-  /** \brief Resets the locale. 
-
-    The default locale used "." as decimal separator, no thousands separator and
-    "," as function argument separator.
-  */
-  void Parser::ResetLocale()
-  {
-    s_locale = std::locale(std::locale("C"), new change_dec_sep<char_type>('.'));
-    SetArgSep(',');
   }
 
   //---------------------------------------------------------------------------
@@ -367,7 +303,7 @@ namespace mu
 
     Numerical differentiation uses a 5 point operator yielding a 4th order 
     formula. The default value for epsilon is 0.00074 which is
-    numerical_limits<double>::epsilon() ^ (1/5) as suggested in the muparser
+    numeric_limits<double>::epsilon() ^ (1/5) as suggested in the muparser
     forum:
 
     http://sourceforge.net/forum/forum.php?thread_id=1994611&forum_id=462843
@@ -384,7 +320,7 @@ namespace mu
     // Backwards compatible calculation of epsilon inc case the user doesnt provide
     // his own epsilon
     if (fEpsilon==0)
-      fEpsilon = (a_fPos==0) ? (value_type)1e-10 : 1e-7 * a_fPos;
+      fEpsilon = (a_fPos==0) ? (value_type)1e-10 : (value_type)1e-7 * a_fPos;
 
     *a_Var = a_fPos+2 * fEpsilon;  f[0] = Eval();
     *a_Var = a_fPos+1 * fEpsilon;  f[1] = Eval();

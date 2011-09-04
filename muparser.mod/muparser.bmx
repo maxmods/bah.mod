@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@ Module BaH.muParser
 
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2008-2010 Bruce A Henderson"
-ModuleInfo "Copyright: muParser - 2004-2010 Ingo Berg"
+ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
+ModuleInfo "Copyright: muParser - 2004-2011 Ingo Berg"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Updated to latest in SVN (rev 299)."
+ModuleInfo "History: Updated to latest in SVN (rev 531)."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release (muparser 1.30 svn 20081110)"
 
@@ -132,14 +132,6 @@ Type TmuParserBase
 	End Rem
 	Method EnableOptimizer(isOn:Int = True)
 		bmx_muparser_parserbase_enableoptimizer(parserPtr, isOn)
-	End Method
-	
-	Rem
-	bbdoc: Enables or disables parsing from Bytecode.
-	about: Attention: There is no reason to disable bytecode. It will drastically decrease parsing speed.
-	End Rem
-	Method EnableByteCode(isOn:Int = True)
-		bmx_muparser_parserbase_enablebytecode(parserPtr, isOn)
 	End Method
 	
 	Rem
@@ -256,8 +248,8 @@ Type TmuParserBase
 	about: Binary operators can be defined in order to supplement or replace the built in binary operators they
 	require an additional parameter, the operator priority.
 	End Rem
-	Method DefineOprt(name:String, callback:Double(val1:Double, val2:Double), priority:Int = 0, allowOpt:Int = False)
-		bmx_muparser_parserbase_defineoprt(parserPtr, name, callback, priority, allowOpt)
+	Method DefineOprt(name:String, callback:Double(val1:Double, val2:Double), priority:Int = 0, associativity:Int = oaLEFT, allowOpt:Int = False)
+		bmx_muparser_parserbase_defineoprt(parserPtr, name, callback, priority, associativity, allowOpt)
 	End Method
 
 	Rem

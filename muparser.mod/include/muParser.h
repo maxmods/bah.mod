@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2010 Ingo Berg
+  Copyright (C) 2011 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -27,7 +27,6 @@
 
 //--- Standard includes ------------------------------------------------------------------------
 #include <vector>
-#include <locale>
 
 //--- Parser includes --------------------------------------------------------------------------
 #include "muParserBase.h"
@@ -45,7 +44,7 @@ namespace mu
     Can be used as a reference implementation for subclassing the parser.
 
     <small>
-    (C) 2010 Ingo Berg<br>
+    (C) 2011 Ingo Berg<br>
     muparser(at)gmx.de
     </small>
   */
@@ -61,53 +60,12 @@ namespace mu
     virtual void InitOprt();
     virtual void OnDetectVar(string_type *pExpr, int &nStart, int &nEnd);
 
-    void SetDecSep(char_type cDecSep);
-    void SetThousandsSep(char_type cThousandsSep = 0);
-    void ResetLocale();
-
     value_type Diff(value_type *a_Var, 
                     value_type a_fPos, 
                     value_type a_fEpsilon = 0) const;
 
-  private:
+  protected:
 
-    /** \brief A facet class used to change decimal and thousands separator. */
-    template<class TChar>
-    class change_dec_sep : public std::numpunct<TChar>
-    {
-    public:
-      
-      explicit change_dec_sep(char_type cDecSep, char_type cThousandsSep = 0, int nGroup = 3)
-        :std::numpunct<TChar>()
-        ,m_cDecPoint(cDecSep)
-        ,m_cThousandsSep(cThousandsSep)
-        ,m_nGroup(nGroup)
-      {}
-      
-    protected:
-      
-      virtual char_type do_decimal_point() const
-      {
-        return m_cDecPoint;
-      }
-
-      virtual char_type do_thousands_sep() const
-      {
-        return m_cThousandsSep;
-      }
-
-      virtual std::string do_grouping() const 
-      { 
-        return std::string(1, m_nGroup); 
-      }
-
-    private:
-
-      int m_nGroup;
-      char_type m_cDecPoint;  
-      char_type m_cThousandsSep;
-    };
-     
     // Trigonometric functions
     static value_type  Sin(value_type);
     static value_type  Cos(value_type);
@@ -134,7 +92,6 @@ namespace mu
     static value_type  Sqrt(value_type);
     static value_type  Rint(value_type);
     static value_type  Sign(value_type);
-    static value_type  Ite(value_type, value_type, value_type);
 
     // Prefix operators
     // !!! Unary Minus is a MUST if you want to use negative signs !!!
@@ -147,8 +104,6 @@ namespace mu
     static value_type Max(const value_type*, int);  // maximum
 
     static int IsVal(const char_type* a_szExpr, int *a_iPos, value_type *a_fVal);
-
-    static std::locale s_locale;  ///< The locale used by the parser
   };
 } // namespace mu
 

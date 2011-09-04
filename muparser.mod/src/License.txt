@@ -6,9 +6,7 @@
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
 
-						  Version 1.27
-				
-  Copyright (C) 2004-2006 Ingo Berg (ingo_berg{at}gmx.de)
+  Copyright (C) 2011 Ingo Berg (ingo_berg{at}gmx.de)
 
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 

@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ Import "src/muParserTokenReader.cpp"
 Import "src/muParserBase.cpp"
 Import "src/muParserBytecode.cpp"
 Import "src/muParserCallback.cpp"
-Import "src/muParserComplex.cpp"
+'Import "src/muParserComplex.cpp"
 Import "src/muParserError.cpp"
 Import "src/muParserInt.cpp"
 
@@ -60,13 +60,12 @@ Extern
 	Function bmx_muparser_parserbase_definefun4(handle:Byte Ptr, name:String, callback:Double(val1:Double, val2:Double, val3:Double, val4:Double), allowOpt:Int)
 	Function bmx_muparser_parserbase_definefun5(handle:Byte Ptr, name:String, callback:Double(val1:Double, val2:Double, val3:Double, val4:Double, val5:Double), allowOpt:Int)
 	Function bmx_muparser_parserbase_definemultfun(handle:Byte Ptr, name:String, callback:Double(val:Double Ptr, size:Int), allowOpt:Int)
-	Function bmx_muparser_parserbase_defineoprt(handle:Byte Ptr, name:String, callback:Double(val1:Double, val2:Double), priority:Int, allowOpt:Int)
+	Function bmx_muparser_parserbase_defineoprt(handle:Byte Ptr, name:String, callback:Double(val1:Double, val2:Double), priority:Int, associativity:Int, allowOpt:Int)
 	Function bmx_muparser_parserbase_definepostfixoprt(handle:Byte Ptr, name:String, callback:Double(val1:Double), allowOpt:Int)
 	Function bmx_muparser_parserbase_defineinfixoprt(handle:Byte Ptr, name:String, callback:Double(val1:Double), precidence:Int, allowOpt:Int)
 
 	Function bmx_muparser_parserbase_removevar(handle:Byte Ptr, name:String)
 	Function bmx_muparser_parserbase_enableoptimizer(handle:Byte Ptr, isOn:Int)
-	Function bmx_muparser_parserbase_enablebytecode(handle:Byte Ptr, isOn:Int)
 	Function bmx_muparser_parserbase_enablebuiltintoprt(handle:Byte Ptr, isOn:Int)
 	Function bmx_muparser_parserbase_hasbuiltinoprt:Int(handle:Byte Ptr)
 
@@ -87,4 +86,7 @@ Const prPOW:Int = 5  ' power operator priority (highest)
 Const prINFIX:Int = 4 ' Signs have a higher priority than ADD_SUB, but Lower than power operator
 Const prPOSTFIX:Int = 4  ' Postfix operator priority (currently unused)
 
-
+' operator precedence
+Const oaLEFT:Int = 0
+Const oaRIGHT:Int = 1
+Const oaNONE:Int = 2
