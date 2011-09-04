@@ -27,7 +27,7 @@ extern "C" {
 
 	BBObject * _bah_rtmidi_TRtError__create(BBString * message, int type);
 
-	RtMidiIn * bmx_rtmidiin_create(BBString * clientName);
+	RtMidiIn * bmx_rtmidiin_create(BBString * clientName, int queueSizeLimit);
 	void bmx_rtmidiin_openPort(RtMidiIn * m, int portNumber, BBString * portName);
 	void bmx_rtmidiin_closePort(RtMidiIn * m);
 	void bmx_rtmidiin_openVirtualPort(RtMidiIn * m, BBString * portName);
@@ -35,7 +35,6 @@ extern "C" {
 	BBString * bmx_rtmidiin_getPortName(RtMidiIn * m, int portNumber);
 	void bmx_rtmidiin_free(RtMidiIn * m);
 	BBArray * bmx_rtmidiin_getMessage(RtMidiIn * m, double * timestamp);
-	void bmx_rtmidiin_setQueueSizeLimit(RtMidiIn * m, int queueSize);
 	void bmx_rtmidiin_ignoreTypes(RtMidiIn * m, int midiSysex, int midiTime, int midiSense);
 
 	RtMidiOut * bmx_rtmidiout_create(BBString * clientName);
@@ -53,12 +52,12 @@ void bmx_rtmidi_throw(RtError &error) {
 	bbExThrow(_bah_rtmidi_TRtError__create(bbStringFromCString(error.what()), (int)error.getType()));
 }
 
-RtMidiIn * bmx_rtmidiin_create(BBString * clientName) {
+RtMidiIn * bmx_rtmidiin_create(BBString * clientName, int queueSizeLimit) {
 	char * n = bbStringToUTF8String(clientName);
 	RtMidiIn * in = 0;
 	
 	try {
-		in = new RtMidiIn(n);
+		in = new RtMidiIn(n, queueSizeLimit);
 		bbMemFree(n);
 	} catch (RtError &error) {
 		bbMemFree(n);
@@ -149,14 +148,6 @@ BBArray * bmx_rtmidiin_getMessage(RtMidiIn * m, double * timestamp) {
 	}
 
 	return arr;
-}
-
-void bmx_rtmidiin_setQueueSizeLimit(RtMidiIn * m, int queueSize) {
-	try {
-		m->setQueueSizeLimit(queueSize);
-	} catch (RtError &error) {
-		bmx_rtmidi_throw(error);
-	}
 }
 
 void bmx_rtmidiin_ignoreTypes(RtMidiIn * m, int midiSysex, int midiTime, int midiSense) {

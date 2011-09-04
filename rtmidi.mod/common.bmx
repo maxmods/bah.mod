@@ -34,7 +34,7 @@ Import "source.bmx"
 
 Extern
 
-	Function bmx_rtmidiin_create:Byte Ptr(clientName:String)
+	Function bmx_rtmidiin_create:Byte Ptr(clientName:String, queueSizeLimit:Int)
 	Function bmx_rtmidiin_openPort(handle:Byte Ptr, portNumber:Int, portName:String)
 	Function bmx_rtmidiin_closePort(handle:Byte Ptr)
 	Function bmx_rtmidiin_openVirtualPort(handle:Byte Ptr, portName:String)
@@ -42,7 +42,6 @@ Extern
 	Function bmx_rtmidiin_getPortName:String(handle:Byte Ptr, portNumber:Int)
 	Function bmx_rtmidiin_free(handle:Byte Ptr)
 	Function bmx_rtmidiin_getMessage:Byte[](handle:Byte Ptr, timestamp:Double Ptr)
-	Function bmx_rtmidiin_setQueueSizeLimit(handle:Byte Ptr, queueSize:Int)
 	Function bmx_rtmidiin_ignoreTypes(handle:Byte Ptr, midiSysex:Int, midiTime:Int, midiSense:Int)
 
 	Function bmx_rtmidiout_create:Byte Ptr(clientName:String)

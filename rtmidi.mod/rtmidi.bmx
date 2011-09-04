@@ -25,11 +25,14 @@ bbdoc: RTMidi
 End Rem
 Module BaH.RTMidi
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: RtMidi - 2003-2011 Gary P. Scavone"
 ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to RTMidi 1.0.15"
+ModuleInfo "History: Removed setQueueSizeLimit() method."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to RTMidi 1.0.14"
 ModuleInfo "History: Fixed Windows unicode device name issue."
@@ -88,8 +91,11 @@ about: This type provides a common, platform-independent API for
 End Rem
 Type TRtMidiIn Extends TRtMidi
 
-	Method Create:TRtMidiIn(clientName:String = "RtMidi Input Client")
-		midiPtr = bmx_rtmidiin_create(clientName)
+	Rem
+	bbdoc: Creates a Midi In object with optional client name and queue size.
+	End Rem
+	Method Create:TRtMidiIn(clientName:String = "RtMidi Input Client", queueSizeLimit:Int = 100)
+		midiPtr = bmx_rtmidiin_create(clientName, queueSizeLimit)
 		Return Self
 	End Method
 
@@ -133,14 +139,6 @@ Type TRtMidiIn Extends TRtMidi
 	End Rem
 	Method getPortName:String(portNumber:Int = 0)
 		Return bmx_rtmidiin_getPortName(midiPtr, portNumber)
-	End Method
-	
-	Rem
-	bbdoc: Set the maximum number of MIDI messages to be saved in the queue.
-	about: If the queue size limit is reached, incoming messages will be ignored.  The default limit is 1024.
-	End Rem
-	Method setQueueSizeLimit(queueSize:Int)
-		bmx_rtmidiin_setQueueSizeLimit(midiPtr, queueSize)
 	End Method
 	
 	Rem
@@ -197,6 +195,9 @@ about: This type provides a common, platform-independent API for MIDI
 End Rem
 Type TRtMidiOut Extends TRtMidi
 
+	Rem
+	bbdoc: Creates a Midi Out object with optional client name.
+	End Rem
 	Method Create:TRtMidiOut(clientName:String = "RtMidi Output Client")
 		midiPtr = bmx_rtmidiout_create(clientName)
 		Return Self
