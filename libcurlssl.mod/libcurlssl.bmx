@@ -46,10 +46,8 @@ ModuleInfo "History: Update to c-ares 1.5.1"
 ModuleInfo "History: Now nulls internal slist."
 ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4, c-ares 1.4.0)"
 
-?linux
-ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
-?macos
-ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
+?Not win32
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DSIZEOF_INT=4 -DSIZEOF_SHORT=2 -DSIZEOF_SIZE_T=4"
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
 ModuleInfo "CC_OPTS: -DHAVE_GETTIMEOFDAY -DCURL_DISABLE_LDAP"
