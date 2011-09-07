@@ -710,7 +710,7 @@
 /* #undef USE_YASSLEMUL */
 
 /* Version number of package */
-#define VERSION "7.16.4"
+#define VERSION "7.21.7"
 
 /* Define to avoid automatic inclusion of winsock.h */
 /* #undef WIN32_LEAN_AND_MEAN */
@@ -751,3 +751,6 @@
 
 /* the signed version of size_t */
 /* #undef ssize_t */
+
+#define HAVE_FCNTL_O_NONBLOCK 1
+
