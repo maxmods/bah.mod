@@ -22,6 +22,8 @@
 
 #include <map>
 
+#include <stddef.h>
+
 #include "chipmunk.h"
 #include "blitz.h"
 
