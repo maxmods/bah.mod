@@ -226,7 +226,8 @@ bool bmx_RakPeer_Startup(RakPeerInterface * peer, int maxConnections, int thread
 	if (descriptor) {
 		return peer->Startup(static_cast<unsigned short>(maxConnections), threadSleepTimer, &descriptor->Descriptor(), 1);
 	} else {
-		return peer->Startup(static_cast<unsigned short>(maxConnections), threadSleepTimer, &SocketDescriptor(), 1);
+		return false;
+		//return peer->Startup(static_cast<unsigned short>(maxConnections), threadSleepTimer, &SocketDescriptor(), 1);
 	}
 }
 

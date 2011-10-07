@@ -334,6 +334,8 @@ End Rem
 Type TRKRakPeer Extends TRKRakPeerInterface
 
 	Global rcpMap:TMap = New TMap
+	
+	Global defaultSocketDescriptor:TRKSocketDescriptor = Null
 
 	Function _create:TRKRakPeer(rakPeerPtr:Byte Ptr)
 		If rakPeerPtr Then
@@ -365,7 +367,10 @@ Type TRKRakPeer Extends TRKRakPeerInterface
 		If descriptor Then
 			Return bmx_RakPeer_Startup(rakPeerPtr, maxConnections, threadSleepTimer, descriptor.socketDescriptorPtr)
 		Else
-			Return bmx_RakPeer_Startup(rakPeerPtr, maxConnections, threadSleepTimer, Null)
+			If Not defaultSocketDescriptor Then
+				defaultSocketDescriptor = TRKSocketDescriptor.CreateSocketDescriptor()
+			End If
+			Return bmx_RakPeer_Startup(rakPeerPtr, maxConnections, threadSleepTimer, defaultSocketDescriptor)
 		End If
 	End Method
 	
