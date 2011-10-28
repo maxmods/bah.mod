@@ -96,9 +96,9 @@ Extern
 	Function cairo_image_surface_create:Byte Ptr(format:Int, width:Int, height:Int)
 	Function cairo_image_surface_create_for_data:Byte Ptr(data:Byte Ptr, format:Int, ..
 																width:Int, height:Int, pitch:Int)
-	Function cairo_image_surface_create_from_png:Byte Ptr(filename:Byte Ptr)
-	Function cairo_image_surface_create_from_png_stream:Byte Ptr(read_func:Byte Ptr, ..
-																		closure:Byte Ptr)
+'	Function cairo_image_surface_create_from_png:Byte Ptr(filename:Byte Ptr)
+'	Function cairo_image_surface_create_from_png_stream:Byte Ptr(read_func:Byte Ptr, ..
+'																		closure:Byte Ptr)
 	Function cairo_image_surface_get_height:Int(surface:Byte Ptr)
 	Function cairo_image_surface_get_width:Int(surface:Byte Ptr)
 	Function cairo_image_surface_get_data:Byte Ptr(surface:Byte Ptr)
@@ -222,9 +222,9 @@ Extern
 	Function cairo_surface_set_user_data:Int(surface:Byte Ptr, key:Byte Ptr, ..
 													user_data:Byte Ptr, Destroy:Int)
 	Function cairo_surface_status:Int(surface:Byte Ptr)
-	Function cairo_surface_write_to_png:Int(surface:Byte Ptr, filename:Byte Ptr)
-	Function cairo_surface_write_to_png_stream:Int(surface:Byte Ptr, write_func:Byte Ptr, ..
-															closure:Byte Ptr)
+'	Function cairo_surface_write_to_png:Int(surface:Byte Ptr, filename:Byte Ptr)
+'	Function cairo_surface_write_to_png_stream:Int(surface:Byte Ptr, write_func:Byte Ptr, ..
+'															closure:Byte Ptr)
 	Function cairo_surface_get_content:Int(surface:Byte Ptr)
 	Function cairo_surface_get_device_offset(surface:Byte Ptr, x_offset:Double Var, y_offset:Double Var)
 	Function cairo_surface_set_fallback_resolution(surface:Byte Ptr, x_pixels_per_inch:Double, ..

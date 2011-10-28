@@ -22,12 +22,14 @@ bbdoc: Cairo Vector Graphics Library
 End Rem
 Module BaH.cairo
 
-ModuleInfo "Version: 1.24"
+ModuleInfo "Version: 1.25"
 ModuleInfo "License: MPL / LGPL"
 ModuleInfo "Copyright: Cairo -  University of Southern California and Carl D. Worth"
 ModuleInfo "Copyright: Wrapper - Bruce A Henderson, based on initial work by Duncan Cross."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.25"
+ModuleInfo "History: Removed direct support for png loading and saving. Fixes issue with 3rd party image loaders."
 ModuleInfo "History: 1.24"
 ModuleInfo "History: Cairo update to 1.10.2."
 ModuleInfo "History: Pixman update to 0.22.2."
@@ -116,7 +118,7 @@ ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX -DHAVE_PTHREAD_SETSPECIFIC"
 Import BRL.Pixmap
 Import BRL.Max2D
 Import Pub.Zlib
-Import Pub.libpng
+'Import Pub.libpng
 'Import BaH.Fontconfig
 
 Import "externs.bmx"
@@ -1970,20 +1972,20 @@ Type TCairoSurface
 		Return cairo_surface_status(surfacePtr)
 	End Method
 	
-	Rem
-	bbdoc: Writes the contents of the surface to a new file @filename as a PNG image.
-	returns: CAIRO_STATUS_SUCCESS if the PNG file was written successfully. Otherwise, CAIRO_STATUS_NO_MEMORY if memory could not be allocated for the operation or 'CAIRO_STATUS_SURFACE_TYPE_MISMATCH if the surface does not have pixel contents, or CAIRO_STATUS_WRITE_ERROR if an I/O error occurs while attempting to write the file.
-	about: Parameters:
-	<ul>
-	<li><b>filename</b> : the name of a file to write to</li>
-	</ul>
-	End Rem
-	Method WriteToPNG:Int(filename:String)
-		Local cStr:Byte Ptr = filename.toCString()
-		Local ret:Int = cairo_surface_write_to_png(surfacePtr, cStr)
-		MemFree cStr
-		Return ret
-	End Method
+'	Rem
+'	bbdoc: Writes the contents of the surface To a New file @filename as a PNG image.
+'	returns: CAIRO_STATUS_SUCCESS If the PNG file was written successfully. Otherwise, CAIRO_STATUS_NO_MEMORY If memory could Not be allocated For the operation Or 'CAIRO_STATUS_SURFACE_TYPE_MISMATCH if the surface does not have pixel contents, or CAIRO_STATUS_WRITE_ERROR if an I/O error occurs while attempting to write the file.
+'	about: Parameters:
+'	<ul>
+'	<li><b>filename</b> : the name of a file To write To</li>
+'	</ul>
+'	End Rem
+'	Method WriteToPNG:Int(filename:String)
+'		Local cStr:Byte Ptr = filename.toCString()
+'		Local ret:Int = cairo_surface_write_to_png(surfacePtr, cStr)
+'		MemFree cStr
+'		Return ret
+'	End Method
 
 '	Method WriteToPNGStream
 
@@ -2170,21 +2172,21 @@ Type TCairoImageSurface Extends TCairoSurface
 		Return ImgSurf
 	End Function
 
-	Rem
-	bbdoc: Creates an image surface from the specified png file.
-	returns: The newly created surface.
-	about: Parameters:
-	<ul>
-	<li><b>pngfilename</b> : the name of the PNG file.</li>
-	</ul>
-	End Rem
-	Function CreateFromPNG:TCairoImageSurface(pngfilename:String)
-		Local ImgSurf:TCairoImageSurface = New TCairoImageSurface
-		Local cStr:Byte Ptr = pngfilename.toCString()
-		ImgSurf.surfacePtr = cairo_image_surface_create_from_png(cStr)
-		MemFree cStr
-		Return ImgSurf
-	End Function
+'	Rem
+'	bbdoc: Creates an image surface from the specified png file.
+'	returns: The newly created surface.
+'	about: Parameters:
+'	<ul>
+'	<li><b>pngfilename</b> : the name of the PNG file.</li>
+'	</ul>
+'	End Rem
+'	Function CreateFromPNG:TCairoImageSurface(pngfilename:String)
+'		Local ImgSurf:TCairoImageSurface = New TCairoImageSurface
+'		Local cStr:Byte Ptr = pngfilename.toCString()
+'		ImgSurf.surfacePtr = cairo_image_surface_create_from_png(cStr)
+'		MemFree cStr
+'		Return ImgSurf
+'	End Function
 
 	Rem
 	bbdoc: Creates an image surface from a new pixmap of the specified format and dimensions.
