@@ -14,8 +14,13 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #include "TheoraTimer.h"
 
 #ifndef __APPLE__
+#ifdef __WIN32__
+#include <al.h>
+#include <alc.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
+#endif
 #else
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>

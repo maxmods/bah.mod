@@ -23,18 +23,18 @@ extern "C" {
 
 static HMODULE openAL;
 
-static int LoadOpenAL(){
+int _LoadOpenAL(){
 
 	openAL=LoadLibrary( "OpenAL32.dll" );
 	
 	return openAL!=0;
 }
 
-static void *GetOpenALFunction( const char *fname ){
+void *_GetOpenALFunction( const char *fname ){
 
 	if( !openAL ) return 0;
 	
-	return GetProcAddress( openAL,fname );
+	return (int(*))GetProcAddress( openAL,fname );
 }
 
 #endif
@@ -88,7 +88,7 @@ void *_GetOpenALFunction( const char *fname ){
 
 static void *openAL;
 
-static int LoadOpenAL(){
+int _LoadOpenAL(){
 
 	openAL=dlopen( "libopenal.so",RTLD_NOW );
 	if( !openAL ) openAL=dlopen( "libopenal.so.0",RTLD_NOW );
@@ -97,7 +97,7 @@ static int LoadOpenAL(){
 	return openAL!=0;
 }
 
-static void *GetOpenALFunction( const char *fname ){
+void *_GetOpenALFunction( const char *fname ){
 
 	if( !openAL ) return 0;
 

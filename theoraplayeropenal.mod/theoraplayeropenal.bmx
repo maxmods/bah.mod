@@ -30,6 +30,10 @@ bbdoc: OpenAL Audio Driver for TheoraPlayer
 End Rem
 Module BaH.TheoraPlayerOpenAL
 
+?win32
+ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC"
+ModuleInfo "CC_OPTS: -DAL_NO_PROTOTYPES"
+?
 Import "common.bmx"
 
 Rem

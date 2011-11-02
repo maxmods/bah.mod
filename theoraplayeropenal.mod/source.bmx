@@ -28,6 +28,10 @@ SuperStrict
 Import BaH.TheoraPlayer
 'Import Pub.OpenAL
 
+?win32
+Import "openal/include/*.h"
+?
+
 Import "../theoraplayer.mod/libtheoraplayer/include/theoraplayer/*.h"
 
 Import "audio_interface/src/*.h"
