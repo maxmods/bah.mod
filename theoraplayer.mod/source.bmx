@@ -32,6 +32,9 @@ Import "libtheora/include/*.h"
 Import "libtheoraplayer/include/theoraplayer/*.h"
 Import "libtheoraplayer/src/*.h"
 
+Import "../../pub.mod/oggvorbis.mod/libogg-1.1.3/include/*.h"
+Import "../../pub.mod/oggvorbis.mod/libvorbis-1.1.2/include/*.h"
+
 Import "libtheoraplayer/src/TheoraAsync.cpp"
 Import "libtheoraplayer/src/TheoraAudioInterface.cpp"
 Import "libtheoraplayer/src/TheoraDataSource.cpp"

@@ -37,6 +37,7 @@ Extern
 	Function bmx_TheoraVideoManager_free(handle:Byte Ptr)
 	Function bmx_TheoraVideoManager_createVideoClip:Byte Ptr(handle:Byte Ptr, filename:String, outputMode:Int, numPrecachedOverride:Int, usePower2Stride:Int)
 	Function bmx_TheoraVideoManager_update(handle:Byte Ptr, timeIncrease:Float)
+	Function bmx_TheoraVideoManager_setAudioInterfaceFactory(handle:Byte Ptr, factory:Byte Ptr)
 
 	Function bmx_TheoraVideoClip_getName:String(handle:Byte Ptr)
 	Function bmx_TheoraVideoClip_getWidth:Int(handle:Byte Ptr)

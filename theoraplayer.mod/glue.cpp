@@ -38,7 +38,7 @@ extern "C" {
 	void bmx_TheoraVideoManager_free(TheoraVideoManager * manager);
 	TheoraVideoClip * bmx_TheoraVideoManager_createVideoClip(TheoraVideoManager * manager, BBString * filename, int outputMode, int numPrecachedOverride, int usePower2Stride);
 	void bmx_TheoraVideoManager_update(TheoraVideoManager * manager, float timeIncrease);
-
+	void bmx_TheoraVideoManager_setAudioInterfaceFactory(TheoraVideoManager * manager, TheoraAudioInterfaceFactory * factory);
 
 	BBString * bmx_TheoraVideoClip_getName(TheoraVideoClip * clip);
 	int bmx_TheoraVideoClip_getWidth(TheoraVideoClip * clip);
@@ -91,6 +91,10 @@ void bmx_TheoraVideoManager_update(TheoraVideoManager * manager, float timeIncre
 
 TheoraVideoFrame * bmx_TTheoraVideoClip_getNextFrame(TheoraVideoClip * clip) {
 	return clip->getNextFrame();
+}
+
+void bmx_TheoraVideoManager_setAudioInterfaceFactory(TheoraVideoManager * manager, TheoraAudioInterfaceFactory * factory) {
+	manager->setAudioInterfaceFactory(factory);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

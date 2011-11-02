@@ -45,28 +45,55 @@ Type TTheoraVideoManager
 
 	Field managerPtr:Byte Ptr
 	
+	Field audioFactory:TTheoraAudioInterfaceFactory
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:TTheoraVideoManager()
 		managerPtr = bmx_TheoraVideoManager_new()
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method createVideoClip:TTheoraVideoClip(filename:String, outputMode:Int = TH_RGB, numPrecachedOverride:Int = 0, usePower2Stride:Int = 0)
 		Return TTheoraVideoClip._create(bmx_TheoraVideoManager_createVideoClip(managerPtr, filename, outputMode, numPrecachedOverride, usePower2Stride))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method destroyVideoClip(clip:TTheoraVideoClip)
 	
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method update(timeIncrease:Float)
 		bmx_TheoraVideoManager_update(managerPtr, timeIncrease)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getVersionString:String()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getVersion(a:Int Var, b:Int Var, c:Int Var)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setAudioInterfaceFactory(factory:TTheoraAudioInterfaceFactory)
+		audioFactory = factory
+		bmx_TheoraVideoManager_setAudioInterfaceFactory(managerPtr, factory.factoryPtr)
 	End Method
 	
 	Method Free()
@@ -98,26 +125,44 @@ Type TTheoraVideoClip
 		End If
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getNextFrame:TTheoraVideoFrame()
 		Return TTheoraVideoFrame._create(bmx_TTheoraVideoClip_getNextFrame(clipPtr))
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method getName:String()
 		Return bmx_TheoraVideoClip_getName(clipPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getWidth:Int()
 		Return bmx_TheoraVideoClip_getWidth(clipPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getHeight:Int()
 		Return bmx_TheoraVideoClip_getHeight(clipPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getStride:Int()
 		Return bmx_TheoraVideoClip_getStride(clipPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method popFrame()
 		bmx_TheoraVideoClip_popFrame(clipPtr)
 	End Method
@@ -140,9 +185,33 @@ Type TTheoraVideoFrame
 		End If
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getBuffer:Byte Ptr()
 		Return bmx_TheoraVideoFrame_getBuffer(framePtr)
 	End Method
 
 End Type
+
+Type TTheoraAudioInterface
+
+	Field audioPtr:Byte Ptr
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TTheoraAudioInterfaceFactory
+
+	Field factoryPtr:Byte Ptr
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TTheoraAudioInterfaceFactory() Abstract
+
+End Type
+
 

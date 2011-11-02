@@ -20,7 +20,7 @@ void createYUVtoRGBtables();
 
 void theora_writelog(std::string output)
 {
-	printf("%s\n",output.c_str());
+	//printf("%s\n",output.c_str());
 }
 
 void (*g_LogFuction)(std::string)=theora_writelog;
