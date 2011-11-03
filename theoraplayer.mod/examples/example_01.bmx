@@ -5,8 +5,11 @@ Import BaH.TheoraPlayerOpenAL ' audio
 Import BRL.GLMax2D
 
 Local manager:TTheoraVideoManager = New TTheoraVideoManager.Create()
-' set the audio driver
-manager.setAudioInterfaceFactory(New TOpenALTheoraAudioInterfaceFactory.Create())
+
+' set the audio driver, if available
+If OpenALInstalled() Then
+	manager.setAudioInterfaceFactory(New TOpenALTheoraAudioInterfaceFactory.Create())
+End If
 
 ' load the video
 Local clip:TTheoraVideoClip = manager.createVideoClip("video/PipeDream2001.ogv")
