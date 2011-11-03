@@ -39,7 +39,7 @@ Import "common.bmx"
 
 
 Rem
-bbdoc: 
+bbdoc: Handles all playback/sync operations.
 End Rem
 Type TTheoraVideoManager
 
@@ -66,26 +66,29 @@ Type TTheoraVideoManager
 	bbdoc: 
 	End Rem
 	Method destroyVideoClip(clip:TTheoraVideoClip)
-	
+		bmx_TheoraVideoManager_destroyVideoClip(managerPtr, clip.clipPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Advance time.
 	End Rem
 	Method update(timeIncrease:Float)
 		bmx_TheoraVideoManager_update(managerPtr, timeIncrease)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Get nicely formated version string.
 	End Rem
 	Method getVersionString:String()
+		Return bmx_TheoraVideoManager_getVersionString(managerPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Get version numbers.
+	about: If c is negative, it means it's a release candidate -c
 	End Rem
 	Method getVersion(a:Int Var, b:Int Var, c:Int Var)
+		bmx_TheoraVideoManager_getVersion(managerPtr, Varptr a, Varptr b, Varptr c)
 	End Method
 	
 	Rem
@@ -111,7 +114,7 @@ End Type
 
 
 Rem
-bbdoc: 
+bbdoc: Contains all data related to video playback, eg. the open source file, the frame queue etc.
 End Rem
 Type TTheoraVideoClip
 
@@ -126,7 +129,7 @@ Type TTheoraVideoClip
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the first available frame in the queue or Null if no frames are available.
 	End Rem
 	Method getNextFrame:TTheoraVideoFrame()
 		Return TTheoraVideoFrame._create(bmx_TTheoraVideoClip_getNextFrame(clipPtr))
@@ -140,31 +143,124 @@ Type TTheoraVideoClip
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the width in pixels of the video clip.
 	End Rem
 	Method getWidth:Int()
 		Return bmx_TheoraVideoClip_getWidth(clipPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the height in pixels of the video clip.
 	End Rem
 	Method getHeight:Int()
 		Return bmx_TheoraVideoClip_getHeight(clipPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the stride in pixels.
+	about: If you've specified usePower2Stride when creating the TheoraVideoClip object then this value will be the
+	next power of two size compared to width, eg: w=376, stride=512. Otherwise, stride will be equal to width
 	End Rem
 	Method getStride:Int()
 		Return bmx_TheoraVideoClip_getStride(clipPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Pop the frame from the front of the FrameQueue.
 	End Rem
 	Method popFrame()
 		bmx_TheoraVideoClip_popFrame(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets the current time index from the timer object.
+	End Rem
+	Method getTimePosition:Float()
+		Return bmx_TheoraVideoClip_getTimePosition(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets the duration of the movie in seconds.
+	End Rem
+	Method getDuration:Float()
+		Return bmx_TheoraVideoClip_getDuration(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the clips' frame rate.
+	End Rem
+	Method getFPS:Int()
+		Return bmx_TheoraVideoClip_getFPS(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets the number of frames in this movie.
+	End Rem
+	Method getNumFrames:Int()
+		Return bmx_TheoraVideoClip_getNumFrames(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the clip has finished playing.
+	End Rem
+	Method isDone:Int()
+		Return bmx_TheoraVideoClip_isDone(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Play the clip from the current position.
+	End Rem
+	Method play()
+		bmx_TheoraVideoClip_play(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Pause the clip.
+	End Rem
+	Method pause()
+		bmx_TheoraVideoClip_pause(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Restart from the beginning.
+	End Rem
+	Method restart()
+		bmx_TheoraVideoClip_restart(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the clip is currently paused.
+	End Rem
+	Method isPaused:Int()
+		Return bmx_TheoraVideoClip_isPaused(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Stop the clip.
+	End Rem
+	Method stop()
+		bmx_TheoraVideoClip_stop(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the playback speed.
+	End Rem
+	Method setPlaybackSpeed(speed:Float)
+		bmx_TheoraVideoClip_setPlaybackSpeed(clipPtr, speed)
+	End Method
+	
+	Rem
+	bbdoc: Returns the playback speed.
+	End Rem
+	Method getPlaybackSpeed:Float()
+		Return bmx_TheoraVideoClip_getPlaybackSpeed(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Seeks to the time specified.
+	End Rem
+	Method seek(time:Float)
+		bmx_TheoraVideoClip_seek(clipPtr, time)
 	End Method
 	
 End Type

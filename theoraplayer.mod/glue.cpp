@@ -39,6 +39,9 @@ extern "C" {
 	TheoraVideoClip * bmx_TheoraVideoManager_createVideoClip(TheoraVideoManager * manager, BBString * filename, int outputMode, int numPrecachedOverride, int usePower2Stride);
 	void bmx_TheoraVideoManager_update(TheoraVideoManager * manager, float timeIncrease);
 	void bmx_TheoraVideoManager_setAudioInterfaceFactory(TheoraVideoManager * manager, TheoraAudioInterfaceFactory * factory);
+	void bmx_TheoraVideoManager_getVersion(TheoraVideoManager * manager, int * a, int * b, int * c);
+	BBString * bmx_TheoraVideoManager_getVersionString(TheoraVideoManager * manager);
+	void bmx_TheoraVideoManager_destroyVideoClip(TheoraVideoManager * manager, TheoraVideoClip * clip);
 
 	BBString * bmx_TheoraVideoClip_getName(TheoraVideoClip * clip);
 	int bmx_TheoraVideoClip_getWidth(TheoraVideoClip * clip);
@@ -46,6 +49,19 @@ extern "C" {
 	int bmx_TheoraVideoClip_getStride(TheoraVideoClip * clip);
 	TheoraVideoFrame * bmx_TTheoraVideoClip_getNextFrame(TheoraVideoClip * clip);
 	void bmx_TheoraVideoClip_popFrame(TheoraVideoClip * clip);
+	float bmx_TheoraVideoClip_getTimePosition(TheoraVideoClip * clip);
+	float bmx_TheoraVideoClip_getDuration(TheoraVideoClip * clip);
+	int bmx_TheoraVideoClip_getFPS(TheoraVideoClip * clip);
+	int bmx_TheoraVideoClip_getNumFrames(TheoraVideoClip * clip);
+	int bmx_TheoraVideoClip_isDone(TheoraVideoClip * clip);
+	void bmx_TheoraVideoClip_play(TheoraVideoClip * clip);
+	void bmx_TheoraVideoClip_pause(TheoraVideoClip * clip);
+	void bmx_TheoraVideoClip_restart(TheoraVideoClip * clip);
+	int bmx_TheoraVideoClip_isPaused(TheoraVideoClip * clip);
+	void bmx_TheoraVideoClip_stop(TheoraVideoClip * clip);
+	void bmx_TheoraVideoClip_setPlaybackSpeed(TheoraVideoClip * clip, float speed);
+	float bmx_TheoraVideoClip_getPlaybackSpeed(TheoraVideoClip * clip);
+	void bmx_TheoraVideoClip_seek(TheoraVideoClip * clip, float time);
 
 	void * bmx_TheoraVideoFrame_getBuffer(TheoraVideoFrame * frame);
 
@@ -97,6 +113,18 @@ void bmx_TheoraVideoManager_setAudioInterfaceFactory(TheoraVideoManager * manage
 	manager->setAudioInterfaceFactory(factory);
 }
 
+void bmx_TheoraVideoManager_getVersion(TheoraVideoManager * manager, int * a, int * b, int * c) {
+	manager->getVersion(a, b, c);
+}
+
+BBString * bmx_TheoraVideoManager_getVersionString(TheoraVideoManager * manager) {
+	return bbStringFromUTF8String(manager->getVersionString().data());
+}
+
+void bmx_TheoraVideoManager_destroyVideoClip(TheoraVideoManager * manager, TheoraVideoClip * clip) {
+	manager->destroyVideoClip(clip);
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 BBString * bmx_TheoraVideoClip_getName(TheoraVideoClip * clip) {
@@ -118,6 +146,59 @@ int bmx_TheoraVideoClip_getStride(TheoraVideoClip * clip) {
 void bmx_TheoraVideoClip_popFrame(TheoraVideoClip * clip) {
 	clip->popFrame();
 }
+
+float bmx_TheoraVideoClip_getTimePosition(TheoraVideoClip * clip) {
+	return clip->getTimePosition();
+}
+
+float bmx_TheoraVideoClip_getDuration(TheoraVideoClip * clip) {
+	return clip->getDuration();
+}
+
+int bmx_TheoraVideoClip_getFPS(TheoraVideoClip * clip) {
+	return clip->getFPS();
+}
+
+int bmx_TheoraVideoClip_getNumFrames(TheoraVideoClip * clip) {
+	return clip->getNumFrames();
+}
+
+int bmx_TheoraVideoClip_isDone(TheoraVideoClip * clip) {
+	return clip->isDone();
+}
+
+void bmx_TheoraVideoClip_play(TheoraVideoClip * clip) {
+	clip->play();
+}
+
+void bmx_TheoraVideoClip_pause(TheoraVideoClip * clip) {
+	clip->pause();
+}
+
+void bmx_TheoraVideoClip_restart(TheoraVideoClip * clip) {
+	clip->restart();
+}
+
+int bmx_TheoraVideoClip_isPaused(TheoraVideoClip * clip) {
+	return clip->isPaused();
+}
+
+void bmx_TheoraVideoClip_stop(TheoraVideoClip * clip) {
+	clip->stop();
+}
+
+void bmx_TheoraVideoClip_setPlaybackSpeed(TheoraVideoClip * clip, float speed) {
+	clip->setPlaybackSpeed(speed);
+}
+
+float bmx_TheoraVideoClip_getPlaybackSpeed(TheoraVideoClip * clip) {
+	return clip->getPlaybackSpeed();
+}
+
+void bmx_TheoraVideoClip_seek(TheoraVideoClip * clip, float time) {
+	clip->seek(time);
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
