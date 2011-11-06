@@ -34,7 +34,7 @@ extern "C" {
 
 	BBObject * _bah_theoraplayer_TTheoraGenericException__create(BBString * mErrText, BBString * mFile, BBString * mType);
 
-	TheoraVideoManager * bmx_TheoraVideoManager_new();
+	TheoraVideoManager * bmx_TheoraVideoManager_new(int numWorkerThreads);
 	void bmx_TheoraVideoManager_free(TheoraVideoManager * manager);
 	TheoraVideoClip * bmx_TheoraVideoManager_createVideoClip(TheoraVideoManager * manager, BBString * filename, int outputMode, int numPrecachedOverride, int usePower2Stride);
 	void bmx_TheoraVideoManager_update(TheoraVideoManager * manager, float timeIncrease);
@@ -42,6 +42,8 @@ extern "C" {
 	void bmx_TheoraVideoManager_getVersion(TheoraVideoManager * manager, int * a, int * b, int * c);
 	BBString * bmx_TheoraVideoManager_getVersionString(TheoraVideoManager * manager);
 	void bmx_TheoraVideoManager_destroyVideoClip(TheoraVideoManager * manager, TheoraVideoClip * clip);
+	int bmx_TheoraVideoManager_getNumWorkerThreads(TheoraVideoManager * manager);
+	void bmx_TheoraVideoManager_setNumWorkerThreads(TheoraVideoManager * manager, int numWorkerThreads);
 
 	BBString * bmx_TheoraVideoClip_getName(TheoraVideoClip * clip);
 	int bmx_TheoraVideoClip_getWidth(TheoraVideoClip * clip);
@@ -62,6 +64,9 @@ extern "C" {
 	void bmx_TheoraVideoClip_setPlaybackSpeed(TheoraVideoClip * clip, float speed);
 	float bmx_TheoraVideoClip_getPlaybackSpeed(TheoraVideoClip * clip);
 	void bmx_TheoraVideoClip_seek(TheoraVideoClip * clip, float time);
+	float bmx_TheoraVideoClip_updateToNextFrame(TheoraVideoClip * clip);
+	void bmx_TheoraVideoClip_setAutoRestart(TheoraVideoClip * clip, int restart);
+	int bmx_TheoraVideoClip_getAutoRestart(TheoraVideoClip * clip);
 
 	void * bmx_TheoraVideoFrame_getBuffer(TheoraVideoFrame * frame);
 
@@ -78,8 +83,8 @@ void bmx_theoraplayer_throw_exception(_TheoraGenericException & e) {
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-TheoraVideoManager * bmx_TheoraVideoManager_new() {
-	return new TheoraVideoManager();
+TheoraVideoManager * bmx_TheoraVideoManager_new(int numWorkerThreads) {
+	return new TheoraVideoManager(numWorkerThreads);
 }
 
 void bmx_TheoraVideoManager_free(TheoraVideoManager * manager) {
@@ -123,6 +128,14 @@ BBString * bmx_TheoraVideoManager_getVersionString(TheoraVideoManager * manager)
 
 void bmx_TheoraVideoManager_destroyVideoClip(TheoraVideoManager * manager, TheoraVideoClip * clip) {
 	manager->destroyVideoClip(clip);
+}
+
+int bmx_TheoraVideoManager_getNumWorkerThreads(TheoraVideoManager * manager) {
+	return manager->getNumWorkerThreads();
+}
+
+void bmx_TheoraVideoManager_setNumWorkerThreads(TheoraVideoManager * manager, int numWorkerThreads) {
+	manager->setNumWorkerThreads(numWorkerThreads);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -199,6 +212,17 @@ void bmx_TheoraVideoClip_seek(TheoraVideoClip * clip, float time) {
 	clip->seek(time);
 }
 
+float bmx_TheoraVideoClip_updateToNextFrame(TheoraVideoClip * clip) {
+	return clip->updateToNextFrame();
+}
+
+void bmx_TheoraVideoClip_setAutoRestart(TheoraVideoClip * clip, int restart) {
+	clip->setAutoRestart(restart);
+}
+
+int bmx_TheoraVideoClip_getAutoRestart(TheoraVideoClip * clip) {
+	return clip->getAutoRestart();
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

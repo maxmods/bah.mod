@@ -57,22 +57,23 @@ Type TTheoraVideoManager
 	Field audioFactory:TTheoraAudioInterfaceFactory
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a Video Manager instance, with an optional worker thread count.
 	End Rem
-	Method Create:TTheoraVideoManager()
-		managerPtr = bmx_TheoraVideoManager_new()
+	Method Create:TTheoraVideoManager(numWorkerThreads:Int = 1)
+		managerPtr = bmx_TheoraVideoManager_new(numWorkerThreads)
 		Return Self
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a video clip with the specified parameters.
+	about: When you are finished with the clip, it should be freed using the #destroyVideoClip() method.
 	End Rem
 	Method createVideoClip:TTheoraVideoClip(filename:String, outputMode:Int = TH_RGB, numPrecachedOverride:Int = 0, usePower2Stride:Int = 0)
 		Return TTheoraVideoClip._create(bmx_TheoraVideoManager_createVideoClip(managerPtr, filename, outputMode, numPrecachedOverride, usePower2Stride))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Frees a previously created video clip.
 	End Rem
 	Method destroyVideoClip(clip:TTheoraVideoClip)
 		bmx_TheoraVideoManager_destroyVideoClip(managerPtr, clip.clipPtr)
@@ -101,11 +102,26 @@ Type TTheoraVideoManager
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the audio interface.
+	about: Call this with an appropriate audio factory to enable sound with the video.
 	End Rem
 	Method setAudioInterfaceFactory(factory:TTheoraAudioInterfaceFactory)
 		audioFactory = factory
 		bmx_TheoraVideoManager_setAudioInterfaceFactory(managerPtr, factory.factoryPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of worker threads.
+	End Rem
+	Method getNumWorkerThreads:Int()
+		Return bmx_TheoraVideoManager_getNumWorkerThreads(managerPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the number of worker threads.
+	End Rem
+	Method setNumWorkerThreads(numWorkerThreads:Int)
+		bmx_TheoraVideoManager_setNumWorkerThreads(managerPtr, numWorkerThreads)
 	End Method
 	
 	Method Free()
@@ -145,7 +161,7 @@ Type TTheoraVideoClip
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the name of the video clip.
 	End Rem
 	Method getName:String()
 		Return bmx_TheoraVideoClip_getName(clipPtr)
@@ -272,11 +288,37 @@ Type TTheoraVideoClip
 		bmx_TheoraVideoClip_seek(clipPtr, time)
 	End Method
 	
+	Rem
+	bbdoc: Updates timer to the display time of the next frame.
+	returns: Time advanced. 0 if no frames are ready.
+	about: Useful if you want to grab frames instead of regular display.
+	End Rem
+	Method updateToNextFrame:Float()
+		Return bmx_TheoraVideoClip_updateToNextFrame(clipPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the auto restart flag.
+	about: If you want the video to automatically and smoothly restart when the last frame is reached.
+	End Rem
+	Method setAutoRestart(restart:Int)
+		bmx_TheoraVideoClip_setAutoRestart(clipPtr, restart)
+	End Method
+	
+	Rem
+	bbdoc: Returns the auto restart flag.
+	about: If you want the video to automatically and smoothly restart when the last frame is reached.
+	bbdoc: 
+	End Rem
+	Method getAutoRestart:Int()
+		Return bmx_TheoraVideoClip_getAutoRestart(clipPtr)
+	End Method
+	
 End Type
 
 
 Rem
-bbdoc: 
+bbdoc: A video frame.
 End Rem
 Type TTheoraVideoFrame
 
@@ -291,7 +333,7 @@ Type TTheoraVideoFrame
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the pixel data buffer for this frame.
 	End Rem
 	Method getBuffer:Byte Ptr()
 		Return bmx_TheoraVideoFrame_getBuffer(framePtr)
