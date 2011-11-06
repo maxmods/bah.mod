@@ -30,6 +30,15 @@ bbdoc: Theora Video Player
 End Rem
 Module BaH.TheoraPlayer
 
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: BSD"
+ModuleInfo "Copyright: Wrapper - Bruce A Henderson"
+ModuleInfo "Copyright: theoraplayer - 2008-2010 Kresimir Spes"
+
+ModuleInfo "History: 1.00 Initial Release"
+
+
+
 ModuleInfo "CC_OPTS: -fexceptions"
 ?win32
 ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC"

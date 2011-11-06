@@ -30,6 +30,11 @@ bbdoc: OpenAL Audio Driver for TheoraPlayer
 End Rem
 Module BaH.TheoraPlayerOpenAL
 
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: BSD"
+ModuleInfo "Copyright: Wrapper - Bruce A Henderson"
+ModuleInfo "Copyright: theoraplayer - 2008-2010 Kresimir Spes"
+
 ?win32
 ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC"
 ModuleInfo "CC_OPTS: -DAL_NO_PROTOTYPES"
