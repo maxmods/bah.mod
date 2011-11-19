@@ -37,6 +37,7 @@
 #include <boost/proto/traits.hpp>
 #include <boost/proto/domain.hpp>
 #include <boost/proto/generate.hpp>
+#include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/begin.hpp>
 #include <boost/fusion/include/next.hpp>
 #include <boost/fusion/include/value_of.hpp>
@@ -309,9 +310,9 @@ namespace boost { namespace proto
             >
             struct impl
               : detail::make_expr_<
-                  Tag
-                , Domain
-                  BOOST_PP_ENUM_TRAILING_PARAMS(BOOST_PROTO_MAX_ARITY, A)
+                    Tag
+                  , Domain
+                    BOOST_PP_ENUM_TRAILING_PARAMS(BOOST_PROTO_MAX_ARITY, A)
                 >
             {};
         };

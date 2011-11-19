@@ -36,7 +36,7 @@ ModuleInfo "Copyright: Wrapper - 2007-2011 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.03"
-ModuleInfo "History: Updated to boost 1.47"
+ModuleInfo "History: Updated to boost 1.48"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to boost 1.42"
 ModuleInfo "History: Added some implementation parts"
