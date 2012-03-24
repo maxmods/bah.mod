@@ -129,6 +129,7 @@
 				StringPooling="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Debug/FreeImageLib.pch"
 				AssemblerListingLocation=".\Debug/"
@@ -291,6 +292,7 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/FreeImageLib.pch"
 				AssemblerListingLocation=".\Release/"
@@ -418,6 +420,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\FreeImage\ConversionRGB16.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\FreeImage\ConversionRGBF.cpp"
 					>
 				</File>
@@ -462,6 +468,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\FreeImage\MNGHelper.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\FreeImage\Plugin.cpp"
 					>
 				</File>
@@ -503,6 +513,10 @@
 				</File>
 				<File
 					RelativePath="..\FreeImage\PluginJ2K.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\FreeImage\PluginJNG.cpp"
 					>
 				</File>
 				<File
