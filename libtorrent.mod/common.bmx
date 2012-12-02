@@ -36,8 +36,6 @@ Import "-ladvapi32"
 Import "-leay32"
 Import "-lssleay32"
 Import "-lws2_32"
-Import BaH.libiconv
-Import "-liconv"
 ?macos
 Import "-lssl"
 Import "-lcrypto"

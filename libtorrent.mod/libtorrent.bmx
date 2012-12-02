@@ -43,15 +43,13 @@ ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE -DBOOST_FILESY
 ?linux
 ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
 ?win32
-ModuleInfo "CC_OPTS: -DBOOST_THREAD_USE_LIB"
+' set WINVER to 0x0500 - XP - as minimum, to enable certain functionality
+ModuleInfo "CC_OPTS: -DBOOST_THREAD_USE_LIB -DWINVER=1280 -DBOOST_ASIO_ENABLE_CANCELIO"
 ?
 
 
-' escape_string.cpp
-'   Fixed iconv param to be const.
-'
-' file.cpp
-'   Added extern of GetFileSizeEx for Win32. Not finding it in winbase.h for some reason...
+' asio_ssl.cpp
+'   include config.hpp.
 '
 
 Import "core.bmx"
