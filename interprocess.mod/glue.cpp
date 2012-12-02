@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009-2011 Bruce A Henderson
+ Copyright (c) 2009-2012 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -51,49 +51,49 @@ extern "C" {
 
 	shared_memory_object * bmx_sharedmemoryobject_create(int access, BBString * name, boost::interprocess::mode_t mode);
 	void bmx_sharedmemoryobject_free(shared_memory_object * shm);
-	bool bmx_sharedmemoryobject_remove(BBString * name);
+	int bmx_sharedmemoryobject_remove(BBString * name);
 	void bmx_sharedmemoryobject_truncate(shared_memory_object * shm, BBInt64 offset);
 	BBString * bmx_sharedmemoryobject_getname(shared_memory_object * shm);
-	bool bmx_sharedmemoryobject_getsize(shared_memory_object * shm, BBInt64 * size);
+	int bmx_sharedmemoryobject_getsize(shared_memory_object * shm, BBInt64 * size);
 	boost::interprocess::mode_t bmx_sharedmemoryobject_getmode(shared_memory_object * shm);
 
 	mapped_region * bmx_mapped_region_createshm(shared_memory_object * mapping, boost::interprocess::mode_t mode, BBInt64 offset, std::size_t size, void * address);
 	std::size_t bmx_mapped_region_getsize(mapped_region * region);
 	void * bmx_mapped_region_getaddress(mapped_region * region);
-	void bmx_mapped_region_getoffset(mapped_region * region, BBInt64 * v);
+	int bmx_mapped_region_shrinkby(mapped_region * region, BBInt64 bytes, int fromBack);
 	boost::interprocess::mode_t bmx_mapped_region_getmode(mapped_region * region);
-	bool bmx_mapped_region_flush(mapped_region * region, std::size_t mappingOffset, std::size_t numBytes);
+	int bmx_mapped_region_flush(mapped_region * region, std::size_t mappingOffset, std::size_t numBytes, int async);
 	void bmx_mapped_region_free(mapped_region * region);
 
 	named_semaphore * bmx_named_semphore_create(int access, BBString * name, int initialCount);
 	void bmx_named_semaphore_post(named_semaphore * semaphore);
 	void bmx_named_semaphore_wait(named_semaphore * semaphore);
-	bool bmx_named_semaphore_trywait(named_semaphore * semaphore);
-	bool bmx_named_semaphore_timedwait(named_semaphore * semaphore, int time);
-	bool bmx_named_semaphore_remove(BBString * name);
+	int bmx_named_semaphore_trywait(named_semaphore * semaphore);
+	int bmx_named_semaphore_timedwait(named_semaphore * semaphore, int time);
+	int bmx_named_semaphore_remove(BBString * name);
 	void bmx_named_semaphore_free(named_semaphore * semaphore);
 
 	named_condition * bmx_named_condition_create(int access, BBString * name);
 	void bmx_named_condition_notifyone(named_condition * cond);
 	void bmx_named_condition_notifyall(named_condition * cond);
 	void bmx_named_condition_wait(named_condition * cond, MaxScopedLock * lock);
-	bool bmx_named_condition_timedwait(named_condition * cond, MaxScopedLock * lock, int time);
-	bool bmx_named_condition_remove(BBString * name);
+	int bmx_named_condition_timedwait(named_condition * cond, MaxScopedLock * lock, int time);
+	int bmx_named_condition_remove(BBString * name);
 	void bmx_named_condition_free(named_condition * cond);
 
 	MaxScopedLock * bmx_scoped_lock_create(MaxNamedMutex * mutex);
 	void bmx_scoped_lock_free(MaxScopedLock * lock);
 	void bmx_scoped_lock_lock(MaxScopedLock * lock);
-	bool bmx_scoped_lock_trylock(MaxScopedLock * lock);
-	bool bmx_scoped_lock_timedlock(MaxScopedLock * lock, int time);
+	int bmx_scoped_lock_trylock(MaxScopedLock * lock);
+	int bmx_scoped_lock_timedlock(MaxScopedLock * lock, int time);
 	void bmx_scoped_lock_unlock(MaxScopedLock * lock);
 
 	MaxNamedMutex * bmx_named_mutex_create(int access, BBString * name);
 	void bmx_named_mutex_unlock(MaxNamedMutex * mutex);
 	void bmx_named_mutex_lock(MaxNamedMutex * mutex);
-	bool bmx_named_mutex_trylock(MaxNamedMutex * mutex);
-	bool bmx_named_mutex_timedlock(MaxNamedMutex * mutex, int time);
-	bool bmx_named_mutex_remove(BBString * name);
+	int bmx_named_mutex_trylock(MaxNamedMutex * mutex);
+	int bmx_named_mutex_timedlock(MaxNamedMutex * mutex, int time);
+	int bmx_named_mutex_remove(BBString * name);
 	void bmx_named_mutex_free(MaxNamedMutex * mutex);
 
 }
@@ -183,11 +183,11 @@ void bmx_sharedmemoryobject_free(shared_memory_object * shm) {
 	delete shm;
 }
 
-bool bmx_sharedmemoryobject_remove(BBString * name) {
+int bmx_sharedmemoryobject_remove(BBString * name) {
 	char * p = bbStringToCString(name);
 	bool res = shared_memory_object::remove(p);
 	bbMemFree(p);
-	return res;
+	return static_cast<int>(res);
 }
 
 void bmx_sharedmemoryobject_truncate(shared_memory_object * shm, BBInt64 offset) {
@@ -198,11 +198,11 @@ BBString * bmx_sharedmemoryobject_getname(shared_memory_object * shm) {
 	return bbStringFromCString(shm->get_name());
 }
 
-bool bmx_sharedmemoryobject_getsize(shared_memory_object * shm, BBInt64 * size) {
+int bmx_sharedmemoryobject_getsize(shared_memory_object * shm, BBInt64 * size) {
 	offset_t s;
 	bool res = shm->get_size(s);
 	*size = static_cast<BBInt64>(s);
-	return res;
+	return static_cast<int>(res);
 }
 
 boost::interprocess::mode_t bmx_sharedmemoryobject_getmode(shared_memory_object * shm) {
@@ -224,20 +224,20 @@ std::size_t bmx_mapped_region_getsize(mapped_region * region) {
 	return region->get_size();
 }
 
-void * bmx_mapped_region_getaddress(mapped_region * region) {
-	return region->get_address();
+int bmx_mapped_region_shrinkby(mapped_region * region, BBInt64 bytes, int fromBack) {
+	static_cast<int>(region->shrink_by(bytes, static_cast<bool>(fromBack)));
 }
 
-void bmx_mapped_region_getoffset(mapped_region * region, BBInt64 * v) {
-	*v = region->get_offset();
+void * bmx_mapped_region_getaddress(mapped_region * region) {
+	return region->get_address();
 }
 
 boost::interprocess::mode_t bmx_mapped_region_getmode(mapped_region * region) {
 	return region->get_mode();
 }
 
-bool bmx_mapped_region_flush(mapped_region * region, std::size_t mappingOffset, std::size_t numBytes) {
-	return region->flush(mappingOffset, numBytes);
+int bmx_mapped_region_flush(mapped_region * region, std::size_t mappingOffset, std::size_t numBytes, int async) {
+	return static_cast<int>(region->flush(mappingOffset, numBytes, static_cast<bool>(async)));
 }
 
 void bmx_mapped_region_free(mapped_region * region) {
@@ -282,20 +282,20 @@ void bmx_named_semaphore_wait(named_semaphore * semaphore) {
 	semaphore->wait();
 }
 
-bool bmx_named_semaphore_trywait(named_semaphore * semaphore) {
-	return semaphore->try_wait();
+int bmx_named_semaphore_trywait(named_semaphore * semaphore) {
+	return static_cast<int>(semaphore->try_wait());
 }
 
-bool bmx_named_semaphore_timedwait(named_semaphore * semaphore, int time) {
+int bmx_named_semaphore_timedwait(named_semaphore * semaphore, int time) {
 	std::time_t tt(time);
-	return semaphore->timed_wait(from_time_t(tt));
+	return static_cast<int>(semaphore->timed_wait(from_time_t(tt)));
 }
 
-bool bmx_named_semaphore_remove(BBString * name) {
+int bmx_named_semaphore_remove(BBString * name) {
 	char * p = bbStringToCString(name);
 	bool res = named_semaphore::remove(p);
 	bbMemFree(p);
-	return res;
+	return static_cast<int>(res);
 }
 
 void bmx_named_semaphore_free(named_semaphore * semaphore) {
@@ -343,16 +343,16 @@ void bmx_named_condition_wait(named_condition * cond, MaxScopedLock * lock) {
 	cond->wait(*lock->GetLock());
 }
 
-bool bmx_named_condition_timedwait(named_condition * cond, MaxScopedLock * lock, int time) {
+int bmx_named_condition_timedwait(named_condition * cond, MaxScopedLock * lock, int time) {
 	std::time_t tt(time);
-	return cond->timed_wait(*lock->GetLock(), from_time_t(tt));
+	return static_cast<int>(cond->timed_wait(*lock->GetLock(), from_time_t(tt)));
 }
 
-bool bmx_named_condition_remove(BBString * name) {
+int bmx_named_condition_remove(BBString * name) {
 	char * p = bbStringToCString(name);
 	bool res = named_condition::remove(p);
 	bbMemFree(p);
-	return res;
+	return static_cast<int>(res);
 }
 
 void bmx_named_condition_free(named_condition * cond) {
@@ -374,13 +374,13 @@ void bmx_scoped_lock_lock(MaxScopedLock * lock) {
 	lock->GetLock()->lock();
 }
 
-bool bmx_scoped_lock_trylock(MaxScopedLock * lock) {
-	return lock->GetLock()->try_lock();
+int bmx_scoped_lock_trylock(MaxScopedLock * lock) {
+	return static_cast<int>(lock->GetLock()->try_lock());
 }
 
-bool bmx_scoped_lock_timedlock(MaxScopedLock * lock, int time) {
+int bmx_scoped_lock_timedlock(MaxScopedLock * lock, int time) {
 	std::time_t tt(time);
-	return lock->GetLock()->timed_lock(from_time_t(tt));
+	return static_cast<int>(lock->GetLock()->timed_lock(from_time_t(tt)));
 }
 
 void bmx_scoped_lock_unlock(MaxScopedLock * lock) {
@@ -423,20 +423,20 @@ void bmx_named_mutex_lock(MaxNamedMutex * mutex) {
 	mutex->GetMutex().lock();
 }
 
-bool bmx_named_mutex_trylock(MaxNamedMutex * mutex) {
-	return mutex->GetMutex().try_lock();
+int bmx_named_mutex_trylock(MaxNamedMutex * mutex) {
+	return static_cast<int>(mutex->GetMutex().try_lock());
 }
 
-bool bmx_named_mutex_timedlock(MaxNamedMutex * mutex, int time) {
+int bmx_named_mutex_timedlock(MaxNamedMutex * mutex, int time) {
 	std::time_t tt(time);
-	return mutex->GetMutex().timed_lock(from_time_t(tt));
+	return static_cast<int>(mutex->GetMutex().timed_lock(from_time_t(tt)));
 }
 
-bool bmx_named_mutex_remove(BBString * name) {
+int bmx_named_mutex_remove(BBString * name) {
 	char * p = bbStringToCString(name);
 	bool res = named_mutex::remove(p);
 	bbMemFree(p);
-	return res;
+	return static_cast<int>(res);
 }
 
 void bmx_named_mutex_free(MaxNamedMutex * mutex) {

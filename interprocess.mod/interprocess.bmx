@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2011 Bruce A Henderson
+' Copyright (c) 2009-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,13 @@ bbdoc: Interprocess Communication
 End Rem
 Module BaH.Interprocess
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2012 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Updated to boost 1.52"
+ModuleInfo "History: Removed region GetOffset(). Added ShrinkBy()."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (Boost 1.45)"
 
@@ -140,7 +143,11 @@ Type TMappedRegion
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a mapping region of the mapped memory @mapping, starting in offset @offset, and the mapping's size will be @size.
+	about: The mapping can be opened for read only, read-write or copy-on-write.
+	If an address is specified, both the offset and the address must be multiples of the page size.
+	The OS could allocate more pages than size/page_size(), but GetAddress() will always return the address passed in this method (if not null)
+	and GetSize() will return the specified size.
 	End Rem
 	Method Create:TMappedRegion(mapping:TMemoryMappable, Mode:Int, offset:Long = 0, size:Int = 0, address:Byte Ptr = Null)
 		If TSHMO(mapping) Then
@@ -154,40 +161,47 @@ Type TMappedRegion
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the size of the mapping.
 	End Rem
 	Method GetSize:Int()
 		Return bmx_mapped_region_getsize(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the base address of the mapping.
 	End Rem
 	Method GetAddress:Byte Ptr()
 		Return bmx_mapped_region_getaddress(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Shrinks current mapped region.
+	returns: True on success.
+	about: If after shrinking there is no longer need for a previously mapped memory page, accessing that page can trigger a segmentation fault.
+	Depending on the OS, this operation might fail (XSI shared memory), it can decommit storage and free a portion of the virtual
+	address space (e.g.POSIX) or this method can release some physical memory wihout freeing any virtual address
+	space (Windows).
 	End Rem
-	Method GetOffset:Long()
-		Local v:Long
-		bmx_mapped_region_getoffset(objectPtr, Varptr v)
-		Return v
+	Method ShrinkBy:Int(bytes:Long, fromBack:Int = True)
+		Return bmx_mapped_region_shrinkby(objectPtr, bytes, fromBack)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the mode of the mapping used to construct the mapped region.
 	End Rem
 	Method GetMode:Int()
 		Return bmx_mapped_region_getmode(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Flushes to the disk a byte range within the mapped memory.
+	returns: False if operation could not be performed.
+	about: If @async is True, the method will return before flushing operation is completed. If @async is False, method will return once
+	data has been written into the underlying device (i.e., in mapped files OS cached information is
+	written to disk)
 	End Rem
-	Method Flush:Int(mappingOffset:Int = 0, numBytes:Int = 0)
-		Return bmx_mapped_region_flush(objectPtr, mappingOffset, numBytes)
+	Method Flush:Int(mappingOffset:Int = 0, numBytes:Int = 0, async:Int = True)
+		Return bmx_mapped_region_flush(objectPtr, mappingOffset, numBytes, async)
 	End Method
 		
 	Rem

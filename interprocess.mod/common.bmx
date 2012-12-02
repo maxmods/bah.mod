@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2011 Bruce A Henderson
+' Copyright (c) 2009-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -51,9 +51,9 @@ Extern
 	Function bmx_mapped_region_createshm:Byte Ptr(mapping:Byte Ptr, Mode:Int, offset:Long, size:Int, address:Byte Ptr)
 	Function bmx_mapped_region_getsize:Int(handle:Byte Ptr)
 	Function bmx_mapped_region_getaddress:Byte Ptr(handle:Byte Ptr)
-	Function bmx_mapped_region_getoffset(handle:Byte Ptr, v:Long Ptr)
+	Function bmx_mapped_region_shrinkby:Int(handle:Byte Ptr, bytes:Long, fromBack:Int)
 	Function bmx_mapped_region_getmode:Int(handle:Byte Ptr)
-	Function bmx_mapped_region_flush:Int(handle:Byte Ptr, mappingOffset:Int, numBytes:Int)
+	Function bmx_mapped_region_flush:Int(handle:Byte Ptr, mappingOffset:Int, numBytes:Int, async:Int)
 	Function bmx_mapped_region_free(handle:Byte Ptr)
 
 	Function bmx_named_semphore_create:Byte Ptr(access:Int, name:String, initialCount:Int)
