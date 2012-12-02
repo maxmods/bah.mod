@@ -98,10 +98,10 @@ Type TMainProcess
 		' Local service discovery (finds peers on the local network)
 		session.startLsd()
 		
-		session.setMaxUploads(upload_slots_limit)
-		session.setMaxHalfOpenConnections(half_open_limit)
-		session.setDownloadRateLimit(download_limit)
-		session.setUploadRateLimit(upload_limit)
+		'settings.setMaxUploads(upload_slots_limit)
+		'settings.setMaxHalfOpenConnections(half_open_limit)
+		settings.setDownloadRateLimit(download_limit)
+		settings.setUploadRateLimit(upload_limit)
 		session.listenOn(listen_port, listen_port + 10, bind_to_interface)
 		session.setSettings(settings)
 
@@ -118,9 +118,14 @@ Type TMainProcess
 		Local params:TAddTorrentParams = New TAddTorrentParams
 		params.setSavePath("./") ' current dir...
 		params.setTorrentInfo(info)
-		params.setPaused(True)
-		params.setDuplicateIsError(False)
-		params.setAutoManaged(True)
+
+		' setup default torrent flags
+		Local flags:Int = params.flags()
+		flags :| TAddTorrentParams.PAUSED
+		flags :~ TAddTorrentParams.DUPLICATE_IS_ERROR
+		flags :| TAddTorrentParams.AUTO_MANAGED
+
+		params.setFlags(flags)
 		
 		Local handle:TTorrentHandle = session.addTorrent(params)
 		
@@ -131,7 +136,7 @@ Type TMainProcess
 		
 		handle.setMaxConnections(50)
 		handle.setMaxUploads(-1)
-		handle.setRatio(preferred_ratio)
+		'handle.setRatio(preferred_ratio)
 		handle.setUploadLimit(torrent_upload_limit)
 		handle.setDownloadLimit(torrent_download_limit)
 		
@@ -215,7 +220,8 @@ Type TMainProcess
 
 		If KeyHit(KEY_S) Then
 			If activeHandle And activeHandle.isValid() Then
-				activeHandle.setSequentialDownload(Not activeHandle.isSequentialDownload())
+				Local status:TTorrentStatus = activeHandle.status()
+				activeHandle.setSequentialDownload(Not status.sequentialDownload())
 			End If
 		End If
 
@@ -279,9 +285,9 @@ Type TMainProcess
 		If activeHandle Then
 		
 			Local status:TTorrentStatus = activeHandle.status()
-			Local paused:Int = activeHandle.isPaused()
-			Local autoManaged:Int = activeHandle.isAutoManaged()
-			Local sequentialDownload:Int = activeHandle.isSequentialDownload()
+			Local paused:Int = status.paused()
+			Local autoManaged:Int = status.autoManaged()
+			Local sequentialDownload:Int = status.sequentialDownload()
 			
 			
 			DrawText "name:", 10, 70
