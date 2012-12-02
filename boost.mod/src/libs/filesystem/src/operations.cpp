@@ -29,16 +29,8 @@
 #define _FILE_OFFSET_BITS 64
 #endif
 
-#include <boost/config.hpp>
-#if !defined( BOOST_NO_STD_WSTRING )
-// Boost.Filesystem V3 and later requires std::wstring support.
-// During the transition to V3, libraries are compiled with both V2 and V3 sources.
-// On old compilers that don't support V3 anyhow, we just skip everything so the compile
-// will succeed and the library can be built.
-
 // define BOOST_FILESYSTEM_SOURCE so that <boost/filesystem/config.hpp> knows
 // the library is being built (possibly exporting rather than importing code)
-
 #define BOOST_FILESYSTEM_SOURCE 
 
 #ifndef BOOST_SYSTEM_NO_DEPRECATED 
@@ -49,12 +41,11 @@
 # define _POSIX_PTHREAD_SEMANTICS  // Sun readdir_r()needs this
 #endif
 
-#include <boost/filesystem/v3/operations.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/scoped_array.hpp>
 #include <boost/detail/workaround.hpp>
 #include <vector> 
 #include <cstdlib>     // for malloc, free
-#include <sys/stat.h>  // even on Windows some functions use stat()
 #include <cstring>
 #include <cstdio>      // for remove, rename
 #if defined(__QNXNTO__)  // see ticket #5355 
@@ -66,9 +57,10 @@
 # include <iostream>
 #endif
 
-namespace fs = boost::filesystem3;
-using boost::filesystem3::path;
-using boost::filesystem3::filesystem_error;
+namespace fs = boost::filesystem;
+using boost::filesystem::path;
+using boost::filesystem::filesystem_error;
+using boost::filesystem::perms;
 using boost::system::error_code;
 using boost::system::error_category;
 using boost::system::system_category;
@@ -80,6 +72,7 @@ using std::wstring;
     const fs::path dot_path(".");
     const fs::path dot_dot_path("..");
 #   include <sys/types.h>
+#   include <sys/stat.h>
 #   if !defined(__APPLE__) && !defined(__OpenBSD__)
 #     include <sys/statvfs.h>
 #     define BOOST_STATVFS statvfs
@@ -107,6 +100,7 @@ using std::wstring;
       // See MinGW's windef.h
 #     define WINVER 0x501
 #   endif
+#   include <io.h>
 #   include <windows.h>
 #   include <winnt.h>
 #   if !defined(_WIN32_WINNT)
@@ -229,7 +223,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 #   define BOOST_DELETE_FILE(P)(::DeleteFileW(P)!= 0)
 #   define BOOST_COPY_DIRECTORY(F,T)(::CreateDirectoryExW(F, T, 0)!= 0)
 #   define BOOST_COPY_FILE(F,T,FailIfExistsBool)(::CopyFileW(F, T, FailIfExistsBool)!= 0)
-#   define BOOST_MOVE_FILE(OLD,NEW)(::MoveFileExW(OLD, NEW, MOVEFILE_REPLACE_EXISTING)!= 0)
+#   define BOOST_MOVE_FILE(OLD,NEW)(::MoveFileExW(OLD, NEW, MOVEFILE_REPLACE_EXISTING|MOVEFILE_COPY_ALLOWED)!= 0)
 #   define BOOST_RESIZE_FILE(P,SZ)(resize_file_api(P, SZ)!= 0)
 #   define BOOST_READ_SYMLINK(P,T)
 
@@ -247,15 +241,9 @@ typedef struct _REPARSE_DATA_BUFFER {
 namespace
 {
 
-# ifdef BOOST_POSIX_API
-  const char dot = '.';
-# else
-  const wchar_t dot = L'.';
-# endif
-
   fs::file_type query_file_type(const path& p, error_code* ec);
 
-  boost::filesystem3::directory_iterator end_dir_itr;
+  boost::filesystem::directory_iterator end_dir_itr;
 
   const std::size_t buf_size(128);
   const error_code ok;
@@ -414,6 +402,8 @@ namespace
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
+  const char dot = '.';
+
   bool not_found_error(int errval)
   {
     return errno == ENOENT || errno == ENOTDIR;
@@ -490,6 +480,8 @@ namespace
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
+  const wchar_t dot = L'.';
+
   bool not_found_error(int errval)
   {
     return errval == ERROR_FILE_NOT_FOUND
@@ -500,6 +492,28 @@ namespace
       || errval == ERROR_INVALID_PARAMETER  // ":sys:stat.h"
       || errval == ERROR_BAD_PATHNAME  // "//nosuch" on Win64
       || errval == ERROR_BAD_NETPATH;  // "//nosuch" on Win32
+  }
+
+// some distributions of mingw as early as GLIBCXX__ 20110325 have _stricmp, but the
+// offical 4.6.2 release with __GLIBCXX__ 20111026  doesn't. Play it safe for now, and
+// only use _stricmp if _MSC_VER is defined
+#if defined(_MSC_VER) // || (defined(__GLIBCXX__) && __GLIBCXX__ >= 20110325)
+#  define BOOST_FILESYSTEM_STRICMP _stricmp
+#else
+#  define BOOST_FILESYSTEM_STRICMP strcmp
+#endif
+
+  perms make_permissions(const path& p, DWORD attr)
+  {
+    perms prms = fs::owner_read | fs::group_read | fs::others_read;
+    if  ((attr & FILE_ATTRIBUTE_READONLY) == 0)
+      prms |= fs::owner_write | fs::group_write | fs::others_write;
+    if (BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".exe") == 0
+      || BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".com") == 0
+      || BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".bat") == 0
+      || BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".cmd") == 0)
+      prms |= fs::owner_exe | fs::group_exe | fs::others_exe;
+    return prms;
   }
 
   // these constants come from inspecting some Microsoft sample code
@@ -590,7 +604,7 @@ namespace
 
     if (not_found_error(errval))
     {
-      return fs::file_status(fs::file_not_found);
+      return fs::file_status(fs::file_not_found, fs::no_perms);
     }
     else if ((errval == ERROR_SHARING_VIOLATION))
     {
@@ -685,7 +699,7 @@ namespace
 
 namespace boost
 {
-namespace filesystem3
+namespace filesystem
 {
 
   BOOST_FILESYSTEM_DECL
@@ -899,27 +913,43 @@ namespace detail
 # endif
   }
 
-  BOOST_FILESYSTEM_DECL
+ BOOST_FILESYSTEM_DECL
   bool create_directories(const path& p, system::error_code* ec)
   {
-    if (p.empty() || exists(p))
+    error_code local_ec;
+    file_status p_status = status(p, local_ec);
+
+    if (p_status.type() == directory_file)
     {
-      if (!p.empty() && !is_directory(p))
-      {
-        if (ec == 0)
-        BOOST_FILESYSTEM_THROW(filesystem_error(
-            "boost::filesystem::create_directories", p,
-            error_code(system::errc::file_exists, system::generic_category())));
-        else ec->assign(system::errc::file_exists, system::generic_category());
-      }
+      if (ec != 0)
+        ec->clear();
       return false;
     }
 
-    // First create branch, by calling ourself recursively
-    create_directories(p.parent_path(), ec);
-    // Now that parent's path exists, create the directory
-    create_directory(p, ec);
-    return true;
+    path parent = p.parent_path();
+    if (!parent.empty())
+    {
+      // determine if the parent exists
+      file_status parent_status = status(parent, local_ec);
+
+      // if the parent does not exist, create the parent
+      if (parent_status.type() == file_not_found)
+      {
+        create_directories(parent, local_ec);
+        if (local_ec)
+        {
+          if (ec == 0)
+            BOOST_FILESYSTEM_THROW(filesystem_error(
+              "boost::filesystem::create_directories", parent, local_ec));
+          else
+            *ec = local_ec;
+          return false;
+        }
+      }
+    }
+
+    // create the directory
+    return create_directory(p, ec);
   }
 
   BOOST_FILESYSTEM_DECL
@@ -927,7 +957,8 @@ namespace detail
   {
     if (BOOST_CREATE_DIRECTORY(p.c_str()))
     {
-      if (ec != 0) ec->clear();
+      if (ec != 0)
+        ec->clear();
       return true;
     }
 
@@ -936,7 +967,8 @@ namespace detail
     error_code dummy;
     if (errval == BOOST_ERROR_ALREADY_EXISTS && is_directory(p, dummy))
     {
-      if (ec != 0) ec->clear();
+      if (ec != 0)
+        ec->clear();
       return false;
     }
 
@@ -1329,6 +1361,94 @@ namespace detail
 #   endif
   }
 
+# ifdef BOOST_POSIX_API
+    const perms active_bits(all_all | set_uid_on_exe | set_gid_on_exe | sticky_bit);
+    inline mode_t mode_cast(perms prms) { return prms & active_bits; }
+# endif
+
+  BOOST_FILESYSTEM_DECL
+  void permissions(const path& p, perms prms, system::error_code* ec)
+  {
+    BOOST_ASSERT_MSG(!((prms & add_perms) && (prms & remove_perms)),
+      "add_perms and remove_perms are mutually exclusive");
+
+    if ((prms & add_perms) && (prms & remove_perms))  // precondition failed
+      return;
+
+# ifdef BOOST_POSIX_API
+    error_code local_ec;
+    file_status current_status((prms & symlink_perms)
+                               ? fs::symlink_status(p, local_ec)
+                               : fs::status(p, local_ec));
+    if (local_ec)
+    {
+      if (ec == 0)
+      BOOST_FILESYSTEM_THROW(filesystem_error(
+          "boost::filesystem::permissions", p, local_ec));
+      else
+        *ec = local_ec;
+      return;
+    }
+
+    if (prms & add_perms)
+      prms |= current_status.permissions();
+    else if (prms & remove_perms)
+      prms = current_status.permissions() & ~prms;
+
+    // Mac OS X Lion and some other platforms don't support fchmodat().
+    // Solaris (SunPro and gcc) only support fchmodat() on Solaris 11 and higher,
+    // and a runtime check is too much trouble.
+    // Linux does not support permissions on symbolic links and has no plans to
+    // support them in the future.  The chmod() code is thus more practical,
+    // rather than always hitting ENOTSUP when sending in AT_SYMLINK_NO_FOLLOW.
+    //  - See the 3rd paragraph of
+    // "Symbolic link ownership, permissions, and timestamps" at:
+    //   "http://man7.org/linux/man-pages/man7/symlink.7.html"
+    //  - See the fchmodat() Linux man page:
+    //   "http://man7.org/linux/man-pages/man2/fchmodat.2.html"
+#   if defined(AT_FDCWD) && defined(AT_SYMLINK_NOFOLLOW) \
+      && !(defined(__SUNPRO_CC) || defined(sun)) \
+      && !(defined(linux) || defined(__linux) || defined(__linux__))
+      if (::fchmodat(AT_FDCWD, p.c_str(), mode_cast(prms),
+           !(prms & symlink_perms) ? 0 : AT_SYMLINK_NOFOLLOW))
+#   else  // fallback if fchmodat() not supported
+      if (::chmod(p.c_str(), mode_cast(prms)))
+#   endif
+    {
+      if (ec == 0)
+      BOOST_FILESYSTEM_THROW(filesystem_error(
+          "boost::filesystem::permissions", p,
+          error_code(errno, system::generic_category())));
+      else
+        ec->assign(errno, system::generic_category());
+    }
+
+# else  // Windows
+
+    // if not going to alter FILE_ATTRIBUTE_READONLY, just return
+    if (!(!((prms & (add_perms | remove_perms)))
+      || (prms & (owner_write|group_write|others_write))))
+      return;
+
+    DWORD attr = ::GetFileAttributesW(p.c_str());
+
+    if (error(attr == 0, p, ec, "boost::filesystem::permissions"))
+      return;
+
+    if (prms & add_perms)
+      attr &= ~FILE_ATTRIBUTE_READONLY;
+    else if (prms & remove_perms)
+      attr |= FILE_ATTRIBUTE_READONLY;
+    else if (prms & (owner_write|group_write|others_write))
+      attr &= ~FILE_ATTRIBUTE_READONLY;
+    else
+      attr |= FILE_ATTRIBUTE_READONLY;
+
+    error(::SetFileAttributesW(p.c_str(), attr) == 0,
+      p, ec, "boost::filesystem::permissions");
+# endif
+  }
+
   BOOST_FILESYSTEM_DECL
   path read_symlink(const path& p, system::error_code* ec)
   {
@@ -1492,7 +1612,7 @@ namespace detail
 
       if (not_found_error(errno))
       {
-        return fs::file_status(fs::file_not_found);
+        return fs::file_status(fs::file_not_found, fs::no_perms);
       }
       if (ec == 0)
         BOOST_FILESYSTEM_THROW(filesystem_error("boost::filesystem::status",
@@ -1501,17 +1621,23 @@ namespace detail
     }
     if (ec != 0) ec->clear();;
     if (S_ISDIR(path_stat.st_mode))
-      return fs::file_status(fs::directory_file);
+      return fs::file_status(fs::directory_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISREG(path_stat.st_mode))
-      return fs::file_status(fs::regular_file);
+      return fs::file_status(fs::regular_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISBLK(path_stat.st_mode))
-      return fs::file_status(fs::block_file);
+      return fs::file_status(fs::block_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISCHR(path_stat.st_mode))
-      return fs::file_status(fs::character_file);
+      return fs::file_status(fs::character_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISFIFO(path_stat.st_mode))
-      return fs::file_status(fs::fifo_file);
+      return fs::file_status(fs::fifo_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISSOCK(path_stat.st_mode))
-      return fs::file_status(fs::socket_file);
+      return fs::file_status(fs::socket_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     return fs::file_status(fs::type_unknown);
 
 #   else  // Windows
@@ -1522,7 +1648,9 @@ namespace detail
       return process_status_failure(p, ec);
     }
 
-    //  reparse point handling
+    //  reparse point handling;
+    //    since GetFileAttributesW does not resolve symlinks, try to open a file
+    //    handle to discover if the file exists
     if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
     {
       handle_wrapper h(
@@ -1540,13 +1668,13 @@ namespace detail
       }
 
       if (!is_reparse_point_a_symlink(p))
-        return file_status(reparse_file);
+        return file_status(reparse_file, make_permissions(p, attr));
     }
 
     if (ec != 0) ec->clear();
     return (attr & FILE_ATTRIBUTE_DIRECTORY)
-      ? file_status(directory_file)
-      : file_status(regular_file);
+      ? file_status(directory_file, make_permissions(p, attr))
+      : file_status(regular_file, make_permissions(p, attr));
 
 #   endif
   }
@@ -1564,7 +1692,7 @@ namespace detail
 
       if (errno == ENOENT || errno == ENOTDIR) // these are not errors
       {
-        return fs::file_status(fs::file_not_found);
+        return fs::file_status(fs::file_not_found, fs::no_perms);
       }
       if (ec == 0)
         BOOST_FILESYSTEM_THROW(filesystem_error("boost::filesystem::status",
@@ -1573,19 +1701,26 @@ namespace detail
     }
     if (ec != 0) ec->clear();
     if (S_ISREG(path_stat.st_mode))
-      return fs::file_status(fs::regular_file);
+      return fs::file_status(fs::regular_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISDIR(path_stat.st_mode))
-      return fs::file_status(fs::directory_file);
+      return fs::file_status(fs::directory_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISLNK(path_stat.st_mode))
-      return fs::file_status(fs::symlink_file);
+      return fs::file_status(fs::symlink_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISBLK(path_stat.st_mode))
-      return fs::file_status(fs::block_file);
+      return fs::file_status(fs::block_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISCHR(path_stat.st_mode))
-      return fs::file_status(fs::character_file);
+      return fs::file_status(fs::character_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISFIFO(path_stat.st_mode))
-      return fs::file_status(fs::fifo_file);
+      return fs::file_status(fs::fifo_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     if (S_ISSOCK(path_stat.st_mode))
-      return fs::file_status(fs::socket_file);
+      return fs::file_status(fs::socket_file,
+        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
     return fs::file_status(fs::type_unknown);
 
 #   else  // Windows
@@ -1600,12 +1735,12 @@ namespace detail
 
     if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
       return is_reparse_point_a_symlink(p)
-             ? file_status(symlink_file)
-             : file_status(reparse_file);
+             ? file_status(symlink_file, make_permissions(p, attr))
+             : file_status(reparse_file, make_permissions(p, attr));
 
     return (attr & FILE_ATTRIBUTE_DIRECTORY)
-      ? file_status(directory_file)
-      : file_status(regular_file);
+      ? file_status(directory_file, make_permissions(p, attr))
+      : file_status(regular_file, make_permissions(p, attr));
 
 #   endif
   }
@@ -1746,7 +1881,7 @@ namespace path_traits
   }
 
 }  // namespace path_traits
-} // namespace filesystem3
+} // namespace filesystem
 } // namespace boost
 
 //--------------------------------------------------------------------------------------//
@@ -1838,8 +1973,8 @@ namespace
     dirent * entry(static_cast<dirent *>(buffer));
     dirent * result;
     int return_code;
-    if ((return_code = readdir_r_simulator(static_cast<DIR*>(handle),
-      entry, &result))!= 0)return error_code(errno, system_category());
+    if ((return_code = readdir_r_simulator(static_cast<DIR*>(handle), entry, &result))!= 0)
+      return error_code(errno, system_category());
     if (result == 0)
       return fs::detail::dir_itr_close(handle, buffer);
     target = entry->d_name;
@@ -1886,7 +2021,7 @@ namespace
     if ((handle = ::FindFirstFileW(dirpath.c_str(), &data))
       == INVALID_HANDLE_VALUE)
     { 
-      handle = 0;
+      handle = 0;  // signal eof
       return error_code( (::GetLastError() == ERROR_FILE_NOT_FOUND
                        // Windows Mobile returns ERROR_NO_MORE_FILES; see ticket #3551                                           
                        || ::GetLastError() == ERROR_NO_MORE_FILES) 
@@ -1894,12 +2029,28 @@ namespace
     }
     target = data.cFileName;
     if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-      // reparse points are complex, so don't try to handle them here
-      { sf.type(fs::status_error); symlink_sf.type(fs::status_error); }
-    else if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-      { sf.type(fs::directory_file); symlink_sf.type(fs::directory_file); }
+    // reparse points are complex, so don't try to handle them here; instead just mark
+    // them as status_error which causes directory_entry caching to call status()
+    // and symlink_status() which do handle reparse points fully
+    {
+      sf.type(fs::status_error);
+      symlink_sf.type(fs::status_error);
+    }
     else
-      { sf.type(fs::regular_file); symlink_sf.type(fs::regular_file); }
+    {
+      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        sf.type(fs::directory_file);
+        symlink_sf.type(fs::directory_file);
+      }
+      else
+      {
+        sf.type(fs::regular_file);
+        symlink_sf.type(fs::regular_file);
+      }
+      sf.permissions(make_permissions(data.cFileName, data.dwFileAttributes));
+      symlink_sf.permissions(sf.permissions());
+    }
     return error_code();
   }
 
@@ -1915,12 +2066,28 @@ namespace
     }
     target = data.cFileName;
     if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-      // reparse points are complex, so don't try to handle them here
-      { sf.type(fs::status_error); symlink_sf.type(fs::status_error); }
-    else if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-      { sf.type(fs::directory_file); symlink_sf.type(fs::directory_file); }
+    // reparse points are complex, so don't try to handle them here; instead just mark
+    // them as status_error which causes directory_entry caching to call status()
+    // and symlink_status() which do handle reparse points fully
+    {
+      sf.type(fs::status_error);
+      symlink_sf.type(fs::status_error);
+    }
     else
-      { sf.type(fs::regular_file); symlink_sf.type(fs::regular_file); }
+    {
+      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        sf.type(fs::directory_file);
+        symlink_sf.type(fs::directory_file);
+      }
+      else
+      {
+        sf.type(fs::regular_file);
+        symlink_sf.type(fs::regular_file);
+      }
+      sf.permissions(make_permissions(data.cFileName, data.dwFileAttributes));
+      symlink_sf.permissions(sf.permissions());
+    }
     return error_code();
   }
 #endif
@@ -1937,7 +2104,7 @@ namespace
 
 namespace boost
 {
-namespace filesystem3
+namespace filesystem
 {
 
 namespace detail
@@ -1975,7 +2142,8 @@ namespace detail
     const path& p, system::error_code* ec)    
   {
     if (error(p.empty(), not_found_error_code, p, ec,
-       "boost::filesystem::directory_iterator::construct"))return;
+              "boost::filesystem::directory_iterator::construct"))
+      return;
 
     path::string_type filename;
     file_status file_stat, symlink_file_stat;
@@ -1993,16 +2161,16 @@ namespace detail
       return;
     }
     
-    if (it.m_imp->handle == 0)it.m_imp.reset(); // eof, so make end iterator
+    if (it.m_imp->handle == 0)
+      it.m_imp.reset(); // eof, so make end iterator
     else // not eof
     {
-      it.m_imp->dir_entry.assign(p / filename,
-        file_stat, symlink_file_stat);
+      it.m_imp->dir_entry.assign(p / filename, file_stat, symlink_file_stat);
       if (filename[0] == dot // dot or dot-dot
         && (filename.size()== 1
           || (filename[1] == dot
             && filename.size()== 2)))
-        {  it.increment(); }
+        {  it.increment(*ec); }
     }
   }
 
@@ -2024,13 +2192,14 @@ namespace detail
 #       endif
         filename, file_stat, symlink_file_stat);
 
-      if (temp_ec)
+      if (temp_ec)  // happens if filesystem is corrupt, such as on a damaged optical disc
       {
+        path error_path(it.m_imp->dir_entry.path().parent_path());  // fix ticket #5900
         it.m_imp.reset();
         if (ec == 0)
           BOOST_FILESYSTEM_THROW(
             filesystem_error("boost::filesystem::directory_iterator::operator++",
-              it.m_imp->dir_entry.path().parent_path(),
+              error_path,
               error_code(BOOST_ERRNO, system_category())));
         ec->assign(BOOST_ERRNO, system_category());
         return;
@@ -2055,7 +2224,5 @@ namespace detail
     }
   }
 }  // namespace detail
-} // namespace filesystem3
+} // namespace filesystem
 } // namespace boost
-
-#endif  // no wide character support

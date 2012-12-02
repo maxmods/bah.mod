@@ -9,13 +9,6 @@
 
 //--------------------------------------------------------------------------------------// 
 
-#include <boost/config.hpp>
-#if !defined( BOOST_NO_STD_WSTRING )
-// Boost.Filesystem V3 and later requires std::wstring support.
-// During the transition to V3, libraries are compiled with both V2 and V3 sources.
-// On old compilers that don't support V3 anyhow, we just skip everything so the compile
-// will succeed and the library can be built.
-
 // define BOOST_FILESYSTEM_SOURCE so that <boost/system/config.hpp> knows
 // the library is being built (possibly exporting rather than importing code)
 #define BOOST_FILESYSTEM_SOURCE 
@@ -24,7 +17,7 @@
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <boost/filesystem/v3/config.hpp>
+#include <boost/filesystem/config.hpp>
 #include <cwchar>  // for mbstate_t
 
 #ifdef BOOST_WINDOWS_API
@@ -43,7 +36,7 @@
     const char* from, const char* from_end, const char*& from_next,
     wchar_t* to, wchar_t* to_end, wchar_t*& to_next) const
   {
-    UINT codepage = AreFileApisANSI() ? CP_THREAD_ACP : CP_OEMCP;
+    UINT codepage = AreFileApisANSI() ? CP_ACP : CP_OEMCP;
 
     int count;
     if ((count = ::MultiByteToWideChar(codepage, MB_PRECOMPOSED, from,
@@ -63,7 +56,7 @@
     const wchar_t* from, const wchar_t* from_end, const wchar_t*  & from_next,
     char* to, char* to_end, char* & to_next) const
   {
-    UINT codepage = AreFileApisANSI() ? CP_THREAD_ACP : CP_OEMCP;
+    UINT codepage = AreFileApisANSI() ? CP_ACP : CP_OEMCP;
 
     int count;
     if ((count = ::WideCharToMultiByte(codepage, WC_NO_BEST_FIT_CHARS, from,
@@ -80,4 +73,3 @@
 
   # endif  // BOOST_WINDOWS_API
 
-#endif  // no wide character support
