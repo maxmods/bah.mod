@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include <cstring> // for memset and memcpy
 #include <cstdlib> // for malloc, free and realloc
+#include <boost/cstdint.hpp> // uint32_t
 
 namespace libtorrent
 {
@@ -222,6 +223,7 @@ namespace libtorrent
 	
 		void resize(int bits)
 		{
+			TORRENT_ASSERT(bits >= 0);
 			const int b = (bits + 7) / 8;
 			if (m_bytes)
 			{
@@ -238,7 +240,7 @@ namespace libtorrent
 					m_own = true;
 				}
 			}
-			else
+			else if (bits > 0)
 			{
 				m_bytes = (unsigned char*)std::malloc(b);
 				m_own = true;

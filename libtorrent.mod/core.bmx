@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2011 Bruce A Henderson
+' Copyright (c) 2010-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -628,19 +628,19 @@ Type TSessionSettings
 		bmx_torrent_sessionsettings_set_send_buffer_watermark(settingsPtr, value)
 	End Method
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Method autoUploadSlots:Int()
-		Return bmx_torrent_sessionsettings_auto_upload_slots(settingsPtr)
-	End Method
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method autoUploadSlots:Int()
+'		Return bmx_torrent_sessionsettings_auto_upload_slots(settingsPtr)
+'	End Method
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Method setAutoUploadSlots(value:Int)
-		bmx_torrent_sessionsettings_set_auto_upload_slots(settingsPtr, value)
-	End Method
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method setAutoUploadSlots(value:Int)
+'		bmx_torrent_sessionsettings_set_auto_upload_slots(settingsPtr, value)
+'	End Method
 	
 	Rem
 	bbdoc: 
@@ -915,7 +915,43 @@ Type TSessionSettings
 	Method setAutoManageStartup(value:Int)
 		bmx_torrent_sessionsettings_set_auto_manage_startup(settingsPtr, value)
 	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method setUploadRateLimit(bytesPerSecond:Int)
+		bmx_torrent_sessionsettings_set_upload_rate_limit(settingsPtr, bytesPerSecond)
+	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setDownloadRateLimit(bytesPerSecond:Int)
+		bmx_torrent_sessionsettings_set_download_rate_limit(settingsPtr, bytesPerSecond)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method uploadRateLimit:Int()
+		Return bmx_torrent_sessionsettings_upload_rate_limit(settingsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadRateLimit:Int()
+		Return bmx_torrent_sessionsettings_download_rate_limit(settingsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setConnectionsLimit(limit:Int)
+		bmx_torrent_sessionsettings_set_connections_limit(settingsPtr, limit)
+	End Method
+
+
 	Method Delete()
 		If settingsPtr Then
 			bmx_torrent_sessionsettings_free(settingsPtr)

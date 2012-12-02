@@ -36,6 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cctype>
 #include <cstring>
 
+#include "libtorrent/escape_string.hpp"
+
 namespace libtorrent
 {
 	enum
@@ -47,7 +49,10 @@ namespace libtorrent
 		xml_string,
 		xml_attribute,
 		xml_comment,
-		xml_parse_error
+		xml_parse_error,
+		// used for tags that don't follow the convention of
+		// key-value pairs inside the tag brackets. Like !DOCTYPE
+		xml_tag_content
 	};
 
 	// callback(int type, char const* name, char const* val)
@@ -63,7 +68,7 @@ namespace libtorrent
 			char const* val_start = 0;
 			int token;
 			// look for tag start
-			for(; *p != '<' && p != end; ++p);
+			for(; p != end && *p != '<'; ++p);
 
 			if (p != start)
 			{
@@ -80,10 +85,33 @@ namespace libtorrent
 			if (p == end) break;
 		
 			// skip '<'
-			++p;	
+			++p;
+			if (p != end && p+8 < end && string_begins_no_case("![CDATA[", p))
+			{
+				// CDATA. match '![CDATA['
+				p += 8;
+				start = p;
+				while (p != end && !string_begins_no_case("]]>", p-2)) ++p;
+
+				// parse error
+				if (p == end)
+				{
+					token = xml_parse_error;
+					start = "unexpected end of file";
+					callback(token, start, val_start);
+					break;
+				}
+			
+				token = xml_string;
+				char tmp = p[-2];
+				p[-2] = 0;
+				callback(token, start, val_start);
+				p[-2] = tmp;
+				continue;
+			}
 
 			// parse the name of the tag.
-			for (start = p; p != end && *p != '>' && !isspace(*p); ++p);
+			for (start = p; p != end && *p != '>' && !is_space(*p); ++p);
 
 			char* tag_name_end = p;
 
@@ -150,27 +178,31 @@ namespace libtorrent
 			for (char* i = tag_name_end; i < tag_end; ++i)
 			{
 				// find start of attribute name
-				for (; i != tag_end && isspace(*i); ++i);
+				for (; i != tag_end && is_space(*i); ++i);
 				if (i == tag_end) break;
 				start = i;
 				// find end of attribute name
-				for (; i != tag_end && *i != '=' && !isspace(*i); ++i);
+				for (; i != tag_end && *i != '=' && !is_space(*i); ++i);
 				char* name_end = i;
 
 				// look for equality sign
 				for (; i != tag_end && *i != '='; ++i);
 
+				// no equality sign found. Report this as xml_tag_content
+				// instead of a series of key value pairs
 				if (i == tag_end)
 				{
-					token = xml_parse_error;
+					char tmp = *i;
+					*i = 0; // null terminate the content string
+					token = xml_tag_content;
 					val_start = 0;
-					start = "garbage inside element brackets";
 					callback(token, start, val_start);
+					*i = tmp;
 					break;
 				}
 
 				++i;
-				for (; i != tag_end && isspace(*i); ++i);
+				for (; i != tag_end && is_space(*i); ++i);
 				// check for parse error (values must be quoted)
 				if (i == tag_end || (*i != '\'' && *i != '\"'))
 				{
@@ -202,7 +234,6 @@ namespace libtorrent
 				*i = save;
 			}
 		}
-	
 	}
 
 }

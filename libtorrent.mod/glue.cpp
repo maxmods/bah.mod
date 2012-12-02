@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2010-2011 Bruce A Henderson
+ Copyright (c) 2010-2012 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -410,11 +410,13 @@ int bmx_torrent_session_listenOn(libtorrent::session * s, int portFrom, int port
 		i = bbStringToCString(interface);
 	}
 	
-	int res = static_cast<int>(s->listen_on(std::make_pair(6881, 6889), i));
+	boost::system::error_code ec;
+	
+	s->listen_on(std::make_pair(portFrom, portTo), ec, i);
 	
 	if (i) bbMemFree(i);
 	
-	return res;
+	return ec.value();
 }
 
 Max_session_status * bmx_torrent_session_status(libtorrent::session * s) {
@@ -437,37 +439,21 @@ int bmx_torrent_session_is_paused(libtorrent::session * s) {
 	return s->is_paused();
 }
 
-void bmx_torrent_session_set_upload_rate_limit(libtorrent::session * s, int bytesPerSecond) {
-	s->set_upload_rate_limit(bytesPerSecond);
-}
+//void bmx_torrent_session_set_max_uploads(libtorrent::session * s, int limit) {
+//	s->set_max_uploads(limit);
+//}
 
-void bmx_torrent_session_set_download_rate_limit(libtorrent::session * s, int bytesPerSecond) {
-	s->set_download_rate_limit(bytesPerSecond);
-}
+//void bmx_torrent_session_set_max_connections(libtorrent::session * s, int limit) {
+//	s->set_max_connections(limit);
+//}
 
-int bmx_torrent_session_upload_rate_limit(libtorrent::session * s) {
-	return s->upload_rate_limit();
-}
+//int bmx_torrent_session_num_uploads(libtorrent::session * s) {
+//	return s->num_uploads();
+//}
 
-int bmx_torrent_session_download_rate_limit(libtorrent::session * s) {
-	return s->download_rate_limit();
-}
-
-void bmx_torrent_session_set_max_uploads(libtorrent::session * s, int limit) {
-	s->set_max_uploads(limit);
-}
-
-void bmx_torrent_session_set_max_connections(libtorrent::session * s, int limit) {
-	s->set_max_connections(limit);
-}
-
-int bmx_torrent_session_num_uploads(libtorrent::session * s) {
-	return s->num_uploads();
-}
-
-int bmx_torrent_session_num_connections(libtorrent::session * s) {
-	return s->num_connections();
-}
+//int bmx_torrent_session_num_connections(libtorrent::session * s) {
+//	return s->num_connections();
+//}
 
 Max_torrent_handle * bmx_torrent_session_add_torrent(libtorrent::session * s, libtorrent::add_torrent_params * params) {
 	return new Max_torrent_handle(s->add_torrent(*params));
@@ -514,13 +500,13 @@ void bmx_torrent_session_stop_lsd(libtorrent::session * s) {
 	s->stop_lsd();
 }
 
-void bmx_torrent_session_set_max_half_open_connections(libtorrent::session * s, int limit) {
-	s->set_max_half_open_connections(limit);
-}
+//void bmx_torrent_session_set_max_half_open_connections(libtorrent::session * s, int limit) {
+//	s->set_max_half_open_connections(limit);
+//}
 
-int bmx_torrent_session_max_half_open_connections(libtorrent::session * s) {
-	return s->max_half_open_connections();
-}
+//int bmx_torrent_session_max_half_open_connections(libtorrent::session * s) {
+//	return s->max_half_open_connections();
+//}
 
 Max_cache_status * bmx_torrent_session_get_cache_status(libtorrent::session * s) {
 	return new Max_cache_status(s->get_cache_status());
@@ -625,24 +611,24 @@ void bmx_torrent_addtorrentparams_set_torrent_info(libtorrent::add_torrent_param
 	par->ti = info;
 }
 
-void bmx_torrent_addtorrentparams_set_tracker_url(libtorrent::add_torrent_params * par, const char * urlPtr) {
-	par->tracker_url = urlPtr;
-}
+//void bmx_torrent_addtorrentparams_set_tracker_url(libtorrent::add_torrent_params * par, const char * urlPtr) {
+//	par->tracker_url = urlPtr;
+//}
 
-BBString * bmx_torrent_addtorrentparams_tracker_url(libtorrent::add_torrent_params * par) {
-	return bbStringFromUTF8String(par->tracker_url);
-}
+//BBString * bmx_torrent_addtorrentparams_tracker_url(libtorrent::add_torrent_params * par) {
+//	return bbStringFromUTF8String(par->tracker_url);
+//}
 
 void bmx_torrent_addtorrentparams_set_name(libtorrent::add_torrent_params * par, const char * namePtr) {
 	par->name = namePtr;
 }
 
 BBString * bmx_torrent_addtorrentparams_name(libtorrent::add_torrent_params * par) {
-	return bbStringFromUTF8String(par->name);
+	return bbStringFromUTF8String(par->name.c_str());
 }
 
 BBString * bmx_torrent_addtorrentparams_save_path(libtorrent::add_torrent_params * par) {
-	return bbStringFromUTF8String(par->save_path.string().c_str());
+	return bbStringFromUTF8String(par->save_path.c_str());
 }
 
 void bmx_torrent_addtorrentparams_set_storage_mode(libtorrent::add_torrent_params * par, int mode) {
@@ -653,29 +639,29 @@ int bmx_torrent_addtorrentparams_storage_mode(libtorrent::add_torrent_params * p
 	return static_cast<int>(par->storage_mode);
 }
 
-void bmx_torrent_addtorrentparams_set_paused(libtorrent::add_torrent_params * par, int value) {
-	par->paused = static_cast<bool>(value);
+void bmx_torrent_addtorrentparams_set_flags(libtorrent::add_torrent_params * par, int value) {
+	par->flags = value;
 }
 
-int bmx_torrent_addtorrentparams_paused(libtorrent::add_torrent_params * par) {
-	return static_cast<int>(par->paused);
+int bmx_torrent_addtorrentparams_flags(libtorrent::add_torrent_params * par) {
+	return par->flags;
 }
 
-void bmx_torrent_addtorrentparams_set_auto_managed(libtorrent::add_torrent_params * par, int value) {
-	par->auto_managed = static_cast<bool>(value);
-}
+//void bmx_torrent_addtorrentparams_set_auto_managed(libtorrent::add_torrent_params * par, int value) {
+//	par->auto_managed = static_cast<bool>(value);
+//}
 
-int bmx_torrent_addtorrentparams_auto_managed(libtorrent::add_torrent_params * par) {
-	return static_cast<int>(par->auto_managed);
-}
+//int bmx_torrent_addtorrentparams_auto_managed(libtorrent::add_torrent_params * par) {
+//	return static_cast<int>(par->auto_managed);
+//}
 
-void bmx_torrent_addtorrentparams_set_duplicate_is_error(libtorrent::add_torrent_params * par, int value) {
-	par->duplicate_is_error = static_cast<bool>(value);
-}
+//void bmx_torrent_addtorrentparams_set_duplicate_is_error(libtorrent::add_torrent_params * par, int value) {
+//	par->duplicate_is_error = static_cast<bool>(value);
+//}
 
-int bmx_torrent_addtorrentparams_duplicate_is_error(libtorrent::add_torrent_params * par) {
-	return static_cast<int>(par->duplicate_is_error);
-}
+//int bmx_torrent_addtorrentparams_duplicate_is_error(libtorrent::add_torrent_params * par) {
+//	return static_cast<int>(par->duplicate_is_error);
+//}
 
 
 // --------------------------------------------------------
@@ -865,6 +851,14 @@ Max_bitfield * bmx_torrent_torrentstatus_pieces(Max_torrent_status * status) {
 
 int bmx_torrent_torrentstatus_num_pieces(Max_torrent_status * status) {
 	return status->Status().num_pieces;
+}
+
+int bmx_torrent_torrentstatus_auto_managed(Max_torrent_status * status) {
+	return static_cast<int>(status->Status().auto_managed);
+}
+
+int bmx_torrent_torrentstatus_sequential_download(Max_torrent_status * status) {
+	return static_cast<int>(status->Status().sequential_download);
 }
 
 // --------------------------------------------------------
@@ -1152,13 +1146,13 @@ void bmx_torrent_sessionsettings_set_send_buffer_watermark(libtorrent::session_s
 	s->send_buffer_watermark = value;
 }
 
-int bmx_torrent_sessionsettings_auto_upload_slots(libtorrent::session_settings * s) {
-	return static_cast<int>(s->auto_upload_slots);
-}
+//int bmx_torrent_sessionsettings_auto_upload_slots(libtorrent::session_settings * s) {
+//	return static_cast<int>(s->auto_upload_slots);
+//}
 
-void bmx_torrent_sessionsettings_set_auto_upload_slots(libtorrent::session_settings * s, int value) {
-	s->auto_upload_slots = static_cast<bool>(value);
-}
+//void bmx_torrent_sessionsettings_set_auto_upload_slots(libtorrent::session_settings * s, int value) {
+//	s->auto_upload_slots = static_cast<bool>(value);
+//}
 
 int bmx_torrent_sessionsettings_use_parole_mode(libtorrent::session_settings * s) {
 	return static_cast<int>(s->use_parole_mode);
@@ -1344,6 +1338,26 @@ void bmx_torrent_sessionsettings_set_outgoing_ports(libtorrent::session_settings
 	s->outgoing_ports.second = toPort;
 }
 
+void bmx_torrent_sessionsettings_set_upload_rate_limit(libtorrent::session_settings * s, int bytesPerSecond) {
+	s->upload_rate_limit = bytesPerSecond;
+}
+
+void bmx_torrent_sessionsettings_set_download_rate_limit(libtorrent::session_settings * s, int bytesPerSecond) {
+	s->download_rate_limit = bytesPerSecond;
+}
+
+int bmx_torrent_sessionsettings_upload_rate_limit(libtorrent::session_settings * s) {
+	return s->upload_rate_limit;
+}
+
+int bmx_torrent_sessionsettings_download_rate_limit(libtorrent::session_settings * s) {
+	return s->download_rate_limit;
+}
+
+void bmx_torrent_sessionsettings_set_connections_limit(libtorrent::session_settings * s, int limit) {
+	s->connections_limit = limit;
+}
+
 // --------------------------------------------------------
 
 int bmx_torrent_torrenthandle_is_valid(Max_torrent_handle * handle) {
@@ -1413,9 +1427,9 @@ BBArray * bmx_torrent_torrenthandle_url_seeds(Max_torrent_handle * handle) {
 	return arr;	
 }
 
-void bmx_torrent_torrenthandle_set_ratio(Max_torrent_handle * handle, float ratio) {
-	handle->Handle().set_ratio(ratio);
-}
+//void bmx_torrent_torrenthandle_set_ratio(Max_torrent_handle * handle, float ratio) {
+//	handle->Handle().set_ratio(ratio);
+//}
 
 void bmx_torrent_torrenthandle_set_max_uploads(Max_torrent_handle * handle, int maxUploads) {
 	handle->Handle().set_max_uploads(maxUploads);
@@ -1443,10 +1457,6 @@ int bmx_torrent_torrenthandle_download_limit(Max_torrent_handle * handle) {
 
 void bmx_torrent_torrenthandle_set_sequential_download(Max_torrent_handle * handle, int value) {
 	handle->Handle().set_sequential_download(static_cast<bool>(value));
-}
-
-int bmx_torrent_torrenthandle_is_sequential_download(Max_torrent_handle * handle) {
-	return static_cast<int>(handle->Handle().is_sequential_download());
 }
 
 int bmx_torrent_torrenthandle_queue_position(Max_torrent_handle * handle) {
@@ -1483,13 +1493,13 @@ void bmx_torrent_torrenthandle_resume(Max_torrent_handle * handle) {
 	handle->Handle().resume();
 }
 
-int bmx_torrent_torrenthandle_is_paused(Max_torrent_handle * handle) {
-	return static_cast<int>(handle->Handle().is_paused());
-}
+//int bmx_torrent_torrenthandle_is_paused(Max_torrent_handle * handle) {
+//	return static_cast<int>(handle->Handle().is_paused());
+//}
 
-int bmx_torrent_torrenthandle_is_seed(Max_torrent_handle * handle) {
-	return static_cast<int>(handle->Handle().is_seed());
-}
+//int bmx_torrent_torrenthandle_is_seed(Max_torrent_handle * handle) {
+//	return static_cast<int>(handle->Handle().is_seed());
+//}
 
 void bmx_torrent_torrenthandle_force_recheck(Max_torrent_handle * handle) {
 	handle->Handle().force_recheck();
@@ -1499,17 +1509,13 @@ void bmx_torrent_torrenthandle_clear_error(Max_torrent_handle * handle) {
 	handle->Handle().clear_error();
 }
 
-int bmx_torrent_torrenthandle_is_auto_managed(Max_torrent_handle * handle) {
-	return static_cast<int>(handle->Handle().is_auto_managed());
-}
-
 void bmx_torrent_torrenthandle_auto_managed(Max_torrent_handle * handle, int value) {
 	handle->Handle().auto_managed(static_cast<bool>(value));
 }
 
-int bmx_torrent_torrenthandle_has_metadata(Max_torrent_handle * handle) {
-	return static_cast<int>(handle->Handle().has_metadata());
-}
+//int bmx_torrent_torrenthandle_has_metadata(Max_torrent_handle * handle) {
+//	return static_cast<int>(handle->Handle().has_metadata());
+//}
 
 BBArray * bmx_torrent_torrenthandle_get_peer_info(Max_torrent_handle * handle) {
 	std::vector<libtorrent::peer_info> peers;

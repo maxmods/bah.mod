@@ -37,12 +37,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/broadcast_socket.hpp"
 #include "libtorrent/intrusive_ptr_base.hpp"
+#include "libtorrent/deadline_timer.hpp"
 
-#include <boost/function.hpp>
+#include <boost/function/function2.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 
 #if defined(TORRENT_LOGGING) || defined(TORRENT_VERBOSE_LOGGING)
 #include <fstream>
@@ -62,10 +61,8 @@ public:
 
 //	void rebind(address const& listen_interface);
 
-	void announce(sha1_hash const& ih, int listen_port);
+	void announce(sha1_hash const& ih, int listen_port, bool broadcast = false);
 	void close();
-
-	void use_broadcast(bool b);
 
 private:
 
@@ -76,9 +73,6 @@ private:
 
 	peer_callback_t m_callback;
 
-	// current retry count
-	int m_retry_count;
-
 	// the udp socket used to send and receive
 	// multicast messages on
 	broadcast_socket m_socket;
@@ -87,9 +81,19 @@ private:
 	// they time out
 	deadline_timer m_broadcast_timer;
 
+	// current retry count
+	boost::uint32_t m_retry_count;
+
+	// this is a random (presumably unique)
+	// ID for this LSD node. It is used to
+	// ignore our own broadcast messages.
+	// There's no point in adding ourselves
+	// as a peer
+	int m_cookie;
+
 	bool m_disabled;
 #if defined(TORRENT_LOGGING) || defined(TORRENT_VERBOSE_LOGGING)
-	std::ofstream m_log;
+	FILE* m_log;
 #endif
 };
 

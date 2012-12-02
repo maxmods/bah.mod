@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006, Arvid Norberg & Daniel Wallin
+Copyright (c) 2010, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,75 +30,40 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef CLOSEST_NODES_050323_HPP
-#define CLOSEST_NODES_050323_HPP
+#ifndef TORRENT_COPY_PTR
+#define TORRENT_COPY_PTR
 
-#include <vector>
-
-#include <libtorrent/kademlia/traversal_algorithm.hpp>
-#include <libtorrent/kademlia/node_id.hpp>
-#include <libtorrent/kademlia/routing_table.hpp>
-#include <libtorrent/kademlia/observer.hpp>
-#include <libtorrent/kademlia/msg.hpp>
-
-#include <boost/function.hpp>
-
-namespace libtorrent { namespace dht
+namespace libtorrent
 {
-
-class rpc_manager;
-
-// -------- closest nodes -----------
-
-class closest_nodes : public traversal_algorithm
-{
-public:
-	typedef boost::function<
-		void(std::vector<node_entry> const&)
-	> done_callback;
-
-	closest_nodes(
-		node_impl& node
-		, node_id target
-		, done_callback const& callback
-	);
-
-	virtual char const* name() const { return "closest nodes"; }
-
-private:
-	void done();
-	void invoke(node_id const& id, udp::endpoint addr);
-	
-	done_callback m_done_callback;
-};
-
-class closest_nodes_observer : public observer
-{
-public:
-	closest_nodes_observer(
-		boost::intrusive_ptr<traversal_algorithm> const& algorithm
-		, node_id self)
-		: observer(algorithm->allocator())
-		, m_algorithm(algorithm)
-		, m_self(self)
-	{}
-	~closest_nodes_observer();
-
-	void send(msg& p)
+	template <class T>
+	struct copy_ptr
 	{
-		p.info_hash = m_algorithm->target();
-	}
+		copy_ptr(): m_ptr(0) {}
+		copy_ptr(T* t): m_ptr(t) {}
+		copy_ptr(copy_ptr const& p): m_ptr(p.m_ptr ? new T(*p.m_ptr) : 0) {}
+		void reset(T* t = 0) { delete m_ptr; m_ptr = t; }
+		copy_ptr& operator=(copy_ptr const& p)
+		{
+			delete m_ptr;
+			m_ptr = p.m_ptr ? new T(*p.m_ptr) : 0;
+			return *this;
+		}
+		T* operator->() { return m_ptr; }
+		T const* operator->() const { return m_ptr; }
+		T& operator*() { return *m_ptr; }
+		T const& operator*() const { return *m_ptr; }
+		void swap(copy_ptr<T>& p)
+		{
+			T* tmp = m_ptr;
+			m_ptr = p.m_ptr;
+			p.m_ptr = tmp;
+		}
+		operator bool() const { return m_ptr != 0; }
+		~copy_ptr() { delete m_ptr; }
+	private:
+		T* m_ptr;
+	};
+}
 
-	void timeout();
-	void reply(msg const&);
-	void abort() { m_algorithm = 0; }
-
-private:
-	boost::intrusive_ptr<traversal_algorithm> m_algorithm;
-	node_id const m_self;
-};
-
-} } // namespace libtorrent::dht
-
-#endif // CLOSEST_NODES_050323_HPP
+#endif // TORRENT_COPY_PTR
 

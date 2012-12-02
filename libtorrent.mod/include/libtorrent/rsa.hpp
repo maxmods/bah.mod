@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006, Arvid Norberg & Daniel Wallin
+Copyright (c) 2011, Arvid Norberg, Magnus Jonsson
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,31 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_RANDOM_SAMPLE_HPP
-#define TORRENT_RANDOM_SAMPLE_HPP
-
-#include <iterator>
-#include <cstdlib>
+#ifndef TORRENT_SIGN_HPP_INCLUDED
+#define TORRENT_SIGN_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/hasher.hpp"
 
 namespace libtorrent
 {
+	// both of these use SHA-1 as the message digest to be signed/verified
 
-	template<class InIter, class OutIter, class Distance>
-	inline void random_sample_n(InIter start, InIter end
-			, OutIter out, Distance n)
-	{
-		Distance t = 0;
-		Distance m = 0;
-		Distance N = std::distance(start, end);
+	// returns the size of the resulting signature
+	TORRENT_EXTRA_EXPORT int sign_rsa(sha1_hash const& digest
+		, char const* private_key, int private_len
+		, char* signature, int sig_len);
 
-		TORRENT_ASSERT(N >= n);
+	// returns true if the signature is valid
+	TORRENT_EXTRA_EXPORT bool verify_rsa(sha1_hash const& digest
+		, char const* public_key, int public_len
+		, char const* signature, int sig_len);
 
-		while (m < n)
-		{
-			if ((std::rand() / (RAND_MAX + 1.f)) * (N - t) >= n - m)
-			{
-				++start;
-				++t;
-			}
-			else
-			{
-				*out = *start;
-				++out;
-				++start;
-				++t;
-				++m;
-			}
-		}
-	}
-
+	// returns false if it fails, for instance if the key
+	// buffers are too small. public_len and private_len
+	// are in-out values, set to the actual sizes
+	TORRENT_EXTRA_EXPORT bool generate_rsa_keys(char* public_key, int* public_len
+		, char* private_key, int* private_len, int key_size);
 }
 
-#endif
+#endif // TORRENT_SIGN_HPP_INCLUDED

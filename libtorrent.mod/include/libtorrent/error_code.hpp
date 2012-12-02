@@ -34,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_ERROR_CODE_HPP_INCLUDED
 
 #include <boost/version.hpp>
-#include <boost/shared_ptr.hpp>
+#include "libtorrent/config.hpp"
 
 #if defined TORRENT_WINDOWS || defined TORRENT_CYGWIN
 // asio assumes that the windows error codes are defined already
@@ -47,7 +47,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/system/error_code.hpp>
 #endif
 
-#include "libtorrent/config.hpp"
+#include "libtorrent/string_util.hpp" // for allocate_string_copy
+#include <stdlib.h> // free
 
 namespace libtorrent
 {
@@ -164,11 +165,11 @@ namespace libtorrent
 			pex_message_too_large,
 			invalid_pex_message,
 			invalid_lt_tracker_message,
-			reserved108,
-			reserved109,
-			reserved110,
-			reserved111,
-			reserved112,
+			too_frequent_pex,
+			no_metadata,
+			invalid_dont_have,
+			requires_ssl_connection,
+			invalid_ssl_cert,
 			reserved113,
 			reserved114,
 			reserved115,
@@ -210,6 +211,7 @@ namespace libtorrent
 			reserved147,
 			reserved148,
 			reserved149,
+
 // HTTP errors
 			http_parse_error, // 150
 			http_missing_location,
@@ -222,7 +224,70 @@ namespace libtorrent
 			reserved158,
 			reserved159,
 
+// i2p errors
+			no_i2p_router, // 160
+			reserved161,
+			reserved162,
+			reserved163,
+			reserved164,
+			reserved165,
+			reserved166,
+			reserved167,
+			reserved168,
+			reserved169,
+
+// tracker errors
+			scrape_not_available, // 170
+			invalid_tracker_response,
+			invalid_peer_dict,
+			tracker_failure,
+			invalid_files_entry,
+			invalid_hash_entry,
+			invalid_peers_entry,
+			invalid_tracker_response_length,
+			invalid_tracker_transaction_id,
+			invalid_tracker_action,
+			reserved180,
+			reserved181,
+			reserved182,
+			reserved183,
+			reserved184,
+			reserved185,
+			reserved186,
+			reserved187,
+			reserved188,
+			reserved189,
+
+// bdecode errors
+			expected_string, // 190
+			expected_colon,
+			unexpected_eof,
+			expected_value,
+			depth_exceeded,
+			limit_exceeded,
+
 			error_code_max
+		};
+
+		enum http_errors
+		{
+			cont = 100,
+			ok = 200,
+			created = 201,
+			accepted = 202,
+			no_content = 204,
+			multiple_choices = 300,
+			moved_permanently = 301,
+			moved_temporarily = 302,
+			not_modified = 304,
+			bad_request = 400,
+			unauthorized = 401,
+			forbidden = 403,
+			not_found = 404,
+			internal_server_error = 500,
+			not_implemented = 501,
+			bad_gateway = 502,
+			service_unavailable = 503
 		};
 	}
 }
@@ -254,6 +319,12 @@ namespace libtorrent
 		return libtorrent_category;
 	}
 
+	boost::system::error_category const& get_http_category()
+	{
+		static ::asio::error::error_category http_category(21);
+		return http_category;
+	}
+
 #else
 
 	struct TORRENT_EXPORT libtorrent_error_category : boost::system::error_category
@@ -270,6 +341,20 @@ namespace libtorrent
 		return libtorrent_category;
 	}
 
+	struct TORRENT_EXPORT http_error_category : boost::system::error_category
+	{
+		virtual const char* name() const;
+		virtual std::string message(int ev) const;
+		virtual boost::system::error_condition default_error_condition(int ev) const
+		{ return boost::system::error_condition(ev, *this); }
+	};
+
+	inline boost::system::error_category& get_http_category()
+	{
+		static http_error_category http_category;
+		return http_category;
+	}
+
 	namespace errors
 	{
 		inline boost::system::error_code make_error_code(error_code_enum e)
@@ -279,30 +364,35 @@ namespace libtorrent
 	}
 
 	using boost::system::error_code;
+
+#if BOOST_VERSION < 104400
 	inline boost::system::error_category const& get_system_category()
 	{ return boost::system::get_system_category(); }
+#else
+	inline boost::system::error_category const& get_system_category()
+	{ return boost::system::system_category(); }
+#endif
+
 	inline boost::system::error_category const& get_posix_category()
 #if BOOST_VERSION < 103600
 	{ return boost::system::get_posix_category(); }
-#else
+#elif BOOST_VERSION < 104400
 	{ return boost::system::get_generic_category(); }
+#else
+	{ return boost::system::generic_category(); }
 #endif // BOOST_VERSION < 103600
 #endif // BOOST_VERSION < 103500
 
 #ifndef BOOST_NO_EXCEPTIONS
 	struct TORRENT_EXPORT libtorrent_exception: std::exception
 	{
-		libtorrent_exception(error_code const& s): m_error(s) {}
-		virtual const char* what() const throw()
-		{
-			if (!m_msg) m_msg.reset(new std::string(m_error.message()));
-			return m_msg->c_str();
-		}
-		virtual ~libtorrent_exception() throw() {}
+		libtorrent_exception(error_code const& s): m_error(s), m_msg(0) {}
+		virtual const char* what() const throw();
+		virtual ~libtorrent_exception() throw();
 		error_code error() const { return m_error; }
 	private:
 		error_code m_error;
-		mutable boost::shared_ptr<std::string> m_msg;
+		mutable char* m_msg;
 	};
 #endif
 }

@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2011 Bruce A Henderson
+' Copyright (c) 2010-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,13 @@ Module BaH.Libtorrent
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: libtorrent - 2003-2006 Arvid Norberg"
-ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2010-2012 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (libtorrent 0.15.6)"
+ModuleInfo "History: Initial Release. (libtorrent 0.16.5)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
-ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE -DBOOST_FILESYSTEM_VERSION=2"
+ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE -DBOOST_FILESYSTEM_VERSION=3 -DBOOST_ASIO_SEPARATE_COMPILATION"
 ?linux
 ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
 ?win32
@@ -155,61 +155,12 @@ Type TSession
 		Return TSessionStatus._create(bmx_torrent_session_status(sessionPtr))
 	End Method
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Method setUploadRateLimit(bytesPerSecond:Int)
-		bmx_torrent_session_set_upload_rate_limit(sessionPtr, bytesPerSecond)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method setDownloadRateLimit(bytesPerSecond:Int)
-		bmx_torrent_session_set_download_rate_limit(sessionPtr, bytesPerSecond)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method uploadRateLimit:Int()
-		Return bmx_torrent_session_upload_rate_limit(sessionPtr)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method downloadRateLimit:Int()
-		Return bmx_torrent_session_download_rate_limit(sessionPtr)
-	End Method
-
-	Rem
-	bbdoc: 
-	End Rem
-	Method setMaxUploads(limit:Int)
-		bmx_torrent_session_set_max_uploads(sessionPtr, limit)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method setMaxConnections(limit:Int)
-		bmx_torrent_session_set_max_connections(sessionPtr, limit)
-	End Method
-
-	Rem
-	bbdoc: 
-	End Rem
-	Method numUploads:Int()
-		Return bmx_torrent_session_num_uploads(sessionPtr)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method numConnections:Int()
-		Return bmx_torrent_session_num_connections(sessionPtr)
-	End Method
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method setMaxUploads(limit:Int)
+'		bmx_torrent_session_set_max_uploads(sessionPtr, limit)
+'	End Method
 	
 	Rem
 	bbdoc: 
@@ -300,29 +251,29 @@ Type TSession
 		bmx_torrent_session_stop_lsd(sessionPtr)
 	End Method
 
-	Rem
-	bbdoc: Sets the maximum number of half-open connections libtorrent will have when connecting to peers.
-	about: A half-open connection is one where connect() has been called, but the connection still hasn't been established
-	(nor failed). Windows XP Service Pack 2 sets a default, system wide, limit of the number of half-open connections
-	to 10. So, this limit can be used to work nicer together with other network applications on that system.
-	The default is to have no limit, and passing -1 as the limit, means to have no limit. When limiting the number of simultaneous
-	connection attempts, peers will be put in a queue waiting for their turn to get connected.
-	End Rem	
-	Method setMaxHalfOpenConnections(limit:Int)
-		bmx_torrent_session_set_max_half_open_connections(sessionPtr, limit)
-	End Method
+'	Rem
+'	bbdoc: Sets the maximum number of half-open connections libtorrent will have when connecting To peers.
+'	about: A half-open connection is one where connect() has been called, but the connection still hasn't been established
+'	(nor failed). Windows XP Service Pack 2 sets a Default, system wide, limit of the number of half-open connections
+'	To 10. So, this limit can be used To work nicer together with other network applications on that system.
+'	The Default is To have no limit, And passing -1 as the limit, means To have no limit. When limiting the number of simultaneous
+'	connection attempts, peers will be put in a queue waiting For their turn To get connected.
+'	End Rem	
+'	Method setMaxHalfOpenConnections(limit:Int)
+'		bmx_torrent_session_set_max_half_open_connections(sessionPtr, limit)
+'	End Method
 	
-	Rem
-	bbdoc: Returns the maximum number of half-open connections libtorrent will have when connecting to peers.
-	about: A half-open connection is one where connect() has been called, but the connection still hasn't been established
-	(nor failed). Windows XP Service Pack 2 sets a default, system wide, limit of the number of half-open connections
-	to 10. So, this limit can be used to work nicer together with other network applications on that system.
-	The default is to have no limit, and passing -1 as the limit, means to have no limit. When limiting the number of simultaneous
-	connection attempts, peers will be put in a queue waiting for their turn to get connected.
-	End Rem	
-	Method maxHalfOpenConnections:Int()
-		Return bmx_torrent_session_max_half_open_connections(sessionPtr)
-	End Method
+'	Rem
+'	bbdoc: Returns the maximum number of half-open connections libtorrent will have when connecting To peers.
+'	about: A half-open connection is one where connect() has been called, but the connection still hasn't been established
+'	(nor failed). Windows XP Service Pack 2 sets a Default, system wide, limit of the number of half-open connections
+'	To 10. So, this limit can be used To work nicer together with other network applications on that system.
+'	The Default is To have no limit, And passing -1 as the limit, means To have no limit. When limiting the number of simultaneous
+'	connection attempts, peers will be put in a queue waiting For their turn To get connected.
+'	End Rem	
+'	Method maxHalfOpenConnections:Int()
+'		Return bmx_torrent_session_max_half_open_connections(sessionPtr)
+'	End Method
 	
 	Rem
 	bbdoc: Returns status of the disk cache for this session.
@@ -515,6 +466,18 @@ bbdoc:
 End Rem
 Type TAddTorrentParams
 
+	Const SEED_MODE:Int = $001
+	Const OVERRIDE_RESUME_DATA:Int = $002
+	Const UPLOAD_MODE:Int = $004
+	Const SHARE_MODE:Int = $008
+	Const APPLY_IP_FILTER:Int = $010
+	Const PAUSED:Int = $020
+	Const AUTO_MANAGED:Int = $040
+	Const DUPLICATE_IS_ERROR:Int = $080
+	Const MERGE_RESUME_TRACKERS:Int = $100
+	Const UPDATE_SUBSCRIBE:Int = $200
+	Const DEFAULT_FLAGS:Int = UPDATE_SUBSCRIBE | AUTO_MANAGED | PAUSED | APPLY_IP_FILTER
+			
 	Field paramsPtr:Byte Ptr
 	
 	Field namePtr:Byte Ptr
@@ -539,24 +502,24 @@ Type TAddTorrentParams
 		info.owner = False
 	End Method
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Method setTrackerUrl(url:String)
-		If urlPtr Then
-			MemFree(urlPtr)
-		End If
-
-		urlPtr = url.ToUTF8String()
-		bmx_torrent_addtorrentparams_set_tracker_url(paramsPtr, urlPtr)
-	End Method
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method setTrackerUrl(url:String)
+'		If urlPtr Then
+'			MemFree(urlPtr)
+'		End If
+'
+'		urlPtr = url.ToUTF8String()
+'		bmx_torrent_addtorrentparams_set_tracker_url(paramsPtr, urlPtr)
+'	End Method
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Method trackerUrl:String()
-		Return bmx_torrent_addtorrentparams_tracker_url(paramsPtr)
-	End Method
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method trackerUrl:String()
+'		Return bmx_torrent_addtorrentparams_tracker_url(paramsPtr)
+'	End Method
 	
 	Rem
 	bbdoc: 
@@ -601,44 +564,37 @@ Type TAddTorrentParams
 	Rem
 	bbdoc: 
 	End Rem
-	Method setPaused(value:Int)
-		bmx_torrent_addtorrentparams_set_paused(paramsPtr, value)
+	Method setFlags(value:Int)
+		bmx_torrent_addtorrentparams_set_flags(paramsPtr, value)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method paused:Int()
-		Return bmx_torrent_addtorrentparams_paused(paramsPtr)
+	Method flags:Int()
+		Return bmx_torrent_addtorrentparams_flags(paramsPtr)
 	End Method
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Method setAutoManaged(value:Int)
-		bmx_torrent_addtorrentparams_set_auto_managed(paramsPtr, value)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method autoManaged:Int()
-		Return bmx_torrent_addtorrentparams_auto_managed(paramsPtr)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method setDuplicateIsError(value:Int)
-		bmx_torrent_addtorrentparams_set_duplicate_is_error(paramsPtr, value)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method duplicateIsError:Int()
-		Return bmx_torrent_addtorrentparams_duplicate_is_error(paramsPtr)
-	End Method
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method setAutoManaged(value:Int)
+'		bmx_torrent_addtorrentparams_set_auto_managed(paramsPtr, value)
+'	End Method
+'	
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method setDuplicateIsError(value:Int)
+'		bmx_torrent_addtorrentparams_set_duplicate_is_error(paramsPtr, value)
+'	End Method
+'	
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method duplicateIsError:Int()
+'		Return bmx_torrent_addtorrentparams_duplicate_is_error(paramsPtr)
+'	End Method
 	
 	Method Delete()
 		If urlPtr Then
@@ -773,19 +729,19 @@ Type TTorrentHandle
 		Return bmx_torrent_torrenthandle_url_seeds(torrentPtr)
 	End Method
 	
-	Rem
-	bbdoc: Sets the desired download / upload ratio.
-	abou: If set to 0, it is considered being infinite. i.e. the client will always upload as much as it can, no
-	matter how much it gets back in return. With this setting it will work much like the standard clients.
-	<p>
-	Besides 0, the ratio can be set to any number greater than or equal to 1. It means how much to attempt to upload in return
-	for each download. e.g. if set to 2, the client will try to upload 2 bytes for every byte received. The default setting
-	for this is 0, which will make it work as a standard client.
-	</p>
-	End Rem
-	Method setRatio(ratio:Float)
-		bmx_torrent_torrenthandle_set_ratio(torrentPtr, ratio)
-	End Method
+'	Rem
+'	bbdoc: Sets the desired download / upload ratio.
+'	abou: If set To 0, it is considered being infinite. i.e. the client will always upload as much as it can, no
+'	matter how much it gets back in Return. With this setting it will work much like the standard clients.
+'	<p>
+'	Besides 0, the ratio can be set To any number greater than Or equal To 1. It means how much To attempt To upload in Return
+'	For each download. e.g. If set To 2, the client will Try To upload 2 bytes For every Byte received. The Default setting
+'	For this is 0, which will make it work as a standard client.
+'	</p>
+'	End Rem
+'	Method setRatio(ratio:Float)
+'		bmx_torrent_torrenthandle_set_ratio(torrentPtr, ratio)
+'	End Method
 	
 	Rem
 	bbdoc: Sets the maximum number of peers that's unchoked at the same time on this torrent.
@@ -843,13 +799,6 @@ Type TTorrentHandle
 	End Rem
 	Method setSequentialDownload(value:Int)
 		bmx_torrent_torrenthandle_set_sequential_download(torrentPtr, value)
-	End Method
-	
-	Rem
-	bbdoc: Returns True if this torrent is downloading in sequence, and False otherwise.
-	End Rem
-	Method isSequentialDownload:Int()
-		Return bmx_torrent_torrenthandle_is_sequential_download(torrentPtr)
 	End Method
 	
 	Rem
@@ -926,21 +875,21 @@ Type TTorrentHandle
 		bmx_torrent_torrenthandle_resume(torrentPtr)
 	End Method
 	
-	Rem
-	bbdoc: Only returns true if the torrent itself is paused.
-	about: If the torrent is not running because the session is paused, this still returns False. To know if a torrent is active or not,
-	you need to inspect both TTorrentHandle::isPaused() and TSession::isPaused().
-	End Rem
-	Method isPaused:Int()
-		Return bmx_torrent_torrenthandle_is_paused(torrentPtr)
-	End Method
+'	Rem
+'	bbdoc: Only returns True If the torrent itself is paused.
+'	about: If the torrent is Not running because the session is paused, this still returns False. To know If a torrent is active Or Not,
+'	you need To inspect both TTorrentHandle::isPaused() And TSession::isPaused().
+'	End Rem
+'	Method isPaused:Int()
+'		Return bmx_torrent_torrenthandle_is_paused(torrentPtr)
+'	End Method
 	
-	Rem
-	bbdoc: Returns True if the torrent is in seed mode (i.e. if it has finished downloading).
-	End Rem
-	Method isSeed:Int()
-		Return bmx_torrent_torrenthandle_is_seed(torrentPtr)
-	End Method
+'	Rem
+'	bbdoc: Returns True If the torrent is in seed Mode (i.e. If it has finished downloading).
+'	End Rem
+'	Method isSeed:Int()
+'		Return bmx_torrent_torrenthandle_is_seed(torrentPtr)
+'	End Method
 	
 	Rem
 	bbdoc: Puts the torrent back in a state where it assumes to have no resume data.
@@ -959,12 +908,12 @@ Type TTorrentHandle
 		bmx_torrent_torrenthandle_clear_error(torrentPtr)
 	End Method
 
-	Rem
-	bbdoc: Returns true if this torrent is currently auto managed.
-	End Rem
-	Method isAutoManaged:Int()
-		Return bmx_torrent_torrenthandle_is_auto_managed(torrentPtr)
-	End Method
+'	Rem
+'	bbdoc: Returns True If this torrent is currently auto managed.
+'	End Rem
+'	Method isAutoManaged:Int()
+'		Return bmx_torrent_torrenthandle_is_auto_managed(torrentPtr)
+'	End Method
 	
 	Rem
 	bbdoc: Changes whether the torrent is auto managed or not.
@@ -973,14 +922,14 @@ Type TTorrentHandle
 		bmx_torrent_torrenthandle_auto_managed(torrentPtr, value)
 	End Method
 	
-	Rem
-	bbdoc: Returns true if this torrent has metadata (either it was started from a .torrent file or the metadata has been downloaded).
-	about: The only scenario where this can return False is when the torrent was started torrent-less (i.e. with just an info-hash
-	and tracker ip). Note that if the torrent doesn't have metadata, the member getTorrentInfo() will throw.
-	End Rem
-	Method hasMetadata:Int()
-		Return bmx_torrent_torrenthandle_has_metadata(torrentPtr)
-	End Method
+'	Rem
+'	bbdoc: Returns True If this torrent has metadata (either it was started from a .torrent file Or the metadata has been downloaded).
+'	about: The only scenario where this can Return False is when the torrent was started torrent-less (i.e. with just an info-hash
+'	And tracker ip). Note that If the torrent doesn't have metadata, the member getTorrentInfo() will throw.
+'	End Rem
+'	Method hasMetadata:Int()
+'		Return bmx_torrent_torrenthandle_has_metadata(torrentPtr)
+'	End Method
 	
 	Rem
 	bbdoc: 
@@ -1477,6 +1426,20 @@ Type TTorrentStatus
 		Return bmx_torrent_torrentstatus_num_pieces(statusPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns True if this torrent is downloading in sequence, And False otherwise.
+	End Rem
+	Method sequentialDownload:Int()
+		Return bmx_torrent_torrentstatus_sequential_download(statusPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method autoManaged:Int()
+		Return bmx_torrent_torrentstatus_auto_managed(statusPtr)
+	End Method
+
 	Method Delete()
 		If statusPtr Then
 			bmx_torrent_torrentstatus_free(statusPtr)
@@ -2316,5 +2279,3 @@ Type TBlockInfo
 	End Method
 	
 End Type
-
-

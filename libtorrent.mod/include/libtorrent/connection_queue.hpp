@@ -34,20 +34,23 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_CONNECTION_QUEUE
 
 #include <list>
-#include <boost/function.hpp>
+#include <boost/function/function1.hpp>
+#include <boost/function/function0.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/thread/mutex.hpp>
-#include "libtorrent/socket.hpp"
-#include "libtorrent/time.hpp"
+#include "libtorrent/io_service.hpp"
+#include "libtorrent/error_code.hpp"
+#include "libtorrent/deadline_timer.hpp"
 
 #ifdef TORRENT_CONNECTION_LOGGING
 #include <fstream>
 #endif
 
+#include "libtorrent/thread.hpp"
+
 namespace libtorrent
 {
 
-class TORRENT_EXPORT connection_queue : public boost::noncopyable
+class TORRENT_EXTRA_EXPORT connection_queue : public boost::noncopyable
 {
 public:
 	connection_queue(io_service& ios);
@@ -64,6 +67,22 @@ public:
 	int limit() const;
 	void close();
 	int size() const { return m_queue.size(); }
+	int num_connecting() const { return m_num_connecting; }
+#if defined TORRENT_ASIO_DEBUGGING
+	float next_timeout() const { return total_milliseconds(m_timer.expires_at() - time_now_hires()) / 1000.f; }
+	float max_timeout() const
+	{
+		ptime max_timeout = min_time();
+		for (std::list<entry>::const_iterator i = m_queue.begin()
+			, end(m_queue.end()); i != end; ++i)
+		{
+			if (!i->connecting) continue;
+			if (i->expires > max_timeout) max_timeout = i->expires;
+		}
+		if (max_timeout == min_time()) return 0.f;
+		return total_milliseconds(max_timeout - time_now_hires()) / 1000.f;
+	}
+#endif
 
 #ifdef TORRENT_DEBUG
 	void check_invariant() const;
@@ -71,7 +90,7 @@ public:
 
 private:
 
-	typedef boost::mutex mutex_t;
+	typedef mutex mutex_t;
 
 	void try_connect(mutex_t::scoped_lock& l);
 	void on_timeout(error_code const& e);
@@ -81,8 +100,17 @@ private:
 	{
 		entry(): connecting(false), ticket(0), expires(max_time()), priority(0) {}
 		// called when the connection is initiated
+		// this is when the timeout countdown starts
+		// TODO: if we don't actually need the connection queue
+		// to hold ownership of objects, replace these boost functions
+		// with pointer to a pure virtual interface class
 		boost::function<void(int)> on_connect;
 		// called if done hasn't been called within the timeout
+		// or if the connection queue aborts. This means there
+		// are 3 different interleaves of these function calls:
+		// 1. on_connect
+		// 2. on_connect, on_timeout
+		// 3. on_timeout
 		boost::function<void()> on_timeout;
 		bool connecting;
 		int ticket;
@@ -91,6 +119,9 @@ private:
 		int priority;
 	};
 
+	// TODO: split this into a queue and connecting map. The key for the map
+	// is the ticket. Most field in entry would only be necessary for the
+	// connecting map.
 	std::list<entry> m_queue;
 
 	// the next ticket id a connection will be given
@@ -98,6 +129,9 @@ private:
 	int m_num_connecting;
 	int m_half_open_limit;
 	bool m_abort;
+
+	// the number of outstanding timers
+	int m_num_timers;
 
 	deadline_timer m_timer;
 

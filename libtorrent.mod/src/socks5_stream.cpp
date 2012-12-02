@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/socks5_stream.hpp"
 #include "libtorrent/assert.hpp"
+#include "libtorrent/socket_io.hpp"
 
 namespace libtorrent
 {
@@ -78,6 +79,20 @@ namespace libtorrent
 			return;
 		}
 
+		error_code ec;
+		if (!m_sock.is_open())
+		{
+			m_sock.open(i->endpoint().protocol(), ec);
+			if (ec)
+			{
+				(*h)(ec);
+				close(ec);
+				return;
+			}
+		}
+
+		// TOOD: we could bind the socket here, since we know what the
+		// target endpoint is of the proxy
 		m_sock.async_connect(i->endpoint(), boost::bind(
 			&socks5_stream::connected, this, _1, h));
 	}
@@ -258,14 +273,27 @@ namespace libtorrent
 		if (m_version == 5)
 		{
 			// send SOCKS5 connect command
-			m_buffer.resize(6 + (m_remote_endpoint.address().is_v4()?4:16));
+			m_buffer.resize(6 + (!m_dst_name.empty()
+				?m_dst_name.size() + 1
+				:(m_remote_endpoint.address().is_v4()?4:16)));
 			char* p = &m_buffer[0];
 			write_uint8(5, p); // SOCKS VERSION 5
 			write_uint8(m_command, p); // CONNECT/BIND command
 			write_uint8(0, p); // reserved
-			write_uint8(m_remote_endpoint.address().is_v4()?1:4, p); // address type
-			write_endpoint(m_remote_endpoint, p);
-			TORRENT_ASSERT(p - &m_buffer[0] == int(m_buffer.size()));
+			if (!m_dst_name.empty())
+			{
+				write_uint8(3, p); // address type
+				TORRENT_ASSERT(m_dst_name.size() <= 255);
+				write_uint8(m_dst_name.size(), p);
+				std::copy(m_dst_name.begin(), m_dst_name.end(), p);
+				p += m_dst_name.size();
+			}
+			else
+			{
+				write_uint8(m_remote_endpoint.address().is_v4()?1:4, p); // address type
+				write_address(m_remote_endpoint.address(), p);
+			}
+			write_uint16(m_remote_endpoint.port(), p);
 		}
 		else if (m_version == 4)
 		{
@@ -337,19 +365,18 @@ namespace libtorrent
 			}
 			if (response != 0)
 			{
-				error_code e(socks_error::general_failure, socks_category);
+				error_code ec(socks_error::general_failure, socks_category);
 				switch (response)
 				{
-					case 2: e = asio::error::no_permission; break;
-					case 3: e = asio::error::network_unreachable; break;
-					case 4: e = asio::error::host_unreachable; break;
-					case 5: e = asio::error::connection_refused; break;
-					case 6: e = asio::error::timed_out; break;
-					case 7: e = error_code(socks_error::command_not_supported, socks_category); break;
-					case 8: e = asio::error::address_family_not_supported; break;
+					case 2: ec = asio::error::no_permission; break;
+					case 3: ec = asio::error::network_unreachable; break;
+					case 4: ec = asio::error::host_unreachable; break;
+					case 5: ec = asio::error::connection_refused; break;
+					case 6: ec = asio::error::timed_out; break;
+					case 7: ec = error_code(socks_error::command_not_supported, socks_category); break;
+					case 8: ec = asio::error::address_family_not_supported; break;
 				}
-				(*h)(e);
-				error_code ec;
+				(*h)(ec);
 				close(ec);
 				return;
 			}
@@ -441,9 +468,9 @@ namespace libtorrent
 				case 92: code = socks_error::no_identd; break;
 				case 93: code = socks_error::identd_error; break;
 			}
-			error_code e(code, socks_category);
-			(*h)(e);
-			close(e);
+			error_code ec(code, socks_category);
+			(*h)(ec);
+			close(ec);
 		}
 	}
 
