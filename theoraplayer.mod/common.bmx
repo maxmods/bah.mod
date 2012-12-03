@@ -1,4 +1,4 @@
-' Copyright (c) 2011, Bruce A Henderson
+' Copyright (c) 2011-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
 SuperStrict
 
 
-Import Pub.OggVorbis
+Import BaH.OggVorbis
 
 Import "source.bmx"
 
@@ -68,6 +68,8 @@ Extern
 	Function bmx_TheoraVideoClip_getAutoRestart:Int(handle:Byte Ptr)
 
 	Function bmx_TheoraVideoFrame_getBuffer:Byte Ptr(handle:Byte Ptr)
+	
+	Function bmx_TheoraVideoManager_setLogFunction(func(text:String))
 
 End Extern
 

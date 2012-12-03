@@ -1,4 +1,4 @@
-' Copyright (c) 2011, Bruce A Henderson
+' Copyright (c) 2011-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ Module BaH.TheoraPlayerBASS
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - Bruce A Henderson"
-ModuleInfo "Copyright: theoraplayer - 2008-2010 Kresimir Spes"
+ModuleInfo "Copyright: theoraplayer - 2008-2012 Kresimir Spes"
 
 ?win32
 ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC"

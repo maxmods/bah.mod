@@ -1,4 +1,4 @@
-' Copyright (c) 2011, Bruce A Henderson
+' Copyright (c) 2011-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,8 @@ Type TTheoraVideoManager
 	Field managerPtr:Byte Ptr
 	
 	Field audioFactory:TTheoraAudioInterfaceFactory
+	
+	Global logFunction(text:String) = Null
 	
 	Rem
 	bbdoc: Creates a Video Manager instance, with an optional worker thread count.
@@ -123,6 +125,11 @@ Type TTheoraVideoManager
 	Method setNumWorkerThreads(numWorkerThreads:Int)
 		bmx_TheoraVideoManager_setNumWorkerThreads(managerPtr, numWorkerThreads)
 	End Method
+	
+	Function setLogFunction(func(text:String))
+		logFunction = func
+		bmx_TheoraVideoManager_setLogFunction(logFunction)
+	End Function
 	
 	Method Free()
 		If managerPtr Then

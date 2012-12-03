@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2011, Bruce A Henderson
+ Copyright (c) 2011-2012 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -52,31 +52,33 @@ BASS_AudioInterface::~BASS_AudioInterface()
 	if (mStream) BASS_StreamFree(mStream);
 }
 
-void BASS_AudioInterface::insertData(float** data,int nSamples)
+void BASS_AudioInterface::insertData(float* data,int nSamples)
 {
-	int size = 0;
 	
 	for (int i=0;i<nSamples;i++)
 	{
-		if (size < mMaxBuffSize)
+		if (mBuffSize < mMaxBuffSize)
 		{
-			mTempBuffer[size ++] = data[0][i];
+			mTempBuffer[mBuffSize++] = data[i];
 
-			if (mNumChannels == 2) {
-				mTempBuffer[size ++] = data[1][i];
+		}
+		
+		if (mBuffSize == mFreq * mNumChannels / 10) {
+
+			DWORD err = BASS_StreamPutData(mStream, mTempBuffer, mBuffSize * 4);
+	
+			mBuffSize = 0;
+			
+			DWORD state = BASS_ChannelIsActive(mStream);
+	
+			if (state != BASS_ACTIVE_PLAYING) {
+				BASS_ChannelPlay(mStream, 0);
 			}
+		
 		}
 	
 	}
-	
-	DWORD err = BASS_StreamPutData(mStream, mTempBuffer, nSamples * 8);
-	
-	DWORD state = BASS_ChannelIsActive(mStream);
-	
-	if (state != BASS_ACTIVE_PLAYING) {
-		BASS_ChannelPlay(mStream, 0);
-	}
-	
+		
 }
 
 void BASS_AudioInterface::update(float time_increase)
@@ -106,6 +108,7 @@ void BASS_AudioInterface::play()
 
 void BASS_AudioInterface::seek(float time)
 {
+// todo
 }
 
 BASS_AudioInterfaceFactory::BASS_AudioInterfaceFactory()

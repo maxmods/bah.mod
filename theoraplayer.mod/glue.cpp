@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2011, Bruce A Henderson
+ Copyright (c) 2011-2012 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,8 @@ extern "C" {
 
 	void * bmx_TheoraVideoFrame_getBuffer(TheoraVideoFrame * frame);
 
+	void (*bmx_LogFunction)(BBString *)=0;	
+	void bmx_TheoraVideoManager_setLogFunction(void (*fn)(BBString * s));
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -136,6 +138,17 @@ int bmx_TheoraVideoManager_getNumWorkerThreads(TheoraVideoManager * manager) {
 
 void bmx_TheoraVideoManager_setNumWorkerThreads(TheoraVideoManager * manager, int numWorkerThreads) {
 	manager->setNumWorkerThreads(numWorkerThreads);
+}
+
+void bmx_TheoraVideoManager_logFunction(std::string s) {
+	if (bmx_LogFunction) {
+		bmx_LogFunction(bbStringFromUTF8String(s.c_str()));
+	}
+}
+
+void bmx_TheoraVideoManager_setLogFunction(void (*fn)(BBString * s)) {
+	bmx_LogFunction = fn;
+	TheoraVideoManager::getSingleton().setLogFunction(bmx_TheoraVideoManager_logFunction);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

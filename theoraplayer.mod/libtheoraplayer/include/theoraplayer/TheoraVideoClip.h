@@ -2,7 +2,7 @@
 This source file is part of the Theora Video Playback Library
 For latest info, see http://libtheoraplayer.sourceforge.net/
 *************************************************************************************
-Copyright (c) 2008-2010 Kresimir Spes (kreso@cateia.com)
+Copyright (c) 2008-2012 Kresimir Spes (kspes@cateia.com)
 This program is free software; you can redistribute it and/or modify it under
 the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 *************************************************************************************/
@@ -28,20 +28,39 @@ class TheoraVideoFrame;
  */
 enum TheoraOutputMode
 {
-	// A= full alpha (255), order of letters represents the byte order for a pixel
-	TH_RGB=1,
-	TH_RGBA=2,
-	TH_ARGB=3,
-	TH_BGR=4,
-	TH_BGRA=5,
-	TH_ABGR=6,
-	TH_GREY=7,
-	TH_GREY3=8, // RGB but all three components are luma
-	TH_GREY3A=9,
-	TH_AGREY3=10,
-	TH_YUV=11,
-	TH_YUVA=12,
-	TH_AYUV=13
+	// A = full alpha (255), order of letters represents the byte order for a pixel
+	// A means the image is treated as if it contains an alpha channel, while X formats
+	// just mean that RGB frame is transformed to a 4 byte format
+	TH_RGB    =  1,
+	TH_RGBA   =  2,
+	TH_RGBX   =  3,
+	TH_ARGB   =  4,
+	TH_XRGB   =  5,
+	TH_BGR    =  6,
+	TH_BGRA   =  7,
+	TH_BGRX   =  8,
+	TH_ABGR   =  9,
+	TH_XBGR   = 10,
+	TH_GREY   = 11,
+	TH_GREY3  = 12,
+	TH_GREY3A = 13,
+	TH_GREY3X = 14,
+	TH_AGREY3 = 15,
+	TH_XGREY3 = 16,
+	TH_YUV    = 17,
+	TH_YUVA   = 18,
+	TH_YUVX   = 19,
+	TH_AYUV   = 20,
+	TH_XYUV   = 21
+};
+/**
+	This is an internal structure which TheoraVideoClip uses to store audio packets
+*/
+struct TheoraAudioPacket
+{
+	float* pcm;
+	int num_samples; //! size in number of float samples (stereo has twice the number of samples)
+	TheoraAudioPacket* next; // pointer to the next audio packet, to implement a linked list
 };
 
 /**
@@ -61,28 +80,31 @@ class TheoraPlayerExport TheoraVideoClip
 	TheoraTimer *mTimer,*mDefaultTimer;
 
 	TheoraWorkerThread* mAssignedWorkerThread;
-
+	
+	bool mUseAlpha;
+	
 	// benchmark vars
 	int mNumDroppedFrames,mNumDisplayedFrames;
 
 	int mTheoraStreams, mVorbisStreams;	// Keeps track of Theora and Vorbis Streams
 
 	int mNumPrecachedFrames;
-	int mAudioSkipSeekFlag;
 
-	float mSeekPos; //! stores desired seek position. next worker thread will do the seeking and reset this var to -1
-	float mDuration;
+	int mSeekFrame; //! stores desired seek position as a frame number. next worker thread will do the seeking and reset this var to -1
+	float mDuration, mFrameDuration, mFPS;
     std::string mName;
-	int mWidth,mHeight,mStride;
-	unsigned long mNumFrames;
+	int mWidth, mHeight, mStride;
+	int mNumFrames;
 
 	float mAudioGain; //! multiplier for audio samples. between 0 and 1
-	TheoraOutputMode mOutputMode,mRequestedOutputMode;
-	bool mAutoRestart;
-	bool mEndOfFile,mRestarted;
-	int mIteration,mLastIteration; //! used to detect when the video restarted
+	TheoraAudioPacket* mTheoraAudioPacketQueue;
 
-	float mUserPriority;
+	TheoraOutputMode mOutputMode, mRequestedOutputMode;
+	bool mAutoRestart;
+	bool mEndOfFile, mRestarted;
+	int mIteration, mLastIteration; //! used to detect when the video restarted
+
+	float mUserPriority; //! TODO implementation
 
 	TheoraInfoStruct* mInfo; // a pointer is used to avoid having to include theora & vorbis headers
 
@@ -98,10 +120,25 @@ class TheoraPlayerExport TheoraVideoClip
 	 */
 	int calculatePriority();
 	void readTheoraVorbisHeaders();
-	long seekPage(long targetFrame,bool return_keyframe);
-	void doSeek(); //! called by WorkerThread to seek to mSeekPos
+	long seekPage(long targetFrame, bool return_keyframe);
+	void doSeek(); //! called by WorkerThread to seek to mSeekFrame
 	bool _readData();
 	bool isBusy();
+
+	/**
+	 * decodes audio from the vorbis stream and stores it in audio packets
+	 * This is an internal function of TheoraVideoClip, called regularly if playing an
+	 * audio enabled video clip.
+	 * @return last decoded timestamp (if found in decoded packet's granule position)
+	 */
+	float decodeAudio();
+	float getAudioPacketQueueLength();
+	//! adds an audio packet to the packet queue
+	void addAudioPacket(float** buffer, int num_samples);
+	//! return a decoded audio packet or NULL if packet queue is empty
+	TheoraAudioPacket* popAudioPacket();
+	void destroyAudioPacket(TheoraAudioPacket* p);
+	void destroyAllAudioPackets();
 
 	void load(TheoraDataSource* source);
 
@@ -121,9 +158,9 @@ public:
 	int getNumDroppedFrames() { return mNumDroppedFrames; }
 
 	//! return width in pixels of the video clip
-	int getWidth() { return mWidth; }
+	int getWidth();
 	//! return height in pixels of the video clip
-	int getHeight() { return mHeight; }
+	int getHeight();
 	/**
 	    \brief return stride in pixels
 
@@ -210,8 +247,8 @@ public:
 	float getTimePosition();
 	//! get the duration of the movie in seconds
 	float getDuration();
-	//! return the clips' frame rate
-	int getFPS();
+	//! return the clips' frame rate, warning, fps can be a non integer number!
+	float getFPS();
 	//! get the number of frames in this movie
 	int getNumFrames() { return mNumFrames; }
 
@@ -234,6 +271,10 @@ public:
     float getPlaybackSpeed();
 	//! seek to a given time position
 	void seek(float time);
+	//! seek to a given frame number
+	void seekToFrame(int frame);
+	//! wait max_time for the clip to cache a given percentage of frames, factor in range [0,1]
+	void waitForCache(float desired_cache_factor = 0.5f, float max_wait_time = 1.0f);
 };
 
 #endif

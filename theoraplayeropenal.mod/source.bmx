@@ -1,4 +1,4 @@
-' Copyright (c) 2011, Bruce A Henderson
+' Copyright (c) 2011-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -26,13 +26,12 @@
 SuperStrict
 
 Import BaH.TheoraPlayer
-'Import Pub.OpenAL
 
 ?win32
 Import "openal/include/*.h"
 ?
 
-Import "../theoraplayer.mod/libtheoraplayer/include/theoraplayer/*.h"
+Import "../theoraplayer.mod/libtheoraplayer/include/*.h"
 
 Import "audio_interface/src/*.h"
 Import "audio_interface/src/OpenAL_AudioInterface.cpp"

@@ -1,4 +1,4 @@
-' Copyright (c) 2011, Bruce A Henderson
+' Copyright (c) 2011-2012 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@ Import "libtheora/include/*.h"
 Import "libtheoraplayer/include/theoraplayer/*.h"
 Import "libtheoraplayer/src/*.h"
 
-Import "../../pub.mod/oggvorbis.mod/libogg-1.1.3/include/*.h"
-Import "../../pub.mod/oggvorbis.mod/libvorbis-1.1.2/include/*.h"
+Import "../oggvorbis.mod/libogg-1.3.0/include/*.h"
+Import "../oggvorbis.mod/libvorbis-1.2.3/include/*.h"
 
 Import "libtheoraplayer/src/TheoraAsync.cpp"
 Import "libtheoraplayer/src/TheoraAudioInterface.cpp"

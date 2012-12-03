@@ -4,6 +4,9 @@ Framework BaH.TheoraPlayer
 Import BaH.TheoraPlayerOpenAL ' audio
 Import BRL.GLMax2D
 
+' logging - set before initialising manager instance
+TTheoraVideoManager.setLogFunction(logger)
+
 Local manager:TTheoraVideoManager = New TTheoraVideoManager.Create()
 
 ' set the audio driver, if available
@@ -104,4 +107,6 @@ Function drawTime(time:Float, duration:Float, x:Int, y:Int)
 
 End Function
 
-
+Function logger(text:String)
+	' do nothing
+End Function

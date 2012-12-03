@@ -10,6 +10,9 @@ If Not TBass.Init(-1,44100,0,Null,Null) Then
 	End
 End If
 
+' logging - set before initialising manager instance
+TTheoraVideoManager.setLogFunction(logger)
+
 Local manager:TTheoraVideoManager = New TTheoraVideoManager.Create()
 
 ' set the audio driver
@@ -108,5 +111,7 @@ Function drawTime(time:Float, duration:Float, x:Int, y:Int)
 
 End Function
 
-
+Function logger(text:String)
+	' do nothing
+End Function
 

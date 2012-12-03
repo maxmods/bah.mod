@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2011, Bruce A Henderson
+ Copyright (c) 2011-2012 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,13 @@ class BASS_AudioInterface : public TheoraAudioInterface, TheoraTimer
 {
 	int mMaxBuffSize;
 	float *mTempBuffer;
+	int mBuffSize;
 
 	HSTREAM mStream;
 public:
 	BASS_AudioInterface(TheoraVideoClip* owner,int nChannels,int freq);
 	~BASS_AudioInterface();
-	void insertData(float** data,int nSamples);
+	void insertData(float* data,int nSamples);
 	void destroy();
 
 	void update(float time_increase);

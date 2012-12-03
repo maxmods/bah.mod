@@ -2,16 +2,16 @@
 This source file is part of the Theora Video Playback Library
 For latest info, see http://libtheoraplayer.sourceforge.net/
 *************************************************************************************
-Copyright (c) 2008-2010 Kresimir Spes (kreso@cateia.com)
+Copyright (c) 2008-2012 Kresimir Spes (kspes@cateia.com)
 This program is free software; you can redistribute it and/or modify it under
 the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 *************************************************************************************/
 #ifndef _OpenAL_AudioInterface_h
 #define _OpenAL_AudioInterface_h
 
-#include "TheoraAudioInterface.h"
-#include "TheoraVideoClip.h"
-#include "TheoraTimer.h"
+#include <theoraplayer/TheoraAudioInterface.h>
+#include <theoraplayer/TheoraVideoClip.h>
+#include <theoraplayer/TheoraTimer.h>
 
 #ifndef __APPLE__
 #ifdef __WIN32__
@@ -26,14 +26,13 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #include <OpenAL/alc.h>
 #endif
 #include <queue>
-
-
+	
 class OpenAL_AudioInterface : public TheoraAudioInterface, TheoraTimer
 {
 	int mMaxBuffSize;
 	int mBuffSize;
 	short *mTempBuffer;
-	float mTimeOffset;
+	float mCurrentTimer;
 
 	struct OpenAL_Buffer
 	{
@@ -47,8 +46,11 @@ class OpenAL_AudioInterface : public TheoraAudioInterface, TheoraTimer
 public:
 	OpenAL_AudioInterface(TheoraVideoClip* owner,int nChannels,int freq);
 	~OpenAL_AudioInterface();
-	void insertData(float** data,int nSamples);
+	void insertData(float* data,int nSamples);
 	void destroy();
+
+	//! queued audio buffers, expressed in seconds
+	float getQueuedAudioSize();
 
 	void update(float time_increase);
 
