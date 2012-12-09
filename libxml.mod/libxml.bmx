@@ -109,6 +109,10 @@ ModuleInfo "History: 1.01"
 ModuleInfo "History: Added Linux and Mac support. Still some Mac issues to resolve."
 ModuleInfo "History: 1.00 Initial Release (Libxml 2.6.23)"
 
+?win32
+ModuleInfo "CC_OPTS: -DIN_LIBXML"
+?
+
 Import "common.bmx"
 
 '
