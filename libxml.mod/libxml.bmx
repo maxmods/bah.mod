@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2010 Bruce A Henderson
+' Copyright (c) 2006-2012 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,15 @@ bbdoc: Libxml
 End Rem
 Module BaH.LibXml
 
-ModuleInfo "Version: 1.16"
+ModuleInfo "Version: 2.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: (libxml2) 1998-2009 Daniel Veillard"
-ModuleInfo "Copyright: (wrapper) 2006-2010 Bruce A Henderson"
+ModuleInfo "Copyright: (libxml2) 1998-2012 Daniel Veillard"
+ModuleInfo "Copyright: (wrapper) 2006-2012 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
-ModuleInfo "History: 1.16"
-ModuleInfo "History: Updated to Libxml 2.7.7."
+ModuleInfo "History: 2.00"
+ModuleInfo "History: Updated to Libxml 2.9.0."
+ModuleInfo "History: Complete rewrite of API glue to match standard module layout."
 ModuleInfo "History: 1.15"
 ModuleInfo "History: Updated to Libxml 2.7.6."
 ModuleInfo "History: Added missing xmlParserOptions."
@@ -108,7 +109,7 @@ ModuleInfo "History: 1.01"
 ModuleInfo "History: Added Linux and Mac support. Still some Mac issues to resolve."
 ModuleInfo "History: 1.00 Initial Release (Libxml 2.6.23)"
 
-Import "libxml_base.bmx"
+Import "common.bmx"
 
 '
 ' Build Notes :
@@ -187,11 +188,11 @@ bbdoc: Get the last global error registered.
 returns: Null if no error occured ora TxmlError object
 End Rem
 Function xmlGetLastError:TxmlError()
-	Return TxmlError._create(_xmlGetLastError())
+	Return TxmlError._create(bmx_libxml_xmlGetLastError())
 End Function
 
 Rem
-bbdoc: Sets the callback handler for errors.
+bbdoc: Sets the callback handler For errors.
 about: The function will be called passing the optional user data and the error details.
 End Rem
 Function xmlSetErrorFunction(callback(data:Object, error:TxmlError), data:Object = Null)
@@ -220,7 +221,7 @@ output. This function has to be used to change the default parser behavior.
 </p>
 End Rem 
 Function xmlSubstituteEntitiesDefault:Int(value:Int)
-	_xmlSubstituteEntitiesDefault(value)
+	Return bmx_libxml_xmlSubstituteEntitiesDefault(value)
 End Function
 
 Rem
@@ -234,16 +235,12 @@ End Rem
 Function xmlGetPredefinedEntity:TxmlEntity(name:String)
 	Assert name, XML_ERROR_PARAM
 	
-	Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-	
-	Local entity:TxmlEntity = TxmlEntity._create(_xmlGetPredefinedEntity(cStr))
-	MemFree(cStr)
-	
-	Return entity
+	Return TxmlEntity._create(bmx_libxml_xmlGetPredefinedEntity(name))
 End Function
 
 ' converts a UTF character array from byte-size characters to short-size characters
 ' based on the TextStream UTF code...
+Rem
 Function _xmlConvertUTF8ToMax:String(s:Byte Ptr)
 	If s Then
 		Local l:Int = _strlen(s)
@@ -279,9 +276,10 @@ Function _xmlConvertUTF8ToMax:String(s:Byte Ptr)
 	Return ""
 	
 End Function
-
+End Rem
 ' converts a Max short-based String to a byte-based UTF-8 String.
 ' based on the TextStream UTF code...
+Rem
 Function _xmlConvertMaxToUTF8:String(text:String)
 	If Not text Then
 		Return ""
@@ -322,7 +320,7 @@ Function _xmlConvertMaxToUTF8:String(text:String)
 
 	Return String.fromBytes(s, count)
 End Function
-
+End Rem
 'Function UTF8Toisolat1:String(utf8Text:String)
 '	Local inlen:Int = utf8Text.length
 '	Local out:Byte Ptr = "".toCString()
@@ -336,24 +334,20 @@ Rem
 bbdoc: The base Type for #TxmlDoc, #TxmlNode, #TxmlAttribute, #TxmlEntity, #TxmlDtd, #TxmlDtdElement and #TxmlDtdAttribute.
 End Rem
 Type TxmlBase Abstract
-	Const _type:Int = 4			' XML_DOCUMENT_NODE, (int)
-	Const _name:Int = 8			' name/filename/URI of the document (Byte Ptr)
-	Const _children:Int = 12		' the document tree (byte ptr)
-	Const _last:Int = 16			' last child link (byte ptr)
-	Const _parent:Int = 20		' child->parent link (byte ptr)
-	Const _next:Int = 24			' Next sibling link (byte ptr)
-	Const _prev:Int = 28			' previous sibling link (byte ptr)
-	Const _doc:Int = 32			' autoreference To itself (byte ptr)
+	'Const _type:Int = 4			' XML_DOCUMENT_NODE, (int)
+	'Const _name:Int = 8			' name/filename/URI of the document (Byte Ptr)
+	'Const _children:Int = 12		' the document tree (byte ptr)
+	'Const _last:Int = 16			' last child link (byte ptr)
+	'Const _parent:Int = 20		' child->parent link (byte ptr)
+	'Const _next:Int = 24			' Next sibling link (byte ptr)
+	'Const _prev:Int = 28			' previous sibling link (byte ptr)
+	'Const _doc:Int = 32			' autoreference To itself (byte ptr)
 	
-	Field _basePtr:Byte Ptr
-	
-	Method initBase(pointer:Byte Ptr)
-		_basePtr = pointer
-	End Method
+	Field basePtr:Byte Ptr
 	
 	Function chooseCreateFromType:TxmlBase(_ptr:Byte Ptr)
 		If _ptr <> Null Then
-			Select Int Ptr(_ptr + TxmlBase._type)[0]
+			Select bmx_libxml_xmlbase_getType(_ptr)
 				Case XML_DOCUMENT_NODE
 					Return TxmlDoc._create(_ptr)
 				Case XML_ATTRIBUTE_NODE
@@ -403,21 +397,21 @@ Type TxmlBase Abstract
 	</table>
 	End Rem
 	Method getType:Int()
-		Return Int Ptr(_basePtr + _type)[0]
+		Return bmx_libxml_xmlbase_getType(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the node name
 	End Rem
 	Method getName:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_basePtr + _name)[0]))
+		Return bmx_libxml_xmlbase_getName(basePtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the document for this object.
 	End Rem
 	Method getDocument:TxmlDoc()
-		Return TxmlDoc._create(Byte Ptr(Int Ptr(_basePtr + _doc)[0]))
+		Return TxmlDoc._create(bmx_libxml_xmlbase_getDoc(basePtr))
 	End Method
 	
 
@@ -426,10 +420,7 @@ Type TxmlBase Abstract
 	returns: The next node or Null if there are none.
 	End Rem
 	Method nextSibling:TxmlBase()
-		If Byte Ptr(Int Ptr(_basePtr + _next)[0]) = Null Then
-			Return Null
-		End If
-		Return chooseCreateFromType(Byte Ptr(Int Ptr(_basePtr + _next)[0]))
+		Return chooseCreateFromType(bmx_libxml_xmlbase_next(basePtr))
 	End Method
 	
 	Rem
@@ -437,10 +428,7 @@ Type TxmlBase Abstract
 	returns: The previous node or Null if there are none.
 	End Rem
 	Method previousSibling:TxmlBase()
-		If Byte Ptr(Int Ptr(_basePtr + _prev)[0]) = Null Then
-			Return Null
-		End If
-		Return chooseCreateFromType(Byte Ptr(Int Ptr(_basePtr + _prev)[0]))
+		Return chooseCreateFromType(bmx_libxml_xmlbase_prev(basePtr))
 	End Method
 	
 	Rem
@@ -452,12 +440,8 @@ Type TxmlBase Abstract
 	See #getType for a list of node types.
 	End Rem
 	Method getChildren:TList(nodeType:Int = XML_ELEMENT_NODE)
-		If Byte Ptr(Int Ptr(_basePtr + _children)[0]) = Null Then
-			Return Null
-		End If
-		
 		Local children:TList
-		Local node:TxmlBase = chooseCreateFromType(Byte Ptr(Int Ptr(_basePtr + _children)[0]))
+		Local node:TxmlBase = chooseCreateFromType(bmx_libxml_xmlbase_children(basePtr))
 		
 		While node <> Null
 
@@ -491,7 +475,7 @@ Type TxmlBase Abstract
 	End Rem
 	Method getLastChild:TxmlBase(nodeType:Int = XML_ELEMENT_NODE)
 		If nodeType = 0 Then
-			Return chooseCreateFromType(xmlGetLastChild(_basePtr))
+			Return chooseCreateFromType(bmx_libxml_xmlGetLastChild(basePtr))
 		Else
 			Local list:TList = getChildren(nodeType)
 			If list Then
@@ -507,7 +491,7 @@ Type TxmlBase Abstract
 	End Rem
 	Method getFirstChild:TxmlBase(nodeType:Int = XML_ELEMENT_NODE)
 		If nodeType = 0 Then
-			Return chooseCreateFromType(Byte Ptr(Int Ptr(_basePtr + _children)[0]))
+			Return chooseCreateFromType(bmx_libxml_xmlbase_children(basePtr))
 		Else
 			Local list:TList = getChildren(nodeType)
 			If list Then
@@ -522,7 +506,7 @@ Type TxmlBase Abstract
 	returns: The parent to this object.
 	End Rem
 	Method GetParent:TxmlBase()
-		Return chooseCreateFromType(Byte Ptr(Int Ptr(_basePtr + _parent)[0]))
+		Return chooseCreateFromType(bmx_libxml_xmlbase_parent(basePtr))
 	End Method
 	
 	Rem
@@ -531,7 +515,7 @@ Type TxmlBase Abstract
 	End Rem
 	Method getLineNumber:Int()
 
-		Return xmlGetLineNo(_basePtr)
+		Return bmx_libxml_xmlGetLineNo(basePtr)
 
 	End Method
 	
@@ -542,31 +526,6 @@ bbdoc: An XML Document
 End Rem
 Type TxmlDoc Extends TxmlBase
 
-	'Const _type:Int = 4			' XML_DOCUMENT_NODE, (int)
-	'Const _name:Int = 8			' name/filename/URI of the document (Byte Ptr)
-	'Const _children:Int = 12		' the document tree (byte ptr)
-	'Const _last:Int = 16			' last child link (byte ptr)
-	'Const _parent:Int = 20		' child->parent link (byte ptr)
-	'Const _next:Int = 24			' Next sibling link (byte ptr)
-	'Const _prev:Int = 28			' previous sibling link (byte ptr)
-	'Const _doc:Int = 32			' autoreference To itself (byte ptr)
-	Const _compression:Int = 36	' level of zlib compression (int)
-	Const _standalone:Int = 40		' standalone document (no external refs) (int)
-	Const _intSubset:Int = 44		' the document internal subset (Byte Ptr)
-	Const _extSubset:Int = 48		' Global namespace, the old way (Byte Ptr)
-	Const _oldNs:Int = 52			' the document external subset (Byte Ptr)
-	Const _version:Int = 56		' the XML Version String (Byte Ptr)
-	Const _encoding:Int = 60		' external initial encoding, If any (Byte Ptr)
-	Const _ids:Int = 64			' Hash table For ID attributes If any (Byte Ptr)
-	Const _refs:Int = 68			' Hash table For IDREFs attributes If any (Byte Ptr)
-	Const _URL:Int = 72			' The URI For that document (Byte Ptr)
-	Const _charset:Int = 76		' encoding of the in-memory content actua (Byte Ptr)
-	Const _dict:Int = 80			' dict used To allocate names Or Null (Byte Ptr)
-
-
-	' reference to the actual document
-	Field _xmlDocPtr:Byte Ptr
-	
 	Field _readStream:TStream
 
 	Rem
@@ -576,13 +535,10 @@ Type TxmlDoc Extends TxmlBase
 	<li><b>version</b> : string giving the version of XML "1.0".</li>
 	</ul>
 	End Rem
-	Function newDoc:TxmlDoc(Version:String)
+	Function newDoc:TxmlDoc(version:String)
 		Assert Version, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(version).toCString()
-		Local doc:TxmlDoc = TxmlDoc._create(xmlNewDoc(cStr))
-		MemFree cStr
-		
+		Local doc:TxmlDoc = TxmlDoc._create(bmx_libxml_xmlNewDoc(version))
 		doc.setCompressMode(0)
 		
 		Return doc
@@ -604,10 +560,7 @@ Type TxmlDoc Extends TxmlBase
 		Local i:Int = filename.Find( "::",0 )
 		' a "normal" url?
 		If i = -1 Then
-			Local cStr:Byte Ptr = filename.toCString()
-			Local doc:TxmlDoc = TxmlDoc._create(xmlParseFile(cStr))
-			MemFree cStr
-			Return doc
+			Return TxmlDoc._create(bmx_libxml_xmlParseFile(filename))
 		Else
 			Local proto:String = filename[..i].ToLower()
 			Local path:String = filename[i+2..]
@@ -619,7 +572,7 @@ Type TxmlDoc Extends TxmlBase
 				End If
 				Local size:Int = IncbinLen( path )
 				
-				Return TxmlDoc._create(xmlParseMemory(buf, size))
+				Return TxmlDoc._create(bmx_libxml_xmlParseMemory(buf, size))
 			End If
 		End If
 		
@@ -642,16 +595,7 @@ Type TxmlDoc Extends TxmlBase
 			text = text[3..]
 		End If
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
-		Local _xmlDocPtr:Byte Ptr = xmlParseDoc(cStr)
-		MemFree cStr
-		
-		If _xmlDocPtr = Null Then
-			Return Null
-		Else
-			Return TxmlDoc._create(_xmlDocPtr)
-		End If
-		
+		Return TxmlDoc._create(bmx_libxml_xmlParseDoc(text))
 	End Function
 	
 	Rem
@@ -696,20 +640,7 @@ Type TxmlDoc Extends TxmlBase
 		Local i:Int = filename.Find( "::",0 )
 		' a "normal" url?
 		If i = -1 Then
-			Local cStr:Byte Ptr = filename.toCString()
-			Local cStr1:Byte Ptr
-			If encoding Then
-				cStr1 = encoding.toCString()
-			End If
-			Local doc:TxmlDoc
-			If cStr1 Then
-				doc = TxmlDoc._create(xmlReadFile(cStr, cStr1, options))
-				MemFree cStr1
-			Else
-				doc = TxmlDoc._create(xmlReadFile(cStr, Null, options))
-			End If
-			MemFree cStr
-			Return doc
+			Return TxmlDoc._create(bmx_libxml_xmlReadFile(filename, encoding, options))
 		Else
 			Local proto:String = filename[..i].ToLower()
 			Local path:String = filename[i+2..]
@@ -788,46 +719,7 @@ Type TxmlDoc Extends TxmlBase
 				text = text[3..]
 			End If
 			
-			Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
-			
-			Local cStr1:Byte Ptr, cStr2:Byte Ptr
-			If url Then
-				cStr1 = url.toCString()
-			End If
-			If encoding Then
-				cStr2 = encoding.toCString()
-			End If
-			
-			Local _xmlDocPtr:Byte Ptr
-			
-			If cStr1 Then
-				If cStr2 Then
-					_xmlDocPtr = xmlReadDoc(cStr, cStr1, cStr2, options)
-				Else
-					_xmlDocPtr = xmlReadDoc(cStr, cStr1, Null, options)
-				End If
-			Else
-				If cStr2 Then
-					_xmlDocPtr = xmlReadDoc(cStr, Null, cStr2, options)
-				Else
-					_xmlDocPtr = xmlReadDoc(cStr, Null, Null, options)
-				End If
-			End If
-			
-			If cStr1 Then
-				MemFree cStr1
-			End If
-			If cStr2 Then
-				MemFree cStr2
-			End If
-			
-			MemFree cStr
-			
-			If _xmlDocPtr = Null Then
-				Return Null
-			Else
-				Return TxmlDoc._create(_xmlDocPtr)
-			End If
+			Return TxmlDoc._create(bmx_libxml_xmlReadDoc(text, url, encoding, options))
 		
 		Else If TStream(doc) Then
 		
@@ -843,19 +735,19 @@ Type TxmlDoc Extends TxmlBase
 				cStr2 = encoding.toCString()
 			End If
 			
-			Local _xmlDocPtr:Byte Ptr
+			Local basePtr:Byte Ptr
 			
 			If cStr1 Then
 				If cStr2 Then
-					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, cStr1, cStr2, options)
+					basePtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, cStr1, cStr2, options)
 				Else
-					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, cStr1, Null, options)
+					basePtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, cStr1, Null, options)
 				End If
 			Else
 				If cStr2 Then
-					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, Null, cStr2, options)
+					basePtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, Null, cStr2, options)
 				Else
-					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, Null, Null, options)
+					basePtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, Null, Null, options)
 				End If
 			End If
 			
@@ -866,10 +758,10 @@ Type TxmlDoc Extends TxmlBase
 				MemFree cStr2
 			End If
 
-			If _xmlDocPtr = Null Then
+			If basePtr = Null Then
 				Return Null
 			Else
-				Return TxmlDoc._create(_xmlDocPtr)
+				Return TxmlDoc._create(basePtr)
 			End If
 		
 		End If
@@ -897,19 +789,15 @@ Type TxmlDoc Extends TxmlBase
 	Function parseCatalogFile:TxmlDoc(filename:String)
 		Assert filename, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = filename.toCString()
-		Local doc:TxmlDoc = TxmlDoc._create(xmlParseCatalogFile(cStr))
-		MemFree cStr
-		Return doc
+		Return TxmlDoc._create(bmx_libxml_xmlParseCatalogFile(filename))
 	End Function
 
 	' private - non API function
-	Function _create:TxmlDoc(_xmlDocPtr:Byte Ptr)
-		If _xmlDocPtr <> Null Then
+	Function _create:TxmlDoc(basePtr:Byte Ptr)
+		If basePtr <> Null Then
 			Local this:TxmlDoc = New TxmlDoc
 			
-			this._xmlDocPtr = _xmlDocPtr
-			this.initBase(_xmlDocPtr)
+			this.basePtr = basePtr
 			
 			Return this
 		Else
@@ -921,14 +809,14 @@ Type TxmlDoc Extends TxmlBase
 	bbdoc: The document URI.
 	End Rem
 	Method getURL:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlDocPtr + _URL)[0]))
+		Return bmx_libxml_xmldoc_url(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the root element of the document
 	End Rem
 	Method getRootElement:TxmlNode()
-		Return TxmlNode._create(xmlDocGetRootElement(_xmlDocPtr))
+		Return TxmlNode._create(bmx_libxml_xmlDocGetRootElement(basePtr))
 	End Method
 	
 	Rem
@@ -941,42 +829,28 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Method setRootElement:TxmlNode(root:TxmlNode)
 		Assert root, XML_ERROR_PARAM
-		Return TxmlNode._create(xmlDocSetRootElement(_xmlDocPtr, root._xmlNodePtr))
+		Return TxmlNode._create(bmx_libxml_xmlDocSetRootElement(basePtr, root.basePtr))
 	End Method
 	
 	Rem
 	bbdoc: Free up all the structures used by a document, tree included.
 	End Rem
 	Method free()
-		xmlFreeDoc(_xmlDocPtr)
+		bmx_libxml_xmlFreeDoc(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: The XML version string.
 	End Rem
 	Method getVersion:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlDocPtr + _version)[0]))
+		Return bmx_libxml_xmldoc_version(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: The external initial encoding, if any.
 	End Rem
 	Method getEncoding:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlDocPtr + _encoding)[0]))
-	End Method
-	
-	Rem
-	bbdoc: Sets the document encoding.
-	End Rem
-	Method setEncoding(encoding:String)
-		Local enc:Byte Ptr = Byte Ptr(Int Ptr(_xmlDocPtr + _encoding)[0])
-		If enc Then
-			xmlMemFree(enc)
-		End If
-		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(encoding).toCString()
-		Int Ptr(_xmlDocPtr + _encoding)[0] = Int(xmlStrdup(cStr))
-		MemFree(cStr)
+		Return bmx_libxml_xmldoc_encoding(basePtr)
 	End Method
 	
 	Rem
@@ -984,14 +858,14 @@ Type TxmlDoc Extends TxmlBase
 	returns: True if the document has no external refs.
 	End Rem
 	Method isStandalone:Int()
-		Return Int Ptr(_xmlDocPtr + _standalone)[0]
+		Return bmx_libxml_xmldoc_standalone(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: Sets document to standalone (or not).
 	End Rem
 	Method setStandalone(value:Int)
-		Int Ptr(_xmlDocPtr + _standalone)[0] = value
+		bmx_libxml_xmldoc_setStandalone(basePtr, value)
 	End Method
 	
 	Rem
@@ -1010,13 +884,7 @@ Type TxmlDoc Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert content, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-		Local node:TxmlNode = TxmlNode._create(xmlNewDocPI(_xmlDocPtr, cStr1, cStr2))
-		MemFree cStr1
-		MemFree cStr2
-
-		Return node
+		Return TxmlNode._create(bmx_libxml_xmlNewDocPI(basePtr, name, content))
 	End Method
 	
 	Rem
@@ -1035,12 +903,7 @@ Type TxmlDoc Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert value, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local attribute:TxmlAttribute = TxmlAttribute._create(xmlNewDocProp(_xmlDocPtr, cStr1, cStr2))
-		MemFree cStr1
-		MemFree cStr2
-		Return attribute
+		Return TxmlAttribute._create(bmx_libxml_xmlNewDocProp(basePtr, name, value))
 	End Method
 	
 	Rem
@@ -1053,7 +916,7 @@ Type TxmlDoc Extends TxmlBase
 	Method setCompressMode(Mode:Int)
 		' make sure it's in the valid range, 0-9
 		Mode = Max(Min(Mode, 9), 0)
-		xmlSetDocCompressMode(_xmlDocPtr, Mode)
+		bmx_libxml_xmlSetDocCompressMode(basePtr, Mode)
 	End Method
 	
 	Rem
@@ -1061,7 +924,7 @@ Type TxmlDoc Extends TxmlBase
 	returns: 0 (uncompressed) to 9 (max compression)
 	End Rem
 	Method getCompressMode:Int()
-		Return xmlGetDocCompressMode(_xmlDocPtr)
+		Return bmx_libxml_xmlGetDocCompressMode(basePtr)
 	End Method
 	
 	Rem
@@ -1072,10 +935,11 @@ Type TxmlDoc Extends TxmlBase
 	<ul>
 	<li><b>file</b> : either the filename or URL (String), or stream (TStream).</li>
 	<li><b>autoClose</b> : for streams only. When True, will automatically Close the stream. (default)</li>
+	<li><b>encoding</b> : the name of an encoding, or Null.</li>
 	</ul>
 	</p>
 	End Rem
-	Method saveFile:Int(file:Object, autoClose:Int = True)
+	Method saveFile:Int(file:Object, autoClose:Int = True, encoding:String = Null)
 		Assert file, XML_ERROR_PARAM
 		Local ret:Int
 		
@@ -1086,9 +950,7 @@ Type TxmlDoc Extends TxmlBase
 			filename = filename.Replace("/","\") ' compression requires Windows backslashes
 ?
 		
-			Local cStr:Byte Ptr = filename.toCString()
-			ret = xmlSaveFile(cStr, _xmlDocPtr)
-			MemFree cStr
+			ret = bmx_libxml_xmlSaveFile(filename, basePtr, encoding)
 			
 		Else If TStream(file) Then
 			Local stream:TStream = TStream(file)
@@ -1097,7 +959,7 @@ Type TxmlDoc Extends TxmlBase
 			TxmlOutputStreamHandler.autoClose = autoClose
 			
 			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO()
-			ret = xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, _xmlDocPtr, Null, True)
+			ret = bmx_libxml_xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, basePtr, encoding, True)
 		End If
 		
 		Return ret
@@ -1112,11 +974,12 @@ Type TxmlDoc Extends TxmlBase
 	<ul>
 	<li><b>file</b> : either the filename or URL (String), or stream (TStream).</li>
 	<li><b>format</b> : should formatting spaces been added</li>
+	<li><b>encoding</b> : the encoding, if any.</li>
 	<li><b>autoClose</b> : for streams only. When True, will automatically Close the stream. (default)</li>
 	</ul>
 	</p>
 	End Rem
-	Method saveFormatFile:Int(file:Object, format:Int, autoClose:Int = True)
+	Method saveFormatFile:Int(file:Object, format:Int, encoding:String = Null, autoClose:Int = True)
 		Assert file, XML_ERROR_PARAM
 		Local ret:Int
 
@@ -1127,9 +990,7 @@ Type TxmlDoc Extends TxmlBase
 			filename = filename.Replace("/","\") ' compression requires Windows backslashes
 ?
 		
-			Local cStr:Byte Ptr = filename.toCString()
-			ret = xmlSaveFormatFile(cStr, _xmlDocPtr, format)
-			MemFree cStr
+			ret = bmx_libxml_xmlSaveFormatFile(filename, basePtr, encoding, format)
 	
 		Else If TStream(file) Then
 			Local stream:TStream = TStream(file)
@@ -1138,19 +999,19 @@ Type TxmlDoc Extends TxmlBase
 			TxmlOutputStreamHandler.autoClose = autoClose
 			
 			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO()
-			ret = xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, _xmlDocPtr, Null, format)
+			ret = bmx_libxml_xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, basePtr, encoding, format)
 		End If
 
 		Return ret
 	End Method
 	
 	Rem
-	bbdoc: Returns a string representation of the document.
+	bbdoc: Returns a String representation of the document.
 	End Rem
 	Method ToString:String()
 		Local buffer:TxmlBuffer = TxmlBuffer.newBuffer()
 		Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createBuffer(buffer)
-		xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, _xmlDocPtr, Null, True)
+		bmx_libxml_xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, basePtr, Null, True)
 		Local t:String = buffer.getContent()
 		buffer.free()
 		Return t
@@ -1162,7 +1023,7 @@ Type TxmlDoc Extends TxmlBase
 	Method ToStringFormat:String(format:Int = False)
 		Local buffer:TxmlBuffer = TxmlBuffer.newBuffer()
 		Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createBuffer(buffer)
-		xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, _xmlDocPtr, Null, format)
+		bmx_libxml_xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, basePtr, Null, format)
 		Local t:String = buffer.getContent()
 		buffer.free()
 		Return t
@@ -1173,7 +1034,7 @@ Type TxmlDoc Extends TxmlBase
 	Returns: a new TxmlXPathContext.
 	End Rem
 	Method newXPathContext:TxmlXPathContext()
-		Return TxmlXPathContext._create(xmlXPathNewContext(_xmlDocPtr))
+		Return TxmlXPathContext._create(bmx_libxml_xmlXPathNewContext(basePtr))
 	End Method
 	
 	Rem
@@ -1190,16 +1051,6 @@ Type TxmlDoc Extends TxmlBase
 		Assert text, XML_ERROR_PARAM
 		
 		Return encodeEntitiesReentrant(text)
-	'	Local cStr:Byte Ptr = text.toCString()
-	'	Local s:Byte Ptr = xmlEncodeEntitiesReentrant(_xmlDocPtr, cStr)
-	'	MemFree cStr
-	'	If s <> Null Then
-	'		Local t:String = String.fromCString(s)
-	'		xmlMemFree(s)
-	'		Return t
-	'	Else
-	'		Return Null
-	'	End If
 	End Method
 	
 	Rem
@@ -1217,14 +1068,7 @@ Type TxmlDoc Extends TxmlBase
 		Assert externalID, XML_ERROR_PARAM
 		Assert systemID, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(externalID).toCString()
-		Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(systemID).toCString()
-		Local dtd:TxmlDtd = TxmlDtd._create(xmlCreateIntSubset(_xmlDocPtr, cStr1, cStr2, cStr3))
-		MemFree cStr1
-		MemFree cStr2
-		MemFree cStr3
-		Return dtd
+		Return TxmlDtd._create(bmx_libxml_xmlCreateIntSubset(basePtr, name, externalID, systemID))
 	End Method
 	
 	Rem
@@ -1232,7 +1076,7 @@ Type TxmlDoc Extends TxmlBase
 	returns: the DTD structure or Null if not found
 	End Rem
 	Method getInternalSubset:TxmlDtd()
-		Return TxmlDtd._create(xmlGetIntSubset(_xmlDocPtr))
+		Return TxmlDtd._create(bmx_libxml_xmlGetIntSubset(basePtr))
 	End Method
 	
 	Rem
@@ -1251,15 +1095,8 @@ Type TxmlDoc Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert externalID, XML_ERROR_PARAM
 		Assert systemID, XML_ERROR_PARAM
-		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(externalID).toCString()
-		Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(systemID).toCString()
-		Local dtd:TxmlDtd = TxmlDtd._create(xmlNewDtd(_xmlDocPtr, cStr1, cStr2, cStr3))
-		MemFree cStr1
-		MemFree cStr2
-		MemFree cStr3
-		Return dtd
+	
+		Return TxmlDtd._create(bmx_libxml_xmlNewDtd(basePtr, name, externalID, systemID))
 	End Method
 	
 	
@@ -1271,7 +1108,9 @@ Type TxmlDoc Extends TxmlBase
 	to differentiate from line numbers.
 	End Rem
 	Method XPathOrderElements:Long()
-		Return xmlXPathOrderDocElems(_xmlDocPtr)
+		Local value:Long
+		bmx_libxml_xmlXPathOrderDocElems(basePtr, Varptr value)
+		Return value
 	End Method
 	
 	Rem
@@ -1283,7 +1122,7 @@ Type TxmlDoc Extends TxmlBase
 	</ul>
 	End Rem
 	Method copy:TxmlDoc(recursive:Int = True)
-		Return TxmlDoc._create(xmlCopyDoc(_xmlDocPtr, recursive))
+		Return TxmlDoc._create(bmx_libxml_xmlCopyDoc(basePtr, recursive))
 	End Method
 	
 	Rem
@@ -1301,38 +1140,7 @@ Type TxmlDoc Extends TxmlBase
 	Method addDocEntity:TxmlEntity(name:String, EntityType:Int, externalID:String, systemID:String, content:String)
 		Assert name, XML_ERROR_PARAM
 		Assert content, XML_ERROR_PARAM
-		
-		Local entity:TxmlEntity = Null
-		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-		
-		If externalID <> Null Then
-			Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(externalID).toCString()
-		
-			If systemID <> Null Then
-				Local cStr4:Byte Ptr = _xmlConvertMaxToUTF8(systemID).toCString()
-				entity = TxmlEntity._create(xmlAddDocEntity(_xmlDocPtr, cStr1, EntityType, cStr3, cStr4, cStr2))
-				MemFree(cStr4)
-			Else
-				entity = TxmlEntity._create(xmlAddDocEntity(_xmlDocPtr, cStr1, EntityType, cStr3, Null, cStr2))
-			End If
-			
-			MemFree(cStr3)
-		Else
-			If systemID <> Null Then
-				Local cStr4:Byte Ptr = _xmlConvertMaxToUTF8(systemID).toCString()
-				entity = TxmlEntity._create(xmlAddDocEntity(_xmlDocPtr, cStr1, EntityType, Null, cStr4, cStr2))
-				MemFree(cStr4)
-			Else
-				entity = TxmlEntity._create(xmlAddDocEntity(_xmlDocPtr, cStr1, EntityType, Null, Null, cStr2))
-			End If
-		End If
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		
-		Return entity
+		Return TxmlEntity._create(bmx_libxml_xmlAddDocEntity(basePtr, name, EntityType, externalID, systemID, content))
 	End Method
 
 	Rem
@@ -1350,38 +1158,7 @@ Type TxmlDoc Extends TxmlBase
 	Method addDtdEntity:TxmlEntity(name:String, EntityType:Int, externalID:String, systemID:String, content:String)
 		Assert name, XML_ERROR_PARAM
 		Assert content, XML_ERROR_PARAM
-		
-		Local entity:TxmlEntity = Null
-		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-		
-		If externalID <> Null Then
-			Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(externalID).toCString()
-		
-			If systemID <> Null Then
-				Local cStr4:Byte Ptr = _xmlConvertMaxToUTF8(systemID).toCString()
-				entity = TxmlEntity._create(xmlAddDtdEntity(_xmlDocPtr, cStr1, EntityType, cStr3, cStr4, cStr2))
-				MemFree(cStr4)
-			Else
-				entity = TxmlEntity._create(xmlAddDtdEntity(_xmlDocPtr, cStr1, EntityType, cStr3, Null, cStr2))
-			End If
-			
-			MemFree(cStr3)
-		Else
-			If systemID <> Null Then
-				Local cStr4:Byte Ptr = _xmlConvertMaxToUTF8(systemID).toCString()
-				entity = TxmlEntity._create(xmlAddDtdEntity(_xmlDocPtr, cStr1, EntityType, Null, cStr4, cStr2))
-				MemFree(cStr4)
-			Else
-				entity = TxmlEntity._create(xmlAddDtdEntity(_xmlDocPtr, cStr1, EntityType, Null, Null, cStr2))
-			End If
-		End If
-
-		MemFree(cStr1)
-		MemFree(cStr2)
-		
-		Return entity
+		Return TxmlEntity._create(bmx_libxml_xmlAddDtdEntity(basePtr, name, EntityType, externalID, systemID, content))
 	End Method
 	
 	Rem
@@ -1397,20 +1174,7 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Method encodeEntitiesReentrant:String(inp:String)
 		Assert inp, XML_ERROR_PARAM
-		
-		Local ret:String = Null
-		Local s:Byte Ptr
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(inp).toCString()
-		
-		s = xmlEncodeEntitiesReentrant(_xmlDocPtr, cStr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlEncodeEntitiesReentrant(basePtr, inp)
 	End Method
 	
 	Rem
@@ -1423,20 +1187,7 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Method encodeSpecialChars:String(inp:String)
 		Assert inp, XML_ERROR_PARAM
-		
-		Local ret:String = Null
-		Local s:Byte Ptr
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(inp).toCString()
-		
-		s = xmlEncodeSpecialChars(_xmlDocPtr, cStr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlEncodeSpecialChars(basePtr, inp)
 	End Method
 	
 	Rem
@@ -1449,13 +1200,7 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Method getDocEntity:TxmlEntity(name:String)
 		Assert name, XML_ERROR_PARAM
-		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		Local entity:TxmlEntity = TxmlEntity._create(xmlGetDocEntity(_xmlDocPtr, cStr))
-		MemFree(cStr)
-		
-		Return entity
+		Return TxmlEntity._create(bmx_libxml_xmlGetDocEntity(basePtr, name))
 	End Method
 
 	Rem
@@ -1468,13 +1213,7 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Method getDtdEntity:TxmlEntity(name:String)
 		Assert name, XML_ERROR_PARAM
-		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		Local entity:TxmlEntity = TxmlEntity._create(xmlGetDtdEntity(_xmlDocPtr, cStr))
-		MemFree(cStr)
-		
-		Return entity
+		Return TxmlEntity._create(bmx_libxml_xmlGetDtdEntity(basePtr, name))
 	End Method
 
 	Rem
@@ -1487,13 +1226,7 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Method getParameterEntity:TxmlEntity(name:String)
 		Assert name, XML_ERROR_PARAM
-		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		Local entity:TxmlEntity = TxmlEntity._create(xmlGetParameterEntity(_xmlDocPtr, cStr))
-		MemFree(cStr)
-		
-		Return entity
+		Return TxmlEntity._create(bmx_libxml_xmlGetParameterEntity(basePtr, name))
 	End Method
 
 	Rem
@@ -1501,7 +1234,7 @@ Type TxmlDoc Extends TxmlBase
 	returns: 0 if no substitution were done, -1 if some processing failed or the number of substitutions done.
 	End Rem
 	Method XIncludeProcess:Int()
-		Return xmlXIncludeProcess(_xmlDocPtr)
+		Return bmx_libxml_xmlXIncludeProcess(basePtr)
 	End Method
 	
 	Rem
@@ -1513,7 +1246,7 @@ Type TxmlDoc Extends TxmlBase
 	</ul>
 	End Rem
 	Method XIncludeProcessFlags:Int(flags:Int)
-		Return xmlXIncludeProcessFlags(_xmlDocPtr, flags)
+		Return bmx_libxml_xmlXIncludeProcessFlags(basePtr, flags)
 	End Method
 	
 	Rem
@@ -1527,13 +1260,7 @@ Type TxmlDoc Extends TxmlBase
 	Method getID:TxmlAttribute(id:String)
 		Assert id, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(id).toCString()
-		
-		Local ret:TxmlAttribute = TxmlAttribute._create(xmlGetID(_xmlDocPtr, cStr))
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return TxmlAttribute._create(bmx_libxml_xmlGetID(basePtr, id))
 	End Method
 	
 	Rem
@@ -1552,7 +1279,7 @@ Type TxmlDoc Extends TxmlBase
 		Assert node, XML_ERROR_PARAM
 		Assert attr, XML_ERROR_PARAM
 		
-		Return xmlIsID(_xmlDocPtr, node._xmlNodePtr, attr._xmlAttrPtr)
+		Return bmx_libxml_xmlIsID(basePtr, node.basePtr, attr.basePtr)
 	End Method
 
 	Rem
@@ -1571,7 +1298,7 @@ Type TxmlDoc Extends TxmlBase
 		Assert node, XML_ERROR_PARAM
 		Assert attr, XML_ERROR_PARAM
 		
-		Return xmlIsRef(_xmlDocPtr, node._xmlNodePtr, attr._xmlAttrPtr)
+		Return bmx_libxml_xmlIsRef(basePtr, node.basePtr, attr.basePtr)
 	End Method
 
 	Rem
@@ -1585,13 +1312,7 @@ Type TxmlDoc Extends TxmlBase
 	Method isMixedElement:Int(name:String)
 		Assert name, XML_ERROR_PARAM
 	
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		Local ret:Int = xmlIsMixedElement(_xmlDocPtr, cStr)
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlIsMixedElement(basePtr, name)
 	End Method
 	
 	Rem
@@ -1605,7 +1326,7 @@ Type TxmlDoc Extends TxmlBase
 	Method removeID:Int(attr:TxmlAttribute)
 		Assert attr, XML_ERROR_PARAM
 		
-		Return xmlRemoveID(_xmlDocPtr, attr._xmlAttrPtr)
+		Return bmx_libxml_xmlRemoveID(basePtr, attr.basePtr)
 	End Method
 	
 	Rem
@@ -1619,7 +1340,7 @@ Type TxmlDoc Extends TxmlBase
 	Method removeRef:Int(attr:TxmlAttribute)
 		Assert attr, XML_ERROR_PARAM
 		
-		Return xmlRemoveRef(_xmlDocPtr, attr._xmlAttrPtr)
+		Return bmx_libxml_xmlRemoveRef(basePtr, attr.basePtr)
 	End Method
 	
 	Rem
@@ -1640,17 +1361,7 @@ Type TxmlDoc Extends TxmlBase
 	</table>
 	End Rem
 	Method newDocElementContent:TxmlElementContent(name:String, contentType:Int)
-		Local ret:TxmlElementContent = Null
-		
-		If name = Null Then
-			ret = TxmlElementContent._create(xmlNewDocElementContent(_xmlDocPtr, Null, contentType))
-		Else
-			Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-			ret = TxmlElementContent._create(xmlNewDocElementContent(_xmlDocPtr, cStr, contentType))
-			MemFree(cStr)
-		End If
-		
-		Return ret
+		Return TxmlElementContent._create(bmx_libxml_xmlNewDocElementContent(basePtr, name, contentType))
 	End Method
 	
 	Rem
@@ -1665,7 +1376,7 @@ Type TxmlDoc Extends TxmlBase
 	Method freeDocElementContent(content:TxmlElementContent)
 		Assert content, XML_ERROR_PARAM
 		
-		xmlFreeDocElementContent(_xmlDocPtr, content._xmlElementContentPtr)
+		bmx_libxml_xmlFreeDocElementContent(basePtr, content.xmlElementContentPtr)
 	End Method
 
 	Rem
@@ -1689,27 +1400,11 @@ Type TxmlDoc Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert value, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local s:Byte Ptr
-		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		
 		If context = Null Then
-			s = xmlValidCtxtNormalizeAttributeValue(Null, _xmlDocPtr, elem._xmlNodePtr, cStr1, cStr2)
+			Return bmx_libxml_xmlValidCtxtNormalizeAttributeValue(Null, basePtr, elem.basePtr, name, value)
 		Else
-			s = xmlValidCtxtNormalizeAttributeValue(context._xmlValidCtxtPtr, _xmlDocPtr, elem._xmlNodePtr, cStr1, cStr2)
+			Return bmx_libxml_xmlValidCtxtNormalizeAttributeValue(context.xmlValidCtxtPtr, basePtr, elem.basePtr, name, value)
 		End If
-		
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		
-		Return ret
 	End Method
 	
 	Rem
@@ -1731,23 +1426,7 @@ Type TxmlDoc Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert value, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local s:Byte Ptr
-		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		
-		s = xmlValidNormalizeAttributeValue(_xmlDocPtr, elem._xmlNodePtr, cStr1, cStr2)
-		
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		
-		Return ret
+		Return bmx_libxml_xmlValidNormalizeAttributeValue(basePtr, elem.basePtr, name, value)
 	End Method
 
 End Type
@@ -1757,31 +1436,13 @@ bbdoc: An XML Node
 End Rem
 Type TxmlNode Extends TxmlBase
 
-	' offsets from the pointer
-	'Const _type:Int = 4		' Type number, (int)
-	'Const _name:Int = 8		' the name of the node, Or the entity (byte ptr)
-	'Const _children:Int = 12	' parent->childs link (byte ptr)
-	'Const _last:Int = 16		' last child link (byte ptr)
-	'Const _parent:Int = 20	' child->parent link (byte ptr)
-	'Const _next:Int = 24		' Next sibling link (byte ptr)
-	'Const _prev:Int = 28		' previous sibling link (byte ptr)
-	'Const _doc:Int = 32		' the containing document (byte ptr)
-	Const _ns:Int = 36		' pointer To the associated namespace (byte ptr)
-	Const _content:Int = 40	' the content (byte ptr)
-	Const _properties:Int = 44	' properties list (byte ptr)
-	Const _nsDef:Int = 48		' namespace definitions on this node
-
-	' reference to the actual node
-	Field _xmlNodePtr:Byte Ptr
-
-
 	' internal function... not part of the API !
-	Function _create:TxmlNode(_xmlNodePtr:Byte Ptr)
-		If _xmlNodePtr <> Null Then
+	Function _create:TxmlNode(basePtr:Byte Ptr)
+		If basePtr <> Null Then
 			Local this:TxmlNode = New TxmlNode
 			
-			this._xmlNodePtr = _xmlNodePtr
-			this.initBase(_xmlNodePtr)
+			this.basePtr = basePtr
+			'this.initBase(basePtr)
 
 			Return this
 		Else
@@ -1802,12 +1463,11 @@ Type TxmlNode Extends TxmlBase
 	Function newNode:TxmlNode(name:String, namespace:TxmlNs = Null)
 		Assert name, XML_ERROR_PARAM
 
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
 		Local node:TxmlNode
 		If namespace = Null Then
-			node = _create(xmlNewNode(Null, cStr))
+			node = _create(bmx_libxml_xmlNewNode(Null, name))
 		Else
-			node = _create(xmlNewNode(namespace._xmlNSPtr, cStr))
+			node = _create(bmx_libxml_xmlNewNode(namespace.xmlNsPtr, name))
 		End If
 		
 		Return node
@@ -1820,13 +1480,7 @@ Type TxmlNode Extends TxmlBase
 	string of the values carried by this node child's (TEXT and ENTITY_REF). Entity references are substituted.
 	End Rem
 	Method getContent:String()
-		Local s:Byte Ptr = xmlNodeGetContent(_xmlNodePtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlNodeGetContent(basePtr)
 	End Method
 	
 	Rem
@@ -1840,24 +1494,21 @@ Type TxmlNode Extends TxmlBase
 	Method concatText:Int(content:String)
 		Assert content, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-		Local ret:Int = xmlTextConcat(_xmlNodePtr, cStr, content.length)
-		MemFree cStr
-		Return ret
+		Return bmx_libxml_xmlTextConcat(basePtr, content)
 	End Method
 	
 	Rem
 	bbdoc: Is this node a Text node ?
 	End Rem
 	Method isText:Int()
-		Return xmlNodeIsText(_xmlNodePtr)
+		Return bmx_libxml_xmlNodeIsText(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: Checks whether this node is an empty or whitespace only (and possibly ignorable) text-node.
 	End Rem
 	Method isBlankNode:Int()
-		Return xmlIsBlankNode(_xmlNodePtr)
+		Return bmx_libxml_xmlIsBlankNode(basePtr)
 	End Method
 	
 	Rem
@@ -1870,9 +1521,7 @@ Type TxmlNode Extends TxmlBase
 	Method setBase(uri:String)
 		Assert uri, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		xmlNodeSetBase(_xmlNodePtr, cStr)
-		MemFree cStr
+		bmx_libxml_xmlNodeSetBase(basePtr, uri)
 	End Method
 	
 	Rem
@@ -1884,13 +1533,7 @@ Type TxmlNode Extends TxmlBase
 	use TxmlDoc. #getBase for this
 	End Rem
 	Method getBase:String()
-		Local s:Byte Ptr = xmlNodeGetBase(Byte Ptr(Int Ptr(_xmlNodePtr + _doc)[0]), _xmlNodePtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlNodeGetBase(getDocument().basePtr, basePtr)
 	End Method
 	
 	Rem
@@ -1901,9 +1544,7 @@ Type TxmlNode Extends TxmlBase
 	</ul>
 	End Rem
 	Method setContent(content:String)
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-		xmlNodeSetContent(_xmlNodePtr, cStr)
-		MemFree cStr
+		bmx_libxml_xmlNodeSetContent(basePtr, content)
 	End Method
 	
 	Rem
@@ -1916,9 +1557,7 @@ Type TxmlNode Extends TxmlBase
 	Method addContent(content:String)
 		Assert content, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-		xmlNodeAddContent(_xmlNodePtr, cStr)
-		MemFree cStr
+		bmx_libxml_xmlNodeAddContent(basePtr, content)
 	End Method
 	
 	Rem
@@ -1931,9 +1570,7 @@ Type TxmlNode Extends TxmlBase
 	Method setName(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		xmlNodeSetName(_xmlNodePtr, cStr)
-		MemFree cStr
+		bmx_libxml_xmlNodeSetName(basePtr, name)
 	End Method
 	
 	Rem
@@ -1945,7 +1582,7 @@ Type TxmlNode Extends TxmlBase
 	End Rem
 	Method textMerge:TxmlNode(node:TxmlNode)
 		If node <> Null Then
-			Return TxmlNode._create(xmlTextMerge(_xmlNodePtr, node._xmlNodePtr))
+			Return TxmlNode._create(bmx_libxml_xmlTextMerge(basePtr, node.basePtr))
 		Else
 			Return Self
 		End If
@@ -1970,29 +1607,13 @@ Type TxmlNode Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		
 		Local s:Byte Ptr
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		If content <> Null Then
-		
-			Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-			
-			If namespace <> Null Then
-				s = xmlNewChild(_xmlNodePtr, namespace._xmlNsPtr, cStr1, cStr2)
-			Else
-				s = xmlNewChild(_xmlNodePtr, Null, cStr1, cStr2)
-			End If
-			
-			MemFree cStr2
-		Else
-			If namespace <> Null Then
-				s = xmlNewChild(_xmlNodePtr, namespace, Cstr1, Null)
-			Else
-				s = xmlNewChild(_xmlNodePtr, Null, cStr1, Null)
-			End If
-		End If
-		
-		MemFree cStr1
 
+		If namespace <> Null Then
+			s = bmx_libxml_xmlNewChild(basePtr, namespace.xmlNsPtr, name, content)
+		Else
+			s = bmx_libxml_xmlNewChild(basePtr, Null, name, content)
+		End If
+			
 		Return TxmlNode._create(s)
 	End Method
 	
@@ -2020,29 +1641,12 @@ Type TxmlNode Extends TxmlBase
 		
 		Local s:Byte Ptr
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		If content <> Null Then
-		
-			Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-			
-			If namespace <> Null Then
-				s = xmlNewTextChild(_xmlNodePtr, namespace._xmlNsPtr, cStr1, cStr2)
-			Else
-				s = xmlNewTextChild(_xmlNodePtr, Null, cStr1, cStr2)
-			End If
-			
-			MemFree cStr2
+		If namespace <> Null Then
+			s = bmx_libxml_xmlNewTextChild(basePtr, namespace.xmlNsPtr, name, content)
 		Else
-			If namespace <> Null Then
-				s = xmlNewTextChild(_xmlNodePtr, namespace._xmlNsPtr, cStr1, Null)
-			Else
-				s = xmlNewTextChild(_xmlNodePtr, Null, cStr1, Null)			
-			End If
+			s = bmx_libxml_xmlNewTextChild(basePtr, Null, name, content)
 		End If
-		
-		MemFree cStr1
-		
+			
 		Return TxmlNode._create(s)
 	End Method
 	
@@ -2066,7 +1670,7 @@ Type TxmlNode Extends TxmlBase
 				End If
 				currentNode = node
 			Next
-			Return TxmlNode._create(xmlAddChild(_xmlNodePtr, firstNode._xmlNodePtr))
+			Return TxmlNode._create(bmx_libxml_xmlAddChild(basePtr, firstNode.basePtr))
 		End If
 		Return Null
 	End Method
@@ -2086,7 +1690,7 @@ Type TxmlNode Extends TxmlBase
 	Method addNextSibling:TxmlNode(node:TxmlNode)
 		Assert node, XML_ERROR_PARAM
 		
-		Return TxmlNode._create(xmlAddNextSibling(_xmlNodePtr, node._xmlNodePtr))
+		Return TxmlNode._create(bmx_libxml_xmlAddNextSibling(basePtr, node.basePtr))
 	End Method
 	
 	Rem
@@ -2104,7 +1708,7 @@ Type TxmlNode Extends TxmlBase
 	Method addPreviousSibling:TxmlNode(node:TxmlNode)
 		Assert node, XML_ERROR_PARAM
 		
-		Return TxmlNode._create(xmlAddPrevSibling(_xmlNodePtr, node._xmlNodePtr))
+		Return TxmlNode._create(bmx_libxml_xmlAddPrevSibling(basePtr, node.basePtr))
 	End Method
 	
 	Rem
@@ -2120,7 +1724,7 @@ Type TxmlNode Extends TxmlBase
 	Method addSibling:TxmlNode(node:TxmlNode)
 		Assert node, XML_ERROR_PARAM
 		
-		Return TxmlNode._create(xmlAddSibling(_xmlNodePtr, node._xmlNodePtr))
+		Return TxmlNode._create(bmx_libxml_xmlAddSibling(basePtr, node.basePtr))
 	End Method
 	
 	Rem
@@ -2135,12 +1739,7 @@ Type TxmlNode Extends TxmlBase
 	Method addAttribute:TxmlAttribute(name:String, value:String = "")
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local att:TxmlAttribute = TxmlAttribute._create(xmlNewProp(_xmlNodePtr, cStr1, cStr2))
-		MemFree cStr1
-		MemFree cStr2
-		Return att
+		Return TxmlAttribute._create(bmx_libxml_xmlNewProp(basePtr, name, value))
 	End Method
 	
 	Rem
@@ -2155,12 +1754,7 @@ Type TxmlNode Extends TxmlBase
 	Method setAttribute:TxmlAttribute(name:String, value:String = "")
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local att:TxmlAttribute = TxmlAttribute._create(xmlSetProp(_xmlNodePtr, cStr1, cStr2))
-		MemFree cStr1
-		MemFree cStr2
-		Return att
+		Return TxmlAttribute._create(bmx_libxml_xmlSetProp(basePtr, name, value))
 	End Method
 	
 	Rem
@@ -2179,12 +1773,7 @@ Type TxmlNode Extends TxmlBase
 		Assert namespace, XML_ERROR_PARAM
 		Assert name, XML_ERROR_PARAM
 
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local att:TxmlAttribute = TxmlAttribute._create(xmlSetNsProp(_xmlNodePtr, namespace._xmlNsPtr, cStr1, cStr2))
-		MemFree cStr1
-		MemFree cStr2
-		Return att
+		Return TxmlAttribute._create(bmx_libxml_xmlSetNsProp(basePtr, namespace.xmlNsPtr, name, value))
 	End Method
 	
 	Rem
@@ -2200,10 +1789,7 @@ Type TxmlNode Extends TxmlBase
 		Assert namespace, XML_ERROR_PARAM
 		Assert name, XML_ERROR_PARAM
 
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local ret:Int = xmlUnsetNsProp(_xmlNodePtr, namespace._xmlNsPtr, cStr)
-		MemFree cStr
-		Return ret
+		Return bmx_libxml_xmlUnsetNsProp(basePtr, namespace.xmlNsPtr, name)
 	End Method
 	
 	Rem
@@ -2217,10 +1803,7 @@ Type TxmlNode Extends TxmlBase
 	Method unsetAttribute:Int(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local ret:Int = xmlUnsetProp(_xmlNodePtr, cStr)
-		MemFree cStr
-		Return ret
+		Return bmx_libxml_xmlUnsetProp(basePtr, name)
 	End Method
 	
 	Rem
@@ -2239,15 +1822,7 @@ Type TxmlNode Extends TxmlBase
 	Method getAttribute:String(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local s:Byte Ptr = xmlGetProp(_xmlNodePtr, cStr)
-		MemFree cStr
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlGetProp(basePtr, name)
 	End Method
 	
 	Rem
@@ -2267,20 +1842,7 @@ Type TxmlNode Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert namespace, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(namespace).toCString()
-		
-		Local s:Byte Ptr = xmlGetNsProp(_xmlNodePtr, cStr1, cStr2)
-		
-		MemFree cStr1
-		MemFree cStr2
-		
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlGetNsProp(basePtr, name, namespace)
 	End Method
 	
 	Rem
@@ -2298,16 +1860,7 @@ Type TxmlNode Extends TxmlBase
 	Method getNoNsAttribute:String(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local s:Byte Ptr = xmlGetNoNsProp(_xmlNodePtr, cStr)
-		MemFree cStr
-		
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlGetNoNsProp(basePtr, name)
 	End Method
 	
 	Rem
@@ -2326,18 +1879,7 @@ Type TxmlNode Extends TxmlBase
 	Method hasNsAttribute:TxmlAttribute(name:String, namespace:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		If namespace <> Null Then
-			Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(namespace).toCString()
-			Local att:TxmlAttribute = TxmlAttribute._create(xmlHasNsProp(_xmlNodePtr, cStr1, cStr2))
-			MemFree cStr1
-			MemFree cStr2
-			Return att
-		Else
-			Local att:TxmlAttribute = TxmlAttribute._create(xmlHasNsProp(_xmlNodePtr, cStr1, Null))
-			MemFree cStr1
-			Return att
-		End If
+		Return TxmlAttribute._create(bmx_libxml_xmlHasNsProp(basePtr, name, namespace))
 	End Method
 	
 	Rem
@@ -2354,10 +1896,7 @@ Type TxmlNode Extends TxmlBase
 	Method hasAttribute:TxmlAttribute(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local att:TxmlAttribute = TxmlAttribute._create(xmlHasProp(_xmlNodePtr, cStr))
-		MemFree cStr
-		Return att
+		Return TxmlAttribute._create(bmx_libxml_xmlHasProp(basePtr, name))
 	End Method
 	
 	Rem
@@ -2365,13 +1904,7 @@ Type TxmlNode Extends TxmlBase
 	returns: The path or Null in case of error.
 	End Rem
 	Method getNodePath:String()
-		Local s:Byte Ptr = xmlGetNodePath(_xmlNodePtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlGetNodePath(basePtr)
 	End Method
 	
 	Rem
@@ -2387,7 +1920,7 @@ Type TxmlNode Extends TxmlBase
 	End Rem
 	Method replaceNode:TxmlNode(withNode:TxmlNode)
 		Assert withNode, XML_ERROR_PARAM
-		Return TxmlNode._create(xmlReplaceNode(_xmlNodePtr, withNode._xmlNodePtr))
+		Return TxmlNode._create(bmx_libxml_xmlReplaceNode(basePtr, withNode.basePtr))
 	End Method
 	
 	Rem
@@ -2400,7 +1933,7 @@ Type TxmlNode Extends TxmlBase
 	Method setNamespace(namespace:TxmlNs)
 		Assert namespace, XML_ERROR_PARAM
 		
-		xmlSetNs(_xmlNodePtr, namespace._xmlNsPtr)
+		bmx_libxml_xmlSetNs(basePtr, namespace.xmlNsPtr)
 	End Method
 	
 	Rem
@@ -2414,7 +1947,7 @@ Type TxmlNode Extends TxmlBase
 		If value <> False Then
 			value = True
 		End If
-		xmlNodeSetSpacePreserve(_xmlNodePtr, value)
+		bmx_libxml_xmlNodeSetSpacePreserve(basePtr, value)
 	End Method
 	
 	Rem
@@ -2422,7 +1955,7 @@ Type TxmlNode Extends TxmlBase
 	Returns: -1 if xml:space is not inherited, 0 if "default", 1 if "preserve"
 	End Rem
 	Method getSpacePreserve:Int()
-		Return xmlNodeGetSpacePreserve(_xmlNodePtr)
+		Return bmx_libxml_xmlNodeGetSpacePreserve(basePtr)
 	End Method
 	
 	Rem
@@ -2435,9 +1968,7 @@ Type TxmlNode Extends TxmlBase
 	Method setLanguage(lang:String)
 		Assert lang, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(lang).toCString()
-		xmlNodeSetLang(_xmlNodePtr, cStr)
-		MemFree cStr
+		bmx_libxml_xmlNodeSetLang(basePtr, lang)
 	End Method
 	
 	Rem
@@ -2445,13 +1976,7 @@ Type TxmlNode Extends TxmlBase
 	returns: the language value, or Null if not found.
 	End Rem
 	Method GetLanguage:String()
-		Local s:Byte Ptr = xmlNodeGetLang(_xmlNodePtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlNodeGetLang(basePtr)
 	End Method
 	
 	Rem
@@ -2465,12 +1990,10 @@ Type TxmlNode Extends TxmlBase
 	Method addComment:TxmlNode(comment:String)
 		Assert comment, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(comment).toCString()
-		Local commentPtr:Byte Ptr = xmlNewComment(cStr)
-		MemFree cStr
+		Local commentPtr:Byte Ptr = bmx_libxml_xmlNewComment(comment)
 		
 		If commentPtr <> Null Then
-			Return TxmlNode._create(xmlAddChild(_xmlNodePtr, commentPtr))
+			Return TxmlNode._create(bmx_libxml_xmlAddChild(basePtr, commentPtr))
 		End If
 	End Method
 	
@@ -2485,13 +2008,10 @@ Type TxmlNode Extends TxmlBase
 	Method addCDataBlock:TxmlNode(content:String)
 		Assert content, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
-
-		Local cdataPtr:Byte Ptr = xmlNewCDataBlock(Byte Ptr(Int Ptr(_xmlNodePtr + _doc)[0]), cStr, content.length)
-		MemFree cStr
+		Local cdataPtr:Byte Ptr = bmx_libxml_xmlNewCDataBlock(basePtr, content)
 		
 		If cdataPtr <> Null Then
-			Return TxmlNode._create(xmlAddChild(_xmlNodePtr, cdataPtr))
+			Return TxmlNode._create(bmx_libxml_xmlAddChild(basePtr, cdataPtr))
 		End If
 	End Method
 	
@@ -2499,13 +2019,7 @@ Type TxmlNode Extends TxmlBase
 	bbdoc: Return the string equivalent to the text contained in the child nodes made of TEXTs and ENTITY_REFs.
 	End Rem
 	Method GetText:String()
-		Local s:Byte Ptr = xmlNodeListGetString(Byte Ptr(Int Ptr(_xmlNodePtr + _doc)[0]), Byte Ptr(Int Ptr(_xmlNodePtr + _children)[0]), 1)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlNodeListGetString(basePtr)
 	End Method
 	
 	Rem
@@ -2547,7 +2061,7 @@ Type TxmlNode Extends TxmlBase
 	End Rem
 	Method toString:String()
 		Local buffer:TxmlBuffer = TxmlBuffer.newBuffer()
-		xmlNodeDump(buffer._xmlBufferPtr, Byte Ptr(Int Ptr(_xmlNodePtr + _doc)[0]) ,_xmlNodePtr, 1, True)
+		bmx_libxml_xmlNodeDump(buffer.xmlBufferPtr, basePtr)
 		Local t:String = buffer.getContent()
 		buffer.free()
 		Return t
@@ -2567,15 +2081,7 @@ Type TxmlNode Extends TxmlBase
 	</p>
 	End Rem
 	Method searchNamespace:TxmlNs(namespace:String)
-		If namespace <> Null Then
-			Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(namespace).toCString()
-	
-			Local ns:TxmlNs = TxmlNs._create(xmlSearchNs(Byte Ptr(Int Ptr(_xmlNodePtr + _doc)[0]), _xmlNodePtr, cStr))
-			MemFree cStr
-			Return ns
-		Else
-			Return TxmlNs._create(xmlSearchNs(Byte Ptr(Int Ptr(_xmlNodePtr + _doc)[0]), _xmlNodePtr, Null))
-		End If
+		Return TxmlNs._create(bmx_libxml_xmlSearchNs(basePtr, namespace))
 	End Method
 	
 	Rem
@@ -2591,10 +2097,7 @@ Type TxmlNode Extends TxmlBase
 	Method searchNsByHref:TxmlNs(href:String)
 		Assert href, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(href).toCString()
-		Local ns:TxmlNs = TxmlNs._create(xmlSearchNsByHref(Byte Ptr(Int Ptr(_xmlNodePtr + _doc)[0]), _xmlNodePtr, cStr))
-		MemFree cStr
-		Return ns
+		Return TxmlNs._create(bmx_libxml_xmlSearchNsByHref(basePtr, href))
 	End Method
 	
 	Rem
@@ -2607,7 +2110,7 @@ Type TxmlNode Extends TxmlBase
 	</ul>
 	End Rem
 	Method copy:TxmlNode(extended:Int = 1)
-		Return TxmlNode._create(xmlCopyNode(_xmlNodePtr, extended))
+		Return TxmlNode._create(bmx_libxml_xmlCopyNode(basePtr, extended))
 	End Method
 	
 	Rem
@@ -2622,7 +2125,7 @@ Type TxmlNode Extends TxmlBase
 	End Rem
 	Method copyToDoc:TxmlNode(doc:TxmlDoc, extended:Int = 1)
 		Assert doc, XML_ERROR_PARAM
-		Return TxmlNode._create(xmlDocCopyNode(_xmlNodePtr, doc._xmlDocPtr, extended))
+		Return TxmlNode._create(bmx_libxml_xmlDocCopyNode(basePtr, doc.basePtr, extended))
 	End Method
 	
 	Rem
@@ -2634,7 +2137,7 @@ Type TxmlNode Extends TxmlBase
 	End Rem
 	Method setTreeDoc(doc:TxmlDoc)
 		Assert doc, XML_ERROR_PARAM
-		xmlSetTreeDoc(_xmlNodePtr, doc._xmlDocPtr)
+		bmx_libxml_xmlSetTreeDoc(basePtr, doc.basePtr)
 	End Method
 
 	Rem
@@ -2642,7 +2145,7 @@ Type TxmlNode Extends TxmlBase
 	returns: 0 if no substitution were done, -1 if some processing failed or the number of substitutions done.
 	End Rem 
 	Method XIncludeProcessTree:Int()
-		Return xmlXIncludeProcessTree(_xmlNodePtr)
+		Return bmx_libxml_xmlXIncludeProcessTree(basePtr)
 	End Method
 	
 	Rem
@@ -2654,14 +2157,14 @@ Type TxmlNode Extends TxmlBase
 	</ul>
 	End Rem
 	Method XIncludeProcessTreeFlags:Int(flags:Int)
-		Return xmlXIncludeProcessTreeFlags(_xmlNodePtr, flags)
+		Return bmx_libxml_xmlXIncludeProcessTreeFlags(basePtr, flags)
 	End Method
 	
 	Rem
 	bbdoc: Returns the associated namespace.
 	End Rem
 	Method getNamespace:TxmlNs()
-		Return TxmlNs._create(Byte Ptr(Int Ptr(_xmlNodePtr + _ns)[0]))
+		Return TxmlNs._create(bmx_libxml_xmlnode_namespace(basePtr))
 	End Method
 	
 	Rem
@@ -2669,12 +2172,8 @@ Type TxmlNode Extends TxmlBase
 	returns: The list of attributes or Null if the node has none.
 	End Rem
 	Method getAttributeList:TList()
-		If Byte Ptr(Int Ptr(_basePtr + _properties)[0]) = Null Then
-			Return Null
-		End If
-		
 		Local attributes:TList = New TList
-		Local attr:TxmlBase = chooseCreateFromType(Byte Ptr(Int Ptr(_basePtr + _properties)[0]))
+		Local attr:TxmlBase = chooseCreateFromType(bmx_libxml_xmlnode_properties(basePtr))
 		
 		While attr <> Null
 
@@ -2692,7 +2191,7 @@ Type TxmlNode Extends TxmlBase
 	about: After unlinking, and the node is no longer required, it should be freed using #freeNode.
 	End Rem
 	Method unlinkNode()
-		xmlUnlinkNode(_xmlNodePtr)
+		bmx_libxml_xmlUnlinkNode(basePtr)
 	End Method
 	
 	Rem
@@ -2700,7 +2199,7 @@ Type TxmlNode Extends TxmlBase
 	about: The node should be @unlinked before being freed. See #unlinkNode.
 	End Rem
 	Method freeNode()
-		xmlFreeNode(_xmlNodePtr)
+		bmx_libxml_xmlFreeNode(basePtr)
 	End Method
 	
 End Type
@@ -2709,18 +2208,14 @@ Rem
 bbdoc: Xml Buffer
 End Rem
 Type TxmlBuffer
-	Const _content:Int	 = 0		' The buffer content UTF8 (byte ptr)
-	Const _use:Int = 4			' The buffer size used (int)
-	Const _size:Int = 8		' The buffer size (int)
-	Const _alloc:Int = 12		' The buffer allocation scheme (int)
 	
-	Field _xmlBufferPtr:Byte Ptr
+	Field xmlBufferPtr:Byte Ptr
 	
-	Function _create:TxmlBuffer(_xmlBufferPtr:Byte Ptr)
-		If _xmlBufferPtr <> Null Then
+	Function _create:TxmlBuffer(xmlBufferPtr:Byte Ptr)
+		If xmlBufferPtr <> Null Then
 			Local this:TxmlBuffer = New TxmlBuffer
 			
-			this._xmlBufferPtr = _xmlBufferPtr
+			this.xmlBufferPtr = xmlBufferPtr
 			
 			Return this
 		Else
@@ -2729,7 +2224,7 @@ Type TxmlBuffer
 	End Function
 	
 	Function newBuffer:TxmlBuffer()
-		Return TxmlBuffer._create(xmlBufferCreate())
+		Return TxmlBuffer._create(bmx_libxml_xmlBufferCreate())
 	End Function
 	
 	Rem
@@ -2738,24 +2233,18 @@ Type TxmlBuffer
 	of the buffer lifetime.
 	End Rem
 	Function CreateStatic:TxmlBuffer(mem:Byte Ptr, size:Int)
-		Return TxmlBuffer._create(xmlBufferCreateStatic(mem, size))
+		Return TxmlBuffer._create(bmx_libxml_xmlBufferCreateStatic(mem, size))
 	End Function
 	
 	Rem
 	bbdoc: Extract the content of a buffer.
 	End Rem
 	Method getContent:String()
-		'Local s:Byte Ptr = xmlBufferContent(_xmlBufferPtr)
-		'If s <> Null Then
-	'		Local ret:String String.fromCString(s)
-	'		MemFree(s)
-	'		Return ret
-	'	End If
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlBufferPtr + _content)[0]))
+		Return bmx_libxml_xmlbuffer_content(xmlBufferPtr)
 	End Method
 	
 	Method free()
-		xmlBufferFree(_xmlBufferPtr)
+		bmx_libxml_xmlBufferFree(xmlBufferPtr)
 	End Method
 End Type
 
@@ -2779,7 +2268,7 @@ Type TxmlOutputBuffer
 	End Function
 	
 	Function createBuffer:TxmlOutputBuffer(buffer:TxmlBuffer)
-		Return TxmlOutputBuffer._create(xmlOutputBufferCreateBuffer(buffer._xmlBufferPtr, Null))
+		Return TxmlOutputBuffer._create(xmlOutputBufferCreateBuffer(buffer.xmlBufferPtr, Null))
 	End Function
 
 	Function createIO:TxmlOutputBuffer()
@@ -2793,17 +2282,13 @@ Rem
 bbdoc: An XML Namespace
 End Rem
 Type TxmlNs
-	Const _next:Int = 0		' Next Ns link For this node (byte ptr)
-	Const _type:Int = 4		' Global Or Local (int)
-	Const _href:Int = 8		' URL For the namespace (byte ptr)
-	Const _prefix:Int = 12	' prefix For the namespace (byte ptr)
 
-	Field _xmlNsPtr:Byte Ptr
+	Field xmlNsPtr:Byte Ptr
 	
-	Function _create:TxmlNs(_xmlNsPtr:Byte Ptr)
-		If _xmlNsPtr <> Null Then
+	Function _create:TxmlNs(xmlNsPtr:Byte Ptr)
+		If xmlNsPtr <> Null Then
 			Local this:TxmlNs = New TxmlNs
-			this._xmlNsPtr = _xmlNsPtr
+			this.xmlNsPtr = xmlNsPtr
 			Return this
 		Else
 			Return Null
@@ -2814,28 +2299,28 @@ Type TxmlNs
 	bbdoc: Returns the type... global or local.
 	End Rem
 	Method getType:Int()
-		Return Int Ptr(_xmlNsPtr + _type)[0]
+		Return bmx_libxml_xmlns_type(xmlNsPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the URL for the namespace.
 	End Rem
 	Method getHref:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlNsPtr + _href)[0]))
+		Return bmx_libxml_xmlns_href(xmlNsPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the prefix for the namespace.
 	End Rem
 	Method getPrefix:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlNsPtr + _prefix)[0]))
+		Return bmx_libxml_xmlns_prefix(xmlNsPtr)
 	End Method
 	
 	Rem
 	bbdoc: Free up the structures associated to the namespace
 	End Rem
 	Method free()
-		xmlFreeNs(_xmlNsPtr)
+		bmx_libxml_xmlFreeNs(xmlNsPtr)
 	End Method
 End Type
 
@@ -2844,28 +2329,12 @@ bbdoc: An XML Attribute
 End Rem
 Type TxmlAttribute Extends TxmlBase
 
-	' offsets from the pointer
-	'Const _type:Int = 4		' Type number, (int)
-	'Const _name:Int = 8		' the name of the node, Or the entity (byte ptr)
-	'Const _value:Int = 12		' the value of the property (byte ptr)
-	'Const _last:Int = 16		' last child link (byte ptr)
-	'Const _parent:Int = 20		' child->parent link (byte ptr)
-	'Const _next:Int = 24		' Next sibling link (byte ptr)
-	'Const _prev:Int = 28		' previous sibling link (byte ptr)
-	'Const _doc:Int = 32		' the containing document (byte ptr)
-	Const _ns:Int = 36			' pointer To the associated namespace (byte ptr)
-	Const _atype:Int = 40		' the attribute Type If validating (int?)
-
-	' reference to the actual attribute
-	Field _xmlAttrPtr:Byte Ptr
-
 	' internal function... not part of the API !
-	Function _create:TxmlAttribute(_xmlAttrPtr:Byte Ptr)
-		If _xmlAttrPtr <> Null Then
+	Function _create:TxmlAttribute(basePtr:Byte Ptr)
+		If basePtr <> Null Then
 			Local this:TxmlAttribute = New TxmlAttribute
 			
-			this._xmlAttrPtr = _xmlAttrPtr
-			this.initBase(_xmlAttrPtr)
+			this.basePtr = basePtr
 			
 			Return this
 		Else
@@ -2877,13 +2346,7 @@ Type TxmlAttribute Extends TxmlBase
 	bbdoc: Returns the attribute value.
 	End Rem
 	Method getValue:String()
-		Local s:Byte Ptr = xmlNodeListGetString(Byte Ptr(Int Ptr(_xmlAttrPtr + _doc)[0]), Byte Ptr(Int Ptr(_xmlAttrPtr + _children)[0]), 1)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlNodeListGetString(basePtr)
 	End Method
 
 	Rem
@@ -2905,7 +2368,7 @@ Type TxmlAttribute Extends TxmlBase
 	</table>
 	End Rem
 	Method getAttributeType:Int()
-		Return Int Ptr(_xmlAttrPtr + _atype)[0]
+		Return bmx_libxml_xmlattr_atype(basePtr)
 	End Method
 	
 	Rem
@@ -2913,7 +2376,7 @@ Type TxmlAttribute Extends TxmlBase
 	returns: The associated namespace, or Null if none.
 	End Rem
 	Method getNameSpace:TxmlNs()
-		Return TxmlNs._create(Byte Ptr(Int Ptr(_xmlAttrPtr + _ns)[0]))
+		Return TxmlNs._create(bmx_libxml_xmlattr_ns(basePtr))
 	End Method
 	
 End Type
@@ -2923,19 +2386,15 @@ bbdoc: An XML Node set
 End Rem
 Type TxmlNodeSet
 
-	Const _nodeNr:Int = 0		' number of nodes in the set (int)
-	Const _nodeMax:Int = 4		' size of the array as allocated (int)
-	Const _nodelist:Int = 8	' array of nodes in no particular order (byte ptr)
-
 	' reference to the actual node set
-	Field _xmlNodeSetPtr:Byte Ptr
+	Field xmlNodeSetPtr:Byte Ptr
 
 	' internal function... not part of the API !
-	Function _create:TxmlNodeSet(_xmlNodeSetPtr:Byte Ptr)
-		If _xmlNodeSetPtr <> Null Then
+	Function _create:TxmlNodeSet(xmlNodeSetPtr:Byte Ptr)
+		If xmlNodeSetPtr <> Null Then
 			Local this:TxmlNodeSet = New TxmlNodeSet
 			
-			this._xmlNodeSetPtr = _xmlNodeSetPtr
+			this.xmlNodeSetPtr = xmlNodeSetPtr
 			
 			Return this
 		Else
@@ -2947,28 +2406,21 @@ Type TxmlNodeSet
 	bbdoc: The count of nodes in the node set.
 	End Rem
 	Method getNodeCount:Int()
-		Return Int Ptr(_xmlNodeSetPtr + _nodeNr)[0]
+		Return bmx_libxml_xmlnodeset_nodeNr(xmlNodeSetPtr)
 	End Method
 	
 	Rem
 	bbdoc: The list of nodes in the node set.
 	End Rem
 	Method getNodeList:TList()
-		If Byte Ptr(Int Ptr(_xmlNodeSetPtr + _nodelist)[0]) = Null Then
-			Return Null
-		End If
-		
+	
 		Local nodeList:TList = New TList
 		
 		Local count:Int = getNodeCount()
 		
-		' use a pointer to the list of pointers, then iterate through that list
-		Local pointer:Int Ptr = Int Ptr(Byte Ptr(Int Ptr(_xmlNodeSetPtr + _nodelist)[0]))
-		
 		For Local i:Int = 0 Until count
 			
-			Local node:TxmlNode = TxmlNode._create(Byte Ptr(pointer[i]))
-			
+			Local node:TxmlNode = TxmlNode._create(bmx_libxml_xmlnodeset_nodetab(xmlNodeSetPtr, i))
 			nodeList.addLast(node)
 
 		Next
@@ -2981,7 +2433,7 @@ Type TxmlNodeSet
 	returns: The boolean value
 	End Rem
 	Method castToBoolean:Int()
-		Return xmlXPathCastNodeSetToBoolean(_xmlNodeSetPtr)
+		Return bmx_libxml_xmlXPathCastNodeSetToBoolean(xmlNodeSetPtr)
 	End Method
 	
 	Rem
@@ -2989,7 +2441,7 @@ Type TxmlNodeSet
 	returns: The number value
 	End Rem
 	Method castToNumber:Double()
-		Return xmlXPathCastNodeSetToNumber(_xmlNodeSetPtr)
+		Return bmx_libxml_xmlXPathCastNodeSetToNumber(xmlNodeSetPtr)
 	End Method
 	
 	Rem
@@ -2997,21 +2449,21 @@ Type TxmlNodeSet
 	returns: The string value
 	End Rem
 	Method castToString:String()
-		Return _xmlConvertUTF8ToMax(xmlXPathCastNodeSetToString(_xmlNodeSetPtr))
+		Return bmx_libxml_xmlXPathCastNodeSetToString(xmlNodeSetPtr)
 	End Method
 	
 	Rem
 	bbdoc: Checks whether the node set is empty or not.
 	End Rem
 	Method isEmpty:Int()
-		Return getNodeCount() = 0 Or Byte Ptr(Int Ptr(_xmlNodeSetPtr + _nodelist)[0]) = Null
+		Return getNodeCount() = 0
 	End Method
 	
 	Rem
 	bbdoc: Free the node set compound (not the actual nodes !).
 	End Rem
 	Method free()
-		xmlXPathFreeNodeSet(_xmlNodeSetPtr)
+		bmx_libxml_xmlXPathFreeNodeSet(xmlNodeSetPtr)
 	End Method
 End Type
 
@@ -3020,26 +2472,15 @@ bbdoc: An XML XPath Object
 End Rem
 Type TxmlXPathObject
 
-	Const _type:Int = 0 		' (int)
-	Const _nodesetval:Int = 4	' a pointer to a nodeset (byte ptr)
-	Const _boolval:Int = 8	' (int)
-	Const _floatval:Int = 12	' (double)
-	Const _stringval:Int = 16	' (byte ptr)
-	Const _user:Int = 20		' (byte ptr)
-	Const _index:Int = 24	' (int)
-	Const _user2:Int = 28	' (byte ptr)
-	Const _index2:Int = 32	' (int)
-
 	' reference to the actual xpath object
-	Field _xmlXPathObjectPtr:Byte Ptr
-
+	Field xmlXPathObjectPtr:Byte Ptr
 
 	' internal function... not part of the API !
-	Function _create:TxmlXPathObject(_xmlXPathObjectPtr:Byte Ptr)
-		If _xmlXPathObjectPtr <> Null Then
+	Function _create:TxmlXPathObject(xmlXPathObjectPtr:Byte Ptr)
+		If xmlXPathObjectPtr <> Null Then
 			Local this:TxmlXPathObject = New TxmlXPathObject
 			
-			this._xmlXPathObjectPtr = _xmlXPathObjectPtr
+			this.xmlXPathObjectPtr = xmlXPathObjectPtr
 			
 			Return this
 		Else
@@ -3058,7 +2499,7 @@ Type TxmlXPathObject
 	Function XPointerNewCollapsedRange:TxmlXPathObject(node:TxmlNode)
 		Assert node, XML_ERROR_PARAM
 		
-		Return TxmlXPathObject._create(xmlXPtrNewCollapsedRange(node._xmlNodePtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewCollapsedRange(node.basePtr))
 	End Function
 	
 	Rem
@@ -3072,7 +2513,7 @@ Type TxmlXPathObject
 	Function XPointerNewLocationSetNodeSet:TxmlXPathObject(nodeset:TxmlNodeSet)
 		Assert nodeset, XML_ERROR_PARAM
 	
-		Return TxmlXPathObject._create(xmlXPtrNewLocationSetNodeSet(nodeset._xmlNodeSetPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewLocationSetNodeSet(nodeset.xmlNodeSetPtr))
 	End Function
 
 	Rem
@@ -3090,9 +2531,9 @@ Type TxmlXPathObject
 		Local obj:TxmlXPathObject = Null
 		
 		If endnode <> Null Then
-			obj = TxmlXPathObject._create(xmlXPtrNewLocationSetNodes(startnode._xmlNodePtr, endnode._xmlNodePtr))
+			obj = TxmlXPathObject._create(bmx_libxml_xmlXPtrNewLocationSetNodes(startnode.basePtr, endnode.basePtr))
 		Else
-			obj = TxmlXPathObject._create(xmlXPtrNewLocationSetNodes(startnode._xmlNodePtr, Null))
+			obj = TxmlXPathObject._create(bmx_libxml_xmlXPtrNewLocationSetNodes(startnode.basePtr, Null))
 		End If
 		
 		Return obj
@@ -3113,7 +2554,7 @@ Type TxmlXPathObject
 		Assert startnode, XML_ERROR_PARAM
 		Assert endnode, XML_ERROR_PARAM
 
-		Return TxmlXPathObject._create(xmlXPtrNewRange(startnode._xmlNodePtr, startindex, endnode._xmlNodePtr, endindex))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewRange(startnode.basePtr, startindex, endnode.basePtr, endindex))
 	End Function
 	
 	Rem
@@ -3129,7 +2570,7 @@ Type TxmlXPathObject
 		Assert startnode, XML_ERROR_PARAM
 		Assert endobj, XML_ERROR_PARAM
 		
-		Return TxmlXPathObject._create(xmlXPtrNewRangeNodeObject(startnode._xmlNodePtr, endobj._xmlXPathObjectPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewRangeNodeObject(startnode.basePtr, endobj.xmlXPathObjectPtr))
 	End Function
 
 	Rem
@@ -3145,7 +2586,7 @@ Type TxmlXPathObject
 		Assert startnode, XML_ERROR_PARAM
 		Assert endpoint, XML_ERROR_PARAM
 			
-		Return TxmlXPathObject._create(xmlXPtrNewRangeNodePoint(startnode._xmlNodePtr, endpoint._xmlXPathObjectPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewRangeNodePoint(startnode.basePtr, endpoint.xmlXPathObjectPtr))
 	End Function
 	
 	Rem
@@ -3161,7 +2602,7 @@ Type TxmlXPathObject
 		Assert startnode, XML_ERROR_PARAM
 		Assert endnode, XML_ERROR_PARAM
 	
-		Return TxmlXPathObject._create(xmlXPtrNewRangeNodes(startnode._xmlNodePtr, endnode._xmlNodePtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewRangeNodes(startnode.basePtr, endnode.basePtr))
 	End Function
 	
 	Rem
@@ -3177,7 +2618,7 @@ Type TxmlXPathObject
 		Assert startpoint, XML_ERROR_PARAM
 		Assert endnode, XML_ERROR_PARAM
 	
-		Return TxmlXPathObject._create(xmlXPtrNewRangePointNode(startpoint._xmlXPathObjectPtr, endnode._xmlNodePtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewRangePointNode(startpoint.xmlXPathObjectPtr, endnode.basePtr))
 	End Function
 	
 	Rem
@@ -3193,7 +2634,7 @@ Type TxmlXPathObject
 		Assert startpoint, XML_ERROR_PARAM
 		Assert endpoint, XML_ERROR_PARAM
 	
-		Return TxmlXPathObject._create(xmlXPtrNewRangePoints(startpoint._xmlXPathObjectPtr, endpoint._xmlXPathObjectPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrNewRangePoints(startpoint.xmlXPathObjectPtr, endpoint.xmlXPathObjectPtr))
 	End Function
 	
 	Rem
@@ -3207,7 +2648,7 @@ Type TxmlXPathObject
 	Function XPointerWrapLocationSet:TxmlXPathObject(value:TxmlLocationSet)
 		Assert value, XML_ERROR_PARAM
 		
-		Return TxmlXPathObject._create(xmlXPtrWrapLocationSet(value._xmlLocationSetPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrWrapLocationSet(value.xmlLocationSetPtr))
 	End Function
 	
 	Rem
@@ -3228,28 +2669,28 @@ Type TxmlXPathObject
 	</table>
 	End Rem
 	Method getType:Int()
-		Return Int Ptr(_xmlXPathObjectPtr + _type)[0]
+		Return bmx_libxml_xmlxpathobject_type(xmlXPathObjectPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the node set for the xpath
 	End Rem
 	Method getNodeSet:TxmlNodeSet()
-		Return TxmlNodeSet._create(Byte Ptr(Int Ptr(_xmlXPathObjectPtr + _nodesetval)[0]))
+		Return TxmlNodeSet._create(bmx_libxml_xmlxpathobject_nodesetval(xmlXPathObjectPtr))
 	End Method
 	
 	Rem
 	bbdoc: Whether the node set is empty or not
 	End Rem
 	Method nodeSetIsEmpty:Int()
-		Return Byte Ptr(Int Ptr(_xmlXPathObjectPtr + _nodesetval)[0]) = Null Or getNodeSet().isEmpty()
+		Return getNodeSet() = Null Or getNodeSet().isEmpty()
 	End Method
 
 	Rem
 	bbdoc: Returns the xpath object string value
 	End Rem
 	Method getStringValue:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlXPathObjectPtr + _stringval)[0]))
+		Return bmx_libxml_xmlxpathobject_stringval(xmlXPathObjectPtr)
 	End Method
 
 	Rem
@@ -3257,7 +2698,7 @@ Type TxmlXPathObject
 	returns: The boolean value
 	End Rem
 	Method castToBoolean:Int()
-		Return xmlXPathCastToBoolean(_xmlXPathObjectPtr)
+		Return bmx_libxml_xmlXPathCastToBoolean(xmlXPathObjectPtr)
 	End Method
 	
 	Rem
@@ -3265,7 +2706,7 @@ Type TxmlXPathObject
 	returns: The number value
 	End Rem
 	Method castToNumber:Double()
-		Return xmlXPathCastToNumber(_xmlXPathObjectPtr)
+		Return bmx_libxml_xmlXPathCastToNumber(xmlXPathObjectPtr)
 	End Method
 
 	Rem
@@ -3273,13 +2714,7 @@ Type TxmlXPathObject
 	returns: The string value
 	End Rem
 	Method castToString:String()
-		Local s:Byte Ptr = xmlXPathCastToString(_xmlXPathObjectPtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlXPathCastToString(xmlXPathObjectPtr)
 	End Method
 	
 	Rem
@@ -3287,7 +2722,7 @@ Type TxmlXPathObject
 	returns: the new object, this one is freed
 	End Rem
 	Method convertBoolean:TxmlXPathObject()
-		Return TxmlXPathObject._create(xmlXPathConvertBoolean(_xmlXPathObjectPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathConvertBoolean(xmlXPathObjectPtr))
 	End Method
 
 	Rem
@@ -3295,7 +2730,7 @@ Type TxmlXPathObject
 	returns: the new object, this one is freed
 	End Rem
 	Method convertNumber:TxmlXPathObject()
-		Return TxmlXPathObject._create(xmlXPathConvertNumber(_xmlXPathObjectPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathConvertNumber(xmlXPathObjectPtr))
 	End Method
 
 	Rem
@@ -3303,7 +2738,7 @@ Type TxmlXPathObject
 	returns: the new object, this one is freed
 	End Rem
 	Method convertString:TxmlXPathObject()
-		Return TxmlXPathObject._create(xmlXPathConvertString(_xmlXPathObjectPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathConvertString(xmlXPathObjectPtr))
 	End Method
 	
 	Rem
@@ -3311,7 +2746,7 @@ Type TxmlXPathObject
 	returns: The newly created object.
 	End Rem
 	Method copy:TxmlXPathObject()
-		Return TxmlXPathObject._create(xmlXPathObjectCopy(_xmlXPathObjectPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathObjectCopy(xmlXPathObjectPtr))
 	End Method
 	
 	Rem
@@ -3320,7 +2755,7 @@ Type TxmlXPathObject
 	about: This will drop Attributes and Namespace declarations.
 	end rem 
 	Method XPointerBuildNodeList:TxmlNode()
-		Return TxmlNode._create(xmlXPtrBuildNodeList(_xmlXPathObjectPtr))
+		Return TxmlNode._create(bmx_libxml_xmlXPtrBuildNodeList(xmlXPathObjectPtr))
 	End Method
 	
 	Rem
@@ -3328,14 +2763,14 @@ Type TxmlXPathObject
 	returns: The newly created object.
 	end rem 
 	Method XPointerLocationSetCreate:TxmlLocationSet()
-		Return TxmlLocationSet._create(xmlXPtrLocationSetCreate(_xmlXPathObjectPtr))
+		Return TxmlLocationSet._create(bmx_libxml_xmlXPtrLocationSetCreate(xmlXPathObjectPtr))
 	End Method
 	
 	Rem
 	bbdoc: Free up the TxmlXPathObject.
 	End Rem
 	Method free()
-		xmlXPathFreeObject(_xmlXPathObjectPtr)
+		bmx_libxml_xmlXPathFreeObject(xmlXPathObjectPtr)
 	End Method
 End Type
 
@@ -3352,55 +2787,17 @@ The context consists of:
 </ul>
 End Rem
 Type TxmlXPathContext
-	Const _doc:Int = 0					' The current document (byte ptr)
-	Const _node:Int = 4				' The current node (byte ptr)
-	Const _nb_variables_unused:Int = 8	' unused (hash table) (int)
-	Const _max_variables_unused:Int = 12	' unused (hash table) (int)
-	Const _varHash:Int = 16			' Hash table of defined variables (byte ptr)
-	Const _nb_types:Int = 20			' number of defined types (int)
-	Const _max_types:Int = 24			' Max number of types (int)
-	Const _types:Int = 28				' Array of defined types (byte ptr)
-	Const _nb_funcs_unused:Int = 32		' unused (hash table) (int)
-	Const _max_funcs_unused:Int = 36	' unused (hash table) (int)
-	Const _funcHash:Int = 40			' Hash table of defined funcs (byte ptr)
-	Const _nb_axis:Int = 44			' number of defined axis (int)
-	Const _max_axis:Int = 48			' Max number of axis (int)
-	Const _axis:Int = 52				' Array of defined axis the namespace nod (byte ptr)
-	Const _namespaces:Int = 56			' Array of namespaces (byte ptr)
-	Const _nsNr:Int = 60				' number of namespace in scope (int)
-	Const _user:Int = 64				' Function To free extra variables (byte ptr)
-	Const _contextSize:Int = 68			' the context size (int)
-	Const _proximityPosition:Int = 72	' the proximity position extra stuff For (int)
-	Const _xptr:Int = 76				' is this an XPointer context (int)
-	Const _here:Int = 80				' For here() (byte ptr)
-	Const _origin:Int = 84				' For origin() the set of namespace decla (byte ptr)
-	Const _nsHash:Int = 88				' The namespaces hash table (byte ptr)
-	Const _varLookupFunc:Int = 92		' variable lookup func (byte ptr)
-	Const _varLookupData:Int = 96		' variable lookup data Possibility To lin (byte ptr)
-	Const _extra:Int = 100				' needed For XSLT The Function name And U (byte ptr)
-	Const _function:Int = 104			'  (byte ptr)
-	Const _functionURI:Int = 108		' Function lookup Function And data (byte ptr)
-	Const _funcLookupFunc:Int = 112		' Function lookup func (byte ptr)
-	Const _funcLookupData:Int = 116		' Function lookup data temporary namespac (byte ptr)
-	Const _tmpNsList:Int = 120			' Array of namespaces (byte ptr)
-	Const _tmpNsNr:Int = 124			' number of namespace in scope error repo (int)
-	Const _userData:Int = 128			' user specific data block (byte ptr)
-	Const _error:Int = 132				' the callback in Case of errors (byte ptr)
-	Const _lastError:Int = 136			' the last error (byte ptr)
-	Const _debugNode:Int = 140			' the source node XSLT dictionary (byte ptr)
-	Const _dict:Int = 144				' dictionnary If any (byte ptr)
-	Const _flags:Int = 148				' flags To control compilation (int)
 
 	' reference to the actual xpath object
-	Field _xmlXPathContextPtr:Byte Ptr
+	Field xmlXPathContextPtr:Byte Ptr
 
 
 	' internal function... not part of the API !
-	Function _create:TxmlXPathContext(_xmlXPathContextPtr:Byte Ptr)
-		If _xmlXPathContextPtr <> Null Then
+	Function _create:TxmlXPathContext(xmlXPathContextPtr:Byte Ptr)
+		If xmlXPathContextPtr <> Null Then
 			Local this:TxmlXPathContext = New TxmlXPathContext
 			
-			this._xmlXPathContextPtr = _xmlXPathContextPtr
+			this.xmlXPathContextPtr = xmlXPathContextPtr
 			
 			Return this
 		End If
@@ -3424,15 +2821,15 @@ Type TxmlXPathContext
 		
 		If here <> Null Then
 			If origin <> Null Then
-				context = TxmlXPathContext._create(xmlXPtrNewContext(doc._xmlDocPtr, here._xmlNodePtr, origin._xmlNodePtr))
+				context = TxmlXPathContext._create(bmx_libxml_xmlXPtrNewContext(doc.basePtr, here.basePtr, origin.basePtr))
 			Else
-				context = TxmlXPathContext._create(xmlXPtrNewContext(doc._xmlDocPtr, here._xmlNodePtr, Null))
+				context = TxmlXPathContext._create(bmx_libxml_xmlXPtrNewContext(doc.basePtr, here.basePtr, Null))
 			End If
 		Else
 			If origin <> Null Then
-				context = TxmlXPathContext._create(xmlXPtrNewContext(doc._xmlDocPtr, Null, origin._xmlNodePtr))
+				context = TxmlXPathContext._create(bmx_libxml_xmlXPtrNewContext(doc.basePtr, Null, origin.basePtr))
 			Else
-				context = TxmlXPathContext._create(xmlXPtrNewContext(doc._xmlDocPtr, Null, Null))
+				context = TxmlXPathContext._create(bmx_libxml_xmlXPtrNewContext(doc.basePtr, Null, Null))
 			End If
 		End If
 		
@@ -3450,10 +2847,7 @@ Type TxmlXPathContext
 	Method evalExpression:TxmlXPathObject(text:String)
 		Assert text, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
-		Local xp:TxmlXPathObject = TxmlXPathObject._create(xmlXPathEvalExpression(cStr, _xmlXPathContextPtr))
-		MemFree cStr
-		Return xp
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathEvalExpression(text, xmlXPathContextPtr))
 	End Method
 	
 	Rem
@@ -3467,10 +2861,7 @@ Type TxmlXPathContext
 	Method eval:TxmlXPathObject(text:String)
 		Assert text, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
-		Local xp:TxmlXPathObject = TxmlXPathObject._create(xmlXPathEval(cStr, _xmlXPathContextPtr))
-		MemFree cStr
-		Return xp	
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathEval(text, xmlXPathContextPtr))
 	End Method
 	
 	'Rem
@@ -3490,21 +2881,21 @@ Type TxmlXPathContext
 	'</p>
 	'End Rem
 	'Method setCache:Int(active:Int, value:Int, options:Int)
-	'	Return xmlXPathContextSetCache(_xmlXPathContextPtr, active, value, options)
+	'	Return xmlXPathContextSetCache(xmlXPathContextPtr, active, value, options)
 	'End Method
 	
 	Rem
 	bbdoc: Return the TxmlDoc associated to this XPath context.
 	End Rem
 	Method getDocument:TxmlDoc()
-		Return TxmlDoc._create(Byte Ptr(Int Ptr(_xmlXPathContextPtr + _doc)[0]))
+		Return TxmlDoc._create(bmx_libxml_xmlxpathcontext_doc(xmlXPathContextPtr))
 	End Method
 	
 	Rem
 	bbdoc: Return the current TxmlNode associated with this XPath context.
 	End Rem
 	Method GetNode:TxmlNode()
-		Return TxmlNode._create(Byte Ptr(Int Ptr(_xmlXPathContextPtr + _node)[0]))
+		Return TxmlNode._create(bmx_libxml_xmlxpathcontext_node(xmlXPathContextPtr))
 	End Method
 	
 	Rem
@@ -3512,31 +2903,7 @@ Type TxmlXPathContext
 	about: If @uri is Null it unregisters the namespace
 	End Rem
 	Method registerNamespace:Int(prefix:String, uri:String)
-		Local ret:Int = -1
-		
-		If prefix = Null Then
-			If uri = Null Then
-				ret = xmlXPathRegisterNs(_xmlXPathContextPtr, Null, Null)
-			Else
-				Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-				ret = xmlXPathRegisterNs(_xmlXPathContextPtr, Null, cStr)
-				MemFree cStr
-			End If
-		Else
-			Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(prefix).toCString()
-			
-			If uri = Null Then
-				ret = xmlXPathRegisterNs(_xmlXPathContextPtr, cStr1, Null)
-			Else
-				Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-				ret = xmlXPathRegisterNs(_xmlXPathContextPtr, cStr1, cStr)
-				MemFree cStr
-			End If
-			
-			MemFree cStr1
-		End If
-		
-		Return ret
+		Return bmx_libxml_xmlXPathRegisterNs(xmlXPathContextPtr, prefix, uri)
 	End Method
 	
 	Rem
@@ -3552,7 +2919,7 @@ Type TxmlXPathContext
 		Local result:Int
 		
 		If res <> Null Then
-			result = xmlXPathEvalPredicate(_xmlXPathContextPtr, res._xmlXPathObjectPtr)
+			result = bmx_libxml_xmlXPathEvalPredicate(xmlXPathContextPtr, res.xmlXPathObjectPtr)
 		End If
 		
 		Return result
@@ -3565,82 +2932,77 @@ Type TxmlXPathContext
 	Method XPointerEval:TxmlXPathObject(expr:String)
 		Assert expr, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(expr).toCString()
-		Local obj:TxmlXPathObject = TxmlXPathObject._create(xmlXPtrEval(cStr, _xmlXPathContextPtr))
-		
-		MemFree(cStr)
-		
-		Return obj
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPtrEval(expr, xmlXPathContextPtr))
 	End Method
 
 	Rem
 	bbdoc: Returns the number of defined types.
 	End Rem
 	Method countDefinedTypes:Int()
-		Return Int Ptr(_xmlXPathContextPtr + _nb_types)[0]
+		Return bmx_libxml_xmlxpathcontext_nb_types(xmlXPathContextPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the max number of types.
 	End Rem
 	Method getMaxTypes:Int()
-		Return Int Ptr(_xmlXPathContextPtr + _max_types)[0]
+		Return bmx_libxml_xmlxpathcontext_max_types(xmlXPathContextPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the context size.
 	End Rem
 	Method getContextSize:Int()
-		Return Int Ptr(_xmlXPathContextPtr + _contextSize)[0]
+		Return bmx_libxml_xmlxpathcontext_contextSize(xmlXPathContextPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the proximity position.
 	End Rem
 	Method getProximityPosition:Int()
-		Return Int Ptr(_xmlXPathContextPtr + _proximityPosition)[0]
+		Return bmx_libxml_xmlxpathcontext_proximityPosition(xmlXPathContextPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns whether this is an XPointer context or not.
 	End Rem
 	Method isXPointerContext:Int()
-		Return Int Ptr(_xmlXPathContextPtr + _xptr)[0]
+		Return bmx_libxml_xmlxpathcontext_xptr(xmlXPathContextPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the XPointer for here.
 	End Rem
 	Method getHere:TxmlNode()
-		Return TxmlNode._create(Byte Ptr(Int Ptr(_xmlXPathContextPtr + _here)[0]))
+		Return TxmlNode._create(bmx_libxml_xmlxpathcontext_here(xmlXPathContextPtr))
 	End Method
 
 	Rem
 	bbdoc: Returns the XPointer for origin.
 	End Rem
 	Method GetOrigin:TxmlNode()
-		Return TxmlNode._create(Byte Ptr(Int Ptr(_xmlXPathContextPtr + _origin)[0]))
+		Return TxmlNode._create(bmx_libxml_xmlxpathcontext_origin(xmlXPathContextPtr))
 	End Method
 
 	Rem
 	bbdoc: Returns the function name when calling a function.
 	End Rem
 	Method getFunction:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlXPathContextPtr + _function)[0]))
+		Return bmx_libxml_xmlxpathcontext_function(xmlXPathContextPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the function URI when calling a function.
 	End Rem
 	Method getFunctionURI:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlXPathContextPtr + _functionURI)[0]))
+		Return bmx_libxml_xmlxpathcontext_functionURI(xmlXPathContextPtr)
 	End Method
 	
 	Rem
 	bbdoc: Free up the TxmlXPathContext
 	End Rem
 	Method free()
-		xmlXPathFreeContext(_xmlXPathContextPtr)
+		bmx_libxml_xmlXPathFreeContext(xmlXPathContextPtr)
 	End Method
 End Type
 
@@ -3648,29 +3010,12 @@ Rem
 bbdoc: An XML DTD
 End Rem
 Type TxmlDtd Extends TxmlBase
-	'Const _type:Int = 4    		' XML_DTD_NODE, must be second ! (byte ptr)
-	'Const _name:Int = 8    		' Name of the DTD (byte ptr)
-	'Const _children:Int = 12        ' the value of the property link (byte ptr)
-	'Const _last:Int = 16			' last child link (byte ptr)
-	'Const _parent:Int = 20		' child->parent link (byte ptr)
-	'Const _next:Int = 24			' Next sibling link (byte ptr)
-	'Const _prev:Int = 28			' previous sibling link (byte ptr)
-	'Const _doc:Int = 32			' the containing document (byte ptr)
-	Const _notations:Int = 36       ' Hash table For notations If any (byte ptr)
-	Const _elements:Int = 40		' Hash table For elements If any (byte ptr)
-	Const _attributes:Int = 44      ' Hash table For attributes If any (byte ptr)
-	Const _entities:Int = 48        ' Hash table For entities If any (byte ptr)
-	Const _externalID:Int = 52      ' External identifier For Public DTD (byte ptr)
-	Const _systemID:Int = 56        ' URI For a SYSTEM Or Public DTD (byte ptr)
-	Const pentities:Int = 60       ' Hash table For param entities If any (byte ptr)
 	
-	Field _xmlDtdPtr:Byte Ptr
-	
-	Function _create:TxmlDtd(_xmlDtdPtr:Byte Ptr)
-		If _xmlDtdPtr <> Null Then
+	Function _create:TxmlDtd(basePtr:Byte Ptr)
+		If basePtr <> Null Then
 			Local this:TxmlDtd = New TxmlDtd
-			this._xmlDtdPtr = _xmlDtdPtr
-			this.initBase(_xmlDtdPtr)
+			this.basePtr = basePtr
+			'this.initBase(basePtr)
 			Return this
 		Else
 			Return Null
@@ -3681,14 +3026,14 @@ Type TxmlDtd Extends TxmlBase
 	bbdoc: Returns the external identifier for PUBLIC DTD.
 	End Rem
 	Method getExternalID:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlDtdPtr+ _externalID)[0]))
+		Return bmx_libxml_xmldtd_externalID(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the URI for a SYSTEM or PUBLIC DTD.
 	End Rem
 	Method getSystemID:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlDtdPtr+ _systemID)[0]))
+		Return bmx_libxml_xmldtd_systemID(basePtr)
 	End Method
 
 	Rem
@@ -3696,7 +3041,7 @@ Type TxmlDtd Extends TxmlBase
 	returns: A new TxmlDtd object, or Null in case of error.
 	End Rem
 	Method copyDtd:TxmlDtd()
-		Return TxmlDtd._create(xmlCopyDtd(_xmlDtdPtr))
+		Return TxmlDtd._create(bmx_libxml_xmlCopyDtd(basePtr))
 	End Method
 	
 	Rem
@@ -3712,15 +3057,7 @@ Type TxmlDtd Extends TxmlBase
 		Assert elem, XML_ERROR_PARAM
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(elem).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		Local ret:TxmlDtdAttribute = TxmlDtdAttribute._create(xmlGetDtdAttrDesc(_xmlDtdPtr, cStr1, cStr2))
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		
-		Return ret
+		Return TxmlDtdAttribute._create(bmx_libxml_xmlGetDtdAttrDesc(basePtr, elem, name))
 	End Method
 	
 	Rem
@@ -3734,13 +3071,7 @@ Type TxmlDtd Extends TxmlBase
 	Method getElementDesc:TxmlDtdElement(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		Local ret:TxmlDtdElement = TxmlDtdElement._create(xmlGetDtdElementDesc(_xmlDtdPtr, cStr))
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return TxmlDtdElement._create(bmx_libxml_xmlGetDtdElementDesc(basePtr, name))
 	End Method
 	
 	Rem
@@ -3754,13 +3085,7 @@ Type TxmlDtd Extends TxmlBase
 	Method getNotationDesc:TxmlNotation(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		
-		Local ret:TxmlNotation = TxmlNotation._create(xmlGetDtdNotationDesc(_xmlDtdPtr, cStr))
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return TxmlNotation._create(bmx_libxml_xmlGetDtdNotationDesc(basePtr, name))
 	End Method
 	
 	Rem
@@ -3778,17 +3103,7 @@ Type TxmlDtd Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert prefix, XML_ERROR_PARAM
 
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(elem).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(prefix).toCString()
-		
-		Local ret:TxmlDtdAttribute = TxmlDtdAttribute._create(xmlGetDtdQAttrDesc(_xmlDtdPtr, cStr1, cStr2, cStr3))
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		MemFree(cStr3)
-		
-		Return ret
+		Return TxmlDtdAttribute._create(bmx_libxml_xmlGetDtdQAttrDesc(basePtr, elem, name, prefix))
 	End Method
 	
 	Rem
@@ -3804,22 +3119,14 @@ Type TxmlDtd Extends TxmlBase
 		Assert name, XML_ERROR_PARAM
 		Assert prefix, XML_ERROR_PARAM
 
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(prefix).toCString()
-	
-		Local ret:TxmlDtdElement = TxmlDtdElement._create(xmlGetDtdQElementDesc(_xmlDtdPtr, cStr1, cStr2))
-
-		MemFree(cStr1)
-		MemFree(cStr2)
-		
-		Return ret
+		Return TxmlDtdElement._create(bmx_libxml_xmlGetDtdQElementDesc(basePtr, name, prefix))
 	End Method
 	
 	Rem
 	bbdoc: Free the DTD structure
 	End Rem
 	Method free()
-		xmlFreeDtd(_xmlDtdPtr)
+		bmx_libxml_xmlFreeDtd(basePtr)
 	End Method
 End Type
 
@@ -3828,26 +3135,13 @@ Rem
 bbdoc: An XML Error
 End Rem
 Type TxmlError
-	Const _domain:Int = 0		' What part of the library raised this error (int)
-	Const _code:Int = 4		' The error code, e.g. an xmlParserError (int)
-	Const _message:Int = 8	' human-readable informative error message (byte ptr)
-	Const _level:Int = 12		' how consequent is the error (int)
-	Const _file:Int = 16		' the filename (byte ptr)
-	Const _line:Int = 20		' the line number If available (int)
-	Const _str1:Int = 24		' extra String information (byte ptr)
-	Const _str2:Int = 28		' extra String information (byte ptr)
-	Const _str3:Int = 32		' extra String information (byte ptr)
-	Const _int1:Int = 36		' extra number information (int)
-	Const _int2:Int = 40		' column number of the error Or 0 If N/A (int)
-	Const _ctxt:Int = 44		' the parser context If available (byte ptr)
-	Const _node:Int = 48		' the node in the tree (byte ptr)
 	
-	Field _xmlErrorPtr:Byte Ptr
+	Field xmlErrorPtr:Byte Ptr
 	
-	Function _create:TxmlError(_xmlErrorPtr:Byte Ptr)
-		If _xmlErrorPtr <> Null Then
+	Function _create:TxmlError(xmlErrorPtr:Byte Ptr)
+		If xmlErrorPtr <> Null Then
 			Local this:TxmlError = New TxmlError
-			this._xmlErrorPtr = _xmlErrorPtr
+			this.xmlErrorPtr = xmlErrorPtr
 			Return this
 		Else
 			Return Null
@@ -3890,21 +3184,21 @@ Type TxmlError
 	</table>
 	End Rem
 	Method getErrorDomain:Int()
-		Return Int Ptr(_xmlErrorPtr + _domain)[0]
+		Return bmx_libxml_xmlerror_domain(xmlErrorPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the error code.
 	End Rem
 	Method getErrorCode:Int()
-		Return Int Ptr(_xmlErrorPtr + _code)[0]
+		Return bmx_libxml_xmlerror_code(xmlErrorPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the error message text.
 	End Rem
 	Method getErrorMessage:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlErrorPtr + _message)[0]))
+		Return bmx_libxml_xmlerror_message(xmlErrorPtr)
 	End Method
 	
 	Rem
@@ -3919,25 +3213,21 @@ Type TxmlError
 	</table>
 	End Rem
 	Method getErrorLevel:Int()
-		Return Int Ptr(_xmlErrorPtr + _level)[0]
+		Return bmx_libxml_xmlerror_level(xmlErrorPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the filename.
 	End Rem
 	Method getFilename:String()
-		Local s:Byte Ptr = Byte Ptr(Int Ptr(_xmlErrorPtr + _file)[0])
-		If s Then
-			Return _xmlConvertUTF8ToMax(s)
-		End If
-		Return Null
+		Return bmx_libxml_xmlerror_file(xmlErrorPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the error line, if available.
 	End Rem
 	Method getLine:Int()
-		Return Int Ptr(_xmlErrorPtr + _line)[0]
+		Return bmx_libxml_xmlerror_line(xmlErrorPtr)
 	End Method
 
 	Rem
@@ -3945,22 +3235,22 @@ Type TxmlError
 	End Rem
 	Method getExtraText:String[]()
 		Local xtra:String[] = New String[0]
-		Local s:Byte Ptr = Byte Ptr(Int Ptr(_xmlErrorPtr + _str1)[0])
+		Local s:String = bmx_libxml_xmlerror_str1(xmlErrorPtr)
 		If s Then
 			xtra = xtra[..xtra.length + 1]
-			xtra[0] = _xmlConvertUTF8ToMax(s)
+			xtra[0] = s
 		End If
 		
-		s = Byte Ptr(Int Ptr(_xmlErrorPtr + _str2)[0])
+		s = bmx_libxml_xmlerror_str2(xmlErrorPtr)
 		If s Then
 			xtra = xtra[..xtra.length + 1]
-			xtra[xtra.length - 1] = _xmlConvertUTF8ToMax(s)
+			xtra[xtra.length - 1] = s
 		End If
 
-		s = Byte Ptr(Int Ptr(_xmlErrorPtr + _str3)[0])
+		s = bmx_libxml_xmlerror_str3(xmlErrorPtr)
 		If s Then
 			xtra = xtra[..xtra.length + 1]
-			xtra[xtra.length - 1] = _xmlConvertUTF8ToMax(s)
+			xtra[xtra.length - 1] = s
 		End If
 		
 		If xtra.length > 0 Then
@@ -3973,14 +3263,14 @@ Type TxmlError
 	bbdoc: Returns the column number of the error or 0 if not available.
 	End Rem
 	Method getColumn:Int()
-		Return Int Ptr(_xmlErrorPtr + _int2)[0]
+		Return bmx_libxml_xmlerror_int2(xmlErrorPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the node in the tree, if available.
 	End Rem
 	Method getErrorNode:TxmlNode()
-		Return TxmlNode._create(Byte Ptr(Int Ptr(_xmlErrorPtr + _node)[0]))
+		Return TxmlNode._create(bmx_libxml_xmlerror_node(xmlErrorPtr))
 	End Method
 
 End Type
@@ -3998,18 +3288,16 @@ For more insight into this parser, see the <a href="textreader_tutorial.html">Te
 End Rem
 Type TxmlTextReader
 	
-	Field _xmlTextReaderPtr:Byte Ptr
+	Field xmlTextReaderPtr:Byte Ptr
 	
 	Field docTextPtr:Byte Ptr
-	Field urlTextPtr:Byte Ptr
-	Field encTextPtr:Byte Ptr
 	
 	' internal function... not part of the API !
-	Function _create:TxmlTextReader(_xmlTextReaderPtr:Byte Ptr)
-		If _xmlTextReaderPtr <> Null Then
+	Function _create:TxmlTextReader(xmlTextReaderPtr:Byte Ptr)
+		If xmlTextReaderPtr <> Null Then
 			Local this:TxmlTextReader = New TxmlTextReader
 			
-			this._xmlTextReaderPtr = _xmlTextReaderPtr
+			this.xmlTextReaderPtr = xmlTextReaderPtr
 			
 			Return this
 		Else
@@ -4021,16 +3309,6 @@ Type TxmlTextReader
 		If docTextPtr Then
 			MemFree docTextPtr
 			docTextPtr = Null
-		End If
-		
-		If urlTextPtr Then
-			MemFree urlTextPtr
-			urlTextPtr = Null
-		End If
-		
-		If encTextPtr Then
-			MemFree encTextPtr
-			encTextPtr = Null
 		End If
 	End Method
 
@@ -4076,19 +3354,11 @@ Type TxmlTextReader
 		Local i:Int = filename.Find( "::",0 )
 		' a "normal" url?
 		If i = -1 Then
-			Local cStr1:Byte Ptr = filename.toCString()
+
 			If encoding = Null And options = 0 Then
-				Local t:TxmlTextReader = _create(xmlNewTextReaderFilename(cStr1))
-				
-				MemFree cStr1
-				Return t
+				Return TxmlTextReader._create(bmx_libxml_xmlNewTextReaderFilename(filename))		
 			Else
-				Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(encoding).toCString()
-				Local t:TxmlTextReader = _create(xmlReaderForFile(cStr1, cStr2, options))
-				
-				MemFree cStr1
-				MemFree cStr2
-				Return t
+				Return TxmlTextReader._create(bmx_libxml_xmlReaderForFile(filename, encoding, options))
 			End If
 		Else
 			Local proto:String = filename[..i].ToLower()
@@ -4101,14 +3371,7 @@ Type TxmlTextReader
 				End If
 				Local size:Int = IncbinLen( path )
 				
-				If encoding = Null Then
-					Return TxmlTextReader._create(xmlReaderForMemory(buf, size, Null, Null, options))
-				Else
-					Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(encoding).toCString()
-					Local t:TxmlTextReader = TxmlTextReader._create(xmlReaderForMemory(buf, size, Null, cStr2, options))
-					MemFree(cStr2)
-					Return t
-				End If
+				Return TxmlTextReader._create(bmx_libxml_xmlReaderForMemory(buf, size, Null, encoding, options))
 			End If
 		End If
 
@@ -4131,23 +3394,14 @@ Type TxmlTextReader
 		Assert text, XML_ERROR_PARAM
 		Assert url, XML_ERROR_PARAM
 		
-		Local docTextPtr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
-		Local urlTextPtr:Byte Ptr = _xmlConvertMaxToUTF8(url).toCString()
-		
-		Local t:TxmlTextReader = Null
-		If encoding <> Null Then
-			Local encTextPtr:Byte Ptr = _xmlConvertMaxToUTF8(encoding).toCString()
-			t = _create(xmlReaderForDoc(docTextPtr, urlTextPtr, encTextPtr, options))
-			If t Then
-				t.encTextPtr = encTextPtr
-			End If
-		Else
-			t = _create(xmlReaderForDoc(docTextPtr, urlTextPtr, Null, options))
-		End If
+		Local docTextPtr:Byte Ptr = text.ToUTF8String()
+
+		Local t:TxmlTextReader = TxmlTextReader._create(bmx_libxml_xmlReaderForDoc(docTextPtr, url, encoding, options))
 		
 		If t Then
 			t.docTextPtr = docTextPtr
-			t.urlTextPtr = urlTextPtr
+		Else
+			MemFree(docTextPtr)
 		End If
 		
 		Return t
@@ -4158,20 +3412,14 @@ Type TxmlTextReader
 	returns: 0 if no attributes, -1 in case of error or the attribute count
 	End Rem
 	Method attributeCount:Int()
-		Return xmlTextReaderAttributeCount(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderAttributeCount(xmlTextReaderPtr)
 	End Method
 	
 	Rem
 	bbdoc: The base URI of the node.
 	End Rem
 	Method baseUri:String()
-		Local s:Byte Ptr = xmlTextReaderBaseUri(_xmlTextReaderPtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		End If
-		Return Null
+		Return bmx_libxml_xmlTextReaderBaseUri(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4181,14 +3429,14 @@ Type TxmlTextReader
 	on the TxmlDoc is needed once the reader parsing has finished. 
 	End Rem
 	Method currentDoc:TxmlDoc()
-		Return TxmlDoc._create(xmlTextReaderCurrentDoc(_xmlTextReaderPtr))
+		Return TxmlDoc._create(bmx_libxml_xmlTextReaderCurrentDoc(xmlTextReaderPtr))
 	End Method
 	
 	Rem
 	bbdoc: Deallocate all the resources associated to the reader.
 	End Rem
 	Method free()
-		xmlFreeTextReader(_xmlTextReaderPtr)
+		bmx_libxml_xmlFreeTextReader(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4196,7 +3444,7 @@ Type TxmlTextReader
 	returns: 1 if the node was read successfully, 0 if there is no more nodes to read, or -1 in case of error
 	End Rem
 	Method read:Int()
-		Return xmlTextReaderRead(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderRead(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4204,7 +3452,7 @@ Type TxmlTextReader
 	about: 1 in case of success, 0 if the reader was not positioned on an attribute node or all the attribute values have been read, or -1 in case of error.
 	End Rem
 	Method readAttributeValue:Int()
-		Return xmlTextReaderReadAttributeValue(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderReadAttributeValue(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4212,14 +3460,7 @@ Type TxmlTextReader
 	returns: A string containing the XML content, or Null if the current node is neither an element nor attribute, or has no child nodes.
 	End Rem
 	Method readInnerXml:String()
-		Local s:Byte Ptr = xmlTextReaderReadInnerXml(_xmlTextReaderPtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderReadInnerXml(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4227,14 +3468,7 @@ Type TxmlTextReader
 	returns: A string containing the XML content, or NULL if the current node is neither an element nor attribute, or has no child nodes.
 	End Rem
 	Method readOuterXml:String()
-		Local s:Byte Ptr = xmlTextReaderReadOuterXml(_xmlTextReaderPtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderReadOuterXml(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4242,7 +3476,7 @@ Type TxmlTextReader
 	about: The state value, or -1 in case of error.
 	End Rem
 	Method readState:Int()
-		Return xmlTextReaderReadState(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderReadState(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4250,14 +3484,7 @@ Type TxmlTextReader
 	about: A string containing the contents of the Element or Text node, or Null if the reader is positioned on any other type of node.
 	End Rem
 	Method ReadString:String()
-		Local s:Byte Ptr = xmlTextReaderReadString(_xmlTextReaderPtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderReadString(xmlTextReaderPtr)
 	End Method
 
 	Rem
@@ -4265,7 +3492,7 @@ Type TxmlTextReader
 	returns: The local name or Null if not available.
 	End Rem
 	Method constName:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstName(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstName(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4273,7 +3500,7 @@ Type TxmlTextReader
 	returns: The local name or Null if not available.
 	End Rem
 	Method constLocalName:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstLocalName(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstLocalName(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4281,7 +3508,7 @@ Type TxmlTextReader
 	returns: A string containing the encoding of the document or Null in case of error.
 	End Rem
 	Method constEncoding:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstEncoding(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstEncoding(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4289,7 +3516,7 @@ Type TxmlTextReader
 	returns: The base URI or Null if not available.
 	End Rem
 	Method constBaseUri:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstBaseUri(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstBaseUri(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4297,7 +3524,7 @@ Type TxmlTextReader
 	returns: The namespace URI or Null if not available.
 	End Rem
 	Method constNamespaceUri:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstNamespaceUri(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstNamespaceUri(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4305,7 +3532,7 @@ Type TxmlTextReader
 	returns: The prefix or Null if not available.
 	End Rem
 	Method constPrefix:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstPrefix(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstPrefix(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4313,7 +3540,7 @@ Type TxmlTextReader
 	returns: the string or Null if not available.
 	End Rem
 	Method constValue:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstValue(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstValue(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4321,7 +3548,7 @@ Type TxmlTextReader
 	returns: The xml:lang value or Null if none exists.
 	End Rem
 	Method constXmlLang:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstXmlLang(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstXmlLang(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4329,7 +3556,7 @@ Type TxmlTextReader
 	returns: A string containing the XML version of the document or Null in case of error.
 	End Rem
 	Method constXmlVersion:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderConstXmlVersion(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderConstXmlVersion(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4337,7 +3564,7 @@ Type TxmlTextReader
 	returns: the depth or -1 in case of error
 	End Rem
 	Method depth:Int()
-		Return xmlTextReaderDepth(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderDepth(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4346,7 +3573,7 @@ Type TxmlTextReader
 	returns: A node, valid until the next #read call or Null in case of error.
 	End Rem
 	Method expand:TxmlNode()
-		Return TxmlNode._create(xmlTextReaderExpand(_xmlTextReaderPtr))
+		Return TxmlNode._create(bmx_libxml_xmlTextReaderExpand(xmlTextReaderPtr))
 	End Method
 	
 	Rem
@@ -4360,18 +3587,7 @@ Type TxmlTextReader
 	Method getAttribute:String(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-	
-		Local s:Byte Ptr = xmlTextReaderGetAttribute(_xmlTextReaderPtr, cStr)
-		MemFree cStr
-		
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderGetAttribute(xmlTextReaderPtr, name)
 	End Method
 	
 	Rem
@@ -4383,14 +3599,7 @@ Type TxmlTextReader
 	</ul>
 	End Rem
 	Method getAttributeByIndex:String(index:Int)
-		Local s:Byte Ptr = xmlTextReaderGetAttributeNo(_xmlTextReaderPtr, index)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderGetAttributeNo(xmlTextReaderPtr, index)
 	End Method
 	
 	Rem
@@ -4406,21 +3615,7 @@ Type TxmlTextReader
 		Assert localName, XML_ERROR_PARAM
 		Assert namespaceURI, XML_ERROR_PARAM
 
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(localName).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(namespaceURI).toCString()
-
-		Local s:Byte Ptr = xmlTextReaderGetAttributeNs(_xmlTextReaderPtr, cStr1, cStr2)
-		
-		MemFree cStr1
-		MemFree cStr2
-		
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderGetAttributeNs(xmlTextReaderPtr, localName, namespaceURI)
 	End Method
 	
 	Rem
@@ -4428,7 +3623,7 @@ Type TxmlTextReader
 	returns: An int or 0 if not available
 	End Rem
 	Method getParserColumnNumber:Int()
-		Return xmlTextReaderGetParserColumnNumber(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderGetParserColumnNumber(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4436,7 +3631,7 @@ Type TxmlTextReader
 	returns: An int or 0 if not available.
 	End Rem
 	Method getParserLineNumber:Int()
-		Return xmlTextReaderGetParserLineNumber(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderGetParserLineNumber(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4457,7 +3652,7 @@ Type TxmlTextReader
 	</p>
 	End Rem
 	Method getParserProperty:Int(prop:Int)
-		Return xmlTextReaderGetParserProp(_xmlTextReaderPtr, prop)
+		Return bmx_libxml_xmlTextReaderGetParserProp(xmlTextReaderPtr, prop)
 	End Method
 	
 	Rem
@@ -4465,7 +3660,7 @@ Type TxmlTextReader
 	returns: 1 if true, 0 if false, and -1 in case or error
 	End Rem
 	Method hasAttributes:Int()
-		Return xmlTextReaderHasAttributes(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderHasAttributes(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4473,7 +3668,7 @@ Type TxmlTextReader
 	returns: 1 if true, 0 if false, and -1 in case or error.
 	End Rem
 	Method hasValue:Int()
-		Return xmlTextReaderHasValue(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderHasValue(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4481,7 +3676,7 @@ Type TxmlTextReader
 	returns: 0 if not defaulted, 1 if defaulted, and -1 in case of error
 	End Rem
 	Method isDefault:Int()
-		Return xmlTextReaderIsDefault(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderIsDefault(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4489,7 +3684,7 @@ Type TxmlTextReader
 	returns: 1 if empty, 0 if not and -1 in case of error.
 	End Rem
 	Method isEmptyElement:Int()
-		Return xmlTextReaderIsEmptyElement(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderIsEmptyElement(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4497,7 +3692,7 @@ Type TxmlTextReader
 	returns: 1 if the current node is a namespace declaration, 0 if it is a regular attribute or other type of node, or -1 in case of error.
 	End Rem
 	Method isNamespaceDecl:Int()
-		Return xmlTextReaderIsNamespaceDecl(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderIsNamespaceDecl(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4505,7 +3700,7 @@ Type TxmlTextReader
 	about: The flag value 1 if valid, 0 if no, and -1 in case of error.
 	End Rem
 	Method isValid:Int()
-		Return xmlTextReaderIsValid(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderIsValid(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4513,7 +3708,7 @@ Type TxmlTextReader
 	returns: the local name or Null if not available
 	End Rem
 	Method localName:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderLocalName(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderLocalName(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4525,23 +3720,7 @@ Type TxmlTextReader
 	</ul>
 	End Rem
 	Method lookupNamespace:String(prefix:String)
-		Local s:Byte Ptr
-		
-		If prefix <> Null Then
-			Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(prefix).toCString()
-			s = xmlTextReaderLookupNamespace(_xmlTextReaderPtr, cStr)
-			MemFree cStr
-		Else
-			s = xmlTextReaderLookupNamespace(_xmlTextReaderPtr, Null)
-		End If
-		
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderLookupNamespace(xmlTextReaderPtr, prefix)
 	End Method
 	
 	Rem
@@ -4555,10 +3734,7 @@ Type TxmlTextReader
 	Method moveToAttribute:Int(name:String)
 		Assert name, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(name).toCString()
-		Local ret:Int = xmlTextReaderMoveToAttribute(_xmlTextReaderPtr, cStr)
-		MemFree cStr
-		Return ret
+		Return bmx_libxml_xmlTextReaderMoveToAttribute(xmlTextReaderPtr, name)
 	End Method
 	
 	Rem
@@ -4570,7 +3746,7 @@ Type TxmlTextReader
 	</ul>
 	End Rem
 	Method moveToAttributeByIndex:Int(index:Int)
-		Return xmlTextReaderMoveToAttributeNo(_xmlTextReaderPtr, index)
+		Return bmx_libxml_xmlTextReaderMoveToAttributeNo(xmlTextReaderPtr, index)
 	End Method
 	
 	Rem
@@ -4586,12 +3762,7 @@ Type TxmlTextReader
 		Assert localName, XML_ERROR_PARAM
 		Assert namespaceURI, XML_ERROR_PARAM
 
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(localName).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(namespaceURI).toCString()
-		Local ret:Int = xmlTextReaderMoveToAttributeNs(_xmlTextReaderPtr, cStr1, cStr2)
-		MemFree cStr1
-		MemFree cStr2
-		Return ret
+		Return bmx_libxml_xmlTextReaderMoveToAttributeNs(xmlTextReaderPtr, localName, namespaceURI)
 	End Method
 	
 	Rem
@@ -4599,7 +3770,7 @@ Type TxmlTextReader
 	returns: 1 in case of success, -1 in case of error, 0 if not moved.
 	End Rem
 	Method moveToElement:Int()
-		Return xmlTextReaderMoveToElement(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderMoveToElement(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4607,7 +3778,7 @@ Type TxmlTextReader
 	returns: 1 in case of success, -1 in case of error, 0 if not found
 	End Rem
 	Method moveToFirstAttribute:Int()
-		Return xmlTextReaderMoveToFirstAttribute(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderMoveToFirstAttribute(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4615,7 +3786,7 @@ Type TxmlTextReader
 	returns: 1 in case of success, -1 in case of error, 0 if not found
 	End Rem
 	Method moveToNextAttribute:Int()
-		Return xmlTextReaderMoveToNextAttribute(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderMoveToNextAttribute(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4623,7 +3794,7 @@ Type TxmlTextReader
 	returns: the local name or Null if not available.
 	End Rem
 	Method name:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderName(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderName(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4631,7 +3802,7 @@ Type TxmlTextReader
 	returns: the namespace URI or Null if not available
 	End Rem
 	Method namespaceUri:String()
-		Return _xmlConvertUTF8ToMax(xmlTextReaderNamespaceUri(_xmlTextReaderPtr))
+		Return bmx_libxml_xmlTextReaderNamespaceUri(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4639,7 +3810,7 @@ Type TxmlTextReader
 	returns: 1 if the node was read successfully, 0 if there is no more nodes to read, or -1 in case of error.
 	End Rem
 	Method nextNode:Int()
-		Return xmlTextReaderNext(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderNext(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4647,7 +3818,7 @@ Type TxmlTextReader
 	returns: The xmlNodeType of the current node or -1 in case of error.
 	End Rem
 	Method nodeType:Int()
-		Return xmlTextReaderNodeType(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderNodeType(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4658,15 +3829,15 @@ Type TxmlTextReader
 	either.
 	End Rem
 	Method normalization:Int()
-		Return xmlTextReaderNormalization(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderNormalization(xmlTextReaderPtr)
 	End Method
 	
 	Rem
 	bbdoc: A shorthand reference to the namespace associated with the node.
 	returns: The prefix or Null if not available.
 	End Rem
-	Method prefix:Int()
-		Return xmlTextReaderPrefix(_xmlTextReaderPtr)
+	Method prefix:String()
+		Return bmx_libxml_xmlTextReaderPrefix(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4676,7 +3847,7 @@ Type TxmlTextReader
 	parsing has finished.
 	End Rem
 	Method preserve:TxmlNode()
-		Return TxmlNode._create(xmlTextReaderPreserve(_xmlTextReaderPtr))
+		Return TxmlNode._create(bmx_libxml_xmlTextReaderPreserve(xmlTextReaderPtr))
 	End Method
 	
 	Rem
@@ -4684,7 +3855,7 @@ Type TxmlTextReader
 	returns: " or ' and Null in case of error
 	End Rem
 	Method quoteChar:String()
-		Local c:Int = xmlTextReaderQuoteChar(_xmlTextReaderPtr)
+		Local c:Int = bmx_libxml_xmlTextReaderQuoteChar(xmlTextReaderPtr)
 		If c <> -1 Then
 			If c = 34 Then
 				Return "~q"
@@ -4707,14 +3878,7 @@ Type TxmlTextReader
 	</p>
 	End Rem
 	Method relaxNGValidate:Int(rng:String)
-		If rng <> Null Then
-			Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(rng).toCString()
-			Local ret:Int = xmlTextReaderRelaxNGValidate(_xmlTextReaderPtr, cStr)
-			MemFree cStr
-			Return ret
-		Else
-			Return xmlTextReaderRelaxNGValidate(_xmlTextReaderPtr, Null)
-		End If
+		Return bmx_libxml_xmlTextReaderRelaxNGValidate(xmlTextReaderPtr, rng)
 	End Method
 	
 	Rem
@@ -4728,14 +3892,7 @@ Type TxmlTextReader
 	</p>
 	End Rem
 	Method schemaValidate:Int(xsd:String)
-		If xsd <> Null Then
-			Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(xsd).toCString()
-			Local ret:Int = xmlTextReaderSchemaValidate(_xmlTextReaderPtr, cStr)
-			MemFree cStr
-			Return ret
-		Else
-			Return xmlTextReaderSchemaValidate(_xmlTextReaderPtr, Null)
-		End If
+		Return bmx_libxml_xmlTextReaderSchemaValidate(xmlTextReaderPtr, xsd)
 	End Method
 	
 	Rem
@@ -4750,7 +3907,7 @@ Type TxmlTextReader
 	</p>
 	End Rem
 	Method setParserProp:Int(prop:Int, value:Int)
-		Return xmlTextReaderSetParserProp(_xmlTextReaderPtr, prop, value)
+		Return bmx_libxml_xmlTextReaderSetParserProp(xmlTextReaderPtr, prop, value)
 	End Method
 	
 	Rem
@@ -4758,7 +3915,7 @@ Type TxmlTextReader
 	returns: 1 if the document was declared to be standalone, 0 if it was declared to be not standalone, or -1 if the document did not specify its standalone status or in case of error.
 	End Rem
 	Method standalone:Int()
-		Return xmlTextReaderStandalone(_xmlTextReaderPtr)
+		Return bmx_libxml_xmlTextReaderStandalone(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4766,14 +3923,7 @@ Type TxmlTextReader
 	returns: The string or Null if not available.
 	End Rem
 	Method value:String()
-		Local s:Byte Ptr = xmlTextReaderValue(_xmlTextReaderPtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderValue(xmlTextReaderPtr)
 	End Method
 	
 	Rem
@@ -4781,14 +3931,7 @@ Type TxmlTextReader
 	returns: the xml:lang value or Null if none exists.
 	End Rem
 	Method xmlLang:String()
-		Local s:Byte Ptr = xmlTextReaderXmlLang(_xmlTextReaderPtr)
-		If s <> Null Then
-			Local t:String = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-			Return t
-		Else
-			Return Null
-		End If
+		Return bmx_libxml_xmlTextReaderXmlLang(xmlTextReaderPtr)
 	End Method
 
 End Type
@@ -4797,32 +3940,11 @@ Rem
 bbdoc: An XML Entity
 End Rem 
 Type TxmlEntity Extends TxmlBase
-	' offsets from the pointer
-	'Const _type:Int = 4			' XML_ENTITY_DECL, (int)
-	'Const _name:Int = 8			' Entity name (byte ptr)
-	'Const _children:Int = 12		' First child link (byte ptr)
-	'Const _last:Int = 16			' Last child link (Byte Ptr)
-	'Const _parent:Int = 20		' -> DTD (Byte Ptr)
-	'Const _next:Int = 24			' next sibling link (byte ptr)
-	'Const _prev:Int = 28			' previous sibling link (byte ptr)
-	'Const _doc:Int = 32			' the containing document (byte ptr)
-	Const _orig:Int = 36			' content without ref substitution (byte ptr)
-	Const _content:Int = 40		' content or ndata if unparsed (byte ptr)
-	Const _length:Int = 44		' the content length (int)
-	Const _etype:Int = 48		' The entity type (int)
-	Const _ExternalID:Int = 52	' External identifier for PUBLIC (byte ptr)
-	Const _SystemID:Int = 56		' URI for a SYSTEM or PUBLIC Entity (byte ptr)
-	Const _nexte:Int = 60		' unused (byte ptr)
-	Const _URI:Int = 64			' the full URI as computed (byte ptr)
-	Const _owner:Int = 68		' does the entity own the childrens (int)
-
-	Field _xmlEntityPtr:Byte Ptr
 	
-	Function _create:TxmlEntity(_xmlEntityPtr:Byte Ptr)
-		If _xmlEntityPtr <> Null Then
+	Function _create:TxmlEntity(basePtr:Byte Ptr)
+		If basePtr <> Null Then
 			Local this:TxmlEntity = New TxmlEntity
-			this._xmlEntityPtr = _xmlEntityPtr
-			this.initBase(_xmlEntityPtr)
+			this.basePtr = basePtr
 			Return this
 		Else
 			Return Null
@@ -4836,12 +3958,12 @@ bbdoc: An XML Catalog
 End Rem 
 Type TxmlCatalog
 
-	Field _xmlCatalogPtr:Byte Ptr
+	Field xmlCatalogPtr:Byte Ptr
 	
-	Function _create:TxmlCatalog(_xmlCatalogPtr:Byte Ptr)
-		If _xmlCatalogPtr <> Null Then
+	Function _create:TxmlCatalog(xmlCatalogPtr:Byte Ptr)
+		If xmlCatalogPtr <> Null Then
 			Local this:TxmlCatalog = New TxmlCatalog
-			this._xmlCatalogPtr = _xmlCatalogPtr
+			this.xmlCatalogPtr = xmlCatalogPtr
 			Return this
 		Else
 			Return Null
@@ -4857,7 +3979,7 @@ Type TxmlCatalog
 	</ul>
 	End Rem
 	Function newCatalog:TxmlCatalog(sgml:Int)
-		Return TxmlCatalog._create(xmlNewCatalog(sgml))
+		Return TxmlCatalog._create(bmx_libxml_xmlNewCatalog(sgml))
 	End Function
 	
 	Rem
@@ -4874,11 +3996,7 @@ Type TxmlCatalog
 	Function loadCatalog:TxmlCatalog(filename:String)
 		Assert filename, XML_ERROR_PARAM
 				
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(filename).toCString()
-		Local this:TxmlCatalog = TxmlCatalog._create(xmlLoadACatalog(cStr))
-		MemFree(cStr)
-		
-		Return this
+		Return TxmlCatalog._create(bmx_libxml_xmlLoadACatalog(filename))
 	End Function
 	
 	Rem
@@ -4894,11 +4012,7 @@ Type TxmlCatalog
 	Function loadDefaultCatalg:Int(filename:String)
 		Assert filename, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(filename).toCString()
-		Local ret:Int = xmlLoadCatalog(cStr)
-		MemFree(cStr)
-		
-		Return ret
+		Return bm_libxml_xmlLoadCatalog(filename)
 	End Function
 	
 	Rem
@@ -4915,11 +4029,7 @@ Type TxmlCatalog
 	Function loadSGMLSuperCatalog:TxmlCatalog(filename:String)
 		Assert filename, XML_ERROR_PARAM
 				
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(filename).toCString()
-		Local this:TxmlCatalog = TxmlCatalog._create(xmlLoadSGMLSuperCatalog(cStr))
-		MemFree(cStr)
-		
-		Return this
+		Return TxmlCatalog._create(bmx_libxml_xmlLoadSGMLSuperCatalog(filename))
 	End Function
 	
 	Rem
@@ -4936,7 +4046,7 @@ Type TxmlCatalog
 	Function setDefaults(allow:Int)
 		Assert allow >=0 And allow <=3
 		
-		xmlCatalogSetDefaults(allow)
+		bmx_libxml_xmlCatalogSetDefaults(allow)
 	End Function
 	
 	Rem
@@ -4944,7 +4054,7 @@ Type TxmlCatalog
 	returns: The current xmlCatalogAllow value. See @setDefaults for more information.
 	End Rem
 	Function getDefaults:Int()
-		Return xmlCatalogGetDefaults()
+		Return bmx_libxml_xmlCatalogGetDefaults()
 	End Function
 	
 	Rem
@@ -4960,7 +4070,7 @@ Type TxmlCatalog
 	Function setDebug:Int(level:Int)
 		Assert level = 0 Or level = 1
 		
-		Return xmlCatalogSetDebug(level)
+		Return bmx_libxml_xmlCatalogSetDebug(level)
 	End Function
 	
 	Rem
@@ -4975,7 +4085,7 @@ Type TxmlCatalog
 	</p>
 	End Rem
 	Function setDefaultPrefer:Int(prefer:Int)
-		Return xmlCatalogSetDefaultPrefer(prefer)
+		Return bmx_libxml_xmlCatalogSetDefaultPrefer(prefer)
 	End Function
 	
 	Rem
@@ -4995,23 +4105,7 @@ Type TxmlCatalog
 		Assert rtype, XML_ERROR_PARAM
 		Assert orig, XML_ERROR_PARAM
 	
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(rtype).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(orig).toCString()
-		
-		Local ret:Int
-		
-		If rep <> Null Then
-			Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(rep).toCString()
-			ret = xmlCatalogAdd(cStr1, cStr2, cStr3)
-			MemFree(cStr3)
-		Else
-			ret = xmlCatalogAdd(cStr1, cStr2, Null)
-		End If
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		
-		Return ret
+		Return bmx_libxml_xmlCatalogAdd(rtype, orig, rep)
 	End Function
 	
 	Rem
@@ -5019,7 +4113,7 @@ Type TxmlCatalog
 	return: The number of entries converted if successful, -1 otherwise.
 	End Rem
 	Function convertDefault:Int()
-		Return xmlCatalogConvert()
+		Return bmx_libxml_xmlCatalogConvert()
 	End Function
 
 	Rem
@@ -5033,11 +4127,7 @@ Type TxmlCatalog
 	Function defaultRemove:Int(value:String)
 		Assert value, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local ret:Int = xmlCatalogRemove(cStr)
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlCatalogRemove(value)
 	End Function
 	
 	Rem
@@ -5053,20 +4143,7 @@ Type TxmlCatalog
 		Assert pubID, XML_ERROR_PARAM
 		Assert sysID, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(pubID).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(sysID).toCString()
-		
-		Local s:Byte Ptr = xmlCatalogResolve(cStr1, cStr2)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-
-		MemFree(cStr1)
-		MemFree(cStr2)		
-		
-		Return ret
+		Return bmx_libxml_xmlCatalogResolve(pubID, sysID)
 	End Function
 
 	Rem
@@ -5080,18 +4157,7 @@ Type TxmlCatalog
 	Function defaultResolvePublic:String(pubID:String)
 		Assert pubID, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(pubID).toCString()
-		
-		Local s:Byte Ptr = xmlCatalogResolvePublic(cStr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-
-		MemFree(cStr)		
-		
-		Return ret
+		Return bmx_libxml_xmlCatalogResolvePublic(pubID)
 	End Function
 	
 	Rem
@@ -5105,18 +4171,7 @@ Type TxmlCatalog
 	Function defaultResolveSystem:String(sysID:String)
 		Assert sysID, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(sysID).toCString()
-		
-		Local s:Byte Ptr = xmlCatalogResolveSystem(cStr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-
-		MemFree(cStr)		
-		
-		Return ret
+		Return bmx_libxml_xmlCatalogResolveSystem(sysID)
 	End Function
 
 	Rem
@@ -5130,18 +4185,7 @@ Type TxmlCatalog
 	Function defaultResolveURI:String(uri:String)
 		Assert uri, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		
-		Local s:Byte Ptr = xmlCatalogResolveURI(cStr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-
-		MemFree(cStr)		
-		
-		Return ret
+		Return bmx_libxml_xmlCatalogResolveURI(uri)
 	End Function
 
 	Rem
@@ -5159,17 +4203,7 @@ Type TxmlCatalog
 		Assert orig, XML_ERROR_PARAM
 		Assert rep, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(rtype).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(orig).toCString()
-		Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(rep).toCString()
-		
-		Local ret:Int = xmlACatalogAdd(_xmlCatalogPtr, cStr1, cStr2, cStr3)
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		MemFree(cStr3)
-		
-		Return ret
+		Return bmx_libxml_xmlACatalogAdd(xmlCatalogPtr, rtype, orig, rep)
 	End Method
 	
 	Rem
@@ -5183,11 +4217,7 @@ Type TxmlCatalog
 	Method remove:Int(value:String)
 		Assert value, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local ret:Int = xmlACatalogRemove(_xmlCatalogPtr, cStr)
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlACatalogRemove(xmlCatalogPtr, value)
 	End Method
 	
 	Rem
@@ -5203,20 +4233,7 @@ Type TxmlCatalog
 		Assert pubID, XML_ERROR_PARAM
 		Assert sysID, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(pubID).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(sysID).toCString()
-		
-		Local s:Byte Ptr = xmlACatalogResolve(_xmlCatalogPtr, cStr1, cStr2)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-
-		MemFree(cStr1)
-		MemFree(cStr2)		
-		
-		Return ret
+		Return bmx_libxml_xmlACatalogResolve(xmlCatalogPtr, pubID, sysID)
 	End Method
 	
 	Rem
@@ -5230,18 +4247,7 @@ Type TxmlCatalog
 	Method resolvePublic:String(pubID:String)
 		Assert pubID, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(pubID).toCString()
-		
-		Local s:Byte Ptr = xmlACatalogResolvePublic(_xmlCatalogPtr, cStr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-
-		MemFree(cStr)		
-		
-		Return ret
+		Return bmx_libxml_xmlACatalogResolvePublic(xmlCatalogPtr, pubID)
 	End Method
 	
 	Rem
@@ -5255,18 +4261,7 @@ Type TxmlCatalog
 	Method resolveSystem:String(sysID:String)
 		Assert sysID, XML_ERROR_PARAM
 		
-		Local ret:String = Null
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(sysID).toCString()
-		
-		Local s:Byte Ptr = xmlACatalogResolveSystem(_xmlCatalogPtr, cStr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-
-		MemFree(cStr)		
-		
-		Return ret
+		Return bmx_libxml_xmlACatalogResolveSystem(xmlCatalogPtr, sysID)
 	End Method
 	
 	Rem
@@ -5274,7 +4269,7 @@ Type TxmlCatalog
 	returns: 1 if the catalog is empty, 0 if not, and -1 in case of error.
 	End Rem
 	Method isEmpty:Int()
-		Return xmlCatalogIsEmpty(_xmlCatalogPtr)
+		Return bmx_libxml_xmlCatalogIsEmpty(xmlCatalogPtr)
 	End Method
 	
 	Rem
@@ -5282,21 +4277,21 @@ Type TxmlCatalog
 	returns: The number of entries converted if successful, -1 otherwise.
 	End Rem 
 	Method convertSGML:Int()
-		Return xmlConvertSGMLCatalog(_xmlCatalogPtr)
+		Return bmx_libxml_xmlConvertSGMLCatalog(xmlCatalogPtr)
 	End Method
 	
 	Rem
 	bbdoc: Dump the catalog to the given file.
 	End Rem
 	Method dump(file:Int)
-		xmlACatalogDump(_xmlCatalogPtr, file)
+		bmx_libxml_xmlACatalogDump(xmlCatalogPtr, file)
 	End Method
 	
 	Rem
 	bbdoc: Free the memory allocated to a Catalog.
 	End Rem
 	Method free()
-		xmlFreeCatalog(_xmlCatalogPtr)
+		bmx_libxml_xmlFreeCatalog(xmlCatalogPtr)
 	End Method
 End Type
 
@@ -5305,12 +4300,12 @@ bbdoc: An XML XInclude context.
 End Rem
 Type TxmlXIncludeCtxt
 
-	Field _xmlXIncludeCtxtPtr:Byte Ptr
+	Field xmlXIncludeCtxtPtr:Byte Ptr
 	
-	Function _create:TxmlXIncludeCtxt(_xmlXIncludeCtxtPtr:Byte Ptr)
-		If _xmlXIncludeCtxtPtr <> Null Then
+	Function _create:TxmlXIncludeCtxt(xmlXIncludeCtxtPtr:Byte Ptr)
+		If xmlXIncludeCtxtPtr <> Null Then
 			Local this:TxmlXIncludeCtxt = New TxmlXIncludeCtxt
-			this._xmlXIncludeCtxtPtr = _xmlXIncludeCtxtPtr
+			this.xmlXIncludeCtxtPtr = xmlXIncludeCtxtPtr
 			Return this
 		Else
 			Return Null
@@ -5328,7 +4323,7 @@ Type TxmlXIncludeCtxt
 	Function newContext:TxmlXIncludeCtxt(doc:TxmlDoc)
 		Assert doc, XML_ERROR_PARAM
 		
-		Return TxmlXIncludeCtxt._create(xmlXIncludeNewContext(doc._xmlDocPtr))
+		Return TxmlXIncludeCtxt._create(bmx_libxml_xmlXIncludeNewContext(doc.basePtr))
 	End Function
 	
 	Rem
@@ -5342,7 +4337,7 @@ Type TxmlXIncludeCtxt
 	Method processNode:Int(node:TxmlNode)
 		Assert node, XML_ERROR_PARAM
 		
-		Return xmlXIncludeProcessNode(_xmlXIncludeCtxtPtr, node._xmlNodePtr)
+		Return bmx_libxml_xmlXIncludeProcessNode(xmlXIncludeCtxtPtr, node.basePtr)
 	End Method
 	
 	Rem
@@ -5354,14 +4349,14 @@ Type TxmlXIncludeCtxt
 	</ul>
 	End Rem
 	Method setFlags:Int(flags:Int)
-		Return xmlXIncludeSetFlags(_xmlXIncludeCtxtPtr, flags)
+		Return bmx_libxml_xmlXIncludeSetFlags(xmlXIncludeCtxtPtr, flags)
 	End Method
 	
 	Rem
 	bbdoc: Free the XInclude context
 	End Rem
 	Method free()
-		xmlXIncludeFreeContext(_xmlXIncludeCtxtPtr)
+		bmx_libxml_xmlXIncludeFreeContext(xmlXIncludeCtxtPtr)
 	End Method
 End Type
 
@@ -5370,23 +4365,13 @@ bbdoc: A URI
 about: Provides some standards-savvy functions for URI handling.
 End Rem
 Type TxmlURI
-	Const _scheme:Int = 0		' the URI scheme (byte ptr)
-	Const _opaque:Int = 4		' opaque part (byte ptr)
-	Const _authority:Int = 8	' the authority part (byte ptr)
-	Const _server:Int = 12		' the server part (byte ptr)
-	Const _user:Int = 16		' the user part (byte ptr)
-	Const _port:Int = 20		' the port number (int)
-	Const _path:Int = 24		' the path string (byte ptr)
-	Const _query:Int = 28		' the query string (byte ptr)
-	Const _fragment:Int = 32	' the fragment identifier (byte ptr)
-	Const _cleanup:Int = 36	' parsing potentially unclean URI (int)
 
-	Field _xmlURIPtr:Byte Ptr
+	Field xmlURIPtr:Byte Ptr
 	
-	Function _create:TxmlURI(_xmlURIPtr:Byte Ptr)
-		If _xmlURIPtr<> Null Then
+	Function _create:TxmlURI(xmlURIPtr:Byte Ptr)
+		If xmlURIPtr<> Null Then
 			Local this:TxmlURI = New TxmlURI
-			this._xmlURIPtr= _xmlURIPtr
+			this.xmlURIPtr = xmlURIPtr
 			Return this
 		Else
 			Return Null
@@ -5398,7 +4383,7 @@ Type TxmlURI
 	returns: The new structure or Null in case of error.
 	End Rem
 	Function createURI:TxmlURI()
-		Return TxmlURI._create(xmlCreateURI())
+		Return TxmlURI._create(bmx_libxml_xmlCreateURI())
 	End Function
 	
 	Rem
@@ -5414,12 +4399,7 @@ Type TxmlURI
 	Function parseURI:TxmlURI(uri:String)
 		Assert uri, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		Local u:TxmlURI = TxmlURI._create(xmlParseURI(cStr))
-		
-		MemFree(cStr)
-		
-		Return u
+		Return TxmlURI._create(bmx_libxml_xmlParseURI(uri))
 	End Function
 	
 	Rem
@@ -5436,12 +4416,7 @@ Type TxmlURI
 	Function parseURIRaw:TxmlURI(uri:String, raw:Int)
 		Assert uri, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		Local u:TxmlURI = TxmlURI._create(xmlParseURIRaw(cStr, raw))
-		
-		MemFree(cStr)
-		
-		Return u
+		Return TxmlURI._create(bmx_libxml_xmlParseURIRaw(uri, raw))
 	End Function
 
 	Rem
@@ -5460,19 +4435,7 @@ Type TxmlURI
 		Assert uri, XML_ERROR_PARAM
 		Assert base, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(base).toCString()
-		
-		Local s:Byte Ptr = xmlBuildURI(cStr1, cStr2)
-		Local ret:String = Null
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		MemFree(cStr1)
-		MemFree(cStr2)
-		Return ret
+		Return bmx_libxml_xmlBuildURI(uri, base)
 	End Function
 	
 	Rem
@@ -5486,15 +4449,7 @@ Type TxmlURI
 	Function canonicPath:String(path:String)
 		Assert path, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(path).toCString()
-		Local s:Byte Ptr = xmlCanonicPath(cStr)
-		Local ret:String = path
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		Return ret
+		Return bmx_libxml_xmlCanonicPath(path)
 	End Function
 	
 	Rem
@@ -5510,13 +4465,7 @@ Type TxmlURI
 	Function normalizeURIPath:String(path:String)
 		Assert path, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(path).toCString()
-		
-		Local r:Int = xmlNormalizeURIPath(cStr)
-		Local ret:String = _xmlConvertUTF8ToMax(cStr)
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlNormalizeURIPath(path)
 	End Function
 	
 	Rem
@@ -5532,16 +4481,7 @@ Type TxmlURI
 	Function URIEscape:String(uri:String)
 		Assert uri, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		Local s:Byte Ptr = xmlURIEscape(cStr)
-		Local ret:String = Null
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlURIEscape(uri)
 	End Function
 	
 	Rem
@@ -5556,24 +4496,7 @@ Type TxmlURI
 	Function URIEscapeString:String(uri:String, list:String)
 		Assert uri, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		Local s:Byte Ptr
-		If list <> Null Then
-			Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(list).toCString()
-			s = xmlURIEscapeStr(cStr1, cStr2)
-			MemFree(cStr2)
-		Else
-			s = xmlURIEscapeStr(cStr1, Null)
-		End If
-		
-		Local ret:String = Null
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		MemFree(cStr1)
-		
-		Return ret
+		Return bmx_libxml_xmlURIEscapeStr(uri, list)
 	End Function
 	
 	Rem
@@ -5589,16 +4512,7 @@ Type TxmlURI
 	Function URIUnescapeString:String(str:String)
 		Assert str, XML_ERROR_PARAM
 	
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(str).toCString()
-		Local s:Byte Ptr = xmlURIUnescapeString(cStr, 0, Null)
-		Local ret:String = Null
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		MemFree(cStr)
-		Return ret
+		Return bmx_libxml_xmlURIUnescapeString(str)
 	End Function
 	
 	Rem
@@ -5614,12 +4528,7 @@ Type TxmlURI
 	Method parseURIReference:Int(uri:String)
 		Assert uri, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(uri).toCString()
-		
-		Local ret:Int = xmlParseURIReference(_xmlURIPtr, cStr)
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlParseURIReference(xmlURIPtr, uri)
 	End Method
 	
 	Rem
@@ -5627,85 +4536,77 @@ Type TxmlURI
 	returns: A new string.
 	End Rem
 	Method saveURI:String()
-		Local ret:String
-		
-		Local s:Byte Ptr = xmlSaveUri(_xmlURIPtr)
-		If s <> Null Then
-			ret = _xmlConvertUTF8ToMax(s)
-			xmlMemFree(s)
-		End If
-		
-		Return ret
+		Return bmx_libxml_xmlSaveUri(xmlURIPtr)
 	End Method
-	
+
 	Rem
 	bbdoc: Returns the URI scheme.
 	End Rem
 	Method getScheme:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _scheme)[0]))
+		Return bmx_libxml_xmluri_scheme(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the opaque part.
 	End Rem
 	Method getOpaque:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _opaque)[0]))
+		Return bmx_libxml_xmluri_opaque(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the authority part.
 	End Rem
 	Method getAuthority:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _authority)[0]))
+		Return bmx_libxml_xmluri_authority(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the server part.
 	End Rem
 	Method getServer:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _server)[0]))
+		Return bmx_libxml_xmluri_server(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the user part.
 	End Rem
 	Method getUser:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _user)[0]))
+		Return bmx_libxml_xmluri_user(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the port number.
 	End Rem
 	Method getPort:Int()
-		Return Int Ptr(_xmlURIPtr + _port)[0]
+		Return bmx_libxml_xmluri_port(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the path string.
 	End Rem
 	Method getPath:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _path)[0]))
+		Return bmx_libxml_xmluri_path(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the query string.
 	End Rem
 	Method getQuery:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _query)[0]))
+		Return bmx_libxml_xmluri_query(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the fragment identifier.
 	End Rem
 	Method getFragment:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlURIPtr + _fragment)[0]))
+		Return bmx_libxml_xmluri_fragment(xmlURIPtr)
 	End Method
 
 	Rem
 	bbdoc: Free up the TxmlURI object.
 	End Rem
 	Method free()
-		xmlFreeURI(_xmlURIPtr)
+		bmx_libxml_xmlFreeURI(xmlURIPtr)
 	End Method
 	
 End Type
@@ -5714,16 +4615,16 @@ Rem
 bbdoc: An XML Location Set.
 End Rem
 Type TxmlLocationSet
-	Const _locNr:Int = 0		' number of locations in the set (Int)
-	Const _locMax:Int = 4		' size of the array as allocated (Int)
-	Const _locTab:Int = 8		' array of locations (Byte Ptr)
+	'Const _locNr:Int = 0		' number of locations in the set (Int)
+	'Const _locMax:Int = 4		' size of the array as allocated (Int)
+	'Const _locTab:Int = 8		' array of locations (Byte Ptr)
 
-	Field _xmlLocationSetPtr:Byte Ptr
+	Field xmlLocationSetPtr:Byte Ptr
 	
-	Function _create:TxmlLocationSet(_xmlLocationSetPtr:Byte Ptr)
-		If _xmlLocationSetPtr <> Null Then
+	Function _create:TxmlLocationSet(xmlLocationSetPtr:Byte Ptr)
+		If xmlLocationSetPtr <> Null Then
 			Local this:TxmlLocationSet = New TxmlLocationSet
-			this._xmlLocationSetPtr = _xmlLocationSetPtr
+			this.xmlLocationSetPtr = xmlLocationSetPtr
 			Return this
 		Else
 			Return Null
@@ -5735,7 +4636,7 @@ Type TxmlLocationSet
 	returns: The newly created object.
 	End Rem
 	Function Create:TxmlLocationSet()
-		Return TxmlLocationSet._create(xmlXPtrLocationSetCreate(Null))
+		Return TxmlLocationSet._create(bmx_libxml_xmlXPtrLocationSetCreate(Null))
 	End Function
 	
 	Rem
@@ -5750,7 +4651,7 @@ Type TxmlLocationSet
 	Method add(value:TxmlXPathObject)
 		Assert value, XML_ERROR_PARAM
 		
-		xmlXPtrLocationSetAdd(_xmlLocationSetPtr, value._xmlXPathObjectPtr)
+		bmx_libxml_xmlXPtrLocationSetAdd(xmlLocationSetPtr, value.xmlXPathObjectPtr)
 	End Method
 	
 	Rem
@@ -5759,7 +4660,7 @@ Type TxmlLocationSet
 	Method del(value:TxmlXPathObject)
 		Assert value, XML_ERROR_PARAM
 		
-		xmlXPtrLocationSetDel(_xmlLocationSetPtr, value._xmlXPathObjectPtr)
+		bmx_libxml_xmlXPtrLocationSetDel(xmlLocationSetPtr, value.xmlXPathObjectPtr)
 	End Method
 	
 	Rem
@@ -5775,7 +4676,7 @@ Type TxmlLocationSet
 	Method merge:TxmlLocationSet(value:TxmlLocationSet)
 		Assert value, XML_ERROR_PARAM
 		
-		Return TxmlLocationSet._create(xmlXPtrLocationSetMerge(_xmlLocationSetPtr, value._xmlLocationSetPtr))
+		Return TxmlLocationSet._create(bmx_libxml_xmlXPtrLocationSetMerge(xmlLocationSetPtr, value.xmlLocationSetPtr))
 	End Method
 	
 	Rem
@@ -5786,14 +4687,14 @@ Type TxmlLocationSet
 	</ul>
 	End Rem
 	Method remove(index:Int)
-		xmlXPtrLocationSetRemove(_xmlLocationSetPtr, index)
+		bmx_libxml_xmlXPtrLocationSetRemove(xmlLocationSetPtr, index)
 	End Method
 	
 	Rem
 	bbdoc: Free the LocationSet compound (not the actual ranges !).
 	End Rem
 	Method free()
-		xmlXPtrFreeLocationSet(_xmlLocationSetPtr)
+		bmx_libxml_xmlXPtrFreeLocationSet(xmlLocationSetPtr)
 	End Method
 	
 End Type
@@ -5803,25 +4704,12 @@ bbdoc: An XML Attribute Decl.
 End Rem
 Type TxmlDtdAttribute Extends TxmlBase
 
-	' offsets from the pointer
-	Const _nexth:Int = 36		'	 next in hash table (byte ptr)
-	Const _atype:Int = 40		' The attribute type (int)
-	Const _def:Int = 44			' the default (int)
-	Const _defaultValue:Int = 48	' or the default value (byte ptr)
-	Const _tree:Int = 52			' or the enumeration tree if any (byte ptr)
-	Const _prefix:Int = 56		' the namespace prefix if any (byte ptr)
-	Const _elem:Int = 60			' Element holding the attribute (byte ptr)
-
-	' reference to the actual attribute
-	Field _xmlDtdAttributePtr:Byte Ptr
-
 	' internal function... not part of the API !
-	Function _create:TxmlDtdAttribute(_xmlDtdAttributePtr:Byte Ptr)
-		If _xmlDtdAttributePtr <> Null Then
+	Function _create:TxmlDtdAttribute(basePtr:Byte Ptr)
+		If basePtr <> Null Then
 			Local this:TxmlDtdAttribute = New TxmlDtdAttribute
 			
-			this._xmlDtdAttributePtr = _xmlDtdAttributePtr
-			this.initBase(_xmlDtdAttributePtr)
+			this.basePtr = basePtr
 			
 			Return this
 		Else
@@ -5833,7 +4721,7 @@ Type TxmlDtdAttribute Extends TxmlBase
 	bbdoc: Returns the attribute default value
 	End Rem
 	Method getDefaultValue:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlDtdAttributePtr + _defaultValue)[0]))
+		Return bmx_libxml_xmldtdattribute_defaultValue(basePtr)
 	End Method
 
 End Type
@@ -5852,23 +4740,19 @@ Type TxmlDtdElement Extends TxmlBase
 	'Const _next:Int = 24		' Next sibling link (byte ptr)
 	'Const _prev:Int = 28		' previous sibling link (byte ptr)
 	'Const _doc:Int = 32		' the containing document (byte ptr)
-	Const _etype:Int = 36	' The type (int)
-	Const _content:Int = 36	' the allowed element content (byte ptr)
-	Const _attributes:Int = 36	' List of the declared attributes (byte ptr)
-	Const _prefix:Int = 36	' the namespace prefix if any (byte ptr)
-	Const _contModel:Int = 36	' the validating regexp (byte ptr)
+	'Const _etype:Int = 36	' The type (int)
+	'Const _content:Int = 36	' the allowed element content (byte ptr)
+	'Const _attributes:Int = 36	' List of the declared attributes (byte ptr)
+	'Const _prefix:Int = 36	' the namespace prefix if any (byte ptr)
+	'Const _contModel:Int = 36	' the validating regexp (byte ptr)
 	'Const _contModel		' (byte ptr)
 
-	' reference to the actual element
-	Field _xmlDtdElementPtr:Byte Ptr
-
 	' internal function... not part of the API !
-	Function _create:TxmlDtdElement(_xmlDtdElementPtr:Byte Ptr)
-		If _xmlDtdElementPtr <> Null Then
+	Function _create:TxmlDtdElement(basePtr:Byte Ptr)
+		If basePtr <> Null Then
 			Local this:TxmlDtdElement = New TxmlDtdElement
 			
-			this._xmlDtdElementPtr = _xmlDtdElementPtr
-			this.initBase(_xmlDtdElementPtr)
+			this.basePtr = basePtr
 			
 			Return this
 		Else
@@ -5889,14 +4773,14 @@ Type TxmlDtdElement Extends TxmlBase
 	</table>
 	End Rem
 	Method getElementType:Int()
-		Return Int Ptr(_xmlDtdElementPtr + _etype)[0]
+		Return bmx_libxml_xmldtdelement_etype(basePtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the namespace prefix, if any.
 	End Rem
 	Method getPrefix:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlDtdElementPtr + _prefix)[0]))
+		Return bmx_libxml_xmldtdelement_prefix(basePtr)
 	End Method
 
 End Type
@@ -5906,19 +4790,19 @@ bbdoc:  An XML Notation.
 End Rem
 Type TxmlNotation
 	' offsets from the pointer
-	Const _name:Int = 0		' Notation name (byte ptr)
-	Const _PublicID:Int = 4	' Public identifier, if any (byte ptr)
-	Const _SystemID:Int = 8	' System identifier, if any (byte ptr)
+	'Const _name:Int = 0		' Notation name (byte ptr)
+	'Const _PublicID:Int = 4	' Public identifier, if any (byte ptr)
+	'Const _SystemID:Int = 8	' System identifier, if any (byte ptr)
 
 	' reference to the actual element
-	Field _xmlNotationPtr:Byte Ptr
+	Field xmlNotationPtr:Byte Ptr
 
 	' internal function... not part of the API !
-	Function _create:TxmlNotation(_xmlNotationPtr:Byte Ptr)
-		If _xmlNotationPtr <> Null Then
+	Function _create:TxmlNotation(xmlNotationPtr:Byte Ptr)
+		If xmlNotationPtr <> Null Then
 			Local this:TxmlNotation = New TxmlNotation
 			
-			this._xmlNotationPtr = _xmlNotationPtr
+			this.xmlNotationPtr = xmlNotationPtr
 			
 			Return this
 		Else
@@ -5930,21 +4814,21 @@ Type TxmlNotation
 	bbdoc: Returns the notation name.
 	End Rem
 	Method getName:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlNotationPtr + _name)[0]))
+		Return bmx_libxml_xmlnotation_name(xmlNotationPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the public identifier, if any.
 	End Rem
 	Method getPublicID:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlNotationPtr + _PublicID)[0]))
+		Return bmx_libxml_xmlnotation_PublicID(xmlNotationPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the system identifier, if any.
 	End Rem
 	Method getSystemID:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlNotationPtr + _SystemID)[0]))
+		Return bmx_libxml_xmlnotation_SystemID(xmlNotationPtr)
 	End Method
 
 End Type
@@ -5954,31 +4838,31 @@ bbdoc: XML validation context.
 End Rem
 Type TxmlValidCtxt
 
-	Const _error:Int = 4		' the callback in case of errors (byte ptr)
-	Const _warning:Int = 8	' the callback in case of warning Node an (byte ptr)
-	Const _node:Int = 12		' Current parsed Node (byte ptr)
-	Const _nodeNr:Int = 16	' Depth of the parsing stack (int)
-	Const _nodeMax:Int = 20	' Max depth of the parsing stack (int)
-	Const _nodeTab:Int = 24	' array of nodes (byte ptr)
-	Const _finishDtd:Int = 28	' finished validating the Dtd ? (int)
-	Const _doc:Int = 32		' the document (byte ptr)
-	Const _valid:Int = 36	' temporary validity check result state s (int)
-	Const _vstate:Int = 40	' current state (byte ptr)
-	Const _vstateNr:Int = 44	' Depth of the validation stack (int)
-	Const _vstateMax:Int = 48	' Max depth of the validation stack (int)
-	Const _vstateTab:Int = 52	' array of validation states (byte ptr)
-	Const _am:Int = 56		' the automata (byte ptr)
-	Const _state:Int = 60	' used to build the automata (byte ptr)
+	'Const _error:Int = 4		' the callback in case of errors (byte ptr)
+	'Const _warning:Int = 8	' the callback in case of warning Node an (byte ptr)
+	'Const _node:Int = 12		' Current parsed Node (byte ptr)
+	'Const _nodeNr:Int = 16	' Depth of the parsing stack (int)
+	'Const _nodeMax:Int = 20	' Max depth of the parsing stack (int)
+	'Const _nodeTab:Int = 24	' array of nodes (byte ptr)
+	'Const _finishDtd:Int = 28	' finished validating the Dtd ? (int)
+	'Const _doc:Int = 32		' the document (byte ptr)
+	'Const _valid:Int = 36	' temporary validity check result state s (int)
+	'Const _vstate:Int = 40	' current state (byte ptr)
+	'Const _vstateNr:Int = 44	' Depth of the validation stack (int)
+	'Const _vstateMax:Int = 48	' Max depth of the validation stack (int)
+	'Const _vstateTab:Int = 52	' array of validation states (byte ptr)
+	'Const _am:Int = 56		' the automata (byte ptr)
+	'Const _state:Int = 60	' used to build the automata (byte ptr)
 
 	' reference to the actual element
-	Field _xmlValidCtxtPtr:Byte Ptr
+	Field xmlValidCtxtPtr:Byte Ptr
 
 	' internal function... not part of the API !
-	Function _create:TxmlValidCtxt(_xmlValidCtxtPtr:Byte Ptr)
-		If _xmlValidCtxtPtr <> Null Then
+	Function _create:TxmlValidCtxt(xmlValidCtxtPtr:Byte Ptr)
+		If xmlValidCtxtPtr <> Null Then
 			Local this:TxmlValidCtxt = New TxmlValidCtxt
 			
-			this._xmlValidCtxtPtr = _xmlValidCtxtPtr
+			this.xmlValidCtxtPtr = xmlValidCtxtPtr
 			
 			Return this
 		Else
@@ -6017,13 +4901,7 @@ Type TxmlValidCtxt
 	Function validateAttributeValue:Int(attributeType:Int, value:String)
 		Assert value, XML_ERROR_PARAM
 
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-			
-		Local ret:Int = xmlValidateAttributeValue(attributeType, cStr)
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlValidateAttributeValue(attributeType, value)
 	End Function
 	
 	Rem
@@ -6031,7 +4909,7 @@ Type TxmlValidCtxt
 	returns: Null if not, otherwise the new validation context structure.
 	End Rem
 	Function newValidCtxt:TxmlValidCtxt()
-		Return _create(xmlNewValidCtxt())
+		Return _create(bmx_libxml_xmlNewValidCtxt())
 	End Function
 
 	Rem
@@ -6045,12 +4923,7 @@ Type TxmlValidCtxt
 	Function validateNameValue:Int(value:String)
 		Assert value, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local ret:Int = xmlValidateNameValue(cStr)
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlValidateNameValue(value)
 	End Function
 
 	Rem
@@ -6064,12 +4937,7 @@ Type TxmlValidCtxt
 	Function validateNamesValue:Int(value:String)
 		Assert value, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local ret:Int = xmlValidateNamesValue(cStr)
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlValidateNamesValue(value)
 	End Function
 
 	Rem
@@ -6085,12 +4953,7 @@ Type TxmlValidCtxt
 	Function validateNmtokenValue:Int(value:String)
 		Assert value, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local ret:Int = xmlValidateNmtokenValue(cStr)
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlValidateNmtokenValue(value)
 	End Function
 
 	Rem
@@ -6106,33 +4969,28 @@ Type TxmlValidCtxt
 	Function validateNmtokensValue:Int(value:String)
 		Assert value, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(value).toCString()
-		Local ret:Int = xmlValidateNmtokensValue(cStr)
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return bmx_libxml_xmlValidateNmtokensValue(value)
 	End Function
 
 	Rem
 	bbdoc: Returns the temporary validity check result state.
 	End Rem
 	Method isValid:Int()
-		Return Int Ptr(_xmlValidCtxtPtr + _valid)[0]
+		Return bmx_libxml_xmlvalidctxt_valid(xmlValidCtxtPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns true if finished validating the DTD.
 	End Rem
 	Method isFinishedDtd:Int()
-		Return Int Ptr(_xmlValidCtxtPtr + _finishDtd)[0]
+		Return bmx_libxml_xmlvalidctxt_finishDtd(xmlValidCtxtPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the document for this object.
 	End Rem
 	Method getDocument:TxmlDoc()
-		Return TxmlDoc._create(Byte Ptr(Int Ptr(_xmlValidCtxtPtr + _doc)[0]))
+		Return TxmlDoc._create(bmx_libxml_xmlvalidctxt_doc(xmlValidCtxtPtr))
 	End Method
 
 	Rem
@@ -6149,7 +5007,7 @@ Type TxmlValidCtxt
 	Method validateDocument:Int(doc:TxmlDoc)
 		Assert doc, XML_ERROR_PARAM
 		
-		Return xmlValidateDocument(_xmlValidCtxtPtr, doc._xmlDocPtr)
+		Return bmx_libxml_xmlValidateDocument(xmlValidCtxtPtr, doc.basePtr)
 	End Method
 
 	Rem
@@ -6166,7 +5024,7 @@ Type TxmlValidCtxt
 	Method validateDocumentFinal:Int(doc:TxmlDoc)
 		Assert doc, XML_ERROR_PARAM
 		
-		Return xmlValidateDocumentFinal(_xmlValidCtxtPtr, doc._xmlDocPtr)
+		Return bmx_libxml_xmlValidateDocumentFinal(xmlValidCtxtPtr, doc.basePtr)
 	End Method
 	
 	Rem
@@ -6185,7 +5043,7 @@ Type TxmlValidCtxt
 		Assert doc, XML_ERROR_PARAM
 		Assert dtd, XML_ERROR_PARAM
 	
-		Return xmlValidateDtd(_xmlValidCtxtPtr, doc._xmlDocPtr, dtd._xmlDtdPtr)
+		Return bmx_libxml_xmlValidateDtd(xmlValidCtxtPtr, doc.basePtr, dtd.basePtr)
 	End Method
 
 	Rem
@@ -6204,7 +5062,7 @@ Type TxmlValidCtxt
 	Method validateDtdFinal:Int(doc:TxmlDoc, dtd:TxmlDtd)
 		Assert doc, XML_ERROR_PARAM
 	
-		Return xmlValidateDtdFinal(_xmlValidCtxtPtr, doc._xmlDocPtr)
+		Return bmx_libxml_xmlValidateDtdFinal(xmlValidCtxtPtr, doc.basePtr)
 	End Method
 	
 	Rem
@@ -6221,7 +5079,7 @@ Type TxmlValidCtxt
 	Method validateRoot:Int(doc:TxmlDoc)
 		Assert doc, XML_ERROR_PARAM
 		
-		Return xmlValidateRoot(_xmlValidCtxtPtr, doc._xmlDocPtr)
+		Return bmx_libxml_xmlValidateRoot(xmlValidCtxtPtr, doc.basePtr)
 	End Method
 	
 	Rem
@@ -6237,7 +5095,7 @@ Type TxmlValidCtxt
 		Assert doc, XML_ERROR_PARAM
 		Assert elem, XML_ERROR_PARAM
 		
-		Return xmlValidateElement(_xmlValidCtxtPtr, doc._xmlDocPtr, elem._xmlNodePtr)
+		Return bmx_libxml_xmlValidateElement(xmlValidCtxtPtr, doc.basePtr, elem.basePtr)
 	End Method
 
 	Rem
@@ -6257,7 +5115,7 @@ Type TxmlValidCtxt
 		Assert doc, XML_ERROR_PARAM
 		Assert elem, XML_ERROR_PARAM
 		
-		Return xmlValidateElementDecl(_xmlValidCtxtPtr, doc._xmlDocPtr, elem._xmlDtdElementPtr)
+		Return bmx_libxml_xmlValidateElementDecl(xmlValidCtxtPtr, doc.basePtr, elem.basePtr)
 	End Method
 
 	Rem
@@ -6279,7 +5137,7 @@ Type TxmlValidCtxt
 		Assert doc, XML_ERROR_PARAM
 		Assert attr, XML_ERROR_PARAM
 		
-		Return xmlValidateAttributeDecl(_xmlValidCtxtPtr, doc._xmlDocPtr, attr._xmlDtdAttributePtr)
+		Return bmx_libxml_xmlValidateAttributeDecl(xmlValidCtxtPtr, doc.basePtr, attr.basePtr)
 	End Method
 	
 	Rem
@@ -6293,14 +5151,14 @@ Type TxmlValidCtxt
 	Method buildContentModel:Int(elem:TxmlDtdElement)
 		Assert elem, XML_ERROR_PARAM
 		
-		Return xmlValidBuildContentModel(_xmlValidCtxtPtr, elem._xmlDtdElementPtr)
+		Return bmx_libxml_xmlValidBuildContentModel(xmlValidCtxtPtr, elem.basePtr)
 	End Method
 	
 	Rem
 	bbdoc: Free the validation context structure.
 	End Rem
 	Method free()
-		xmlFreeValidCtxt(_xmlValidCtxtPtr)
+		bmx_libxml_xmlFreeValidCtxt(xmlValidCtxtPtr)
 	End Method
 	
 End Type
@@ -6310,23 +5168,15 @@ bbdoc: An XML element content tree.
 End Rem
 Type TxmlElementContent
 
-	Const _type:Int = 0		' PCDATA, ELEMENT, SEQ or OR (int)
-	Const _ocur:Int = 4		' ONCE, OPT, MULT or PLUS (int)
-	Const _name:Int = 8		' Element name (byte ptr)
-	Const _c1:Int = 12		' first child (byte ptr)
-	Const _c2:Int = 16		' second child (byte ptr)
-	Const _parent:Int = 20	' parent (byte ptr)
-	Const _prefix:Int = 24	' Namespace prefix (byte ptr)
-
 	' reference to the actual element
-	Field _xmlElementContentPtr:Byte Ptr
+	Field xmlElementContentPtr:Byte Ptr
 
 	' internal function... not part of the API !
-	Function _create:TxmlElementContent(_xmlElementContentPtr:Byte Ptr)
-		If _xmlElementContentPtr <> Null Then
+	Function _create:TxmlElementContent(xmlElementContentPtr:Byte Ptr)
+		If xmlElementContentPtr <> Null Then
 			Local this:TxmlElementContent = New TxmlElementContent
 			
-			this._xmlElementContentPtr = _xmlElementContentPtr
+			this.xmlElementContentPtr = xmlElementContentPtr
 			
 			Return this
 		Else
@@ -6346,7 +5196,7 @@ Type TxmlElementContent
 	</table>
 	End Rem
 	Method getType:Int()
-		Return Int Ptr(_xmlElementContentPtr + _type)[0]
+		Return bmx_libxml_xmlelementcontent_type(xmlElementContentPtr)
 	End Method
 
 	Rem
@@ -6361,21 +5211,21 @@ Type TxmlElementContent
 	</table>
 	End Rem
 	Method getOccur:Int()
-		Return Int Ptr(_xmlElementContentPtr + _ocur)[0]
+		Return bmx_libxml_xmlelementcontent_ocur(xmlElementContentPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the element name.
 	End Rem
 	Method getName:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlElementContentPtr + _name)[0]))
+		Return bmx_libxml_xmlelementcontent_name(xmlElementContentPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the namespace prefix.
 	End Rem
 	Method getPrefix:String()
-		Return _xmlConvertUTF8ToMax(Byte Ptr(Int Ptr(_xmlElementContentPtr + _prefix)[0]))
+		Return bmx_libxml_xmlelementcontent_prefix(xmlElementContentPtr)
 	End Method
 	
 End Type
@@ -6386,14 +5236,14 @@ End Rem
 Type TxmlXPathCompExpr
 
 	' reference to the actual compiled expression
-	Field _xmlXPathCompExprPtr:Byte Ptr
+	Field xmlXPathCompExprPtr:Byte Ptr
 
 	' internal function... not part of the API !
-	Function _create:TxmlXPathCompExpr(_xmlXPathCompExprPtr:Byte Ptr)
-		If _xmlXPathCompExprPtr <> Null Then
+	Function _create:TxmlXPathCompExpr(xmlXPathCompExprPtr:Byte Ptr)
+		If xmlXPathCompExprPtr <> Null Then
 			Local this:TxmlXPathCompExpr = New TxmlXPathCompExpr
 			
-			this._xmlXPathCompExprPtr = _xmlXPathCompExprPtr
+			this.xmlXPathCompExprPtr = xmlXPathCompExprPtr
 			
 			Return this
 		Else
@@ -6412,12 +5262,7 @@ Type TxmlXPathCompExpr
 	Function Compile:TxmlXPathCompExpr(expr:String)
 		Assert expr, XML_ERROR_PARAM
 		
-		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(expr).toCString()
-		Local ret:TxmlXPathCompExpr = TxmlXPathCompExpr._create(xmlXPathCompile(cStr))
-		
-		MemFree(cStr)
-		
-		Return ret
+		Return TxmlXPathCompExpr._create(bmx_libxml_xmlXPathCompile(expr))
 	End Function
 	
 	Rem
@@ -6431,14 +5276,14 @@ Type TxmlXPathCompExpr
 	Method eval:TxmlXPathObject(context:TxmlXPathContext)
 		Assert context, XML_ERROR_PARAM
 		
-		Return TxmlXPathObject._create(xmlXPathCompiledEval(_xmlXPathCompExprPtr, context._xmlXPathContextPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathCompiledEval(xmlXPathCompExprPtr, context.xmlXPathContextPtr))
 	End Method
 	
 	Rem
 	bbdoc: Free up the allocated memory.
 	End Rem
 	Method free()
-		xmlXPathFreeCompExpr(_xmlXPathCompExprPtr)
+		bmx_libxml_xmlXPathFreeCompExpr(xmlXPathCompExprPtr)
 	End Method
 	
 End Type
