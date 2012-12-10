@@ -20,28 +20,28 @@ extern "C" {
  *
  * the version string like "1.2.3"
  */
-#define LIBXSLT_DOTTED_VERSION "1.1.26"
+#define LIBXSLT_DOTTED_VERSION "1.1.28"
 
 /**
  * LIBXSLT_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  */
-#define LIBXSLT_VERSION 10126
+#define LIBXSLT_VERSION 10128
 
 /**
  * LIBXSLT_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  */
-#define LIBXSLT_VERSION_STRING "10126"
+#define LIBXSLT_VERSION_STRING "10128"
 
 /**
  * LIBXSLT_VERSION_EXTRA:
  *
  * extra version information, used to show a CVS compilation
  */
-#define	LIBXSLT_VERSION_EXTRA "-GITv1.1.26"
+#define	LIBXSLT_VERSION_EXTRA "-GITv1.1.27-16-g9382efe"
 
 /**
  * WITH_XSLT_DEBUG:
@@ -54,7 +54,7 @@ extern "C" {
 #define WITH_XSLT_DEBUG
 #endif
 
-#if 1
+#if 0
 /**
  * DEBUG_MEMORY:
  *
@@ -126,11 +126,11 @@ extern "C" {
 /**
  * Locale support
  */
-#ifdef __APPLE__
+#if 0
 #ifndef XSLT_LOCALE_XLOCALE
 #define XSLT_LOCALE_XLOCALE
 #endif
-#elif defined(_WIN32)
+#elif 0
 #ifndef XSLT_LOCALE_WINAPI
 #define XSLT_LOCALE_WINAPI
 #endif
