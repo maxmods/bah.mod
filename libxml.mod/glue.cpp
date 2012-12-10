@@ -390,6 +390,8 @@ extern "C" {
 	void bmx_libxml_xmlXPtrLocationSetRemove(xmlLocationSetPtr handle, int index);
 	void bmx_libxml_xmlXPtrFreeLocationSet(xmlLocationSetPtr handle);
 
+	BBString * bbStringFromXmlChar(xmlChar * text);
+	char * bbStringToUTF8StringOrNull(BBString * text);
 }
 
 // ****************************************************************************
