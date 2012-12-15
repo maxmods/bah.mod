@@ -1,5 +1,6 @@
 LIBRARY "ocilibm.dll"
 EXPORTS
+OCILib
 OCI_AgentCreate
 OCI_AgentFree
 OCI_AgentGetAddress
@@ -22,6 +23,7 @@ OCI_BindArrayOfColls
 OCI_BindArrayOfDates
 OCI_BindArrayOfDoubles
 OCI_BindArrayOfFiles
+OCI_BindArrayOfFloats
 OCI_BindArrayOfIntervals
 OCI_BindArrayOfInts
 OCI_BindArrayOfLobs
@@ -42,6 +44,7 @@ OCI_BindData
 OCI_BindDate
 OCI_BindDouble
 OCI_BindFile
+OCI_BindFloat
 OCI_BindFree
 OCI_BindFreeAll
 OCI_BindGetData
@@ -97,17 +100,17 @@ OCI_CollSetAt
 OCI_CollTrim
 OCI_ColumnDescribe
 OCI_ColumnGetAttrInfo
-OCI_ColumnGetCharsetForm
 OCI_ColumnGetCharUsed
+OCI_ColumnGetCharsetForm
 OCI_ColumnGetFractionalPrecision
 OCI_ColumnGetFullSQLType
 OCI_ColumnGetLeadingPrecision
 OCI_ColumnGetName
 OCI_ColumnGetNullable
 OCI_ColumnGetPrecision
+OCI_ColumnGetSQLType
 OCI_ColumnGetScale
 OCI_ColumnGetSize
-OCI_ColumnGetSQLType
 OCI_ColumnGetSubType
 OCI_ColumnGetType
 OCI_ColumnGetTypeInfo
@@ -176,6 +179,8 @@ OCI_DequeueSetNavigation
 OCI_DequeueSetRelativeMsgID
 OCI_DequeueSetVisibility
 OCI_DequeueSetWaitTime
+OCI_DequeueSubscribe
+OCI_DequeueUnsubscribe
 OCI_Describe
 OCI_DescribeFmt
 OCI_DescriptorAlloc
@@ -213,6 +218,7 @@ OCI_ElemGetColl
 OCI_ElemGetDate
 OCI_ElemGetDouble
 OCI_ElemGetFile
+OCI_ElemGetFloat
 OCI_ElemGetInt
 OCI_ElemGetInterval
 OCI_ElemGetLob
@@ -233,6 +239,7 @@ OCI_ElemSetColl
 OCI_ElemSetDate
 OCI_ElemSetDouble
 OCI_ElemSetFile
+OCI_ElemSetFloat
 OCI_ElemSetInt
 OCI_ElemSetInterval
 OCI_ElemSetLob
@@ -301,6 +308,7 @@ OCI_ExceptionRaise
 OCI_ExceptionRebindBadDatatype
 OCI_ExceptionStatementNotScrollable
 OCI_ExceptionStatementState
+OCI_ExceptionTypeInfoWrongType
 OCI_ExceptionTypeNotCompatible
 OCI_ExceptionUnfreedData
 OCI_Execute
@@ -356,11 +364,11 @@ OCI_GetColumn2
 OCI_GetColumnCount
 OCI_GetColumnIndex
 OCI_GetCurrentRow
-OCI_GetDatabase
+OCI_GetDBName
 OCI_GetDataLength
+OCI_GetDatabase
 OCI_GetDate
 OCI_GetDate2
-OCI_GetDBName
 OCI_GetDefaultFormatDate
 OCI_GetDefaultFormatNumeric
 OCI_GetDefine
@@ -372,6 +380,8 @@ OCI_GetFetchMode
 OCI_GetFetchSize
 OCI_GetFile
 OCI_GetFile2
+OCI_GetFloat
+OCI_GetFloat2
 OCI_GetImportMode
 OCI_GetInputString
 OCI_GetInstanceName
@@ -388,10 +398,10 @@ OCI_GetLong2
 OCI_GetLongMaxSize
 OCI_GetLongMode
 OCI_GetNextResultset
-OCI_GetObject
-OCI_GetObject2
 OCI_GetOCICompileVersion
 OCI_GetOCIRuntimeVersion
+OCI_GetObject
+OCI_GetObject2
 OCI_GetOutputString
 OCI_GetPassword
 OCI_GetPrefetchMemory
@@ -402,6 +412,8 @@ OCI_GetRef
 OCI_GetRef2
 OCI_GetResultset
 OCI_GetRowCount
+OCI_GetSQLCommand
+OCI_GetSQLVerb
 OCI_GetServerMajorVersion
 OCI_GetServerMinorVersion
 OCI_GetServerName
@@ -412,9 +424,7 @@ OCI_GetSessionTag
 OCI_GetShort
 OCI_GetShort2
 OCI_GetSql
-OCI_GetSQLCommand
 OCI_GetSqlErrorPos
-OCI_GetSQLVerb
 OCI_GetStatement
 OCI_GetStatement2
 OCI_GetStatementCacheSize
@@ -584,10 +594,11 @@ OCI_MutexCreate
 OCI_MutexCreateInternal
 OCI_MutexFree
 OCI_MutexRelease
-OCI_NumberConvertStr
+OCI_NumberFromString
 OCI_NumberGet
-OCI_NumberGetFromStr
 OCI_NumberSet
+OCI_NumberToString
+OCI_OCIObjectFree
 OCI_ObjectArrayCreate
 OCI_ObjectArrayFree
 OCI_ObjectAssign
@@ -601,6 +612,7 @@ OCI_ObjectGetColl
 OCI_ObjectGetDate
 OCI_ObjectGetDouble
 OCI_ObjectGetFile
+OCI_ObjectGetFloat
 OCI_ObjectGetIndOffset
 OCI_ObjectGetInt
 OCI_ObjectGetInterval
@@ -630,6 +642,7 @@ OCI_ObjectSetColl
 OCI_ObjectSetDate
 OCI_ObjectSetDouble
 OCI_ObjectSetFile
+OCI_ObjectSetFloat
 OCI_ObjectSetInt
 OCI_ObjectSetInterval
 OCI_ObjectSetLob
@@ -644,7 +657,6 @@ OCI_ObjectSetTimestamp
 OCI_ObjectSetUnsignedBigInt
 OCI_ObjectSetUnsignedInt
 OCI_ObjectSetUnsignedShort
-OCI_OCIObjectFree
 OCI_Parse
 OCI_ParseFmt
 OCI_ParseSqlFmt
@@ -669,7 +681,8 @@ OCI_PrepareFmt
 OCI_ProcFailOver
 OCI_ProcHAEvent
 OCI_ProcInBind
-OCI_ProcNotify
+OCI_ProcNotifyChanges
+OCI_ProcNotifyMessages
 OCI_ProcOutBind
 OCI_QueueAlter
 OCI_QueueCreate
@@ -699,6 +712,7 @@ OCI_RegisterBigInt
 OCI_RegisterDate
 OCI_RegisterDouble
 OCI_RegisterFile
+OCI_RegisterFloat
 OCI_RegisterInt
 OCI_RegisterInterval
 OCI_RegisterLob
@@ -821,10 +835,10 @@ OCI_TypeInfoGetColumn
 OCI_TypeInfoGetColumnCount
 OCI_TypeInfoGetName
 OCI_TypeInfoGetType
-OCILib
+SQLCmds
 ocisprintf
 ocistrcasecmp
 ocistrdup
 ociwcscasecmp
 ociwcsdup
-SQLCmds
+
