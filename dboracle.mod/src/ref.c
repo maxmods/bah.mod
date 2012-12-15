@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: ref.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: ref.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -173,6 +173,7 @@ boolean OCI_RefUnpin
     boolean res = TRUE;
 
     OCI_CHECK(ref == NULL, FALSE);
+    OCI_CHECK(ref->obj == NULL, FALSE);
 
     if (ref->pinned == TRUE)
     {
@@ -299,19 +300,18 @@ OCI_Object * OCI_API OCI_RefGetObject
     OCI_Ref *ref
 )
 {
+    boolean     res = TRUE;
     OCI_Object *obj = NULL;
 
     if (OCI_RefIsNull(ref) == FALSE)
     {
-        boolean res = TRUE;
-
         res = OCI_RefPin(ref);
-
-        OCI_RESULT(res);
 
         obj = ref->obj;
     }
 
+    OCI_RESULT(res);
+    
     return obj;
 }
 

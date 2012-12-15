@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: hash.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: hash.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -125,8 +125,8 @@ boolean OCI_API OCI_HashFree
 {
     unsigned int i;
 
-    OCI_HashEntry *e1, *e2;
-    OCI_HashValue *v1, *v2;
+    OCI_HashEntry *e1 = NULL, *e2 = NULL;
+    OCI_HashValue *v1 = NULL, *v2 = NULL;
 
     OCI_CHECK_PTR(OCI_IPC_HASHTABLE, table, FALSE);
 

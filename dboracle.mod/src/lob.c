@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: lob.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: lob.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -50,11 +50,8 @@ OCI_Lob * OCI_LobInit
     ub4             type
 )
 {
-    ub2 csid      = OCI_DEFAULT;
-    ub1 csfrm     = OCI_DEFAULT;
     OCI_Lob * lob = NULL;
     boolean res   = TRUE;
-    ub1 lobtype   = 0;
 
     OCI_CHECK(plob == NULL, NULL);
 
@@ -74,7 +71,10 @@ OCI_Lob * OCI_LobInit
 
         if ((lob->handle == NULL) || (lob->hstate == OCI_OBJECT_ALLOCATED_ARRAY))
         {
-            ub4 empty = 0;
+            ub2 csid    = OCI_DEFAULT;
+            ub1 csfrm   = OCI_DEFAULT;
+            ub1 lobtype = 0;
+            ub4 empty   = 0;
 
             if (lob->type == OCI_NCLOB)
             {
@@ -334,8 +334,8 @@ boolean OCI_API OCI_LobRead2
 )
 {
     boolean res = TRUE;
-    ub2 csid    = 0;
     ub1 csfrm   = 0;
+    ub2 csid    = 0;
 
     OCI_CHECK_PTR(OCI_IPC_LOB, lob, FALSE);
     OCI_CHECK_PTR(OCI_IPC_LOB, char_count, FALSE);
@@ -377,7 +377,7 @@ boolean OCI_API OCI_LobRead2
 #ifdef OCI_LOB2_API_ENABLED
 
     if (OCILib.use_lob_ub8)
-    {
+    {        
         ub8 size_in_out_char = (ub8) (*char_count);
         ub8 size_in_out_byte = (ub8) (*byte_count);
 
@@ -423,19 +423,12 @@ boolean OCI_API OCI_LobRead2
         )
 
         (*char_count) = (ub4) size_in_out_char_byte;
-        (*byte_count) = (ub4) size_in_out_char_byte;
+        (*byte_count) = (ub4) size_in_out_char_byte * (ub4) sizeof(odtext);
     }
 
     if (lob->type != OCI_BLOB)
     {
-        unsigned int byte_offset = (ub4) (*byte_count);
-
-        if (OCILib.nls_utf8 == FALSE)
-        {
-            byte_offset *= sizeof(odtext);
-        }
-
-        memset(((char *) buffer) + byte_offset, 0, sizeof(odtext));
+        memset(((char *) buffer) + (ub4) (*byte_count), 0, sizeof(odtext));
 
     #ifndef OCI_LOB2_API_ENABLED
 
@@ -501,7 +494,7 @@ unsigned int OCI_API OCI_LobRead
 
     OCI_LobRead2(lob, buffer, &char_count, &byte_count);
 
-    return (ptr_count ? *ptr_count : 0);
+    return (ptr_count != NULL ? *ptr_count : 0);
 }
 
 /* --------------------------------------------------------------------------------------------- *
@@ -516,10 +509,10 @@ boolean OCI_API OCI_LobWrite2
     unsigned int *byte_count
 )
 {
-    boolean res = TRUE;
-    ub2 csid    = 0;
-    ub1 csfrm   = 0;
-    void *obuf  = NULL;
+    boolean res   = TRUE;
+    ub1     csfrm = 0;
+    ub2     csid  = 0;
+    void   *obuf  = NULL;
 
     OCI_CHECK_PTR(OCI_IPC_LOB, char_count, FALSE);
     OCI_CHECK_PTR(OCI_IPC_LOB, byte_count, FALSE);
@@ -564,8 +557,6 @@ boolean OCI_API OCI_LobWrite2
         }
 
         obuf = OCI_GetInputDataString(buffer, (int *) byte_count);
-
-        (*byte_count) *= sizeof(odtext);
     }
     else
     {
@@ -633,11 +624,13 @@ boolean OCI_API OCI_LobWrite2
 
         if (lob->type == OCI_BLOB)
         {
+            (*char_count) = (ub4) size_in_out_char_byte;
             (*byte_count) = (ub4) size_in_out_char_byte;
         }
         else
         {
             (*char_count) = (ub4) size_in_out_char_byte;
+            (*byte_count) = (ub4) size_in_out_char_byte * (ub4) sizeof(dtext);
         }
     }
 
@@ -694,7 +687,7 @@ unsigned int OCI_API OCI_LobWrite
 
     OCI_LobWrite2(lob, buffer, &char_count, &byte_count);
 
-    return (ptr_count ? *ptr_count : 0);
+    return (ptr_count  != NULL ? *ptr_count : 0);
 }
 
 /* --------------------------------------------------------------------------------------------- *
@@ -991,10 +984,10 @@ boolean OCI_API OCI_LobAppend2
     unsigned int *byte_count
 )
 {
-    boolean res = TRUE;
-    ub2 csid    = 0;
-    ub1 csfrm   = 0;
-    void *obuf  = NULL;
+    boolean res   = TRUE;
+    ub1     csfrm = 0;
+    ub2     csid  = 0;
+    void   *obuf  = NULL;
 
     OCI_CHECK_PTR(OCI_IPC_LOB, char_count, FALSE);
     OCI_CHECK_PTR(OCI_IPC_LOB, byte_count, FALSE);
@@ -1011,7 +1004,6 @@ boolean OCI_API OCI_LobAppend2
 
     if (lob->type != OCI_BLOB)
     {
-
     #ifdef OCI_USERDATA_WIDE
 
         csid = OCI_UTF16ID;
@@ -1049,8 +1041,6 @@ boolean OCI_API OCI_LobAppend2
         }
 
         obuf = OCI_GetInputDataString(buffer, (int *) byte_count);
-
-        (*byte_count) *= sizeof(odtext);
     }
     else
     {
@@ -1116,11 +1106,13 @@ boolean OCI_API OCI_LobAppend2
 
         if (lob->type == OCI_BLOB)
         {
+            (*char_count) = (ub4) size_in_out_char_byte;
             (*byte_count) = (ub4) size_in_out_char_byte;
         }
         else
         {
             (*char_count) = (ub4) size_in_out_char_byte;
+            (*byte_count) = (ub4) size_in_out_char_byte * (ub4) sizeof(dtext);
         }
     }
 
@@ -1177,7 +1169,7 @@ unsigned int OCI_API OCI_LobAppend
 
     OCI_LobAppend2(lob, buffer, &char_count, &byte_count);
 
-    return (ptr_count ? *ptr_count : 0);
+    return (ptr_count != NULL ? *ptr_count : 0);
 }
 
 /* --------------------------------------------------------------------------------------------- *
@@ -1191,7 +1183,6 @@ boolean OCI_API OCI_LobAppendLob
 )
 {
     boolean res     = TRUE;
-    big_uint length = 0;
 
     OCI_CHECK_PTR(OCI_IPC_LOB, lob,     FALSE);
     OCI_CHECK_PTR(OCI_IPC_LOB, lob_src, FALSE);
@@ -1211,9 +1202,7 @@ boolean OCI_API OCI_LobAppendLob
 
     if (res == TRUE)
     {
-        length = OCI_LobGetLength(lob);
-
-        lob->offset += length;
+        lob->offset += OCI_LobGetLength(lob);
     }
 
     OCI_RESULT(res);

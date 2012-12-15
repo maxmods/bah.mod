@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: event.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: event.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -325,9 +325,7 @@ boolean OCI_API OCI_EnqueueGetRelativeMsgID
 
     if (value != NULL)
     {
-        ub4 raw_len = 0;
-
-        raw_len = OCIRawSize(enqueue->typinf->con->env, value);
+        ub4 raw_len = OCIRawSize(enqueue->typinf->con->env, value);
 
         if (*len > raw_len)
             *len = raw_len;

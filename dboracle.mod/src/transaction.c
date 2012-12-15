@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: transaction.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: transaction.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -80,17 +80,6 @@ OCI_Transaction * OCI_API OCI_TransactionCreate
                                                   (ub4) OCI_HTYPE_TRANS,
                                                   (size_t) 0, (dvoid **) NULL));
         }
-
-        /* set context transaction attribute */
-
-        OCI_CALL2
-        (
-            res, con,
-
-            OCIAttrSet((dvoid *) trans->con->cxt, (ub4) OCI_HTYPE_SVCCTX,
-                       (dvoid *) trans->htr, (ub4) sizeof(trans->htr),
-                       (ub4) OCI_ATTR_TRANS, trans->con->err)
-        )
 
         /* set XID attribute for global transaction */
 
@@ -146,6 +135,11 @@ boolean OCI_TransactionClose
     if (trans->htr != NULL)
     {
         OCI_HandleFree((dvoid *) trans->htr, (ub4) OCI_HTYPE_TRANS);
+    }
+
+    if (trans->con->trs == trans)
+    {
+        trans->con->trs = NULL;
     }
 
     return res;

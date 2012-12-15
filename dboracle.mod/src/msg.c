@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: msg.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: msg.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -277,8 +277,6 @@ boolean OCI_API OCI_MsgGetRaw
     unsigned int *size
 )
 {
-    unsigned int raw_size = 0;
-
     OCI_CHECK_PTR(OCI_IPC_MSG, msg, FALSE);
     OCI_CHECK_PTR(OCI_IPC_VOID, raw, FALSE);
     OCI_CHECK_PTR(OCI_IPC_VOID, size, FALSE);
@@ -287,7 +285,7 @@ boolean OCI_API OCI_MsgGetRaw
 
     if ((msg->payload != NULL) && (msg->ind != OCI_IND_NULL))
     {
-        raw_size = OCIRawSize(msg->typinf->con->env, (OCIRaw *) msg->payload);
+        unsigned int raw_size = OCIRawSize(msg->typinf->con->env, (OCIRaw *) msg->payload);
 
         if (*size > raw_size)
         {
@@ -666,9 +664,7 @@ boolean OCI_API OCI_MsgGetID
 
     if (msg->id != NULL)
     {
-        ub4 raw_len = 0;
-
-        raw_len = OCIRawSize(msg->typinf->con->env, msg->id);
+        ub4 raw_len = OCIRawSize(msg->typinf->con->env, msg->id);
 
         if (*len > raw_len)
         {
@@ -719,9 +715,7 @@ boolean OCI_API OCI_MsgGetOriginalID
 
     if (value != NULL)
     {
-        ub4 raw_len = 0;
-
-        raw_len = OCIRawSize(msg->typinf->con->env, value);
+        ub4 raw_len = OCIRawSize(msg->typinf->con->env, value);
 
         if (*len > raw_len)
         {

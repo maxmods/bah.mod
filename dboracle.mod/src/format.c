@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: format.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: format.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -102,7 +102,7 @@ int OCI_ParseSqlFmt
                     {
                         if (buf != NULL)
                         {
-                            *pb = MT('"');
+                            *pb =  MT('\'');
                             mtscpy(pb + (size_t) 1, str);
                             *(pb + (size_t) (len + 1)) = MT('\'');
                         }
@@ -187,8 +187,8 @@ int OCI_ParseSqlFmt
                         str_ff[2] = 0;
 
                         len = mtsprintf(pb, OCI_SIZE_TIMESTAMP,
-                                        MT("to_timestamp(%02i%02i%04i%02i%02i%02i%s,")
-                                        MT("DDMMYYYYHH24MISSFF)"),
+                                        MT("to_timestamp('%02i%02i%04i%02i%02i%02i%s',")
+                                        MT("'DDMMYYYYHH24MISSFF')"),
                                         dd, mm, yy, hh, mi, ss, str_ff);
                     }
                     else
@@ -295,7 +295,7 @@ int OCI_ParseSqlFmt
             }
             case MT('h'):
             {
-                mtext temp[64];
+                mtext temp[128];
 
                 temp[0] = 0;
 
@@ -310,7 +310,7 @@ int OCI_ParseSqlFmt
                 else if (*pf == 'u')
                 {
                     len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%hu"), va_arg(*pargs, unsigned int));
-                }
+                }           
                 else
                 {
                     len = 0;
@@ -329,7 +329,7 @@ int OCI_ParseSqlFmt
 
                 temp[0] = 0;
 
-                len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%f"), va_arg(*pargs, double));
+                len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%lf"), va_arg(*pargs, double));
 
                 if ((buf != NULL) && (len > 0))
                 {

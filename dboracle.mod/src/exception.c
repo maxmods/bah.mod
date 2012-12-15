@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: exception.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: exception.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -38,13 +38,14 @@
  *                            STRINGS MESSAGES
  * ********************************************************************************************* */
 
-static mtext * OCILib_TypeNames[] =
+static mtext * OCILib_TypeNames[OCI_IPC_COUNT] =
 {
     MT("generic pointer"),
     MT("short pointer"),
     MT("int pointer"),
     MT("big_int pointer"),
     MT("double pointer"),
+    MT("float    pointer"),
     MT("string pointer"),
     MT("function callback"),
 
@@ -106,7 +107,7 @@ static mtext * OCILib_TypeNames[] =
 
 #if defined(OCI_CHARSET_WIDE) && !defined(_MSC_VER)
 
-static mtext * OCILib_ErrorMsg[] =
+static mtext * OCILib_ErrorMsg[OCI_IPC_COUNT] =
 {
     MT("No error"),
     MT("OCILIB has not been initialized"),
@@ -132,12 +133,13 @@ static mtext * OCILib_ErrorMsg[] =
     MT("Column '%ls' not find in table '%ls'"),
     MT("Unable to perform this operation on a %ls direct path process"),
     MT("Cannot create OCI environment"),
-    MT("Name or position '%ls' previously binded with different datatype")
+    MT("Name or position '%ls' previously binded with different datatype"),
+    MT("Object '%ls' type does not match the requested object type")
 };
 
 #else
 
-static mtext * OCILib_ErrorMsg[] =
+static mtext * OCILib_ErrorMsg[OCI_ERR_COUNT] =
 {
     MT("No error"),
     MT("OCILIB has not been initialized"),
@@ -163,12 +165,13 @@ static mtext * OCILib_ErrorMsg[] =
     MT("Column '%s' not find in table '%s'"),
     MT("Unable to perform this operation on a %s direct path process"),
     MT("Cannot create OCI environment"),
-    MT("Name or position '%ls' previously binded with different datatype")
+    MT("Name or position '%s' previously binded with different datatype"),
+    MT("Object '%s' type does not match the requested object type")
 };
 
 #endif
 
-static mtext * OCILib_OraFeatures[] =
+static mtext * OCILib_OraFeatures[OCI_FEATURE_COUNT] =
 {
     MT("Oracle 9.0 support for Unicode data"),
     MT("Oracle 9.0 Timestamps and Intervals"),
@@ -177,7 +180,8 @@ static mtext * OCILib_OraFeatures[] =
     MT("Oracle 10g R1 LOBs size extensions"),
     MT("Oracle 10g R2 Database change notification"),
     MT("Oracle 10g R2 remote database startup/shutdown"),
-    MT("Oracle 10g R2 High Availability")
+    MT("Oracle 10g R2 High Availability"),
+    MT("Oracle XA Connections")
 };
 
 typedef struct OCI_StmtStateTable
@@ -186,7 +190,7 @@ typedef struct OCI_StmtStateTable
     mtext *name;
 } OCI_StmtStateTable;
 
-static OCI_StmtStateTable OCILib_StmtStates[] =
+static OCI_StmtStateTable OCILib_StmtStates[OCI_STMT_STATES_COUNT] =
 {
     { OCI_STMT_CLOSED,    MT("closed")        },
     { OCI_STMT_PARSED,    MT("parsed")        },
@@ -195,7 +199,7 @@ static OCI_StmtStateTable OCILib_StmtStates[] =
     { OCI_STMT_EXECUTED,  MT("executed")      }
 };
 
-static mtext * OCILib_DirPathStates[] =
+static mtext * OCILib_DirPathStates[OCI_DPS_COUNT] =
 {
     MT("non prepared"),
     MT("prepared"),
@@ -203,7 +207,7 @@ static mtext * OCILib_DirPathStates[] =
     MT("terminated")
 };
 
-static mtext * OCILib_HandleNames[] =
+static mtext * OCILib_HandleNames[OCI_HDLE_COUNT] =
 {
     MT("OCI handle"),
     MT("OCI descriptors"),
@@ -272,17 +276,14 @@ void OCI_ExceptionOCI
 
     if (err != NULL)
     {
-        int osize  = -1;
-        void *ostr = NULL;
+        int osize  = (int) (msizeof(err->str) - (size_t) 1);
+        void *ostr =  OCI_GetInputMetaString(err->str, &osize);
 
         err->type = (warning ? OCI_ERR_WARNING : OCI_ERR_ORACLE);
         err->con  = con;
         err->stmt = stmt;
 
         /* get oracle description */
-
-        osize = (int) (msizeof(err->str) - (size_t) 1);
-        ostr  = OCI_GetInputMetaString(err->str, &osize);
 
         OCIErrorGet((dvoid *) p_err, (ub4) 1, (OraText *) NULL, &err->ocode,
                     (OraText *) ostr, (ub4) osize, (ub4) OCI_HTYPE_ERROR);
@@ -905,7 +906,7 @@ void OCI_ExceptionDirPathState
 
         if (dp != NULL)
         {
-            dp->con =  dp->con;
+            err->con =  dp->con;
         }
 
         mtsprintf(err->str,
@@ -966,6 +967,34 @@ void OCI_ExceptionRebindBadDatatype
                   msizeof(err->str) - (size_t) 1,
                   OCILib_ErrorMsg[OCI_ERR_REBIND_BAD_DATATYPE],
                   bind);
+    }
+
+    OCI_ExceptionRaise(err);
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_ExceptionTypeInfoWrongType
+ * --------------------------------------------------------------------------------------------- */
+
+void OCI_ExceptionTypeInfoWrongType
+(
+    OCI_Connection *con,
+    const mtext  * name
+)
+{
+    OCI_Error *err = OCI_ExceptionGetError(FALSE);
+
+    if (err != NULL)
+    {
+        err->type  = OCI_ERR_OCILIB;
+        err->icode = OCI_ERR_TYPEINFO_DATATYPE;
+        err->stmt  = NULL;
+        err->con   = con;
+
+        mtsprintf(err->str,
+                  msizeof(err->str) - (size_t) 1,
+                  OCILib_ErrorMsg[OCI_ERR_TYPEINFO_DATATYPE],
+                  name);
     }
 
     OCI_ExceptionRaise(err);

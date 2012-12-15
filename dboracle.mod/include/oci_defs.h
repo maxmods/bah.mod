@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -49,7 +49,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: oci_defs.h, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: oci_defs.h, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #ifndef OCILIB_OCI_DEFS_H_INCLUDED
@@ -162,6 +162,7 @@
 #define OCI_DTYPE_AQAGENT 60                                     /* aq agent */
 #define OCI_DTYPE_INTERVAL_YM 62                      /* Interval year month */
 #define OCI_DTYPE_INTERVAL_DS 63                      /* Interval day second */
+#define OCI_DTYPE_AQNFY_DESCRIPTOR  64               /* AQ notify descriptor */
 #define OCI_DTYPE_DATE 65                                            /* Date */
 #define OCI_DTYPE_TIME 66                                            /* Time */
 #define OCI_DTYPE_TIME_TZ 67                           /* Time with timezone */
@@ -250,6 +251,7 @@
 #define OCI_ATTR_USER_PROPERTY          67                  /* user property */
 #define OCI_ATTR_SENDER_ID              68                      /* sender id */
 #define OCI_ATTR_ORIGINAL_MSGID         69            /* original message id */
+#define OCI_ATTR_QUEUE_NAME             70                     /* queue name */
 
 #define OCI_ATTR_NUM_DML_ERRORS         73       /* num of errs in array DML */
 #define OCI_ATTR_DML_ROW_OFFSET         74        /* row offset in the array */
@@ -270,10 +272,14 @@
 #define OCI_ATTR_NUM_COLS              102              /* number of columns */
 #define OCI_ATTR_LIST_COLUMNS          103   /* parameter of the column list */
 
+#define OCI_ATTR_LINK                  111         /* the database link name */
+#define OCI_ATTR_PTYPE                 123      /* type of info described by */
 #define OCI_ATTR_PARAM                 124           /* parameter descriptor */
 #define OCI_ATTR_PARSE_ERROR_OFFSET    129             /* Parse Error offset */
 
 #define OCI_ATTR_SERVER_STATUS         143        /* state of the server hdl */
+
+#define OCI_ATTR_SUBSCR_RECPTPROTO     149         /* protocol for recepient */
 
 #define OCI_ATTR_CURRENT_POSITION      164      /* for scrollable result sets*/
 #define OCI_ATTR_STMTCACHESIZE         176         /* size of the stmt cache */
@@ -286,6 +292,7 @@
 #define OCI_ATTR_CONN_MIN              183
 #define OCI_ATTR_CONN_MAX              184
 #define OCI_ATTR_CONN_INCR             185
+#define OCI_ATTR_SUBSCR_RECPTPRES      195
 #define OCI_ATTR_ROWS_FETCHED          197      /* rows fetched in last call */
 #define OCI_ATTR_SPOOL_STMTCACHESIZE   208        /*Stmt cache size of pool  */
 
@@ -298,6 +305,8 @@
 #define OCI_ATTR_COLLECTION_ELEMENT    227     /* has a collection attribute */
 #define OCI_ATTR_NUM_TYPE_ATTRS        228      /* number of attribute types */
 #define OCI_ATTR_LIST_TYPE_ATTRS       229        /* list of type attributes */
+
+#define OCI_ATTR_DESC_PUBLIC           250                  /* public object */
 
 #define OCI_ATTR_CLIENT_IDENTIFIER     278       /* value of client id to set*/
 
@@ -332,13 +341,14 @@
 #define OCI_ATTR_INSTSTARTTIME         394 /* v$instance instance start time */
 #define OCI_ATTR_HA_TIMESTAMP          395                     /* event time */
 #define OCI_ATTR_DBDOMAIN              399                      /* db domain */
-#define OCI_ATTR_EVENTTYPE               400                     /* event type */
-#define OCI_ATTR_HA_SOURCE               401
-#define OCI_ATTR_HA_STATUS               402
+#define OCI_ATTR_EVENTTYPE             400                     /* event type */
+#define OCI_ATTR_HA_SOURCE             401
+#define OCI_ATTR_HA_STATUS             402
 #define OCI_ATTR_HA_SRVFIRST           403
 #define OCI_ATTR_HA_SRVNEXT            404
 #define OCI_ATTR_TAF_ENABLED           405
 #define OCI_ATTR_DRIVER_NAME           424                    /* Driver Name */
+#define OCI_ATTR_SPOOL_AUTH            460      /* Auth handle on pool handle*/
 
 /*------- Temporary attribute value for UCS2/UTF16 character set ID -------- */
 
@@ -947,6 +957,18 @@ typedef uword OCIObjectMarkStatus;
 
 #define OCI_HA_STATUS_DOWN          0 /* valid values for OCI_ATTR_HA_STATUS */
 #define OCI_HA_STATUS_UP            1
+
+/*------------- Supported Values for protocol for recepient -----------------*/
+#define OCI_SUBSCR_PROTO_OCI                0                         /* oci */
+#define OCI_SUBSCR_PROTO_MAIL               1                        /* mail */
+#define OCI_SUBSCR_PROTO_SERVER             2                      /* server */
+#define OCI_SUBSCR_PROTO_HTTP               3                        /* http */
+#define OCI_SUBSCR_PROTO_MAX                4       /* max current protocols */
+
+/*------------- Supported Values for presentation for recepient -------------*/
+#define OCI_SUBSCR_PRES_DEFAULT             0                     /* default */
+#define OCI_SUBSCR_PRES_XML                 1                         /* xml */
+#define OCI_SUBSCR_PRES_MAX                 2   /* max current presentations */
 
 #endif /* OCILIB_OCI_DEFS_H_INCLUDED */
 

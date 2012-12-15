@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: Pool.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: Pool.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -166,6 +166,10 @@ OCI_Pool * OCI_API OCI_PoolCreate
 
     OCI_CHECK_INITIALIZED(NULL);
 
+    /* make sure that we do not have a XA session flag */
+    
+    mode &= ~OCI_SESSION_XA;
+    
     /* create pool object */
 
     item = OCI_ListAppend(OCILib.pools, sizeof(*pool));
@@ -196,7 +200,6 @@ OCI_Pool * OCI_API OCI_PoolCreate
 
     if (res == TRUE)
     {
-
         pool->mode = mode;
         pool->min  = min_con;
         pool->max  = max_con;
@@ -237,13 +240,9 @@ OCI_Pool * OCI_API OCI_PoolCreate
     {
         int osize_name = -1;
         int osize_db   = -1;
-        int osize_user = -1;
-        int osize_pwd  = -1;
 
         void *ostr_name = NULL;
         void *ostr_db   = NULL;
-        void *ostr_user = NULL;
-        void *ostr_pwd  = NULL;
 
         /* allocate error handle */
 
@@ -267,17 +266,52 @@ OCI_Pool * OCI_API OCI_PoolCreate
                                                   (dvoid **) NULL));
         }
 
-    #if OCI_VERSION_COMPILE >= OCI_9_2
+        /* allocate authentification handle only if needed */
 
-        /* allocate authentification handle */
+   #if OCI_VERSION_COMPILE >= OCI_11_1
 
         if (res == TRUE)
-        {
-            res = (OCI_SUCCESS == OCI_HandleAlloc((dvoid *) OCILib.env,
-                                                  (dvoid **) (void *) &pool->authp,
-                                                  (ub4) OCI_HTYPE_AUTHINFO,
-                                                  (size_t) 0,
-                                                  (dvoid **) NULL));
+        {       
+            if ((pool->htype == OCI_HTYPE_SPOOL) && (OCILib.version_runtime >= OCI_11_1))
+            {
+                int   osize = -1;
+                void *ostr  = OCI_GetInputMetaString(OCILIB_DRIVER_NAME, &osize);
+                    
+                /* allocate authentification handle */
+
+                res = (OCI_SUCCESS == OCI_HandleAlloc((dvoid *) OCILib.env,
+                                                      (dvoid **) (void *) &pool->authp,
+                                                      (ub4) OCI_HTYPE_AUTHINFO,
+                                                      (size_t) 0,
+                                                      (dvoid **) NULL));
+
+
+                /* set OCILIB's driver layer name attribute only for session pools here
+                    For standalone connections and connection pool this attribute is set
+                    in OCI_ConnectionLogon() */
+
+                OCI_CALL3
+                (
+                    res, pool->err,
+
+                    OCIAttrSet((dvoid *) pool->authp, (ub4) OCI_HTYPE_AUTHINFO,
+                                (dvoid *) ostr, (ub4) osize,
+                                (ub4) OCI_ATTR_DRIVER_NAME, pool->err)
+                )
+                
+                OCI_ReleaseMetaString(ostr);
+
+                /* set auth handle on the session pool */
+
+                OCI_CALL3
+                (
+                    res, pool->err,
+
+                    OCIAttrSet((dvoid *) pool->handle, (ub4) OCI_HTYPE_SPOOL,
+                                (dvoid *) pool->authp, (ub4) sizeof(pool->authp),
+                                (ub4) OCI_ATTR_SPOOL_AUTH, pool->err)
+                ) 
+            }
         }
 
     #endif
@@ -286,6 +320,11 @@ OCI_Pool * OCI_API OCI_PoolCreate
 
         if (res == TRUE)
         {
+            void *ostr_user     = NULL;
+            void *ostr_pwd      = NULL;
+            int   osize_user    = -1;
+            int   osize_pwd     = -1;
+      
             ostr_db   = OCI_GetInputMetaString(pool->db,   &osize_db);
             ostr_user = OCI_GetInputMetaString(pool->user, &osize_user);
             ostr_pwd  = OCI_GetInputMetaString(pool->pwd,  &osize_pwd);
@@ -328,57 +367,6 @@ OCI_Pool * OCI_API OCI_PoolCreate
 
         #endif
 
-        #if OCI_VERSION_COMPILE >= OCI_9_2
-
-            /* set session login attribute */
-
-            OCI_CALL3
-            (
-                res, pool->err,
-
-                OCIAttrSet((dvoid *) pool->authp, (ub4) OCI_HTYPE_AUTHINFO,
-                           (dvoid *) ostr_user, (ub4) osize_user,
-                           (ub4) OCI_ATTR_USERNAME, pool->err)
-            )
-
-            /* set session password attribute */
-
-            OCI_CALL3
-            (
-                res, pool->err,
-
-                OCIAttrSet((dvoid *) pool->authp, (ub4) OCI_HTYPE_AUTHINFO,
-                           (dvoid *) ostr_pwd, (ub4) osize_pwd,
-                           (ub4) OCI_ATTR_PASSWORD, pool->err)
-            )
-
-        #endif
-
-        #if OCI_VERSION_COMPILE >= OCI_11_1
-
-            /* set OCILIB's driver layer name attribute only for session pools here
-               For standalone connections and connection pool this attribute is set
-               in OCI_ConnectionLogon() */
-
-            if ((pool->htype == OCI_HTYPE_SPOOL) && (OCILib.version_runtime >= OCI_11_1))
-            {
-                int   osize = -1;
-                void *ostr  = OCI_GetInputMetaString(OCILIB_DRIVER_NAME, &osize);
-
-                OCI_CALL3
-                (
-                    res, pool->err,
-
-                    OCIAttrSet((dvoid *) pool->authp, (ub4) OCI_HTYPE_AUTHINFO,
-                               (dvoid *) ostr, (ub4) osize,
-                               (ub4) OCI_ATTR_DRIVER_NAME, pool->err)
-                )
-
-                OCI_ReleaseMetaString(ostr);
-            }
-
-        #endif
-
             OCI_ReleaseMetaString(ostr_db);
             OCI_ReleaseMetaString(ostr_user);
             OCI_ReleaseMetaString(ostr_pwd);
@@ -408,9 +396,10 @@ OCI_Pool * OCI_API OCI_PoolCreate
        minimum size */
 
     if (res == TRUE)
-    {
-        OCI_Connection *cn;
-        
+    {     
+
+    #if OCI_VERSION_COMPILE >= OCI_9_0
+
         /* retrieve statement cache size */
 
         OCI_PoolGetStatementCacheSize(pool);
@@ -418,14 +407,16 @@ OCI_Pool * OCI_API OCI_PoolCreate
         /* for connection pools that do not handle the statement cache
            atribute, let's set the value with documented default cache size */
 
-        if (pool->htype == OCI_HTYPE_CPOOL)
+        if (pool->cache_size == 0)
         {
-            pool->cache_size = OCI_DEFAUT_STMT_CACHE_SIZE;
+            OCI_PoolSetStatementCacheSize(pool, OCI_DEFAUT_STMT_CACHE_SIZE);
         }
 
-        while ((min_con--) > 0)
+    #endif
+
+        while ((res == TRUE) && (min_con--) > 0)
         {
-            cn = OCI_ConnectionAllocate(pool, pool->db, pool->user, pool->pwd, pool->mode);
+            res = (NULL != OCI_ConnectionAllocate(pool, pool->db, pool->user, pool->pwd, pool->mode));
         }
     }
     else
@@ -562,7 +553,7 @@ OCI_Connection * OCI_API OCI_PoolGetConnection
     }
 
     /* for regular connection pool, set the statement cache size to 
-       retreived connection */
+       retrieved connection */
 
  #if OCI_VERSION_COMPILE >= OCI_10_1
 
@@ -964,19 +955,28 @@ unsigned int OCI_API OCI_PoolGetStatementCacheSize
 
                 OCIAttrGet((dvoid **) pool->handle, (ub4) pool->htype,
                            (dvoid *) &cache_size, (ub4 *) NULL,  
-                           (ub4) OCI_ATTR_STMTCACHESIZE, pool->err)
+                           (ub4) OCI_ATTR_SPOOL_STMTCACHESIZE, pool->err)
             )
-
-            if (res == TRUE)
-            {
-                pool->cache_size = cache_size;
-            }
+        }
+        else
+        {
+            cache_size = pool->cache_size;
+        }
+        
+        if (res == TRUE)
+        {
+            pool->cache_size = cache_size;
         }
     }
 
+#else
+
+    OCI_NOT_USED(res);
+    OCI_NOT_USED(cache_size);
+
 #endif
 
-    OCI_RESULT(TRUE);
+    OCI_RESULT(res);
 
     return pool->cache_size;
 }

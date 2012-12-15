@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: element.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: element.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -183,7 +183,7 @@ boolean OCI_ElemSetNumber
     OCI_CHECK_PTR(OCI_IPC_ELEMENT, elem, FALSE);
     OCI_CHECK_COMPAT(elem->con, elem->typinf->cols[0].type == OCI_CDT_NUMERIC, FALSE);
 
-    res = OCI_NumberSet(elem->con, (OCINumber *) elem->handle, value, size, flag);
+    res = OCI_NumberSet(elem->con, (OCINumber *) elem->handle, size, flag, elem->typinf->cols[0].icode, value);
 
     OCI_ElemSetNullIndicator(elem, OCI_IND_NOTNULL);
 
@@ -212,15 +212,11 @@ boolean OCI_ElemGetNumber
     {
         OCINumber *num = (OCINumber *) elem->handle;
 
-        res = OCI_NumberGet(elem->con, num, value, size, flag);
+        res = OCI_NumberGet(elem->con, num, size, flag, elem->typinf->cols[0].icode, value);
     }
     else if (elem->typinf->cols[0].type == OCI_CDT_TEXT)
     {
-        const mtext *fmt = OCI_GetDefaultFormatNumeric(elem->con);
-        ub4 fmt_size     = (ub4) mtslen(fmt);
-        dtext *data      = (dtext *) OCI_ElemGetString(elem);
-
-        res = OCI_NumberGetFromStr(elem->con, value, size, flag, data, (int) dtslen(data), fmt, fmt_size);
+        res = OCI_NumberFromString(elem->con, value, flag, OCI_ElemGetString(elem), NULL);
     }
     else
     {
@@ -306,7 +302,7 @@ boolean OCI_API OCI_ElemFree
             }
             case OCI_CDT_COLLECTION:
             {
-                OCI_CollFree((OCI_Coll *) elem->obj);;
+                OCI_CollFree((OCI_Coll *) elem->obj);
                 break;
             }
             case OCI_CDT_TIMESTAMP:
@@ -351,7 +347,7 @@ short OCI_API OCI_ElemGetShort
 {
     short value = 0;
 
-    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(short), (uword) OCI_NUM_SHORT);
+    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(value), (uword) OCI_NUM_SHORT);
 
     return value;
 }
@@ -367,7 +363,7 @@ unsigned short OCI_API OCI_ElemGetUnsignedShort
 {
     unsigned short value = 0;
 
-    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(unsigned short), (uword) OCI_NUM_USHORT);
+    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(value), (uword) OCI_NUM_USHORT);
 
     return value;
 }
@@ -415,7 +411,7 @@ big_int OCI_API OCI_ElemGetBigInt
 {
     big_int value = 0;
 
-    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(big_int), (uword) OCI_NUM_BIGINT);
+    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(value), (uword) OCI_NUM_BIGINT);
 
     return value;
 }
@@ -431,7 +427,7 @@ big_uint OCI_API OCI_ElemGetUnsignedBigInt
 {
     big_uint value = 0;
 
-    OCI_ElemGetNumber(elem, (void *) &value,  (uword) sizeof(big_uint), (uword) OCI_NUM_BIGUINT);
+    OCI_ElemGetNumber(elem, (void *) &value,  (uword) sizeof(value), (uword) OCI_NUM_BIGUINT);
 
     return value;
 }
@@ -447,7 +443,23 @@ double OCI_API OCI_ElemGetDouble
 {
     double value = 0.0;
 
-    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(double), (uword) OCI_NUM_DOUBLE);
+    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(value), (uword) OCI_NUM_DOUBLE);
+
+    return value;
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_ElemGetFloat
+ * --------------------------------------------------------------------------------------------- */
+
+float OCI_API OCI_ElemGetFloat
+(
+    OCI_Elem *elem
+)
+{
+    float value = 0.0f;
+
+    OCI_ElemGetNumber(elem, (void *) &value, (uword) sizeof(value), (uword) OCI_NUM_FLOAT);
 
     return value;
 }
@@ -499,9 +511,7 @@ unsigned int OCI_API OCI_ElemGetRaw
     if (elem->handle != NULL)
     {
         OCIRaw *raw = *(OCIRaw **) elem->handle;
-        ub4 raw_len = 0;
-
-        raw_len = OCIRawSize(elem->con->env, raw);
+        ub4 raw_len = OCIRawSize(elem->con->env, raw);
 
         if (len > raw_len)
         {
@@ -509,6 +519,8 @@ unsigned int OCI_API OCI_ElemGetRaw
         }
 
         memcpy(value, OCIRawPtr(elem->con->env, raw), (size_t) len);
+        
+        res = TRUE;
     }
 
     OCI_RESULT(res);
@@ -907,6 +919,19 @@ boolean OCI_API OCI_ElemSetDouble
 )
 {
     return OCI_ElemSetNumber(elem, (void *) &value, (uword) sizeof(value), (uword) OCI_NUM_DOUBLE);
+}
+
+/* --------------------------------------------------------------------------------------------- *
+ * OCI_ElemSetFloat
+ * --------------------------------------------------------------------------------------------- */
+
+boolean OCI_API OCI_ElemSetFloat
+(
+    OCI_Elem *elem,
+    float     value
+)
+{
+    return OCI_ElemSetNumber(elem, (void *) &value, (uword) sizeof(value), (uword) OCI_NUM_FLOAT);
 }
 
 /* --------------------------------------------------------------------------------------------- *

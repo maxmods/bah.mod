@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2011 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -29,7 +29,7 @@
 */
 
 /* --------------------------------------------------------------------------------------------- *
- * $Id: library.c, v 3.9.2 2011-07-13 00:00 Vincent Rogier $
+ * $Id: library.c, Vincent Rogier $
  * --------------------------------------------------------------------------------------------- */
 
 #include "ocilib_internal.h"
@@ -468,7 +468,6 @@ boolean OCI_API OCI_Initialize
 )
 {
     boolean res  = TRUE;
-    ub4 oci_mode = OCI_ENV_MODE | OCI_OBJECT;
 
 #ifdef OCI_IMPORT_RUNTIME
 
@@ -549,7 +548,7 @@ boolean OCI_API OCI_Initialize
 
     if (lib_path != NULL && lib_path[0] != 0)
     {
-        strncat(path, lib_path, sizeof(path));
+        strncat(path, lib_path, sizeof(path) - strlen(path));
 
         len = strlen(path);
     }
@@ -1122,6 +1121,8 @@ boolean OCI_API OCI_Initialize
 
     if (res == TRUE)
     {
+        ub4 oci_mode = OCI_ENV_MODE | OCI_OBJECT;
+    
         /* check modes */
 
         if (mode & OCI_ENV_THREADED)
@@ -1214,6 +1215,18 @@ boolean OCI_API OCI_Initialize
     {
         OCILib.loaded = TRUE;
     }
+
+    /* test for XA support */
+
+#ifdef _WINDOWS               
+    #if OCI_VERSION_COMPILE >= OCI_10_1     
+        OCILib.use_xa = (xaoEnv != NULL);
+    #else
+        OCILib.use_xa = FALSE;
+    #endif
+#else
+    OCILib.use_xa = TRUE;
+#endif
 
     return res;
 }
@@ -1491,7 +1504,7 @@ boolean OCI_API OCI_DatabaseStartup
 
         if (con != NULL)
         {
-            if ((res == TRUE) && (spfile != NULL) && (spfile[0] != 0))
+            if ((spfile != NULL) && (spfile[0] != 0))
             {
                 void *ostr = NULL;
                 int osize  = -1;
@@ -1740,26 +1753,12 @@ boolean OCI_API OCI_SetHAHandler
 
     OCILib.ha_handler = handler;
 
-    /* On MSVC, casting a function pointer to a data pointer generates a warning.
-       As there is no other to way to do regarding the OCI API, let's disable this
-       warning just the time to set the callback attribute to the environment handle */
-
-#ifdef _MSC_VER
-
-    #pragma warning(disable: 4054)
-
-#endif
+#if OCI_VERSION_COMPILE >= OCI_10_2
 
     if (handler)
     {
         callback = (void*) OCI_ProcHAEvent;
     }
-
-#ifdef _MSC_VER
-
-    #pragma warning(default: 4054)
-
-#endif
 
     OCI_CALL3
     (
@@ -1770,6 +1769,12 @@ boolean OCI_API OCI_SetHAHandler
     )
 
     OCI_RESULT(res);
+
+#else
+    
+    OCI_NOT_USED(callback);
+
+#endif
 
     return res;
 }
