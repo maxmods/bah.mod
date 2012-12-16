@@ -1,3 +1,10 @@
+#ifdef WIN32
+#ifdef __MINGW32__
+    #define _WIN32_WINNT 0x0500
+    #include <stdexcept>
+#endif
+#endif
+
 #define LIBRAW_LIBRARY_BUILD
 #include "libraw/libraw_types.h"
 #include "libraw/libraw.h"
@@ -9,10 +16,6 @@
 #define NO_JASPER
 #endif
 
-// BaH
-#ifdef __MINGW32__
-#include <stdexcept>
-#endif
 
 LibRaw_byte_buffer::LibRaw_byte_buffer(unsigned sz) 
 { 
@@ -508,14 +511,8 @@ void LibRaw_windows_datastream::Open(HANDLE hFile)
     if (hMap_ == NULL)	throw std::runtime_error("failed to create file mapping"); 
     
     // now map the whole file base view
-// BaH
-#ifdef __MINGW32__
-    if (!::GetFileSize(hFile, (LPDWORD)&cbView_))
-        throw std::runtime_error("failed to get the file size"); 
-#else
     if (!::GetFileSizeEx(hFile, (PLARGE_INTEGER)&cbView_))
         throw std::runtime_error("failed to get the file size"); 
-#endif
     
     pView_ = ::MapViewOfFile(hMap_, FILE_MAP_READ, 0, 0, (size_t)cbView_);
     if (pView_ == NULL)	

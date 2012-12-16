@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2012 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ Extern
 	Function bmx_freeimage_delete(handle:Byte Ptr)
 	
 	Function bmx_FreeImage_GetFileTypeFromHandle:Int(handle:Byte Ptr)
-	Function bmx_freeimage_loadImage(handle:Byte Ptr)
+	Function bmx_freeimage_loadImage(handle:Byte Ptr, flags:Int)
 	Function bmx_freeimage_getImage:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_freeimage_GetScanline:Byte Ptr(handle:Byte Ptr,scanline:Int)
@@ -116,7 +116,7 @@ Extern
 
 	Function bmx_multifreeimage_new:Byte Ptr(handle:Object, filename:String, readOnly:Int, createNew:Int)
 	Function bmx_MultiFreeImage_GetFileType:Int(handle:Byte Ptr)
-	Function bmx_multifreeimage_loadImage(handle:Byte Ptr)
+	Function bmx_multifreeimage_loadImage(handle:Byte Ptr, flags:Int)
 	Function bmx_multifreeimage_newImage(handle:Byte Ptr, format:Int)
 	Function bmx_multifreeimage_pageCount:Int(handle:Byte Ptr)
 	Function bmx_multifreeimage_append(handle:Byte Ptr, image:Byte Ptr)
@@ -279,6 +279,11 @@ Const JPEG_DEFAULT:Int = 0
 Const JPEG_FAST:Int = $0001
 Const JPEG_ACCURATE:Int = $0002
 Const JPEG_CMYK:Int = $0004
+Const JPEG_EXIFROTATE:Int = $0008 ' load and rotate according to Exif 'Orientation' tag if available
+
+Const JPEG_GREYSCALE:Int = $0010	' Load And convert To a 8-bit greyscale image
+
+
 Const JPEG_QUALITYSUPERB:Int = $80
 Const JPEG_QUALITYGOOD:Int = $0100
 Const JPEG_QUALITYNORMAL:Int = $0200

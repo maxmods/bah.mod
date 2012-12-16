@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2011 Bruce A Henderson
+ Copyright (c) 2007-2012 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ extern "C" {
 	long _bah_freeimage_TFreeImage_size(void * maxHandle);
 	
 	int bmx_FreeImage_GetFileTypeFromHandle(MaxFreeImage * freeimage);
-	void bmx_freeimage_loadImage(MaxFreeImage * freeimage);
+	void bmx_freeimage_loadImage(MaxFreeImage * freeimage, int flags);
 	BYTE * bmx_freeimage_getImage(MaxFreeImage * freeimage);
 	
 	BYTE * bmx_freeimage_GetScanline(MaxFreeImage * freeimage, int line);
@@ -123,7 +123,7 @@ extern "C" {
 	void _bah_freeimage_TMultiFreeImage_error(int format, const char * message);
 	MaxMultiFreeImage * bmx_multifreeimage_new(void * handle, BBString * filename, BOOL readOnly, BOOL createNew);
 	int bmx_MultiFreeImage_GetFileType(MaxMultiFreeImage * freeimage);
-	void bmx_multifreeimage_loadImage(MaxMultiFreeImage * freeimage);
+	void bmx_multifreeimage_loadImage(MaxMultiFreeImage * freeimage, int flags);
 	void bmx_multifreeimage_newImage(MaxMultiFreeImage * freeimage, int format);
 	int bmx_multifreeimage_pageCount(MaxMultiFreeImage * freeimage);
 	void bmx_multifreeimage_append(MaxMultiFreeImage * freeimage, MaxFreeImage * image);
@@ -371,7 +371,7 @@ public:
 	MaxFreeImage(void * handle);
 	
 	int GetFileTypeFromHandle();
-	void loadImage();
+	void loadImage(int flags);
 	BYTE * getImage();
 	FIBITMAP * getBitmap();
 	BYTE * GetScanline(int line);
@@ -476,8 +476,8 @@ BOOL MaxFreeImage::isFlipped() {
 	return flipped;
 }
 
-void MaxFreeImage::loadImage() {
-	bitmap = FreeImage_LoadFromHandle(format, &io, maxHandle, 0);
+void MaxFreeImage::loadImage(int flags) {
+	bitmap = FreeImage_LoadFromHandle(format, &io, maxHandle, flags);
 	
 //	if (bitmap) {
 //	
@@ -786,8 +786,8 @@ int bmx_FreeImage_GetFileTypeFromHandle(MaxFreeImage * freeimage) {
 	
 }
 
-void bmx_freeimage_loadImage(MaxFreeImage * freeimage) {
-	freeimage->loadImage();
+void bmx_freeimage_loadImage(MaxFreeImage * freeimage, int flags) {
+	freeimage->loadImage(flags);
 }
 
 BYTE * bmx_freeimage_getImage(MaxFreeImage * freeimage) {
@@ -1109,7 +1109,7 @@ public:
 	MaxMultiFreeImage(void * handle, char * fname, BOOL ro, BOOL cn);
 	
 	int GetFileType();
-	void loadImage();
+	void loadImage(int flags);
 	void newImage(int f);
 	int pageCount();
 	void append(FIBITMAP * image);
@@ -1150,8 +1150,8 @@ int MaxMultiFreeImage::GetFileType() {
 	return (int)format;
 }
 
-void MaxMultiFreeImage::loadImage() {
-	bitmap = FreeImage_OpenMultiBitmap(format, filename, FALSE, readOnly, TRUE, 0);
+void MaxMultiFreeImage::loadImage(int flags) {
+	bitmap = FreeImage_OpenMultiBitmap(format, filename, FALSE, readOnly, TRUE, flags);
 }
 
 void MaxMultiFreeImage::newImage(int f) {
@@ -1204,8 +1204,8 @@ int bmx_MultiFreeImage_GetFileType(MaxMultiFreeImage * freeimage) {
 	return freeimage->GetFileType();
 }
 
-void bmx_multifreeimage_loadImage(MaxMultiFreeImage * freeimage) {
-	freeimage->loadImage();
+void bmx_multifreeimage_loadImage(MaxMultiFreeImage * freeimage, int flags) {
+	freeimage->loadImage(flags);
 }
 
 void bmx_multifreeimage_newImage(MaxMultiFreeImage * freeimage, int format) {
