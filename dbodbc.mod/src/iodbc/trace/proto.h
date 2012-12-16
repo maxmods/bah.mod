@@ -1,13 +1,13 @@
 /*
  *  proto.h
  *
- *  $Id: proto.h,v 1.10 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  Trace functions prototypes
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -630,8 +630,8 @@ void trace_start (void);
 void trace_stop (void);
 void trace_emitc (char c);
 void trace_emit (char *fmt, ...);
-void trace_emit_string (SQLCHAR * str, int len, int is_utf8);
-void trace_emit_binary (unsigned char *str, int len);
+void trace_emit_string (SQLCHAR * str, ssize_t len, int is_utf8);
+void trace_emit_binary (unsigned char *str, ssize_t len);
 void _trace_print_function (int func, int trace_leave, int retcode);
 void _trace_handletype (SQLSMALLINT type);
 void _trace_handle_p (SQLSMALLINT type, SQLHANDLE * handle, int output);

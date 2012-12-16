@@ -1,14 +1,14 @@
 /*
  *  SQLConfigDriver.c
  *
- *  $Id: SQLConfigDriver.c,v 1.12 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  Load the appropriate driver setup DLL and calls the ConfigDriver
  *  function.
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -372,11 +372,11 @@ SQLConfigDriver_Internal (HWND hwndParent, WORD fRequest, LPCSTR lpszDriver,
 #else
   if (waMode == 'A')
     {
-      CALL_CONFIG_DRIVER ("libdrvproxy.so");
+      CALL_CONFIG_DRIVER ("libdrvproxy.so.2");
     }
   else
     {
-      CALL_CONFIG_DRIVERW ("libdrvproxy.so");
+      CALL_CONFIG_DRIVERW ("libdrvproxy.so.2");
     }
 #endif
 

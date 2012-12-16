@@ -1,13 +1,13 @@
 /*
  *  SQLWriteDSNToIni.c
  *
- *  $Id: SQLWriteDSNToIni.c,v 1.8 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  Write a DSN connect string to a file
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -136,7 +136,7 @@ WriteDSNToIni (LPCSTR lpszDSN, LPCSTR lpszDriver)
       if (!GetPrivateProfileString ((LPSTR) lpszDriver, "Driver", "",
 	      szBuffer, sizeof (szBuffer) - 1, "odbcinst.ini"))
 	{
-	  PUSH_ERROR (ODBC_ERROR_REQUEST_FAILED);
+	  PUSH_ERROR (ODBC_ERROR_INVALID_NAME);
 	  goto done;
 	}
     }

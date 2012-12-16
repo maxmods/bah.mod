@@ -1,14 +1,14 @@
 /*
  *  itrace.h
  *
- *  $Id: itrace.h,v 1.13 2006/09/25 11:36:26 source Exp $
+ *  $Id$
  *
  *  Trace functions
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -87,7 +87,7 @@ extern int ODBCSharedTraceFlag;
 
 
 /*
- *  Usefull macros
+ *  Useful macros
  */
 #ifdef NO_TRACING
 #define TRACE(X)

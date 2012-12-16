@@ -1,14 +1,14 @@
 /*
  *  execute.c
  *
- *  $Id: execute.c,v 1.24 2006/12/11 14:21:48 source Exp $
+ *  $Id$
  *
  *  Invoke a query
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -119,6 +119,178 @@ _iodbcdm_do_cursoropen (STMT_t * pstmt)
 }
 
 
+#if (ODBCVER >= 0x0300)
+
+static SQLLEN
+GetElementSize (PPARM pparm)
+{
+  SQLLEN elementSize;
+
+  if (pparm->pm_c_type == SQL_C_CHAR || pparm->pm_c_type == SQL_C_BINARY)
+    elementSize = pparm->pm_cbValueMax == 0
+	? pparm->pm_precision : pparm->pm_cbValueMax;
+  else if (pparm->pm_c_type == SQL_C_WCHAR)
+    elementSize = pparm->pm_cbValueMax == 0
+	? pparm->pm_precision * sizeof(wchar_t) : pparm->pm_cbValueMax;
+  else				/* fixed length types */
+    elementSize = pparm->pm_size;
+
+  return elementSize;
+}
+
+
+static void 
+_Conv_W2A(wchar_t *wdata, SQLLEN *pInd, UDWORD size)
+{
+  char *data = (char *) wdata;
+
+
+  if (*pInd != SQL_NULL_DATA)
+    {
+      char *buf = (char *)dm_SQL_W2A ((SQLWCHAR *) wdata, (ssize_t)*pInd);
+
+      if (buf != NULL)
+	strcpy(data, buf);
+
+      MEM_FREE (buf);
+
+      if (pInd && *pInd != SQL_NTS)
+	*pInd /= sizeof (wchar_t);
+    }
+}
+
+
+static void 
+_Conv_A2W(char *data, SQLLEN *pInd, UDWORD size)
+{
+  wchar_t *wdata = (wchar_t *) data;
+
+
+  if (*pInd != SQL_NULL_DATA)
+    {
+      wchar_t *buf = (wchar_t *)dm_SQL_A2W ((SQLCHAR *) data, (ssize_t)*pInd);
+
+      if (buf != NULL)
+	WCSCPY (wdata, buf);
+
+      MEM_FREE (buf);
+    }
+}
+
+
+static SQLLEN
+_ConvParam (STMT_t *pstmt, PPARM pparm, SQLULEN row, BOOL bOutput)
+{
+  SQLLEN octetLen;
+  void *value;
+  SQLLEN *pInd = NULL;
+  SQLLEN elementSize = 0;
+
+  if (pparm->pm_c_type != SQL_C_WCHAR)
+    return 0;
+
+  elementSize = GetElementSize (pparm);
+
+  if (pstmt->bind_type)
+    {
+      /* row-wise binding of parameters in force */
+      if (pparm->pm_pOctetLength)
+	octetLen = *(SQLLEN *) ((char *) pparm->pm_pOctetLength
+	    + row * pstmt->bind_type);
+      else
+        octetLen = pparm->pm_size;
+
+      if (pparm->pm_pInd)
+        pInd = (SQLLEN *) ((char *) pparm->pm_pInd
+	        + row * pstmt->bind_type);
+    }
+  else
+    {
+      octetLen = pparm->pm_pOctetLength ? pparm->pm_pOctetLength[row] : pparm->pm_size;
+      if (pparm->pm_pInd)
+        pInd = pparm->pm_pInd + row;
+    }
+
+  if (!pInd || (pInd && *pInd == SQL_NULL_DATA))
+    return 0;
+
+  if (octetLen == SQL_DATA_AT_EXEC || octetLen <= SQL_LEN_DATA_AT_EXEC_OFFSET)
+    {
+      value = NULL;
+    }
+  else
+    value = pparm->pm_data;
+
+  if (value == NULL)
+    return 0;
+
+  if (pstmt->bind_type)
+    /* row-wise binding of parameters in force */
+    value = (char *) pparm->pm_data + row * pstmt->bind_type;
+  else
+    value = (char *) pparm->pm_data + row * elementSize;
+
+  if (bOutput)
+    _Conv_A2W(value, pInd, elementSize);
+  else
+    _Conv_W2A(value, pInd, elementSize);
+  return octetLen;
+
+}
+
+
+static SQLRETURN
+_SQLExecute_ConvParams (SQLHSTMT hstmt, BOOL bOutput)
+{
+  STMT (pstmt, hstmt);
+  CONN (pdbc, pstmt->hdbc);
+  ENVR (penv, pdbc->henv);
+  PPARM pparm;
+  int maxpar;
+  int i;
+  SQLULEN j;
+  SQLULEN cRows = pstmt->paramset_size;
+
+  if (penv->unicode_driver)
+    return SQL_SUCCESS;
+
+  if (cRows == 0)
+    cRows = 1;
+
+  maxpar = pstmt->st_nparam;
+
+  pparm = pstmt->st_pparam;
+  for (i = 0; i < maxpar; i++, pparm++)
+    {
+      if (pparm->pm_data == NULL)
+        continue;
+
+      if (bOutput && (pparm->pm_usage == SQL_PARAM_OUTPUT || pparm->pm_usage == SQL_PARAM_INPUT_OUTPUT))
+        {
+          if (pparm->pm_c_type_orig != SQL_C_WCHAR)
+            continue;
+
+          for (j = 0; j < cRows; j++)
+            _ConvParam(pstmt, pparm, j, bOutput);
+        }
+      else if (!bOutput && (pparm->pm_usage == SQL_PARAM_INPUT || pparm->pm_usage == SQL_PARAM_INPUT_OUTPUT))
+        {
+          if (pparm->pm_c_type != SQL_C_WCHAR)
+            continue;
+
+          for (j = 0; j < cRows; j++)
+            _ConvParam(pstmt, pparm, j, bOutput);
+
+          pparm->pm_c_type = SQL_C_CHAR;
+        }
+    } /* next column */
+
+  return SQL_SUCCESS;
+
+}
+
+#endif
+
 static SQLRETURN
 SQLExecute_Internal (SQLHSTMT hstmt)
 {
@@ -195,6 +367,9 @@ SQLExecute_Internal (SQLHSTMT hstmt)
       return SQL_ERROR;
     }
 
+  if ((retcode = _SQLExecute_ConvParams(hstmt, FALSE)) != SQL_SUCCESS)
+    return retcode;
+  
   CALL_DRIVER (pstmt->hdbc, pstmt, retcode, hproc, (pstmt->dhstmt));
 
   /* stmt state transition */
@@ -214,6 +389,9 @@ SQLExecute_Internal (SQLHSTMT hstmt)
 	  return retcode;
 	}
     }
+
+  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
+    retcode = _SQLExecute_ConvParams(hstmt, TRUE);
 
   switch (pstmt->state)
     {
@@ -354,17 +532,20 @@ SQLExecDirect_Internal (SQLHSTMT hstmt,
       if (waMode != 'W')
         {
         /* ansi=>unicode*/
-          _SqlStr = _iodbcdm_conv_param_A2W(pstmt, 0, (SQLCHAR *) szSqlStr, cbSqlStr);
+          _SqlStr = _iodbcdm_conv_var_A2W(pstmt, 0, (SQLCHAR *) szSqlStr, cbSqlStr);
         }
       else
         {
         /* unicode=>ansi*/
-          _SqlStr = _iodbcdm_conv_param_W2A(pstmt, 0, (SQLWCHAR *) szSqlStr, cbSqlStr);
+          _SqlStr = _iodbcdm_conv_var_W2A(pstmt, 0, (SQLWCHAR *) szSqlStr, cbSqlStr);
         }
       szSqlStr = _SqlStr;
       cbSqlStr = SQL_NTS;
     }
 
+  if ((retcode = _SQLExecute_ConvParams(hstmt, FALSE)) != SQL_SUCCESS)
+    return retcode;
+  
   CALL_UDRIVER(pstmt->hdbc, pstmt, retcode, hproc, penv->unicode_driver,
     en_ExecDirect, (
        pstmt->dhstmt,
@@ -373,13 +554,13 @@ SQLExecDirect_Internal (SQLHSTMT hstmt,
 
   if (hproc == SQL_NULL_HPROC)
     {
-      _iodbcdm_FreeStmtParams(pstmt);
+      _iodbcdm_FreeStmtVars(pstmt);
       PUSHSQLERR (pstmt->herr, en_IM001);
       return SQL_ERROR;
     }
 
   if (retcode != SQL_STILL_EXECUTING)
-    _iodbcdm_FreeStmtParams(pstmt);
+    _iodbcdm_FreeStmtVars(pstmt);
 
   /* stmt state transition */
   if (pstmt->asyn_on == en_ExecDirect)
@@ -398,6 +579,10 @@ SQLExecDirect_Internal (SQLHSTMT hstmt,
 	  return retcode;
 	}
     }
+
+
+  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
+    retcode = _SQLExecute_ConvParams(hstmt, TRUE);
 
   if (pstmt->state <= en_stmt_executed)
     {

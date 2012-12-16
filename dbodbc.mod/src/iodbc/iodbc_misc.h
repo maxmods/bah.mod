@@ -1,13 +1,13 @@
 /*
  *  iodbc_misc.h
  *
- *  $Id: iodbc_misc.h,v 1.2 2006/07/10 13:49:46 source Exp $
+ *  $Id$
  *
  *  Misc functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 2005 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following

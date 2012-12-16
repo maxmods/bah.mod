@@ -1,14 +1,14 @@
 /*
  *  result.c
  *
- *  $Id: result.c,v 1.28 2007/01/05 12:22:39 source Exp $
+ *  $Id$
  *
  *  Prepare for getting query result
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -673,14 +673,15 @@ SQLDescribeCol_Internal (
     }
 
   /* call driver */
-
-  if ((penv->unicode_driver && waMode != 'W') 
-      || (!penv->unicode_driver && waMode == 'W'))
+    if (szColName != NULL && cbColNameMax > 0 && 
+    	((penv->unicode_driver && waMode != 'W') || 
+	(!penv->unicode_driver && waMode == 'W'))
+	)
     {
       if (waMode != 'W')
         {
         /* ansi=>unicode*/
-          if ((_ColName = _iodbcdm_alloc_param(pstmt, 0, 
+          if ((_ColName = _iodbcdm_alloc_var(pstmt, 0, 
           	             cbColNameMax * sizeof(wchar_t))) == NULL)
 	    {
               PUSHSQLERR (pstmt->herr, en_HY001);
@@ -690,7 +691,7 @@ SQLDescribeCol_Internal (
       else
         {
         /* unicode=>ansi*/
-          if ((_ColName = _iodbcdm_alloc_param(pstmt, 0, cbColNameMax)) == NULL)
+          if ((_ColName = _iodbcdm_alloc_var(pstmt, 0, cbColNameMax)) == NULL)
 	    {
               PUSHSQLERR (pstmt->herr, en_HY001);
               return SQL_ERROR;
@@ -714,7 +715,7 @@ SQLDescribeCol_Internal (
 
   if (hproc == SQL_NULL_HPROC)
     {
-      _iodbcdm_FreeStmtParams(pstmt);
+      _iodbcdm_FreeStmtVars(pstmt);
       PUSHSQLERR (pstmt->herr, en_IM001);
       return SQL_ERROR;
     }
@@ -743,7 +744,7 @@ SQLDescribeCol_Internal (
     }
 
   if (retcode != SQL_STILL_EXECUTING)
-    _iodbcdm_FreeStmtParams(pstmt);
+    _iodbcdm_FreeStmtVars(pstmt);
 
   /* state transition */
   if (pstmt->asyn_on == en_DescribeCol)
@@ -984,8 +985,9 @@ SQLColAttributes_Internal (
     }
 
   /* call driver */
-  if ((penv->unicode_driver && waMode != 'W') 
-      || (!penv->unicode_driver && waMode == 'W'))
+  if (rgbDesc != NULL && cbDescMax > 0 && 
+      ((penv->unicode_driver && waMode != 'W') || 
+       (!penv->unicode_driver && waMode == 'W')))
     {
       switch(fDescType)
         {
@@ -1000,7 +1002,7 @@ SQLColAttributes_Internal (
             {
             /* ansi=>unicode*/
               cbDescMax *= sizeof(wchar_t);
-              if ((_Desc = _iodbcdm_alloc_param(pstmt, 0, cbDescMax)) == NULL)
+              if ((_Desc = _iodbcdm_alloc_var(pstmt, 0, cbDescMax)) == NULL)
 	        {
                   PUSHSQLERR (pstmt->herr, en_HY001);
                   return SQL_ERROR;
@@ -1010,7 +1012,7 @@ SQLColAttributes_Internal (
             {
             /* unicode=>ansi*/
               cbDescMax /= sizeof(wchar_t);
-              if ((_Desc = _iodbcdm_alloc_param(pstmt, 0, cbDescMax)) == NULL)
+              if ((_Desc = _iodbcdm_alloc_var(pstmt, 0, cbDescMax)) == NULL)
 	        {
                   PUSHSQLERR (pstmt->herr, en_HY001);
                   return SQL_ERROR;
@@ -1059,7 +1061,7 @@ SQLColAttributes_Internal (
         {
           if (hproc2 == SQL_NULL_HPROC)
             {
-              _iodbcdm_FreeStmtParams(pstmt);
+              _iodbcdm_FreeStmtVars(pstmt);
               PUSHSQLERR (pstmt->herr, en_IM001);
               return SQL_ERROR;
             }
@@ -1109,7 +1111,7 @@ SQLColAttributes_Internal (
         {
           if (hproc2 == SQL_NULL_HPROC)
             {
-              _iodbcdm_FreeStmtParams(pstmt);
+              _iodbcdm_FreeStmtVars(pstmt);
               PUSHSQLERR (pstmt->herr, en_IM001);
               return SQL_ERROR;
             }
@@ -1154,7 +1156,7 @@ SQLColAttributes_Internal (
     }
 
   if (retcode != SQL_STILL_EXECUTING)
-    _iodbcdm_FreeStmtParams(pstmt);
+    _iodbcdm_FreeStmtVars(pstmt);
 
   /* state transition */
   if (pstmt->asyn_on == en_ColAttributes)

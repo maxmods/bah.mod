@@ -1,11 +1,11 @@
 /*
  *  iodbcadm.h
  *
- *  $Id: iodbcadm.h,v 1.12 2006/07/10 13:46:56 source Exp $
+ *  $Id$
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following

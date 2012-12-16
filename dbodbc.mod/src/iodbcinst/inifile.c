@@ -1,13 +1,13 @@
 /*
  *  inifile.c
  *
- *  $Id: inifile.c,v 1.8 2006/12/15 14:04:16 source Exp $
+ *  $Id$
  *
  *  Configuration File Management
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -1021,12 +1021,13 @@ _iodbcdm_list_entries (PCONFIG pCfg, LPCSTR lpszSection, LPSTR lpszRetBuffer, in
   int curr = 0, sect_len = 0;
   lpszRetBuffer[0] = 0;
 
-  if (0 == _iodbcdm_cfg_rewind (pCfg))
+  if (!_iodbcdm_cfg_find (pCfg, lpszSection, NULL))
     {
       while (curr < cbRetBuffer && 0 == _iodbcdm_cfg_nextentry (pCfg))
 	{
-	  if (_iodbcdm_cfg_define (pCfg)
-	      && !strcmp (pCfg->section, lpszSection) && pCfg->id)
+	  if (_iodbcdm_cfg_section (pCfg))
+	    break;
+	  if (_iodbcdm_cfg_define (pCfg) && pCfg->id)
 	    {
 	      sect_len = strlen (pCfg->id) + 1;
 	      sect_len =
@@ -1249,7 +1250,7 @@ int
 install_from_string (PCONFIG pCfg, PCONFIG pOdbcCfg, LPSTR lpszDriver, BOOL drivers)
 {
   char *szCurr = (char *) lpszDriver, *szDiz = lpszDriver;
-  char *szAsignment, *szEqual, *szValue, *szDriver = NULL;
+  char *szAssignment, *szEqual, *szValue, *szDriver = NULL;
 
   if (_iodbcdm_cfg_write (pCfg, lpszDriver, NULL, NULL))
     return FALSE;
@@ -1267,8 +1268,8 @@ install_from_string (PCONFIG pCfg, PCONFIG pOdbcCfg, LPSTR lpszDriver, BOOL driv
   for (szCurr = lpszDriver + strlen (lpszDriver) + 1; *szCurr;
       szCurr += strlen (szCurr) + 1)
     {
-      szAsignment = strdup (szCurr);
-      szEqual = strchr (szAsignment, '=');
+      szAssignment = strdup (szCurr);
+      szEqual = strchr (szAssignment, '=');
       szValue = szEqual + 1;
 
       if (szEqual)
@@ -1276,8 +1277,8 @@ install_from_string (PCONFIG pCfg, PCONFIG pOdbcCfg, LPSTR lpszDriver, BOOL driv
       else
 	goto loop_error;
 
-      if ((drivers && !strcmp (szAsignment, "Driver")) || (!drivers
-	      && !strcmp (szAsignment, "Translator")))
+      if ((drivers && !strcmp (szAssignment, "Driver")) || (!drivers
+	      && !strcmp (szAssignment, "Translator")))
 	{
 	  if (szDriver)
 	    free (szDriver);
@@ -1286,24 +1287,24 @@ install_from_string (PCONFIG pCfg, PCONFIG pOdbcCfg, LPSTR lpszDriver, BOOL driv
 
       if (drivers)
 	{
-	  if (strcmp (szAsignment, "CreateDSN"))
+	  if (strcmp (szAssignment, "CreateDSN"))
 	    {
-	      if (_iodbcdm_cfg_write (pCfg, lpszDriver, szAsignment, szValue))
+	      if (_iodbcdm_cfg_write (pCfg, lpszDriver, szAssignment, szValue))
 		goto loop_error;
 	    }
 	  else if (!do_create_dsns (pOdbcCfg, pCfg, szDriver, szValue, szDiz))
 	    goto loop_error;
 	}
-      else if (_iodbcdm_cfg_write (pCfg, lpszDriver, szAsignment, szValue))
+      else if (_iodbcdm_cfg_write (pCfg, lpszDriver, szAssignment, szValue))
 	goto loop_error;
 
-      free (szAsignment);
+      free (szAssignment);
       continue;
 
     loop_error:
       if (szDriver)
 	free (szDriver);
-      free (szAsignment);
+      free (szAssignment);
       return FALSE;
     }
 

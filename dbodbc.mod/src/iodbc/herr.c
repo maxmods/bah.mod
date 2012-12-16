@@ -1,14 +1,14 @@
 /*
  *  herr.c
  *
- *  $Id: herr.c,v 1.29 2007/01/05 12:22:39 source Exp $
+ *  $Id$
  *
  *  Error stack management functions
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -363,11 +363,16 @@ _iodbcdm_sqlerror (
 
   if (herr == SQL_NULL_HERR)	/* no err on drv mng */
     {
-      /* call driver */
-      unicode_driver = ((ENV_t *) ((DBC_t *)thdbc)->henv)->unicode_driver;
-      dodbc_ver = ((ENV_t *) ((DBC_t *)thdbc)->henv)->dodbc_ver;
-      odbc_ver = ((GENV_t *) ((DBC_t *)thdbc)->genv)->odbc_ver;
+      if (thdbc && ((DBC_t *)thdbc)->genv)
+        odbc_ver = ((GENV_t *) ((DBC_t *)thdbc)->genv)->odbc_ver;
 
+      if (thdbc && ((DBC_t *)thdbc)->henv)
+        {
+          unicode_driver = ((ENV_t *) ((DBC_t *)thdbc)->henv)->unicode_driver;
+          dodbc_ver = ((ENV_t *) ((DBC_t *)thdbc)->henv)->dodbc_ver;
+        }
+
+      /* call driver */
       if ((unicode_driver && waMode != 'W') 
           || (!unicode_driver && waMode == 'W'))
         {
@@ -934,13 +939,13 @@ SQLGetDiagRec_Internal (
 	}
       RecNumber -= nRecs;
 
-      if (((DBC_t *)hdbc)->henv)
+      if (hdbc && ((DBC_t *)hdbc)->henv)
         {
           unicode_driver = ((ENV_t *) ((DBC_t *)hdbc)->henv)->unicode_driver;
           dodbc_ver = ((ENV_t *) ((DBC_t *)hdbc)->henv)->dodbc_ver;
         }
 
-      if (((DBC_t *)hdbc)->genv)
+      if (hdbc && ((DBC_t *)hdbc)->genv)
         odbc_ver = ((GENV_t *) ((DBC_t *)hdbc)->genv)->odbc_ver;
 
       if ((unicode_driver && waMode != 'W') 

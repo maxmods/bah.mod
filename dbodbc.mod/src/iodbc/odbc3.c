@@ -1,13 +1,13 @@
 /*
  *  odbc3.c
  *
- *  $Id: odbc3.c,v 1.30 2007/01/05 12:22:39 source Exp $
+ *  $Id$
  *
  *  ODBC 3.x functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -1023,6 +1023,8 @@ SQLGetStmtAttr_Internal (
 	      PUSHSQLERR (stmt->herr, en_IM001);
 	      return SQL_ERROR;
             }
+	  if (ValuePtr)
+	    stmt->paramset_size = *((SQLUINTEGER *) ValuePtr);
 	  return retcode;
 	}
       else
@@ -1346,6 +1348,8 @@ SQLSetStmtAttr_Internal (
           PUSHSQLERR (stmt->herr, en_IM001);
           return SQL_ERROR;
         }
+      if (Attribute == SQL_ATTR_PARAM_BIND_TYPE)
+        stmt->bind_type = (SQLUINTEGER) (SQLULEN) ValuePtr;
       return retcode;
 
     case SQL_ATTR_ROWS_FETCHED_PTR:
@@ -1424,7 +1428,7 @@ SQLSetStmtAttr_Internal (
 	      PUSHSQLERR (stmt->herr, en_IM001);
 	      return SQL_ERROR;
             }
-
+	  stmt->paramset_size = (SQLUINTEGER) (SQLULEN) ValuePtr;
           return retcode;
 	}
       else
@@ -1752,8 +1756,11 @@ SQLSetConnectAttr_Internal (
   SQLRETURN retcode = SQL_SUCCESS;
   void * _ValuePtr = NULL;
   SWORD unicode_driver = (penv ? penv->unicode_driver : 0);
-  SQLUINTEGER odbc_ver = ((GENV_t *) con->genv)->odbc_ver;
-  SQLUINTEGER dodbc_ver = ((ENV_t *) con->henv)->dodbc_ver;
+  SQLUINTEGER odbc_ver;
+  SQLUINTEGER dodbc_ver;
+
+  odbc_ver = ((GENV_t *) con->genv)->odbc_ver;
+  dodbc_ver = (penv != SQL_NULL_HENV) ? penv->dodbc_ver : odbc_ver;
 
   if (con->state == en_dbc_needdata)
     {
@@ -1913,8 +1920,11 @@ SQLGetConnectAttr_Internal (
   void * _Value = NULL;
   void * valueOut = ValuePtr;
   SWORD unicode_driver = (penv ? penv->unicode_driver : 0);
-  SQLUINTEGER odbc_ver = ((GENV_t *) con->genv)->odbc_ver;
-  SQLUINTEGER dodbc_ver = ((ENV_t *) con->henv)->dodbc_ver;
+  SQLUINTEGER odbc_ver;
+  SQLUINTEGER dodbc_ver;
+
+  odbc_ver = ((GENV_t *) con->genv)->odbc_ver;
+  dodbc_ver = (penv != SQL_NULL_HENV) ? penv->dodbc_ver : odbc_ver;
 
   if (con->state == en_dbc_needdata)
     {
@@ -2379,6 +2389,7 @@ SQLSetDescField_Internal (
           break;
         }
     }
+
   CALL_UDRIVER(desc->hdbc, desc, retcode, hproc, penv->unicode_driver, 
     en_SetDescField, (desc->dhdesc, RecNumber, FieldIdentifier, ValuePtr,
     BufferLength));
@@ -2827,8 +2838,11 @@ SQLColAttribute_Internal (
   SQLRETURN retcode = SQL_SUCCESS;
   void * charAttrOut = CharacterAttributePtr;
   void * _charAttr = NULL;
-  SQLUINTEGER odbc_ver = ((GENV_t *) pdbc->genv)->odbc_ver;
-  SQLUINTEGER dodbc_ver = ((ENV_t *) pdbc->henv)->dodbc_ver;
+  SQLUINTEGER odbc_ver;
+  SQLUINTEGER dodbc_ver;
+
+  odbc_ver = ((GENV_t *) pdbc->genv)->odbc_ver;
+  dodbc_ver = (penv != SQL_NULL_HENV) ? penv->dodbc_ver : odbc_ver;
 
   if ((penv->unicode_driver && waMode != 'W') 
       || (!penv->unicode_driver && waMode == 'W'))

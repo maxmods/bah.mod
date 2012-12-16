@@ -2,14 +2,14 @@
  *
  *  iodbc.h
  *
- *  $Id: iodbc.h,v 1.11 2006/12/11 16:19:20 source Exp $
+ *  $Id$
  *
  *  Configuration
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -79,18 +79,18 @@
 #ifndef	_IODBC_H
 #define _IODBC_H
 
-/*#ifdef HAVE_CONFIG_H*/
+#ifdef HAVE_CONFIG_H
 #include <config.h>
-/*#endif*/
+#endif
 
 #ifndef VERSION
-#define VERSION		"3.52.5"
+#define VERSION		"3.52.8"
 #define MAJ_VERSION	"3"
 #define MIN_VERSION	"52"
 #endif
 
 #ifndef IODBC_BUILD
-#define IODBC_BUILD 4061211	/* 0001.0928 */
+#define IODBC_BUILD 8120326	/* 0001.0928 */
 #endif
 
 #if	!defined(WINDOWS) && !defined(WIN32_SYSTEM)
@@ -213,6 +213,21 @@
  */
 #define DLDAPI_VMS_IODBC	/* Use enhanced dlopen() */
 #endif
+
+
+/*
+ *  Mac OS X Section
+ */
+#if defined (__APPLE__)
+#  include <AvailabilityMacros.h>
+
+#  if (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
+#    undef DLDAPI_DYLD
+#    undef DLDAPI_MACX
+#    define HAVE_LIBDL 1
+#  endif
+#endif
+
 
 #define SYSERR		(-1)
 

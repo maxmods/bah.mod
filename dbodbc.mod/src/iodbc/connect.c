@@ -1,14 +1,14 @@
 /*
  *  connect.c
  *
- *  $Id: connect.c,v 1.51 2007/01/03 14:27:42 source Exp $
+ *  $Id$
  *
  *  Connect (load) driver
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -395,7 +395,9 @@ _iodbcdm_finish_disconnect (HDBC hdbc, BOOL driver_disconnect)
           return SQL_ERROR;
         }
 
+      ODBC_UNLOCK ();
       CALL_DRIVER (hdbc, pdbc, retcode, hproc, (pdbc->dhdbc));
+      ODBC_LOCK ();
 
       if (!SQL_SUCCEEDED (retcode))
         {
@@ -919,7 +921,7 @@ _iodbcdm_pool_get_conn (
 
 
 /*
- * Put the conneciton back to the pool
+ * Put the connection back to the pool
  *
  * Return 0 if the connection was put successfully
  * Return -1 otherwise
@@ -964,7 +966,7 @@ _iodbcdm_pool_put_conn (HDBC hdbc)
   if (cp_pdbc->cp_retry_wait == 0)
     {
       /* set new expiry time only if we are not returning the connection
-	 to the pool after unsuccessfull reconnect attempt */
+	 to the pool after unsuccessful reconnect attempt */
       cp_pdbc->cp_expiry_time = time(NULL) + cp_pdbc->cp_timeout;
     }
   cp_pdbc->cp_in_use = FALSE;
@@ -1042,9 +1044,6 @@ _iodbcdm_driverload (
 	      path_tmp, sizeof (path_tmp), "odbcinst.ini") && path_tmp[0])
 	path = path_tmp;
 
-      if (tmp_drv)
-	free (tmp_drv);
-
       /*
        *  Get CPTimeout value
        */
@@ -1058,6 +1057,9 @@ _iodbcdm_driverload (
        */
       SQLGetPrivateProfileString (drv, "CPProbe", "",
    	    cp_probe, sizeof(cp_probe), "odbcinst.ini");
+
+      if (tmp_drv)
+	free (tmp_drv);
     }
   else if (dsn != NULL && *dsn != '\0')
     {
@@ -1444,7 +1446,7 @@ _iodbcdm_driverunload (HDBC hdbc, int ver)
       penv->hdll = SQL_NULL_HDLL;
 
       for (tpenv = (ENV_t *) genv->henv;
-	  tpenv != NULL; tpenv = (ENV_t *) penv->next)
+	  tpenv != NULL; tpenv = (ENV_t *) tpenv->next)
 	{
 	  if (tpenv == penv)
 	    {
@@ -2097,6 +2099,7 @@ SQLConnect_Internal (SQLHDBC hdbc,
       szAuthStr = _szAuthStr;
     }
 
+  ODBC_UNLOCK ();
   CALL_UDRIVER(hdbc, pdbc, retcode, hproc, penv->unicode_driver,
     en_Connect, (
        pdbc->dhdbc,
@@ -2106,6 +2109,7 @@ SQLConnect_Internal (SQLHDBC hdbc,
        cbUID,
        szAuthStr,
        cbAuthStr));
+  ODBC_LOCK ();
 
   if (hproc == SQL_NULL_HPROC)
     {
@@ -2594,7 +2598,7 @@ SQLDriverConnect_Internal (
 	    CFRelease (libname);
 	}
 #else
-      hdll = _iodbcdm_dllopen ("libiodbcadm.so");
+      hdll = _iodbcdm_dllopen ("libiodbcadm.so.2");
 #endif
 
       if (!hdll)
@@ -3087,7 +3091,12 @@ SQLBrowseConnect_Internal (SQLHDBC hdbc,
         PCONFIG pconfig;
         void *drv = NULL, *dsn = NULL;
 
-        _iodbcdm_cfg_init_str (&pconfig, szConnStrIn, cbConnStrIn, 0);
+        if (_iodbcdm_cfg_init_str (&pconfig, szConnStrIn, cbConnStrIn,
+			     waMode == 'W') == -1)
+          {
+            PUSHSQLERR (pdbc->herr, en_HY001);
+            return SQL_ERROR;
+          }
         if (_iodbcdm_cfg_find (pconfig, "ODBC", "DRIVER") == 0)
           drv = pconfig->value;
         if (_iodbcdm_cfg_find (pconfig, "ODBC", "DSN") == 0)
@@ -3187,7 +3196,7 @@ SQLBrowseConnect_Internal (SQLHDBC hdbc,
       if (waMode != 'W')
         {
         /* ansi=>unicode*/
-          if ((_ConnStrOut = malloc(cbConnStrOutMax * sizeof(SQLWCHAR) + 1)) == NULL)
+          if ((_ConnStrOut = malloc((cbConnStrOutMax + 1) * sizeof(SQLWCHAR))) == NULL)
 	    {
               PUSHSQLERR (pdbc->herr, en_HY001);
 	      return SQL_ERROR;
@@ -3209,6 +3218,7 @@ SQLBrowseConnect_Internal (SQLHDBC hdbc,
       connStrOut = _ConnStrOut;
     }
 
+  ODBC_UNLOCK ();
   CALL_UDRIVER(hdbc, pdbc, retcode, hproc, penv->unicode_driver,
     en_BrowseConnect, (
        pdbc->dhdbc,
@@ -3217,6 +3227,7 @@ SQLBrowseConnect_Internal (SQLHDBC hdbc,
        connStrOut,
        cbConnStrOutMax,
        pcbConnStrOut));
+  ODBC_LOCK ();
 
   MEM_FREE(_ConnStrIn);
 

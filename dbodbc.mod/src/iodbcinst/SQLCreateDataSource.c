@@ -1,13 +1,13 @@
 /*
  *  SQLCreateDataSource.c
  *
- *  $Id: SQLCreateDataSource.c,v 1.14 2006/01/24 00:08:54 source Exp $
+ *  $Id$
  *
  *  Add, modify or delete datasources
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -157,11 +157,11 @@ CreateDataSource (HWND parent, LPCSTR lpszDSN, SQLCHAR waMode)
 #else
   if (waMode == 'A')
     {
-      CALL_DRVCONN_DIALBOX ("libiodbcadm.so");
+      CALL_DRVCONN_DIALBOX ("libiodbcadm.so.2");
     }
   else
     {
-      CALL_DRVCONN_DIALBOXW ("libiodbcadm.so");
+      CALL_DRVCONN_DIALBOXW ("libiodbcadm.so.2");
     }
 #endif
 

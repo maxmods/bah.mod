@@ -1,14 +1,14 @@
 /*
  *  dlf.c
  *
- *  $Id: dlf.c,v 1.4 2006/02/13 16:01:41 source Exp $
+ *  $Id$
  *
  *  Dynamic Library Loader (mapping to SVR4)
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following

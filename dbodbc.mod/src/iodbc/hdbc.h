@@ -1,14 +1,14 @@
 /*
  *  hdbc.h
  *
- *  $Id: hdbc.h,v 1.17 2006/07/10 13:49:29 source Exp $
+ *  $Id$
  *
  *  Data source connect object management functions
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -137,7 +137,7 @@ typedef struct DBC
     wchar_t * current_qualifier;
     char current_qualifier_WA;
 
-    SWORD dbc_cip;			/* Call in Progess flag */
+    SWORD dbc_cip;			/* Call in Progress flag */
 
     DRVOPT *drvopt;			/* Driver specific connect options */
     SQLSMALLINT err_rec;

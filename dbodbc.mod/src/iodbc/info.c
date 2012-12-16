@@ -1,14 +1,14 @@
 /*
  *  info.c
  *
- *  $Id: info.c,v 1.36 2007/01/05 12:22:39 source Exp $
+ *  $Id$
  *
  *  Information functions
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -864,7 +864,7 @@ SQLGetInfo_Internal (
       break;
 
     default:
-      /* NOTE : this was before the switch, just move here to let some informations going through */
+      /* NOTE : this was before the switch, just move here to let some information going through */
       if (pdbc->state == en_dbc_allocated || pdbc->state == en_dbc_needdata)
 	{
 	  PUSHSQLERR (pdbc->herr, en_08003);

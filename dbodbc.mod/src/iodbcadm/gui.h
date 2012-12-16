@@ -1,11 +1,11 @@
 /*
  *  gui.h
  *
- *  $Id: gui.h,v 1.9 2006/07/10 13:46:56 source Exp $
+ *  $Id$
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -82,6 +82,7 @@
 #elif defined(_MAC)
 #  include "mac/gui.h"
 #elif defined(__GTK__)
+#  include <gdk/gdkkeysyms.h>
 #  include "gtk/gui.h"
 #elif defined(_MACX)
 #  include "macosx/gui.h"

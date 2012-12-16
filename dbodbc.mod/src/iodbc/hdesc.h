@@ -1,14 +1,14 @@
 /*
  *  hdesc.h
  *
- *  $Id: hdesc.h,v 1.9 2006/01/20 15:58:34 source Exp $
+ *  $Id$
  *
  *  Descriptor object
  *
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -96,7 +96,7 @@ typedef struct DESC_s {
   SQLHDESC dhdesc; 	/* the driver's desc handle */
   HSTMT hstmt;   	/* if not null - the descriptor is implicit to that statement */
 
-  SWORD desc_cip;        /* Call in Progess flag */
+  SWORD desc_cip;        /* Call in Progress flag */
 
   SQLSMALLINT err_rec;
 } DESC_t;

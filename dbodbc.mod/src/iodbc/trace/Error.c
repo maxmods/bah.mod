@@ -1,13 +1,13 @@
 /*
  *  Error.c
  *
- *  $Id: Error.c,v 1.4 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  SQLError trace functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -98,7 +98,7 @@ trace_SQLError (int trace_leave, int retcode,
   _trace_string (szSqlstate, SQL_NTS, NULL, TRACE_OUTPUT_SUCCESS);
   _trace_integer_p (pfNativeError, TRACE_OUTPUT_SUCCESS);
   _trace_string (szErrorMsg, cbErrorMsgMax, pcbErrorMsg, TRACE_OUTPUT_SUCCESS);
-  _trace_stringlen ("SQLINTEGER", cbErrorMsgMax);
+  _trace_stringlen ("SQLSMALLINT", cbErrorMsgMax);
   _trace_smallint_p (pcbErrorMsg, TRACE_OUTPUT_SUCCESS);
 }
 
@@ -125,7 +125,7 @@ trace_SQLErrorW (int trace_leave, int retcode,
   _trace_string_w (szSqlstate, SQL_NTS, NULL, TRACE_OUTPUT_SUCCESS);
   _trace_integer_p (pfNativeError, trace_leave);
   _trace_string_w (szErrorMsg, cbErrorMsgMax, pcbErrorMsg, TRACE_OUTPUT_SUCCESS);
-  _trace_stringlen ("SQLINTEGER", cbErrorMsgMax);
+  _trace_stringlen ("SQLSMALLINT", cbErrorMsgMax);
   _trace_smallint_p (pcbErrorMsg, TRACE_OUTPUT_SUCCESS);
 }
 #endif

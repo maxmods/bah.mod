@@ -1,13 +1,13 @@
 /*
  *  drvconn.c
  *
- *  $Id: drvconn.c,v 1.11 2006/07/10 13:46:56 source Exp $
+ *  $Id$
  *
  *  The data_sources dialog for SQLDriverConnect
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -470,7 +470,7 @@ iodbcdm_drvconn_dialboxw (
 	}
     }
 #else
-  CALL_DRVCONN_DIALBOXW ("libdrvproxy.so", 'A');
+  CALL_DRVCONN_DIALBOXW ("libdrvproxy.so.2", 'A');
 #endif /* __APPLE__ */
 
   if (sqlStat)

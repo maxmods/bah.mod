@@ -1,11 +1,11 @@
 /*
  *  messagebox.c
  *
- *  $Id: messagebox.c,v 1.6 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -112,11 +112,18 @@ create_message (HWND hwnd, LPCSTR dsn, LPCSTR text)
     sprintf (msg, "Message on DSN %s", dsn);
   else
     sprintf (msg, "Message ...");
+
   gtk_object_set_data (GTK_OBJECT (message), "message", message);
   gtk_window_set_title (GTK_WINDOW (message), msg);
+  gtk_widget_set_size_request (message, 400, 150);
   gtk_window_set_position (GTK_WINDOW (message), GTK_WIN_POS_CENTER);
   gtk_window_set_modal (GTK_WINDOW (message), TRUE);
-  gtk_window_set_policy (GTK_WINDOW (message), TRUE, TRUE, FALSE);
+  gtk_window_set_default_size (GTK_WINDOW (message), 400, 150);
+  gtk_window_set_type_hint (GTK_WINDOW (message), GDK_WINDOW_TYPE_HINT_DIALOG);
+
+#if GTK_CHECK_VERSION(2,0,0)
+  gtk_widget_show (message);
+#endif
 
   dialog_vbox1 = GTK_DIALOG (message)->vbox;
   gtk_object_set_data (GTK_OBJECT (message), "dialog_vbox1", dialog_vbox1);
@@ -163,15 +170,13 @@ create_message (HWND hwnd, LPCSTR dsn, LPCSTR text)
   gtk_button_box_set_layout (GTK_BUTTON_BOX (hbuttonbox1), GTK_BUTTONBOX_END);
   gtk_button_box_set_spacing (GTK_BUTTON_BOX (hbuttonbox1), 10);
 
-  b_ok = gtk_button_new_with_label ("");
-  b_ok_key = gtk_label_parse_uline (GTK_LABEL (GTK_BIN (b_ok)->child), "_Ok");
-  gtk_widget_add_accelerator (b_ok, "clicked", accel_group,
-      b_ok_key, GDK_MOD1_MASK, 0);
+  b_ok = gtk_button_new_from_stock ("gtk-ok");
   gtk_widget_ref (b_ok);
   gtk_object_set_data_full (GTK_OBJECT (message), "b_ok", b_ok,
       (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (b_ok);
   gtk_container_add (GTK_CONTAINER (hbuttonbox1), b_ok);
+  gtk_dialog_add_action_widget (GTK_DIALOG (message), b_ok, GTK_RESPONSE_OK);
   GTK_WIDGET_SET_FLAGS (b_ok, GTK_CAN_DEFAULT);
 
   /* Ok button events */

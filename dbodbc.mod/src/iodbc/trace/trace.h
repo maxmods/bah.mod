@@ -1,13 +1,13 @@
 /*
  *  trace.h
  *
- *  $Id: trace.h,v 1.4 2006/12/21 11:28:05 source Exp $
+ *  $Id$
  *
  *  Trace functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following

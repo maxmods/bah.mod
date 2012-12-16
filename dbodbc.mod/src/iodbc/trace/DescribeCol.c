@@ -1,13 +1,13 @@
 /*
  *  DescribeCol.c
  *
- *  $Id: DescribeCol.c,v 1.6 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  SQLDescribeCol trace functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following

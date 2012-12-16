@@ -2,12 +2,12 @@
 #
 #  install_libodbc.sh
 #
-#  $Id: install_libodbc.sh,v 1.6 2006/01/20 15:58:35 source Exp $
+#  $Id$
 #
 #  The iODBC driver manager.
 #  
 #  Copyright (C) 1995 by Ke Jin <kejin@empress.com> 
-#  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+#  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
 #  All Rights Reserved.
 #
 #  This software is released under the terms of either of the following

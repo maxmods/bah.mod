@@ -1,11 +1,11 @@
 /*
  *  gui.h
  *
- *  $Id: gui.h,v 1.9 2006/12/21 11:23:43 source Exp $
+ *  $Id$
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -80,6 +80,16 @@
 #ifndef	_GTKGUI_H
 #define	_GTKGUI_H
 
+#define GLADE_HOOKUP_OBJECT(component,widget,name) \
+  gtk_widget_ref(widget); \
+  gtk_object_set_data_full (GTK_OBJECT (component), name, \
+      widget, (GtkDestroyNotify) gtk_widget_unref)
+
+#define GLADE_HOOKUP_OBJECT_NO_REF(component,widget,name) \
+  gtk_object_set_data (GTK_OBJECT (component), name, widget)
+
+#define _(X)  X
+
 extern char* szDSNColumnNames[];
 extern char* szTabNames[];
 extern char* szDSNButtons[];
@@ -131,6 +141,7 @@ typedef struct TCONNECTIONPOOLING
   BOOL changed;
   char timeout[64];
   char probe[512];
+  char driver[1024];
 } TCONNECTIONPOOLING;
 
 typedef struct TTRANSLATORCHOOSER

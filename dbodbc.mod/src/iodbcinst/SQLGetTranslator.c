@@ -1,13 +1,13 @@
 /*
  *  SQLGetTranslator.c
  *
- *  $Id: SQLGetTranslator.c,v 1.14 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  These functions intentionally left blank
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -172,7 +172,7 @@ GetTranslator (HWND hwndParent, LPSTR lpszName, WORD cbNameMax,
 	    CFRelease (libname);
 	}
 #else
-      CALL_TRSCHOOSE_DIALBOX ("libiodbcadm.so");
+      CALL_TRSCHOOSE_DIALBOX ("libiodbcadm.so.2");
 #endif
 
       if (ret == SQL_NO_DATA)
@@ -229,7 +229,7 @@ GetTranslator (HWND hwndParent, LPSTR lpszName, WORD cbNameMax,
 	    }
 
 	  /* The last ressort, a proxy driver */
-	  CALL_CONFIG_TRANSLATOR ("libtranslator.so");
+	  CALL_CONFIG_TRANSLATOR ("libtranslator.so.2");
 
 	  /* Error : ConfigDSN could no be found */
 	  PUSH_ERROR (ODBC_ERROR_LOAD_LIB_FAILED);

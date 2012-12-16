@@ -1,13 +1,13 @@
 /*
  *  GetData.c
  *
- *  $Id: GetData.c,v 1.7 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  SQLGetData trace functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -102,10 +102,10 @@ _trace_data (
     {
     case SQL_C_BINARY:
       {
-        int len;
-	if (pcbValue && cbValueMax > 0)
-	  len = *((SQLINTEGER *) pcbValue);
-	else
+        ssize_t len = cbValueMax;
+	if (pcbValue)
+	  len = *pcbValue;
+  	if (len > cbValueMax)
 	  len = cbValueMax;
 	trace_emit_binary ((unsigned char *) rgbValue, len);
       }
@@ -121,10 +121,10 @@ _trace_data (
 
     case SQL_C_CHAR:
       {
-        int len;
-        if (pcbValue && cbValueMax > 0)
- 	  len =  *((SQLINTEGER *) pcbValue);
-        else
+	ssize_t len = cbValueMax;
+	if (pcbValue)
+	  len = (long) *pcbValue;
+	if (len > cbValueMax)
 	  len = cbValueMax;
 	trace_emit_string ((SQLCHAR *) rgbValue, len, 0);
       }
@@ -337,7 +337,7 @@ _trace_data (
 #if defined (ODBCINT64)
       {
 	ODBCINT64 l = *(ODBCINT64 *) rgbValue;
-	sprintf (buf, "%lld", l);
+	sprintf (buf, "%lld", (long long int)l);
 	trace_emit_string ((SQLCHAR *) buf, SQL_NTS, 0);
       }
 #endif
@@ -347,7 +347,7 @@ _trace_data (
 #if defined (ODBCINT64)
       {
 	unsigned ODBCINT64 l = *(unsigned ODBCINT64 *) rgbValue;
-	sprintf (buf, "%llu", l);
+	sprintf (buf, "%llu", (long long unsigned int)l);
 	trace_emit_string ((SQLCHAR *) buf, SQL_NTS, 0);
       }
 #endif
@@ -416,10 +416,10 @@ _trace_data (
     case SQL_C_WCHAR:
       {
 	SQLCHAR *wstr;
-        int len;
-	if (pcbValue && cbValueMax > 0)
-	  len = *((SQLINTEGER *) pcbValue);
-	else
+        ssize_t len;
+	if (pcbValue)
+	  len = (ssize_t) *pcbValue;
+        if (len > cbValueMax)
 	  len = cbValueMax;
 	wstr = dm_SQL_W2A ((wchar_t *) rgbValue, len);
 	trace_emit_string (wstr, SQL_NTS, 1);

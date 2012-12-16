@@ -1,13 +1,13 @@
 /*
  *  unicode.h
  *
- *  $Id: unicode.h,v 1.2 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  ODBC unicode support
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -77,7 +77,19 @@
 #ifndef _UNICODE_H
 #define _UNICODE_H
 
-#if HAVE_WCHAR_H
+
+#if defined (__APPLE__) && !defined (MACOSX102) && !defined (HAVE_CONFIG_H)
+#define HAVE_WCHAR_H 
+#define HAVE_WCSLEN 
+#define HAVE_WCSCPY 
+#define HAVE_WCSNCPY
+#define HAVE_WCSCHR
+#define HAVE_WCSCAT
+#define HAVE_WCSCMP
+#define HAVE_TOWLOWER
+#endif
+
+#if defined (HAVE_WCHAR_H)
 #include <wchar.h>
 #endif
 
@@ -118,16 +130,6 @@ int dm_StrCopyOut2_W2A (SQLWCHAR * inStr, SQLCHAR * outStr, SQLSMALLINT size,
 #define OPL_A2W(XA, XW, SIZE)      mbstowcs((wchar_t *) XW, (char *) XA, SIZE)
 # endif
 
-#if MACOSX >= 103
-#define HAVE_WCHAR_H 
-#define HAVE_WCSLEN 
-#define HAVE_WCSCPY 
-#define HAVE_WCSNCPY
-#define HAVE_WCSCHR
-#define HAVE_WCSCAT
-#define HAVE_WCSCMP
-#define HAVE_TOWLOWER
-#endif
 
 /*
  *  Replacement functions
@@ -151,7 +153,7 @@ wchar_t* wcscat(wchar_t *dest, const wchar_t *src);
 int wcscmp (const wchar_t* s1, const wchar_t* s2);
 #endif
 #if !defined(HAVE_WCSNCASECMP)
-int wcsncasecmp (wchar_t* s1, wchar_t* s2, size_t n);
+int wcsncasecmp (const wchar_t* s1, const wchar_t* s2, size_t n);
 #endif
 
 #endif /* _UNICODE_H */

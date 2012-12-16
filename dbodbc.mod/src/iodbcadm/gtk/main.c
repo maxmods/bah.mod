@@ -1,13 +1,13 @@
 /*
  *  main.c
  *
- *  $Id: main.c,v 1.8 2006/01/26 00:45:09 source Exp $
+ *  $Id$
  *
  *  Main program
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -88,6 +88,9 @@ int
 gtk_gui (int *argc, char **argv[])
 {
   GtkWidget *mainwnd;
+#if GTK_CHECK_VERSION(2,0,0)
+  gtk_set_locale();
+#endif
   gtk_init (argc, argv);
   mainwnd = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   return SQLManageDataSources (mainwnd);
@@ -167,7 +170,7 @@ main (int argc, char *argv[])
 
   printf ("iODBC Administrator (GTK)\n");
   printf ("%s\n", PACKAGE_STRING);
-  printf ("Copyright (C) 2000-2006 OpenLink Software\n");
+  printf ("Copyright (C) 2000-2012 OpenLink Software\n");
   printf ("Please report all bugs to <%s>\n\n", PACKAGE_BUGREPORT);
 
   /* Check options commands */

@@ -1,13 +1,13 @@
 /*
  *  trace.c
  *
- *  $Id: trace.c,v 1.20 2006/12/21 11:24:58 source Exp $
+ *  $Id$
  *
  *  Trace functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -126,6 +126,7 @@ int ODBCSharedTraceFlag = SQL_OPT_TRACE_OFF;
 
 static char *trace_appname = NULL;
 static char *trace_fname = NULL;
+static char *trace_fname_template = NULL;
 static FILE *trace_fp = NULL;
 static int   trace_fp_close = 0;
 
@@ -179,7 +180,7 @@ trace_strftime_now (char *buf, size_t buflen, char *format)
 
 
 void
-trace_set_filename (char *fname)
+trace_set_filename (char *template)
 {
   char *s, *p;
   struct passwd *pwd;
@@ -187,16 +188,23 @@ trace_set_filename (char *fname)
   size_t buf_len, buf_pos;
   char tmp[255];
 
+  /* Make copy of template */
+  if (template)
+    {
+      MEM_FREE (trace_fname_template)
+      trace_fname_template = STRDUP (template);
+    }
+
   /*  Initialize */
   MEM_FREE (trace_fname);
   trace_fname = NULL;
-  buf = (char *) malloc (buf_len = strlen (fname) + sizeof (tmp) + 1);
+  buf = (char *) malloc (buf_len = strlen (trace_fname_template) + sizeof (tmp) + 1);
   if (!buf)
     return;			/* No more memory */
   buf_pos = 0;
   buf[0] = '\0';
 
-  for (s = fname; *s;)
+  for (s = trace_fname_template; *s;)
     {
       /*
        *  Make sure we can fit at least 1 more tmp buffer inside
@@ -280,6 +288,19 @@ trace_set_filename (char *fname)
 		strcpy (&buf[buf_pos], tmp);
 		buf_pos += strlen (tmp);
 		break;
+	      }
+
+	    case 's':
+	    case 'S':
+	      {
+		static unsigned int counter = 0;
+#if defined (HAVE_SNPRINTF)
+		snprintf (tmp, sizeof (tmp), "%d", ++counter);
+#else
+		sprintf (tmp, "%d", ++counter);
+#endif
+		strcpy (&buf[buf_pos], tmp);
+		buf_pos += strlen (tmp);
 	      }
 
 	    default:
@@ -432,8 +453,6 @@ void
 trace_stop(void)
 {
   char mesgBuf[200];
-  time_t now;
-  struct tm *timeNow;
 
   if (trace_fp)
     {
@@ -491,11 +510,11 @@ trace_emit (char *fmt, ...)
 
 
 void
-trace_emit_string (SQLCHAR *str, int len, int is_utf8)
+trace_emit_string (SQLCHAR *str, ssize_t len, int is_utf8)
 {
   ssize_t length = len;
   int i, j;
-  long col;
+  int col;
   SQLCHAR *ptr;
   int bytes;
   int truncated = 0;
@@ -504,8 +523,8 @@ trace_emit_string (SQLCHAR *str, int len, int is_utf8)
     return;
 
   if (len == SQL_NTS)
-    length = strlen ((char *) str);
-  else if (len <= 0)
+    length = STRLEN ((char *) str);
+  if (len <= 0)
     return;
 
   /*
@@ -602,11 +621,11 @@ trace_emit_string (SQLCHAR *str, int len, int is_utf8)
 
 
 void
-trace_emit_binary (unsigned char *str, int len)
+trace_emit_binary (unsigned char *str, ssize_t  len)
 {
-  long length = len;
+  ssize_t length = len;
   int i;
-  long col;
+  int col;
   unsigned char *ptr;
   int truncated = 0;
   char buf[80];
@@ -669,6 +688,9 @@ _trace_print_function (int func, int trace_leave, int retcode)
 {
   extern char *odbcapi_symtab[];
   char *ptr = "invalid retcode";
+#ifdef HAVE_GETTIMEOFDAY
+  struct timeval tv;
+#endif
 
   /*
    * Guard against tracefile getting too big
@@ -677,6 +699,9 @@ _trace_print_function (int func, int trace_leave, int retcode)
     {
  	trace_emit ("\n*** TRACEFILE LIMIT REACHED ***\n");
 	trace_stop ();
+	trace_set_filename (NULL);
+	trace_start ();	
+ 	trace_emit ("\n*** TRACEFILE CONTINUED ***\n\n");
  	return;
     }
 
@@ -684,8 +709,6 @@ _trace_print_function (int func, int trace_leave, int retcode)
    * Calculate timestamp
    */
 #ifdef HAVE_GETTIMEOFDAY
-  struct timeval tv;
-
   gettimeofday (&tv, NULL);
   tv.tv_sec -= starttime.tv_sec;
   tv.tv_usec -= starttime.tv_usec;
@@ -934,7 +957,7 @@ _trace_ulen_p (SQLULEN *p, int output)
 void
 _trace_string (SQLCHAR * str, SQLSMALLINT len, SQLSMALLINT * lenptr, int output)
 {
-  long length;
+  ssize_t length;
 
   if (!str)
     {
@@ -971,7 +994,7 @@ void
 _trace_string_w (SQLWCHAR * str, SQLSMALLINT len, SQLSMALLINT * lenptr,
     int output)
 {
-  long length;
+  ssize_t length;
 
   if (!str)
     {

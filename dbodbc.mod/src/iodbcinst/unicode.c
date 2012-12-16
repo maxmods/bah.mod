@@ -1,13 +1,13 @@
 /*
  *  unicode.c
  *
- *  $Id: unicode.c,v 1.2 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  ODBC unicode functions
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -194,35 +194,43 @@ int wcscmp (const wchar_t* s1, const wchar_t* s2)
 }
 #endif
 
-#if !defined(HAVE_TOWLOWER)
-#if (defined(__APPLE__) && !defined (_LP64)) || defined (macintosh)
-#include <Carbon/Carbon.h>
-wchar_t towlower(wchar_t wc)
-{
-#if defined (__APPLE__) && !defined (NO_FRAMEWORKS)
-#ifndef __CORESERVICES__
-#include <CoreServices/CoreServices.h>
-#endif
 
-  CFMutableStringRef strRef = CFStringCreateMutable(NULL, 0);
-  UniChar c = (UniChar)wc;
+#if !defined(HAVE_TOWLOWER)
+
+#if (defined (__APPLE__) && !(defined (NO_FRAMEWORKS) || defined (_LP64)))
+
+#include <Carbon/Carbon.h>
+
+wchar_t
+towlower (wchar_t wc)
+{
+  CFMutableStringRef strRef = CFStringCreateMutable (NULL, 0);
+  UniChar c = (UniChar) wc;
   wchar_t wcs;
 
-  CFStringAppendCharacters(strRef, &c, 1);
-  CFStringLowercase(strRef, NULL);
-  wcs = CFStringGetCharacterAtIndex(strRef, 0);
-  CFRelease(strRef);
+  CFStringAppendCharacters (strRef, &c, 1);
+  CFStringLowercase (strRef, NULL);
+  wcs = CFStringGetCharacterAtIndex (strRef, 0);
+  CFRelease (strRef);
 
   return wcs;
-#else
-  return wc;
-#endif
 }
-#endif
-#endif
+
+#else
+
+/* Use dummy function */
+wchar_t
+towlower (wchar_t wc)
+{
+  return wc;
+}
+
+#endif /* __APPLE__ */
+#endif /* !HAVE_TOWLOWER */
+
 
 #if !defined(HAVE_WCSNCASECMP)
-int wcsncasecmp (wchar_t* s1, wchar_t* s2, size_t n)
+int wcsncasecmp (const wchar_t* s1, const wchar_t* s2, size_t n)
 {
   wchar_t c1, c2;
   

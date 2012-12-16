@@ -1,13 +1,13 @@
 /*
  *  SQLInstallerError.c
  *
- *  $Id: SQLInstallerError.c,v 1.7 2006/01/20 15:58:35 source Exp $
+ *  $Id$
  *
  *  These functions intentionally left blank
  *
  *  The iODBC driver manager.
  *
- *  Copyright (C) 1996-2006 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -89,7 +89,7 @@ LPSTR errortable[] = {
   "Invalid string parameter",
   "Invalid type of request",
   "Component not found",
-  "Invalid name parameter",
+  "Invalid driver or translator name",
   "Invalid keyword-value pairs",
   "Invalid DSN",
   "Invalid .INF file",
@@ -105,6 +105,7 @@ LPSTR errortable[] = {
   "Deletion of the DSN failed",
   "Out of memory",
   "Output string truncated due to a buffer not large enough",
+  "Driver- or translator-specific error",
 };
 
 
