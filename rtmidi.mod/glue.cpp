@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2010-2011 Bruce A Henderson
+ Copyright (c) 2010-2012 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ RtMidiIn * bmx_rtmidiin_create(BBString * clientName, int queueSizeLimit) {
 	RtMidiIn * in = 0;
 	
 	try {
-		in = new RtMidiIn(n, queueSizeLimit);
+		in = new RtMidiIn(static_cast<RtMidi::Api>(0), n, queueSizeLimit);
 		bbMemFree(n);
 	} catch (RtError &error) {
 		bbMemFree(n);
@@ -165,7 +165,7 @@ RtMidiOut * bmx_rtmidiout_create(BBString * clientName) {
 	RtMidiOut * out = 0;
 	
 	try {
-		out = new RtMidiOut(n);
+		out = new RtMidiOut(static_cast<RtMidi::Api>(0), n);
 		bbMemFree(n);
 	} catch (RtError &error) {
 		bbMemFree(n);

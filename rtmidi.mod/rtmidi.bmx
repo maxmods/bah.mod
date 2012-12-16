@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2011 Bruce A Henderson
+' Copyright (c) 2010-2012 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@ Module BaH.RTMidi
 
 ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: RtMidi - 2003-2011 Gary P. Scavone"
-ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
+ModuleInfo "Copyright: RtMidi - 2003-2012 Gary P. Scavone"
+ModuleInfo "Copyright: Wrapper - 2010-2012 Bruce A Henderson"
 
 ModuleInfo "History: 1.02"
-ModuleInfo "History: Update to RTMidi 1.0.15"
+ModuleInfo "History: Update to RTMidi 2.0.1"
 ModuleInfo "History: Removed setQueueSizeLimit() method."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to RTMidi 1.0.14"
