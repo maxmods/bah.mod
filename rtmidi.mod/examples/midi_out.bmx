@@ -21,7 +21,7 @@ Print "Opening " + midiOut.getPortName()
 midiOut.openPort(0)
 
 
-Local message:Byte[] = New Byte[2]
+Local message:Byte[] = New Byte[3]
 
 ' Send out a series of MIDI messages.
 
