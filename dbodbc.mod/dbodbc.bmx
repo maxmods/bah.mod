@@ -40,6 +40,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Update to iODBC 3.52.8."
+ModuleInfo "History: Ensure string buffer is large enough."
 ModuleInfo "History: Core API updates."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Implemented Date, DateTime and Time types."
@@ -933,8 +934,10 @@ Type TODBCResultSet Extends TQueryResultSet
 					
 		If record.length <= 0 Then
 			bufferSize = 256
-		Else If record.length > 32768 Then
-			bufferSize = 32768
+		Else If record.length > 65536 Then
+			bufferSize = 65536
+		Else
+			bufferSize :+ 1 ' Add an extra char for null termination
 		End If
 		
 		Local lenIndicator:Int
