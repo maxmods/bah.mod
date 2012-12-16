@@ -90,15 +90,7 @@ Type TxsltStylesheet
 	</ul>
 	End Rem
 	Function parseStylesheetFile:TxsltStylesheet(filename:String)
-		'Local cStr:Byte Ptr = filename.toCString()
 		Return TxsltStylesheet._create(bmx_libxslt_xsltParseStylesheetFile(filename))
-		'MemFree cStr
-		
-		'If xsltStylesheetPtr = Null Then
-		'	Return Null
-		'Else
-		'	Return TxsltStylesheet._create(xsltStylesheetPtr)
-		'End If
 	End Function
 
 	Rem
@@ -169,14 +161,8 @@ Type TxsltStylesheet
 		Assert url, XSLT_ERROR_PARAM
 		Assert res, XSLT_ERROR_PARAM
 		compression = Min(Max(0, compression), 9)
-	
-		'Local cStr:Byte Ptr = url.toCString()
 		
 		Return bmx_libxslt_xsltSaveResultToFilename(url, res.basePtr, xsltStylesheetPtr, compression)
-		
-		'MemFree(cStr)
-		
-		'Return ret
 	End Method
 	Rem
 	bbdoc: Apply the stylesheet to the document.
@@ -211,42 +197,7 @@ Type TxsltStylesheet
 		Assert match, XSLT_ERROR_PARAM
 		Assert use, XSLT_ERROR_PARAM
 	
-		'Local res:Int
-		
-		'Local cStr1:Byte Ptr = match.toCString()
-		'Local cStr2:Byte Ptr = use.toCString()
-		
-		'If name = Null Then
-		'	If nameURI = Null Then
-		'		res = xsltAddKey(xsltStylesheetPtr, Null, Null, cStr1, cStr2, inst.basePtr)
-		'	Else
-		'		Local cStr3:Byte Ptr = nameURI.toCString()
-		'		
-		'		res = xsltAddKey(xsltStylesheetPtr, Null, cStr3, cStr1, cStr2, inst.basePtr)
-		'		
-		'		MemFree(cStr3)
-		'	End If
-		'Else
-		'	Local cStr4:Byte Ptr = name.toCString()
-		'	
-		'	If nameURI = Null Then
-		'		res = xsltAddKey(xsltStylesheetPtr, cStr4, Null, cStr1, cStr2, inst.basePtr)
-		'	
-		'	Else
-		'		Local cStr3:Byte Ptr = nameURI.toCString()
-				
 		Return bmx_libxslt_xsltAddKey(xsltStylesheetPtr, name, nameURI, match, use, inst.basePtr)
-				
-		'		MemFree(cStr3)
-		'	End If
-		'	
-		'	MemFree(cStr4)
-		'End If
-		
-		'MemFree(cStr1)
-		'MemFree(cStr2)
-		
-		'Return res
 	End Method
 	
 	Rem
@@ -373,35 +324,7 @@ Type TxsltStylesheet
 	Method addTemplate:Int(cur:TxsltTemplate, Mode:String, modeURI:String)
 		Assert cur, XSLT_ERROR_PARAM
 
-		Local res:Int = -1
-						
-		'If Mode <> Null Then
-		'	Local cStr1:Byte Ptr = Mode.toCString()
-		'	
-		'	If modeURI <> Null Then
-		'		Local cStr2:Byte Ptr = modeURI.toCString()
-				
 		Return bmx_libxslt_xsltAddTemplate(xsltStylesheetPtr, cur.xsltTemplatePtr, Mode, modeURI)
-				
-		'		MemFree(cStr2)
-		'	Else
-		'		res = xsltAddTemplate(xsltStylesheetPtr, cur.xsltTemplatePtr, cStr1, Null)
-		'	End If
-		'	
-		'	MemFree(cStr1)
-		'Else
-		'	If modeURI <> Null Then
-		'		Local cStr2:Byte Ptr = modeURI.toCString()
-		'		
-		'		res = xsltAddTemplate(xsltStylesheetPtr, cur.xsltTemplatePtr, Null, cStr2)
-		'		
-		'		MemFree(cStr2)
-		'	Else
-		'		res = xsltAddTemplate(xsltStylesheetPtr, cur.xsltTemplatePtr, Null, Null)
-		'	End If
-		'End If
-		
-		'Return res
 	End Method
 
 	Rem
@@ -418,48 +341,9 @@ Type TxsltStylesheet
 	End Rem
 	Method evalStaticAttrValueTemplate:String(node:TxmlNode, name:String, namespace:String)
 		Assert node, XSLT_ERROR_PARAM
-	
-		'Local ret:String = Null
-		'Local s:Byte Ptr
 		Local found:Int
-		
-		'If name <> Null Then
-		'	Local cStr1:Byte Ptr = name.toCString()
-		'	
-		'	If namespace <> Null Then
-		'		Local cStr2:Byte Ptr = namespace.toCString()
-				
+	
 		Return bmx_libxslt_xsltEvalStaticAttrValueTemplate(xsltStylesheetPtr, node.basePtr, name, namespace, Varptr found)
-				
-		'		MemFree(cStr2)
-		'	Else
-		'		s = xsltEvalStaticAttrValueTemplate(xsltTransformContextPtr, node.basePtr, cStr1, Null, Varptr found)
-		'	
-		'	End If
-		'	
-		'	MemFree(cStr1)
-
-		'Else
-'
-'			If namespace <> Null Then
-'				Local cStr2:Byte Ptr = namespace.toCString()
-'				
-'				s = xsltEvalStaticAttrValueTemplate(xsltTransformContextPtr, node.basePtr, Null, cStr2, Varptr found)
-'
-'				MemFree(cStr2)
-'			Else
-'				s = xsltEvalStaticAttrValueTemplate(xsltTransformContextPtr, node.basePtr, Null, Null, Varptr found)
-'			
-'			End If
-'		
-'		End If
-'		
-'		If s <> Null Then
-'			ret = String.fromCString(s)
-'			MemFree(s)
-'		End If
-'		
-'		Return ret
 	End Method
 	
 	Rem
@@ -624,15 +508,7 @@ Type TxsltTransformContext
 		Assert name, XSLT_ERROR_PARAM
 		Assert nameURI, XSLT_ERROR_PARAM
 		
-		'Local cStr1:Byte Ptr = name.toCString()
-		'Local cStr2:Byte Ptr = nameURI.toCString()
-		
 		Return TxsltTemplate._create(bmx_libxslt_xsltFindTemplate(xsltTransformContextPtr, name, nameURI))
-		
-		'MemFree(cStr1)
-		'MemFree(cStr2)
-		
-		'Return tmpl
 	End Method
 	
 	Rem
@@ -714,18 +590,9 @@ Type TxsltTransformContext
 	End Rem
 	Method getSpecialNamespace:TxmlNs(curNode:TxmlNode, name:String, prefix:String, out:TxmlNode)
 		Assert curNode, XSLT_ERROR_PARAM
-		'Assert name, XSLT_ERROR_PARAM
-		'Assert prefix, XSLT_ERROR_PARAM
 		Assert out, XSLT_ERROR_PARAM
 	
-		'Local cStr1:Byte Ptr = uri.toCString()
-		'Local cStr2:Byte Ptr = prefix.toCString()
 		Return TxmlNs._create(bmx_libxslt_xsltGetSpecialNamespace(xsltTransformContextPtr, curNode.basePtr, name, prefix, out.basePtr))
-		
-		'MemFree(cStr1)
-		'MemFree(cStr2)
-		
-		'Return ns
 	End Method
 
 	Rem
@@ -793,36 +660,7 @@ Type TxsltTransformContext
 	Method getKey:TxmlNodeSet(name:String, nameURI:String, value:String)
 		Assert value, XSLT_ERROR_PARAM
 		
-		Local nodeset:TxmlNodeSet
-		
-		'Local cStr3:Byte Ptr = value.toCString()
-		
-		'If name <> Null Then
-		
-		'	Local cStr1:Byte Ptr = name.toCString()
-		
-		'	If nameURI <> Null Then
-		'		Local cStr2:Byte Ptr = nameURI.toCString()
 		Return TxmlNodeSet._create(bmx_libxslt_xsltGetKey(xsltTransformContextPtr, name, nameURI, value))
-		'		MemFree(cStr2)
-		'	Else
-		'		nodeset = TxmlNodeSet._create(xsltGetKey(xsltTransformContextPtr, cStr1, Null, cStr3))
-		'	End If
-		'	
-		'	MemFree(cStr1)
-		'Else
-		'	If nameURI <> Null Then
-		'		Local cStr2:Byte Ptr = nameURI.toCString()
-		'		nodeset = TxmlNodeSet._create(xsltGetKey(xsltTransformContextPtr, Null, cStr2, cStr3))
-		'		MemFree(cStr2)
-		'	Else
-		'		nodeset = TxmlNodeSet._create(xsltGetKey(xsltTransformContextPtr, Null, Null, cStr3))
-		'	End If
-		'End If
-		
-		'MemFree(cStr3)
-		
-		'Return nodeset
 	End Method
 	
 	Rem
@@ -854,19 +692,8 @@ Type TxsltTransformContext
 	Method evalAVT:String(avt:String, node:TxmlNode)
 		Assert avt, XSLT_ERROR_PARAM
 		Assert node, XSLT_ERROR_PARAM
-	
-		'Local ret:String = Null
-		
-		'Local cStr1:Byte Ptr = avt.toCString()
+
 		Return bmx_libxslt_xsltEvalAVT(xsltTransformContextPtr, avt, node.basePtr)
-		
-		'MemFree(cStr1)
-		'If r <> Null Then
-		'	ret = String.fromCString(r)
-		'End If
-		'MemFree(r)
-		
-		'Return ret
 	End Method
 	
 	Rem
@@ -946,18 +773,8 @@ Type TxsltTransformContext
 	End Rem
 	Method attrTemplateValueProcess:String(value:String)
 		Assert value, XSLT_ERROR_PARAM
-		'Local ret:String = Null
-	
-		'Local cStr:Byte Ptr = value.toCString()
+
 		Return bmx_libxslt_xsltAttrTemplateValueProcess(xsltTransformContextPtr, value)
-		
-		'If s <> Null Then
-		'	ret = String.fromCString(s)
-		'	MemFree(s)
-		'End If
-		'MemFree(cStr)
-		
-		'Return ret
 	End Method
 
 	Rem
@@ -973,18 +790,7 @@ Type TxsltTransformContext
 		Assert value, XSLT_ERROR_PARAM
 		Assert node, XSLT_ERROR_PARAM
 		
-		'Local ret:String = Null
-	
-		'Local cStr:Byte Ptr = value.toCString()
 		Return bmx_libxslt_xsltAttrTemplateValueProcessNode(xsltTransformContextPtr, value, node.basePtr)
-		
-		'If s <> Null Then
-		'	ret = String.fromCString(s)
-		'	MemFree(s)
-		'End If
-		'MemFree(cStr)
-		
-		'Return ret
 	End Method
 	
 	Rem
@@ -1002,47 +808,8 @@ Type TxsltTransformContext
 	End Rem
 	Method evalAttrValueTemplate:String(node:TxmlNode, name:String, namespace:String)
 		Assert node, XSLT_ERROR_PARAM
-	
-		'Local ret:String = Null
-		'Local s:Byte Ptr
-		
-		'If name <> Null Then
-		'	Local cStr1:Byte Ptr = name.toCString()
-		'	
-		'	If namespace <> Null Then
-		'		Local cStr2:Byte Ptr = namespace.toCString()
-		'		
+
 		Return bmx_libxslt_xsltEvalAttrValueTemplate(xsltTransformContextPtr, node.basePtr, name, namespace)
-		'		
-		'		MemFree(cStr2)
-		'	Else
-		'		s = xsltEvalAttrValueTemplate(xsltTransformContextPtr, node.basePtr, cStr1, Null)
-		'	
-		'	End If
-		'	
-		'	MemFree(cStr1)
-'
-		'Else
-'
-'			If namespace <> Null Then
-'				Local cStr2:Byte Ptr = namespace.toCString()
-'				
-'				s = xsltEvalAttrValueTemplate(xsltTransformContextPtr, node.basePtr, Null, cStr2)
-'
-'				MemFree(cStr2)
-'			Else
-'				s = xsltEvalAttrValueTemplate(xsltTransformContextPtr, node.basePtr, Null, Null)
-'			
-'			End If
-'		
-'		End If
-'		
-'		If s <> Null Then
-'			ret = String.fromCString(s)
-'			MemFree(s)
-'		End If
-'		
-'		Return ret
 	End Method
 
 	Rem
@@ -1060,17 +827,8 @@ Type TxsltTransformContext
 	Method evalTemplateString:String(node:TxmlNode, parent:TxmlNode)
 		Assert node, XSLT_ERROR_PARAM
 		Assert parent, XSLT_ERROR_PARAM
-		
-		'Local ret:String = Null
 	
 		Return bmx_libxslt_xsltEvalTemplateString(xsltTransformContextPtr, node.basePtr, parent.basePtr)
-		
-		'If s <> Null Then
-		'	ret = String.fromCString(s)
-		'	MemFree(s)
-		'End If
-		
-		'Return ret
 	End Method
 
 	Rem
@@ -1083,16 +841,8 @@ Type TxsltTransformContext
 	End Rem
 	Method evalXPathString:String(comp:TxmlXPathCompExpr)
 		Assert comp, XSLT_ERROR_PARAM
-		
-		'Local ret:String = Null
-	
+
 		Return bmx_libxslt_xsltEvalXPathString(xsltTransformContextPtr, comp.xmlXPathCompExprPtr)
-		'If s <> Null Then
-		'	ret = String.fromCString(s)
-		'	MemFree(s)
-		'End If
-		
-		'Return ret
 	End Method
 	
 End Type
@@ -1164,11 +914,7 @@ Type TxsltDocument
 		Assert style, XSLT_ERROR_PARAM
 		Assert uri, XSLT_ERROR_PARAM
 		
-		'Local cStr:Byte Ptr = uri.toCString()
 		Return TxsltDocument._create(bmx_libxslt_xsltLoadStyleDocument(style.xsltStylesheetPtr, uri))
-		'MemFree(cStr)
-		
-		'Return doc
 	End Function
 	
 	Rem
@@ -1184,11 +930,7 @@ Type TxsltDocument
 		Assert context, XSLT_ERROR_PARAM
 		Assert uri, XSLT_ERROR_PARAM
 
-		'Local cStr:Byte Ptr = uri.toCString()
 		Return TxsltDocument._create(bmx_libxslt_xsltLoadDocument(context.xsltTransformContextPtr, uri))
-		'MemFree(cStr)
-		
-		'Return doc
 	End Function
 
 	Rem
@@ -1319,18 +1061,11 @@ Type TxsltCompMatch
 		Assert node, XSLT_ERROR_PARAM
 		Assert style, XSLT_ERROR_PARAM
 
-		'Local cStr1:Byte Ptr = pattern.toCString()
-		'Local comp:TxsltCompMatch
-
 		If runtime <> Null Then
 			Return TxsltCompMatch._create(bmx_libxslt_xsltCompilePattern(pattern, doc.basePtr, node.basePtr, style.xsltStylesheetPtr, runtime.xsltTransformContextPtr))
 		Else
 			Return TxsltCompMatch._create(bmx_libxslt_xsltCompilePattern(pattern, doc.basePtr, node.basePtr, style.xsltStylesheetPtr, Null))
 		End If
-		
-		'MemFree(cStr1)
-		
-		'Return comp
 	End Function
 	
 	Rem
