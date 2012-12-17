@@ -85,7 +85,6 @@ Type TXLDocument
 
 	Function newXmlDoc:TxmlDoc()
 		Local doc:TxmlDoc = TxmlDoc.newDoc("1.0")
-		doc.SetEncoding("UTF-8")
 		doc.setStandalone(True)
 		
 		Return doc
