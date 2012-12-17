@@ -33,6 +33,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 2.01"
 ModuleInfo "History: Fixed incorrect filename in include."
+ModuleInfo "History: Re-added TxmlDoc SetEncoding() method."
 ModuleInfo "History: 2.00"
 ModuleInfo "History: Updated to Libxml 2.9.0."
 ModuleInfo "History: Complete rewrite of API glue to match standard module layout."
@@ -858,7 +859,19 @@ Type TxmlDoc Extends TxmlBase
 	Method getEncoding:String()
 		Return bmx_libxml_xmldoc_encoding(basePtr)
 	End Method
-	
+
+	Rem
+
+	bbdoc: Sets the document encoding.
+
+	End Rem
+
+	Method setEncoding(encoding:String)
+		bmx_libxml_xmldoc_setencoding(basePtr, encoding)
+
+	End Method
+
+
 	Rem
 	bbdoc: Is this document standalone?
 	returns: True if the document has no external refs.

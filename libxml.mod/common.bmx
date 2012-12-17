@@ -116,6 +116,7 @@ Extern
 	Function bmx_libxml_xmlFreeDoc(handle:Byte Ptr)
 	Function bmx_libxml_xmldoc_version:String(handle:Byte Ptr)
 	Function bmx_libxml_xmldoc_encoding:String(handle:Byte Ptr)
+	Function bmx_libxml_xmldoc_setencoding(handle:Byte Ptr, encoding:String)
 	Function bmx_libxml_xmldoc_standalone:Int(handle:Byte Ptr)
 	Function bmx_libxml_xmldoc_setStandalone(handle:Byte Ptr, value:Int)
 	Function bmx_libxml_xmlNewDocPI:Byte Ptr(handle:Byte Ptr, name:String, content:String)

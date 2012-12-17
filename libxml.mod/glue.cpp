@@ -110,6 +110,7 @@ extern "C" {
 	void bmx_libxml_xmlFreeDoc(xmlDocPtr handle);
 	BBString * bmx_libxml_xmldoc_version(xmlDocPtr handle);
 	BBString * bmx_libxml_xmldoc_encoding(xmlDocPtr handle);
+	void bmx_libxml_xmldoc_setencoding(xmlDocPtr handle, BBString * encoding);
 	int bmx_libxml_xmldoc_standalone(xmlDocPtr handle);
 	void bmx_libxml_xmldoc_setStandalone(xmlDocPtr handle, int value);
 	xmlNodePtr bmx_libxml_xmlNewDocPI(xmlDocPtr handle, BBString * name, BBString * content);
@@ -811,6 +812,17 @@ BBString * bmx_libxml_xmldoc_version(xmlDocPtr handle) {
 
 BBString * bmx_libxml_xmldoc_encoding(xmlDocPtr handle) {
 	return bbStringFromUTF8String((char *)handle->encoding);
+}
+
+void bmx_libxml_xmldoc_setencoding(xmlDocPtr handle, BBString * encoding) {
+	char * e = bbStringToUTF8String(encoding);
+	
+	if (handle->encoding != NULL) {
+		xmlFree((xmlChar *)handle->encoding);
+	}
+	
+	handle->encoding = xmlStrdup((xmlChar *)e);
+	bbMemFree(e);
 }
 
 int bmx_libxml_xmldoc_standalone(xmlDocPtr handle) {
