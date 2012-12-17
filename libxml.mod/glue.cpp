@@ -30,7 +30,7 @@
 #include "libxml/xinclude.h"
 #include "libxml/xmlreader.h"
 #include "libxml/xpath.h"
-#include "libxml/xpathinternals.h"
+#include "libxml/xpathInternals.h"
 #include "libxml/xpointer.h"
 
 extern "C" {

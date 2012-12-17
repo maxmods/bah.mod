@@ -25,12 +25,14 @@ bbdoc: Libxml
 End Rem
 Module BaH.LibXml
 
-ModuleInfo "Version: 2.00"
+ModuleInfo "Version: 2.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libxml2) 1998-2012 Daniel Veillard"
 ModuleInfo "Copyright: (wrapper) 2006-2012 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 2.01"
+ModuleInfo "History: Fixed incorrect filename in include."
 ModuleInfo "History: 2.00"
 ModuleInfo "History: Updated to Libxml 2.9.0."
 ModuleInfo "History: Complete rewrite of API glue to match standard module layout."
