@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2011 Bruce A Henderson
+' Copyright (c) 2010-2012 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ End Rem
 Module BaH.CEGUIDirect3D9
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2357)"
+ModuleInfo "History: Initial Release. (CEGUI 0.7.7)"
 
 ?win32
 ModuleInfo "CC_OPTS: -fexceptions"
