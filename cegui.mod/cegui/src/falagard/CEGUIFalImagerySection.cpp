@@ -27,7 +27,9 @@
  ***************************************************************************/
 #include "falagard/CEGUIFalImagerySection.h"
 #include "CEGUIPropertyHelper.h"
+#include "CEGUIExceptions.h"
 #include <iostream>
+#include <limits>
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -184,7 +186,10 @@ namespace CEGUI
     Rect ImagerySection::getBoundingRect(const Window& wnd) const
     {
         Rect compRect;
-        Rect bounds(0, 0, 0, 0);
+        Rect bounds(std::numeric_limits<float>::max(), 
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::min(),
+                    std::numeric_limits<float>::min());
 
         // measure all frame components
         for(FrameList::const_iterator frame = d_frames.begin(); frame != d_frames.end(); ++frame)
@@ -223,7 +228,10 @@ namespace CEGUI
     Rect ImagerySection::getBoundingRect(const Window& wnd, const Rect& rect) const
     {
         Rect compRect;
-        Rect bounds(0, 0, 0, 0);
+        Rect bounds(std::numeric_limits<float>::max(), 
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::min(),
+                    std::numeric_limits<float>::min());
 
         // measure all frame components
         for(FrameList::const_iterator frame = d_frames.begin(); frame != d_frames.end(); ++frame)
@@ -306,6 +314,20 @@ namespace CEGUI
 
         // output closing tag
         xml_stream.closeTag();
+    }
+
+    size_t ImagerySection::getTextComponentCount() const
+    {
+        return d_texts.size();
+    }
+
+    const TextComponent& ImagerySection::getTextComponent(const size_t idx) const
+    {
+        if (idx >= d_texts.size())
+            CEGUI_THROW(InvalidRequestException(
+                "ImagerySection::getTextComponent: index out of range."));
+
+        return d_texts[idx];
     }
 
 } // End of  CEGUI namespace section

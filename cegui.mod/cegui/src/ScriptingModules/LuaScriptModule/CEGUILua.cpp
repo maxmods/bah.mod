@@ -85,7 +85,11 @@ LuaScriptModule::LuaScriptModule(lua_State* state) :
 
         // create a lua state
         d_ownsState = true;
+#if LUA_VERSION_NUM > 501
+        d_state = luaL_newstate();
+#else
         d_state = lua_open();
+#endif
 
         // init all standard libraries
         #if CEGUI_LUA_VER >= 51
@@ -575,8 +579,8 @@ void LuaScriptModule::executeScriptFile_impl(const String& filename,
     {
         String errMsg = lua_tostring(d_state,-1);
         lua_settop(d_state,top);
-        throw ScriptException("Unable to execute Lua script file: '" +
-                              filename + "'\n\n" + errMsg + "\n");
+        CEGUI_THROW(ScriptException("Unable to execute Lua script file: '" +
+            filename + "'\n\n" + errMsg + "\n"));
     }
 
     // call it
@@ -584,8 +588,8 @@ void LuaScriptModule::executeScriptFile_impl(const String& filename,
     {
         String errMsg = lua_tostring(d_state,-1);
         lua_settop(d_state,top);
-        throw ScriptException("Unable to execute Lua script file: '" +
-                              filename + "'\n\n" + errMsg + "\n");
+        CEGUI_THROW(ScriptException("Unable to execute Lua script file: '" +
+            filename + "'\n\n" + errMsg + "\n"));
     }
 
     lua_settop(d_state,top); // just in case :P
@@ -602,8 +606,8 @@ int LuaScriptModule::executeScriptGlobal_impl(const String& function_name,
     if (!lua_isfunction(d_state,-1))
     {
         lua_settop(d_state,top);
-        throw ScriptException("Unable to get Lua global: '" + function_name +
-                              "' as name not represent a global Lua function" );
+        CEGUI_THROW(ScriptException("Unable to get Lua global: '" +
+            function_name + "' as name not represent a global Lua function" ));
     }
 
     // call it
@@ -614,8 +618,8 @@ int LuaScriptModule::executeScriptGlobal_impl(const String& function_name,
     {
         String errMsg = lua_tostring(d_state,-1);
         lua_settop(d_state,top);
-        throw ScriptException("Unable to evaluate Lua global: '" + 
-                              function_name + "\n\n" + errMsg + "\n");
+        CEGUI_THROW(ScriptException("Unable to evaluate Lua global: '" + 
+            function_name + "\n\n" + errMsg + "\n"));
     }
 
     // get return value
@@ -654,8 +658,8 @@ bool LuaScriptModule::executeScriptedEventHandler_impl(
         String errStr(lua_tostring(d_state,-1));
         lua_settop(d_state,top);
 
-        throw ScriptException("Unable to evaluate the Lua event handler: '" +
-                              handler_name + "'\n\n" + errStr + "\n");
+        CEGUI_THROW(ScriptException("Unable to evaluate the Lua event "
+            "handler: '" + handler_name + "'\n\n" + errStr + "\n"));
     }
 
     // retrieve result
@@ -678,8 +682,8 @@ void LuaScriptModule::executeString_impl(const String& str, const int err_idx,
     {
         String errMsg = lua_tostring(d_state,-1);
         lua_settop(d_state,top);
-        throw ScriptException("Unable to execute Lua script string: '" +
-                              str + "'\n\n" + errMsg + "\n");
+        CEGUI_THROW(ScriptException("Unable to execute Lua script string: '" +
+            str + "'\n\n" + errMsg + "\n"));
     }
 
     lua_settop(d_state,top);

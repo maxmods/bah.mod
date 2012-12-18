@@ -130,19 +130,17 @@ namespace CEGUI
     *************************************************************************/
     void WidgetLookFeel::initialiseWidget(Window& widget) const
     {
-        // add required child widgets
-        for(WidgetList::const_iterator curr = d_childWidgets.begin(); curr != d_childWidgets.end(); ++curr)
-        {
-            (*curr).create(widget);
-        }
-
         // add new property definitions
         for(PropertyDefinitionList::iterator propdef = d_propertyDefinitions.begin(); propdef != d_propertyDefinitions.end(); ++propdef)
         {
             // add the property to the window
             widget.addProperty(&(*propdef));
-            // write default value to get things set up properly
-            widget.setProperty((*propdef).getName(), (*propdef).getDefault(&widget));
+        }
+
+        // add required child widgets
+        for(WidgetList::const_iterator curr = d_childWidgets.begin(); curr != d_childWidgets.end(); ++curr)
+        {
+            (*curr).create(widget);
         }
 
         // add new property link definitions
@@ -150,8 +148,6 @@ namespace CEGUI
         {
             // add the property to the window
             widget.addProperty(&(*linkdef));
-            // write default value to get things set up properly
-            widget.setProperty((*linkdef).getName(), (*linkdef).getDefault(&widget));
         }
 
         // apply properties to the parent window

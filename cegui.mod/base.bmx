@@ -866,7 +866,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Window has been updated.
 	End Rem
-	Const EventWindowUpdated:String = "Updated"
+	Const EventWindowUpdated:String = "WindowUpdate"
 	Rem
 	bbdoc: Parent of this Window has been re-sized. 
 	End Rem
@@ -922,7 +922,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Clipping by parent mode has been modified. 
 	End Rem
-	Const EventClippedByParentChanged:String = "ClippedByParentChanged"
+	Const EventClippedByParentChanged:String = "ClippingChanged"
 	Rem
 	bbdoc: Destruction by parent mode has been modified. 
 	End Rem
@@ -930,7 +930,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Alpha inherited from parent mode has been modified. 
 	End Rem
-	Const EventInheritsAlphaChanged:String = "InheritsAlphaChanged"
+	Const EventInheritsAlphaChanged:String = "InheritAlphaChanged"
 	Rem
 	bbdoc: Always on top mode has been modified. 
 	End Rem
@@ -938,35 +938,35 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Window has captured all inputs. 
 	End Rem
-	Const EventInputCaptureGained:String = "InputCaptureGained"
+	Const EventInputCaptureGained:String = "CaptureGained"
 	Rem
 	bbdoc: Window has lost it's capture on inputs. 
 	End Rem
-	Const EventInputCaptureLost:String = "InputCaptureLost"
+	Const EventInputCaptureLost:String = "CaptureLost"
 	Rem
 	bbdoc: Rendering of the Window has started. 
 	End Rem
-	Const EventRenderingStarted:String = "RenderingStarted"
+	Const EventRenderingStarted:String = "StartRender"
 	Rem
 	bbdoc: Rendering for the Window has finished. 
 	End Rem
-	Const EventRenderingEnded:String = "RenderingEnded"
+	Const EventRenderingEnded:String = "EndRender"
 	Rem
 	bbdoc: A child Window has been added. 
 	End Rem
-	Const EventChildAdded:String = "ChildAdded"
+	Const EventChildAdded:String = "AddedChild"
 	Rem
 	bbdoc: A child window has been removed. 
 	End Rem
-	Const EventChildRemoved:String = "ChildRemoved"
+	Const EventChildRemoved:String = "RemovedChild"
 	Rem
 	bbdoc: Destruction of the Window is about to begin. 
 	End Rem
-	Const EventDestructionStarted:String = "DestructionStarted"
+	Const EventDestructionStarted:String = "DestructStart"
 	Rem
 	bbdoc: The z-order of the window has changed. 
 	End Rem
-	Const EventZOrderChanged:String = "ZOrderChanged"
+	Const EventZOrderChanged:String = "ZChanged"
 	Rem
 	bbdoc: A DragContainer has been dragged over this window. 
 	End Rem
@@ -1022,11 +1022,11 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Mouse cursor has entered the Window surface. 
 	End Rem
-	Const EventMouseEntersSurface:String = "MouseEntersSurface"
+	Const EventMouseEntersSurface:String = "MouseEnter"
 	Rem
 	bbdoc: Mouse cursor has left the Window surface. 
 	End Rem
-	Const EventMouseLeavesSurface:String = "MouseLeavesSurface"
+	Const EventMouseLeavesSurface:String = "MouseLeave"
 	Rem
 	bbdoc: Mouse cursor was moved within the area of the Window. 
 	End Rem

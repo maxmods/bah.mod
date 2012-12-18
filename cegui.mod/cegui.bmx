@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2011 Bruce A Henderson
+' Copyright (c) 2008-2012 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@ Module BaH.CEGUI
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: CEGUI - 2004 - 2010 Paul D Turner & The CEGUI Development Team"
-ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
+ModuleInfo "Copyright: CEGUI - 2004 - 2012 Paul D Turner & The CEGUI Development Team"
+ModuleInfo "Copyright: Wrapper - 2008-2012 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (CEGUI 0.7.5)"
+ModuleInfo "History: Initial Release. (CEGUI 0.7.7)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DPCRE_STATIC"
@@ -721,11 +721,11 @@ Type TCEListbox Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
-	Const EventListContentsChanged:String = "ListContentsChanged"
+	Const EventListContentsChanged:String = "ListItemsChanged"
 	Rem
 	bbdoc: Event triggered when there is a change to the currently selected item(s). 
 	End Rem
-	Const EventSelectionChanged:String = "SelectionChanged"
+	Const EventSelectionChanged:String = "ItemSelectionChanged"
 	Rem
 	bbdoc: Event triggered when the sort mode setting changes. 
 	End Rem
@@ -737,11 +737,11 @@ Type TCEListbox Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes.
 	End Rem
-	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
+	Const EventVertScrollbarModeChanged:String = "VertScrollModeChanged"
 	Rem
 	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
-	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollModeChanged"
 
 	Rem
 	bbdoc: Returns number of items attached to the list box. 
@@ -1428,7 +1428,7 @@ Type TCECombobox Extends TCEWindow
 	Rem
 	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
-	Const EventReadOnlyModeChanged:String = "ReadOnlyModeChanged"
+	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
 	Rem
 	bbdoc: The validation string has been changed. 
 	End Rem
@@ -1440,7 +1440,7 @@ Type TCECombobox Extends TCEWindow
 	Rem
 	bbdoc: Some operation has made the current text invalid with regards to the validation string. 
 	End Rem
-	Const EventTextInvalidated:String = "TextInvalidated"
+	Const EventTextInvalidated:String = "TextInvalidatedEvent"
 	Rem
 	bbdoc: The user attempted to modify the text in a way that would have made it invalid. 
 	End Rem
@@ -1456,11 +1456,11 @@ Type TCECombobox Extends TCEWindow
 	Rem
 	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
-	Const EventEditboxFull:String = "EditboxFull"
+	Const EventEditboxFull:String = "EditboxFullEvent"
 	Rem
 	bbdoc: The user has accepted the current text by pressing Return, Enter, or Tab. 
 	End Rem
-	Const EventTextAccepted:String = "TextAccepted"
+	Const EventTextAccepted:String = "TextAcceptedEvent"
 	
 	' event names from list box
 	Rem
@@ -2034,7 +2034,7 @@ Type TCEItemListBase Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
-	Const EventListContentsChanged:String = "ListContentsChanged"
+	Const EventListContentsChanged:String = "ListItemsChanged"
 	Rem
 	bbdoc: Event fired when the sort enabled state changes. 
 	End Rem
@@ -3067,7 +3067,7 @@ Type TCEListHeader Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the rendering offset for the segments changes. 
 	End Rem
-	Const EventSegmentRenderOffsetChanged:String = "SegmentRenderOffsetChanged"
+	Const EventSegmentRenderOffsetChanged:String = "SegmentOffsetChanged"
 
 	Rem
 	bbdoc: Returns the number of columns or segments attached to the header.
@@ -3338,7 +3338,7 @@ Type TCEScrollbar Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the scroll bar position value changes. 
 	End Rem
-	Const EventScrollPositionChanged:String = "ScrollPositionChanged"
+	Const EventScrollPositionChanged:String = "ScrollPosChanged"
 	Rem
 	bbdoc: Event fired when the user begins dragging the thumb. 
 	End Rem
@@ -3602,7 +3602,7 @@ Type TCETabControl Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when there is a change to the currently selected tab. 
 	End Rem
-	Const EventSelectionChanged:String = "SelectionChanged"
+	Const EventSelectionChanged:String = "TabSelectionChanged"
 
 	Rem
 	bbdoc: Returns number of tabs.
@@ -3782,11 +3782,11 @@ Type TCETree Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
-	Const EventListContentsChanged:String = "ListContentsChanged"
+	Const EventListContentsChanged:String = "ListItemsChanged"
 	Rem
 	bbdoc: Event triggered when there is a change to the currently selected item(s). 
 	End Rem
-	Const EventSelectionChanged:String = "SelectionChanged"
+	Const EventSelectionChanged:String = "ItemSelectionChanged"
 	Rem
 	bbdoc: Event triggered when the sort mode setting changes. 
 	End Rem
@@ -3794,15 +3794,15 @@ Type TCETree Extends TCEWindow
 	Rem
 	bbdoc: Event triggered when the multi-select mode setting changes. 
 	End Rem
-	Const EventMultiselectModeChanged:String = "MultiselectModeChanged"
+	Const EventMultiselectModeChanged:String = "MuliselectModeChanged"
 	Rem
 	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes. 
 	End Rem
-	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
+	Const EventVertScrollbarModeChanged:String = "VertScrollModeChanged"
 	Rem
 	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
-	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollModeChanged"
 	Rem
 	bbdoc: Event triggered when a branch of the tree is opened by the user. 
 	End Rem
@@ -4392,23 +4392,23 @@ Type TCEMultiColumnList Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the selection mode for the list box changes. 
 	End Rem
-	Const EventSelectionModeChanged:String = "SelectionModeChanged"
+	Const EventSelectionModeChanged:String = "SelectModeChanged"
 	Rem
 	bbdoc: Event fired when the nominated select column changes. 
 	End Rem
-	Const EventNominatedSelectColumnChanged:String = "NominatedSelectColumnChanged"
+	Const EventNominatedSelectColumnChanged:String = "NomSelColChanged"
 	Rem
 	bbdoc: Event fired when the nominated select row changes. 
 	End Rem
-	Const EventNominatedSelectRowChanged:String = "NominatedSelectRowChanged"
+	Const EventNominatedSelectRowChanged:String = "NomSelRowChanged"
 	Rem
 	bbdoc: Event fired when the vertical scroll bar 'force' setting changes. 
 	End Rem
-	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
+	Const EventVertScrollbarModeChanged:String = "VertBarModeChanged"
 	Rem
 	bbdoc: Event fired when the horizontal scroll bar 'force' setting changes. 
 	End Rem
-	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
+	Const EventHorzScrollbarModeChanged:String = "HorzBarModeChanged"
 	Rem
 	bbdoc: Event fired when the current selection(s) within the list box changes. 
 	End Rem
@@ -4416,23 +4416,23 @@ Type TCEMultiColumnList Extends TCEWindow
 	Rem
 	bbdoc: Event fired when the contents of the list box changes. 
 	End Rem
-	Const EventListContentsChanged:String = "ListContentsChanged"
+	Const EventListContentsChanged:String = "ContentsChanged"
 	Rem
 	bbdoc: Event fired when the sort column changes. 
 	End Rem
-	Const EventSortColumnChanged:String = "SortColumnChanged"
+	Const EventSortColumnChanged:String = "SortColChanged"
 	Rem
 	bbdoc: Event fired when the sort direction changes. 
 	End Rem
-	Const EventSortDirectionChanged:String = "SortDirectionChanged"
+	Const EventSortDirectionChanged:String = "SortDirChanged"
 	Rem
 	bbdoc: Event fired when the width of a column in the list changes. 
 	End Rem
-	Const EventListColumnSized:String = "ListColumnSized"
+	Const EventListColumnSized:String = "ColSized"
 	Rem
 	bbdoc: Event fired when the column order changes. 
 	End Rem
-	Const EventListColumnMoved:String = "ListColumnMoved"
+	Const EventListColumnMoved:String = "ColMoved"
 
 	Rem
 	bbdoc: Returns whether user manipulation of the sort column and direction are enabled.
@@ -5010,7 +5010,7 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	Rem
 	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
-	Const EventReadOnlyModeChanged:String = "ReadOnlyModeChanged"
+	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
 	Rem
 	bbdoc: The word wrap mode of the text box has been changed. 
 	End Rem
@@ -5022,7 +5022,7 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	Rem
 	bbdoc: The text caret (insert point) has changed. 
 	End Rem
-	Const EventCaretMoved:String = "CaretMoved"
+	Const EventCaretMoved:String = "CaratMoved"
 	Rem
 	bbdoc: The current text selection has changed.
 	End Rem
@@ -5030,7 +5030,7 @@ Type TCEMultiLineEditbox Extends TCEWindow
 	Rem
 	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
-	Const EventEditboxFull:String = "EditboxFull"
+	Const EventEditboxFull:String = "EditboxFullEvent"
 	Rem
 	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes.
 	End Rem
@@ -5202,23 +5202,23 @@ Type TCEEditbox Extends TCEWindow
 	Rem
 	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
-	Const EventReadOnlyModeChanged:String = "ReadOnlyModeChanged"
+	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
 	Rem
 	bbdoc: The masked rendering mode (password mode) has been changed. 
 	End Rem
-	Const EventMaskedRenderingModeChanged:String = "MaskedRenderingModeChanged"
+	Const EventMaskedRenderingModeChanged:String = "MaskRenderChanged"
 	Rem
 	bbdoc: The code point (character) to use for masked text has been changed. 
 	End Rem
-	Const EventMaskCodePointChanged:String = "MaskCodePointChanged"
+	Const EventMaskCodePointChanged:String = "MaskCPChanged"
 	Rem
 	bbdoc: The validation string has been changed. 
 	End Rem
-	Const EventValidationStringChanged:String = "ValidationStringChanged"
+	Const EventValidationStringChanged:String = "ValidatorChanged"
 	Rem
 	bbdoc: The maximum allowable string length has been changed. 
 	End Rem
-	Const EventMaximumTextLengthChanged:String = "MaximumTextLengthChanged"
+	Const EventMaximumTextLengthChanged:String = "MaxTextLenChanged"
 	Rem
 	bbdoc: Some operation has made the current text invalid with regards to the validation string. 
 	End Rem
@@ -5226,15 +5226,15 @@ Type TCEEditbox Extends TCEWindow
 	Rem
 	bbdoc: The user attempted to modify the text in a way that would have made it invalid. 
 	End Rem
-	Const EventInvalidEntryAttempted:String = "InvalidEntryAttempted"
+	Const EventInvalidEntryAttempted:String = "InvalidInputAttempt"
 	Rem
 	bbdoc: The text caret (insert point) has changed. 
 	End Rem
-	Const EventCaretMoved:String = "CaretMoved"
+	Const EventCaretMoved:String = "TextCaratMoved"
 	Rem
 	bbdoc: The current text selection has changed. 
 	End Rem
-	Const EventTextSelectionChanged:String = "TextSelectionChanged"
+	Const EventTextSelectionChanged:String = "TextSelectChanged"
 	Rem
 	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem

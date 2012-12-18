@@ -5,7 +5,7 @@ class MultiLineEditbox : public Window
 {
 	bool hasInputFocus() const;
 	bool isReadOnly() const;
-	unsigned long getCaretIndex() const;
+	unsigned long getCaratIndex() const;
 	unsigned long getSelectionStartIndex() const;
 	unsigned long getSelectionEndIndex() const;
 	unsigned long getSelectionLength() const;
@@ -19,10 +19,10 @@ class MultiLineEditbox : public Window
     unsigned long getLineNumberFromIndex(unsigned long index) const;
 
 	void setReadOnly(bool setting);
-	void setCaretIndex(unsigned long caret_pos);
+	void setCaratIndex(unsigned long carat_pos);
 	void setSelection(unsigned long start_pos, unsigned long end_pos);
 	void setMaxTextLength(unsigned long max_len);
-	void ensureCaretIsVisible();
+	void ensureCaratIsVisible();
 	void setWordWrapping(bool setting);
     void setShowVertScrollbar(bool setting);
 

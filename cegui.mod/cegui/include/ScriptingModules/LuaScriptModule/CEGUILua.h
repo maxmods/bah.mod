@@ -35,7 +35,7 @@
 	Import / Export control macros
 *************************************************************************/
 #if (defined( __WIN32__ ) || defined( _WIN32 )) && !defined(CEGUI_STATIC)
-#   ifdef CEGUILUASCRIPTMODULE_EXPORTS
+#   ifdef CEGUILUA_EXPORTS
 #       define CEGUILUA_API __declspec(dllexport)
 #   else
 #       define CEGUILUA_API __declspec(dllimport)

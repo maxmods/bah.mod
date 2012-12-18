@@ -70,12 +70,12 @@ class Window //: public EventSet
 	bool isChild(const Window* window) const;
 	bool isChildRecursive(unsigned int ID) const;
 
-	void addChild(utf8string name);
-	void addChild(Window* window);
+	void addChildWindow(utf8string name);
+	void addChildWindow(Window* window);
 
-	void removeChild(unsigned int ID);
-	void removeChild(utf8string name);
-	void removeChild(Window* window);
+	void removeChildWindow(unsigned int ID);
+	void removeChildWindow(utf8string name);
+	void removeChildWindow(Window* window);
 
 	tolua_throws|CEGUI::UnknownObjectException,nil| Window* getChild(unsigned int ID) const;
 	tolua_throws|CEGUI::UnknownObjectException,nil| Window* getChild(utf8string name) const;
@@ -131,7 +131,7 @@ class Window //: public EventSet
     float getParentPixelHeight() const;
 
 	static Window* getCaptureWindow();
-	void setRestoreOldCapture(bool setting);
+	void setRestoreCapture(bool setting);
 	bool restoresOldCapture() const;
 
 	bool distributesCapturedInputs() const;
@@ -278,6 +278,10 @@ class Window //: public EventSet
     bool isMouseInputPropagationEnabled() const;
 
     Window* clone(utf8string newName, bool deepCopy = true) const;
+
+    unsigned int getZIndex() const;
+    bool isInFront(const Window& wnd) const;
+    bool isBehind(const Window& wnd) const;
 
 	//////////////////////////////////////////////
 	// PropertySet
