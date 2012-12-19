@@ -53,6 +53,9 @@ ModuleInfo "History: Fixed MacOS SQLSMALLINT/int cast issues."
 ModuleInfo "History: 1.00 Initial Release"
 ModuleInfo "History: Includes iODBC 3.52.5 source for Linux/MacOS module."
 
+?linux
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
+?
 
 Import BaH.Database
 
