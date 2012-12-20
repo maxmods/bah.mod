@@ -9,21 +9,20 @@ Graphics 800, 600, 0
 HideMouse
 
 ' use our own logger (choice of LOG_ERRORS, LOG_WARNINGS, LOG_STANDARD, LOG_INFORMATIVE, LOG_INSANE)
-New CustomLogger
-TCELogger.GetLogger().setLoggingLevel(LOG_ERRORS)
-
+'New CustomLogger
 
 Init_CEGUI(New TCEOpenGLRenderer)
 
-initialiseResourceGroupDirectories()
-initialiseDefaultResourceGroups()
+TCELogger.GetLogger().setLoggingLevel(LOG_INSANE)
+TCELogger.GetLogger().setLogFilename("test.log")
 
+initialiseDefaultResourceGroups()
+initialiseResourceGroupDirectories()
 
 TCESchemeManager.createScheme("WindowsLook.scheme")
 
-TCESystem.setDefaultFont("Commonwealth-12")
+TCESystem.setDefaultFont("DejaVuSans-10")
 TCESystem.setDefaultMouseCursor("WindowsLook", "MouseArrow")
-
 
 Local root:TCEWindow = TCEWindowManager.loadWindowLayout("test_01.layout")
 TCESystem.setGUISheet(root)
@@ -31,7 +30,7 @@ TCESystem.setGUISheet(root)
 
 ' coded button
 Local button:TCEWindow = TCEWindowManager.CreateWindow("WindowsLook/Button", "button")
-root.addChildWindow(button)
+root.addChild(button)
 
 button.setText("Show")
 button.setPosition(40, 100)
@@ -40,7 +39,7 @@ button.subscribeEvent(TCEPushButton.EventClicked, clicked)
 
 ' coded editbox
 Local eb:TCEWindow = TCEWindowManager.CreateWindow("WindowsLook/Editbox", "editbox")
-root.addChildWindow(eb)
+root.addChild(eb)
 
 eb.setText("Type here")
 eb.setPosition(40, 130)
