@@ -311,7 +311,7 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 	End Method
 
 	Method LoadFont:TGuiFont(name:String, size:Int, flags:Int)
-		Local font:TGuiFont = New TGuiFont
+		Local font:TGuiFont = New TGTKGuiFont
 		font.name = name
 		font.size = size
 		font.style = flags
@@ -362,7 +362,7 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 
 
 	Method LoadFontWithDouble:TGuiFont(name:String, size:Double, flags:Int)
-		Local font:TGuiFont = New TGuiFont
+		Local font:TGuiFont = New TGTKGuiFont
 		font.name = name
 		font.size = size
 		font.style = flags
@@ -579,7 +579,14 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 	Method LoadIconStrip:TIconStrip(source:Object)
 		Return TGTKIconStrip.Create(source)
 	End Method
- 
+
+	Method UserName$()
+	End Method
+	
+	Method ComputerName$()
+	End Method
+	
+
 End Type
 
 Function GadgetFromHandle:TGTKGadget( handle:Int )

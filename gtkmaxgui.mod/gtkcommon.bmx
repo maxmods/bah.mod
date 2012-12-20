@@ -635,7 +635,7 @@ about: Note! Remember to destroy the pango object with pango_font_description_fr
 done with it...
 End Rem
 Function getGuiFontFromPangoDescription:TGuiFont(fontdesc:Byte Ptr)
-	Local font:TGuiFont = New TGuiFont
+	Local font:TGuiFont = New TGTKGuiFont
 
 	font.name = String.FromCString(pango_font_description_get_family(fontdesc))
 	'font.path = ...
@@ -652,6 +652,8 @@ Function getGuiFontFromPangoDescription:TGuiFont(fontdesc:Byte Ptr)
 
 	font.size = pango_font_description_get_size(fontdesc) / 1024
 
+	font.handle = int ptr(fontdesc)[0]
+	
 	Return font
 End Function
 
@@ -1380,3 +1382,22 @@ Const _OFFSET_GTK_SB_FRAME:Int = 76
 Const _OFFSET_GTK_MENU_ACTIVE:Int = 96
 
 Const _OFFSET_GTK_DIALOG:Int = 160
+
+
+Type TGTKGuiFont Extends TGuiFont
+	
+	Method Delete()
+		If handle Then
+			pango_font_description_free(int ptr(handle))
+			handle = 0
+		EndIf
+	EndMethod
+	
+	Method CharWidth:Int(char:Int)
+		If handle
+			'Return NSCharWidth(handle,char)
+		EndIf
+		Return 0
+	EndMethod 
+		
+EndType

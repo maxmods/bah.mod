@@ -282,16 +282,20 @@ Type TGTKGadget Extends TGadget
 			Return
 		End If
 
-		_font = New TGuiFont
-		_font.name = font.name
-		_font.size = font.size
-		_font.style = font.style
+		_font = font
+		'_font.name = font.name
+		'_font.size = font.size
+		'_font.style = font.style
 		
-		Local fontdesc:Byte Ptr = getPangoDescriptionFromGuiFont(_font)
+		If Not font.handle Then
+		
+			font.handle = int ptr(getPangoDescriptionFromGuiFont(font))[0]
+		
+		End If
 
-		gtk_widget_modify_font(handle, fontdesc)
+		gtk_widget_modify_font(handle, int ptr(font.handle))
 
-		pango_font_description_free(fontdesc)
+		'pango_font_description_free(fontdesc)
 	End Method
 
 	Rem
