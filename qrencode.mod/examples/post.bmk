@@ -9,7 +9,7 @@
 
 	if bmk.Platform() == "win32" then
 		ext = "dll"
-		pre = ""
+		pre = "lib"
 	elseif bmk.Platform() == "linux" then
 		ext = "so"
 		pre = "lib"
