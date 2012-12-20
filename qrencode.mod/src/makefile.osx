@@ -1,6 +1,6 @@
 
-CPPFLAGS = -Imingw -Icharset -I.
-CFLAGS = -Imingw -Icharset -I. -I../config/win32
+CPPFLAGS = -m32 -I.
+CFLAGS = -m32 -I.
 
 DEFS = -DHAVE_CONFIG_H
 
@@ -12,7 +12,7 @@ CCFLAGS = -O2
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
 CCOMPILE = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CCFLAGS)
 CXXLD = $(CXX)
-LDFLAGS = -shared -Wl,--out-implib,libqrencode.a
+LDFLAGS = -dynamiclib -m32
 CXXLINK = $(CXXLD) $(CXXFLAGS) $(LDFLAGS) -o $@
 
 CONFIG_HEADER = config.h
@@ -28,15 +28,16 @@ libqrencode_a_OBJECTS = qrencode.o \
 						 mmask.o \
 						 mqrspec.o
 
-LIBS = -lmingwex -lmingw32 -lgcc -lmoldname -lmsvcrt -luser32 -lkernel32
+LIBS = 
 
-all: libqrencode.dll
+all: libqrencode.dylib
 
-libqrencode.dll:$(libqrencode_a_OBJECTS)
-	if exist $@ del $@
+libqrencode.dylib:$(libqrencode_a_OBJECTS)
+	if test ! -f $@; then rm -f $@; fi
 	$(CXXLINK) $(LDFLAGS) $(libqrencode_a_OBJECTS) $(libqrencode_LDADD) $(LIBS)
+	install_name_tool -id @executable_path/libqrencode.dylib libqrencode.dylib
 
-libqrencode_s.a: $(libqrencode_a_OBJECTS)
+libqrencode_s.la: $(libqrencode_a_OBJECTS)
 	if exist $@ del $@
 	ar cru $@ $(libqrencode_a_OBJECTS)
 	ranlib $@

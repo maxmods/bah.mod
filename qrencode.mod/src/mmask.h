@@ -1,12 +1,7 @@
 /*
  * qrencode - QR Code encoder
  *
- * Reed solomon encoder. This code is taken from Phil Karn's libfec then
- * editted and packed into a pair of .c and .h files.
- *
- * Copyright (C) 2002, 2003, 2004, 2006 Phil Karn, KA9Q
- * (libfec is released under the GNU Lesser General Public License.)
- *
+ * Masking for Micro QR Code.
  * Copyright (C) 2006-2011 Kentaro Fukuchi <kentaro@fukuchi.org>
  *
  * This library is free software; you can redistribute it and/or
@@ -24,18 +19,16 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __RSCODE_H__
-#define __RSCODE_H__
+#ifndef __MMASK_H__
+#define __MMASK_H__
 
-/*
- * General purpose RS codec, 8-bit symbols.
- */
+extern unsigned char *MMask_makeMask(int version, unsigned char *frame, int mask, QRecLevel level);
+extern unsigned char *MMask_mask(int version, unsigned char *frame, QRecLevel level);
 
-typedef struct _RS RS;
+#ifdef WITH_TESTS
+extern int MMask_evaluateSymbol(int width, unsigned char *frame);
+extern void MMask_writeFormatInformation(int version, int width, unsigned char *frame, int mask, QRecLevel level);
+extern unsigned char *MMask_makeMaskedFrame(int width, unsigned char *frame, int mask);
+#endif
 
-extern RS *init_rs(int symsize, int gfpoly, int fcr, int prim, int nroots, int pad);
-extern void encode_rs_char(RS *rs, const unsigned char *data, unsigned char *parity);
-extern void free_rs_char(RS *rs);
-extern void free_rs_cache(void);
-
-#endif /* __RSCODE_H__ */
+#endif /* __MMASK_H__ */

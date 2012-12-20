@@ -2,7 +2,7 @@
  * qrencode - QR Code encoder
  *
  * Input data chunk class
- * Copyright (C) 2006, 2007, 2008, 2009 Kentaro Fukuchi <fukuchi@megaui.net>
+ * Copyright (C) 2006-2011 Kentaro Fukuchi <kentaro@fukuchi.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,8 @@
 #include "qrencode.h"
 #include "bitstream.h"
 
+int QRinput_isSplittableMode(QRencodeMode mode);
+
 /******************************************************************************
  * Entry of input data
  *****************************************************************************/
@@ -46,6 +48,9 @@ struct _QRinput {
 	QRecLevel level;
 	QRinput_List *head;
 	QRinput_List *tail;
+	int mqr;
+	int fnc1;
+	unsigned char appid;
 };
 
 /******************************************************************************
@@ -91,13 +96,28 @@ extern const signed char QRinput_anTable[128];
 	((__c__ & 0x80)?-1:QRinput_anTable[(int)__c__])
 
 /**
+ * Length of a standard mode indicator in bits.
+ */
+
+#define MODE_INDICATOR_SIZE 4
+
+/**
  * Length of a segment of structured-append header.
  */
-#define STRUCTURE_HEADER_BITS 20
+#define STRUCTURE_HEADER_SIZE 20
 
 /**
  * Maximum number of symbols in a set of structured-appended symbols.
  */
 #define MAX_STRUCTURED_SYMBOLS 16
+
+#ifdef WITH_TESTS
+extern BitStream *QRinput_mergeBitStream(QRinput *input);
+extern BitStream *QRinput_getBitStream(QRinput *input);
+extern int QRinput_estimateBitStreamSize(QRinput *input, int version);
+extern int QRinput_splitEntry(QRinput_List *entry, int bytes);
+extern int QRinput_lengthOfCode(QRencodeMode mode, int version, int bits);
+extern int QRinput_insertStructuredAppendHeader(QRinput *input, int size, int index, unsigned char parity);
+#endif
 
 #endif /* __QRINPUT_H__ */

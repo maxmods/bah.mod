@@ -1,7 +1,7 @@
 /*
  * qrencode - QR Code encoder
  *
- * QR Code specification in convenient format. 
+ * Micro QR Code specification in convenient format. 
  * Copyright (C) 2006-2011 Kentaro Fukuchi <kentaro@fukuchi.org>
  *
  * This library is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __QRSPEC_H__
-#define __QRSPEC_H__
+#ifndef __MQRSPEC_H__
+#define __MQRSPEC_H__
 
 #include "qrencode.h"
 
@@ -31,7 +31,15 @@
 /**
  * Maximum width of a symbol
  */
-#define QRSPEC_WIDTH_MAX 177
+#define MQRSPEC_WIDTH_MAX 17
+
+/**
+ * Return maximum data code length (bits) for the version.
+ * @param version
+ * @param level
+ * @return maximum size (bits)
+ */
+extern int MQRspec_getDataLengthBit(int version, QRecLevel level);
 
 /**
  * Return maximum data code length (bytes) for the version.
@@ -39,7 +47,7 @@
  * @param level
  * @return maximum size (bytes)
  */
-extern int QRspec_getDataLength(int version, QRecLevel level);
+extern int MQRspec_getDataLength(int version, QRecLevel level);
 
 /**
  * Return maximum error correction code length (bytes) for the version.
@@ -47,7 +55,7 @@ extern int QRspec_getDataLength(int version, QRecLevel level);
  * @param level
  * @return ECC size (bytes)
  */
-extern int QRspec_getECCLength(int version, QRecLevel level);
+extern int MQRspec_getECCLength(int version, QRecLevel level);
 
 /**
  * Return a version number that satisfies the input code length.
@@ -55,21 +63,21 @@ extern int QRspec_getECCLength(int version, QRecLevel level);
  * @param level
  * @return version number
  */
-extern int QRspec_getMinimumVersion(int size, QRecLevel level);
+extern int MQRspec_getMinimumVersion(int size, QRecLevel level);
 
 /**
  * Return the width of the symbol for the version.
  * @param version
  * @return width
  */
-extern int QRspec_getWidth(int version);
+extern int MQRspec_getWidth(int version);
 
 /**
  * Return the numer of remainder bits.
  * @param version
  * @return number of remainder bits
  */
-extern int QRspec_getRemainder(int version);
+extern int MQRspec_getRemainder(int version);
 
 /******************************************************************************
  * Length indicator
@@ -81,7 +89,7 @@ extern int QRspec_getRemainder(int version);
  * @param version
  * @return the size of the appropriate length indicator (bits).
  */
-extern int QRspec_lengthIndicator(QRencodeMode mode, int version);
+extern int MQRspec_lengthIndicator(QRencodeMode mode, int version);
 
 /**
  * Return the maximum length for the mode and version.
@@ -89,35 +97,7 @@ extern int QRspec_lengthIndicator(QRencodeMode mode, int version);
  * @param version
  * @return the maximum length (bytes)
  */
-extern int QRspec_maximumWords(QRencodeMode mode, int version);
-
-/******************************************************************************
- * Error correction code
- *****************************************************************************/
-
-/**
- * Return an array of ECC specification.
- * @param version
- * @param level
- * @param spec an array of ECC specification contains as following:
- * {# of type1 blocks, # of data code, # of ecc code,
- *  # of type2 blocks, # of data code}
- */
-void QRspec_getEccSpec(int version, QRecLevel level, int spec[5]);
-
-#define QRspec_rsBlockNum(__spec__) (__spec__[0] + __spec__[3])
-#define QRspec_rsBlockNum1(__spec__) (__spec__[0])
-#define QRspec_rsDataCodes1(__spec__) (__spec__[1])
-#define QRspec_rsEccCodes1(__spec__) (__spec__[2])
-#define QRspec_rsBlockNum2(__spec__) (__spec__[3])
-#define QRspec_rsDataCodes2(__spec__) (__spec__[4])
-#define QRspec_rsEccCodes2(__spec__) (__spec__[2])
-
-#define QRspec_rsDataLength(__spec__) \
-	((QRspec_rsBlockNum1(__spec__) * QRspec_rsDataCodes1(__spec__)) + \
-	 (QRspec_rsBlockNum2(__spec__) * QRspec_rsDataCodes2(__spec__)))
-#define QRspec_rsEccLength(__spec__) \
-	(QRspec_rsBlockNum(__spec__) * QRspec_rsEccCodes1(__spec__))
+extern int MQRspec_maximumWords(QRencodeMode mode, int version);
 
 /******************************************************************************
  * Version information pattern
@@ -129,7 +109,7 @@ void QRspec_getEccSpec(int version, QRecLevel level, int spec[5]);
  * @param version
  * @return BCH encoded version information pattern
  */
-extern unsigned int QRspec_getVersionPattern(int version);
+extern unsigned int MQRspec_getVersionPattern(int version);
 
 /******************************************************************************
  * Format information
@@ -138,10 +118,11 @@ extern unsigned int QRspec_getVersionPattern(int version);
 /**
  * Return BCH encoded format information pattern.
  * @param mask
+ * @param version
  * @param level
  * @return BCH encoded format information pattern
  */
-extern unsigned int QRspec_getFormatInfo(int mask, QRecLevel level);
+extern unsigned int MQRspec_getFormatInfo(int mask, int version, QRecLevel level);
 
 /******************************************************************************
  * Frame
@@ -154,28 +135,23 @@ extern unsigned int QRspec_getFormatInfo(int mask, QRecLevel level);
  * @param version
  * @return Array of unsigned char. You can free it by free().
  */
-extern unsigned char *QRspec_newFrame(int version);
+extern unsigned char *MQRspec_newFrame(int version);
 
 /**
  * Clear the frame cache. Typically for debug.
  */
-extern void QRspec_clearCache(void);
+extern void MQRspec_clearCache(void);
 
 /******************************************************************************
  * Mode indicator
  *****************************************************************************/
 
 /**
- * Mode indicator. See Table 2 of JIS X0510:2004, pp.16.
+ * Mode indicator. See Table 2 in Appendix 1 of JIS X0510:2004, pp.107.
  */
-#define QRSPEC_MODEID_ECI        7
-#define QRSPEC_MODEID_NUM        1
-#define QRSPEC_MODEID_AN         2
-#define QRSPEC_MODEID_8          4
-#define QRSPEC_MODEID_KANJI      8
-#define QRSPEC_MODEID_FNC1FIRST  5
-#define QRSPEC_MODEID_FNC1SECOND 9
-#define QRSPEC_MODEID_STRUCTURE  3
-#define QRSPEC_MODEID_TERMINATOR 0
- 
-#endif /* __QRSPEC_H__ */
+#define MQRSPEC_MODEID_NUM       0
+#define MQRSPEC_MODEID_AN        1
+#define MQRSPEC_MODEID_8         2
+#define MQRSPEC_MODEID_KANJI     3
+
+#endif /* __MQRSPEC_H__ */

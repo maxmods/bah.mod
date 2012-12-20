@@ -61,9 +61,6 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Version number of package */
-#undef VERSION
-
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
@@ -76,3 +73,14 @@
 /* Define to 'static' if no test programs will be compiled. */
    #define __STATIC static
    
+/* Major version number */
+#define MAJOR_VERSION 3
+
+/* Micro version number */
+#define MICRO_VERSION 1
+
+/* Minor version number */
+#define MINOR_VERSION 4
+
+/* Version number of package */
+#define VERSION "3.4.1"
