@@ -1,5 +1,5 @@
-#ifndef __SSLUSE_H
-#define __SSLUSE_H
+#ifndef HEADER_CURL_SSLUSE_H
+#define HEADER_CURL_SSLUSE_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2010, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -22,12 +22,15 @@
  *
  ***************************************************************************/
 
+#include "setup.h"
+
 #ifdef USE_SSLEAY
 /*
  * This header should only be needed to get included by sslgen.c and ssluse.c
  */
 
 #include "urldata.h"
+
 CURLcode Curl_ossl_connect(struct connectdata *conn, int sockindex);
 CURLcode Curl_ossl_connect_nonblocking(struct connectdata *conn,
                                        int sockindex,
@@ -63,6 +66,12 @@ int Curl_ossl_seed(struct SessionHandle *data);
 int Curl_ossl_shutdown(struct connectdata *conn, int sockindex);
 bool Curl_ossl_data_pending(const struct connectdata *conn,
                             int connindex);
+void Curl_ossl_random(struct SessionHandle *data, unsigned char *entropy,
+                      size_t length);
+void Curl_ossl_md5sum(unsigned char *tmp, /* input */
+                      size_t tmplen,
+                      unsigned char *md5sum /* output */,
+                      size_t unused);
 
 /* API setup for OpenSSL */
 #define curlssl_init Curl_ossl_init
@@ -79,6 +88,8 @@ bool Curl_ossl_data_pending(const struct connectdata *conn,
 #define curlssl_version Curl_ossl_version
 #define curlssl_check_cxn Curl_ossl_check_cxn
 #define curlssl_data_pending(x,y) Curl_ossl_data_pending(x,y)
+#define curlssl_random(x,y,z) Curl_ossl_random(x,y,z)
+#define curlssl_md5sum(a,b,c,d) Curl_ossl_md5sum(a,b,c,d)
 
 #endif /* USE_SSLEAY */
-#endif /* __SSLUSE_H */
+#endif /* HEADER_CURL_SSLUSE_H */

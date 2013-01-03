@@ -6,7 +6,7 @@
  *                 \___|\___/|_| \_\_____|
  *
  * Copyright (C) 2010, Howard Chu, <hyc@openldap.org>
- * Copyright (C) 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 2011 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -46,7 +46,6 @@
 #include "curl_ldap.h"
 #include "curl_memory.h"
 #include "curl_base64.h"
-#include "http_proxy.h"
 
 #define _MPRINTF_REPLACE /* use our functions only */
 #include <curl/mprintf.h>
@@ -83,6 +82,7 @@ const struct Curl_handler Curl_handler_ldap = {
   ZERO_NULL,                            /* doing */
   ZERO_NULL,                            /* proto_getsock */
   ZERO_NULL,                            /* doing_getsock */
+  ZERO_NULL,                            /* domore_getsock */
   ZERO_NULL,                            /* perform_getsock */
   ldap_disconnect,                      /* disconnect */
   ZERO_NULL,                            /* readwrite */
@@ -107,6 +107,7 @@ const struct Curl_handler Curl_handler_ldaps = {
   ZERO_NULL,                            /* doing */
   ZERO_NULL,                            /* proto_getsock */
   ZERO_NULL,                            /* doing_getsock */
+  ZERO_NULL,                            /* domore_getsock */
   ZERO_NULL,                            /* perform_getsock */
   ldap_disconnect,                      /* disconnect */
   ZERO_NULL,                            /* readwrite */
@@ -170,6 +171,8 @@ static CURLcode ldap_setup(struct connectdata *conn)
   ldap_free_urldesc(lud);
 
   li = calloc(1, sizeof(ldapconninfo));
+  if(!li)
+    return CURLE_OUT_OF_MEMORY;
   li->proto = proto;
   conn->proto.generic = li;
   conn->bits.close = FALSE;
@@ -205,33 +208,6 @@ static CURLcode ldap_connect(struct connectdata *conn, bool *done)
   }
 
   ldap_set_option(li->ld, LDAP_OPT_PROTOCOL_VERSION, &proto);
-
-  if(conn->bits.tunnel_proxy && conn->bits.httpproxy) {
-    /* for LDAP over HTTP proxy */
-    struct HTTP http_proxy;
-    ldapconninfo *li_save;
-    CURLcode result;
-
-    /* BLOCKING */
-    /* We want "seamless" LDAP operations through HTTP proxy tunnel */
-
-    /* Curl_proxyCONNECT is based on a pointer to a struct HTTP at the member
-     * conn->proto.http; we want LDAP through HTTP and we have to change the
-     * member temporarily for connecting to the HTTP proxy. After
-     * Curl_proxyCONNECT we have to set back the member to the original struct
-     * LDAP pointer
-     */
-    li_save = data->state.proto.generic;
-    memset(&http_proxy, 0, sizeof(http_proxy));
-    data->state.proto.http = &http_proxy;
-    result = Curl_proxyCONNECT(conn, FIRSTSOCKET,
-                               conn->host.name, conn->remote_port);
-
-    data->state.proto.generic = li_save;
-
-    if(CURLE_OK != result)
-      return result;
-  }
 
 #ifdef USE_SSL
   if(conn->handler->flags & PROTOPT_SSL) {
@@ -334,7 +310,10 @@ retry:
     int proto;
     ldap_get_option(li->ld, LDAP_OPT_PROTOCOL_VERSION, &proto);
     if(proto == LDAP_VERSION3) {
-      ldap_memfree(info);
+      if(info) {
+        ldap_memfree(info);
+        info = NULL;
+      }
       proto = LDAP_VERSION2;
       ldap_set_option(li->ld, LDAP_OPT_PROTOCOL_VERSION, &proto);
       li->didbind = FALSE;
@@ -345,8 +324,13 @@ retry:
   if(err) {
     failf(data, "LDAP remote: bind failed %s %s", ldap_err2string(rc),
           info ? info : "");
+    if(info)
+      ldap_memfree(info);
     return CURLE_LOGIN_DENIED;
   }
+
+  if(info)
+    ldap_memfree(info);
   conn->recv[FIRSTSOCKET] = ldap_recv;
   *done = TRUE;
   return CURLE_OK;
@@ -404,6 +388,8 @@ static CURLcode ldap_do(struct connectdata *conn, bool *done)
     return CURLE_LDAP_SEARCH_FAILED;
   }
   lr = calloc(1,sizeof(ldapreqinfo));
+  if(!lr)
+    return CURLE_OUT_OF_MEMORY;
   lr->msgid = msgid;
   data->state.proto.generic = lr;
   Curl_setup_transfer(conn, FIRSTSOCKET, -1, FALSE, NULL, -1, NULL);
@@ -544,12 +530,21 @@ static ssize_t ldap_recv(struct connectdata *conn, int sockindex, char *buf,
           }
         }
         if(binary || binval) {
-          char *val_b64;
+          char *val_b64 = NULL;
+          size_t val_b64_sz = 0;
           /* Binary value, encode to base64. */
-          size_t val_b64_sz = Curl_base64_encode(data,
-                                            bvals[i].bv_val,
-                                            bvals[i].bv_len,
-                                            &val_b64);
+          CURLcode error = Curl_base64_encode(data,
+                                              bvals[i].bv_val,
+                                              bvals[i].bv_len,
+                                              &val_b64,
+                                              &val_b64_sz);
+          if(error) {
+            ber_memfree(bvals);
+            ber_free(ber, 0);
+            ldap_msgfree(result);
+            *err = error;
+            return -1;
+          }
           Curl_client_write(conn, CLIENTWRITE_BODY, (char *)": ", 2);
           data->req.bytecount += 2;
           if(val_b64_sz > 0) {

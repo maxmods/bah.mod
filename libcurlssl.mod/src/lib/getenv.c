@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2009, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -21,10 +21,6 @@
  ***************************************************************************/
 
 #include "setup.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifdef __VMS
 #include <unixlib.h>
@@ -46,7 +42,7 @@ char *GetEnv(const char *variable)
   char *temp = getenv(variable);
   env[0] = '\0';
   if(temp != NULL)
-    ExpandEnvironmentStrings(temp, env, sizeof(env));
+    ExpandEnvironmentStringsA(temp, env, sizeof(env));
   return (env[0] != '\0')?strdup(env):NULL;
 #else
   char *env = getenv(variable);

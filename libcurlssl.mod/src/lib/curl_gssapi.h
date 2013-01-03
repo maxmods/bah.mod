@@ -1,5 +1,5 @@
-#ifndef __INET_NTOA_R_H
-#define __INET_NTOA_R_H
+#ifndef HEADER_CURL_GSSAPI_H
+#define HEADER_CURL_GSSAPI_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2005, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -20,25 +20,38 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: inet_ntoa_r.h,v 1.3 2005/05/26 20:56:25 bagder Exp $
  ***************************************************************************/
 
 #include "setup.h"
+#include "urldata.h"
 
-#ifdef HAVE_INET_NTOA_R_2_ARGS
-/*
- * uClibc 0.9.26 (at least) doesn't define this prototype. The buffer
- * must be at least 16 characters long.
- */
-char *inet_ntoa_r(const struct in_addr in, char buffer[]);
+#ifdef HAVE_GSSAPI
 
+#ifdef HAVE_GSSGNU
+#  include <gss.h>
+#elif defined HAVE_GSSMIT
+   /* MIT style */
+#  include <gssapi/gssapi.h>
+#  include <gssapi/gssapi_generic.h>
+#  include <gssapi/gssapi_krb5.h>
 #else
-/*
- * My solaris 5.6 system running gcc 2.8.1 does *not* have this prototype
- * in any system include file! Isn't that weird?
- */
-char *inet_ntoa_r(const struct in_addr in, char *buffer, int buflen);
-
+   /* Heimdal-style */
+#  include <gssapi.h>
 #endif
 
-#endif
+
+/* Common method for using gss api */
+
+OM_uint32 Curl_gss_init_sec_context(
+    struct SessionHandle *data,
+    OM_uint32 * minor_status,
+    gss_ctx_id_t * context,
+    gss_name_t target_name,
+    gss_channel_bindings_t input_chan_bindings,
+    gss_buffer_t input_token,
+    gss_buffer_t output_token,
+    OM_uint32 * ret_flags);
+
+#endif /* HAVE_GSSAPI */
+
+#endif /* HEADER_CURL_GSSAPI_H */

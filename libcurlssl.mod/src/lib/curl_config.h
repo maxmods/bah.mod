@@ -71,7 +71,10 @@
 #define GETNAMEINFO_TYPE_ARG46 size_t
 
 /* Define to the type of arg 7 for getnameinfo. */
-#define GETNAMEINFO_TYPE_ARG7 unsigned int
+#define GETNAMEINFO_TYPE_ARG7 int
+
+/* Define to 1 if you have the alarm function. */
+#define HAVE_ALARM 1
 
 /* Define to 1 if you have the <alloca.h> header file. */
 #define HAVE_ALLOCA_H 1
@@ -94,6 +97,9 @@
 /* Define to 1 if you have the `closesocket' function. */
 /* #undef HAVE_CLOSESOCKET */
 
+/* Define to 1 if you have the connect function. */
+#define HAVE_CONNECT 1
+
 /* Define to 1 if you have the `CRYPTO_cleanup_all_ex_data' function. */
 #define HAVE_CRYPTO_CLEANUP_ALL_EX_DATA 1
 
@@ -110,7 +116,10 @@
 #define HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the `dlopen' function. */
-#define HAVE_DLOPEN 1
+/* #undef HAVE_DLOPEN */
+
+/* Define to 1 if you have the `ENGINE_cleanup' function. */
+#define HAVE_ENGINE_CLEANUP 1
 
 /* Define to 1 if you have the `ENGINE_load_builtin_engines' function. */
 #define HAVE_ENGINE_LOAD_BUILTIN_ENGINES 1
@@ -121,17 +130,35 @@
 /* Define to 1 if you have the <err.h> header file. */
 /* #undef HAVE_ERR_H */
 
+/* Define to 1 if you have the fcntl function. */
+#define HAVE_FCNTL 1
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
 
-/* use FIONBIO for non-blocking sockets */
-/* #undef HAVE_FIONBIO */
+/* Define to 1 if you have a working fcntl O_NONBLOCK function. */
+#define HAVE_FCNTL_O_NONBLOCK 1
+
+/* Define to 1 if you have the fdopen function. */
+#define HAVE_FDOPEN 1
 
 /* Define to 1 if you have the `fork' function. */
 #define HAVE_FORK 1
 
-/* Define to 1 if you have the `ftruncate' function. */
-#define HAVE_FTRUNCATE 1
+/* Define to 1 if you have the freeaddrinfo function. */
+#define HAVE_FREEADDRINFO 1
+
+/* Define to 1 if you have the freeifaddrs function. */
+#define HAVE_FREEIFADDRS 1
+
+/* Define to 1 if you have the fsetxattr function. */
+#define HAVE_FSETXATTR 1
+
+/* fsetxattr() takes 5 args */
+/* #undef HAVE_FSETXATTR_5 */
+
+/* fsetxattr() takes 6 args */
+#define HAVE_FSETXATTR_6 1
 
 /* Define if getaddrinfo exists and works */
 #define HAVE_GETADDRINFO 1
@@ -693,6 +720,9 @@
 
 /* If you want to build curl with the built-in manual */
 #define USE_MANUAL 1
+
+/* Define to enable metalink support */
+#define USE_METALINK 1
 
 /* if NSS is enabled */
 /* #undef USE_NSS */

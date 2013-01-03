@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -26,7 +26,13 @@ unsigned short curlx_ultous(unsigned long ulnum);
 
 unsigned char curlx_ultouc(unsigned long ulnum);
 
+int curlx_ultosi(unsigned long ulnum);
+
 int curlx_uztosi(size_t uznum);
+
+unsigned long curlx_uztoul(size_t uznum);
+
+unsigned int curlx_uztoui(size_t uznum);
 
 int curlx_sltosi(long slnum);
 
@@ -37,6 +43,10 @@ unsigned short curlx_sltous(long slnum);
 ssize_t curlx_uztosz(size_t uznum);
 
 size_t curlx_sotouz(curl_off_t sonum);
+
+int curlx_sztosi(ssize_t sznum);
+
+size_t curlx_sitouz(int sinum);
 
 #if defined(__INTEL_COMPILER) && defined(__unix__)
 

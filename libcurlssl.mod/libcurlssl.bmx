@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,14 +28,14 @@ Module BaH.libcurlSSL
 ModuleInfo "Version: 1.02"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: (libcurl) 1996 - 2011, Daniel Stenberg"
+ModuleInfo "Copyright: (libcurl) 1996 - 2012, Daniel Stenberg"
 ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology."
-ModuleInfo "Copyright: (Wrapper) 2007-2011 Bruce A Henderson"
+ModuleInfo "Copyright: (Wrapper) 2007-2013 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.02"
-ModuleInfo "History: Update to libcurl 7.21.7"
-ModuleInfo "History: Update to c-ares 1.7.5"
+ModuleInfo "History: Update to libcurl 7.28.1"
+ModuleInfo "History: Update to c-ares 1.9.1"
 ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
 ModuleInfo "History: Added ssh support. Now requires BaH.libssh2."
 ModuleInfo "History: Fixed ResponseCode() not returning correct codes."

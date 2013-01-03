@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -131,6 +131,7 @@ unsigned short curlx_ultous(unsigned long ulnum)
 #  pragma warning(disable:810) /* conversion may lose significant bits */
 #endif
 
+  DEBUGASSERT(ulnum <= (unsigned long) CURL_MASK_USHORT);
   return (unsigned short)(ulnum & (unsigned long) CURL_MASK_USHORT);
 
 #ifdef __INTEL_COMPILER
@@ -149,7 +150,27 @@ unsigned char curlx_ultouc(unsigned long ulnum)
 #  pragma warning(disable:810) /* conversion may lose significant bits */
 #endif
 
+  DEBUGASSERT(ulnum <= (unsigned long) CURL_MASK_UCHAR);
   return (unsigned char)(ulnum & (unsigned long) CURL_MASK_UCHAR);
+
+#ifdef __INTEL_COMPILER
+#  pragma warning(pop)
+#endif
+}
+
+/*
+** unsigned long to signed int
+*/
+
+int curlx_ultosi(unsigned long ulnum)
+{
+#ifdef __INTEL_COMPILER
+#  pragma warning(push)
+#  pragma warning(disable:810) /* conversion may lose significant bits */
+#endif
+
+  DEBUGASSERT(ulnum <= (unsigned long) CURL_MASK_SINT);
+  return (int)(ulnum & (unsigned long) CURL_MASK_SINT);
 
 #ifdef __INTEL_COMPILER
 #  pragma warning(pop)
@@ -167,10 +188,49 @@ int curlx_uztosi(size_t uznum)
 #  pragma warning(disable:810) /* conversion may lose significant bits */
 #endif
 
+  DEBUGASSERT(uznum <= (size_t) CURL_MASK_SINT);
   return (int)(uznum & (size_t) CURL_MASK_SINT);
 
 #ifdef __INTEL_COMPILER
 #  pragma warning(pop)
+#endif
+}
+
+/*
+** unsigned size_t to unsigned long
+*/
+
+unsigned long curlx_uztoul(size_t uznum)
+{
+#ifdef __INTEL_COMPILER
+# pragma warning(push)
+# pragma warning(disable:810) /* conversion may lose significant bits */
+#endif
+
+  DEBUGASSERT(uznum <= (size_t) CURL_MASK_ULONG);
+  return (unsigned long)(uznum & (size_t) CURL_MASK_ULONG);
+
+#ifdef __INTEL_COMPILER
+# pragma warning(pop)
+#endif
+}
+
+/*
+** unsigned size_t to unsigned int
+*/
+
+unsigned int curlx_uztoui(size_t uznum)
+{
+#ifdef __INTEL_COMPILER
+# pragma warning(push)
+# pragma warning(disable:810) /* conversion may lose significant bits */
+#endif
+
+  DEBUGASSERT(uznum <= (size_t) CURL_MASK_UINT);
+  return (unsigned int)(uznum & (size_t) CURL_MASK_UINT);
+
+#ifdef __INTEL_COMPILER
+# pragma warning(pop)
 #endif
 }
 
@@ -186,6 +246,7 @@ int curlx_sltosi(long slnum)
 #endif
 
   DEBUGASSERT(slnum >= 0);
+  DEBUGASSERT((unsigned long) slnum <= (unsigned long) CURL_MASK_SINT);
   return (int)(slnum & (long) CURL_MASK_SINT);
 
 #ifdef __INTEL_COMPILER
@@ -205,6 +266,7 @@ unsigned int curlx_sltoui(long slnum)
 #endif
 
   DEBUGASSERT(slnum >= 0);
+  DEBUGASSERT((unsigned long) slnum <= (unsigned long) CURL_MASK_UINT);
   return (unsigned int)(slnum & (long) CURL_MASK_UINT);
 
 #ifdef __INTEL_COMPILER
@@ -224,6 +286,7 @@ unsigned short curlx_sltous(long slnum)
 #endif
 
   DEBUGASSERT(slnum >= 0);
+  DEBUGASSERT((unsigned long) slnum <= (unsigned long) CURL_MASK_USHORT);
   return (unsigned short)(slnum & (long) CURL_MASK_USHORT);
 
 #ifdef __INTEL_COMPILER
@@ -242,6 +305,7 @@ ssize_t curlx_uztosz(size_t uznum)
 #  pragma warning(disable:810) /* conversion may lose significant bits */
 #endif
 
+  DEBUGASSERT(uznum <= (size_t) CURL_MASK_SSIZE_T);
   return (ssize_t)(uznum & (size_t) CURL_MASK_SSIZE_T);
 
 #ifdef __INTEL_COMPILER
@@ -262,6 +326,45 @@ size_t curlx_sotouz(curl_off_t sonum)
 
   DEBUGASSERT(sonum >= 0);
   return (size_t)(sonum & (curl_off_t) CURL_MASK_USIZE_T);
+
+#ifdef __INTEL_COMPILER
+#  pragma warning(pop)
+#endif
+}
+
+/*
+** signed ssize_t to signed int
+*/
+
+int curlx_sztosi(ssize_t sznum)
+{
+#ifdef __INTEL_COMPILER
+#  pragma warning(push)
+#  pragma warning(disable:810) /* conversion may lose significant bits */
+#endif
+
+  DEBUGASSERT(sznum >= 0);
+  DEBUGASSERT((size_t) sznum <= (size_t) CURL_MASK_SINT);
+  return (int)(sznum & (ssize_t) CURL_MASK_SINT);
+
+#ifdef __INTEL_COMPILER
+#  pragma warning(pop)
+#endif
+}
+
+/*
+** signed int to unsigned size_t
+*/
+
+size_t curlx_sitouz(int sinum)
+{
+#ifdef __INTEL_COMPILER
+#  pragma warning(push)
+#  pragma warning(disable:810) /* conversion may lose significant bits */
+#endif
+
+  DEBUGASSERT(sinum >= 0);
+  return (size_t) sinum;
 
 #ifdef __INTEL_COMPILER
 #  pragma warning(pop)
