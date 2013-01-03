@@ -1,5 +1,5 @@
-#ifndef __LIB_CONFIG_VXWORKS_H
-#define __LIB_CONFIG_VXWORKS_H
+#ifndef HEADER_CURL_CONFIG_VXWORKS_H
+#define HEADER_CURL_CONFIG_VXWORKS_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -23,11 +23,8 @@
  ***************************************************************************/
 
 /* =============================================================== */
-/*   lib/config-vxworks.h - Hand crafted config file for VxWorks   */
+/*               Hand crafted config file for VxWorks              */
 /* =============================================================== */
-
-/* when building libcurl itself */
-/* #undef BUILDING_LIBCURL */
 
 /* Location of default ca bundle */
 /* #undef CURL_CA_BUNDLE */
@@ -74,17 +71,11 @@
 /* to disable verbose strings */
 /* #undef CURL_DISABLE_VERBOSE_STRINGS */
 
-/* to make a symbol visible */
+/* Definition to make a library symbol externally visible. */
 /* #undef CURL_EXTERN_SYMBOL */
-
-/* to enable hidden symbols */
-/* #undef CURL_HIDDEN_SYMBOLS */
 
 /* Use Windows LDAP implementation */
 /* #undef CURL_LDAP_WIN */
-
-/* when not building a shared library */
-/* #undef CURL_STATICLIB */
 
 /* your Entropy Gathering Daemon socket pathname */
 /* #undef EGD_SOCKET */
@@ -469,9 +460,6 @@
 /* Define to 1 if you have the `pipe' function. */
 #define HAVE_PIPE 1
 
-/* if you have the function PK11_CreateGenericObject */
-/* #undef HAVE_PK11_CREATEGENERICOBJECT */
-
 /* Define to 1 if you have a working poll function. */
 /* #undef HAVE_POLL */
 
@@ -745,9 +733,6 @@
 /* if you have the zlib.h header file */
 #define HAVE_ZLIB_H 1
 
-/* Define to 1 if you are building a native Windows target. */
-/* #undef NATIVE_WINDOWS */
-
 /* Define to 1 if you need the lber.h header file even with ldap.h */
 /* #undef NEED_LBER_H */
 
@@ -952,4 +937,4 @@
 /* the signed version of size_t */
 /* #undef ssize_t */
 
-#endif /* __LIB_CONFIG_VXWORKS_H */
+#endif /* HEADER_CURL_CONFIG_VXWORKS_H */

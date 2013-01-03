@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-20131 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ Import "src/lib/md4.c"
 Import "src/lib/md5.c"
 Import "src/lib/curl_rand.c"
 Import "src/lib/http_negotiate.c"
-Import "src/lib/http_ntlm.c"
+'Import "src/lib/http_ntlm.c"
 Import "src/lib/inet_pton.c"
 Import "src/lib/strtoofft.c"
 Import "src/lib/strerror.c"
@@ -121,6 +121,14 @@ Import "src/lib/http_proxy.c"
 Import "src/lib/non-ascii.c"
 Import "src/lib/asyn-ares.c"
 Import "src/lib/asyn-thread.c"
+Import "src/lib/curl_multibyte.c"
+Import "src/lib/curl_ntlm.c"
+Import "src/lib/curl_ntlm_core.c"
+Import "src/lib/curl_ntlm_msgs.c"
+Import "src/lib/curl_ntlm_wb.c"
+Import "src/lib/curl_sasl.c"
+Import "src/lib/curl_schannel.c"
+Import "src/lib/hostcheck.c"
 
 ' ares
 Import "src/ares/ares_fds.c"
@@ -149,6 +157,8 @@ Import "src/ares/windows_port.c"
 Import "src/ares/ares_expand_string.c"
 Import "src/ares/ares_parse_ptr_reply.c"
 Import "src/ares/ares_parse_aaaa_reply.c"
+Import "src/ares/ares_parse_naptr_reply.c"
+Import "src/ares/ares_parse_soa_reply.c"
 Import "src/ares/ares_getnameinfo.c"
 Import "src/ares/inet_net_pton.c"
 Import "src/ares/bitncmp.c"
