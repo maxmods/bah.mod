@@ -671,4 +671,43 @@
 #  define ENABLE_IPV6 1
 #endif
 
+/* Define to 1 if you have the <libssh2.h> header file. */
+#define HAVE_LIBSSH2_H 1
+
+/* Define to 1 if you have the <openssl/crypto.h> header file. */
+#define HAVE_OPENSSL_CRYPTO_H 1
+
+/* Define to 1 if you have the <openssl/engine.h> header file. */
+#define HAVE_OPENSSL_ENGINE_H 1
+
+/* Define to 1 if you have the <openssl/err.h> header file. */
+#define HAVE_OPENSSL_ERR_H 1
+
+/* Define to 1 if you have the <openssl/pem.h> header file. */
+#define HAVE_OPENSSL_PEM_H 1
+
+/* Define to 1 if you have the <openssl/pkcs12.h> header file. */
+#define HAVE_OPENSSL_PKCS12_H 1
+
+/* Define to 1 if you have the <openssl/rsa.h> header file. */
+#define HAVE_OPENSSL_RSA_H 1
+
+/* Define to 1 if you have the <openssl/ssl.h> header file. */
+#define HAVE_OPENSSL_SSL_H 1
+
+/* Define to 1 if you have the <openssl/x509.h> header file. */
+#define HAVE_OPENSSL_X509_H 1
+
+/* if libSSH2 is in use */
+#define USE_LIBSSH2 1
+
+/* if OpenSSL is in use */
+#define USE_OPENSSL 1
+
+/* if SSL is enabled */
+#define USE_SSLEAY 1 
+
+/* Define if you want to enable c-ares support */
+#define USE_ARES 1
+
 #endif /* HEADER_CURL_CONFIG_WIN32_H */
