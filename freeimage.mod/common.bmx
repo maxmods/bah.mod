@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2012 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -60,6 +60,7 @@ Extern
 	Function bmx_freeimage_setBitmap(handle:Byte Ptr, bitmap:Byte Ptr)
 	Function bmx_freeimage_getBitmap:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_MakeThumbnail:Byte Ptr(handle:Byte Ptr, size:Int)
+	Function bmx_freeimage_GetThumbnail:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_freeimage_self_convertTo32Bits(handle:Byte Ptr)
 	Function bmx_freeimage_self_convertTo24Bits(handle:Byte Ptr)
@@ -152,8 +153,10 @@ Extern
 	Function FreeImage_GetFIFDescription:Byte Ptr(fif:Int)
 	Function FreeImage_FIFSupportsReading:Int(fif:Int)
 	Function FreeImage_FIFSupportsWriting:Int(fif:Int)
+	Function FreeImage_FIFSupportsNoPixels:Int(fif:Int)
 	Function FreeImage_GetFIFFromFilename:Int(filename:Byte Ptr)
 	Function FreeImage_GetFIFFromFilenameU:Int(filename:Short Ptr)
+	Function FreeImage_GetFIFFromFormat:Int(name:Byte Ptr)
 	Function bmx_freeimage_AdjustCurve:Int(handle:Byte Ptr, lut:Byte Ptr, channel:Int)
 	Function bmx_freeimage_AdjustColors:Int(handle:Byte Ptr, brightness:Double, contrast:Double, Gamma:Double, invert:Int)
 	Function bmx_freeimage_JPEGCrop:Int(source:String, dest:String, _left:Int, _top:Int, _right:Int, _bottom:Int)
@@ -182,7 +185,9 @@ Extern
 	Function bmx_rgbquad_setalpha(handle:Byte Ptr, a:Int)
 
 	Function FreeImage_GetCopyrightMessage:Byte Ptr()
+	Function FreeImage_GetVersion:Byte Ptr()
 	Function bmx_freeimage_getImageType:Int(handle:Byte Ptr)
+	Function bmx_freeimage_hasPixels:Int(handle:Byte Ptr)
 
 End Extern
 
@@ -263,92 +268,350 @@ Const FIC_PALETTE:Int = 3		' color map indexed
 Const FIC_RGBALPHA:Int = 4		' RGB color model with alpha channel
 Const FIC_CMYK:Int = 5		' CMYK color model
 
+Rem
+bbdoc: loading: load the image header only (not supported by all plugins)
+End Rem
+Const FIF_LOAD_NOPIXELS:Int = $8000
+Rem
+bbdoc: 
+End Rem
 Const BMP_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
 Const BMP_SAVE_RLE:Int = 1
-
-Const EXR_DEFAULT:Int = 0      ' save data as half with piz-based wavelet compression
-Const EXR_FLOAT:Int = $0001    ' save data as Float instead of as half (Not recommended)
-Const EXR_NONE:Int = $0002     ' save with no compression
-Const EXR_ZIP:Int = $0004      ' save with zlib compression, in blocks of 16 scan lines
-Const EXR_PIZ:Int = $0008      ' save with piz-based wavelet compression
-Const EXR_PXR24:Int = $0010    ' save with lossy 24-bit Float compression
-Const EXR_B44:Int = $0020      ' save with lossy 44% Float compression - goes To 22% when combined with EXR_LC
-Const EXR_LC:Int = $0040       ' save images with one luminance And two chroma channels, rather than as RGB (lossy compression)
-
+Rem
+bbdoc: 
+End Rem
+Const CUT_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
+Const DDS_DEFAULT:Int = 0
+Rem
+bbdoc: save data as half with piz-based wavelet compression
+End Rem
+Const EXR_DEFAULT:Int = 0
+Rem
+bbdoc: save data as float instead of as half (not recommended)
+End Rem
+Const EXR_FLOAT:Int = $0001
+Rem
+bbdoc: save with no compression
+End Rem
+Const EXR_NONE:Int = $0002
+Rem
+bbdoc: save with zlib compression, in blocks of 16 scan lines
+End Rem
+Const EXR_ZIP:Int = $0004
+Rem
+bbdoc: save with piz-based wavelet compression
+End Rem
+Const EXR_PIZ:Int = $0008
+Rem
+bbdoc: save with lossy 24-bit float compression
+End Rem
+Const EXR_PXR24:Int = $0010
+Rem
+bbdoc: save with lossy 44% float compression - goes to 22% when combined with EXR_LC
+End Rem
+Const EXR_B44:Int = $0020
+Rem
+bbdoc: save images with one luminance and two chroma channels, rather than as RGB (lossy compression)
+End Rem
+Const EXR_LC:Int = $0040
+Rem
+bbdoc: 
+End Rem
+Const FAXG3_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
+Const GIF_DEFAULT:Int = 0
+Rem
+bbdoc: Load the image as a 256 color image with ununsed palette entries, if it's 16 or 2 color
+End Rem
+Const GIF_LOAD256:Int = 1
+Rem
+bbdoc: 'Play' the GIF to generate each frame (as 32bpp) instead of returning raw frame data when loading
+End Rem
+Const GIF_PLAYBACK:Int = 2
+Rem
+bbdoc: 
+End Rem
+Const HDR_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
+Const ICO_DEFAULT:Int = 0
+Rem
+bbdoc: convert to 32bpp and create an alpha channel from the AND-mask when loading
+End Rem
+Const ICO_MAKEALPHA:Int = 1
+Rem
+bbdoc: 
+End Rem
+Const IFF_DEFAULT:Int = 0
+Rem
+bbdoc: save with a 16:1 rate
+End Rem
+Const J2K_DEFAULT:Int = 0
+Rem
+bbdoc: save with a 16:1 rate
+End Rem
+Const JP2_DEFAULT:Int = 0
+Rem
+bbdoc: loading (see JPEG_FAST); saving (see JPEG_QUALITYGOOD|JPEG_SUBSAMPLING_420)
+End Rem
 Const JPEG_DEFAULT:Int = 0
+Rem
+bbdoc: load the file as fast as possible, sacrificing some quality
+End Rem
 Const JPEG_FAST:Int = $0001
+Rem
+bbdoc: load the file with the best quality, sacrificing some speed
+End Rem
 Const JPEG_ACCURATE:Int = $0002
+Rem
+bbdoc: load separated CMYK "as is" (use | to combine with other load flags)
+End Rem
 Const JPEG_CMYK:Int = $0004
-Const JPEG_EXIFROTATE:Int = $0008 ' load and rotate according to Exif 'Orientation' tag if available
-
-Const JPEG_GREYSCALE:Int = $0010	' Load And convert To a 8-bit greyscale image
-
-
+Rem
+bbdoc: load and rotate according to Exif 'Orientation' tag if available
+End Rem
+Const JPEG_EXIFROTATE:Int = $0008
+Rem
+bbdoc: save with superb quality (100:1)
+End Rem
 Const JPEG_QUALITYSUPERB:Int = $80
+Rem
+bbdoc: save with good quality (75:1)
+End Rem
 Const JPEG_QUALITYGOOD:Int = $0100
+Rem
+bbdoc: save with normal quality (50:1)
+End Rem
 Const JPEG_QUALITYNORMAL:Int = $0200
+Rem
+bbdoc: save with average quality (25:1)
+End Rem
 Const JPEG_QUALITYAVERAGE:Int = $0400
+Rem
+bbdoc: save with bad quality (10:1)
+End Rem
 Const JPEG_QUALITYBAD:Int = $0800
+Rem
+bbdoc: save as a progressive-JPEG (use | to combine with other save flags)
+End Rem
 Const JPEG_PROGRESSIVE:Int = $2000
-Const JPEG_SUBSAMPLING_411:Int = $1000		' save with high 4x1 chroma subsampling (4:1:1) 
-Const JPEG_SUBSAMPLING_420:Int = $4000		' save with medium 2x2 medium chroma subsampling (4:2:0) - Default value
-Const JPEG_SUBSAMPLING_422:Int = $8000		' save with low 2x1 chroma subsampling (4:2:2) 
-Const JPEG_SUBSAMPLING_444:Int = $10000	' save with no chroma subsampling (4:4:4)
-Const JPEG_OPTIMIZE:Int = $20000		' on saving, compute optimal Huffman coding tables (can reduce a few percent of file size)
-Const JPEG_BASELINE:Int = $40000		' save basic JPEG, without metadata Or any markers
-
+Rem
+bbdoc: save with high 4x1 chroma subsampling (4:1:1) 
+End Rem
+Const JPEG_SUBSAMPLING_411:Int = $1000
+Rem
+bbdoc: save with medium 2x2 medium chroma subsampling (4:2:0) - default value
+End Rem
+Const JPEG_SUBSAMPLING_420:Int = $4000
+Rem
+bbdoc: save with low 2x1 chroma subsampling (4:2:2) 
+End Rem
+Const JPEG_SUBSAMPLING_422:Int = $8000
+Rem
+bbdoc: save with no chroma subsampling (4:4:4)
+End Rem
+Const JPEG_SUBSAMPLING_444:Int = $10000
+Rem
+bbdoc: on saving, compute optimal Huffman coding tables (can reduce a few percent of file size)
+End Rem
+Const JPEG_OPTIMIZE:Int = $20000
+Rem
+bbdoc: save basic JPEG, without metadata or any markers
+End Rem
+Const JPEG_BASELINE:Int = $40000
+Rem
+bbdoc: 
+End Rem
 Const KOALA_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
 Const LBM_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
 Const MNG_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
 Const PCD_DEFAULT:Int = 0
-Const PCD_BASE:Int = 1		' Load the bitmap sized 768 x 512
-Const PCD_BASEDIV4:Int = 2		' Load the bitmap sized 384 x 256
-Const PCD_BASEDIV16:Int = 3		' Load the bitmap sized 192 x 128
+Rem
+bbdoc: load the bitmap sized 768 x 512
+End Rem
+Const PCD_BASE:Int = 1
+Rem
+bbdoc: load the bitmap sized 384 x 256
+End Rem
+Const PCD_BASEDIV4:Int = 2
+Rem
+bbdoc: load the bitmap sized 192 x 128
+End Rem
+Const PCD_BASEDIV16:Int = 3
+Rem
+bbdoc: 
+End Rem
 Const PCX_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
 Const PFM_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
 Const PICT_DEFAULT:Int = 0
-
+Rem
+bbdoc: 
+End Rem
 Const PNG_DEFAULT:Int = 0
-Const PNG_IGNOREGAMMA:Int = 1		' loading: avoid Gamma correction
-Const PNG_Z_BEST_SPEED:Int = $0001	' save using ZLib level 1 compression flag (Default value is 6)
-Const PNG_Z_DEFAULT_COMPRESSION:Int = $0006	' save using ZLib level 6 compression flag (Default recommended value)
-Const PNG_Z_BEST_COMPRESSION:Int = $0009	' save using ZLib level 9 compression flag (Default value is 6)
-Const PNG_Z_NO_COMPRESSION:Int = $0100	' save without ZLib compression
-Const PNG_INTERLACED:Int = $0200	' save using Adam7 interlacing (use | To combine with other save flags)
-
+Rem
+bbdoc: loading: avoid gamma correction
+End Rem
+Const PNG_IGNOREGAMMA:Int = 1
+Rem
+bbdoc: save using ZLib level 1 compression flag (default value is 6)
+End Rem
+Const PNG_Z_BEST_SPEED:Int = $0001
+Rem
+bbdoc: save using ZLib level 6 compression flag (default recommended value)
+End Rem
+Const PNG_Z_DEFAULT_COMPRESSION:Int = $0006
+Rem
+bbdoc: save using ZLib level 9 compression flag (default value is 6)
+End Rem
+Const PNG_Z_BEST_COMPRESSION:Int = $0009
+Rem
+bbdoc: save without ZLib compression
+End Rem
+Const PNG_Z_NO_COMPRESSION:Int = $0100
+Rem
+bbdoc: save using Adam7 interlacing (use | to combine with other save flags)
+End Rem
+Const PNG_INTERLACED:Int = $0200
+Rem
+bbdoc: 
+End Rem
 Const PNM_DEFAULT:Int = 0
-Const PNM_SAVE_RAW:Int = 0
-Const PNM_SAVE_ASCII:Int = 1
-
+Rem
+bbdoc: If set the writer saves in RAW format (i.e. P4, P5 or P6)
+End Rem
+Const PNM_SAVE_RAW:Int = 0      
+Rem
+bbdoc: If set the writer saves in ASCII format (i.e. P1, P2 or P3)
+End Rem
+Const PNM_SAVE_ASCII:Int = 1      
+Rem
+bbdoc: 
+End Rem
 Const PSD_DEFAULT:Int = 0
-Const PSD_CMYK:Int = 1		' reads tags For separated CMYK (Default is conversion To RGB)
-Const PSD_LAB:Int = 2		' reads tags For CIELab (Default is conversion To RGB)
-
+Rem
+bbdoc: reads tags for separated CMYK (default is conversion to RGB)
+End Rem
+Const PSD_CMYK:Int = 1
+Rem
+bbdoc: reads tags for CIELab (default is conversion to RGB)
+End Rem
+Const PSD_LAB:Int = 2
+Rem
+bbdoc: 
+End Rem
 Const RAS_DEFAULT:Int = 0
-Const RAW_DEFAULT:Int = 0		' Load the file as linear RGB 48-bit
-Const RAW_PREVIEW:Int = 1		' Try To Load the embedded JPEG preview with included Exif Data Or Default To RGB 24-bit
-Const RAW_DISPLAY:Int = 2		' Load the file as RGB 24-bit
+Rem
+bbdoc: load the file as linear RGB 48-bit
+End Rem
+Const RAW_DEFAULT:Int = 0
+Rem
+bbdoc: try to load the embedded JPEG preview with included Exif Data or default to RGB 24-bit
+End Rem
+Const RAW_PREVIEW:Int = 1
+Rem
+bbdoc: load the file as RGB 24-bit
+End Rem
+Const RAW_DISPLAY:Int = 2
+Rem
+bbdoc: output a half-size color image
+End Rem
+Const RAW_HALFSIZE:Int = 4
+Rem
+bbdoc: 
+End Rem
 Const SGI_DEFAULT:Int = 0
-
+Rem
+bbdoc: 
+End Rem
 Const TARGA_DEFAULT:Int = 0
-Const TARGA_LOAD_RGB888:Int = 1       ' If set the loader converts RGB555 And ARGB8888 -> RGB888.
-Const TARGA_SAVE_RLE:Int = 2		' If set, the writer saves with RLE compression
-
-Const WBMP_DEFAULT:Int = 0
-Const XBM_DEFAULT:Int = 0
-Const XPM_DEFAULT:Int = 0
-
+Rem
+bbdoc: If set the loader converts RGB555 and ARGB8888 -> RGB888.
+End Rem
+Const TARGA_LOAD_RGB888:Int = 1      
+Rem
+bbdoc: If set, the writer saves with RLE compression
+End Rem
+Const TARGA_SAVE_RLE:Int = 2
+Rem
+bbdoc: 
+End Rem
 Const TIFF_DEFAULT:Int = 0
+Rem
+bbdoc: reads/stores tags for separated CMYK (use | to combine with compression flags)
+End Rem
 Const TIFF_CMYK:Int = $0001
-Const TIFF_PACKBITS:Int = $0100
-Const TIFF_DEFLATE:Int = $0200
-Const TIFF_ADOBE_DEFLATE:Int = $0400
-Const TIFF_NONE:Int = $0800
-Const TIFF_CCITTFAX3:Int = $1000
-Const TIFF_CCITTFAX4:Int = $2000
+Rem
+bbdoc: save using PACKBITS compression
+End Rem
+Const TIFF_PACKBITS:Int = $0100 
+Rem
+bbdoc: save using DEFLATE compression (a.k.a. ZLIB compression)
+End Rem
+Const TIFF_DEFLATE:Int = $0200 
+Rem
+bbdoc: save using ADOBE DEFLATE compression
+End Rem
+Const TIFF_ADOBE_DEFLATE:Int = $0400 
+Rem
+bbdoc: save without any compression
+End Rem
+Const TIFF_NONE:Int = $0800 
+Rem
+bbdoc: save using CCITT Group 3 fax encoding
+End Rem
+Const TIFF_CCITTFAX3:Int = $1000 
+Rem
+bbdoc: save using CCITT Group 4 fax encoding
+End Rem
+Const TIFF_CCITTFAX4:Int = $2000 
+Rem
+bbdoc: save using LZW compression
+End Rem
 Const TIFF_LZW:Int = $4000
+Rem
+bbdoc: save using JPEG compression
+End Rem
 Const TIFF_JPEG:Int = $8000
-Const TIFF_LOGLUV:Int = $10000	' save using LogLuv compression
+Rem
+bbdoc: save using LogLuv compression
+End Rem
+Const TIFF_LOGLUV:Int = $10000
+Rem
+bbdoc: 
+End Rem
+Const WBMP_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
+Const XBM_DEFAULT:Int = 0
+Rem
+bbdoc: 
+End Rem
+Const XPM_DEFAULT:Int = 0
 
 Const FID_FS:Int = 0
 Const FID_BAYER4x4	:Int = 1

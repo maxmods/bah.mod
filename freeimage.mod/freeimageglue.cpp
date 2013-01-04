@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2012 Bruce A Henderson
+ Copyright (c) 2007-2013 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,7 @@ extern "C" {
 	void bmx_freeimage_setBitmap(MaxFreeImage * freeimage, FIBITMAP * newbitmap);
 	FIBITMAP * bmx_freeimage_getBitmap(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_MakeThumbnail(MaxFreeImage * freeimage, int size);
+	FIBITMAP * bmx_freeimage_GetThumbnail(MaxFreeImage * freeimage);
 	
 	void bmx_freeimage_self_convertTo32Bits(MaxFreeImage * freeimage);
 	void bmx_freeimage_self_convertTo24Bits(MaxFreeImage * freeimage);
@@ -183,6 +184,7 @@ extern "C" {
 	void bmx_rgbquad_setalpha(MaxRGBQUAD * quad, int a);
 
 	FREE_IMAGE_TYPE bmx_freeimage_getImageType(MaxFreeImage * freeimage);
+	BOOL bmx_freeimage_hasPixels(MaxFreeImage * freeimage);
 
 }
 
@@ -383,6 +385,7 @@ public:
 	FIBITMAP * Rescale(int width, int height, FREE_IMAGE_FILTER filter);
 	void setBitmap(FIBITMAP * newbitmap);
 	FIBITMAP * MakeThumbnail(int size);
+	FIBITMAP * GetThumbnail();
 	void selfConvertTo32Bits();
 	void selfConvertTo24Bits();
 	void selfConvertTo8Bits();
@@ -436,6 +439,7 @@ public:
 	BOOL GetPixelColor(unsigned x, unsigned y, RGBQUAD *value);
 	BOOL SetPixelColor(unsigned x, unsigned y, RGBQUAD *value);
 	FREE_IMAGE_TYPE GetImageType();
+	BOOL HasPixels();
 
 	~MaxFreeImage()
 	{
@@ -538,6 +542,10 @@ void MaxFreeImage::clearBitmap() {
 
 FIBITMAP * MaxFreeImage::MakeThumbnail(int size) {
 	return FreeImage_MakeThumbnail(bitmap, size, TRUE);
+}
+
+FIBITMAP * MaxFreeImage::GetThumbnail() {
+	return FreeImage_GetThumbnail(bitmap);
 }
 
 void MaxFreeImage::selfConvertTo32Bits() {
@@ -768,6 +776,10 @@ FREE_IMAGE_TYPE MaxFreeImage::GetImageType() {
 	return FreeImage_GetImageType(bitmap);
 }
 
+BOOL MaxFreeImage::HasPixels() {
+	return FreeImage_HasPixels(bitmap);
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++
 
 
@@ -833,6 +845,10 @@ FIBITMAP * bmx_freeimage_getBitmap(MaxFreeImage * freeimage) {
 
 FIBITMAP * bmx_freeimage_MakeThumbnail(MaxFreeImage * freeimage, int size) {
 	return freeimage->MakeThumbnail(size);
+}
+
+FIBITMAP * bmx_freeimage_GetThumbnail(MaxFreeImage * freeimage) {
+	return freeimage->GetThumbnail();
 }
 
 void bmx_freeimage_self_convertTo32Bits(MaxFreeImage * freeimage) {
@@ -1100,6 +1116,11 @@ void bmx_freeimage_setPixelColor(MaxFreeImage * freeimage, int x, int y, MaxRGBQ
 FREE_IMAGE_TYPE bmx_freeimage_getImageType(MaxFreeImage * freeimage) {
 	return freeimage->GetImageType();
 }
+
+BOOL bmx_freeimage_hasPixels(MaxFreeImage * freeimage) {
+	return freeimage->HasPixels();
+}
+
 
 // ***********************************
 
