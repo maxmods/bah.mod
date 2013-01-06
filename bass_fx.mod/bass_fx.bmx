@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,10 @@ Module BaH.Bass_FX
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
-ModuleInfo "Copyright: BASS FX - 2002-2008 JOBnik!"
+ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
+ModuleInfo "Copyright: BASS FX - 2002-2012 JOBnik!"
+
+ModuleInfo "History: 1.00 Initial Release (Bass_FX 2.4.8)"
 
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
