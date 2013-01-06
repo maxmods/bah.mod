@@ -25,7 +25,7 @@ bbdoc: libcurlSSL
 End Rem
 Module BaH.libcurlSSL
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libcurl) 1996 - 2012, Daniel Stenberg"
@@ -33,13 +33,15 @@ ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology."
 ModuleInfo "Copyright: (Wrapper) 2007-2013 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
-ModuleInfo "History: 1.02"
+ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to libcurl 7.28.1"
 ModuleInfo "History: Update to c-ares 1.9.1"
 ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
 ModuleInfo "History: Added ssh support. Now requires BaH.libssh2."
 ModuleInfo "History: Fixed ResponseCode() not returning correct codes."
 ModuleInfo "History: ReadStream now uses Read() instead of ReadBytes()."
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Skipped to synchronise version number with bah.libcurl."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to libcurl 7.18.0"
 ModuleInfo "History: Update to c-ares 1.5.1"
