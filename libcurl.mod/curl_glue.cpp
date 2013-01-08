@@ -274,11 +274,22 @@ int bmx_curl_multiselect(CURLM * multi, double timeout) {
 	fd_set          exceptfds;
 	int             maxfd;
 	struct timeval  to;
-	unsigned long conv;
+	long curl_timeout = -1;
 
-	conv = (unsigned long) (timeout * 1000000.0);
-	to.tv_sec = conv / 1000000;
-	to.tv_usec = conv % 1000000;
+	curl_multi_timeout(multi, &curl_timeout);
+
+	if (curl_timeout >=0) {
+		to.tv_sec = curl_timeout / 1000;
+		if (to.tv_sec > 1) {
+			to.tv_sec = 1;
+		} else {
+			to.tv_usec = (curl_timeout % 1000) * 1000;
+		}
+	} else {
+		unsigned long conv = (unsigned long) (timeout * 1000000.0);
+		to.tv_sec = conv / 1000000;
+		to.tv_usec = conv % 1000000;
+	}
 		
 	FD_ZERO(&readfds);
 	FD_ZERO(&writefds);

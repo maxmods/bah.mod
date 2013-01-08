@@ -25,7 +25,7 @@ bbdoc: libcurlSSL
 End Rem
 Module BaH.libcurlSSL
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libcurl) 1996 - 2012, Daniel Stenberg"
@@ -33,6 +33,8 @@ ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology."
 ModuleInfo "Copyright: (Wrapper) 2007-2013 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Fix for Win32 blocked select()."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to libcurl 7.28.1"
 ModuleInfo "History: Update to c-ares 1.9.1"
