@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2012 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,15 @@ about: An SQLite database driver for #bah.database.Database
 End Rem
 Module BaH.DBSQLite
 
-ModuleInfo "Version: 1.12"
+ModuleInfo "Version: 1.13"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2012 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.13"
+ModuleInfo "History: Update to SQLite 3.7.15.2."
 ModuleInfo "History: 1.12"
 ModuleInfo "History: Update to SQLite 3.7.15."
 ModuleInfo "History: Updated documentation."
