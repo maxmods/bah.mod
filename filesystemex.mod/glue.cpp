@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2011 Bruce A Henderson
+ Copyright (c) 2011-2013 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,8 @@ extern "C" {
 	MaxDirectoryIterator * bmx_filesystem_readdir(BBString * path);
 	BBString * bmx_filesystem_nextfile(MaxDirectoryIterator * iter);
 	void bmx_filesystem_closedir(MaxDirectoryIterator * iter);
+	BBString * bmx_filesystem_uniquepath();
+	BBString * bmx_filesystem_tempdirectorypath();
 
 }
 
@@ -288,5 +290,17 @@ BBString * bmx_filesystem_nextfile(MaxDirectoryIterator * iter) {
 
 void bmx_filesystem_closedir(MaxDirectoryIterator * iter) {
 	delete iter;
+}
+
+BBString * bmx_filesystem_uniquepath() {
+	boost::filesystem::path path(boost::filesystem::unique_path());
+	
+	return bbStringFromPath(path);
+}
+
+BBString * bmx_filesystem_tempdirectorypath() {
+	boost::filesystem::path path(boost::filesystem::temp_directory_path());
+	
+	return bbStringFromPath(path);
 }
 

@@ -1,4 +1,4 @@
-' Copyright (c) 2011 Bruce A Henderson
+' Copyright (c) 2011-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,8 @@ Extern
 	Function bmx_filesystem_readdir:Int(path:String)
 	Function bmx_filesystem_nextfile:String(dir:Int)
 	Function bmx_filesystem_closedir(dir:Int)
+	Function bmx_filesystem_uniquepath:String()
+	Function bmx_filesystem_tempdirectorypath:String()
 
 End Extern
 

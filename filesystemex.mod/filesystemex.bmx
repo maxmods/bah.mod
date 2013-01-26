@@ -1,4 +1,4 @@
-' Copyright (c) 2011 Bruce A Henderson
+' Copyright (c) 2011-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,16 @@ SuperStrict
 
 Rem
 bbdoc: Boost Filesystem
+about: Mirrors BRL.FileSystem functionality but utilises Boost Filesytem's API instead.
 End Rem
 Module BaH.FileSystemEX
 
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: BSD"
+ModuleInfo "Copyright: Wrapper - 2011-2013 Bruce A Henderson"
+
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release."
 
 ModuleInfo "CC_OPTS: -fexceptions"
 
@@ -295,3 +302,19 @@ End Rem
 Function CloseFile( stream:TStream )
 	stream.Close
 End Function
+
+Rem
+bbdoc: Returns a path name suitable for creating temporary files, including directories.
+End Rem
+Function UniquePath:String()
+	Return bmx_filesystem_uniquepath()
+End Function
+
+Rem
+bbdoc: A directory path suitable for temporary files under the conventions of the operating system.
+about: The specifics of how this path is determined are implementation defined.
+End Rem
+Function TempDirectoryPath:String()
+	Return bmx_filesystem_tempdirectorypath()
+End Function
+
