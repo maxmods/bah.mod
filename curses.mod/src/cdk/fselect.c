@@ -503,7 +503,7 @@ void setCDKFselect (CDKFSELECT *fselect,
       /* Change directories. */
       if (chdir (newDirectory) != 0)
       {
-	 Beep ();
+	 BEEP ();
 
 	 /* Could not get into the directory, pop up a little message. */
 	 mesg[0] = format1String ("<C>Could not change into %s", newDirectory);
@@ -566,7 +566,7 @@ void setCDKFselect (CDKFSELECT *fselect,
    /* Get the directory contents. */
    if (setCDKFselectDirContents (fselect) == 0)
    {
-      Beep ();
+      BEEP ();
       return;
    }
 
@@ -1172,7 +1172,7 @@ static int completeFilenameCB (EObjectType objectType GCC_UNUSED,
    if (filename == 0 ||
        (filenameLen = strlen (filename)) == 0)
    {
-      Beep ();
+      BEEP ();
       freeChar (filename);
       return (TRUE);
    }
@@ -1228,7 +1228,7 @@ static int completeFilenameCB (EObjectType objectType GCC_UNUSED,
       /* If the index is less than zero, return we didn't find a match. */
       if (Index < 0)
       {
-	 Beep ();
+	 BEEP ();
       }
       else
       {
@@ -1287,7 +1287,7 @@ static int completeFilenameCB (EObjectType objectType GCC_UNUSED,
 
 	       if (secondaryMatches != matches)
 	       {
-		  Beep ();
+		  BEEP ();
 		  break;
 	       }
 
@@ -1428,7 +1428,7 @@ static int fselectAdjustScrollCB (EObjectType objectType GCC_UNUSED,
       freeChar (temp);
       return (TRUE);
    }
-   Beep ();
+   BEEP ();
    return (FALSE);
 }
 

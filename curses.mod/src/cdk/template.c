@@ -284,7 +284,7 @@ static int _injectCDKTemplate (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -296,7 +296,7 @@ static int _injectCDKTemplate (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -315,7 +315,7 @@ static int _injectCDKTemplate (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -323,7 +323,7 @@ static int _injectCDKTemplate (CDKOBJS *object, chtype input)
 	 case KEY_ENTER:
 	    if ((int)strlen (widget->info) < (int)widget->min)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -526,7 +526,7 @@ static void CDKTemplateCallBack (CDKTEMPLATE *cdktemplate, chtype input)
 
    if (failed)
    {
-      Beep ();
+      BEEP ();
    }
    else if (change || moveby)
    {

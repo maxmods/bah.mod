@@ -583,7 +583,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -595,7 +595,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -607,7 +607,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -619,7 +619,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -639,7 +639,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -660,7 +660,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -696,7 +696,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -709,7 +709,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -784,7 +784,7 @@ int activateCDKViewer (CDKVIEWER *widget, chtype *actions GCC_UNUSED)
 	    break;
 
 	 default:
-	    Beep ();
+	    BEEP ();
 	    break;
 	 }
       }

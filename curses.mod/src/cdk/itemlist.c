@@ -307,7 +307,7 @@ static int _injectCDKItemlist (CDKOBJS *object, chtype input)
 	    break;
 
 	 default:
-	    Beep ();
+	    BEEP ();
 	    break;
 	 }
       }
@@ -386,7 +386,7 @@ static void _moveCDKItemlist (CDKOBJS *object,
 /*
  * This draws the widget on the screen.
  */
-static void _drawCDKItemlist (CDKOBJS *object, int Box)
+static void _drawCDKItemlist (CDKOBJS *object, boolean Box)
 {
    CDKITEMLIST *itemlist = (CDKITEMLIST *)object;
 

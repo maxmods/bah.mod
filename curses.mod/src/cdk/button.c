@@ -333,7 +333,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == KEY_DOWN || key == '2')
@@ -345,7 +345,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == KEY_LEFT || key == '4')
@@ -356,7 +356,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == KEY_RIGHT || key == '6')
@@ -368,7 +368,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == '7')
@@ -379,7 +379,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == '9')
@@ -392,7 +392,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == '1')
@@ -404,7 +404,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == '3')
@@ -418,7 +418,7 @@ void positionCDKButton (CDKBUTTON *button)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
       }
       else if (key == '5')
@@ -460,7 +460,7 @@ void positionCDKButton (CDKBUTTON *button)
       }
       else if (key != KEY_ENTER)
       {
-	 Beep ();
+	 BEEP ();
       }
    }
 }
@@ -535,7 +535,7 @@ static int _injectCDKButton (CDKOBJS *object, chtype input)
 	 break;
 
       default:
-	 Beep ();
+	 BEEP ();
 	 break;
       }
    }

@@ -377,7 +377,7 @@ static int _injectCDKSelection (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 

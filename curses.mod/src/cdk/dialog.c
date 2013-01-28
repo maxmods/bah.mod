@@ -257,7 +257,7 @@ static int _injectCDKDialog (CDKOBJS *object, chtype input)
 
 	 case KEY_UP:
 	 case KEY_DOWN:
-	    Beep ();
+	    BEEP ();
 	    break;
 
 	 case CDK_REFRESH:

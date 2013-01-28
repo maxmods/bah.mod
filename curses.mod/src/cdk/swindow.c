@@ -533,7 +533,7 @@ static int _injectCDKSwindow (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -544,7 +544,7 @@ static int _injectCDKSwindow (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -555,7 +555,7 @@ static int _injectCDKSwindow (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -566,7 +566,7 @@ static int _injectCDKSwindow (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -585,7 +585,7 @@ static int _injectCDKSwindow (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -604,7 +604,7 @@ static int _injectCDKSwindow (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 

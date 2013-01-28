@@ -58,7 +58,12 @@ extern "C" {
  * flush the stream, so it will only beep until a force is made.
  * This forces a flush after issuing the beep command.
  */
-void Beep(void);
+#ifdef __WIN32
+#define BEEP Beep_
+#else
+#define BEEP Beep
+#endif
+void BEEP(void);
 
 /*
  * This aligns a 'box' on the given window with the height and

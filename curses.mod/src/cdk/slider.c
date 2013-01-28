@@ -239,12 +239,12 @@ static void limitCurrentValue (CDKSLIDER *widget)
    if (widget->current < widget->low)
    {
       widget->current = widget->low;
-      Beep();
+      BEEP();
    }
    else if (widget->current > widget->high)
    {
       widget->current = widget->high;
-      Beep();
+      BEEP();
    }
 }
 
@@ -294,7 +294,7 @@ static void setEditPosition(CDKSLIDER *widget, int newPosition)
 {
    if (newPosition < 0)
    {
-      Beep();
+      BEEP();
    }
    else if (newPosition == 0)
    {
@@ -306,7 +306,7 @@ static void setEditPosition(CDKSLIDER *widget, int newPosition)
    }
    else
    {
-      Beep();
+      BEEP();
    }
 }
 
@@ -478,7 +478,7 @@ static int _injectCDKSlider (CDKOBJS *object, chtype input)
 		 if (widget->fieldEdit)
 		 {
 		    if (!performEdit(widget, input))
-		       Beep();
+		       BEEP();
 		 }
 		 else
 		 {
@@ -498,7 +498,7 @@ static int _injectCDKSlider (CDKOBJS *object, chtype input)
 		    case '0':
 		       return _injectCDKSlider(object, KEY_HOME);
 		    default:
-		       Beep();
+		       BEEP();
 		       break;
 		    }
 		 }

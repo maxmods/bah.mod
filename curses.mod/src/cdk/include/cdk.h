@@ -229,7 +229,11 @@ typedef enum {vEARLY_EXIT, vESCAPE_HIT, vNORMAL, vNEVER_ACTIVATED, vERROR} EExit
 /*
  * This defines a boolean type.
  */
+#ifndef __WIN32
 typedef int boolean;
+#else
+typedef unsigned char boolean;
+#endif
 
 /*
  * Declare miscellaneous defines.

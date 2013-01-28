@@ -255,12 +255,12 @@ static void limitCurrentValue (CDK<UPPER> *widget)
    if (widget->current < widget->low)
    {
       widget->current = widget->low;
-      Beep ();
+      BEEP ();
    }
    else if (widget->current > widget->high)
    {
       widget->current = widget->high;
-      Beep ();
+      BEEP ();
    }
 }
 
@@ -310,7 +310,7 @@ static void setEditPosition (CDK<UPPER> *widget, int newPosition)
 {
    if (newPosition < 0)
    {
-      Beep ();
+      BEEP ();
    }
    else if (newPosition == 0)
    {
@@ -322,7 +322,7 @@ static void setEditPosition (CDK<UPPER> *widget, int newPosition)
    }
    else
    {
-      Beep ();
+      BEEP ();
    }
 }
 
@@ -509,7 +509,7 @@ static int _injectCDK<MIXED> (CDKOBJS *object, chtype input)
 	    if (widget->fieldEdit)
 	    {
 	       if (!performEdit (widget, input))
-		  Beep ();
+		  BEEP ();
 	    }
 	    else
 	    {
@@ -529,7 +529,7 @@ static int _injectCDK<MIXED> (CDKOBJS *object, chtype input)
 	       case '0':
 		  return _injectCDK<MIXED> (object, KEY_HOME);
 	       default:
-		  Beep ();
+		  BEEP ();
 		  break;
 	       }
 	    }

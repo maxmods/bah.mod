@@ -266,7 +266,7 @@ static bool handle_KEY_LEFT (CDKMENTRY *mentry, bool *moved, bool *redraw)
 
    if (!*moved && !*redraw)
    {
-      Beep ();
+      BEEP ();
       result = FALSE;
    }
    return result;
@@ -377,7 +377,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	       moved = setCurPos (widget, widget->currentRow + 1, 0);
 	    }
 	    if (!moved && !redraw)
-	       Beep ();
+	       BEEP ();
 	    break;
 
 	 case KEY_DOWN:
@@ -398,7 +398,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	       }
 	    }
 	    if (!moved && !redraw)
-	       Beep ();
+	       BEEP ();
 	    break;
 
 	 case KEY_UP:
@@ -411,18 +411,18 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	       redraw = setTopRow (widget, widget->topRow - 1);
 	    }
 	    if (!moved && !redraw)
-	       Beep ();
+	       BEEP ();
 	    break;
 
 	 case KEY_BACKSPACE:
 	 case KEY_DC:
 	    if (widget->dispType == vVIEWONLY)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else if (infoLength == 0)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else if (input == KEY_DC
 		     || handle_KEY_LEFT (widget, &moved, &redraw))
@@ -440,7 +440,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	       }
 	       else
 	       {
-		  Beep ();
+		  BEEP ();
 	       }
 	    }
 	    break;
@@ -448,7 +448,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	 case CDK_TRANSPOSE:
 	    if (cursorPos >= infoLength - 1)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -470,7 +470,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	 case CDK_CUT:
 	    if (infoLength == 0)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -484,7 +484,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	 case CDK_COPY:
 	    if (infoLength == 0)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -496,7 +496,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	 case CDK_PASTE:
 	    if (GPasteBuffer == 0)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -509,7 +509,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	 case KEY_ENTER:
 	    if (infoLength < widget->min + 1)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -538,7 +538,7 @@ static int _injectCDKMentry (CDKOBJS *object, chtype input)
 	    if (widget->dispType == vVIEWONLY
 		|| infoLength >= widget->totalWidth)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -699,7 +699,7 @@ static void CDKMentryCallBack (CDKMENTRY *mentry, chtype character)
 
    if (newchar == ERR)
    {
-      Beep ();
+      BEEP ();
    }
    else
    {

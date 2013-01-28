@@ -41,7 +41,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case KEY_DOWN:
@@ -52,7 +52,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case KEY_LEFT:
@@ -63,7 +63,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case KEY_RIGHT:
@@ -74,7 +74,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case '7':
@@ -84,7 +84,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case '9':
@@ -94,7 +94,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case '1':
@@ -104,7 +104,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case '3':
@@ -114,7 +114,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 }
 	 else
 	 {
-	    Beep ();
+	    BEEP ();
 	 }
 	 break;
       case '5':
@@ -146,7 +146,7 @@ void positionCDKObject (CDKOBJS *obj, WINDOW *win)
 	 moveCDKObject (obj, origX, origY, FALSE, TRUE);
 	 break;
       default:
-	 Beep ();
+	 BEEP ();
 	 break;
       }
    }

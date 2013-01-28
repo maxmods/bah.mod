@@ -94,17 +94,17 @@ extern "C" {
 			    (w)->currentTop--; \
 			    (w)->currentItem--; \
 			 } else { \
-			    Beep(); \
+			    BEEP(); \
 			 } \
 		      } else { \
 			 (w)->currentItem--; \
 			 (w)->currentHigh--; \
 		      } \
 		   } else { \
-		      Beep(); \
+		      BEEP(); \
 		   } \
 		} else { \
-		    Beep(); \
+		    BEEP(); \
 		}
 
 #define scroller_KEY_DOWN(w) \
@@ -115,39 +115,39 @@ extern "C" {
 			    (w)->currentTop++; \
 			    (w)->currentItem++; \
 			 } else { \
-			    Beep(); \
+			    BEEP(); \
 			 } \
 		      } else { \
 			 (w)->currentItem++; \
 			 (w)->currentHigh++; \
 		      } \
 		   } else { \
-		      Beep(); \
+		      BEEP(); \
 		   } \
 		} else { \
-		   Beep(); \
+		   BEEP(); \
 		}
 
 #define scroller_KEY_LEFT(w) \
 		if ((w)->listSize > 0) { \
 		   if ((w)->leftChar == 0) { \
-		      Beep(); \
+		      BEEP(); \
 		   } else { \
 		      (w)->leftChar --; \
 		   } \
 		} else { \
-		   Beep(); \
+		   BEEP(); \
 		}
 
 #define scroller_KEY_RIGHT(w) \
 		if ((w)->listSize > 0) { \
 		   if ((w)->leftChar >= (w)->maxLeftChar) { \
-		      Beep(); \
+		      BEEP(); \
 		   } else { \
 		      (w)->leftChar ++; \
 		   } \
 		} else { \
-		   Beep(); \
+		   BEEP(); \
 		}
 
 #define scroller_KEY_PPAGE(w) \
@@ -160,10 +160,10 @@ extern "C" {
 			 scroller_KEY_HOME(w); \
 		      } \
 		   } else { \
-		      Beep(); \
+		      BEEP(); \
 		   } \
 		} else { \
-		   Beep(); \
+		   BEEP(); \
 		}
 
 #define scroller_KEY_NPAGE(w) \
@@ -178,10 +178,10 @@ extern "C" {
 			 (w)->currentHigh = (w)->viewSize-1; \
 		      } \
 		   } else { \
-		      Beep(); \
+		      BEEP(); \
 		   } \
 		} else { \
-		   Beep(); \
+		   BEEP(); \
 		}
 
 #define scroller_KEY_HOME(w) \

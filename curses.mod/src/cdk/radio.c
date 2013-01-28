@@ -635,7 +635,7 @@ static void _eraseCDKRadio (CDKOBJS *object)
 /*
  * This set various attributes of the radio list.
  */
-void setCDKRadio (CDKRADIO *radio, chtype highlight, chtype choiceChar, int Box)
+void setCDKRadio (CDKRADIO *radio, chtype highlight, chtype choiceChar, boolean Box)
 {
    setCDKRadioHighlight (radio, highlight);
    setCDKRadioChoiceCharacter (radio, choiceChar);

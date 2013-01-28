@@ -290,7 +290,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	 {
 	 case KEY_UP:
 	 case KEY_DOWN:
-	    Beep ();
+	    BEEP ();
 	    break;
 
 	 case KEY_HOME:
@@ -302,7 +302,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	 case CDK_TRANSPOSE:
 	    if (currPos >= infoLength - 1)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -321,7 +321,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	 case KEY_LEFT:
 	    if (currPos <= 0)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else if (widget->screenCol == 0)
 	    {
@@ -338,7 +338,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	 case KEY_RIGHT:
 	    if (currPos >= infoLength)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else if (widget->screenCol == widget->fieldWidth - 1)
 	    {
@@ -357,7 +357,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	 case KEY_DC:
 	    if (widget->dispType == vVIEWONLY)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -397,7 +397,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	       }
 	       else
 	       {
-		  Beep ();
+		  BEEP ();
 	       }
 	    }
 	    break;
@@ -425,7 +425,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -437,7 +437,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -449,7 +449,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP  ();
 	    }
 	    break;
 
@@ -463,7 +463,7 @@ static int _injectCDKEntry (CDKOBJS *object, chtype input)
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP  ();
 	    }
 	    break;
 
@@ -564,7 +564,7 @@ static void CDKEntryCallBack (CDKENTRY *entry, chtype character)
    if (plainchar == ERR ||
        ((int)strlen (entry->info) >= entry->max))
    {
-      Beep ();
+      BEEP  ();
    }
    else
    {

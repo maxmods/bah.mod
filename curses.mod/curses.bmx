@@ -39,6 +39,8 @@ ModuleInfo "History: Initial Release. (cdk 5.0.20120323, pdcurses 3.4)"
 
 ?macos
 ModuleInfo "CC_OPTS: -DNCURSES_OPAQUE=0"
+?win32
+ModuleInfo "CC_OPTS: -DNCURSES_MOUSE_VERSION"
 ?
 
 Import Pub.StdC

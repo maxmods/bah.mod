@@ -953,7 +953,7 @@ static void decrementCalendarDay (CDKCALENDAR *calendar, int adjust)
 	       "<C></U>Error",
 	       "Can not go past the year 1900"
 	    };
-	    Beep ();
+	    BEEP ();
 	    popupLabel (ScreenOf (calendar), (CDK_CSTRING2) mesg, 2);
 	    return;
 	 }
@@ -1026,7 +1026,7 @@ static void decrementCalendarMonth (CDKCALENDAR *calendar, int adjust)
 	    "<C></U>Error",
 	    "Can not go past the year 1900"
 	 };
-	 Beep ();
+	 BEEP ();
 	 popupLabel (ScreenOf (calendar), (CDK_CSTRING2) mesg, 2);
 	 return;
       }
@@ -1095,7 +1095,7 @@ static void decrementCalendarYear (CDKCALENDAR *calendar, int adjust)
 	 "<C></U>Error",
 	 "Can not go past the year 1900"
       };
-      Beep ();
+      BEEP ();
       popupLabel (ScreenOf (calendar), (CDK_CSTRING2) mesg, 2);
       return;
    }

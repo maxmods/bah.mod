@@ -481,7 +481,7 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 	 case KEY_DC:
 	    if (widget->colvalues[widget->col] == vVIEWONLY || charcount <= 0)
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -524,7 +524,7 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 		  /* shift down one row, if we can. */
 		  if (widget->row == widget->rows)
 		  {
-		     Beep ();
+		     BEEP ();
 		  }
 		  else
 		  {
@@ -582,7 +582,7 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 		  /* Shift up one line if we can... */
 		  if (widget->row == 1)
 		  {
-		     Beep ();
+		     BEEP ();
 		  }
 		  else
 		  {
@@ -634,7 +634,7 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 	       }
 	       else
 	       {
-		  Beep ();
+		  BEEP ();
 	       }
 	    }
 	    break;
@@ -663,7 +663,7 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 	       }
 	       else
 	       {
-		  Beep ();
+		  BEEP ();
 	       }
 	    }
 	    break;
@@ -681,12 +681,12 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 	       }
 	       else
 	       {
-		  Beep ();
+		  BEEP ();
 	       }
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -703,12 +703,12 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 	       }
 	       else
 	       {
-		  Beep ();
+		  BEEP ();
 	       }
 	    }
 	    else
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    break;
 
@@ -721,7 +721,7 @@ static int _injectCDKMatrix (CDKOBJS *object, chtype input)
 	    if (GPasteBuffer == 0 ||
 		(int)strlen (GPasteBuffer) > widget->colwidths[widget->ccol])
 	    {
-	       Beep ();
+	       BEEP ();
 	    }
 	    else
 	    {
@@ -902,11 +902,11 @@ static void CDKMatrixCallBack (CDKMATRIX *matrix, chtype input)
 
    if (plainchar == ERR)
    {
-      Beep ();
+      BEEP ();
    }
    else if (charcount == matrix->colwidths[matrix->col])
    {
-      Beep ();
+      BEEP ();
    }
    else
    {

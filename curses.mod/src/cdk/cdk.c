@@ -14,7 +14,7 @@ char *GPasteBuffer = 0;
 /*
  * This beeps then flushes the stdout stream.
  */
-void Beep (void)
+void BEEP (void)
 {
    beep ();
    fflush (stdout);
@@ -1455,7 +1455,7 @@ void moveCursesWindow (WINDOW *window, int xdiff, int ydiff)
       }
       else
       {
-	 Beep ();
+	 BEEP ();
       }
    }
 }

@@ -25,9 +25,7 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifdef _WIN32
-#include <windows.h>
-#else
+#ifndef _WIN32
 #include <sys/types.h>
 #include <pwd.h>
 #endif
@@ -35,6 +33,9 @@
 extern "C" {
 
 #include "blitz.h"
+#ifdef __WIN32
+#include <curses.h>
+#endif
 #include <cdk.h>
 
 	BBObject * _bah_curses_TMouseEvent__create(int id, int x, int y, int z, int bstate);
@@ -161,8 +162,8 @@ extern "C" {
 
 void bmx_curses_GetUserName(char * buffer) {
 #ifdef _WIN32
-	int len = 256;
-	GetUserName(buffer, &len);
+	long unsigned int len = 256;
+	GetUserNameA(buffer, &len);
 #else
 	struct passwd * p = getpwuid(getuid());
 	strcpy(buffer, p->pw_name);	
@@ -654,7 +655,7 @@ int bmx_mousemask(int mask, int * oldMask) {
 BBObject * bmx_getmouse() {
 	MEVENT event;
 	BBObject * mouseEvent = &bbNullObject;
-	
+
 	if (getmouse(&event) == OK) {
 printf("x = %d\n", event.x);fflush(stdout);
 		mouseEvent = _bah_curses_TMouseEvent__create(event.id, event.x, event.y, event.z, event.bstate);
