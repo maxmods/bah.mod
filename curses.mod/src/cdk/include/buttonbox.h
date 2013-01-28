@@ -1,5 +1,5 @@
 /*
- * $Id: buttonbox.h,v 1.26 2005/12/28 12:59:18 tom Exp $
+ * $Id: buttonbox.h,v 1.27 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2004,2005 copyright Thomas E. Dickey
+ * Changes 1999-2005,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -92,10 +92,10 @@ CDKBUTTONBOX *newCDKButtonbox (
 		int		/* yPos */,
 		int		/* height */,
 		int		/* width */,
-		char *		/* title */,
+		const char *	/* title */,
 		int		/* rows */,
 		int		/* cols */,
-		char **		/* buttons */,
+		CDK_CSTRING2	/* buttons */,
 		int		/* buttonCount */,
 		chtype		/* highlight */,
 		boolean		/* Box */,

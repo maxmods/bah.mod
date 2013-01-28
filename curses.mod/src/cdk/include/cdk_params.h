@@ -1,5 +1,5 @@
 /*
- * $Id: cdk_params.h,v 1.6 2005/12/27 14:08:18 tom Exp $
+ * $Id: cdk_params.h,v 1.7 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 /*
- * Copyright 2003,2005 Thomas E. Dickey
+ * Copyright 2003-2005,2012 Thomas E. Dickey
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,14 +88,14 @@ void CDKparseParams (
 		int		/* argc */,
 		char **		/* argv */,
 		CDK_PARAMS *	/* params */,
-		char *		/* options */);
+		const char *	/* options */);
 
 /*
  * Parse the string as one of CDK's positioning keywords, or an actual
  * position.
  */
 int CDKparsePosition (
-		char *		/* string */);
+		const char *	/* string */);
 
 /*
  * Retrieve an integer (or boolean) option value from the parsed command-line.
@@ -125,7 +125,7 @@ char * CDKparamString (
 char * CDKparamString2 (
 		CDK_PARAMS *	/* params */,
 		int		/* option */,
-		char *		/* missing */);
+		const char *	/* missing */);
 
 /*
  * Retrieve an integer (or boolean) option value from the parsed command-line.

@@ -2,8 +2,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/04/23 00:01:26 $
- * $Revision: 1.204 $
+ * $Date: 2012/03/22 09:21:35 $
+ * $Revision: 1.212 $
  */
 
 #define L_MARKER '<'
@@ -185,7 +185,7 @@ void freeChtypeList (chtype **list, unsigned size)
  * This performs a safe copy of a string. This means it adds the null
  * terminator on the end of the string, like strdup().
  */
-char *copyChar (char *original)
+char *copyChar (const char *original)
 {
    char *newstring = 0;
 
@@ -197,7 +197,7 @@ char *copyChar (char *original)
    return (newstring);
 }
 
-chtype *copyChtype (chtype *original)
+chtype *copyChtype (const chtype *original)
 {
    chtype *newstring = 0;
 
@@ -215,11 +215,6 @@ chtype *copyChtype (chtype *original)
 	 newstring[len] = '\0';
 	 newstring[len + 1] = '\0';
       }
-      else
-      {
-	 newstring = original;
-      }
-
    }
    return (newstring);
 }
@@ -227,9 +222,9 @@ chtype *copyChtype (chtype *original)
 /*
  * Copy the given lists.
  */
-char **copyCharList (char **list)
+char **copyCharList (const char **list)
 {
-   unsigned size = lenCharList (list) + 1;
+   size_t size = (size_t) lenCharList (list) + 1;
    char **result = typeMallocN (char *, size);
 
    if (result != 0)
@@ -241,18 +236,16 @@ char **copyCharList (char **list)
    return result;
 }
 
-chtype **copyChtypeList (chtype **list)
+chtype **copyChtypeList (const chtype **list)
 {
-   unsigned size = lenChtypeList (list) + 1;
+   size_t size = (size_t) lenChtypeList (list) + 1;
    chtype **result = typeMallocN (chtype *, size);
 
    if (result != 0)
    {
-      while (size-- != 0)
-      {
-	 freeChtype (list[size]);
-	 list[size] = 0;
-      }
+      unsigned n;
+      for (n = 0; n < size; ++n)
+	 result[n] = copyChtype (list[n]);
    }
    return result;
 }
@@ -260,7 +253,7 @@ chtype **copyChtypeList (chtype **list)
 /*
  * Return the length of the given lists.
  */
-int lenCharList (char **list)
+int lenCharList (const char **list)
 {
    int result = 0;
    if (list != 0)
@@ -271,7 +264,7 @@ int lenCharList (char **list)
    return result;
 }
 
-int lenChtypeList (chtype **list)
+int lenChtypeList (const chtype **list)
 {
    int result = 0;
    if (list != 0)
@@ -285,7 +278,7 @@ int lenChtypeList (chtype **list)
 /*
  * This reads a file and sticks it into the char *** provided.
  */
-int CDKreadFile (char *filename, char ***array)
+int CDKreadFile (const char *filename, char ***array)
 {
    FILE *fd;
    char temp[BUFSIZ];
@@ -307,12 +300,12 @@ int CDKreadFile (char *filename, char ***array)
    }
    fclose (fd);
 
-   return (lines);
+   return (int)(lines);
 }
 
 #define DigitOf(c) ((c)-'0')
 
-static int encodeAttribute (char *string, int from, chtype *mask)
+static int encodeAttribute (const char *string, int from, chtype *mask)
 {
    int pair = 0;
 
@@ -348,7 +341,7 @@ static int encodeAttribute (char *string, int from, chtype *mask)
    {
 #ifdef HAVE_START_COLOR
       pair = DigitOf (string[from + 1]) * 10 + DigitOf (string[from + 2]);
-      *mask = COLOR_PAIR (pair);
+      *mask = (chtype)COLOR_PAIR (pair);
 #else
       *mask = A_BOLD;
 #endif
@@ -358,7 +351,7 @@ static int encodeAttribute (char *string, int from, chtype *mask)
    {
 #ifdef HAVE_START_COLOR
       pair = DigitOf (string[from + 1]);
-      *mask = COLOR_PAIR (pair);
+      *mask = (chtype)COLOR_PAIR (pair);
 #else
       *mask = A_BOLD;
 #endif
@@ -421,7 +414,7 @@ static unsigned decodeAttribute (char *string,
 		  *result++ = '/';
 		  tmpattr |= (table[n].mask);
 	       }
-	       *result++ = table[n].code;
+	       *result++ = (char)table[n].code;
 	       break;
 	    }
 	 }
@@ -457,7 +450,7 @@ static unsigned decodeAttribute (char *string,
       }
    }
 
-   return from + (result - base);
+   return (from + (unsigned)(result - base));
 }
 
 /*
@@ -465,7 +458,7 @@ static unsigned decodeAttribute (char *string,
  * and translates them into a chtype * array. This is better suited
  * to curses, because curses uses chtype almost exclusively
  */
-chtype *char2Chtype (char *string, int *to, int *align)
+chtype *char2Chtype (const char *string, int *to, int *align)
 {
    chtype *result = 0;
    chtype attrib;
@@ -539,7 +532,7 @@ chtype *char2Chtype (char *string, int *to, int *align)
 	       while (string[x] != R_MARKER && string[x] != 0)
 	       {
 		  if (result != 0)
-		     result[x] = string[x] | A_BOLD;
+		     result[x] = (chtype)string[x] | A_BOLD;
 		  x++;
 	       }
 	       adjust = 1;
@@ -788,7 +781,7 @@ chtype *char2Chtype (char *string, int *to, int *align)
 /*
  * This determines the length of a chtype string
  */
-int chlen (chtype *string)
+int chlen (const chtype *string)
 {
    int result = 0;
 
@@ -804,7 +797,7 @@ int chlen (chtype *string)
 /*
  * Compare a regular string to a chtype string
  */
-int cmpStrChstr (char *str, chtype *chstr)
+int cmpStrChstr (const char *str, const chtype *chstr)
 {
    int r = 0;
 
@@ -831,12 +824,12 @@ int cmpStrChstr (char *str, chtype *chstr)
    return 0;
 }
 
-void chstrncpy (char *dest, chtype *src, int maxcount)
+void chstrncpy (char *dest, const chtype *src, int maxcount)
 {
    int i = 0;
 
    while (i < maxcount && *src)
-      *dest++ = CharOf (*src++);
+      *dest++ = (char)(*src++);
 
    *dest = '\0';
 }
@@ -845,7 +838,7 @@ void chstrncpy (char *dest, chtype *src, int maxcount)
  * This returns a pointer to char * of a chtype *
  * Formatting codes are omitted.
  */
-char *chtype2Char (chtype *string)
+char *chtype2Char (const chtype *string)
 {
    char *newstring = 0;
 
@@ -870,7 +863,7 @@ char *chtype2Char (chtype *string)
  * This returns a pointer to char * of a chtype *
  * Formatting codes are embedded.
  */
-char *chtype2String (chtype *string)
+char *chtype2String (const chtype *string)
 {
    char *newstring = 0;
 
@@ -890,7 +883,7 @@ char *chtype2String (chtype *string)
 				    (x > 0) ? string[x - 1] : 0,
 				    string[x]);
 	    if (newstring != 0)
-	       newstring[need] = CharOf (string[x]);
+	       newstring[need] = (char)(string[x]);
 	    ++need;
 	 }
 	 if (pass)
@@ -923,7 +916,7 @@ void sortList (char **list, int length)
 void stripWhiteSpace (EStripType stripType, char *string)
 {
    /* Declare local variables.  */
-   unsigned stringLength = 0;
+   size_t stringLength = 0;
    unsigned alphaChar = 0;
    unsigned x;
 
@@ -958,7 +951,7 @@ void stripWhiteSpace (EStripType stripType, char *string)
    }
 }
 
-static unsigned countChar (char *string, int separator)
+static unsigned countChar (const char *string, int separator)
 {
    unsigned result = 0;
    int ch;
@@ -974,10 +967,10 @@ static unsigned countChar (char *string, int separator)
 /*
  * Split a string into a list of strings.
  */
-char **CDKsplitString (char *string, int separator)
+char **CDKsplitString (const char *string, int separator)
 {
    char **result = 0;
-   char *first;
+   const char *first;
    char *temp;
    unsigned item;
    unsigned need;
@@ -994,7 +987,7 @@ char **CDKsplitString (char *string, int separator)
 	    while (*string != 0 && *string != separator)
 	       string++;
 
-	    need = string - first;
+	    need = (unsigned)(string - first);
 	    if ((temp = typeMallocN (char, need + 1)) == 0)
 	         break;
 
@@ -1042,7 +1035,7 @@ unsigned CDKallocStrings (char ***list, char *item, unsigned length, unsigned us
 /*
  * Count the number of items in a list of strings.
  */
-unsigned CDKcountStrings (char **list)
+unsigned CDKcountStrings (CDK_CSTRING2 list)
 {
    unsigned result = 0;
    if (list != 0)
@@ -1137,14 +1130,20 @@ int mode2Char (char *string, mode_t mode)
       { S_IRUSR,	1,	'r' },
       { S_IWUSR,	2,	'w' },
       { S_IXUSR,	3,	'x' },
-#ifndef WIN32
+#if defined (S_IRGRP) && defined (S_IWGRP) && defined (S_IXGRP)
       { S_IRGRP,	4,	'r' },
       { S_IWGRP,	5,	'w' },
       { S_IXGRP,	6,	'x' },
+#endif
+#if defined (S_IROTH) && defined (S_IWOTH) && defined (S_IXOTH)
       { S_IROTH,	7,	'r' },
       { S_IWOTH,	8,	'w' },
       { S_IXOTH,	9,	'x' },
+#endif
+#ifdef S_ISUID
       { S_ISUID,	3,	's' },
+#endif
+#ifdef S_ISGID
       { S_ISGID,	6,	's' },
 #endif
 #ifdef S_ISVTX
@@ -1170,12 +1169,12 @@ int mode2Char (char *string, mode_t mode)
       if ((mode & table[n].mask) != 0)
       {
 	 string[table[n].col] = table[n].flag;
-	 permissions |= table[n].mask;
+	 permissions |= (int)table[n].mask;
       }
    }
 
    /* Check for unusual permissions.  */
-#ifndef WIN32
+#ifdef S_ISUID
    if (((mode & S_IXUSR) == 0) &&
        ((mode & S_IXGRP) == 0) &&
        ((mode & S_IXOTH) == 0) &&
@@ -1184,6 +1183,7 @@ int mode2Char (char *string, mode_t mode)
       string[3] = 'S';
    }
 #endif
+
    return permissions;
 }
 
@@ -1202,7 +1202,7 @@ int intlen (int value)
 /*
  * This opens the current directory and reads the contents.
  */
-int CDKgetDirectoryContents (char *directory, char ***list)
+int CDKgetDirectoryContents (const char *directory, char ***list)
 {
    /* Declare local variables.  */
    struct dirent *dirStruct;
@@ -1223,7 +1223,8 @@ int CDKgetDirectoryContents (char *directory, char ***list)
    while ((dirStruct = readdir (dp)) != 0)
    {
       if (strcmp (dirStruct->d_name, "."))
-	 used = CDKallocStrings (list, dirStruct->d_name, counter++, used);
+	 used = CDKallocStrings (list, dirStruct->d_name,
+				 (unsigned)counter++, used);
    }
 
    /* Close the directory.  */
@@ -1239,10 +1240,10 @@ int CDKgetDirectoryContents (char *directory, char ***list)
 /*
  * This looks for a subset of a word in the given list.
  */
-int searchList (char **list, int listSize, char *pattern)
+int searchList (CDK_CSTRING2 list, int listSize, const char *pattern)
 {
    /* Declare local variables.  */
-   unsigned len;
+   size_t len;
    int Index = -1;
    int x, ret;
 
@@ -1283,7 +1284,7 @@ int searchList (char **list, int listSize, char *pattern)
 /*
  * This function checks to see if a link has been requested.
  */
-int checkForLink (char *line, char *filename)
+int checkForLink (const char *line, char *filename)
 {
    int len = 0;
    int fPos = 0;
@@ -1322,8 +1323,8 @@ int checkForLink (char *line, char *filename)
 char *baseName (char *pathname)
 {
    char *base = 0;
-   unsigned pathLen;
-   unsigned x;
+   size_t pathLen;
+   size_t x;
 
    if (pathname != 0
        && *pathname != '\0'
@@ -1352,8 +1353,8 @@ char *baseName (char *pathname)
 char *dirName (char *pathname)
 {
    char *dir = 0;
-   unsigned pathLen;
-   unsigned x;
+   size_t pathLen;
+   size_t x;
 
    /* Check if the string is null.  */
    if (pathname != 0
@@ -1445,12 +1446,12 @@ void moveCursesWindow (WINDOW *window, int xdiff, int ydiff)
       int xpos, ypos;
 
       getbegyx (window, ypos, xpos);
-      if (setbegyx (window, ypos, xpos) != ERR)
+      if (setbegyx (window, (short)ypos, (short)xpos) != ERR)
       {
 	 xpos += xdiff;
 	 ypos += ydiff;
 	 werase (window);
-	 (void)setbegyx (window, ypos, xpos);
+	 (void)setbegyx (window, (short)ypos, (short)xpos);
       }
       else
       {

@@ -2,19 +2,19 @@
 
 /*
  * $Author: tom $
- * $Date: 2003/11/16 21:08:13 $
- * $Revision: 1.10 $
+ * $Date: 2012/03/20 21:58:33 $
+ * $Revision: 1.11 $
  */
 
-FILE	*CDKDEBUG;
+FILE *CDKDEBUG;
 
 
 /*
  * This starts debugging for CDK.
  */
-FILE *startCDKDebug (char *filename)
+FILE *startCDKDebug (const char *filename)
 {
-   char *defFile = "cdkdebug.log";
+   const char *defFile = "cdkdebug.log";
 
    /* Check if the filename is null. */
    if (filename == 0)
@@ -23,13 +23,16 @@ FILE *startCDKDebug (char *filename)
    }
 
    /* Try to open the file. */
-   return ( fopen (filename, "w") );
+   return (fopen (filename, "w"));
 }
 
 /*
  * This writes a message to the debug file.
  */
-void writeCDKDebugMessage (FILE *fd, char *filename, char *function, int line, char *message)
+void writeCDKDebugMessage (FILE * fd,
+			   const char *filename,
+			   const char *function,
+			   int line, const char *message)
 {
    /* Print the message as long as the file pointer is not null. */
    if (fd != 0)
@@ -41,7 +44,7 @@ void writeCDKDebugMessage (FILE *fd, char *filename, char *function, int line, c
 /*
  * This turns off the debugging for CDK.
  */
-void stopCDKDebug (FILE *fd)
+void stopCDKDebug (FILE * fd)
 {
    if (fd != 0)
    {

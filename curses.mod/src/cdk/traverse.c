@@ -2,8 +2,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2005/12/30 01:32:53 $
- * $Revision: 1.21 $
+ * $Date: 2012/03/22 09:42:50 $
+ * $Revision: 1.23 $
  */
 
 #define limitFocusIndex(screen, value) \
@@ -81,12 +81,12 @@ static CDKOBJS *handleMenu (CDKSCREEN *screen, CDKOBJS *menu, CDKOBJS *oldobj)
 
       case KEY_ESC:
 	 /* cleanup the menu */
-	 injectCDKMenu ((CDKMENU *)menu, key);
+	 (void)injectCDKMenu ((CDKMENU *)menu, (chtype)key);
 	 done = TRUE;
 	 break;
 
       default:
-	 done = (injectCDKMenu ((CDKMENU *)menu, key) >= 0);
+	 done = (injectCDKMenu ((CDKMENU *)menu, (chtype)key) >= 0);
 	 break;
       }
    }
@@ -334,7 +334,7 @@ void traverseCDKOnce (CDKSCREEN *screen,
       }
       else
       {
-	 InjectObj (curobj, keyCode);
+	 InjectObj (curobj, (chtype)keyCode);
       }
       break;
    }

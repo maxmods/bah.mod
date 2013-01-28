@@ -2,8 +2,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/05/05 00:27:44 $
- * $Revision: 1.98 $
+ * $Date: 2012/03/21 00:05:35 $
+ * $Revision: 1.102 $
  */
 
 #define TITLELINES 1
@@ -19,7 +19,7 @@ DeclareCDKObjects (MENU, Menu, setCdk, Int);
  * This creates a new menu widget.
  */
 CDKMENU *newCDKMenu (CDKSCREEN *cdkscreen,
-		     char *menulist[MAX_MENU_ITEMS][MAX_SUB_ITEMS],
+		     const char *menulist[MAX_MENU_ITEMS][MAX_SUB_ITEMS],
 		     int menuItems,
 		     int *subsize,
 		     int *menuLocation,
@@ -27,31 +27,32 @@ CDKMENU *newCDKMenu (CDKSCREEN *cdkscreen,
 		     chtype titleAttr,
 		     chtype subtitleAttr)
 {
-   CDKMENU *menu	= 0;
-   int rightcount	= menuItems - 1;
-   int rightloc		= getmaxx (cdkscreen->window);
-   int leftloc		= 0;
+   /* *INDENT-EQLS* */
+   CDKMENU *menu        = 0;
+   int rightcount       = menuItems - 1;
+   int rightloc         = getmaxx (cdkscreen->window);
+   int leftloc          = 0;
    int x, y, max, junk;
-   int xpos		= getbegx (cdkscreen->window);
-   int ypos		= getbegy (cdkscreen->window);
-   int ymax		= getmaxy (cdkscreen->window);
+   int xpos             = getbegx (cdkscreen->window);
+   int ypos             = getbegy (cdkscreen->window);
+   int ymax             = getmaxy (cdkscreen->window);
 
    if ((menu = newCDKObject (CDKMENU, &my_funcs)) == 0)
-      return (0);
+        return (0);
 
-   /* Start making a copy of the information. */
-   ScreenOf (menu)		= cdkscreen;
-   ObjOf (menu)->box		= FALSE;
-   ObjOf (menu)->acceptsFocus    = FALSE;
-   rightcount			= menuItems-1;
-   menu->parent			= cdkscreen->window;
-   menu->menuItems		= menuItems;
-   menu->titleAttr		= titleAttr;
-   menu->subtitleAttr		= subtitleAttr;
-   menu->currentTitle		= 0;
-   menu->currentSubtitle	= 0;
-   menu->lastSelection		= -1;
-   menu->menuPos		= menuPos;
+   /* *INDENT-EQLS* Start making a copy of the information. */
+   ScreenOf (menu)              = cdkscreen;
+   ObjOf (menu)->box            = FALSE;
+   ObjOf (menu)->acceptsFocus   = FALSE;
+   rightcount                   = menuItems - 1;
+   menu->parent                 = cdkscreen->window;
+   menu->menuItems              = menuItems;
+   menu->titleAttr              = titleAttr;
+   menu->subtitleAttr           = subtitleAttr;
+   menu->currentTitle           = 0;
+   menu->currentSubtitle        = 0;
+   menu->lastSelection          = -1;
+   menu->menuPos                = menuPos;
    initExitType (menu);
 
    /* Create the pull down menus. */
@@ -90,10 +91,19 @@ CDKMENU *newCDKMenu (CDKSCREEN *cdkscreen,
       {
 	 x2 = (rightloc -= max + 2);
       }
-      menu->title[x1]	 = char2Chtype (menulist[x][0], &menu->titleLen[x1], &junk);
-      menu->subsize[x1]	 = subsize[x] - TITLELINES;
-      menu->titleWin[x1] = subwin (cdkscreen->window, TITLELINES, menu->titleLen[x1]+2, ypos + y1, xpos + x2);
-      menu->pullWin[x1]  = subwin (cdkscreen->window, high, max+2, ypos + y2, xpos + x2);
+      /* *INDENT-EQLS* */
+      menu->title[x1]    = char2Chtype (menulist[x][0], &menu->titleLen[x1], &junk);
+      menu->subsize[x1]  = subsize[x] - TITLELINES;
+      menu->titleWin[x1] = subwin (cdkscreen->window,
+				   TITLELINES,
+				   menu->titleLen[x1] + 2,
+				   ypos               + y1,
+				   xpos               + x2);
+      menu->pullWin[x1]  = subwin (cdkscreen->window,
+				   high,
+				   max                + 2,
+				   ypos               + y2,
+				   xpos               + x2);
       if (menu->titleWin[x1] == 0 || menu->pullWin[x1] == 0)
       {
 	 destroyCDKMenu (menu);
@@ -140,7 +150,7 @@ int activateCDKMenu (CDKMENU *menu, chtype *actions)
       /* Start taking input from the keyboard. */
       for (;;)
       {
-	 input = getchCDKObject (ObjOf (menu), &functionKey);
+	 input = (chtype)getchCDKObject (ObjOf (menu), &functionKey);
 
 	 /* Inject the character into the widget. */
 	 ret = injectCDKMenu (menu, input);
@@ -269,31 +279,31 @@ static void acrossSubmenus (CDKMENU *menu, int step)
  */
 static int _injectCDKMenu (CDKOBJS *object, chtype input)
 {
-   CDKMENU *menu = (CDKMENU *)object;
+   CDKMENU *widget = (CDKMENU *)object;
    int ppReturn = 1;
    int ret = unknownInt;
    bool complete = FALSE;
 
    /* Set the exit type. */
-   setExitType (menu, 0);
+   setExitType (widget, 0);
 
    /* Check if there is a pre-process function to be called. */
-   if (PreProcessFuncOf (menu) != 0)
+   if (PreProcessFuncOf (widget) != 0)
    {
       /* Call the pre-process function. */
-      ppReturn = PreProcessFuncOf (menu) (vMENU,
-					  menu,
-					  PreProcessDataOf (menu),
-					  input);
+      ppReturn = PreProcessFuncOf (widget) (vMENU,
+					    widget,
+					    PreProcessDataOf (widget),
+					    input);
    }
 
    /* Should we continue? */
    if (ppReturn != 0)
    {
       /* Check for key bindings. */
-      if (checkCDKObjectBind (vMENU, menu, input) != 0)
+      if (checkCDKObjectBind (vMENU, widget, input) != 0)
       {
-	 checkEarlyExit (menu);
+	 checkEarlyExit (widget);
 	 complete = TRUE;
       }
       else
@@ -301,59 +311,67 @@ static int _injectCDKMenu (CDKOBJS *object, chtype input)
 	 switch (input)
 	 {
 	 case KEY_LEFT:
-	    acrossSubmenus (menu, -1);
+	    acrossSubmenus (widget, -1);
 	    break;
 
 	 case KEY_RIGHT:
 	 case KEY_TAB:
-	    acrossSubmenus (menu, 1);
+	    acrossSubmenus (widget, 1);
 	    break;
 
 	 case KEY_UP:
-	    withinSubmenu (menu, -1);
+	    withinSubmenu (widget, -1);
 	    break;
 
 	 case KEY_DOWN:
 	 case SPACE:
-	    withinSubmenu (menu, 1);
+	    withinSubmenu (widget, 1);
 	    break;
 
 	 case KEY_ENTER:
-	    cleanUpMenu (menu);
-	    setExitType (menu, input);
-	    menu->lastSelection = ((menu->currentTitle * 100) + menu->currentSubtitle);
-	    ret = menu->lastSelection;
+	    cleanUpMenu (widget);
+	    setExitType (widget, input);
+	    widget->lastSelection = ((widget->currentTitle * 100) + widget->currentSubtitle);
+	    ret = widget->lastSelection;
 	    complete = TRUE;
 	    break;
 
 	 case KEY_ESC:
-	    cleanUpMenu (menu);
-	    setExitType (menu, input);
-	    menu->lastSelection = -1;
-	    ret = menu->lastSelection;
+	    cleanUpMenu (widget);
+	    setExitType (widget, input);
+	    widget->lastSelection = -1;
+	    ret = widget->lastSelection;
+	    complete = TRUE;
+	    break;
+
+	 case KEY_ERROR:
+	    setExitType (widget, input);
 	    complete = TRUE;
 	    break;
 
 	 case CDK_REFRESH:
-	    eraseCDKScreen (ScreenOf (menu));
-	    refreshCDKScreen (ScreenOf (menu));
+	    eraseCDKScreen (ScreenOf (widget));
+	    refreshCDKScreen (ScreenOf (widget));
 	    break;
 	 }
       }
 
       /* Should we call a post-process? */
-      if (!complete && (PostProcessFuncOf (menu) != 0))
+      if (!complete && (PostProcessFuncOf (widget) != 0))
       {
-	 PostProcessFuncOf (menu) (vMENU, menu, PostProcessDataOf (menu), input);
+	 PostProcessFuncOf (widget) (vMENU,
+				     widget,
+				     PostProcessDataOf (widget),
+				     input);
       }
    }
 
    if (!complete)
    {
-      setExitType (menu, 0);
+      setExitType (widget, 0);
    }
 
-   ResultOf (menu).valueInt = ret;
+   ResultOf (widget).valueInt = ret;
    return (ret != unknownInt);
 }
 
@@ -445,12 +463,13 @@ static void _moveCDKMenu (CDKOBJS *object,
 			  boolean refresh_flag)
 {
    CDKMENU *menu = (CDKMENU *)object;
+   /* *INDENT-EQLS* */
    int currentX = getbegx (WindowOf (menu));
    int currentY = getbegy (WindowOf (menu));
-   int xpos	= xplace;
-   int ypos	= yplace;
-   int xdiff	= 0;
-   int ydiff	= 0;
+   int xpos     = xplace;
+   int ypos     = yplace;
+   int xdiff    = 0;
+   int ydiff    = 0;
    int x;
 
    /*
@@ -581,13 +600,15 @@ void setCDKMenu (CDKMENU *menu,
  */
 void setCDKMenuCurrentItem (CDKMENU *menu, int menuitem, int submenuitem)
 {
-   menu->currentTitle    = wrapped (menuitem,    menu->menuItems);
+   /* *INDENT-EQLS* */
+   menu->currentTitle    = wrapped (menuitem, menu->menuItems);
    menu->currentSubtitle = wrapped (submenuitem, menu->subsize[menu->currentTitle]);
 }
 void getCDKMenuCurrentItem (CDKMENU *menu, int *menuItem, int *subMenuItem)
 {
-   (*menuItem)		= menu->currentTitle;
-   (*subMenuItem)	= menu->currentSubtitle;
+   /* *INDENT-EQLS* */
+   (*menuItem)          = menu->currentTitle;
+   (*subMenuItem)       = menu->currentSubtitle;
 }
 
 /*

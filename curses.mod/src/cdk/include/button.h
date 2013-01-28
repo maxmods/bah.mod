@@ -1,5 +1,5 @@
 /*
- * $Id: button.h,v 1.10 2004/08/30 00:00:57 tom Exp $
+ * $Id: button.h,v 1.11 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -18,7 +18,7 @@
 #endif
 
 /*
- * Changes 2002,2003 copyright Thomas E. Dickey
+ * Changes 2002-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Grant Edwards
  * All rights reserved.
@@ -88,7 +88,7 @@ CDKBUTTON *newCDKButton (
 		CDKSCREEN *	/* screen */,
 		int		/* xPos */,
 		int		/* yPos */,
-		char *		/* button text */,
+		const char *	/* button text */,
 		tButtonCallback /* callback function */,
 		boolean		/* Box */,
 		boolean		/* shadow */);
@@ -111,7 +111,7 @@ int activateCDKButton (
  */
 void setCDKButton (
 		CDKBUTTON *	/* button */,
-		char *		/* text */,
+		const char *	/* text */,
 		boolean		/* Box */);
 
 /*
@@ -119,7 +119,7 @@ void setCDKButton (
  */
 void setCDKButtonMessage (
 		CDKBUTTON *	/* button */,
-		char *		/* mesg */);
+		const char *	/* mesg */);
 
 chtype *getCDKButtonMessage (
 		CDKBUTTON *);

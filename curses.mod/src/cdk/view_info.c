@@ -2,22 +2,29 @@
 
 /*
  * $Author: tom $
- * $Date: 2003/11/27 22:05:27 $
- * $Revision: 1.1 $
+ * $Date: 2012/03/22 00:39:09 $
+ * $Revision: 1.2 $
  */
 
 /*
  * This allows the user to view information.
  */
-int viewInfo (CDKSCREEN *screen, char *title, char **info, int count, char **buttons, int buttonCount, boolean interpret)
+int viewInfo (CDKSCREEN *screen,
+	      const char *title,
+	      CDK_CSTRING2 info,
+	      int count,
+	      CDK_CSTRING2 buttons,
+	      int buttonCount,
+	      boolean interpret)
 {
-   CDKVIEWER *viewer	= 0;
-   int selected		= -1;
+   /* *INDENT-EQLS* * */
+   CDKVIEWER *viewer    = 0;
+   int selected         = -1;
 
-   /* Create the file viewer to view the file selected.*/
+   /* Create the file viewer to view the file selected. */
    viewer = newCDKViewer (screen, CENTER, CENTER, -6, -16,
-				buttons, buttonCount,
-				A_REVERSE, TRUE, TRUE);
+			  buttons, buttonCount,
+			  A_REVERSE, TRUE, TRUE);
 
    /* Set up the viewer title, and the contents to the widget. */
    setCDKViewer (viewer, title, info, count, A_REVERSE, interpret, TRUE, TRUE);

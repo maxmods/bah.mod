@@ -1,5 +1,5 @@
 /*
- * $Id: menu.h,v 1.21 2005/12/26 17:35:19 tom Exp $
+ * $Id: menu.h,v 1.22 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2004,2005 copyright Thomas E. Dickey
+ * Changes 1999-2005,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -91,7 +91,7 @@ typedef struct SMenu CDKMENU;
  */
 CDKMENU *newCDKMenu (
 		CDKSCREEN *	/* cdkscreen */,
-		char *		/* menulist */ [MAX_MENU_ITEMS][MAX_SUB_ITEMS],
+		const char *	/* menulist */ [MAX_MENU_ITEMS][MAX_SUB_ITEMS],
 		int 		/* menuitems */,
 		int *		/* subsize */,
 		int *		/* menuloc */,

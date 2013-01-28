@@ -42,4 +42,9 @@
 #define lstat(f,b) stat(f,b)
 #endif
 
+
+#define CDK_CONST const
+#define CDK_CSTRING CDK_CONST char *
+#define CDK_CSTRING2 CDK_CONST char * CDK_CONST *
+
 #endif /* CDK_CONFIG_H */

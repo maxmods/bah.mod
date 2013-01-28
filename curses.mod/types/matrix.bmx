@@ -30,18 +30,20 @@ Import "../core.bmx"
 Rem
 bbdoc: 
 End Rem
-Type TCursesButtonBox Extends TCursesWidget
+Type TCursesMatrix Extends TCursesWidget
 
 	Field titlePtr:Byte Ptr
-	Field _buttons:Byte Ptr
-	Field buttonCount:Int
+	Field _rowTitles:Byte Ptr
+	Field _rowsCount:Int
+	Field _colTitles:Byte Ptr
+	Field _colsCount:Int
 
-	Function Create:TCursesButtonBox(x:Int, y:Int, width:Int, height:Int, ..
-			title:String, rows:Int, cols:Int, buttons:String[], highlight:Int, box:Int = True, shadow:Int = False)
-			
-		Local this:TCursesButtonBox = New TCursesButtonBox
+	Function Create:TCursesMatrix(x:Int, y:Int, rows:Int, cols:Int, vrows:Int, vcols:Int, ..
+			title:String, rowtitles:String[] = Null, coltitles:String[] = Null, numbers:Int = False, highlight:Int = A_REVERSE, box:Int = True, shadow:Int = False)
 
-		this.init(x, y, width, height, title, rows, cols, buttons, highlight, box, shadow)
+		Local this:TCursesMatrix = New TCursesMatrix
+
+		this.init(x, y, rows, cols, title, rows, cols, buttons, highlight, box, shadow)
 		
 		If Not this.widgetPtr Then
 			this.free()
@@ -51,23 +53,26 @@ Type TCursesButtonBox Extends TCursesWidget
 		TCDKDriver.currentScreen.addWidget(this)
 
 		Return this
+	
 	End Function
+
+	Method Init(x:Int, y:Int, rows:Int, cols:Int, vrows:Int, vcols:Int, ..
+			title:String, rowtitles:String[], coltitles:String[], numbers:Int, highlight:Int, box:Int, shadow:Int)
 	
-	Method Init(x:Int, y:Int, width:Int, height:Int, ..
-			title:String, rows:Int, cols:Int, buttons:String[], highlight:Int, box:Int, shadow:Int)
-	
-		buttonCount = buttons.length
-		_buttons = arrayToCStrings(buttons)
+		rowsCount = rowTitles.length
+		_rowTitles = arrayToCStrings(rowTitles)
+		colsCount = colTitles.length
+		_colTitles = arrayToCStrings(colTitles)
 
 		If title Then
 			titlePtr = title.toCString()
 		End If
 		
 		If title Then
-			widgetPtr = newCDKButtonbox(TCDKDriver.currentScreen.screenPtr, x, y, height, width, titlePtr, rows, ..
-				cols, _buttons, buttonCount, highlight, box, shadow)
+			widgetPtr = newCDKMatrix(TCDKDriver.currentScreen.screenPtr, x, y, rows, cols, vrows, vcols, titlePtr, ..
+				_rowTitles, buttonCount, highlight, box, shadow)
 		Else
-			widgetPtr = newCDKButtonbox(TCDKDriver.currentScreen.screenPtr, x, y, height, width, Null, rows, ..
+			widgetPtr = newCDKMatrix(TCDKDriver.currentScreen.screenPtr, x, y, height, width, Null, rows, ..
 				cols, _buttons, buttonCount, highlight, box, shadow)
 		End If
 			
@@ -75,7 +80,7 @@ Type TCursesButtonBox Extends TCursesWidget
 	End Method
 
 	Method show()
-		bmx_curses_drawCDKButtonBox(widgetPtr)
+		bmx_curses_drawCDKMatrix(widgetPtr)
 	End Method
 	
 	Method position()
@@ -90,44 +95,72 @@ Type TCursesButtonBox Extends TCursesWidget
 	End Method
 
 	Method injectCharacter(char:Int)
-		bmx_curses_injectCDKButtonBox(widgetPtr, char)
+		bmx_curses_injectCDKMatrix(widgetPtr, char)
 	End Method
 
 	Method getWindow:Byte Ptr()
-		Return bmx_curses_CDKButtonbox_window(widgetPtr)
+		Return bmx_curses_CDKMatrix_window(widgetPtr)
 	End Method
 	
 	Rem
-	bbdoc: Activates the button box.
+	bbdoc: Returns the row of the matrix.
 	End Rem
-	Method Activate:Int(actions:Int = 0)
-		Return activateCDKButtonbox(widgetPtr, actions)
+	Method getRow:Int()
+		Return bmx_matrix_getCDKMatrixRow(widgetPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the col of the matrix.
+	End Rem
+	Method getCol:Int()
+		Return bmx_matrix_getCDKMatrixCol(widgetPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method activate:Int(row:Int, col:Int)
+		Return activateCDKMatrix(widgetPtr, actions)
 	End Method
 
 	Rem
-	bbdoc: Returns the currently selected button.
+	bbdoc: Cleans out all the cells from the matrix.
 	End Rem
-	Method currentButton:Int()
-		Return bmx_buttonbox_currentButton(widgetPtr)
+	Method clean()
+		bmx_matrix_cleanMatrix(widgetPtr)
+	End Method
+
+	Rem
+	bbdoc: Cleans one cell in the matrix.
+	End Rem
+	Method cleanCell(row:Int, col:Int)
+		bmx_matrix_cleanMatrixCell(widgetPtr, row, col)
+	End Method
+
+	Rem
+	bbdoc: Moves the matrix to the given cell.
+	End Rem
+	Method moveToCell:Int(row:Int, col:Int)
+		Return bmx_matrix_moveToCell(widgetPtr, row, col)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setBox(box:Int)
+		bmx_matrix_setBox(widgetPtr, box)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method getBox:Int()
+		Return bmx_matrix_getBox(widgetPtr)
 	End Method
 
 	Method getType:Int()
-		Return vBUTTONBOX
+		Return vMATRIX
 	End Method
 
-	Method free()
-		If titlePtr Then
-			MemFree(titlePtr)
-			titlePtr = Null
-		End If
-		
-		If _buttons Then
-			freeCStringArray(_buttons, buttonCount)
-			_buttons = Null
-		End If
-		
-		Super.free()
-	End Method
-	
 End Type
 

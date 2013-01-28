@@ -1,5 +1,5 @@
 /*
- * $Id: cdk_int.h,v 1.19 2005/04/15 00:01:49 tom Exp $
+ * $Id: cdk_int.h,v 1.25 2011/05/16 22:20:21 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -13,7 +13,7 @@ extern "C" {
 #include <cdk.h>
 
 /*
- * Copyright 2003-2004,2005 Thomas E. Dickey
+ * Copyright 2003-2009,2011 Thomas E. Dickey
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,21 +45,21 @@ extern "C" {
  * SUCH DAMAGE.
  */
 
-#define typeCallocN(type,n)     (type*)calloc(n, sizeof(type))
+#define typeCallocN(type,n)     (type*)calloc((size_t)(n), sizeof(type))
 #define typeCalloc(type)        typeCallocN(type,1)
 
-#define typeReallocN(type,p,n)  (type*)realloc(p, (n) * sizeof(type))
+#define typeReallocN(type,p,n)  (type*)realloc(p, (size_t)(n) * sizeof(type))
 
-#define typeMallocN(type,n)     (type*)malloc((n) * sizeof(type))
+#define typeMallocN(type,n)     (type*)malloc((size_t)(n) * sizeof(type))
 #define typeMalloc(type)        typeMallocN(type,1)
 
-#define freeChecked(p)		if ((p) != 0) free (p)
-#define freeAndNull(p)		if ((p) != 0) { free (p); p = 0; }
+#define freeChecked(p)          if ((p) != 0) free (p)
+#define freeAndNull(p)          if ((p) != 0) { free (p); p = 0; }
 
-#define isChar(c)		((int)(c) >= 0 && (int)(c) < KEY_MIN)
+#define isChar(c)               ((int)(c) >= 0 && (int)(c) < KEY_MIN)
 #define CharOf(c)               ((unsigned char)(c))
 
-#define SIZEOF(v)		(sizeof(v)/sizeof((v)[0]))
+#define SIZEOF(v)               (sizeof(v)/sizeof((v)[0]))
 
 /*
  * Macros to check if caller is attempting to make the widget as high (or wide)
@@ -211,9 +211,9 @@ extern "C" {
 		   (w)->currentItem = item; \
 		   (w)->currentHigh = item - (w)->currentTop; \
 		} else { \
-		   (w)->currentTop = item; \
+		   (w)->currentTop = item - ((w)->viewSize - 1); \
 		   (w)->currentItem = item; \
-		   (w)->currentHigh = 0; \
+		   (w)->currentHigh = (w)->viewSize - 1; \
 		}
 
 #define scroller_MaxViewSize(w) \
@@ -231,7 +231,7 @@ extern "C" {
 		} \
  \
 		if ((w)->listSize > 0 && maxViewSize((w)) > 0) { \
-		   (w)->step = (maxViewSize((w)) / (float)(w)->listSize); \
+		   (w)->step = (float) (maxViewSize((w)) / (double)(w)->listSize); \
 		   (w)->toggleSize = ((w)->listSize > (maxViewSize((w))) ?  1 : ceilCDK((w)->step)); \
 		} else { \
 		   (w)->step = 1; \

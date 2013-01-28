@@ -9,9 +9,9 @@
 #endif
 
 /*
- * $Id: curdefs.h,v 1.13 2004/08/30 23:57:07 tom Exp $
+ * $Id: curdefs.h,v 1.16 2009/02/16 00:33:50 tom Exp $
  *
- * Changes 1999-2002,2004 copyright Thomas E. Dickey
+ * Changes 1999-2004,2009 copyright Thomas E. Dickey
  * Copyright 1999, Mike Glover
  * All rights reserved.
  *
@@ -111,6 +111,8 @@
 #define KEY_F11		KEY_F(11)
 #undef  KEY_F12
 #define KEY_F12		KEY_F(12)
+
+#define KEY_ERROR       ((chtype)ERR)
 
 /* these definitions may work for antique versions of curses */
 #if	!defined(HAVE_GETBEGYX) && !defined(getbegyx)

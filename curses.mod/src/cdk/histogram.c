@@ -2,8 +2,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/05/05 00:27:44 $
- * $Revision: 1.86 $
+ * $Date: 2012/03/22 09:10:47 $
+ * $Revision: 1.89 $
  */
 
 DeclareCDKObjects (HISTOGRAM, Histogram, setCdk, Unknown);
@@ -17,22 +17,23 @@ CDKHISTOGRAM *newCDKHistogram (CDKSCREEN *cdkscreen,
 			       int height,
 			       int width,
 			       int orient,
-			       char *title,
+			       const char *title,
 			       boolean Box,
 			       boolean shadow)
 {
-   CDKHISTOGRAM *widget	= 0;
-   int parentWidth	= getmaxx (cdkscreen->window);
-   int parentHeight	= getmaxy (cdkscreen->window);
-   int boxWidth		= width;
-   int boxHeight	= height;
-   int xpos		= xplace;
-   int ypos		= yplace;
-   int oldWidth		= 0;
-   int oldHeight	= 0;
+   /* *INDENT-EQLS* */
+   CDKHISTOGRAM *widget = 0;
+   int parentWidth      = getmaxx (cdkscreen->window);
+   int parentHeight     = getmaxy (cdkscreen->window);
+   int boxWidth         = width;
+   int boxHeight        = height;
+   int xpos             = xplace;
+   int ypos             = yplace;
+   int oldWidth         = 0;
+   int oldHeight        = 0;
 
    if ((widget = newCDKObject (CDKHISTOGRAM, &my_funcs)) == 0)
-      return (0);
+        return (0);
 
    setCDKHistogramBox (widget, Box);
 
@@ -56,17 +57,17 @@ CDKHISTOGRAM *newCDKHistogram (CDKSCREEN *cdkscreen,
    /* Rejustify the x and y positions if we need to. */
    alignxy (cdkscreen->window, &xpos, &ypos, boxWidth, boxHeight);
 
-   /* Create the histogram pointer. */
-   ScreenOf (widget)	= cdkscreen;
-   widget->parent	= cdkscreen->window;
-   widget->win		= newwin (boxHeight, boxWidth, ypos, xpos);
-   widget->shadowWin	= 0;
-   widget->boxWidth	= boxWidth;
-   widget->boxHeight	= boxHeight;
-   widget->fieldWidth	= boxWidth - 2 * BorderOf (widget);
-   widget->fieldHeight	= boxHeight - TitleLinesOf (widget) - 2 * BorderOf (widget);
-   widget->orient	= orient;
-   widget->shadow	= shadow;
+   /* *INDENT-EQLS* Create the histogram pointer. */
+   ScreenOf (widget)    = cdkscreen;
+   widget->parent       = cdkscreen->window;
+   widget->win          = newwin (boxHeight, boxWidth, ypos, xpos);
+   widget->shadowWin    = 0;
+   widget->boxWidth     = boxWidth;
+   widget->boxHeight    = boxHeight;
+   widget->fieldWidth   = boxWidth - 2 * BorderOf (widget);
+   widget->fieldHeight  = boxHeight - TitleLinesOf (widget) - 2 * BorderOf (widget);
+   widget->orient       = orient;
+   widget->shadow       = shadow;
 
    /* Is the window null. */
    if (widget->win == 0)
@@ -76,23 +77,23 @@ CDKHISTOGRAM *newCDKHistogram (CDKSCREEN *cdkscreen,
    }
    keypad (widget->win, TRUE);
 
-   /* Set up some default values. */
-   widget->filler	= '#' | A_REVERSE;
-   widget->statsAttr	= A_NORMAL;
-   widget->statsPos	= TOP;
-   widget->viewType	= vREAL;
-   widget->high		= 0;
-   widget->low		= 0;
-   widget->value	= 0;
-   widget->lowx		= 0;
-   widget->lowy		= 0;
-   widget->highx	= 0;
-   widget->highy	= 0;
-   widget->curx		= 0;
-   widget->cury		= 0;
-   widget->lowString	= 0;
-   widget->highString	= 0;
-   widget->curString	= 0;
+   /* *INDENT-EQLS* Set up some default values. */
+   widget->filler       = '#' | A_REVERSE;
+   widget->statsAttr    = A_NORMAL;
+   widget->statsPos     = TOP;
+   widget->viewType     = vREAL;
+   widget->high         = 0;
+   widget->low          = 0;
+   widget->value        = 0;
+   widget->lowx         = 0;
+   widget->lowy         = 0;
+   widget->highx        = 0;
+   widget->highy        = 0;
+   widget->curx         = 0;
+   widget->cury         = 0;
+   widget->lowString    = 0;
+   widget->highString   = 0;
+   widget->curString    = 0;
 
    /* Do we want a shadow? */
    if (shadow)
@@ -142,13 +143,12 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
    char string[100];
    int len;
 
-   /* We should error check the information we have. */
-   widget->low		= (low <= high ? low : 0);
-   widget->high		= (low <= high ? high : 0);
-   widget->value	= (low <= value && value <= high ? value : 0);
-
+   /* *INDENT-EQLS* We should error check the information we have. */
+   widget->low          = (low <= high ? low : 0);
+   widget->high         = (low <= high ? high : 0);
+   widget->value        = (low <= value && value <= high ? value : 0);
    /* Determine the percentage of the given value. */
-   widget->percent	= ((widget->high == 0)
+   widget->percent      = ((widget->high == 0)
 			   ? 0
 			   : ((float)widget->value / (float)widget->high));
 
@@ -178,23 +178,23 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    freeChar (widget->highString);
 	    freeChar (widget->curString);
 
-	    /* Set the low label attributes. */
+	    /* *INDENT-EQLS* Set the low label attributes. */
 	    sprintf (string, "%d", widget->low);
-	    len			= (int)strlen (string);
-	    widget->lowString	= copyChar (string);
-	    widget->lowx	= 1;
-	    widget->lowy	= widget->boxHeight - len - 1;
+	    len                = (int)strlen (string);
+	    widget->lowString  = copyChar (string);
+	    widget->lowx       = 1;
+	    widget->lowy       = widget->boxHeight - len - 1;
 
-	    /* Set the high label attributes. */
+	    /* *INDENT-EQLS* Set the high label attributes. */
 	    sprintf (string, "%d", widget->high);
-	    widget->highString	= copyChar (string);
-	    widget->highx	= 1;
-	    widget->highy	= TitleLinesOf (widget) + 1;
+	    widget->highString = copyChar (string);
+	    widget->highx      = 1;
+	    widget->highy      = TitleLinesOf (widget) + 1;
 
 	    /* Set the current value attributes. */
 	    if (widget->viewType == vPERCENT)
 	    {
-	       sprintf (string, "%3.1f%%", (float) (widget->percent * 100));
+	       sprintf (string, "%3.1f%%", (float)(widget->percent * 100));
 	    }
 	    else if (widget->viewType == vFRACTION)
 	    {
@@ -204,11 +204,11 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    {
 	       sprintf (string, "%d", widget->value);
 	    }
-	    len			= (int)strlen (string);
-	    widget->curString	= copyChar (string);
-	    widget->curx	= 1;
-	    widget->cury	= (((widget->fieldHeight - len) / 2)
-				   + TitleLinesOf (widget) + 1);
+	    len = (int)strlen (string);
+	    widget->curString = copyChar (string);
+	    widget->curx = 1;
+	    widget->cury = (((widget->fieldHeight - len) / 2)
+			    + TitleLinesOf (widget) + 1);
 	 }
 	 else if (widget->statsPos == CENTER)
 	 {
@@ -217,23 +217,23 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    freeChar (widget->highString);
 	    freeChar (widget->curString);
 
-	    /* Set the low label attributes. */
+	    /* *INDENT-EQLS* Set the low label attributes. */
 	    sprintf (string, "%d", widget->low);
-	    len			= (int)strlen (string);
-	    widget->lowString	= copyChar (string);
-	    widget->lowx	= (widget->fieldWidth/2) + 1;
-	    widget->lowy	= widget->boxHeight - len - 1;
+	    len                = (int)strlen (string);
+	    widget->lowString  = copyChar (string);
+	    widget->lowx       = (widget->fieldWidth / 2) + 1;
+	    widget->lowy       = widget->boxHeight - len - 1;
 
-	    /* Set the high label attributes. */
+	    /* *INDENT-EQLS* Set the high label attributes. */
 	    sprintf (string, "%d", widget->high);
-	    widget->highString	= copyChar (string);
-	    widget->highx	= (widget->fieldWidth/2) + 1;
-	    widget->highy	= TitleLinesOf (widget) + 1;
+	    widget->highString = copyChar (string);
+	    widget->highx      = (widget->fieldWidth / 2) + 1;
+	    widget->highy      = TitleLinesOf (widget) + 1;
 
 	    /* Set the stats label attributes. */
 	    if (widget->viewType == vPERCENT)
 	    {
-	       sprintf (string, "%3.2f%%", (float) (widget->percent * 100));
+	       sprintf (string, "%3.2f%%", (float)(widget->percent * 100));
 	    }
 	    else if (widget->viewType == vFRACTION)
 	    {
@@ -243,11 +243,13 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    {
 	       sprintf (string, "%d", widget->value);
 	    }
-	    len			= (int)strlen (string);
-	    widget->curString	= copyChar (string);
-	    widget->curx	= (widget->fieldWidth/2) + 1;
-	    widget->cury	= (((widget->fieldHeight - len)/2)
-				   + TitleLinesOf (widget) + 1);
+	    /* *INDENT-EQLS* */
+	    len                = (int)strlen (string);
+	    widget->curString  = copyChar (string);
+	    widget->curx       = (widget->fieldWidth / 2) + 1;
+	    widget->cury       = (((widget->fieldHeight - len) / 2)
+				                     + TitleLinesOf (widget)
+				                     + 1);
 	 }
 	 else if (widget->statsPos == RIGHT || widget->statsPos == TOP)
 	 {
@@ -256,23 +258,23 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    freeChar (widget->highString);
 	    freeChar (widget->curString);
 
-	    /* Set the low label attributes. */
+	    /* *INDENT-EQLS* Set the low label attributes. */
 	    sprintf (string, "%d", widget->low);
-	    len			= (int)strlen (string);
-	    widget->lowString	= copyChar (string);
-	    widget->lowx	= widget->fieldWidth;
-	    widget->lowy	= widget->boxHeight - len - 1;
+	    len                = (int)strlen (string);
+	    widget->lowString  = copyChar (string);
+	    widget->lowx       = widget->fieldWidth;
+	    widget->lowy       = widget->boxHeight - len - 1;
 
-	    /* Set the high label attributes. */
+	    /* *INDENT-EQLS* Set the high label attributes. */
 	    sprintf (string, "%d", widget->high);
-	    widget->highString	= copyChar (string);
-	    widget->highx	= widget->fieldWidth;
-	    widget->highy	= TitleLinesOf (widget) + 1;
+	    widget->highString = copyChar (string);
+	    widget->highx      = widget->fieldWidth;
+	    widget->highy      = TitleLinesOf (widget) + 1;
 
 	    /* Set the stats label attributes. */
 	    if (widget->viewType == vPERCENT)
 	    {
-	       sprintf (string, "%3.2f%%", (float) (widget->percent * 100));
+	       sprintf (string, "%3.2f%%", (float)(widget->percent * 100));
 	    }
 	    else if (widget->viewType == vFRACTION)
 	    {
@@ -282,11 +284,13 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    {
 	       sprintf (string, "%d", widget->value);
 	    }
-	    len			= (int)strlen (string);
-	    widget->curString	= copyChar (string);
-	    widget->curx	= widget->fieldWidth;
-	    widget->cury	= (((widget->fieldHeight - len)/2)
-				   + TitleLinesOf (widget) + 1);
+	    /* *INDENT-EQLS* */
+	    len                = (int)strlen (string);
+	    widget->curString  = copyChar (string);
+	    widget->curx       = widget->fieldWidth;
+	    widget->cury       = (((widget->fieldHeight - len) / 2)
+				                     + TitleLinesOf (widget)
+				                     + 1);
 	 }
       }
       else
@@ -299,23 +303,23 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    freeChar (widget->highString);
 	    freeChar (widget->curString);
 
-	    /* Set the low label attributes. */
+	    /* *INDENT-EQLS* Set the low label attributes. */
 	    sprintf (string, "%d", widget->low);
-	    widget->lowString	= copyChar (string);
-	    widget->lowx	= 1;
-	    widget->lowy	= TitleLinesOf (widget) + 1;
+	    widget->lowString  = copyChar (string);
+	    widget->lowx       = 1;
+	    widget->lowy       = TitleLinesOf (widget) + 1;
 
-	    /* Set the high label attributes. */
+	    /* *INDENT-EQLS* Set the high label attributes. */
 	    sprintf (string, "%d", widget->high);
-	    len			= (int)strlen (string);
-	    widget->highString	= copyChar (string);
-	    widget->highx	= widget->boxWidth - len - 1;
-	    widget->highy	= TitleLinesOf (widget) + 1;
+	    len                = (int)strlen (string);
+	    widget->highString = copyChar (string);
+	    widget->highx      = widget->boxWidth - len - 1;
+	    widget->highy      = TitleLinesOf (widget) + 1;
 
 	    /* Set the stats label attributes. */
 	    if (widget->viewType == vPERCENT)
 	    {
-	       sprintf (string, "%3.1f%%", (float) (widget->percent * 100));
+	       sprintf (string, "%3.1f%%", (float)(widget->percent * 100));
 	    }
 	    else if (widget->viewType == vFRACTION)
 	    {
@@ -325,10 +329,11 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    {
 	       sprintf (string, "%d", widget->value);
 	    }
-	    len			= (int)strlen (string);
-	    widget->curString	= copyChar (string);
-	    widget->curx	= (widget->fieldWidth - len)/2 + 1;
-	    widget->cury	= TitleLinesOf (widget) + 1;
+	    /* *INDENT-EQLS* */
+	    len                = (int)strlen (string);
+	    widget->curString  = copyChar (string);
+	    widget->curx       = (widget->fieldWidth - len) / 2 + 1;
+	    widget->cury       = TitleLinesOf (widget) + 1;
 	 }
 	 else if (widget->statsPos == CENTER)
 	 {
@@ -337,25 +342,27 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    freeChar (widget->highString);
 	    freeChar (widget->curString);
 
-	    /* Set the low label attributes. */
+	    /* *INDENT-EQLS* Set the low label attributes. */
 	    sprintf (string, "%d", widget->low);
-	    widget->lowString	= copyChar (string);
-	    widget->lowx	= 1;
-	    widget->lowy	= ((widget->fieldHeight / 2)
-				   + TitleLinesOf (widget) + 1);
+	    widget->lowString  = copyChar (string);
+	    widget->lowx       = 1;
+	    widget->lowy       = ((widget->fieldHeight / 2)
+				                     + TitleLinesOf (widget)
+				                     + 1);
 
-	    /* Set the high label attributes. */
+	    /* *INDENT-EQLS* Set the high label attributes. */
 	    sprintf (string, "%d", widget->high);
-	    len			= (int)strlen (string);
-	    widget->highString	= copyChar (string);
-	    widget->highx	= widget->boxWidth - len - 1;
-	    widget->highy	= ((widget->fieldHeight / 2)
-				   + TitleLinesOf (widget) + 1);
+	    len                = (int)strlen (string);
+	    widget->highString = copyChar (string);
+	    widget->highx      = widget->boxWidth - len - 1;
+	    widget->highy      = ((widget->fieldHeight / 2)
+				                     + TitleLinesOf (widget)
+				                     + 1);
 
 	    /* Set the stats label attributes. */
 	    if (widget->viewType == vPERCENT)
 	    {
-	       sprintf (string, "%3.1f%%", (float) (widget->percent * 100));
+	       sprintf (string, "%3.1f%%", (float)(widget->percent * 100));
 	    }
 	    else if (widget->viewType == vFRACTION)
 	    {
@@ -365,11 +372,13 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    {
 	       sprintf (string, "%d", widget->value);
 	    }
-	    len			= (int)strlen (string);
-	    widget->curString	= copyChar (string);
-	    widget->curx	= (widget->fieldWidth - len)/2 + 1;
-	    widget->cury	= ((widget->fieldHeight / 2)
-				   + TitleLinesOf (widget) + 1);
+	    /* *INDENT-EQLS* */
+	    len                = (int)strlen (string);
+	    widget->curString  = copyChar (string);
+	    widget->curx       = (widget->fieldWidth - len) / 2 + 1;
+	    widget->cury       = ((widget->fieldHeight / 2)
+				                     + TitleLinesOf (widget)
+				                     + 1);
 	 }
 	 else if (widget->statsPos == BOTTOM || widget->statsPos == LEFT)
 	 {
@@ -378,23 +387,23 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    freeChar (widget->highString);
 	    freeChar (widget->curString);
 
-	    /* Set the low label attributes. */
+	    /* *INDENT-EQLS* Set the low label attributes. */
 	    sprintf (string, "%d", widget->low);
-	    widget->lowString	= copyChar (string);
-	    widget->lowx	= 1;
-	    widget->lowy	= widget->boxHeight - 2 * BorderOf (widget);
+	    widget->lowString  = copyChar (string);
+	    widget->lowx       = 1;
+	    widget->lowy       = widget->boxHeight - 2 * BorderOf (widget);
 
-	    /* Set the high label attributes. */
+	    /* *INDENT-EQLS* Set the high label attributes. */
 	    sprintf (string, "%d", widget->high);
-	    len			= (int)strlen (string);
-	    widget->highString	= copyChar (string);
-	    widget->highx	= widget->boxWidth - len - 1;
-	    widget->highy	= widget->boxHeight - 2 * BorderOf (widget);
+	    len                = (int)strlen (string);
+	    widget->highString = copyChar (string);
+	    widget->highx      = widget->boxWidth - len - 1;
+	    widget->highy      = widget->boxHeight - 2 * BorderOf (widget);
 
 	    /* Set the stats label attributes. */
 	    if (widget->viewType == vPERCENT)
 	    {
-	       sprintf (string, "%3.1f%%", (float) (widget->percent * 100));
+	       sprintf (string, "%3.1f%%", (float)(widget->percent * 100));
 	    }
 	    else if (widget->viewType == vFRACTION)
 	    {
@@ -404,9 +413,10 @@ void setCDKHistogramValue (CDKHISTOGRAM *widget, int low, int high, int value)
 	    {
 	       sprintf (string, "%d", widget->value);
 	    }
-	    widget->curString	= copyChar (string);
-	    widget->curx	= (widget->fieldWidth - len)/2 + 1;
-	    widget->cury	= widget->boxHeight - 2 * BorderOf (widget);
+	    /* *INDENT-EQLS* */
+	    widget->curString  = copyChar (string);
+	    widget->curx       = (widget->fieldWidth - len) / 2 + 1;
+	    widget->cury       = widget->boxHeight - 2 * BorderOf (widget);
 	 }
       }
    }
@@ -492,7 +502,7 @@ static void _setBKattrHistogram (CDKOBJS *object, chtype attrib)
 {
    if (object != 0)
    {
-      CDKHISTOGRAM *widget = (CDKHISTOGRAM *) object;
+      CDKHISTOGRAM *widget = (CDKHISTOGRAM *)object;
       wbkgd (widget->win, attrib);
    }
 }
@@ -507,12 +517,13 @@ static void _moveCDKHistogram (CDKOBJS *object,
 			       boolean refresh_flag)
 {
    CDKHISTOGRAM *widget = (CDKHISTOGRAM *)object;
+   /* *INDENT-EQLS* */
    int currentX = getbegx (widget->win);
    int currentY = getbegy (widget->win);
-   int xpos	= xplace;
-   int ypos	= yplace;
-   int xdiff	= 0;
-   int ydiff	= 0;
+   int xpos     = xplace;
+   int ypos     = yplace;
+   int xdiff    = 0;
+   int ydiff    = 0;
 
    /*
     * If this is a relative move, then we will adjust where we want
@@ -551,12 +562,12 @@ static void _moveCDKHistogram (CDKOBJS *object,
 static void _drawCDKHistogram (CDKOBJS *object, boolean Box)
 {
    CDKHISTOGRAM *widget = (CDKHISTOGRAM *)object;
+   /* *INDENT-EQLS* */
    chtype battr = 0;
    chtype bchar = 0;
    chtype fattr = widget->filler & A_ATTRIBUTES;
-   chtype fchar = CharOf (widget->filler);
-   int histX	= TitleLinesOf (widget) + 1;
-   int histY	= widget->barSize;
+   int histX    = TitleLinesOf (widget) + 1;
+   int histY    = widget->barSize;
    int len, x, y;
 
    /* Erase the window. */
@@ -631,7 +642,6 @@ static void _drawCDKHistogram (CDKOBJS *object, boolean Box)
       for (y = 1; y <= histY; y++)
       {
 	 battr = mvwinch (widget->win, x, y);
-	 fchar = battr & A_ATTRIBUTES;
 	 bchar = CharOf (battr);
 
 	 if (bchar == ' ')

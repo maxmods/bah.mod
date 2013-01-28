@@ -1,5 +1,5 @@
 /*
- * $Id: graph.h,v 1.21 2004/08/30 00:00:57 tom Exp $
+ * $Id: graph.h,v 1.22 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 2000-2002,2003 copyright Thomas E. Dickey
+ * Changes 2000-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -94,9 +94,9 @@ CDKGRAPH *newCDKGraph (
 		int		/* ypos */,
 		int		/* height */,
 		int		/* width */,
-		char *		/* title */,
-		char *		/* xtitle */,
-		char *		/* ytitle */);
+		const char *	/* title */,
+		const char *	/* xtitle */,
+		const char *	/* ytitle */);
 
 /*
  * This was added to make the builder simpler. All this will
@@ -113,7 +113,7 @@ int setCDKGraph (
 		CDKGRAPH *	/* graph */,
 		int *		/* values */,
 		int		/* count */,
-		char *		/* graphChar */,
+		const char *	/* graphChar */,
 		boolean		/* startAtZero */,
 		EGraphDisplayType  /* displayType */);
 
@@ -145,12 +145,12 @@ int getCDKGraphValue (
  */
 int setCDKGraphCharacters (
 		CDKGRAPH *	/* graph */,
-		char *		/* characters */);
+		const char *	/* characters */);
 
 int setCDKGraphCharacter (
 		CDKGRAPH *	/* graph */,
 		int		/* index */,
-		char *		/* character */);
+		const char *	/* character */);
 
 chtype *getCDKGraphCharacters (
 		CDKGRAPH *	/* graph */);

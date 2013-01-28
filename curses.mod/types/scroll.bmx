@@ -30,7 +30,7 @@ Import "../core.bmx"
 Rem
 bbdoc: 
 End Rem
-Type TCursesSlider Extends TCursesWidget
+Type TCursesScroll Extends TCursesWidget
 	
 	Field titlePtr:Byte Ptr
 	Field labelPtr:Byte Ptr
@@ -196,3 +196,4 @@ Type TCursesSlider Extends TCursesWidget
 	End Method
 
 End Type
+

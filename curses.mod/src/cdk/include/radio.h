@@ -1,5 +1,5 @@
 /*
- * $Id: radio.h,v 1.28 2005/12/28 21:44:56 tom Exp $
+ * $Id: radio.h,v 1.29 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2004,2005 copyright Thomas E. Dickey
+ * Changes 1999-2005,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -107,8 +107,8 @@ CDKRADIO *newCDKRadio (
 		int		/* spos */,
 		int		/* height */,
 		int		/* width */,
-		char *		/* title */,
-		char **		/* mesg */,
+		const char *	/* title */,
+		CDK_CSTRING2	/* mesg */,
 		int		/* items */,
 		chtype		/* choiceChar */,
 		int		/* defItem */,
@@ -142,7 +142,7 @@ void setCDKRadio (
  */
 void setCDKRadioItems (
 		CDKRADIO *	/* radio */,
-		char **		/* list */,
+		CDK_CSTRING2	/* list */,
 		int		/* listSize */);
 
 int getCDKRadioItems (

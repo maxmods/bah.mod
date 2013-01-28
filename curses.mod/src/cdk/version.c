@@ -2,10 +2,10 @@
 
 /*
  * $Author: tom $
- * $Date: 2002/07/20 00:30:51 $
- * $Revision: 1.1 $
+ * $Date: 2012/03/20 22:06:08 $
+ * $Revision: 1.2 $
  */
-char * CDKVersion(void)
+const char *CDKVersion (void)
 {
    return CDK_VERSION_MAJOR "." CDK_VERSION_MINOR " - " CDK_VERSION_PATCH;
 }

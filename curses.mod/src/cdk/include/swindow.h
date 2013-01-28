@@ -1,5 +1,5 @@
 /*
- * $Id: swindow.h,v 1.23 2004/08/30 00:00:57 tom Exp $
+ * $Id: swindow.h,v 1.24 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2003 copyright Thomas E. Dickey
+ * Changes 1999-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -92,7 +92,7 @@ CDKSWINDOW *newCDKSwindow (
 		int		/* ypos */,
 		int		/* height */,
 		int		/* width */,
-		char *		/* title */,
+		const char *	/* title */,
 		int		/* saveLines */,
 		boolean		/* Box */,
 		boolean		/* shadow */);
@@ -115,7 +115,7 @@ void activateCDKSwindow (
  */
 int execCDKSwindow (
 		CDKSWINDOW *	/* swindow */,
-		char *		/* command */,
+		const char *	/* command */,
 		int		/* insertPos */);
 
 /*
@@ -123,7 +123,7 @@ int execCDKSwindow (
  */
 int dumpCDKSwindow (
 		CDKSWINDOW *	/* swindow */,
-		char *		/* filename */);
+		const char *	/* filename */);
 
 /*
  * This jumps to the given line in the window.
@@ -151,7 +151,7 @@ void loadCDKSwindowInformation (
  */
 void setCDKSwindow (
 		CDKSWINDOW *	/* swindow */,
-		char **		/* info */,
+		CDK_CSTRING2	/* info */,
 		int		/* lines */,
 		boolean		/* Box */);
 
@@ -160,7 +160,7 @@ void setCDKSwindow (
  */
 void setCDKSwindowContents (
 		CDKSWINDOW *	/* swindow */,
-		char **		/* info */,
+		CDK_CSTRING2	/* info */,
 		int		/* lines */);
 
 chtype **getCDKSwindowContents (
@@ -219,7 +219,7 @@ void cleanCDKSwindow (
  */
 void addCDKSwindow (
 		CDKSWINDOW *	/* swindow */,
-		char *		/* info */,
+		const char *	/* info */,
 		int		/* insertPos */);
 
 /*

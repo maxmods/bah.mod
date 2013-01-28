@@ -1,5 +1,5 @@
 /*
- * $Id: fselect.h,v 1.23 2006/05/04 09:54:39 tom Exp $
+ * $Id: fselect.h,v 1.25 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2003,2006 copyright Thomas E. Dickey
+ * Changes 1999-2006,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -95,15 +95,15 @@ CDKFSELECT *newCDKFselect (
 		int		/* ypos */,
 		int		/* height */,
 		int		/* width */,
-		char *		/* title */,
-		char *		/* label */,
+		const char *	/* title */,
+		const char *	/* label */,
 		chtype		/* fieldAttribute */,
 		chtype		/* fillerChar */,
 		chtype		/* highlight */,
-		char *		/* dirAttributes */,
-		char *		/* fileAttributes */,
-		char *		/* linkAttribute */,
-		char *		/* sockAttribute */,
+		const char *	/* dirAttributes */,
+		const char *	/* fileAttributes */,
+		const char *	/* linkAttribute */,
+		const char *	/* sockAttribute */,
 		boolean		/* Box */,
 		boolean		/* shadow */);
 
@@ -124,14 +124,14 @@ char *activateCDKFselect (
  */
 void setCDKFselect (
 		CDKFSELECT *	/* fselect */,
-		char *		/* directory */,
+		const char *	/* directory */,
 		chtype		/* fieldAttrib */,
 		chtype		/* filler */,
 		chtype		/* highlight */,
-		char *		/* dirAttribute */,
-		char *		/* fileAttribute */,
-		char *		/* linkAttribute */,
-		char *		/* sockAttribute */,
+		const char *	/* dirAttribute */,
+		const char *	/* fileAttribute */,
+		const char *	/* linkAttribute */,
+		const char *	/* sockAttribute */,
 		boolean		/* Box */);
 
 /*
@@ -139,7 +139,7 @@ void setCDKFselect (
  */
 int setCDKFselectDirectory (
 		CDKFSELECT *	/* fselect */,
-		char *		/* directory */);
+		const char *	/* directory */);
 
 char *getCDKFselectDirectory (
 		CDKFSELECT *	/* fselect */);
@@ -171,19 +171,19 @@ chtype getCDKFselectHighlight (
  */
 void setCDKFselectDirAttribute (
 		CDKFSELECT *	/* fselect */,
-		char *		/* attribute */);
+		const char *	/* attribute */);
 
 void setCDKFselectLinkAttribute (
 		CDKFSELECT *	/* fselect */,
-		char *		/* attribute */);
+		const char *	/* attribute */);
 
 void setCDKFselectFileAttribute (
 		CDKFSELECT *	/* fselect */,
-		char *		/* attribute */);
+		const char *	/* attribute */);
 
 void setCDKFselectSocketAttribute (
 		CDKFSELECT *	/* fselect */,
-		char *		/* attribute */);
+		const char *	/* attribute */);
 
 /*
  * These functions return the attribute of the directories, links,
@@ -227,7 +227,7 @@ char **getCDKFselectDirContents (
  */
 void setCDKFselectContents (
 		CDKFSELECT *	/* fselect */,
-		char **		/* list */,
+		CDK_CSTRING2	/* list */,
 		int		/* listSize */);
 
 char **getCDKFselectContents (

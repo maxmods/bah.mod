@@ -1,5 +1,5 @@
 /*
- * $Id: cdk_util.h,v 1.28 2006/04/22 16:17:32 tom Exp $
+ * $Id: cdk_util.h,v 1.34 2012/03/22 09:21:59 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2005,2006 copyright Thomas E. Dickey
+ * Changes 1999-2006,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -85,7 +85,7 @@ int justifyString (
  */
 void popupLabel (
 		CDKSCREEN *	/* win */,
-		char **		/* mesg */,
+		CDK_CSTRING2	/* mesg */,
 		int		/* count */);
 
 /*
@@ -93,7 +93,7 @@ void popupLabel (
  */
 void popupLabelAttrib (
 		CDKSCREEN *	/* win */,
-		char **		/* mesg */,
+		CDK_CSTRING2	/* mesg */,
 		int		/* count */,
 		chtype		/* attribute */);
 
@@ -102,9 +102,9 @@ void popupLabelAttrib (
  */
 int popupDialog (
 		CDKSCREEN *	/* screen */,
-		char **		/* mesg */,
+		CDK_CSTRING2	/* mesg */,
 		int		/* mesgCount */,
-		char **		/* buttons */,
+		CDK_CSTRING2	/* buttons */,
 		int		/* buttonCount */);
 
 /*
@@ -112,8 +112,8 @@ int popupDialog (
  */
 int getListIndex (
 		CDKSCREEN *	/* screen */,
-		char *		/* title */,
-		char **		/* list */,
+		const char *	/* title */,
+		CDK_CSTRING2	/* list */,
 		int		/* listSize */,
 		boolean		/* numbers */);
 
@@ -122,18 +122,18 @@ int getListIndex (
  */
 char *getString (
 		CDKSCREEN *	/* screen */,
-		char *		/* title */,
-		char *		/* label */,
-		char *		/* init */);
+		const char *	/* title */,
+		const char *	/* label */,
+		const char *	/* init */);
 
 /*
  * This allows a user to view a file.
  */
 int viewFile (
 		CDKSCREEN *	/* screen */,
-		char *		/* title */,
-		char *		/* filename */,
-		char **		/* buttons */,
+		const char *	/* title */,
+		const char *	/* filename */,
+		CDK_CSTRING2	/* buttons */,
 		int		/* buttonCount */);
 
 /*
@@ -141,17 +141,17 @@ int viewFile (
  */
 char *selectFile (
 		CDKSCREEN *	/* screen */,
-		char *		/* title */);
+		const char *	/* title */);
 
 /*
  * This allows people to view information in an array.
  */
 int viewInfo (
 		CDKSCREEN *	/* screen */,
-		char *		/* title */,
-		char **		/* info */,
+		const char *	/* title */,
+		CDK_CSTRING2	/* info */,
 		int		/* size */,
-		char **		/* buttons */,
+		CDK_CSTRING2	/* buttons */,
 		int		/* buttonCount */,
 		boolean		/* interpret */);
 
@@ -167,7 +167,7 @@ void sortList (
  * returns the number of lines read.
  */
 int CDKreadFile (
-		char *		/* filename */,
+		const char *	/* filename */,
 		char ***	/* info */);
 
 /*
@@ -183,7 +183,7 @@ void stripWhiteSpace (
  * a file which is read into memory.
  */
 char **CDKsplitString(
-		char *		/* string */,
+		const char *	/* string */,
 		int		/* separator */);
 
 unsigned CDKallocStrings(
@@ -193,7 +193,7 @@ unsigned CDKallocStrings(
 		unsigned	/* used */);
 
 unsigned CDKcountStrings(
-		char **		/* list */);
+		CDK_CSTRING2	/* list */);
 
 void CDKfreeStrings(
 		char **		/* list */);
@@ -215,16 +215,16 @@ int intlen (
  * the results in 'list' and returns the number of elements found.
  */
 int CDKgetDirectoryContents (
-		char *		/* directory */,
+		const char *	/* directory */,
 		char ***	/* list */);
 
 /*
  * This looks for the given pattern in the given list.
  */
 int searchList (
-		char **		/* list */,
+		CDK_CSTRING2	/* list */,
 		int		/* listSize */,
-		char *		/* pattern */);
+		const char *	/* pattern */);
 
 /*
  * This returns the basename of a file.
@@ -284,42 +284,42 @@ void cleanChtype (
  * This takes a chtype pointer and returns a char pointer.
  */
 char *chtype2Char (
-		chtype *	/* string */);
+		const chtype *	/* string */);
 
 /*
  * This takes a chtype pointer and returns a char pointer with embedded
  * formatting information.
  */
 char *chtype2String (
-		chtype *	/* string */);
+		const chtype *	/* string */);
 
 /*
  * This takes a char pointer and returns a chtype pointer.
  */
 chtype *char2Chtype (
-		char *		/* string */,
+		const char *	/* string */,
 		int *		/* length */,
 		int *		/* align */);
 
 /*
  * Compare a char string to a chtype string
  */
-int cmpStrChstr(char *		/* str */,
-	        chtype *	/* chstr */);
+int cmpStrChstr(const char *	/* str */,
+	        const chtype *	/* chstr */);
 
 /*
  * Copy from a chtype string to a char string
  */
 
 void chstrncpy(char *		/* dest */,
-		chtype *	/* src */,
+		const chtype *	/* src */,
 		int		/* maxcount */);
 
 /*
  * Given a character pointer, returns the equivalent display type.
  */
 EDisplayType char2DisplayType (
-		char *		/* string */);
+		const char *	/* string */);
 
 /*
  * Tell if a display type is "hidden"
@@ -338,40 +338,40 @@ int filterByDisplayType(
  * Copy the given string.
  */
 chtype *copyChtype (
-		chtype *	/* string */);
+		const chtype *	/* string */);
 
 /*
  * Copy the given string.
  */
 char *copyChar (
-		char *		/* string */);
+		const char *	/* string */);
 
 /*
  * Copy the given list.
  */
 char **copyCharList (
-		char **		/* list */);
+		const char **	/* list */);
 
 /*
  * Copy the given list.
  */
 chtype **copyChtypeList (
-		chtype **	/* list */);
+		const chtype **	/* list */);
 
 /*
  * Return the length of the given string.
  */
 int chlen (
-		chtype *	/* string */);
+		const chtype *	/* string */);
 
 /*
  * Return the length of the given list.
  */
 int lenCharList (
-		char **		/* list */);
+		const char **	/* list */);
 
 int lenChtypeList (
-		chtype **	/* list */);
+		const chtype **	/* list */);
 
 /*
  * This takes a file mode and returns the first character of the file
@@ -393,7 +393,7 @@ int mode2Char (
  * This looks for a link. (used by the </L> pattern)
  */
 int checkForLink (
-		char *		/* line */,
+		const char *	/* line */,
 		char *		/* filename */);
 
 /*

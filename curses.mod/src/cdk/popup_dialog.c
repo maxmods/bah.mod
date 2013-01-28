@@ -2,14 +2,14 @@
 
 /*
  * $Author: tom $
- * $Date: 2003/11/27 22:16:09 $
- * $Revision: 1.1 $
+ * $Date: 2012/03/21 08:45:41 $
+ * $Revision: 1.3 $
  */
 
 /*
  * This pops up a dialog box.
  */
-int popupDialog (CDKSCREEN *screen, char **mesg, int mesgCount, char **buttons, int buttonCount)
+int popupDialog (CDKSCREEN *screen, CDK_CSTRING2 mesg, int mesgCount, CDK_CSTRING2 buttons, int buttonCount)
 {
    /* Declare local variables. */
    CDKDIALOG *popup	= 0;
@@ -17,10 +17,10 @@ int popupDialog (CDKSCREEN *screen, char **mesg, int mesgCount, char **buttons, 
 
    /* Create the dialog box. */
    popup = newCDKDialog (screen, CENTER, CENTER,
-				mesg, mesgCount,
-				buttons, buttonCount,
-				A_REVERSE, TRUE,
-				TRUE, FALSE);
+			 mesg, mesgCount,
+			 buttons, buttonCount,
+			 A_REVERSE, TRUE,
+			 TRUE, FALSE);
 
    /* Activate the dialog box */
    drawCDKDialog (popup, TRUE);

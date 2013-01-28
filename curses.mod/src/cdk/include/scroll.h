@@ -1,5 +1,5 @@
 /*
- * $Id: scroll.h,v 1.30 2006/05/04 11:24:28 tom Exp $
+ * $Id: scroll.h,v 1.32 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2005,2006 copyright Thomas E. Dickey
+ * Changes 1999-2006,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -110,8 +110,8 @@ CDKSCROLL *newCDKScroll (
 		int		/* spos */,
 		int		/* height */,
 		int		/* width */,
-		char *		/* title */,
-		char **		/* itemList */,
+		const char *	/* title */,
+		CDK_CSTRING2	/* itemList */,
 		int		/* items */,
 		boolean		/* numbers */,
 		chtype		/* highlight */,
@@ -135,7 +135,7 @@ int activateCDKScroll (
  */
 void setCDKScroll (
 		CDKSCROLL *	/* scroll */,
-		char **		/* itemList */,
+		CDK_CSTRING2	/* itemList */,
 		int		/* items */,
 		boolean		/* numbers */,
 		chtype		/* highlight */,
@@ -171,7 +171,7 @@ void setCDKScrollCurrentItem(
  */
 void setCDKScrollItems (
 		CDKSCROLL *	/* scroll */,
-		char **		/* itemList */,
+		CDK_CSTRING2	/* itemList */,
 		int		/* items */,
 		boolean		/* numbers */);
 
@@ -226,14 +226,14 @@ boolean getCDKScrollBox (
  */
 void addCDKScrollItem (
 		CDKSCROLL *	/* scroll */,
-		char *		/* item */);
+		const char *	/* item */);
 
 /*
  * This adds a single item into the scrolling list.
  */
 void insertCDKScrollItem (
 		CDKSCROLL *	/* scroll */,
-		char *		/* item */);
+		const char *	/* item */);
 
 /*
  * This deletes a single item from the scrolling list.

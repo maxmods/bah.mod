@@ -1,5 +1,5 @@
 /*
- * $Id: template.h,v 1.23 2004/08/30 00:00:57 tom Exp $
+ * $Id: template.h,v 1.24 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2002,2003 copyright Thomas E. Dickey
+ * Changes 1999-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -98,10 +98,10 @@ CDKTEMPLATE *newCDKTemplate (
 		CDKSCREEN *	/* cdkscreen */,
 		int 		/* xpos */,
 		int 		/* ypos */,
-		char *		/* title */,
-		char *		/* label */,
-		char *		/* plate */,
-		char *		/* overlay */,
+		const char *	/* title */,
+		const char *	/* label */,
+		const char *	/* plate */,
+		const char *	/* overlay */,
 		boolean 	/* Box */,
 		boolean 	/* shadow */);
 
@@ -122,7 +122,7 @@ char *activateCDKTemplate (
  */
 void setCDKTemplate (
 		CDKTEMPLATE *	/* cdktemplate */,
-		char *		/* value */,
+		const char *	/* value */,
 		boolean 	/* Box */);
 
 /*
@@ -130,7 +130,7 @@ void setCDKTemplate (
  */
 void setCDKTemplateValue (
 		CDKTEMPLATE *	/* cdktemplate */,
-		char *		/* value */);
+		const char *	/* value */);
 
 char *getCDKTemplateValue (
 		CDKTEMPLATE *	/* cdktemplate */);
@@ -227,7 +227,7 @@ char *mixCDKTemplate (
  */
 char *unmixCDKTemplate (
 		CDKTEMPLATE *	/* cdktemplate */,
-		char *		/* string */);
+		const char *	/* string */);
 
 /*
  * These set the pre/post callback functions.

@@ -2,25 +2,26 @@
 
 /*
  * $Author: tom $
- * $Date: 2003/11/27 22:04:30 $
- * $Revision: 1.1 $
+ * $Date: 2012/03/22 00:38:13 $
+ * $Revision: 1.2 $
  */
 
 /*
  * This allows a person to select a file.
  */
-char *selectFile (CDKSCREEN *screen, char *title)
+char *selectFile (CDKSCREEN *screen, const char *title)
 {
-   CDKFSELECT *fselect	= 0;
-   char *filename	= 0;
-   char *holder		= 0;
+   /* *INDENT-EQLS* */
+   CDKFSELECT *fselect  = 0;
+   char *filename       = 0;
+   char *holder         = 0;
 
    /* Create the file selector. */
    fselect = newCDKFselect (screen, CENTER, CENTER, -4, -20,
-				title, "File: ",
-				A_NORMAL, '_', A_REVERSE,
-				"</5>", "</48>", "</N>", "</N>",
-				TRUE, FALSE);
+			    title, "File: ",
+			    A_NORMAL, '_', A_REVERSE,
+			    "</5>", "</48>", "</N>", "</N>",
+			    TRUE, FALSE);
 
    /* Let the user play. */
    holder = activateCDKFselect (fselect, 0);

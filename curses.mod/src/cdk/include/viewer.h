@@ -1,5 +1,5 @@
 /*
- * $Id: viewer.h,v 1.21 2004/08/30 00:00:57 tom Exp $
+ * $Id: viewer.h,v 1.22 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2003 copyright Thomas E. Dickey
+ * Changes 1999-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -100,7 +100,7 @@ CDKVIEWER *newCDKViewer (
 		int		/* ypos */,
 		int		/* height */,
 		int		/* width */,
-		char **		/* buttons */,
+		CDK_CSTRING2	/* buttons */,
 		int		/* buttonCount */,
 		chtype		/* buttonHighlight */,
 		boolean		/* Box */,
@@ -118,8 +118,8 @@ int activateCDKViewer (
  */
 int setCDKViewer (
 		CDKVIEWER *	/* viewer */,
-		char *		/* title */,
-		char **		/* info */,
+		const char *	/* title */,
+		CDK_CSTRING2	/* info */,
 		int		/* infoSize */,
 		chtype		/* buttonHighlight */,
 		boolean		/* interpret */,
@@ -131,7 +131,7 @@ int setCDKViewer (
  */
 int setCDKViewerInfo (
 		CDKVIEWER *	/* viewer */,
-		char **		/* info */,
+		CDK_CSTRING2	/* info */,
 		int		/* infoSize */,
 		boolean		/* interpret */);
 
@@ -144,7 +144,7 @@ chtype **getCDKViewerInfo (
  */
 void setCDKViewerTitle (
 		CDKVIEWER *	/* viewer */,
-		char *		/* title */);
+		const char *	/* title */);
 
 chtype **getCDKViewerTitle (
 		CDKVIEWER *	/* viewer */);

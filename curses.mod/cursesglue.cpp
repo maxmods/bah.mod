@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2009 Bruce A Henderson
+ Copyright (c) 2007-2013 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,19 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
 extern "C" {
 
+#include "blitz.h"
 #include <cdk.h>
+
+	BBObject * _bah_curses_TMouseEvent__create(int id, int x, int y, int z, int bstate);
 
 
 	EExitType bmx_entry_exitType(CDKENTRY * entry);
@@ -53,7 +63,9 @@ extern "C" {
 	
 	int bmx_curses_getbegx(WINDOW * window);
 	int bmx_curses_getbegy(WINDOW * window);
-	
+	int bmx_curses_waddstr(WINDOW * window, BBString * text, int maxChars);
+	int bmx_curses_mvwaddstr(WINDOW * window, int x, int y, BBString * text, int maxChars);
+
 	WINDOW * bmx_curses_CDKButtonbox_window(CDKBUTTONBOX * bbox);
 	WINDOW * bmx_curses_CDKSlider_window(CDKSLIDER * slider);
 	WINDOW * bmx_curses_CDKDialog_window(CDKDIALOG * dialog);
@@ -62,12 +74,19 @@ extern "C" {
 	WINDOW * bmx_curses_CDKScroll_window(CDKLABEL * scroll);
 	WINDOW * bmx_curses_CDKFSelect_window(CDKLABEL * fselect);
 	WINDOW * bmx_curses_CDKCalendar_window(CDKCALENDAR * calendar);
+	WINDOW * bmx_curses_CDKMentry_window(CDKMENTRY * entry);
 	
 	int bmx_curses_boxHeight(void * widget, EObjectType type);
 	int bmx_curses_boxWidth(void * widget, EObjectType type);
 	
 	int bmx_buttonbox_currentButton(CDKBUTTONBOX * box);
 	void bmx_curses_drawCDKButtonBox(CDKBUTTONBOX * box);
+
+	EExitType bmx_mentry_exitType(CDKMENTRY * entry);
+	void bmx_curses_drawCDKMentry(CDKMENTRY * entry);
+	void bmx_curses_positionCDKMentry(CDKMENTRY * entry);
+	void bmx_curses_eraseCDKMentry(CDKMENTRY * entry);
+	void bmx_curses_injectCDKMentry(CDKMENTRY * entry, int input);
 
 	void bmx_curses_setULCharOf(void * widget, int c);
 	void bmx_curses_setLLCharOf(void * widget, int c);
@@ -100,9 +119,57 @@ extern "C" {
 	int ACS_LANTERN_();
 	int ACS_BLOCK_();
 	
+	int BUTTON1_RELEASED_();
+	int BUTTON1_PRESSED_();
+	int BUTTON1_CLICKED_();
+	int BUTTON1_DOUBLE_CLICKED_();
+	int BUTTON1_TRIPLE_CLICKED_();
+	int BUTTON2_RELEASED_();
+	int BUTTON2_PRESSED_();
+	int BUTTON2_CLICKED_();
+	int BUTTON2_DOUBLE_CLICKED_();
+	int BUTTON2_TRIPLE_CLICKED_();
+	int BUTTON3_RELEASED_();
+	int BUTTON3_PRESSED_();
+	int BUTTON3_CLICKED_();
+	int BUTTON3_DOUBLE_CLICKED_();
+	int BUTTON3_TRIPLE_CLICKED_();
+	int BUTTON4_RELEASED_();
+	int BUTTON4_PRESSED_();
+	int BUTTON4_CLICKED_();
+	int BUTTON4_DOUBLE_CLICKED_();
+	int BUTTON4_TRIPLE_CLICKED_();
+	int BUTTON_CTRL_();
+	int BUTTON_SHIFT_();
+	int BUTTON_ALT_();
+	int REPORT_MOUSE_POSITION_();
+	int ALL_MOUSE_EVENTS_();
+	
+	int LINES_();
+	int COLS_();
+
+	
 	int bmx_curses_getchCDKObject(void * widget, EObjectType type); 
 
+	void bmx_curses_GetUserName(char * buffer);
+	
+	int bmx_mousemask(int mask, int * oldMask);
+	BBObject * bmx_getmouse();
+
 }
+
+
+void bmx_curses_GetUserName(char * buffer) {
+#ifdef _WIN32
+	int len = 256;
+	GetUserName(buffer, &len);
+#else
+	struct passwd * p = getpwuid(getuid());
+	strcpy(buffer, p->pw_name);	
+#endif
+}
+
+// --------------------------------------------------------
 
 EExitType bmx_entry_exitType(CDKENTRY * entry) {
 	return entry->exitType;
@@ -177,6 +244,7 @@ int bmx_curses_getbegy(WINDOW * window) {
 	return getbegy(window);
 }
 
+	
 WINDOW * bmx_curses_CDKButtonbox_window(CDKBUTTONBOX * bbox) {
 	return bbox->win;
 }
@@ -207,6 +275,10 @@ WINDOW * bmx_curses_CDKFSelect_window(CDKLABEL * fselect) {
 
 WINDOW * bmx_curses_CDKCalendar_window(CDKCALENDAR * calendar) {
 	return calendar->win;
+}
+
+WINDOW * bmx_curses_CDKMentry_window(CDKMENTRY * entry) {
+	return entry->win;
 }
 
 int bmx_curses_boxHeight(void * widget, EObjectType type) {
@@ -240,7 +312,7 @@ int bmx_curses_boxHeight(void * widget, EObjectType type) {
 		case vMATRIX:
 			return ((CDKMATRIX *)widget)->boxHeight;
 		case vMENTRY:
-			return ((CDKENTRY *)widget)->boxHeight;
+			return ((CDKMENTRY *)widget)->boxHeight;
 		case vRADIO:
 			return ((CDKRADIO *)widget)->boxHeight;
 		case vSCALE:
@@ -296,7 +368,7 @@ int bmx_curses_boxWidth(void * widget, EObjectType type) {
 		case vMATRIX:
 			return ((CDKMATRIX *)widget)->boxWidth;
 		case vMENTRY:
-			return ((CDKENTRY *)widget)->boxWidth;
+			return ((CDKMENTRY *)widget)->boxWidth;
 		case vRADIO:
 			return ((CDKRADIO *)widget)->boxWidth;
 		case vSCALE:
@@ -340,6 +412,30 @@ void bmx_curses_setURCharOf(void * widget, int c) {
 void bmx_curses_setLRCharOf(void * widget, int c) {
 	setLRCharOf((CDKENTRY*)widget, c);
 }
+
+// --------------------------------------------------------
+
+EExitType bmx_mentry_exitType(CDKMENTRY * entry) {
+	return entry->exitType;
+}
+
+void bmx_curses_drawCDKMentry(CDKMENTRY * entry) {
+	drawCDKMentry(entry, ObjOf(entry)->box);
+}
+
+void bmx_curses_positionCDKMentry(CDKMENTRY * entry) {
+	positionCDKMentry(entry);
+}
+
+void bmx_curses_eraseCDKMentry(CDKMENTRY * entry) {
+	eraseCDKMentry(entry);
+}
+
+void bmx_curses_injectCDKMentry(CDKMENTRY * entry, int input) {
+	injectCDKMentry(entry, input);
+}
+
+// --------------------------------------------------------
 
 int ACS_ULCORNER_() {
 	return ACS_ULCORNER;
@@ -441,6 +537,99 @@ int ACS_BLOCK_() {
 	return ACS_BLOCK;
 }
 
+// --------------------------------------------------------
+
+int BUTTON1_RELEASED_() {
+	return BUTTON1_RELEASED;
+}
+int BUTTON1_PRESSED_() {
+	return BUTTON1_PRESSED;
+}
+int BUTTON1_CLICKED_() {
+	return BUTTON1_CLICKED;
+}
+int BUTTON1_DOUBLE_CLICKED_() {
+	return BUTTON1_DOUBLE_CLICKED;
+}
+int BUTTON1_TRIPLE_CLICKED_() {
+	return BUTTON1_TRIPLE_CLICKED;
+}
+int BUTTON2_RELEASED_() {
+	return BUTTON2_RELEASED;
+}
+int BUTTON2_PRESSED_() {
+	return BUTTON2_PRESSED;
+}
+int BUTTON2_CLICKED_() {
+	return BUTTON2_CLICKED;
+}
+int BUTTON2_DOUBLE_CLICKED_() {
+	return BUTTON2_DOUBLE_CLICKED;
+}
+int BUTTON2_TRIPLE_CLICKED_() {
+	return BUTTON2_TRIPLE_CLICKED;
+}
+int BUTTON3_RELEASED_() {
+	return BUTTON3_RELEASED;
+}
+int BUTTON3_PRESSED_() {
+	return BUTTON3_PRESSED;
+}
+int BUTTON3_CLICKED_() {
+	return BUTTON3_CLICKED;
+}
+int BUTTON3_DOUBLE_CLICKED_() {
+	return BUTTON3_DOUBLE_CLICKED;
+}
+int BUTTON3_TRIPLE_CLICKED_() {
+	return BUTTON3_TRIPLE_CLICKED;
+}
+int BUTTON4_RELEASED_() {
+	return BUTTON4_RELEASED;
+}
+int BUTTON4_PRESSED_() {
+	return BUTTON4_PRESSED;
+}
+int BUTTON4_CLICKED_() {
+	return BUTTON4_CLICKED;
+}
+int BUTTON4_DOUBLE_CLICKED_() {
+	return BUTTON4_DOUBLE_CLICKED;
+}
+int BUTTON4_TRIPLE_CLICKED_() {
+	return BUTTON4_TRIPLE_CLICKED;
+}
+int BUTTON_CTRL_() {
+	return BUTTON_CTRL;
+}
+int BUTTON_SHIFT_() {
+	return BUTTON_SHIFT;
+}
+int BUTTON_ALT_() {
+	return BUTTON_ALT;
+}
+int REPORT_MOUSE_POSITION_() {
+	return REPORT_MOUSE_POSITION;
+}
+
+int ALL_MOUSE_EVENTS_() {
+	return ALL_MOUSE_EVENTS;
+}
+
+
+// --------------------------------------------------------
+
+int LINES_() {
+	return LINES;
+}
+
+int COLS_() {
+	return COLS;
+}
+
+
+// --------------------------------------------------------
+
 int bmx_curses_getchCDKObject(void * widget, EObjectType type) {
 
 	boolean functionKey;
@@ -453,5 +642,54 @@ int bmx_curses_getchCDKObject(void * widget, EObjectType type) {
 	
 }
 
+// --------------------------------------------------------
+
+int bmx_mousemask(int mask, int * oldMask) {
+	mmask_t om;
+	int res = mousemask(mask, &om);
+	*oldMask = om;
+	return res;
+}
+
+BBObject * bmx_getmouse() {
+	MEVENT event;
+	BBObject * mouseEvent = &bbNullObject;
 	
+	if (getmouse(&event) == OK) {
+printf("x = %d\n", event.x);fflush(stdout);
+		mouseEvent = _bah_curses_TMouseEvent__create(event.id, event.x, event.y, event.z, event.bstate);
+	}
+	
+	return mouseEvent;
+}
+
+int bmx_curses_waddstr(WINDOW * window, BBString * text, int maxChars) {
+	char * t = bbStringToUTF8String(text);
+	int ret = 0;
+
+	if (maxChars >= 0) {
+		ret = waddnstr(window, t, maxChars);
+	} else {
+		ret = waddstr(window, t);
+	}
+	bbMemFree(t);
+	return ret;
+}
+
+int bmx_curses_mvwaddstr(WINDOW * window, int x, int y, BBString * text, int maxChars) {
+	char * t = bbStringToUTF8String(text);
+	int ret = 0;
+
+	if (maxChars >= 0) {
+		ret = mvwaddnstr(window, y, x, t, maxChars);
+	} else {
+		ret = mvwaddstr(window, y, x, t);
+	}
+	bbMemFree(t);
+	return ret;
+}
+
+// --------------------------------------------------------
+
+
 	

@@ -2,8 +2,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/04/06 19:59:29 $
- * $Revision: 1.54 $
+ * $Date: 2011/05/16 22:36:08 $
+ * $Revision: 1.56 $
  *
  * Notes:
  *
@@ -55,7 +55,7 @@ void bindCDKObject (EObjectType cdktype,
    {
       if (key != 0 && (unsigned)key >= obj->bindingCount)
       {
-	 unsigned next = (key + 1);
+	 unsigned next = (unsigned) (key + 1);
 
 	 if (obj->bindingList != 0)
 	    obj->bindingList = typeReallocN (CDKBINDING, obj->bindingList, next);
@@ -177,7 +177,7 @@ int getcCDKObject (CDKOBJS *obj)
       result = (int)(long)test->bindingList[result].bindData;
    }
    else if (test == 0
-	    || (unsigned)result > test->bindingCount
+	    || (unsigned)result >= test->bindingCount
 	    || test->bindingList[result].bindFunction == 0)
    {
       switch (result)

@@ -1,5 +1,5 @@
 /*
- * $Id: dialog.h,v 1.24 2005/12/28 13:39:16 tom Exp $
+ * $Id: dialog.h,v 1.26 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2002,2003 copyright Thomas E. Dickey
+ * Changes 1999-2003,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -94,9 +94,9 @@ CDKDIALOG *newCDKDialog (
 		CDKSCREEN *	/* cdkscreen */,
 		int		/* xPos */,
 		int		/* yPos */,
-		char **		/* message */,
+		CDK_CSTRING2	/* message */,
 		int		/* Rows */,
-		char **		/* buttons */,
+		CDK_CSTRING2	/* buttons */,
 		int		/* buttonCount */,
 		chtype		/* highlight */,
 		boolean		/* separator */,

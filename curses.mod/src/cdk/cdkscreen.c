@@ -6,8 +6,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2005/12/29 20:51:17 $
- * $Revision: 1.87 $
+ * $Date: 2008/11/01 14:27:23 $
+ * $Revision: 1.88 $
  */
 
 typedef struct _all_screens
@@ -388,12 +388,6 @@ void refreshCDKScreen (CDKSCREEN *cdkscreen)
 	 }
       }
    }
-
-   /*
-    * Exactly one widget should have focus, and it should be visible.
-    */
-   if (focused < 0)
-      focused = visible;
 
    for (x = 0; x < objectCount; x++)
    {

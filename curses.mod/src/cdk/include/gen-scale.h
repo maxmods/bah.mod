@@ -1,5 +1,5 @@
 /*
- * $Id: gen-scale.h,v 1.7 2004/08/30 00:00:57 tom Exp $
+ * $Id: gen-scale.h,v 1.8 2012/03/20 21:59:39 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Copyright 2004, Thomas E. Dickey
+ * Copyright 2004,2012 Thomas E. Dickey
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,8 +90,8 @@ CDK<UPPER> *newCDK<MIXED> (
 		CDKSCREEN *	/* cdkscreen */,
 		int		/* xpos */,
 		int		/* ypos */,
-		char *		/* title */,
-		char *		/* label */,
+		const char *	/* title */,
+		const char *	/* label */,
 		chtype		/* fieldAttr */,
 		int		/* fieldWidth */,
 		<CTYPE>		/* start */,

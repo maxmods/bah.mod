@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009, Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,10 @@ Module BaH.Curses
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (cdk 5.0.20060507, pdcurses 3.4)"
+ModuleInfo "History: Initial Release. (cdk 5.0.20120323, pdcurses 3.4)"
 
 ?macos
 ModuleInfo "CC_OPTS: -DNCURSES_OPAQUE=0"
@@ -47,18 +47,20 @@ Import "common.bmx"
 
 Import "core.bmx"
 Import "types/buttonbox.bmx"
-Import "types/dialog.bmx"
+'Import "types/dialog.bmx"
 Import "types/entry.bmx"
+Import "types/mentry.bmx"
 Import "types/label.bmx"
 Import "types/scrolllist.bmx"
 Import "types/slider.bmx"
 Import "types/calendar.bmx"
+'Import "types/matrix.bmx"
 
 New TCDKDriver
 
 
 
-
+Rem
 Type TCursesPanel
 
 	Field panelPtr:Byte Ptr
@@ -91,6 +93,6 @@ Type TCursesPanel
 	
 	
 End Type
-
+End Rem
 
 

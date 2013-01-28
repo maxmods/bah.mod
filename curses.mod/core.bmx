@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009, Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -308,7 +308,7 @@ End Type
 Type TCDKDriver
 
 	' the main curses window
-	Global cursesWindow:Byte Ptr
+	Global mainWindow:TCursesWindow
 	' list of screens in use
 	Global screens:TList = New TList
 	Global initialized:Int = False
@@ -324,7 +324,7 @@ Type TCDKDriver
 		
 			brl.System.Driver = New TConsoleSystemDriver
 		
-			cursesWindow = initscr()
+			mainWindow = TCursesWindow._create(initscr())
 			cbreak()
 			
 			SetCurrentScreen(TCursesScreen.Create())
@@ -417,7 +417,7 @@ Type TCursesScreen
 	Function Create:TCursesScreen()
 		Local this:TCursesScreen = New TCursesScreen
 		
-		this.screenPtr = initCDKScreen(TCDKDriver.cursesWindow)
+		this.screenPtr = initCDKScreen(TCDKDriver.mainWindow.windowPtr)
 		
 		Return this
 	End Function
@@ -477,6 +477,10 @@ Type TConsoleSystemDriver Extends TSystemDriver
 		
 	' seems a bit hacky....  but for now it works ;-)
 	Method wait()
+		Local mouseEvent:TMouseEvent = TMouseEvent(bmx_getmouse())
+		If mouseEvent Then
+			EmitEvent CreateEvent(mouseEvent.event, mouseEvent, 0, mouseEvent.x, mouseEvent.y)
+		End If
 		If TCDKDriver.focusWidget Then
 			Local k:Int = bmx_curses_getchCDKObject(TCDKDriver.focusWidget.widgetPtr, TCDKDriver.focusWidget.getType())
 			If k <> -1 Then
@@ -520,15 +524,7 @@ Type TConsoleSystemDriver Extends TSystemDriver
 		
 		serious = Max(0,Min(serious, 1))
 
-		Local parts:String[] = _stringSplit(text,"~n")
-		
-		For Local i:Int = 0 Until parts.length
-		
-			parts[i] = "<C>" + parts[i]
-		
-		Next
-		
-		popupLabel(parts)
+		popupLabel(StringToCenteredArray(text))
 		
 	End Method
 	
@@ -541,9 +537,27 @@ Type TConsoleSystemDriver Extends TSystemDriver
 		End If
 		
 		serious = Max(0,Min(serious, 1))
-
-		' TODO
 		
+		Local parts:String[] = StringToCenteredArray(text)
+		
+		If serious Then
+			parts = ["</U>Warning", ""] + parts
+		Else
+			parts = ["</U>Info", ""] + parts
+		End If
+
+		Local dialog:TCursesDialog = TCursesDialog.Create(POS_CENTER, POS_CENTER, parts, ..
+			["</B/24>Ok", "<R></B16>Cancel"], COLOR_PAIR(2) | A_REVERSE, True, True, False)
+		
+		Local res:Int = 0
+		
+		If dialog Then
+			res = 1 - dialog.activate() 
+		End If
+		
+		dialog.free()
+		
+		Return res
 	End Method
 	
 	Rem
@@ -556,8 +570,26 @@ Type TConsoleSystemDriver Extends TSystemDriver
 		
 		serious = Max(0,Min(serious, 1))
 		
-		' TODO
+		Local parts:String[] = StringToCenteredArray(text)
 		
+		If serious Then
+			parts = ["</U>Warning", ""] + parts
+		Else
+			parts = ["</U>Info", ""] + parts
+		End If
+
+		Local dialog:TCursesDialog = TCursesDialog.Create(POS_CENTER, POS_CENTER, parts, ..
+			["</B/24>Yes", "</B/16>No", "<R></B16>Cancel"], COLOR_PAIR(2) | A_REVERSE, True, True, False)
+		
+		Local res:Int = -1
+		
+		If dialog Then
+			res = 1 - dialog.activate() 
+		End If
+		
+		dialog.free()
+		
+		Return res
 	End Method
 
 	Method RequestFile:String( text:String,exts:String, Save:Int,file:String )
@@ -571,6 +603,8 @@ Type TConsoleSystemDriver Extends TSystemDriver
 			
 		f = fs.activate()
 
+		fs.free()
+		
 		Return f
 	End Method
 	
@@ -586,6 +620,27 @@ Type TConsoleSystemDriver Extends TSystemDriver
 	Method OpenURL:Int( url:String )
 		Return NativeDriver.OpenURL(url)
 	End Method
+End Type
+
+Type TMouseEvent
+
+	Field id:Int
+	Field state:Int
+	Field x:Int
+	Field y:Int
+	Field z:Int
+	Field event:Int
+
+	Function _create:TMouseEvent(id:Int, x:Int, y:Int, z:Int, state:Int)
+		Local this:TMouseEvent = New TMouseEvent
+		this.id = id
+		this.x = x
+		this.y = y
+		this.z = z
+		this.state = state
+		Return this
+	End Function
+
 End Type
 
 
@@ -712,6 +767,245 @@ Function popupLabel(message:String[], attribute:Int = 0)
 End Function
 
 Rem
+bbdoc: 
+End Rem
+Type TCursesDialog Extends TCursesWidget
+
+	Field message:Byte Ptr
+	Field messageCount:Int
+	Field _buttons:Byte Ptr
+	Field buttonCount:Int
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function Create:TCursesDialog(x:Int, y:Int, text:String[], buttons:String[], highlight:Int, separator:Int, box:Int, shadow:Int)
+		Local this:TCursesDialog = New TCursesDialog
+		
+		this.init(x, y, text, buttons, highlight, separator, box, shadow)
+		
+		If Not this.widgetPtr Then
+			this.free()
+			Return Null
+		End If
+
+		TCDKDriver.currentScreen.addWidget(this)
+	
+		Return this
+	End Function
+	
+	Method Init(x:Int, y:Int, text:String[], buttons:String[], highlight:Int, separator:Int, box:Int, shadow:Int)
+
+		messageCount = text.length
+		message = arrayToCStrings(text)
+	
+		buttonCount = buttons.length
+		_buttons = arrayToCStrings(buttons)
+		
+		widgetPtr = newCDKDialog(TCDKDriver.currentScreen.screenPtr, x, y, message, text.length, _buttons, buttons.length, highlight, separator, box, shadow)
+		
+	End Method
+	
+	Method free()
+	
+		If message Then
+			freeCStringArray(message, messageCount)
+		End If
+		
+		If _buttons Then
+			freeCStringArray(_buttons, buttonCount)
+		End If
+	
+		Super.free()
+	
+	End Method
+	
+	Method show()
+	
+	End Method
+	
+	Method position()
+	
+	End Method
+	
+	Method hide()
+	
+	End Method
+
+	Method move(x:Int, y:Int, relative:Int, refresh:Int)
+	End Method
+	
+	Method injectCharacter(char:Int)
+	End Method
+	
+	Method getWindow:Byte Ptr()
+		Return bmx_curses_CDKDialog_window(widgetPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the currently selected button.
+	End Rem
+	Method currentButton:Int()
+		Return bmx_dialog_currentButton(widgetPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Activate:Int(actions:Int = 0)
+	
+		Return activateCDKDialog(widgetPtr, actions)
+	
+	End Method
+
+	Method getType:Int()
+		Return vDIALOG
+	End Method
+
+End Type
+
+
+
+Type TCursesPanel
+
+	Field panelPtr:Byte Ptr
+	Field window:TCursesWindow
+	
+	Function Create:TCursesPanel(window:TCursesWindow)
+		Local this:TCursesPanel = New TCursesPanel
+	
+		this.window = window
+		this.panelPtr = new_panel(window.windowPtr)
+	
+		Return this
+	End Function
+
+	Method bottom()
+		bottom_panel(panelPtr)
+	End Method
+	
+	Method hide()
+		hide_panel(panelPtr)
+	End Method
+	
+	Method show()
+		show_panel(panelPtr)
+	End Method
+	
+	Method move(x:Int, y:Int)
+		move_panel(panelPtr, x, y)
+	End Method
+	
+	Method top()
+		top_panel(panelPtr)
+	End Method
+	
+	Method isHidden:Int()
+		Return panel_hidden(panelPtr)
+	End Method
+	
+	
+End Type
+
+Rem
+bbdoc: A Curses Window.
+End Rem
+Type TCursesWindow
+
+	Field windowPtr:Byte Ptr
+	
+	Rem
+	bbdoc: Creates a new window of the given dimensions at the specific coordinates.
+	End Rem
+	Function Create:TCursesWindow(x:Int, y:Int, w:Int, h:Int)
+		Local this:TCursesWindow = New TCursesWindow
+		this.windowPtr = newwin(h, w, x, y)
+		If this.windowPtr Then
+			Return this
+		End If
+	End Function
+	
+	' private
+	Function _create:TCursesWindow(windowPtr:Byte Ptr)
+		If windowPtr Then
+			Local this:TCursesWindow = New TCursesWindow
+			this.windowPtr = windowPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Writes the characters of the string on the window.
+	returns: 0 on success, -1 on error.
+	about: If maxChars is -1, then the entire string will be added, up to  the  maximum
+	number of characters that will fit on the line, otherwise only the specified count of characters
+	will be added.
+	End Rem
+	Method addStr:Int(text:String, maxChars:Int = -1)
+		Return bmx_curses_waddstr(windowPtr, text, maxChars)
+	End Method
+	
+	Rem
+	bbdoc: Moves the cursor to (x, y) and then writes the characters string on the window.
+	returns: 0 on success, -1 on error.
+	about: If maxChars is -1, then the entire string will be added, up to  the  maximum
+	number of characters that will fit on the line, otherwise only the specified count of characters
+	will be added.
+	End Rem
+	Method moveAddStr:Int(x:Int, y:Int, text:String, maxChars:Int = -1)
+		Return bmx_curses_mvwaddstr(windowPtr, x, y, text, maxChars)
+	End Method
+	
+	Rem
+	bbdoc: Moves the window so that the upper left-hand corner is at position (x, y).
+	about: If the move would cause  the  window  to be off the screen, it is an error and the window is not moved.
+	End Rem
+	Method move:Int(x:Int, y:Int)
+		Return mvwin(windowPtr, y, x)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method free()
+		If windowPtr Then
+			delwin(windowPtr)
+			windowPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		free()
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Function mousemask:Int(mask:Int, oldMask:Int Var)
+	Return bmx_mousemask(mask, Varptr oldMask)
+End Function
+
+Rem
+bbdoc: 
+End Rem
+Function shell:Int(command:String = Null)
+	Local ret:Int
+	
+	def_prog_mode()
+	endwin()
+	If Not command Then
+		ret = system_("sh")
+	Else
+		ret = system_(command)
+	End If
+	refresh()
+	
+	Return ret
+End Function 
+
+Rem
 bbdoc: Left Tee.
 about: Tee pointing to the right
 End Rem
@@ -815,4 +1109,114 @@ Rem
 bbdoc: Solid square block.
 End Rem
 Global ACS_BLOCK:Int = ACS_BLOCK_()
+Rem
+bbdoc: Mouse button 1 up.
+End Rem
+Global BUTTON1_RELEASED:Int = BUTTON1_RELEASED_()
+Rem
+bbdoc: Mouse button 1 down.
+End Rem
+Global BUTTON1_PRESSED:Int = BUTTON1_PRESSED_()
+Rem
+bbdoc: Mouse button 1 clicked.
+End Rem
+Global BUTTON1_CLICKED:Int = BUTTON1_CLICKED_()
+Rem
+bbdoc: Mouse button 1 double clicked.
+End Rem
+Global BUTTON1_DOUBLE_CLICKED:Int = BUTTON1_DOUBLE_CLICKED_()
+Rem
+bbdoc: Mouse button 1 triple clicked.
+End Rem
+Global BUTTON1_TRIPLE_CLICKED:Int = BUTTON1_TRIPLE_CLICKED_()
+Rem
+bbdoc: Mouse button 2 up.
+End Rem
+Global BUTTON2_RELEASED:Int = BUTTON2_RELEASED_()
+Rem
+bbdoc: Mouse button 2 down.
+End Rem
+Global BUTTON2_PRESSED:Int = BUTTON2_PRESSED_()
+Rem
+bbdoc: Mouse button 2 clicked.
+End Rem
+Global BUTTON2_CLICKED:Int = BUTTON2_CLICKED_()
+Rem
+bbdoc: Mouse button 2 double clicked.
+End Rem
+Global BUTTON2_DOUBLE_CLICKED:Int = BUTTON2_DOUBLE_CLICKED_()
+Rem
+bbdoc: Mouse button 2 triple clicked.
+End Rem
+Global BUTTON2_TRIPLE_CLICKED:Int = BUTTON2_TRIPLE_CLICKED_()
+Rem
+bbdoc: Mouse button 3 up.
+End Rem
+Global BUTTON3_RELEASED:Int = BUTTON3_RELEASED_()
+Rem
+bbdoc: Mouse button 3 down.
+End Rem
+Global BUTTON3_PRESSED:Int = BUTTON3_PRESSED_()
+Rem
+bbdoc: Mouse button 3 clicked.
+End Rem
+Global BUTTON3_CLICKED:Int = BUTTON3_CLICKED_()
+Rem
+bbdoc: Mouse button 3 double clicked.
+End Rem
+Global BUTTON3_DOUBLE_CLICKED:Int = BUTTON3_DOUBLE_CLICKED_()
+Rem
+bbdoc: Mouse button 3 triple clicked.
+End Rem
+Global BUTTON3_TRIPLE_CLICKED:Int = BUTTON3_TRIPLE_CLICKED_()
+Rem
+bbdoc: Mouse button 4 up.
+End Rem
+Global BUTTON4_RELEASED:Int = BUTTON4_RELEASED_()
+Rem
+bbdoc: Mouse button 4 down.
+End Rem
+Global BUTTON4_PRESSED:Int = BUTTON4_PRESSED_()
+Rem
+bbdoc: Mouse button 4 clicked.
+End Rem
+Global BUTTON4_CLICKED:Int = BUTTON4_CLICKED_()
+Rem
+bbdoc: Mouse button 4 double clicked.
+End Rem
+Global BUTTON4_DOUBLE_CLICKED:Int = BUTTON4_DOUBLE_CLICKED_()
+Rem
+bbdoc: Mouse button 4 triple clicked.
+End Rem
+Global BUTTON4_TRIPLE_CLICKED:Int = BUTTON4_TRIPLE_CLICKED_()
+Rem
+bbdoc: Control was down during button state change.
+End Rem
+Global BUTTON_CTRL:Int = BUTTON_CTRL_()
+Rem
+bbdoc: Shift was down during button state change.
+End Rem
+Global BUTTON_SHIFT:Int = BUTTON_SHIFT_()
+Rem
+bbdoc: Alt was down during button state change.
+End Rem
+Global BUTTON_ALT:Int = BUTTON_ALT_()
+Rem
+bbdoc: Report mouse movement.
+End Rem
+Global REPORT_MOUSE_POSITION:Int = REPORT_MOUSE_POSITION_()
+
+Rem
+bbdoc: Report all button state changes.
+End Rem
+Global ALL_MOUSE_EVENTS:Int = ALL_MOUSE_EVENTS_()
+
+Rem
+bbdoc: 
+End Rem
+Global LINES:Int = LINES_()
+Rem
+bbdoc: 
+End Rem
+Global COLS:Int = COLS_()
 

@@ -30,7 +30,7 @@ Import "../core.bmx"
 Rem
 bbdoc: 
 End Rem
-Type TCursesEntry Extends TCursesWidget
+Type TCursesMultiEntry Extends TCursesWidget
 
 	Field titlePtr:Byte Ptr
 	Field labelPtr:Byte Ptr
@@ -38,13 +38,13 @@ Type TCursesEntry Extends TCursesWidget
 	Rem
 	bbdoc: 
 	End Rem
-	Function Create:TCursesEntry(x:Int, y:Int, title:String, label:String, attribute:Int, ..
-			filler:String, displayType:Int, width:Int, fieldMin:Int, fieldMax:Int, box:Int = True, ..
-			shadow:Int = False)
+	Function Create:TCursesMultiEntry(x:Int, y:Int, title:String, label:String, attribute:Int, ..
+			filler:String, displayType:Int, width:Int, rows:Int, logicalRows:Int, fieldMin:Int, ..
+			box:Int = True, shadow:Int = False)
 	
-		Local this:TCursesEntry = New TCursesEntry
+		Local this:TCursesMultiEntry = New TCursesMultiEntry
 		
-		this.init(x, y, title, label, attribute, filler, displayType, width, fieldMin, fieldMax, box, shadow)
+		this.init(x, y, title, label, attribute, filler, displayType, width, rows, logicalRows, fieldMin, box, shadow)
 
 		If Not this.widgetPtr Then
 			this.free()
@@ -58,8 +58,8 @@ Type TCursesEntry Extends TCursesWidget
 	End Function
 	
 	Method Init(x:Int, y:Int, title:String, label:String, attribute:Int, ..
-			filler:String = ".", displayType:Int, width:Int, fieldMin:Int, fieldMax:Int, box:Int, ..
-			shadow:Int)
+			filler:String = ".", displayType:Int, width:Int, rows:Int, logicalRows:Int, fieldMin:Int, ..
+			box:Int, 	shadow:Int)
 
 		If title Then
 			titlePtr = title.toCString()
@@ -67,11 +67,11 @@ Type TCursesEntry Extends TCursesWidget
 		labelPtr = label.toCString()
 		
 		If title Then
-			widgetPtr = newCDKEntry(TCDKDriver.currentScreen.screenPtr, x, y, titlePtr, labelPtr, attribute, ..
-				filler[0], displayType, width, fieldMin, fieldMax, box, shadow)
+			widgetPtr = newCDKMentry(TCDKDriver.currentScreen.screenPtr, x, y, titlePtr, labelPtr, attribute, ..
+				filler[0], displayType, width, rows, logicalRows, fieldMin, box, shadow)
 		Else
-			widgetPtr = newCDKEntry(TCDKDriver.currentScreen.screenPtr, x, y, Null, labelPtr, attribute, ..
-				filler[0], displayType, width, fieldMin, fieldMax, box, shadow)
+			widgetPtr = newCDKMentry(TCDKDriver.currentScreen.screenPtr, x, y, Null, labelPtr, attribute, ..
+				filler[0], displayType, width, rows, logicalRows, fieldMin, box, shadow)
 		End If
 		
 	
@@ -82,7 +82,7 @@ Type TCursesEntry Extends TCursesWidget
 	End Rem
 	Method Activate:String(actions:Int = 0)
 	
-		Local s:Byte Ptr = activateCDKEntry(widgetPtr, actions)
+		Local s:Byte Ptr = activateCDKMentry(widgetPtr, actions)
 		
 		If s Then
 			Return String.fromCString(s)
@@ -96,71 +96,71 @@ Type TCursesEntry Extends TCursesWidget
 	about: Can be one of vEARLY_EXIT, vESCAPE_HIT, vNORMAL or vNEVER_ACTIVATED.
 	End Rem
 	Method exitType:Int()
-		Return bmx_entry_exitType(widgetPtr)
+		Return bmx_mentry_exitType(widgetPtr)
 	End Method
 
 	Rem
 	bbdoc: Sets various attributes of the entry field.
 	End Rem
-	Method setEntry(value:String, fieldMin:Int, fieldMax:Int, box:Int = True)
-		setCDKEntry(widgetPtr, value, fieldMin, fieldMax, box)
+	Method setEntry(value:String, fieldMin:Int, box:Int = True)
+		setCDKMentry(widgetPtr, value, fieldMin, box)
 	End Method
 	
 	Rem
 	bbdoc: Sets the value of the entry field.
 	End Rem
 	Method setValue(value:String)
-		setCDKEntryValue(widgetPtr, value)
+		setCDKMentryValue(widgetPtr, value)
 	End Method
 	
 	Rem
 	bbdoc: Gets the current value of the entry field.
 	End Rem
 	Method getValue:String()
-		Local s:Byte Ptr = getCDKEntryValue(widgetPtr)
+		Local s:Byte Ptr = getCDKMentryValue(widgetPtr)
 		If s Then
 			Return String.fromCString(s)
 		End If
 	End Method
 	
 	Rem
-	bbdoc: This sets the maximum length of the string allowable.
-	End Rem
-	Method setMax(fieldMax:Int)
-		setCDKEntryMax(widgetPtr, fieldMax)
-	End Method
-	
-	Rem
-	bbdoc: This sets the minimum length of the string allowable.
+	bbdoc: Sets the minimum length of the string allowable.
 	End Rem
 	Method setMin(fieldMin:Int)
-		setCDKEntryMin(widgetPtr, fieldMin)
-	End Method
-	
-	Method show()
-		bmx_curses_drawCDKEntry(widgetPtr)
+		setCDKMentryMin(widgetPtr, fieldMin)
 	End Method
 
 	Rem
-	bbdoc: Enables positionin
+	bbdoc: Gets the minimum length of the string allowable.
+	End Rem
+	Method getMin:Int()
+		Return getCDKMentryMin(widgetPtr)
+	End Method
+	
+	Method show()
+		bmx_curses_drawCDKMentry(widgetPtr)
+	End Method
+
+	Rem
+	bbdoc: Interactively moves the widget on the screen.
 	End Rem
 	Method position()
-		bmx_curses_positionCDKEntry(widgetPtr)
+		bmx_curses_positionCDKMentry(widgetPtr)
 	End Method
 	
 	Method hide()
-		bmx_curses_eraseCDKEntry(widgetPtr)
+		bmx_curses_eraseCDKMentry(widgetPtr)
 	End Method
 
 	Method move(x:Int, y:Int, relative:Int, refresh:Int)
 	End Method
 
 	Method injectCharacter(char:Int)
-		bmx_curses_injectCDKEntry(widgetPtr, char)
+		bmx_curses_injectCDKMentry(widgetPtr, char)
 	End Method
 
 	Method getWindow:Byte Ptr()
-		Return bmx_curses_CDKEntry_window(widgetPtr)
+		Return bmx_curses_CDKMentry_window(widgetPtr)
 	End Method
 
 	Method free()
@@ -180,7 +180,7 @@ Type TCursesEntry Extends TCursesWidget
 	End Method
 
 	Method getType:Int()
-		Return vENTRY
+		Return vMENTRY
 	End Method
 
 

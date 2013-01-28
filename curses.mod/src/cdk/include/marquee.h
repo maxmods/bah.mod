@@ -1,5 +1,5 @@
 /*
- * $Id: marquee.h,v 1.18 2004/08/30 00:00:57 tom Exp $
+ * $Id: marquee.h,v 1.19 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2002,2003 copyright Thomas E. Dickey
+ * Changes 1999-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -86,7 +86,7 @@ CDKMARQUEE *newCDKMarquee (
  */
 int activateCDKMarquee (
 		CDKMARQUEE *	/* marquee */,
-		char *		/* message */,
+		const char *	/* message */,
 		int		/* delay */,
 		int		/* repeat */,
 		boolean		/* Box */);

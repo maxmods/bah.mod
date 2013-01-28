@@ -1,5 +1,5 @@
 /*
- * $Id: cdk.h,v 1.34 2004/08/29 21:49:32 tom Exp $
+ * $Id: cdk.h,v 1.37 2012/03/20 22:01:57 tom Exp $
  */
 
 #ifndef CDK_H
@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 2000-2003,2004 copyright Thomas E. Dickey
+ * Changes 2000-2009,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -54,10 +54,10 @@ extern "C" {
 #ifdef HAVE_XCURSES
 #include <xcurses.h>
 #ifndef mvwhline
-#define mvwhline(win,y,x,c,n)     	(wmove(win,y,x) == ERR ? ERR : whline(win,c,n))
+#define mvwhline(win,y,x,c,n)     (wmove(win,y,x) == ERR ? ERR : whline(win,c,n))
 #endif
 #ifndef mvwvline
-#define mvwvline(win,y,x,c,n)     	(wmove(win,y,x) == ERR ? ERR : wvline(win,c,n))
+#define mvwvline(win,y,x,c,n)     (wmove(win,y,x) == ERR ? ERR : wvline(win,c,n))
 #endif
 #elif defined(HAVE_NCURSESW_NCURSES_H)
 #include <ncursesw/ncurses.h>
@@ -75,15 +75,20 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_DIRENT_H
 #include <dirent.h>
+#endif
 #include <time.h>
 #include <errno.h>
-#ifndef WIN32
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
+#ifdef HAVE_GRP_H
 #include <grp.h>
 #endif
-
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -219,7 +224,7 @@ typedef enum {vFRONT, vBACK, vBOTH} EStripType;
  * This enumerated typedef defines the type of exits the widgets
  * recognize.
  */
-typedef enum {vEARLY_EXIT, vESCAPE_HIT, vNORMAL, vNEVER_ACTIVATED} EExitType;
+typedef enum {vEARLY_EXIT, vESCAPE_HIT, vNORMAL, vNEVER_ACTIVATED, vERROR} EExitType;
 
 /*
  * This defines a boolean type.
@@ -267,8 +272,8 @@ extern  FILE	*CDKDEBUG;
 #define START_DEBUG(a)		(CDKDEBUG=startCDKDebug(a))
 #define WRITE_DEBUGMESG(a,b)	(writeCDKDebugMessage (CDKDEBUG,__FILE__,a,__LINE__,b))
 #define	END_DEBUG		(stopCDKDebug(CDKDEBUG)
-FILE *startCDKDebug(char *filename);
-void writeCDKDebugMessage (FILE *fd, char *filename, char *function, int line, char *message);
+FILE *startCDKDebug(const char *filename);
+void writeCDKDebugMessage (FILE *fd, const char *filename, const char *function, int line, const char *message);
 void stopCDKDebug (FILE *fd);
 
 /*

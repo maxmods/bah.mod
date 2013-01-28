@@ -1,5 +1,5 @@
 /*
- * $Id: itemlist.h,v 1.23 2004/08/30 00:00:57 tom Exp $
+ * $Id: itemlist.h,v 1.24 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2003 copyright Thomas E. Dickey
+ * Changes 1999-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -88,9 +88,9 @@ CDKITEMLIST *newCDKItemlist (
 		CDKSCREEN *	/* cdkscreen */,
 		int		/* xpos */,
 		int		/* ypos */,
-		char *		/* title */,
-		char *		/* label */,
-		char **		/* itemlist */,
+		const char *	/* title */,
+		const char *	/* label */,
+		CDK_CSTRING2	/* itemlist */,
 		int		/* count */,
 		int		/* defaultItem */,
 		boolean		/* Box */,
@@ -113,7 +113,7 @@ int activateCDKItemlist (
  */
 void setCDKItemlist (
 		CDKITEMLIST *	/* itemlist */,
-		char **		/* list */,
+		CDK_CSTRING2	/* list */,
 		int		/* count */,
 		int		/* current */,
 		boolean		/* Box */);
@@ -123,7 +123,7 @@ void setCDKItemlist (
  */
 void setCDKItemlistValues (
 		CDKITEMLIST *	/* itemlist */,
-		char **		/* list */,
+		CDK_CSTRING2	/* list */,
 		int		/* count */,
 		int		/* defaultItem */);
 

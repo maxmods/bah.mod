@@ -2,47 +2,57 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/05/05 00:27:44 $
- * $Revision: 1.79 $
+ * $Date: 2012/03/21 08:44:22 $
+ * $Revision: 1.84 $
  */
 
-static int createList (CDKITEMLIST *itemlist, char **item, int count);
+static int createList (CDKITEMLIST *itemlist, CDK_CSTRING2 item, int count);
 static int createFieldWin (CDKITEMLIST *itemlist, int ypos, int xpos);
 static int maximumFieldWidth (CDKITEMLIST *itemlist);
 static void updateFieldWidth (CDKITEMLIST *itemlist);
 
-DeclareCDKObjects(ITEMLIST, Itemlist, setCdk, Int);
+DeclareCDKObjects (ITEMLIST, Itemlist, setCdk, Int);
 
 /*
  * This creates a pointer to an itemlist widget.
  */
-CDKITEMLIST *newCDKItemlist (CDKSCREEN *cdkscreen, int xplace, int yplace, char *title, char *label, char **item, int count, int defaultItem, boolean Box, boolean shadow)
+CDKITEMLIST *newCDKItemlist (CDKSCREEN *cdkscreen,
+			     int xplace,
+			     int yplace,
+			     const char *title,
+			     const char *label,
+			     CDK_CSTRING2 item,
+			     int count,
+			     int defaultItem,
+			     boolean Box,
+			     boolean shadow)
 {
    /* Set up some variables.  */
    CDKITEMLIST *itemlist = 0;
-   int parentWidth	= getmaxx(cdkscreen->window);
-   int parentHeight	= getmaxy(cdkscreen->window);
-   int boxWidth		= 0;
+   /* *INDENT-EQLS* */
+   int parentWidth      = getmaxx (cdkscreen->window);
+   int parentHeight     = getmaxy (cdkscreen->window);
+   int boxWidth         = 0;
    int boxHeight;
-   int fieldWidth	= 0;
-   int xpos		= xplace;
-   int ypos		= yplace;
+   int fieldWidth       = 0;
+   int xpos             = xplace;
+   int ypos             = yplace;
    int junk;
 
-   if ((itemlist = newCDKObject(CDKITEMLIST, &my_funcs)) == 0
-    || !createList(itemlist, item, count))
+   if ((itemlist = newCDKObject (CDKITEMLIST, &my_funcs)) == 0
+       || !createList (itemlist, item, count))
    {
       destroyCDKObject (itemlist);
       return (0);
    }
 
    setCDKItemlistBox (itemlist, Box);
-   boxHeight		= (BorderOf(itemlist) * 2) + 1;
+   boxHeight = (BorderOf (itemlist) * 2) + 1;
 
-   /* Set some basic values of the itemlist. */
-   itemlist->label	= 0;
-   itemlist->labelLen	= 0;
-   itemlist->labelWin	= 0;
+   /* *INDENT-EQLS* Set some basic values of the itemlist. */
+   itemlist->label      = 0;
+   itemlist->labelLen   = 0;
+   itemlist->labelWin   = 0;
 
    /* Translate the label char *pointer to a chtype pointer. */
    if (label != 0)
@@ -51,27 +61,25 @@ CDKITEMLIST *newCDKItemlist (CDKSCREEN *cdkscreen, int xplace, int yplace, char 
    }
 
    /*
-    * Set the box width.  Allow an extra char in field width for cursor
+    * *INDENT-EQLS* Set the box width.  Allow an extra char in field width for cursor
     */
    fieldWidth = maximumFieldWidth (itemlist) + 1;
-   boxWidth = fieldWidth + itemlist->labelLen + 2 * BorderOf(itemlist);
-
-   boxWidth = setCdkTitle(ObjOf(itemlist), title, boxWidth);
-
-   boxHeight += TitleLinesOf(itemlist);
+   boxWidth = fieldWidth + itemlist->labelLen + 2 * BorderOf (itemlist);
+   boxWidth = setCdkTitle (ObjOf (itemlist), title, boxWidth);
+   boxHeight += TitleLinesOf (itemlist);
 
    /*
     * Make sure we didn't extend beyond the dimensions of the window.
     */
-   itemlist->boxWidth = MINIMUM(boxWidth, parentWidth);
-   itemlist->boxHeight = MINIMUM(boxHeight, parentHeight);
+   itemlist->boxWidth = MINIMUM (boxWidth, parentWidth);
+   itemlist->boxHeight = MINIMUM (boxHeight, parentHeight);
    updateFieldWidth (itemlist);
 
    /* Rejustify the x and y positions if we need to. */
    alignxy (cdkscreen->window, &xpos, &ypos, boxWidth, boxHeight);
 
    /* Make the window. */
-   itemlist->win = newwin(boxHeight, boxWidth, ypos, xpos);
+   itemlist->win = newwin (boxHeight, boxWidth, ypos, xpos);
    if (itemlist->win == 0)
    {
       destroyCDKObject (itemlist);
@@ -84,8 +92,8 @@ CDKITEMLIST *newCDKItemlist (CDKSCREEN *cdkscreen, int xplace, int yplace, char 
       itemlist->labelWin = subwin (itemlist->win,
 				   1,
 				   itemlist->labelLen,
-				   ypos + BorderOf(itemlist) + TitleLinesOf(itemlist),
-				   xpos + BorderOf(itemlist));
+				   ypos + BorderOf (itemlist) + TitleLinesOf (itemlist),
+				   xpos + BorderOf (itemlist));
       if (itemlist->labelWin == 0)
       {
 	 destroyCDKObject (itemlist);
@@ -96,34 +104,34 @@ CDKITEMLIST *newCDKItemlist (CDKSCREEN *cdkscreen, int xplace, int yplace, char 
    keypad (itemlist->win, TRUE);
 
    /* Make the field window */
-   if (!createFieldWin (itemlist, 
-			ypos + BorderOf(itemlist) + TitleLinesOf(itemlist),
-			xpos + itemlist->labelLen + BorderOf(itemlist)))
+   if (!createFieldWin (itemlist,
+			ypos + BorderOf (itemlist) + TitleLinesOf (itemlist),
+			xpos + itemlist->labelLen + BorderOf (itemlist)))
    {
       destroyCDKObject (itemlist);
       return (0);
    }
 
-   /* Set up the rest of the structure. */
-   ScreenOf(itemlist)			= cdkscreen;
-   itemlist->parent			= cdkscreen->window;
-   itemlist->shadowWin			= 0;
-   initExitType(itemlist);
-   ObjOf(itemlist)->acceptsFocus	= TRUE;
-   itemlist->shadow			= shadow;
+   /* *INDENT-EQLS* Set up the rest of the structure. */
+   ScreenOf (itemlist)                  = cdkscreen;
+   itemlist->parent                     = cdkscreen->window;
+   itemlist->shadowWin                  = 0;
+   initExitType (itemlist);
+   ObjOf (itemlist)->acceptsFocus       = TRUE;
+   itemlist->shadow                     = shadow;
 
    setCDKItemlistBox (itemlist, Box);
 
    /* Set then default item. */
    if (defaultItem >= 0 && defaultItem < itemlist->listSize)
    {
-      itemlist->currentItem	= defaultItem;
-      itemlist->defaultItem	= defaultItem;
+      itemlist->currentItem = defaultItem;
+      itemlist->defaultItem = defaultItem;
    }
    else
    {
-      itemlist->currentItem	= 0;
-      itemlist->defaultItem	= 0;
+      itemlist->currentItem = 0;
+      itemlist->defaultItem = 0;
    }
 
    /* Do we want a shadow??? */
@@ -137,7 +145,7 @@ CDKITEMLIST *newCDKItemlist (CDKSCREEN *cdkscreen, int xplace, int yplace, char 
       }
    }
 
-   /* Register this baby.		 */
+   /* Register this baby.                */
    registerCDKObject (cdkscreen, vITEMLIST, itemlist);
 
    /* Return the pointer to the structure */
@@ -153,8 +161,8 @@ int activateCDKItemlist (CDKITEMLIST *itemlist, chtype *actions)
    int ret = -1;
 
    /* Draw the widget. */
-   drawCDKItemlist (itemlist, ObjOf(itemlist)->box);
-   drawCDKItemlistField(itemlist, TRUE);
+   drawCDKItemlist (itemlist, ObjOf (itemlist)->box);
+   drawCDKItemlistField (itemlist, TRUE);
 
    if (actions == 0)
    {
@@ -163,7 +171,7 @@ int activateCDKItemlist (CDKITEMLIST *itemlist, chtype *actions)
 
       for (;;)
       {
-	 input = getchCDKObject (ObjOf(itemlist), &functionKey);
+	 input = (chtype)getchCDKObject (ObjOf (itemlist), &functionKey);
 
 	 /* Inject the character into the widget. */
 	 ret = injectCDKItemlist (itemlist, input);
@@ -179,7 +187,7 @@ int activateCDKItemlist (CDKITEMLIST *itemlist, chtype *actions)
       int x = 0;
 
       /* Inject each character one at a time. */
-      for (x=0; x < length; x++)
+      for (x = 0; x < length; x++)
       {
 	 ret = injectCDKItemlist (itemlist, actions[x]);
 	 if (itemlist->exitType != vEARLY_EXIT)
@@ -190,7 +198,7 @@ int activateCDKItemlist (CDKITEMLIST *itemlist, chtype *actions)
    }
 
    /* Set the exit type and exit. */
-   setExitType(itemlist, 0);
+   setExitType (itemlist, 0);
    return ret;
 }
 
@@ -199,124 +207,148 @@ int activateCDKItemlist (CDKITEMLIST *itemlist, chtype *actions)
  */
 static int _injectCDKItemlist (CDKOBJS *object, chtype input)
 {
-   CDKITEMLIST *itemlist = (CDKITEMLIST *)object;
+   CDKITEMLIST *widget = (CDKITEMLIST *)object;
    /* Declare local variables. */
    int ppReturn = 1;
    int ret = unknownInt;
    bool complete = FALSE;
 
    /* Set the exit type. */
-   setExitType(itemlist, 0);
+   setExitType (widget, 0);
 
-   /* Draw the itemlist field. */
-   drawCDKItemlistField (itemlist,TRUE);
+   /* Draw the widget field. */
+   drawCDKItemlistField (widget, TRUE);
 
    /* Check if there is a pre-process function to be called. */
-   if (PreProcessFuncOf(itemlist) != 0)
+   if (PreProcessFuncOf (widget) != 0)
    {
       /* Call the pre-process function. */
-      ppReturn = PreProcessFuncOf(itemlist) (vITEMLIST, itemlist, PreProcessDataOf(itemlist), input);
+      ppReturn = PreProcessFuncOf (widget) (vITEMLIST,
+					    widget,
+					    PreProcessDataOf (widget),
+					    input);
    }
 
    /* Should we continue? */
    if (ppReturn != 0)
    {
       /* Check a predefined binding. */
-      if (checkCDKObjectBind (vITEMLIST, itemlist, input) != 0)
+      if (checkCDKObjectBind (vITEMLIST, widget, input) != 0)
       {
-	 checkEarlyExit(itemlist);
+	 checkEarlyExit (widget);
 	 complete = TRUE;
       }
       else
       {
 	 switch (input)
 	 {
-	    case KEY_UP : case KEY_RIGHT : case SPACE : case '+' : case 'n' :
-		 if (itemlist->currentItem < itemlist->listSize - 1)
-		 {
-		    itemlist->currentItem++;
-		 }
-		 else
-		 {
-		    itemlist->currentItem = 0;
-		 }
-		 break;
+	 case KEY_UP:
+	 case KEY_RIGHT:
+	 case SPACE:
+	 case '+':
+	 case 'n':
+	    if (widget->currentItem < widget->listSize - 1)
+	    {
+	       widget->currentItem++;
+	    }
+	    else
+	    {
+	       widget->currentItem = 0;
+	    }
+	    break;
 
-	    case KEY_DOWN : case KEY_LEFT : case '-' : case 'p' :
-		 if (itemlist->currentItem > 0)
-		 {
-		    itemlist->currentItem--;
-		 }
-		 else
-		 {
-		    itemlist->currentItem = itemlist->listSize - 1;
-		 }
-		 break;
+	 case KEY_DOWN:
+	 case KEY_LEFT:
+	 case '-':
+	 case 'p':
+	    if (widget->currentItem > 0)
+	    {
+	       widget->currentItem--;
+	    }
+	    else
+	    {
+	       widget->currentItem = widget->listSize - 1;
+	    }
+	    break;
 
-	    case 'd' : case 'D' :
-		 itemlist->currentItem = itemlist->defaultItem;
-		 break;
+	 case 'd':
+	 case 'D':
+	    widget->currentItem = widget->defaultItem;
+	    break;
 
-	    case '0' :
-		 itemlist->currentItem = 0;
-		 break;
+	 case '0':
+	    widget->currentItem = 0;
+	    break;
 
-	    case '$' :
-		 itemlist->currentItem = itemlist->listSize - 1;
-		 break;
+	 case '$':
+	    widget->currentItem = widget->listSize - 1;
+	    break;
 
-	    case KEY_ESC :
-		 setExitType(itemlist, input);
-		 complete = TRUE;
-		 break;
+	 case KEY_ESC:
+	    setExitType (widget, input);
+	    complete = TRUE;
+	    break;
 
-	    case KEY_TAB : case KEY_ENTER :
-		 setExitType(itemlist, input);
-		 ret = itemlist->currentItem;
-		 complete = TRUE;
-		 break;
+	 case KEY_ERROR:
+	    setExitType (widget, input);
+	    complete = TRUE;
+	    break;
 
-	    case CDK_REFRESH :
-		 eraseCDKScreen (ScreenOf(itemlist));
-		 refreshCDKScreen (ScreenOf(itemlist));
-		 break;
+	 case KEY_TAB:
+	 case KEY_ENTER:
+	    setExitType (widget, input);
+	    ret = widget->currentItem;
+	    complete = TRUE;
+	    break;
 
-	    default :
-		 Beep();
-		 break;
+	 case CDK_REFRESH:
+	    eraseCDKScreen (ScreenOf (widget));
+	    refreshCDKScreen (ScreenOf (widget));
+	    break;
+
+	 default:
+	    Beep ();
+	    break;
 	 }
       }
 
       /* Should we call a post-process? */
-      if (!complete && (PostProcessFuncOf(itemlist) != 0))
+      if (!complete && (PostProcessFuncOf (widget) != 0))
       {
-	 PostProcessFuncOf(itemlist) (vITEMLIST, itemlist, PostProcessDataOf(itemlist), input);
+	 PostProcessFuncOf (widget) (vITEMLIST,
+				     widget,
+				     PostProcessDataOf (widget),
+				     input);
       }
    }
 
    if (!complete)
    {
-      drawCDKItemlistField (itemlist,TRUE);
-      setExitType(itemlist, 0);
+      drawCDKItemlistField (widget, TRUE);
+      setExitType (widget, 0);
    }
 
-   ResultOf(itemlist).valueInt = ret;
+   ResultOf (widget).valueInt = ret;
    return (ret != unknownInt);
 }
 
 /*
  * This moves the itemlist field to the given location.
  */
-static void _moveCDKItemlist (CDKOBJS *object, int xplace, int yplace, boolean relative, boolean refresh_flag)
+static void _moveCDKItemlist (CDKOBJS *object,
+			      int xplace,
+			      int yplace,
+			      boolean relative,
+			      boolean refresh_flag)
 {
    CDKITEMLIST *itemlist = (CDKITEMLIST *)object;
-   /* Declare local variables. */
-   int currentX = getbegx(itemlist->win);
-   int currentY = getbegy(itemlist->win);
-   int xpos	= xplace;
-   int ypos	= yplace;
-   int xdiff	= 0;
-   int ydiff	= 0;
+   /* *INDENT-EQLS* */
+   int currentX = getbegx (itemlist->win);
+   int currentY = getbegy (itemlist->win);
+   int xpos     = xplace;
+   int ypos     = yplace;
+   int xdiff    = 0;
+   int ydiff    = 0;
 
    /*
     * If this is a relative move, then we will adjust where we want
@@ -324,30 +356,30 @@ static void _moveCDKItemlist (CDKOBJS *object, int xplace, int yplace, boolean r
     */
    if (relative)
    {
-      xpos = getbegx(itemlist->win) + xplace;
-      ypos = getbegy(itemlist->win) + yplace;
+      xpos = getbegx (itemlist->win) + xplace;
+      ypos = getbegy (itemlist->win) + yplace;
    }
 
    /* Adjust the window if we need to. */
-   alignxy (WindowOf(itemlist), &xpos, &ypos, itemlist->boxWidth, itemlist->boxHeight);
+   alignxy (WindowOf (itemlist), &xpos, &ypos, itemlist->boxWidth, itemlist->boxHeight);
 
    /* Get the difference. */
    xdiff = currentX - xpos;
    ydiff = currentY - ypos;
 
    /* Move the window to the new location. */
-   moveCursesWindow(itemlist->win, -xdiff, -ydiff);
-   moveCursesWindow(itemlist->fieldWin, -xdiff, -ydiff);
-   moveCursesWindow(itemlist->labelWin, -xdiff, -ydiff);
-   moveCursesWindow(itemlist->shadowWin, -xdiff, -ydiff);
+   moveCursesWindow (itemlist->win, -xdiff, -ydiff);
+   moveCursesWindow (itemlist->fieldWin, -xdiff, -ydiff);
+   moveCursesWindow (itemlist->labelWin, -xdiff, -ydiff);
+   moveCursesWindow (itemlist->shadowWin, -xdiff, -ydiff);
 
    /* Touch the windows so they 'move'. */
-   refreshCDKWindow (WindowOf(itemlist));
+   refreshCDKWindow (WindowOf (itemlist));
 
    /* Redraw the window, if they asked for it. */
    if (refresh_flag)
    {
-      drawCDKItemlist (itemlist, ObjOf(itemlist)->box);
+      drawCDKItemlist (itemlist, ObjOf (itemlist)->box);
    }
 }
 
@@ -367,7 +399,7 @@ static void _drawCDKItemlist (CDKOBJS *object, int Box)
    /* Box the widget if asked. */
    if (Box)
    {
-      drawObjBox (itemlist->win, ObjOf(itemlist));
+      drawObjBox (itemlist->win, ObjOf (itemlist));
    }
 
    drawCdkTitle (itemlist->win, object);
@@ -376,18 +408,18 @@ static void _drawCDKItemlist (CDKOBJS *object, int Box)
    if (itemlist->labelWin != 0)
    {
       writeChtype (itemlist->labelWin,
-		0,
-		0,
-		itemlist->label,
-		HORIZONTAL,
-		0,
-		chlen(itemlist->label));
+		   0,
+		   0,
+		   itemlist->label,
+		   HORIZONTAL,
+		   0,
+		   chlen (itemlist->label));
    }
 
    wrefresh (itemlist->win);
 
    /* Draw in the field. */
-   drawCDKItemlistField(itemlist, FALSE);
+   drawCDKItemlistField (itemlist, FALSE);
 }
 
 /*
@@ -397,7 +429,7 @@ static void _setBKattrItemlist (CDKOBJS *object, chtype attrib)
 {
    if (object != 0)
    {
-      CDKITEMLIST *widget = (CDKITEMLIST *) object;
+      CDKITEMLIST *widget = (CDKITEMLIST *)object;
 
       wbkgd (widget->win, attrib);
       wbkgd (widget->fieldWin, attrib);
@@ -425,13 +457,13 @@ void drawCDKItemlistField (CDKITEMLIST *itemlist, boolean highlight)
    werase (itemlist->fieldWin);
 
    /* Draw in the current item in the field. */
-   for (x=0; x < len; x++)
+   for (x = 0; x < len; x++)
    {
       chtype c = itemlist->item[currentItem][x];
 
       if (highlight)
       {
-	c = CharOf(c) | A_REVERSE;
+	 c = CharOf (c) | A_REVERSE;
       }
 
       mvwaddch (itemlist->fieldWin, 0,
@@ -500,7 +532,11 @@ static void _destroyCDKItemlist (CDKOBJS *object)
 /*
  * This sets multiple attributes of the widget.
  */
-void setCDKItemlist (CDKITEMLIST *itemlist, char **list, int count, int current, boolean Box)
+void setCDKItemlist (CDKITEMLIST *itemlist,
+		     CDK_CSTRING2 list,
+		     int count,
+		     int current,
+		     boolean Box)
 {
    setCDKItemlistValues (itemlist, list, count, current);
    setCDKItemlistBox (itemlist, Box);
@@ -509,9 +545,9 @@ void setCDKItemlist (CDKITEMLIST *itemlist, char **list, int count, int current,
 /*
  * This function sets the contents of the list.
  */
-void setCDKItemlistValues (CDKITEMLIST *itemlist, char **item, int count, int defaultItem)
+void setCDKItemlistValues (CDKITEMLIST *itemlist, CDK_CSTRING2 item, int count, int defaultItem)
 {
-   if (createList(itemlist, item, count))
+   if (createList (itemlist, item, count))
    {
       int oldWidth = itemlist->fieldWidth;
 
@@ -530,13 +566,13 @@ void setCDKItemlistValues (CDKITEMLIST *itemlist, char **item, int count, int de
       if (itemlist->fieldWidth > oldWidth)
       {
 	 createFieldWin (itemlist,
-			 getbegy(itemlist->fieldWin),
-			 getbegx(itemlist->fieldWin));
+			 getbegy (itemlist->fieldWin),
+			 getbegx (itemlist->fieldWin));
       }
 
       /* Draw the field. */
       eraseCDKItemlist (itemlist);
-      drawCDKItemlist (itemlist, ObjOf(itemlist)->box);
+      drawCDKItemlist (itemlist, ObjOf (itemlist)->box);
    }
 }
 chtype **getCDKItemlistValues (CDKITEMLIST *itemlist, int *size)
@@ -590,53 +626,53 @@ int getCDKItemlistDefaultItem (CDKITEMLIST *itemlist)
  */
 void setCDKItemlistBox (CDKITEMLIST *itemlist, boolean Box)
 {
-   ObjOf(itemlist)->box = Box;
-   ObjOf(itemlist)->borderSize = Box ? 1 : 0;
+   ObjOf (itemlist)->box = Box;
+   ObjOf (itemlist)->borderSize = Box ? 1 : 0;
 }
 boolean getCDKItemlistBox (CDKITEMLIST *itemlist)
 {
-   return ObjOf(itemlist)->box;
+   return ObjOf (itemlist)->box;
 }
 
-static void _focusCDKItemlist(CDKOBJS *object)
+static void _focusCDKItemlist (CDKOBJS *object)
 {
    CDKITEMLIST *itemlist = (CDKITEMLIST *)object;
 
-   drawCDKItemlistField (itemlist,TRUE);
+   drawCDKItemlistField (itemlist, TRUE);
 }
 
-static void _unfocusCDKItemlist(CDKOBJS *object)
+static void _unfocusCDKItemlist (CDKOBJS *object)
 {
    CDKITEMLIST *itemlist = (CDKITEMLIST *)object;
 
-   drawCDKItemlistField (itemlist,FALSE);
+   drawCDKItemlistField (itemlist, FALSE);
 }
 
 #if 0
-static void _refreshDataCDKItemlist(CDKOBJS *object)
+static void _refreshDataCDKItemlist (CDKOBJS *object)
 {
    CDKITEMLIST *itemlist = (CDKITEMLIST *)object;
 
-   if (ReturnOf(itemlist))
+   if (ReturnOf (itemlist))
    {
-      switch (DataTypeOf(itemlist))
+      switch (DataTypeOf (itemlist))
       {
       default:
       case DataTypeInt:
-	 itemlist->currentItem = *((int*)ReturnOf(itemlist));
+	 itemlist->currentItem = *((int *)ReturnOf (itemlist));
 	 break;
       case DataTypeDouble:
-	 itemlist->currentItem = *((double*)ReturnOf(itemlist));
+	 itemlist->currentItem = *((double *)ReturnOf (itemlist));
 	 break;
       case DataTypeFloat:
-	 itemlist->currentItem = *((float*)ReturnOf(itemlist));
+	 itemlist->currentItem = *((float *)ReturnOf (itemlist));
 	 break;
       case DataTypeString:
 	 {
 	    int i;
 
-	    for (i=0; i < itemlist->listSize; ++i)
-	       if (!cmpStrChstr((char*)ReturnOf(itemlist),itemlist->item[i]))
+	    for (i = 0; i < itemlist->listSize; ++i)
+	       if (!cmpStrChstr ((char *)ReturnOf (itemlist), itemlist->item[i]))
 	       {
 		  itemlist->currentItem = i;
 		  break;
@@ -645,58 +681,60 @@ static void _refreshDataCDKItemlist(CDKOBJS *object)
 	    break;
 	 }
       }
-      drawCDKItemlistField(itemlist, FALSE);
+      drawCDKItemlistField (itemlist, FALSE);
    }
 }
 
-static void _saveDataCDKItemlist(CDKOBJS *object)
+static void _saveDataCDKItemlist (CDKOBJS *object)
 {
    CDKITEMLIST *itemlist = (CDKITEMLIST *)object;
 
-   if (ReturnOf(itemlist))
+   if (ReturnOf (itemlist))
    {
-      switch (DataTypeOf(itemlist))
+      switch (DataTypeOf (itemlist))
       {
       default:
       case DataTypeInt:
-	 *((int*)ReturnOf(itemlist)) = itemlist->currentItem;
+	 *((int *)ReturnOf (itemlist)) = itemlist->currentItem;
 	 break;
       case DataTypeFloat:
-	 *((float*)ReturnOf(itemlist)) = itemlist->currentItem;
+	 *((float *)ReturnOf (itemlist)) = itemlist->currentItem;
 	 break;
       case DataTypeDouble:
-	 *((double*)ReturnOf(itemlist)) = itemlist->currentItem;
+	 *((double *)ReturnOf (itemlist)) = itemlist->currentItem;
 	 break;
       case DataTypeString:
-	 chstrncpy((char*)ReturnOf(itemlist), itemlist->item[itemlist->currentItem], 9999);
+	 chstrncpy ((char *)ReturnOf (itemlist),
+		    itemlist->item[itemlist->currentItem],
+		    9999);
 	 break;
       }
    }
 }
 #else
-dummyRefreshData(Itemlist)
-dummySaveData(Itemlist)
+dummyRefreshData (Itemlist)
+dummySaveData (Itemlist)
 #endif
 
-static int createList (CDKITEMLIST *itemlist, char **item, int count)
+static int createList (CDKITEMLIST *itemlist, CDK_CSTRING2 item, int count)
 {
    int status = 0;
 
-   if (count > 0)
+   if (count >= 0)
    {
-      chtype **newItems = typeCallocN(chtype*, count + 1);
-      int *newPos = typeCallocN(int, count + 1);
-      int *newLen = typeCallocN(int, count + 1);
+      chtype **newItems = typeCallocN (chtype *, count + 1);
+      int *newPos = typeCallocN (int, count + 1);
+      int *newLen = typeCallocN (int, count + 1);
       int x;
       int fieldWidth = 0;
 
       if (newItems != 0
-	 && newPos != 0
-	 && newLen != 0)
+	  && newPos != 0
+	  && newLen != 0)
       {
 	 /* Go through the list and determine the widest item. */
 	 status = 1;
-	 for (x=0; x < count; x++)
+	 for (x = 0; x < count; x++)
 	 {
 	    /* Copy the item to the list. */
 	    newItems[x] = char2Chtype (item[x], &newLen[x], &newPos[x]);
@@ -709,7 +747,7 @@ static int createList (CDKITEMLIST *itemlist, char **item, int count)
 	 }
 
 	 /* Now we need to justify the strings. */
-	 for (x=0; x < count; x++)
+	 for (x = 0; x < count; x++)
 	 {
 	    newPos[x] = justifyString (fieldWidth + 1, newLen[x], newPos[x]);
 	 }
@@ -719,9 +757,9 @@ static int createList (CDKITEMLIST *itemlist, char **item, int count)
       {
 	 destroyInfo (itemlist);
 
-	 /* Copy in the new information. */
+	 /* *INDENT-EQLS* Copy in the new information. */
 	 itemlist->listSize = count;
-	 itemlist->item = newItems;
+	 itemlist->item    = newItems;
 	 itemlist->itemPos = newPos;
 	 itemlist->itemLen = newLen;
       }
@@ -735,7 +773,7 @@ static int createList (CDKITEMLIST *itemlist, char **item, int count)
    else
    {
       destroyInfo (itemlist);
-      status = TRUE;
+      status            = TRUE;
    }
 
    return status;
@@ -745,9 +783,9 @@ static int createList (CDKITEMLIST *itemlist, char **item, int count)
 static int maximumFieldWidth (CDKITEMLIST *itemlist)
 {
    int x;
-   int maxWidth	= INT_MIN;
+   int maxWidth = INT_MIN;
 
-   for (x=0; x < itemlist->listSize; x++)
+   for (x = 0; x < itemlist->listSize; x++)
    {
       maxWidth = MAXIMUM (maxWidth, itemlist->itemLen[x]);
    }
@@ -759,8 +797,8 @@ static int maximumFieldWidth (CDKITEMLIST *itemlist)
 static void updateFieldWidth (CDKITEMLIST *itemlist)
 {
    int want = maximumFieldWidth (itemlist) + 1;
-   int have = itemlist->boxWidth - itemlist->labelLen - 2 * BorderOf(itemlist);
-   itemlist->fieldWidth = MINIMUM(want, have);
+   int have = itemlist->boxWidth - itemlist->labelLen - 2 * BorderOf (itemlist);
+   itemlist->fieldWidth = MINIMUM (want, have);
 }
 
 /* Make the field window */
@@ -774,7 +812,7 @@ static int createFieldWin (CDKITEMLIST *itemlist, int ypos, int xpos)
    if (itemlist->fieldWin != 0)
    {
       keypad (itemlist->fieldWin, TRUE);
-      ObjOf(itemlist)->inputWindow = itemlist->fieldWin;
+      ObjOf (itemlist)->inputWindow = itemlist->fieldWin;
       return 1;
    }
    return 0;

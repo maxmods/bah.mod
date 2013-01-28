@@ -1,5 +1,5 @@
 /*
- * $Id: mentry.h,v 1.22 2004/08/30 00:00:57 tom Exp $
+ * $Id: mentry.h,v 1.23 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2002,2003 copyright Thomas E. Dickey
+ * Changes 1999-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -98,8 +98,8 @@ CDKMENTRY *newCDKMentry (
 		CDKSCREEN *	/* cdkscreen */,
 		int		/* xpos */,
 		int		/* ypos */,
-		char *		/* title */,
-		char *		/* label */,
+		const char *	/* title */,
+		const char *	/* label */,
 		chtype		/* fieldAttr */,
 		chtype		/* filler */,
 		EDisplayType	/* disptype */,
@@ -127,7 +127,7 @@ char *activateCDKMentry (
  */
 void setCDKMentry (
 		CDKMENTRY *	/* mentry */,
-		char *		/* value */,
+		const char *	/* value */,
 		int		/* min */,
 		boolean		/* Box */);
 
@@ -136,7 +136,7 @@ void setCDKMentry (
  */
 void setCDKMentryValue (
 		CDKMENTRY *	/* mentry */,
-		char *		/* value */);
+		const char *	/* value */);
 
 char *getCDKMentryValue (
 		CDKMENTRY *	/* mentry */);

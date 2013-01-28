@@ -1,5 +1,5 @@
 /*
- * $Id: matrix.h,v 1.28 2004/08/30 00:00:57 tom Exp $
+ * $Id: matrix.h,v 1.30 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2003 copyright Thomas E. Dickey
+ * Changes 1999-2008,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -114,8 +114,8 @@ struct SMatrix {
    int		col;
    int		crow;		/* current row */
    int		ccol;		/* current column */
-   int		trow;
-   int		lcol;
+   int		trow;		/* topmost row shown in screen */
+   int		lcol;		/* leftmost column shown in screen */
    int		oldcrow;
    int		oldccol;
    int		oldvrow;
@@ -140,9 +140,9 @@ CDKMATRIX *newCDKMatrix (
 		int		/* cols */,
 		int		/* vrows */,
 		int		/* vcols */,
-		char *		/* title */,
-		char **		/* rowtitles */,
-		char **		/* coltitles */,
+		const char *	/* title */,
+		CDK_CSTRING2	/* rowtitles */,
+		CDK_CSTRING2	/* coltitles */,
 		int *		/* colwidths */,
 		int *		/* coltypes */,
 		int		/* rowspace */,
@@ -180,7 +180,7 @@ int activateCDKMatrix (
  */
 void setCDKMatrixCells (
 		CDKMATRIX *	/* matrix */,
-		char **		/* info */,
+		CDK_CSTRING2	/* info */,
 		int		/* rows */,
 		int		/* cols */,
 		int *		/* subSize */);
@@ -192,7 +192,7 @@ int setCDKMatrixCell (
 		CDKMATRIX *	/* matrix */,
 		int		/* row */,
 		int		/* col */,
-		char *		/* value */);
+		const char *	/* value */);
 
 char *getCDKMatrixCell (
 		CDKMATRIX *	/* matrix */,

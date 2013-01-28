@@ -2,8 +2,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/05/04 10:42:58 $
- * $Revision: 1.102 $
+ * $Date: 2012/03/22 09:41:38 $
+ * $Revision: 1.107 $
  */
 
 /*
@@ -11,8 +11,8 @@
  */
 static BINDFN_PROTO (adjustAlphalistCB);
 static BINDFN_PROTO (completeWordCB);
-static int preProcessEntryField (EObjectType cdktype, void *object, void *clientData, chtype input);
-static int createList (CDKALPHALIST *alphalist, char **list, int listSize);
+static int preProcessEntryField (EObjectType, void *, void *, chtype);
+static int createList (CDKALPHALIST *alphalist, CDK_CSTRING2 list, int listSize);
 
 DeclareSetXXchar (static, _setMy);
 DeclareCDKObjects (ALPHALIST, Alphalist, _setMy, String);
@@ -25,32 +25,34 @@ CDKALPHALIST *newCDKAlphalist (CDKSCREEN *cdkscreen,
 			       int yplace,
 			       int height,
 			       int width,
-			       char *title,
-			       char *label,
-			       char **list,
+			       const char *title,
+			       const char *label,
+			       CDK_CSTRING2 list,
 			       int listSize,
 			       chtype fillerChar,
 			       chtype highlight,
 			       boolean Box,
 			       boolean shadow)
 {
-   CDKALPHALIST *alphalist	= 0;
-   chtype *chtypeLabel		= 0;
-   int parentWidth		= getmaxx (cdkscreen->window);
-   int parentHeight		= getmaxy (cdkscreen->window);
-   int boxWidth			= width;
-   int boxHeight		= height;
-   int xpos			= xplace;
-   int ypos			= yplace;
-   int tempWidth		= 0;
-   int tempHeight		= 0;
-   int labelLen			= 0;
+   /* *INDENT-EQLS* */
+   CDKALPHALIST *alphalist      = 0;
+   chtype *chtypeLabel          = 0;
+   int parentWidth              = getmaxx (cdkscreen->window);
+   int parentHeight             = getmaxy (cdkscreen->window);
+   int boxWidth                 = width;
+   int boxHeight                = height;
+   int xpos                     = xplace;
+   int ypos                     = yplace;
+   int tempWidth                = 0;
+   int tempHeight               = 0;
+   int labelLen                 = 0;
    int x, junk2;
-
+   /* *INDENT-OFF* */
    static const struct { int from; int to; } bindings[] = {
       { CDK_BACKCHAR,	KEY_PPAGE },
       { CDK_FORCHAR,	KEY_NPAGE },
    };
+   /* *INDENT-ON* */
 
    if ((alphalist = newCDKObject (CDKALPHALIST, &my_funcs)) == 0
        || !createList (alphalist, list, listSize))
@@ -95,16 +97,16 @@ CDKALPHALIST *newCDKAlphalist (CDKSCREEN *cdkscreen,
    }
    keypad (alphalist->win, TRUE);
 
-   /* Set some variables. */
-   ScreenOf (alphalist)		= cdkscreen;
-   alphalist->parent		= cdkscreen->window;
-   alphalist->highlight		= highlight;
-   alphalist->fillerChar	= fillerChar;
-   alphalist->boxHeight		= boxHeight;
-   alphalist->boxWidth		= boxWidth;
+   /* *INDENT-EQLS* Set some variables. */
+   ScreenOf (alphalist)         = cdkscreen;
+   alphalist->parent            = cdkscreen->window;
+   alphalist->highlight         = highlight;
+   alphalist->fillerChar        = fillerChar;
+   alphalist->boxHeight         = boxHeight;
+   alphalist->boxWidth          = boxWidth;
    initExitType (alphalist);
-   alphalist->shadow		= shadow;
-   alphalist->shadowWin		= 0;
+   alphalist->shadow            = shadow;
+   alphalist->shadowWin         = 0;
 
    /* Do we want a shadow? */
    if (shadow)
@@ -132,11 +134,31 @@ CDKALPHALIST *newCDKAlphalist (CDKSCREEN *cdkscreen,
    setCDKEntryLRChar (alphalist->entryField, ACS_RTEE);
 
    /* Set the key bindings for the entry field. */
-   bindCDKObject (vENTRY, alphalist->entryField, KEY_UP, adjustAlphalistCB, alphalist);
-   bindCDKObject (vENTRY, alphalist->entryField, KEY_DOWN, adjustAlphalistCB, alphalist);
-   bindCDKObject (vENTRY, alphalist->entryField, KEY_NPAGE, adjustAlphalistCB, alphalist);
-   bindCDKObject (vENTRY, alphalist->entryField, KEY_PPAGE, adjustAlphalistCB, alphalist);
-   bindCDKObject (vENTRY, alphalist->entryField, KEY_TAB, completeWordCB, alphalist);
+   bindCDKObject (vENTRY,
+		  alphalist->entryField,
+		  KEY_UP,
+		  adjustAlphalistCB,
+		  alphalist);
+   bindCDKObject (vENTRY,
+		  alphalist->entryField,
+		  KEY_DOWN,
+		  adjustAlphalistCB,
+		  alphalist);
+   bindCDKObject (vENTRY,
+		  alphalist->entryField,
+		  KEY_NPAGE,
+		  adjustAlphalistCB,
+		  alphalist);
+   bindCDKObject (vENTRY,
+		  alphalist->entryField,
+		  KEY_PPAGE,
+		  adjustAlphalistCB,
+		  alphalist);
+   bindCDKObject (vENTRY,
+		  alphalist->entryField,
+		  KEY_TAB,
+		  completeWordCB,
+		  alphalist);
 
    /* Set up the post-process function for the entry field. */
    setCDKEntryPreProcess (alphalist->entryField, preProcessEntryField, alphalist);
@@ -163,8 +185,12 @@ CDKALPHALIST *newCDKAlphalist (CDKSCREEN *cdkscreen,
    setCDKScrollURChar (alphalist->scrollField, ACS_RTEE);
 
    /* Setup the key bindings. */
-   for (x = 0; x < (int) SIZEOF (bindings); ++x)
-      bindCDKObject (vALPHALIST, alphalist, bindings[x].from, getcCDKBind, (void *)(long)bindings[x].to);
+   for (x = 0; x < (int)SIZEOF (bindings); ++x)
+      bindCDKObject (vALPHALIST,
+		     alphalist,
+		     (chtype)bindings[x].from,
+		     getcCDKBind,
+		     (void *)(long)bindings[x].to);
 
    registerCDKObject (cdkscreen, vALPHALIST, alphalist);
 
@@ -198,13 +224,13 @@ static void _moveCDKAlphalist (CDKOBJS *object,
 			       boolean refresh_flag)
 {
    CDKALPHALIST *alphalist = (CDKALPHALIST *)object;
-
+   /* *INDENT-EQLS* */
    int currentX = getbegx (alphalist->win);
    int currentY = getbegy (alphalist->win);
-   int xpos	= xplace;
-   int ypos	= yplace;
-   int xdiff	= 0;
-   int ydiff	= 0;
+   int xpos     = xplace;
+   int ypos     = yplace;
+   int xdiff    = 0;
+   int ydiff    = 0;
 
    /*
     * If this is a relative move, then we will adjust where we want
@@ -264,7 +290,7 @@ static void drawMyScroller (CDKALPHALIST *widget)
 static void injectMyScroller (CDKALPHALIST *widget, chtype key)
 {
    SaveFocus (widget);
-   injectCDKScroll (widget->scrollField, key);
+   (void)injectCDKScroll (widget->scrollField, key);
    RestoreFocus (widget);
 }
 
@@ -341,7 +367,7 @@ static int _injectCDKAlphalist (CDKOBJS *object, chtype input)
  * This sets multiple attributes of the widget.
  */
 void setCDKAlphalist (CDKALPHALIST *alphalist,
-		      char **list,
+		      CDK_CSTRING2 list,
 		      int listSize,
 		      chtype fillerChar,
 		      chtype highlight,
@@ -356,17 +382,17 @@ void setCDKAlphalist (CDKALPHALIST *alphalist,
 /*
  * This function sets the information inside the file selector.
  */
-void setCDKAlphalistContents (CDKALPHALIST *widget, char **list, int listSize)
+void setCDKAlphalistContents (CDKALPHALIST *widget, CDK_CSTRING2 list, int listSize)
 {
-   CDKSCROLL *scrollp	= widget->scrollField;
-   CDKENTRY *entry	= widget->entryField;
+   CDKSCROLL *scrollp = widget->scrollField;
+   CDKENTRY *entry = widget->entryField;
 
    if (!createList (widget, list, listSize))
       return;
 
    /* Set the information in the scrolling list. */
    setCDKScroll (scrollp,
-		 widget->list,
+		 (CDK_CSTRING2) widget->list,
 		 widget->listSize,
 		 NONUMBERS,
 		 scrollp->highlight,
@@ -404,7 +430,7 @@ void setCDKAlphalistCurrentItem (CDKALPHALIST *widget, int item)
    {
       setCDKScrollCurrent (widget->scrollField, item);
       setCDKEntryValue (widget->entryField,
-			widget->list[getCDKScrollCurrentItem(widget->scrollField)]);
+			widget->list[getCDKScrollCurrentItem (widget->scrollField)]);
    }
 }
 
@@ -567,15 +593,16 @@ void setCDKAlphalistPostProcess (CDKALPHALIST *alphalist,
 /*
  * Start of callback functions.
  */
-static int adjustAlphalistCB (EObjectType objectType GCC_UNUSED,
-			      void *object GCC_UNUSED,
+static int adjustAlphalistCB (EObjectType objectType GCC_UNUSED, void
+			      *object GCC_UNUSED,
 			      void *clientData,
 			      chtype key)
 {
-   CDKALPHALIST *alphalist	= (CDKALPHALIST *)clientData;
-   CDKSCROLL *scrollp		= alphalist->scrollField;
-   CDKENTRY *entry		= alphalist->entryField;
-   char *current		= 0;
+   /* *INDENT-EQLS* */
+   CDKALPHALIST *alphalist = (CDKALPHALIST *)clientData;
+   CDKSCROLL *scrollp      = alphalist->scrollField;
+   CDKENTRY *entry         = alphalist->entryField;
+   char *current           = 0;
 
    if (scrollp->listSize > 0)
    {
@@ -596,19 +623,20 @@ static int adjustAlphalistCB (EObjectType objectType GCC_UNUSED,
 /*
  * This is the heart-beat of the widget.
  */
-static int preProcessEntryField (EObjectType cdktype GCC_UNUSED,
-				 void *object GCC_UNUSED,
+static int preProcessEntryField (EObjectType cdktype GCC_UNUSED, void
+				 *object GCC_UNUSED,
 				 void *clientData,
 				 chtype input)
 {
-   CDKALPHALIST *alphalist	= (CDKALPHALIST *)clientData;
-   CDKSCROLL *scrollp		= alphalist->scrollField;
-   CDKENTRY *entry		= alphalist->entryField;
-   int infoLen			= ((entry->info != 0)
-				   ? (int)strlen (entry->info)
-				   : 0);
-   int result = 1;
-   bool empty = FALSE;
+   /* *INDENT-EQLS* */
+   CDKALPHALIST *alphalist = (CDKALPHALIST *)clientData;
+   CDKSCROLL *scrollp      = alphalist->scrollField;
+   CDKENTRY *entry         = alphalist->entryField;
+   int infoLen             = ((entry->info != 0)
+			      ? (int)strlen (entry->info)
+			      : 0);
+   int result              = 1;
+   bool empty              = FALSE;
 
    /* Make sure the entry field isn't empty. */
    if (entry->info == 0)
@@ -627,7 +655,7 @@ static int preProcessEntryField (EObjectType cdktype GCC_UNUSED,
    {
       int Index, difference, absoluteDifference, x;
       int currPos = (entry->screenCol + entry->leftChar);
-      char *pattern = malloc (infoLen + 2);
+      char *pattern = malloc ((size_t) infoLen + 2);
 
       if (pattern != 0)
       {
@@ -655,10 +683,13 @@ static int preProcessEntryField (EObjectType cdktype GCC_UNUSED,
       {
 	 empty = TRUE;
       }
-      else if ((Index = searchList (alphalist->list, alphalist->listSize, pattern)) >= 0)
+      else if ((Index = searchList ((CDK_CSTRING2) alphalist->list,
+				    alphalist->listSize,
+				    pattern)) >= 0)
       {
-	 difference		= Index - scrollp->currentItem;
-	 absoluteDifference	= abs (difference);
+	 /* *INDENT-EQLS* */
+	 difference           = Index - scrollp->currentItem;
+	 absoluteDifference   = abs (difference);
 
 	 /*
 	  * If the difference is less than zero, then move up.
@@ -672,9 +703,9 @@ static int preProcessEntryField (EObjectType cdktype GCC_UNUSED,
 	    for (x = 0; x < absoluteDifference; x++)
 	    {
 	       injectMyScroller (alphalist,
-				 ((difference <= 0)
-				  ? KEY_UP
-				  : KEY_DOWN));
+				 (chtype)((difference <= 0)
+					  ? KEY_UP
+					  : KEY_DOWN));
 	    }
 	 }
 	 else
@@ -704,25 +735,25 @@ static int preProcessEntryField (EObjectType cdktype GCC_UNUSED,
 /*
  * This tries to complete the word in the entry field.
  */
-static int completeWordCB (EObjectType objectType GCC_UNUSED,
-			   void *object GCC_UNUSED,
+static int completeWordCB (EObjectType objectType GCC_UNUSED, void *object GCC_UNUSED,
 			   void *clientData,
 			   chtype key GCC_UNUSED)
 {
-   CDKALPHALIST *alphalist	= (CDKALPHALIST *)clientData;
-   CDKENTRY *entry		= (CDKENTRY*)alphalist->entryField;
-   CDKSCROLL *scrollp		= 0;
-   int currentIndex		= 0;
-   int wordLength		= 0;
-   int selected			= -1;
-   int altCount			= 0;
-   int height			= 0;
-   int match			= 0;
-   int Index			= 0;
-   int ret			= 0;
-   int x			= 0;
-   char **altWords		= 0;
-   unsigned used		= 0;
+   /* *INDENT-EQLS* */
+   CDKALPHALIST *alphalist = (CDKALPHALIST *)clientData;
+   CDKENTRY *entry         = (CDKENTRY *)alphalist->entryField;
+   CDKSCROLL *scrollp      = 0;
+   int currentIndex        = 0;
+   int wordLength          = 0;
+   int selected            = -1;
+   int altCount            = 0;
+   int height              = 0;
+   int match               = 0;
+   int Index               = 0;
+   int ret                 = 0;
+   int x                   = 0;
+   char **altWords         = 0;
+   unsigned used           = 0;
 
    if (entry->info == 0)
    {
@@ -739,7 +770,7 @@ static int completeWordCB (EObjectType objectType GCC_UNUSED,
    }
 
    /* Look for a unique word match. */
-   Index = searchList (alphalist->list, alphalist->listSize, entry->info);
+   Index = searchList ((CDK_CSTRING2) alphalist->list, alphalist->listSize, entry->info);
 
    /* If the index is less than zero, return we didn't find a match. */
    if (Index < 0)
@@ -757,25 +788,26 @@ static int completeWordCB (EObjectType objectType GCC_UNUSED,
    }
 
    /* Ok, we found a match, is the next item similar? */
-   ret = strncmp (alphalist->list[Index + 1], entry->info, wordLength);
+   ret = strncmp (alphalist->list[Index + 1], entry->info, (size_t) wordLength);
    if (ret == 0)
    {
-      currentIndex	= Index;
-      altCount		= 0;
-      height		= 0;
-      match		= 0;
-      selected		= -1;
+      /* *INDENT-EQLS* */
+      currentIndex = Index;
+      altCount     = 0;
+      height       = 0;
+      match        = 0;
+      selected     = -1;
 
       /* Start looking for alternate words. */
       /* FIXME: bsearch would be more suitable */
       while ((currentIndex < alphalist->listSize)
 	     && (strncmp (alphalist->list[currentIndex],
 			  entry->info,
-			  wordLength) == 0))
+			  (size_t) wordLength) == 0))
       {
 	 used = CDKallocStrings (&altWords,
 				 alphalist->list[currentIndex++],
-				 altCount++,
+				 (unsigned)altCount++,
 				 used);
       }
 
@@ -786,8 +818,8 @@ static int completeWordCB (EObjectType objectType GCC_UNUSED,
       scrollp = newCDKScroll (entry->obj.screen,
 			      CENTER, CENTER, RIGHT, height, -30,
 			      "<C></B/5>Possible Matches.",
-			      altWords, altCount, NUMBERS,
-			      A_REVERSE, TRUE, FALSE);
+			      (CDK_CSTRING2) altWords, altCount,
+			      NUMBERS, A_REVERSE, TRUE, FALSE);
 
       /* Allow them to select a close match. */
       match = activateCDKScroll (scrollp, 0);
@@ -845,24 +877,17 @@ static int completeWordCB (EObjectType objectType GCC_UNUSED,
    return (TRUE);
 }
 
-static int createList (CDKALPHALIST *alphalist, char **list, int listSize)
+static int createList (CDKALPHALIST *alphalist, CDK_CSTRING2 list, int listSize)
 {
    int status = 0;
 
-   if (listSize > 0)
+   if (listSize >= 0)
    {
       char **newlist = typeCallocN (char *, listSize + 1);
 
       if (newlist != 0)
       {
 	 int x;
-
-	 /*
-	  * We'll sort the list before we use it.  It would have been better to
-	  * declare list[] const and only modify the copy, but there may be
-	  * clients that rely on the old behavior.
-	  */
-	 sortList (list, listSize);
 
 	 /* Copy in the new information. */
 	 status = 1;
@@ -879,6 +904,7 @@ static int createList (CDKALPHALIST *alphalist, char **list, int listSize)
 	    destroyInfo (alphalist);
 	    alphalist->listSize = listSize;
 	    alphalist->list = newlist;
+	    sortList (newlist, listSize);
 	 }
 	 else
 	 {

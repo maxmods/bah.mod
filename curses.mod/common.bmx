@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009, Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -25,6 +25,7 @@
 '
 SuperStrict
 
+Import BRL.Blitz
 
 ?linux
 Import "-L/usr/lib"
@@ -147,6 +148,12 @@ Extern
 	Function noraw:Int()
 	
 	Function newwin:Byte Ptr(h:Int, w:Int, y:Int, x:Int)
+	Function delwin:Int(window:Byte Ptr)
+	Function mvwin:Int(window:Byte Ptr, y:Int, x:Int)
+	
+	Function bmx_curses_waddstr:Int(window:Byte Ptr, text:String, maxChars:Int)
+	Function bmx_curses_mvwaddstr:Int(window:Byte Ptr, x:Int, y:Int, text:String, maxChars:Int)
+
 	
 	'Function bmx_cursespanel_new:Byte Ptr(handle:Object, x:Int, y:Int, w:Int, h:Int)
 	
@@ -155,6 +162,8 @@ Extern
 	Function bottom_panel:Int(panel:Byte Ptr)
 	Function move_panel:Int(panel:Byte Ptr, y:Int, x:Int)
 	Function panel_hidden:Int(panel:Byte Ptr)
+	Function show_panel:Int(panel:Byte Ptr)
+	Function top_panel:Int(panel:Byte Ptr)
 
 	Function bindCDKObject(cdktype:Int, widget:Byte Ptr, key:Int, ..
 		callback:Int(cdktype:Int, obj:Byte Ptr, clientData:Object, inp:Int), data:Object)
@@ -182,7 +191,21 @@ Extern
 
 	Function bmx_curses_injectCDKButtonBox(widgetPtr:Byte Ptr, char:Int)
 	
-	
+	Function newCDKMentry:Byte Ptr(screen:Byte Ptr, x:Int, y:Int, title:Byte Ptr, label:Byte Ptr, ..
+		attribute:Int, filler:Int, displayType:Int, width:Int, rows:Int, logicalRows:Int, _min:Int, box:Int, shadow:Int)
+	Function activateCDKMentry:Byte Ptr(entry:Byte Ptr, actions:Int)
+	Function setCDKMentry(entry:Byte Ptr, value:Byte Ptr, _min:Int, box:Int)
+	Function setCDKMentryValue(entry:Byte Ptr, value:Byte Ptr)
+	Function setCDKMentryMin(entry:Byte Ptr, value:Int)
+	Function bmx_curses_CDKMentry_window:Byte Ptr(entry:Byte Ptr)
+	Function bmx_curses_injectCDKMentry(entry:Byte Ptr, key:Int)
+	Function getCDKMentryValue:Byte Ptr(entry:Byte Ptr)
+	Function getCDKMentryMin:Int(entry:Byte Ptr)
+	Function bmx_mentry_exitType:Int(slider:Byte Ptr)
+	Function bmx_curses_drawCDKMentry(entry:Byte Ptr)
+	Function bmx_curses_positionCDKMentry(entry:Byte Ptr)
+	Function bmx_curses_eraseCDKMentry(entry:Byte Ptr)
+
 	Function bmx_curses_getbegx:Int(widgetPtr:Byte Ptr)
 	Function bmx_curses_getbegy:Int(widgetPtr:Byte Ptr)
 	
@@ -219,6 +242,35 @@ Extern
 	Function ACS_BOARD_:Int()
 	Function ACS_LANTERN_:Int()
 	Function ACS_BLOCK_:Int()
+
+	Function BUTTON1_RELEASED_:Int()
+	Function BUTTON1_PRESSED_:Int()
+	Function BUTTON1_CLICKED_:Int()
+	Function BUTTON1_DOUBLE_CLICKED_:Int()
+	Function BUTTON1_TRIPLE_CLICKED_:Int()
+	Function BUTTON2_RELEASED_:Int()
+	Function BUTTON2_PRESSED_:Int()
+	Function BUTTON2_CLICKED_:Int()
+	Function BUTTON2_DOUBLE_CLICKED_:Int()
+	Function BUTTON2_TRIPLE_CLICKED_:Int()
+	Function BUTTON3_RELEASED_:Int()
+	Function BUTTON3_PRESSED_:Int()
+	Function BUTTON3_CLICKED_:Int()
+	Function BUTTON3_DOUBLE_CLICKED_:Int()
+	Function BUTTON3_TRIPLE_CLICKED_:Int()
+	Function BUTTON4_RELEASED_:Int()
+	Function BUTTON4_PRESSED_:Int()
+	Function BUTTON4_CLICKED_:Int()
+	Function BUTTON4_DOUBLE_CLICKED_:Int()
+	Function BUTTON4_TRIPLE_CLICKED_:Int()
+	Function BUTTON_CTRL_:Int()
+	Function BUTTON_SHIFT_:Int()
+	Function BUTTON_ALT_:Int()
+	Function REPORT_MOUSE_POSITION_:Int()
+	Function ALL_MOUSE_EVENTS_:Int()
+	
+	Function LINES_:Int()
+	Function COLS_:Int()
 	
 	Function drawCDKScreen(screen:Byte Ptr)
 	Function eraseCDKScreen(screen:Byte Ptr)
@@ -226,6 +278,9 @@ Extern
 	Function nodelay(window:Byte Ptr, b:Int)
 	Function getch:Int()
 '	Function cbreak:Int()
+	Function def_prog_mode:Int()
+	Function endwin:Int()
+	Function refresh:Int()
 
 	Rem
 	bbdoc: Will sound the audible bell on the terminal if possible, and if not, will flash the screen (visible bell).
@@ -237,6 +292,9 @@ Extern
 	Function flash:Int()
 	
 	Function bmx_curses_getchCDKObject:Int(widget:Byte Ptr, t:Int)
+	
+	Function bmx_mousemask:Int(mask:Int, oldMask:Int Ptr)
+	Function bmx_getmouse:Object()
 	
 End Extern
 
@@ -295,7 +353,23 @@ Const A_COLOR:Int = $ff000000
 Const A_ITALIC:Int = A_INVIS
 Const A_PROTECT:Int = (A_UNDERLINE | A_LEFTLINE | A_RIGHTLINE)
 
-?Not win32
+?linux
+Const A_BOLD:Int = $0100
+Const A_REVERSE:Int = $0200
+Const A_BLINK:Int = $0400
+
+Const A_ATTRIBUTES:Int = $ff00
+Const A_CHARTEXT:Int = $00ff
+Const A_COLOR:Int = $f800
+
+Const A_ALTCHARSET:Int = A_NORMAL
+Const A_PROTECT:Int = A_NORMAL
+Const A_UNDERLINE:Int = A_NORMAL
+Const A_INVIS:Int = A_NORMAL
+Const A_LEFTLINE:Int = A_NORMAL
+Const A_RIGHTLINE:Int = A_NORMAL
+Const A_ITALIC:Int = A_NORMAL
+?macos
 Const A_BOLD:Int = $0100
 Const A_REVERSE:Int = $0200
 Const A_BLINK:Int = $0400
@@ -382,34 +456,28 @@ Const vNEVER_ACTIVATED:Int = 3
 
 
 Rem
-internal:  Splits a string into a string array, as specified by the separator.
+bbdoc: Gets the user login name.
 End Rem
-Function _stringSplit:String[](text:String, separator:String)
-	Local splitArray:String[]
-	Local fieldCount:Int = 1
-	
-	' how many elements ?
-	Local loc:Int = text.find(separator)
-	While loc >= 0
-		loc = text.find(separator, loc + 1)
-		fieldCount:+1
-	Wend
-	
-	' set the array with the calculated size
-	splitArray = New String[fieldCount]
-	
-	fieldcount = 0
-	While True
-		loc = text.find(separator)
-		If loc >= 0 Then
-			splitArray[fieldCount] = text[..loc]
-			text = text[loc+1..]
-		Else
-			splitArray[fieldCount] = text
-			Exit
-		End If
-		fieldCount:+1
-	Wend
-	
-	Return splitArray
+Function GetUserName:String()
+Extern
+	Function bmx_curses_GetUserName(buf:Byte Ptr)
+End Extern
+	Local buf:Byte[256]
+	bmx_curses_GetUserName(buf)
+	Return String.fromUTF8String(buf)
+End Function
+
+Rem
+bbdoc: Creates a centered array of strings, split by ~n
+End Rem
+Function StringToCenteredArray:String[](text:String)
+	Local parts:String[] = text.Split("~n")
+		
+	For Local i:Int = 0 Until parts.length
+		
+		parts[i] = "<C>" + parts[i]
+		
+	Next
+
+	Return parts
 End Function

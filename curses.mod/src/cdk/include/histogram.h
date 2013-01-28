@@ -1,5 +1,5 @@
 /*
- * $Id: histogram.h,v 1.18 2004/08/30 00:00:57 tom Exp $
+ * $Id: histogram.h,v 1.19 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2002,2003 copyright Thomas E. Dickey
+ * Changes 1999-2004,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -100,7 +100,7 @@ CDKHISTOGRAM *newCDKHistogram (
 		int		/* height */,
 		int		/* width */,
 		int		/* orient */,
-		char *		/* title */,
+		const char *	/* title */,
 		boolean		/* Box */,
 		boolean		/* shadow */);
 

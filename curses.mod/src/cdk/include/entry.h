@@ -1,5 +1,5 @@
 /*
- * $Id: entry.h,v 1.24 2004/08/30 00:00:57 tom Exp $
+ * $Id: entry.h,v 1.27 2012/03/21 20:52:57 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2002,2003 copyright Thomas E. Dickey
+ * Changes 1999-2003,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -95,8 +95,8 @@ CDKENTRY *newCDKEntry (
 		CDKSCREEN *	/* cdkscreen */,
 		int		/* xpos */,
 		int		/* ypos */,
-		char *		/* title */,
-		char *		/* label */,
+		const char *	/* title */,
+		const char *	/* label */,
 		chtype		/* fieldAttrib */,
 		chtype		/* filler */,
 		EDisplayType	/* disptype */,
@@ -123,7 +123,7 @@ char *activateCDKEntry (
  */
 void setCDKEntry (
 		CDKENTRY *	/* entry */,
-		char *		/* value */,
+		const char *	/* value */,
 		int		/* min */,
 		int		/* max */,
 		boolean		/* Box */);
@@ -133,7 +133,7 @@ void setCDKEntry (
  */
 void setCDKEntryValue (
 		CDKENTRY *	/* entry */,
-		char *		/* value */);
+		const char *	/* value */);
 char *getCDKEntryValue (
 		CDKENTRY *	/* entry */);
 

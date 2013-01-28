@@ -2,14 +2,14 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/04/18 00:06:07 $
- * $Revision: 1.3 $
+ * $Date: 2012/03/20 09:54:37 $
+ * $Revision: 1.4 $
  */
 
 /*
  * Given a character pointer, returns the equivalent display type.
  */
-EDisplayType char2DisplayType (char *string)
+EDisplayType char2DisplayType (const char *string)
 {
    /* *INDENT-OFF* */
    static const struct {

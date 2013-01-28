@@ -62,4 +62,3 @@ Function dialogHelpCB(widget:TCursesWidget, data:Object, key:Int)
 	End Select
 	
 End Function
-

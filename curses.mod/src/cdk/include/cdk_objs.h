@@ -1,5 +1,5 @@
 /*
- * $Id: cdk_objs.h,v 1.37 2005/12/29 23:58:35 tom Exp $
+ * $Id: cdk_objs.h,v 1.40 2012/03/21 20:49:54 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /*
- * Copyright 1999-2004,2005 Thomas E. Dickey
+ * Copyright 1999-2005,2012 Thomas E. Dickey
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -351,10 +351,10 @@ extern void setCDKObjectPostProcess (
  */
 extern void setCDKObjectBackgroundColor (
 		CDKOBJS *	/* object */,
-		char *		/* color */);
+		const char *	/* color */);
 
 /* title-storage is implemented identically with all widgets */
-extern int setCdkTitle (CDKOBJS *, char *, int);
+extern int setCdkTitle (CDKOBJS *, const char *, int);
 extern void drawCdkTitle (WINDOW *, CDKOBJS *);
 extern void cleanCdkTitle (CDKOBJS *);
 

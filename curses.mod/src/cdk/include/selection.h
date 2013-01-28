@@ -1,5 +1,5 @@
 /*
- * $Id: selection.h,v 1.26 2005/12/28 21:45:16 tom Exp $
+ * $Id: selection.h,v 1.27 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 1999-2003,2005 copyright Thomas E. Dickey
+ * Changes 1999-2005,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -112,10 +112,10 @@ CDKSELECTION *newCDKSelection (
 		int		/* spos */,
 		int		/* height */,
 		int		/* width */,
-		char *		/* title */,
-		char **		/* list */,
+		const char *	/* title */,
+		CDK_CSTRING2	/* list */,
 		int		/* listSize */,
-		char **		/* choices */,
+		CDK_CSTRING2	/* choices */,
 		int		/* choiceSize */,
 		chtype		/* highlight */,
 		boolean		/* Box */,
@@ -172,7 +172,7 @@ void setCDKSelection (
  */
 void setCDKSelectionItems (
 		CDKSELECTION *	/* selection */,
-		char **		/* list */,
+		CDK_CSTRING2	/* list */,
 		int		/* listSize */);
 
 int getCDKSelectionItems (
@@ -184,7 +184,7 @@ int getCDKSelectionItems (
  */
 void setCDKSelectionTitle (
 		CDKSELECTION *	/* selection */,
-		char *		/* title */);
+		const char *	/* title */);
 
 char *getCDKSelectionTitle (
 		CDKSELECTION *	/* selection */);

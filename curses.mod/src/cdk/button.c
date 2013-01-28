@@ -4,8 +4,8 @@
 
 /*
  * $Author: tom $
- * $Date: 2006/05/05 00:27:45 $
- * $Revision: 1.32 $
+ * $Date: 2012/03/21 20:57:44 $
+ * $Revision: 1.36 $
  */
 
 DeclareCDKObjects (BUTTON, Button, setCdk, Int);
@@ -13,31 +13,35 @@ DeclareCDKObjects (BUTTON, Button, setCdk, Int);
 /*
  * This creates a button widget.
  */
-CDKBUTTON *newCDKButton (CDKSCREEN * cdkscreen, int xplace, int yplace, char
-			 *text, tButtonCallback callback, boolean Box,
+CDKBUTTON *newCDKButton (CDKSCREEN *cdkscreen,
+			 int xplace,
+			 int yplace,
+			 const char *text,
+			 tButtonCallback callback,
+			 boolean Box,
 			 boolean shadow)
 {
-   /* Maintain the button information. */
-   CDKBUTTON *button	= 0;
+   /* *INDENT-EQLS* */
+   CDKBUTTON *button    = 0;
    int parentWidth      = getmaxx (cdkscreen->window);
    int parentHeight     = getmaxy (cdkscreen->window);
    int boxWidth         = 0;
    int boxHeight;
-   int xpos = xplace;
-   int ypos = yplace;
+   int xpos             = xplace;
+   int ypos             = yplace;
 
-   if ((button = newCDKObject(CDKBUTTON, &my_funcs)) == 0)
-      return (0);
+   if ((button = newCDKObject (CDKBUTTON, &my_funcs)) == 0)
+        return (0);
 
    setCDKButtonBox (button, Box);
-   boxHeight = 1 + 2 * BorderOf(button);
+   boxHeight = 1 + 2 * BorderOf (button);
 
    /* Translate the char * to a chtype. */
    button->info = char2Chtype (text, &button->infoLen, &button->infoPos);
-   boxWidth = MAXIMUM (boxWidth, button->infoLen) + 2 * BorderOf(button);
+   boxWidth = MAXIMUM (boxWidth, button->infoLen) + 2 * BorderOf (button);
 
    /* Create the string alignments. */
-   button->infoPos = justifyString (boxWidth - 2 * BorderOf(button),
+   button->infoPos = justifyString (boxWidth - 2 * BorderOf (button),
 				    button->infoLen, button->infoPos);
 
    /*
@@ -49,12 +53,12 @@ CDKBUTTON *newCDKButton (CDKSCREEN * cdkscreen, int xplace, int yplace, char
    /* Rejustify the x and y positions if we need to. */
    alignxy (cdkscreen->window, &xpos, &ypos, boxWidth, boxHeight);
 
-   /* Create the button. */
+   /* *INDENT-EQLS* Create the button. */
    ScreenOf (button)            = cdkscreen;
    ObjOf (button)->fn           = &my_funcs;
    button->parent               = cdkscreen->window;
    button->win                  = newwin (boxHeight, boxWidth, ypos, xpos);
-   button->shadowWin            = (WINDOW *) NULL;
+   button->shadowWin            = (WINDOW *)NULL;
    button->xpos                 = xpos;
    button->ypos                 = ypos;
    button->boxWidth             = boxWidth;
@@ -62,11 +66,11 @@ CDKBUTTON *newCDKButton (CDKSCREEN * cdkscreen, int xplace, int yplace, char
    button->callback             = callback;
    ObjOf (button)->inputWindow  = button->win;
    ObjOf (button)->acceptsFocus = TRUE;
-   initExitType(button);
+   initExitType (button);
    button->shadow               = shadow;
 
    /* Is the window NULL? */
-   if (button->win == (WINDOW *) NULL)
+   if (button->win == (WINDOW *)NULL)
    {
       destroyCDKObject (button);
       return (0);
@@ -88,7 +92,7 @@ CDKBUTTON *newCDKButton (CDKSCREEN * cdkscreen, int xplace, int yplace, char
 /*
  * This was added for the builder.
  */
-int activateCDKButton (CDKBUTTON * button, chtype * actions)
+int activateCDKButton (CDKBUTTON *button, chtype *actions)
 {
    chtype input = 0;
    boolean functionKey;
@@ -100,10 +104,10 @@ int activateCDKButton (CDKBUTTON * button, chtype * actions)
    {
       for (;;)
       {
-	 input = getchCDKObject (ObjOf(button), &functionKey);
+	 input = (chtype)getchCDKObject (ObjOf (button), &functionKey);
 
 	 /* Inject the character into the widget. */
-	 ret = injectCDKButton(button, input);
+	 ret = injectCDKButton (button, input);
 	 if (button->exitType != vEARLY_EXIT)
 	 {
 	    return ret;
@@ -116,9 +120,9 @@ int activateCDKButton (CDKBUTTON * button, chtype * actions)
       int x = 0;
 
       /* Inject each character one at a time. */
-      for (x=0; x < length; x++)
+      for (x = 0; x < length; x++)
       {
-	 ret = injectCDKButton(button, actions[x]);
+	 ret = injectCDKButton (button, actions[x]);
 	 if (button->exitType != vEARLY_EXIT)
 	 {
 	    return ret;
@@ -127,14 +131,14 @@ int activateCDKButton (CDKBUTTON * button, chtype * actions)
    }
 
    /* Set the exit type and exit. */
-   setExitType(button, 0);
+   setExitType (button, 0);
    return -1;
 }
 
 /*
  * This sets multiple attributes of the widget.
  */
-void setCDKButton (CDKBUTTON * button, char *mesg, boolean Box)
+void setCDKButton (CDKBUTTON *button, const char *mesg, boolean Box)
 {
    setCDKButtonMessage (button, mesg);
    setCDKButtonBox (button, Box);
@@ -143,7 +147,7 @@ void setCDKButton (CDKBUTTON * button, char *mesg, boolean Box)
 /*
  * This sets the information within the button.
  */
-void setCDKButtonMessage (CDKBUTTON * button, char *info)
+void setCDKButtonMessage (CDKBUTTON *button, const char *info)
 {
    /* Clean out the old message. */
    freeChtype (button->info);
@@ -153,7 +157,7 @@ void setCDKButtonMessage (CDKBUTTON * button, char *info)
    /* Copy in the new message. */
 
    button->info = char2Chtype (info, &button->infoLen, &button->infoPos);
-   button->infoPos = justifyString (button->boxWidth - 2 * BorderOf(button),
+   button->infoPos = justifyString (button->boxWidth - 2 * BorderOf (button),
 				    button->infoLen, button->infoPos);
 
    /* Redraw the button widget. */
@@ -161,7 +165,7 @@ void setCDKButtonMessage (CDKBUTTON * button, char *info)
    drawCDKButton (button, ObjOf (button)->box);
 }
 
-chtype *getCDKButtonMessage (CDKBUTTON * button)
+chtype *getCDKButtonMessage (CDKBUTTON *button)
 {
    return button->info;
 }
@@ -169,13 +173,13 @@ chtype *getCDKButtonMessage (CDKBUTTON * button)
 /*
  * This sets the box flag for the button widget.
  */
-void setCDKButtonBox (CDKBUTTON * button, boolean Box)
+void setCDKButtonBox (CDKBUTTON *button, boolean Box)
 {
    ObjOf (button)->box = Box;
    ObjOf (button)->borderSize = Box ? 1 : 0;
 }
 
-boolean getCDKButtonBox (CDKBUTTON * button)
+boolean getCDKButtonBox (CDKBUTTON *button)
 {
    return ObjOf (button)->box;
 }
@@ -183,24 +187,24 @@ boolean getCDKButtonBox (CDKBUTTON * button)
 /*
  * This sets the background attribute of the widget.
  */
-static void _setBKattrButton (CDKOBJS * object, chtype attrib)
+static void _setBKattrButton (CDKOBJS *object, chtype attrib)
 {
    if (object != 0)
    {
-      CDKBUTTON *widget = (CDKBUTTON *) object;
+      CDKBUTTON *widget = (CDKBUTTON *)object;
 
       wbkgd (widget->win, attrib);
    }
 }
 
-static void drawCDKButtonText (CDKBUTTON * button)
+static void drawCDKButtonText (CDKBUTTON *button)
 {
    int boxWidth = button->boxWidth;
    int i;
 
    /* Draw in the message. */
 
-   for (i = 0; i < boxWidth - 2 * BorderOf(button); i++)
+   for (i = 0; i < boxWidth - 2 * BorderOf (button); i++)
    {
       chtype c;
       int pos = button->infoPos;
@@ -213,22 +217,22 @@ static void drawCDKButtonText (CDKBUTTON * button)
 
       if (HasFocusObj (button))
       {
-	 c = A_REVERSE | CharOf(c);
+	 c = A_REVERSE | CharOf (c);
       }
 
-      mvwaddch (button->win, BorderOf(button), i + BorderOf(button), c);
+      mvwaddch (button->win, BorderOf (button), i + BorderOf (button), c);
    }
 }
 
 /*
  * This draws the button widget.
  */
-static void _drawCDKButton (CDKOBJS * object, boolean Box GCC_UNUSED)
+static void _drawCDKButton (CDKOBJS *object, boolean Box GCC_UNUSED)
 {
-   CDKBUTTON *button = (CDKBUTTON *) object;
+   CDKBUTTON *button = (CDKBUTTON *)object;
 
    /* Is there a shadow? */
-   if (button->shadowWin != (WINDOW *) NULL)
+   if (button->shadowWin != (WINDOW *)NULL)
    {
       drawShadow (button->shadowWin);
    }
@@ -236,7 +240,7 @@ static void _drawCDKButton (CDKOBJS * object, boolean Box GCC_UNUSED)
    /* Box the widget if asked. */
    if (ObjOf (button)->box)
    {
-      drawObjBox (button->win, ObjOf(button));
+      drawObjBox (button->win, ObjOf (button));
    }
    drawCDKButtonText (button);
    wrefresh (button->win);
@@ -245,11 +249,11 @@ static void _drawCDKButton (CDKOBJS * object, boolean Box GCC_UNUSED)
 /*
  * This erases the button widget.
  */
-static void _eraseCDKButton (CDKOBJS * object)
+static void _eraseCDKButton (CDKOBJS *object)
 {
    if (validCDKObject (object))
    {
-      CDKBUTTON *button = (CDKBUTTON *) object;
+      CDKBUTTON *button = (CDKBUTTON *)object;
 
       eraseCursesWindow (button->win);
       eraseCursesWindow (button->shadowWin);
@@ -265,7 +269,7 @@ static void _moveCDKButton (CDKOBJS *object,
 			    boolean relative,
 			    boolean refresh_flag)
 {
-   CDKBUTTON *button = (CDKBUTTON *) object;
+   CDKBUTTON *button = (CDKBUTTON *)object;
    int currentX = getbegx (button->win);
    int currentY = getbegy (button->win);
    int xpos = xplace;
@@ -292,8 +296,8 @@ static void _moveCDKButton (CDKOBJS *object,
    ydiff = currentY - ypos;
 
    /* Move the window to the new location. */
-   moveCursesWindow(button->win, -xdiff, -ydiff);
-   moveCursesWindow(button->shadowWin, -xdiff, -ydiff);
+   moveCursesWindow (button->win, -xdiff, -ydiff);
+   moveCursesWindow (button->shadowWin, -xdiff, -ydiff);
 
    /* Touch the windows so they 'move'. */
    refreshCDKWindow (WindowOf (button));
@@ -309,18 +313,18 @@ static void _moveCDKButton (CDKOBJS *object,
  * This allows the user to use the cursor keys to adjust the
  * position of the widget.
  */
-void positionCDKButton (CDKBUTTON * button)
+void positionCDKButton (CDKBUTTON *button)
 {
    /* Declare some variables. */
    int origX = getbegx (button->win);
    int origY = getbegy (button->win);
-   chtype key = (chtype) 0;
+   chtype key = (chtype)0;
    boolean functionKey;
 
    /* Let them move the widget around until they hit return. */
    while (key != KEY_ENTER)
    {
-      key = getchCDKObject (ObjOf(button), &functionKey);
+      key = (chtype)getchCDKObject (ObjOf (button), &functionKey);
       if (key == KEY_UP || key == '8')
       {
 	 if (getbegy (button->win) > 0)
@@ -464,11 +468,11 @@ void positionCDKButton (CDKBUTTON * button)
 /*
  * This destroys the button object pointer.
  */
-static void _destroyCDKButton (CDKOBJS * object)
+static void _destroyCDKButton (CDKOBJS *object)
 {
    if (object != 0)
    {
-      CDKBUTTON *button = (CDKBUTTON *) object;
+      CDKBUTTON *button = (CDKBUTTON *)object;
 
       /* Free up the character pointers. */
       freeChtype (button->info);
@@ -488,40 +492,46 @@ static void _destroyCDKButton (CDKOBJS * object)
 /*
  * This injects a single character into the widget.
  */
-static int _injectCDKButton (CDKOBJS * object, chtype input)
+static int _injectCDKButton (CDKOBJS *object, chtype input)
 {
-   CDKBUTTON *button = (CDKBUTTON *) object;
+   CDKBUTTON *widget = (CDKBUTTON *)object;
    int ret = unknownInt;
    bool complete = FALSE;
 
-   setExitType(button, 0);
+   setExitType (widget, 0);
 
    /* Check a predefined binding. */
-   if (checkCDKObjectBind (vBUTTON, button, input) != 0)
+   if (checkCDKObjectBind (vBUTTON, widget, input) != 0)
    {
-      checkEarlyExit(button);
+      checkEarlyExit (widget);
       complete = TRUE;
    }
    else
    {
       switch (input)
       {
-      case KEY_ESC :
-	 setExitType(button, input);
+      case KEY_ESC:
+	 setExitType (widget, input);
 	 complete = TRUE;
 	 break;
 
-      case KEY_ENTER: case SPACE:
-	 if (button->callback)
-	    button->callback (button);
-	 setExitType(button, KEY_ENTER);
+      case KEY_ERROR:
+	 setExitType (widget, input);
+	 complete = TRUE;
+	 break;
+
+      case KEY_ENTER:
+      case SPACE:
+	 if (widget->callback)
+	    widget->callback (widget);
+	 setExitType (widget, KEY_ENTER);
 	 ret = 0;
 	 complete = TRUE;
 	 break;
 
       case CDK_REFRESH:
-	 eraseCDKScreen (ScreenOf (button));
-	 refreshCDKScreen (ScreenOf (button));
+	 eraseCDKScreen (ScreenOf (widget));
+	 refreshCDKScreen (ScreenOf (widget));
 	 break;
 
       default:
@@ -530,30 +540,31 @@ static int _injectCDKButton (CDKOBJS * object, chtype input)
       }
    }
 
-   if (!complete) {
-      setExitType(button, 0);
+   if (!complete)
+   {
+      setExitType (widget, 0);
    }
 
-   ResultOf(button).valueInt = ret;
+   ResultOf (widget).valueInt = ret;
    return (ret != unknownInt);
 }
 
-static void _focusCDKButton (CDKOBJS * object)
+static void _focusCDKButton (CDKOBJS *object)
 {
-   CDKBUTTON *button = (CDKBUTTON *) object;
+   CDKBUTTON *button = (CDKBUTTON *)object;
 
    drawCDKButtonText (button);
    wrefresh (button->win);
 }
 
-static void _unfocusCDKButton (CDKOBJS * object)
+static void _unfocusCDKButton (CDKOBJS *object)
 {
-   CDKBUTTON *button = (CDKBUTTON *) object;
+   CDKBUTTON *button = (CDKBUTTON *)object;
 
    drawCDKButtonText (button);
    wrefresh (button->win);
 }
 
-dummyRefreshData(Button)
+dummyRefreshData (Button)
 
-dummySaveData(Button)
+dummySaveData (Button)

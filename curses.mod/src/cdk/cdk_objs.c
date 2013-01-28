@@ -4,8 +4,8 @@
  * Default method-functions for CDK objects.
  *
  * $Author: tom $
- * $Date: 2005/04/15 22:08:58 $
- * $Revision: 1.12 $
+ * $Date: 2012/03/22 00:43:33 $
+ * $Revision: 1.16 $
  */
 
 /*
@@ -67,7 +67,7 @@ void setCdkBXattr (CDKOBJS *obj, chtype ch)
 /*
  * This sets the background color of the widget.
  */
-void setCDKObjectBackgroundColor (CDKOBJS *obj, char *color)
+void setCDKObjectBackgroundColor (CDKOBJS *obj, const char *color)
 {
    chtype *holder = 0;
    int junk1, junk2;
@@ -82,7 +82,7 @@ void setCDKObjectBackgroundColor (CDKOBJS *obj, char *color)
    holder = char2Chtype (color, &junk1, &junk2);
 
    /* Set the widget's background color. */
-   SetBackAttrObj(obj, holder[0]);        
+   SetBackAttrObj (obj, holder[0]);
 
    /* Clean up. */
    freeChtype (holder);
@@ -91,7 +91,7 @@ void setCDKObjectBackgroundColor (CDKOBJS *obj, char *color)
 /*
  * Set the widget's title.
  */
-int setCdkTitle (CDKOBJS *obj, char *title, int boxWidth)
+int setCdkTitle (CDKOBJS *obj, const char *title, int boxWidth)
 {
    if (obj != 0)
    {
@@ -109,7 +109,7 @@ int setCdkTitle (CDKOBJS *obj, char *title, int boxWidth)
 
 	 /* We need to split the title on \n. */
 	 temp = CDKsplitString (title, '\n');
-	 obj->titleLines = CDKcountStrings (temp);
+	 obj->titleLines = (int)CDKcountStrings ((CDK_CSTRING2) temp);
 
 	 obj->title = typeCallocN (chtype *, obj->titleLines + 1);
 	 obj->titlePos = typeCallocN (int, obj->titleLines + 1);
@@ -211,6 +211,9 @@ void setCdkExitType (CDKOBJS *obj, EExitType *type, chtype ch)
 {
    switch (ch)
    {
+   case KEY_ERROR:
+      *type = vERROR;
+      break;
    case KEY_ESC:
       *type = vESCAPE_HIT;
       break;

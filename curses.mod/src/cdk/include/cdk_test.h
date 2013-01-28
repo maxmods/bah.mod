@@ -1,5 +1,5 @@
 /*
- * $Id: cdk_test.h,v 1.2 2005/12/26 22:29:23 tom Exp $
+ * $Id: cdk_test.h,v 1.5 2008/11/01 17:07:37 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -13,7 +13,7 @@ extern "C" {
 #include <cdk.h>
 
 /*
- * Copyright 2005 Thomas E. Dickey
+ * Copyright 2005,2008 Thomas E. Dickey
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,16 @@ extern "C" {
 #endif
 
 #include <nc_alloc.h>
+
+#else
+
+#if defined(NCURSES_VERSION) && defined(HAVE__NC_FREE_AND_EXIT)
+/* nc_alloc.h normally not installed */
+extern void _nc_free_and_exit(int) GCC_NORETURN;
+#define ExitProgram(code) _nc_free_and_exit(code)
 #endif
+
+#endif /* HAVE_NC_ALLOC_H */
 
 #ifndef ExitProgram
 #define ExitProgram(code) exit(code)

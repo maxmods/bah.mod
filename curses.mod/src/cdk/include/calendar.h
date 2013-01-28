@@ -1,5 +1,5 @@
 /*
- * $Id: calendar.h,v 1.29 2004/08/30 00:00:57 tom Exp $
+ * $Id: calendar.h,v 1.31 2012/03/21 21:15:30 tom Exp $
  */
 
 #ifndef CDKINCLUDES
@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Changes 2000-2002,2003 copyright Thomas E. Dickey
+ * Changes 2000-2011,2012 copyright Thomas E. Dickey
  *
  * Copyright 1999, Mike Glover
  * All rights reserved.
@@ -99,6 +99,7 @@ struct SCalendar {
    boolean	shadow;
    char *	DayName;
    char *	MonthName[MAX_MONTHS];
+   int		weekBase;	/* starting day of week (Sunday=0, Monday=1) */
 };
 typedef struct SCalendar CDKCALENDAR;
 
@@ -109,7 +110,7 @@ CDKCALENDAR *newCDKCalendar (
 		CDKSCREEN *	/* screen */,
 		int		/* xPos */,
 		int		/* yPos */,
-		char *		/* title */,
+		const char *	/* title */,
 		int		/* day */,
 		int		/* month */,
 		int		/* year */,
@@ -295,11 +296,11 @@ void removeCDKCalendarMarker (
  */
 void setCDKCalendarMonthsNames (
 		CDKCALENDAR *	/* calendar */,
-		char **		/* months */);
+		CDK_CSTRING2	/* months */);
 
 void setCDKCalendarDaysNames (
 		CDKCALENDAR *	/* calendar */,
-		char *		/* days - 1st is Sunday */);
+		const char *	/* days - 1st is Sunday */);
 
 #ifdef __cplusplus
 }
