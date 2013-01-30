@@ -35,6 +35,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Fix for Win32 blocked select()."
+ModuleInfo "History: Do not build acountry.c."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to libcurl 7.28.1"
 ModuleInfo "History: Update to c-ares 1.9.1"

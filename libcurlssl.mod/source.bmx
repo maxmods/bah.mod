@@ -178,7 +178,7 @@ Import "src/ares/ares_strdup.c"
 Import "src/ares/ares_strcasecmp.c"
 Import "src/ares/ares_getopt.c"
 Import "src/ares/ares__timeval.c"
-Import "src/ares/acountry.c"
+'Import "src/ares/acountry.c" is a program!
 Import "src/ares/ares_data.c"
 Import "src/ares/ares_getenv.c"
 Import "src/ares/ares_library_init.c"
