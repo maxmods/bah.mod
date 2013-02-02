@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2011 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,18 @@ SuperStrict
 
 Rem
 bbdoc: FMOD
+about: FMOD Ex sound system.
 End Rem
 Module BaH.FMOD
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FMOD - See http://www.fmod.org"
-ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
-ModuleInfo "Copyright: FMOD - 2004-2010 Firelight Technologies, Pty, Ltd"
+ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
+ModuleInfo "Copyright: FMOD - 2004-2011 Firelight Technologies, Pty, Ltd"
 
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release. (FMOD 4.44.06)"
 
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
@@ -2933,6 +2936,202 @@ Type TFMODChannelGroup
 	Method ChannelGroupRelease:Int()
 		Return FMOD_ChannelGroup_Release(channelGroupPtr)
 	End Method
+
+End Type
+
+Rem
+bbdoc: Settings for advanced features like configuring memory and cpu usage for the FMOD_CREATECOMPRESSEDSAMPLE feature.
+End Rem
+Type TFMODAdvancedSettings
+
+	Field advancedSettingsPtr:Byte Ptr
+
+	Method New()
+		advancedSettingsPtr = bmx_advancedsettings_create()
+	End Method
+
+	Method SetmaxMPEGcodecs(value:Int)
+		bmx_advancedsettings_setmaxMPEGcodecs(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmaxMPEGcodecs:Int()
+		Return bmx_advancedsettings_getmaxMPEGcodecs(advancedSettingsPtr)
+	End Method
+	
+	Method SetmaxADPCMcodecs(value:Int)
+		bmx_advancedsettings_setmaxADPCMcodecs(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmaxADPCMcodecs:Int()
+		Return bmx_advancedsettings_getmaxADPCMcodecs(advancedSettingsPtr)
+	End Method
+	
+	Method SetmaxXMAcodecs(value:Int)
+		bmx_advancedsettings_setmaxXMAcodecs(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmaxXMAcodecs:Int()
+		Return bmx_advancedsettings_getmaxXMAcodecs(advancedSettingsPtr)
+	End Method
+	
+	Method SetmaxCELTcodecs(value:Int)
+		bmx_advancedsettings_setmaxCELTcodecs(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmaxCELTcodecs:Int()
+		Return bmx_advancedsettings_getmaxCELTcodecs(advancedSettingsPtr)
+	End Method
+	
+	Method SetmaxVORBIScodecs(value:Int)
+		bmx_advancedsettings_setmaxVORBIScodecs(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmaxVORBIScodecs:Int()
+		Return bmx_advancedsettings_getmaxVORBIScodecs(advancedSettingsPtr)
+	End Method
+	
+	Method SetmaxPCMcodecs(value:Int)
+		bmx_advancedsettings_setmaxPCMcodecs(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmaxPCMcodecs:Int()
+		Return bmx_advancedsettings_getmaxPCMcodecs(advancedSettingsPtr)
+	End Method
+	
+	Method SetASIONumChannels(value:Int)
+		bmx_advancedsettings_setASIONumChannels(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetASIONumChannels:Int()
+		Return bmx_advancedsettings_getASIONumChannels(advancedSettingsPtr)
+	End Method
+	
+	Method Setmax3DReverbDSPs(value:Int)
+		bmx_advancedsettings_setmax3DReverbDSPs(advancedSettingsPtr, value)
+	End Method
+	
+	Method Getmax3DReverbDSPs:Int()
+		Return bmx_advancedsettings_getmax3DReverbDSPs(advancedSettingsPtr)
+	End Method
+	
+	Method SetHRTFMinAngle(value:Float)
+		bmx_advancedsettings_setHRTFMinAngle(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetHRTFMinAngle:Float()
+		Return bmx_advancedsettings_getHRTFMinAngle(advancedSettingsPtr)
+	End Method
+	
+	Method SetHRTFMaxAngle(value:Float)
+		bmx_advancedsettings_setHRTFMaxAngle(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetHRTFMaxAngle:Float()
+		Return bmx_advancedsettings_getHRTFMaxAngle(advancedSettingsPtr)
+	End Method
+	
+	Method SetHRTFFreq(value:Float)
+		bmx_advancedsettings_setHRTFFreq(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetHRTFFreq:Float()
+		Return bmx_advancedsettings_getHRTFFreq(advancedSettingsPtr)
+	End Method
+	
+	Method Setvol0virtualvol(value:Float)
+		bmx_advancedsettings_setvol0virtualvol(advancedSettingsPtr, value)
+	End Method
+	
+	Method Getvol0virtualvol:Float()
+		Return bmx_advancedsettings_getvol0virtualvol(advancedSettingsPtr)
+	End Method
+	
+	Method Seteventqueuesize(value:Int)
+		bmx_advancedsettings_seteventqueuesize(advancedSettingsPtr, value)
+	End Method
+	
+	Method Geteventqueuesize:Int()
+		Return bmx_advancedsettings_geteventqueuesize(advancedSettingsPtr)
+	End Method
+	
+	Method SetdefaultDecodeBufferSize(value:Int)
+		bmx_advancedsettings_setdefaultDecodeBufferSize(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetdefaultDecodeBufferSize:Int()
+		Return bmx_advancedsettings_getdefaultDecodeBufferSize(advancedSettingsPtr)
+	End Method
+	
+	Method Setprofileport(value:Int)
+		bmx_advancedsettings_setprofileport(advancedSettingsPtr, value)
+	End Method
+	
+	Method Getprofileport:Int()
+		Return bmx_advancedsettings_getprofileport(advancedSettingsPtr)
+	End Method
+	
+	Method SetgeometryMaxFadeTime(value:Int)
+		bmx_advancedsettings_setgeometryMaxFadeTime(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetgeometryMaxFadeTime:Int()
+		Return bmx_advancedsettings_getgeometryMaxFadeTime(advancedSettingsPtr)
+	End Method
+	
+	Method SetmaxSpectrumWaveDataBuffers(value:Int)
+		bmx_advancedsettings_setmaxSpectrumWaveDataBuffers(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmaxSpectrumWaveDataBuffers:Int()
+		Return bmx_advancedsettings_getmaxSpectrumWaveDataBuffers(advancedSettingsPtr)
+	End Method
+	
+	Method SetmusicSystemCacheDelay(value:Int)
+		bmx_advancedsettings_setmusicSystemCacheDelay(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetmusicSystemCacheDelay:Int()
+		Return bmx_advancedsettings_getmusicSystemCacheDelay(advancedSettingsPtr)
+	End Method
+	
+	Method SetdistanceFilterCenterFreq(value:Float)
+		bmx_advancedsettings_setdistanceFilterCenterFreq(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetdistanceFilterCenterFreq:Float()
+		Return bmx_advancedsettings_getdistanceFilterCenterFreq(advancedSettingsPtr)
+	End Method
+	
+	Method SetstackSizeStream(value:Int)
+		bmx_advancedsettings_setstackSizeStream(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetstackSizeStream:Int()
+		Return bmx_advancedsettings_getstackSizeStream(advancedSettingsPtr)
+	End Method
+	
+	Method SetstackSizeNonBlocking(value:Int)
+		bmx_advancedsettings_setstackSizeNonBlocking(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetstackSizeNonBlocking:Int()
+		Return bmx_advancedsettings_getstackSizeNonBlocking(advancedSettingsPtr)
+	End Method
+	
+	Method SetstackSizeMixer(value:Int)
+		bmx_advancedsettings_setstackSizeMixer(advancedSettingsPtr, value)
+	End Method
+	
+	Method GetstackSizeMixer:Int()
+		Return bmx_advancedsettings_getstackSizeMixer(advancedSettingsPtr)
+	End Method
+	
+	Method Delete()
+		If advancedSettingsPtr Then
+			bmx_advancedsettings_delete(advancedSettingsPtr)
+			advancedSettingsPtr = Null
+		End If
+	End Method	
 
 End Type
 

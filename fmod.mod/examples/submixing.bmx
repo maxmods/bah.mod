@@ -46,7 +46,7 @@ For Local count:Int = 0 Until 5
 Next
 
 ' Create the DSP effects we want to apply to our submixes.
-Local dspreverb:TFMODDsp = system.CreateDSPByType(FMOD_DSP_TYPE_REVERB)
+Local dspreverb:TFMODDsp = system.CreateDSPByType(FMOD_DSP_TYPE_SFXREVERB)
 
 Local dspflange:TFMODDsp = system.CreateDSPByType(FMOD_DSP_TYPE_FLANGE)
 dspflange.SetParameter(FMOD_DSP_FLANGE_RATE, 1.0)

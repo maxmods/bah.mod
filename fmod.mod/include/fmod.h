@@ -1,3 +1,4 @@
+/*$ preserve start $*/
 
 /* ============================================================================================ */
 /* FMOD Ex - Main C/C++ header file. Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011. */
@@ -15,7 +16,7 @@
     0xaaaabbcc -> aaaa = major version number.  bb = minor version number.  cc = development version number.
 */
 
-#define FMOD_VERSION    0x00043505
+#define FMOD_VERSION    0x00044406
 
 /*
     Compiler specific settings.
@@ -26,25 +27,25 @@
     #define F_STDCALL __stdcall
     #define F_DECLSPEC __declspec
     #define F_DLLEXPORT ( dllexport )
-#elif (defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64) || defined(_XBOX))
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
     #define F_CDECL _cdecl
     #define F_STDCALL _stdcall
     #define F_DECLSPEC __declspec
     #define F_DLLEXPORT ( dllexport )
-#elif defined(__MACH__) || defined (__ANDROID__)
+#elif defined(__MACH__) || defined(__ANDROID__) || defined(__linux__) || defined(__QNX__)
     #define F_CDECL
     #define F_STDCALL
     #define F_DECLSPEC
     #define F_DLLEXPORT __attribute__ ((visibility("default")))
 #else
-    #define F_STDCALL
     #define F_CDECL
+    #define F_STDCALL
     #define F_DECLSPEC
     #define F_DLLEXPORT
 #endif
 
 #ifdef DLL_EXPORTS
-    #if defined(__MACH__) || defined(__ANDROID__) || defined(JUNGLE)
+    #if defined(__MACH__) || defined(__ANDROID__) || defined(__linux__) || defined(__QNX__)
         #define F_API __attribute__ ((visibility("default")))
     #else
         #define F_API __declspec(dllexport) F_STDCALL
@@ -78,6 +79,7 @@ typedef unsigned int              FMOD_CAPS;
 typedef unsigned int              FMOD_DEBUGLEVEL;
 typedef unsigned int              FMOD_MEMORY_TYPE;
 
+/*$ fmod result start $*/
 /*
 [ENUM]
 [
@@ -187,7 +189,7 @@ typedef enum
     FMOD_ERR_EVENT_NOTFOUND,        /* The requested event, event group, event category or event property could not be found. */
     FMOD_ERR_EVENT_NEEDSSIMPLE,     /* Tried to call a function on a complex event that's only supported by simple events. */
     FMOD_ERR_EVENT_GUIDCONFLICT,    /* An event with the same GUID already exists. */
-    FMOD_ERR_EVENT_ALREADY_LOADED,  /* The specified project has already been loaded. Having multiple copies of the same project loaded simultaneously is forbidden. */
+    FMOD_ERR_EVENT_ALREADY_LOADED,  /* The specified project or bank has already been loaded. Having multiple copies of the same project loaded simultaneously is forbidden. */
 
     FMOD_ERR_MUSIC_UNINITIALIZED,   /* Music system is not initialized probably because no music data is loaded. */
     FMOD_ERR_MUSIC_NOTFOUND,        /* The requested music entity could not be found. */
@@ -195,6 +197,7 @@ typedef enum
 
     FMOD_RESULT_FORCEINT = 65536    /* Makes sure this enum is signed 32bit. */
 } FMOD_RESULT;
+/*$ fmod result end $*/
 
 
 /*
@@ -204,7 +207,7 @@ typedef enum
     Structure describing a point in 3D space.
 
     [REMARKS]
-    FMOD uses a left handed co-ordinate system by default.
+    FMOD uses a left handed co-ordinate system by default.<br>
     To use a right handed co-ordinate system specify FMOD_INIT_3D_RIGHTHANDED from FMOD_INITFLAGS in System::init.
 
     [PLATFORMS]
@@ -268,17 +271,17 @@ typedef struct
     Structure that is passed into FMOD_FILE_ASYNCREADCALLBACK.  Use the information in this structure to perform
 
     [REMARKS]
-    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.
-    Members marked with [w] mean the variable can be written to.  The user can set the value.
-    
-    Instructions: write to 'buffer', and 'bytesread' <b>BEFORE</b> setting 'result'.  
-    As soon as result is set, FMOD will asynchronously continue internally using the data provided in this structure.
-    
-    Set 'result' to the result expected from a normal file read callback.
-    If the read was successful, set it to FMOD_OK.
-    If it read some data but hit the end of the file, set it to FMOD_ERR_FILE_EOF.
-    If a bad error occurred, return FMOD_ERR_FILE_BAD
-    If a disk was ejected, return FMOD_ERR_FILE_DISKEJECTED.
+    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.<br>
+    Members marked with [w] mean the variable can be written to.  The user can set the value.<br>
+    <br>
+    Instructions: write to 'buffer', and 'bytesread' <b>BEFORE</b> setting 'result'.<br>  
+    As soon as result is set, FMOD will asynchronously continue internally using the data provided in this structure.<br>
+    <br>
+    Set 'result' to the result expected from a normal file read callback.<br>
+    If the read was successful, set it to FMOD_OK.<br>
+    If it read some data but hit the end of the file, set it to FMOD_ERR_FILE_EOF.<br>
+    If a bad error occurred, return FMOD_ERR_FILE_BAD<br>
+    If a disk was ejected, return FMOD_ERR_FILE_DISKEJECTED.<br>
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -310,21 +313,21 @@ typedef struct
     These output types are used with System::setOutput / System::getOutput, to choose which output method to use.
   
     [REMARKS]
-    To pass information to the driver when initializing fmod use the extradriverdata parameter in System::init for the following reasons.
-    - FMOD_OUTPUTTYPE_WAVWRITER - extradriverdata is a pointer to a char * filename that the wav writer will output to.
-    - FMOD_OUTPUTTYPE_WAVWRITER_NRT - extradriverdata is a pointer to a char * filename that the wav writer will output to.
-    - FMOD_OUTPUTTYPE_DSOUND - extradriverdata is a pointer to a HWND so that FMOD can set the focus on the audio for a particular window.
-    - FMOD_OUTPUTTYPE_PS3 - extradriverdata is a pointer to a FMOD_PS3_EXTRADRIVERDATA struct. This can be found in fmodps3.h.
-    - FMOD_OUTPUTTYPE_GC - extradriverdata is a pointer to a FMOD_GC_INFO struct. This can be found in fmodgc.h.
-    - FMOD_OUTPUTTYPE_WII - extradriverdata is a pointer to a FMOD_WII_INFO struct. This can be found in fmodwii.h.
-    - FMOD_OUTPUTTYPE_ALSA - extradriverdata is a pointer to a FMOD_LINUX_EXTRADRIVERDATA struct. This can be found in fmodlinux.h.
-    
+    To pass information to the driver when initializing fmod use the extradriverdata parameter in System::init for the following reasons.<br>
+    <li>FMOD_OUTPUTTYPE_WAVWRITER - extradriverdata is a pointer to a char * filename that the wav writer will output to.
+    <li>FMOD_OUTPUTTYPE_WAVWRITER_NRT - extradriverdata is a pointer to a char * filename that the wav writer will output to.
+    <li>FMOD_OUTPUTTYPE_DSOUND - extradriverdata is a pointer to a HWND so that FMOD can set the focus on the audio for a particular window.
+    <li>FMOD_OUTPUTTYPE_PS3 - extradriverdata is a pointer to a FMOD_PS3_EXTRADRIVERDATA struct. This can be found in fmodps3.h.
+    <li>FMOD_OUTPUTTYPE_GC - extradriverdata is a pointer to a FMOD_GC_INFO struct. This can be found in fmodgc.h.
+    <li>FMOD_OUTPUTTYPE_WII - extradriverdata is a pointer to a FMOD_WII_INFO struct. This can be found in fmodwii.h.
+    <li>FMOD_OUTPUTTYPE_ALSA - extradriverdata is a pointer to a FMOD_LINUX_EXTRADRIVERDATA struct. This can be found in fmodlinux.h.<br>
+    <br>
     Currently these are the only FMOD drivers that take extra information.  Other unknown plugins may have different requirements.
-    
+    <br><br>
     Note! If FMOD_OUTPUTTYPE_WAVWRITER_NRT or FMOD_OUTPUTTYPE_NOSOUND_NRT are used, and if the System::update function is being called
     very quickly (ie for a non realtime decode) it may be being called too quickly for the FMOD streamer thread to respond to.  
-    The result will be a skipping/stuttering output in the captured audio.
-    
+    The result will be a skipping/stuttering output in the captured audio.<br>
+    <br>
     To remedy this, disable the FMOD Ex streamer thread, and use FMOD_INIT_STREAM_FROM_UPDATE to avoid skipping in the output stream,
     as it will lock the mixer and the streamer together in the same thread.
 
@@ -368,6 +371,9 @@ typedef enum
     FMOD_OUTPUTTYPE_3DS,             /* 3DS             - Native 3DS output                         (Default on 3DS) */
     FMOD_OUTPUTTYPE_AUDIOTRACK,      /* Android         - Java Audio Track output.                  (Default on Android 2.2 and below) */
     FMOD_OUTPUTTYPE_OPENSL,          /* Android         - OpenSL ES output.                         (Default on Android 2.3 and above) */   
+    FMOD_OUTPUTTYPE_NACL,            /* Native Client   - Native Client output.                     (Default on Native Client) */
+    FMOD_OUTPUTTYPE_WIIU,            /* Wii U           - Native Wii U output.                      (Default on Wii U) */
+	FMOD_OUTPUTTYPE_ASOUND,		 	 /* BlackBerry      - Native BlackBerry asound output.          (Default on BlackBerry) */
 
     FMOD_OUTPUTTYPE_MAX,             /* Maximum number of output types supported. */
     FMOD_OUTPUTTYPE_FORCEINT = 65536 /* Makes sure this enum is signed 32bit. */
@@ -404,6 +410,7 @@ typedef enum
 #define FMOD_CAPS_OUTPUT_FORMAT_PCM32    0x00000040  /* Device can output to 32bit integer PCM. */
 #define FMOD_CAPS_OUTPUT_FORMAT_PCMFLOAT 0x00000080  /* Device can output to 32bit floating point PCM. */
 #define FMOD_CAPS_REVERB_LIMITED         0x00002000  /* Device supports some form of limited hardware reverb, maybe parameterless and only selectable by environment. */
+#define FMOD_CAPS_LOOPBACK               0x00004000  /* Device is a loopback recording device */
 /* [DEFINE_END] */
 
 /*
@@ -456,7 +463,7 @@ typedef enum
     Bit fields for memory allocation type being passed into FMOD memory callbacks.
 
     [REMARKS]
-    Remember this is a bitfield.  You may get more than 1 bit set (ie physical + persistent) so do not simply switch on the types!  You must check each bit individually or clear out the bits that you do not want within the callback.
+    Remember this is a bitfield.  You may get more than 1 bit set (ie physical + persistent) so do not simply switch on the types!  You must check each bit individually or clear out the bits that you do not want within the callback.<br>
     Bits can be excluded if you want during Memory_Initialize so that you never get them.
 
     [PLATFORMS]
@@ -489,97 +496,98 @@ typedef enum
     These are speaker types defined for use with the System::setSpeakerMode or System::getSpeakerMode command.
 
     [REMARKS]
-    These are important notes on speaker modes in regards to sounds created with FMOD_SOFTWARE.
+    These are important notes on speaker modes in regards to sounds created with FMOD_SOFTWARE.<br>
     Note below the phrase 'sound channels' is used.  These are the subchannels inside a sound, they are not related and 
-    have nothing to do with the FMOD class "Channel".
-    For example a mono sound has 1 sound channel, a stereo sound has 2 sound channels, and an AC3 or 6 channel wav file have 6 "sound channels".
-    
-    FMOD_SPEAKERMODE_RAW
-    ---------------------
-    This mode is for output devices that are not specifically mono/stereo/quad/surround/5.1 or 7.1, but are multichannel.
-    Use System::setSoftwareFormat to specify the number of speakers you want to address, otherwise it will default to 2 (stereo).
-    Sound channels map to speakers sequentially, so a mono sound maps to output speaker 0, stereo sound maps to output speaker 0 & 1.
-    The user assumes knowledge of the speaker order.  FMOD_SPEAKER enumerations may not apply, so raw channel indices should be used.
-    Multichannel sounds map input channels to output channels 1:1. 
-    Channel::setPan and Channel::setSpeakerMix do not work.
-    Speaker levels must be manually set with Channel::setSpeakerLevels.
-    
-    FMOD_SPEAKERMODE_MONO
-    ---------------------
-    This mode is for a 1 speaker arrangement.
-    Panning does not work in this speaker mode.
-    Mono, stereo and multichannel sounds have each sound channel played on the one speaker unity.
-    Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.
-    Channel::setSpeakerMix does not work.
-    
-    FMOD_SPEAKERMODE_STEREO
-    -----------------------
-    This mode is for 2 speaker arrangements that have a left and right speaker.
-    - Mono sounds default to an even distribution between left and right.  They can be panned with Channel::setPan.
-    - Stereo sounds default to the middle, or full left in the left speaker and full right in the right speaker.  
-    - They can be cross faded with Channel::setPan.
-    - Multichannel sounds have each sound channel played on each speaker at unity.
-    - Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.
-    - Channel::setSpeakerMix works but only front left and right parameters are used, the rest are ignored.
-    
-    FMOD_SPEAKERMODE_QUAD
-    ------------------------
-    This mode is for 4 speaker arrangements that have a front left, front right, rear left and a rear right speaker.
-    - Mono sounds default to an even distribution between front left and front right.  They can be panned with Channel::setPan.
-    - Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.
-    - They can be cross faded with Channel::setPan.
-    - Multichannel sounds default to all of their sound channels being played on each speaker in order of input.
-    - Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.
-    - Channel::setSpeakerMix works but side left, side right, center and lfe are ignored.
-    
-    FMOD_SPEAKERMODE_SURROUND
-    ------------------------
-    This mode is for 5 speaker arrangements that have a left/right/center/rear left/rear right.
-    - Mono sounds default to the center speaker.  They can be panned with Channel::setPan.
-    - Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
-    - They can be cross faded with Channel::setPan.
-    - Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
-    - Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.
-    - Channel::setSpeakerMix works but side left / side right are ignored.
-    
-    FMOD_SPEAKERMODE_5POINT1
-    ------------------------
-    This mode is for 5.1 speaker arrangements that have a left/right/center/rear left/rear right and a subwoofer speaker.
-    - Mono sounds default to the center speaker.  They can be panned with Channel::setPan.
-    - Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
-    - They can be cross faded with Channel::setPan.
-    - Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
-    - Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.
-    - Channel::setSpeakerMix works but side left / side right are ignored.
-    
-    FMOD_SPEAKERMODE_7POINT1
-    ------------------------
+    have nothing to do with the FMOD class "Channel".<br>
+    For example a mono sound has 1 sound channel, a stereo sound has 2 sound channels, and an AC3 or 6 channel wav file have 6 "sound channels".<br>
+    <br>
+    FMOD_SPEAKERMODE_RAW<br>
+    ---------------------<br>
+    This mode is for output devices that are not specifically mono/stereo/quad/surround/5.1 or 7.1, but are multichannel.<br>
+    Use System::setSoftwareFormat to specify the number of speakers you want to address, otherwise it will default to 2 (stereo).<br>
+    Sound channels map to speakers sequentially, so a mono sound maps to output speaker 0, stereo sound maps to output speaker 0 & 1.<br>
+    The user assumes knowledge of the speaker order.  FMOD_SPEAKER enumerations may not apply, so raw channel indices should be used.<br>
+    Multichannel sounds map input channels to output channels 1:1. <br>
+    Channel::setPan and Channel::setSpeakerMix do not work.<br>
+    Speaker levels must be manually set with Channel::setSpeakerLevels.<br>
+    <br>
+    FMOD_SPEAKERMODE_MONO<br>
+    ---------------------<br>
+    This mode is for a 1 speaker arrangement.<br>
+    Panning does not work in this speaker mode.<br>
+    Mono, stereo and multichannel sounds have each sound channel played on the one speaker unity.<br>
+    Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
+    Channel::setSpeakerMix does not work.<br>
+    <br>
+    FMOD_SPEAKERMODE_STEREO<br>
+    -----------------------<br>
+    This mode is for 2 speaker arrangements that have a left and right speaker.<br>
+    <li>Mono sounds default to an even distribution between left and right.  They can be panned with Channel::setPan.<br>
+    <li>Stereo sounds default to the middle, or full left in the left speaker and full right in the right speaker.  
+    <li>They can be cross faded with Channel::setPan.<br>
+    <li>Multichannel sounds have each sound channel played on each speaker at unity.<br>
+    <li>Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
+    <li>Channel::setSpeakerMix works but only front left and right parameters are used, the rest are ignored.<br>
+    <br>
+    FMOD_SPEAKERMODE_QUAD<br>
+    ------------------------<br>
+    This mode is for 4 speaker arrangements that have a front left, front right, rear left and a rear right speaker.<br>
+    <li>Mono sounds default to an even distribution between front left and front right.  They can be panned with Channel::setPan.<br>
+    <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.<br>
+    <li>They can be cross faded with Channel::setPan.<br>
+    <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.<br>
+    <li>Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
+    <li>Channel::setSpeakerMix works but side left, side right, center and lfe are ignored.<br>
+    <br>
+    FMOD_SPEAKERMODE_SURROUND<br>
+    ------------------------<br>
+    This mode is for 5 speaker arrangements that have a left/right/center/rear left/rear right.<br>
+    <li>Mono sounds default to the center speaker.  They can be panned with Channel::setPan.<br>
+    <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
+    <li>They can be cross faded with Channel::setPan.<br>
+    <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
+    <li>Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
+    <li>Channel::setSpeakerMix works but side left / side right are ignored.<br>
+    <br>
+    FMOD_SPEAKERMODE_5POINT1<br>
+    ------------------------<br>
+    This mode is for 5.1 speaker arrangements that have a left/right/center/rear left/rear right and a subwoofer speaker.<br>
+    <li>Mono sounds default to the center speaker.  They can be panned with Channel::setPan.<br>
+    <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
+    <li>They can be cross faded with Channel::setPan.<br>
+    <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
+    <li>Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
+    <li>Channel::setSpeakerMix works but side left / side right are ignored.<br>
+    <br>
+    FMOD_SPEAKERMODE_7POINT1<br>
+    ------------------------<br>
     This mode is for 7.1 speaker arrangements that have a left/right/center/rear left/rear right/side left/side right 
-    and a subwoofer speaker.
-    - Mono sounds default to the center speaker.  They can be panned with Channel::setPan.
-    - Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
-    - They can be cross faded with Channel::setPan.
-    - Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
-    - Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.
-    - Channel::setSpeakerMix works and every parameter is used to set the balance of a sound in any speaker.
-    
-    FMOD_SPEAKERMODE_PROLOGIC
-    ------------------------------------------------------
-    This mode is for mono, stereo, 5.1 and 7.1 speaker arrangements, as it is backwards and forwards compatible with stereo, 
-    but to get a surround effect a Dolby Prologic or Prologic 2 hardware decoder / amplifier is needed.
-    Pan behavior is the same as FMOD_SPEAKERMODE_5POINT1.
-    
-    If this function is called the numoutputchannels setting in System::setSoftwareFormat is overwritten.
-    
-    Output rate must be 44100, 48000 or 96000 for this to work otherwise FMOD_ERR_OUTPUT_INIT will be returned.
+    and a subwoofer speaker.<br>
+    <li>Mono sounds default to the center speaker.  They can be panned with Channel::setPan.<br>
+    <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
+    <li>They can be cross faded with Channel::setPan.<br>
+    <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
+    <li>Mix behavior for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
+    <li>Channel::setSpeakerMix works and every parameter is used to set the balance of a sound in any speaker.<br>
+    <br>
+    FMOD_SPEAKERMODE_SRS5_1_MATRIX<br>
+    ------------------------------------------------------<br>
+    This mode is for mono, stereo, 5.1 and 6.1 speaker arrangements, as it is backwards and forwards compatible with 
+    stereo, but to get a surround effect a SRS 5.1, Prologic or Prologic 2 hardware decoder / amplifier is needed or 
+    a compatible SRS equipped device (e.g., laptop, TV, etc.) or accessory (e.g., headphone).<br>
+    Pan behavior is the same as FMOD_SPEAKERMODE_5POINT1.<br>
+    <br>
+    If this function is called the numoutputchannels setting in System::setSoftwareFormat is overwritten.<br>
+    <br>
+    Output rate must be 44100, 48000 or 96000 for this to work otherwise FMOD_ERR_OUTPUT_INIT will be returned.<br>
 
-    FMOD_SPEAKERMODE_MYEARS
-    ------------------------------------------------------
+    FMOD_SPEAKERMODE_MYEARS<br>
+    ------------------------------------------------------<br>
     This mode is for headphones.  This will attempt to load a MyEars profile (see myears.net.au) and use it to generate
-    surround sound on headphones using a personalized HRTF algorithm, for realistic 3d sound.
-    Pan behavior is the same as FMOD_SPEAKERMODE_7POINT1.
-    MyEars speaker mode will automatically be set if the speakermode is FMOD_SPEAKERMODE_STEREO and the MyEars profile exists.
-    If this mode is set explicitly, FMOD_INIT_DISABLE_MYEARS_AUTODETECT has no effect.
+    surround sound on headphones using a personalized HRTF algorithm, for realistic 3d sound.<br>
+    Pan behavior is the same as FMOD_SPEAKERMODE_7POINT1.<br>
+    MyEars speaker mode will automatically be set if the speakermode is FMOD_SPEAKERMODE_STEREO and the MyEars profile exists.<br>
+    If this mode is set explicitly, FMOD_INIT_DISABLE_MYEARS_AUTODETECT has no effect.<br>
     If this mode is set explicitly and the MyEars profile does not exist, FMOD_ERR_OUTPUT_DRIVERCALL will be returned.
 
     [PLATFORMS]
@@ -603,7 +611,7 @@ typedef enum
     FMOD_SPEAKERMODE_5POINT1,          /* 5.1 speaker setup.  This includes front left, front right, center, rear left, rear right and a subwoofer. */
     FMOD_SPEAKERMODE_7POINT1,          /* 7.1 speaker setup.  This includes front left, front right, center, rear left, rear right, side left, side right and a subwoofer. */
     
-    FMOD_SPEAKERMODE_PROLOGIC,         /* Stereo output, but data is encoded to be played on a Prologic 2 / CircleSurround decoder in 5.1 via an analog connection.  See remarks about limitations. */
+    FMOD_SPEAKERMODE_SRS5_1_MATRIX,    /* Stereo compatible output, embedded with surround information. SRS 5.1/Prologic/Prologic2 decoders will split the signal into a 5.1 speaker set-up or SRS virtual surround will decode into a 2-speaker/headphone setup.  See remarks about limitations.*/
     FMOD_SPEAKERMODE_MYEARS,           /* Stereo output, but data is encoded using personalized HRTF algorithms.  See myears.net.au */
 
     FMOD_SPEAKERMODE_MAX,              /* Maximum number of speaker modes supported. */
@@ -619,10 +627,10 @@ typedef enum
     It can also be used for speaker placement in the System::set3DSpeakerPosition command.
 
     [REMARKS]
-    If you are using FMOD_SPEAKERMODE_RAW and speaker assignments are meaningless, just cast a raw integer value to this type.
-    For example (FMOD_SPEAKER)7 would use the 7th speaker (also the same as FMOD_SPEAKER_SIDE_RIGHT).
-    Values higher than this can be used if an output system has more than 8 speaker types / output channels.  15 is the current maximum.
-    
+    If you are using FMOD_SPEAKERMODE_RAW and speaker assignments are meaningless, just cast a raw integer value to this type.<br>
+    For example (FMOD_SPEAKER)7 would use the 7th speaker (also the same as FMOD_SPEAKER_SIDE_RIGHT).<br>
+    Values higher than this can be used if an output system has more than 8 speaker types / output channels.  15 is the current maximum.<br>
+    <br>
     NOTE: On Playstation 3 in 7.1, the extra 2 speakers are not side left/side right, they are 'surround back left'/'surround back right' which
     locate the speakers behind the listener instead of to the sides like on PC.  FMOD_SPEAKER_SBL/FMOD_SPEAKER_SBR are provided to make it 
     clearer what speaker is being addressed on that platform.
@@ -651,7 +659,7 @@ typedef enum
     
     FMOD_SPEAKER_MAX,                                       /* Maximum number of speaker types supported. */
     FMOD_SPEAKER_MONO        = FMOD_SPEAKER_FRONT_LEFT,     /* For use with FMOD_SPEAKERMODE_MONO and Channel::SetSpeakerLevels.  Mapped to same value as FMOD_SPEAKER_FRONT_LEFT. */
-    FMOD_SPEAKER_NULL        = FMOD_SPEAKER_MAX,            /* A non speaker.  Use this to send. */
+    FMOD_SPEAKER_NULL        = 65535,                       /* A non speaker.  Use this with ASIO mapping to ignore a speaker. */
     FMOD_SPEAKER_SBL         = FMOD_SPEAKER_SIDE_LEFT,      /* For use with FMOD_SPEAKERMODE_7POINT1 on PS3 where the extra speakers are surround back inside of side speakers. */
     FMOD_SPEAKER_SBR         = FMOD_SPEAKER_SIDE_RIGHT,     /* For use with FMOD_SPEAKERMODE_7POINT1 on PS3 where the extra speakers are surround back inside of side speakers. */
     FMOD_SPEAKER_FORCEINT    = 65536                        /* Makes sure this enum is signed 32bit. */
@@ -713,9 +721,9 @@ typedef enum
 #define FMOD_INIT_STREAM_FROM_UPDATE         0x00000001 /* All platforms - No stream thread is created internally.  Streams are driven from System::update.  Mainly used with non-realtime outputs. */
 #define FMOD_INIT_3D_RIGHTHANDED             0x00000002 /* All platforms - FMOD will treat +X as right, +Y as up and +Z as backwards (towards you). */
 #define FMOD_INIT_SOFTWARE_DISABLE           0x00000004 /* All platforms - Disable software mixer to save memory.  Anything created with FMOD_SOFTWARE will fail and DSP will not work. */
-#define FMOD_INIT_SOFTWARE_OCCLUSION         0x00000008 /* All platforms - All FMOD_SOFTWARE with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which is automatically used when Channel::set3DOcclusion is used or the geometry API. */
-#define FMOD_INIT_SOFTWARE_HRTF              0x00000010 /* All platforms - All FMOD_SOFTWARE with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which causes sounds to sound duller when the sound goes behind the listener.  Use System::setAdvancedSettings to adjust cutoff frequency. */
-#define FMOD_INIT_DISTANCE_FILTERING         0x00000200 /* All platforms - All FMOD_SOFTWARE with FMOD_3D based voices will add a software lowpass and highpass filter effect into the DSP chain which will act as a distance-automated bandpass filter. Use System::setAdvancedSettings to adjust the centre frequency. */
+#define FMOD_INIT_OCCLUSION_LOWPASS          0x00000008 /* All platforms - All FMOD_SOFTWARE (and FMOD_HARDWARE on 3DS and NGP) with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which is automatically used when Channel::set3DOcclusion is used or the geometry API. */
+#define FMOD_INIT_HRTF_LOWPASS               0x00000010 /* All platforms - All FMOD_SOFTWARE (and FMOD_HARDWARE on 3DS and NGP) with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which causes sounds to sound duller when the sound goes behind the listener.  Use System::setAdvancedSettings to adjust cutoff frequency. */
+#define FMOD_INIT_DISTANCE_FILTERING         0x00000200 /* All platforms - All FMOD_SOFTWARE with FMOD_3D based voices will add a software lowpass and highpass filter effect into the DSP chain which will act as a distance-automated bandpass filter. Use System::setAdvancedSettings to adjust the center frequency. */
 #define FMOD_INIT_SOFTWARE_REVERB_LOWMEM     0x00000040 /* All platforms - SFX reverb is run using 22/24khz delay buffers, halving the memory required. */
 #define FMOD_INIT_ENABLE_PROFILE             0x00000020 /* All platforms - Enable TCP/IP based host which allows FMOD Designer or FMOD Profiler to connect to it, and view memory, CPU and the DSP network graph in real-time. */
 #define FMOD_INIT_VOL0_BECOMES_VIRTUAL       0x00000080 /* All platforms - Any sounds that are 0 volume will go virtual and not be processed except for having their positions updated virtually.  Use System::setAdvancedSettings to adjust what volume besides zero to switch to virtual at. */
@@ -727,6 +735,8 @@ typedef enum
 #define FMOD_INIT_SYNCMIXERWITHUPDATE        0x00400000 /* Win32/Wii/PS3/Xbox/Xbox 360 - FMOD Mixer thread is woken up to do a mix when System::update is called rather than waking periodically on its own timer. */
 #define FMOD_INIT_GEOMETRY_USECLOSEST        0x04000000 /* All platforms - With the geometry engine, only process the closest polygon rather than accumulating all polygons the sound to listener line intersects. */
 #define FMOD_INIT_DISABLE_MYEARS_AUTODETECT  0x08000000 /* Win32 - Disables automatic setting of FMOD_SPEAKERMODE_STEREO to FMOD_SPEAKERMODE_MYEARS if the MyEars profile exists on the PC.  MyEars is HRTF 7.1 downmixing through headphones. */
+#define FMOD_INIT_PS3_DISABLEDTS             0x10000000 /* PS3 only - Disable DTS output mode selection */
+#define FMOD_INIT_PS3_DISABLEDOLBYDIGITAL    0x20000000 /* PS3 only - Disable Dolby Digital output mode selection */
 /* [DEFINE_END] */
 
 
@@ -774,6 +784,8 @@ typedef enum
     FMOD_SOUND_TYPE_XWMA,            /* Xbox360 XWMA */
     FMOD_SOUND_TYPE_BCWAV,           /* 3DS BCWAV container format for DSP ADPCM and PCM */
     FMOD_SOUND_TYPE_AT9,             /* NGP ATRAC 9 format */
+    FMOD_SOUND_TYPE_VORBIS,          /* Raw vorbis */
+    FMOD_SOUND_TYPE_MEDIA_FOUNDATION,/* Microsoft Media Foundation wrappers, supports ASF/WMA */
 
     FMOD_SOUND_TYPE_MAX,             /* Maximum number of sound types supported. */
     FMOD_SOUND_TYPE_FORCEINT = 65536 /* Makes sure this enum is signed 32bit. */
@@ -805,14 +817,16 @@ typedef enum
     FMOD_SOUND_FORMAT_PCM24,            /* 24bit integer PCM data. */
     FMOD_SOUND_FORMAT_PCM32,            /* 32bit integer PCM data. */
     FMOD_SOUND_FORMAT_PCMFLOAT,         /* 32bit floating point PCM data. */
-    FMOD_SOUND_FORMAT_GCADPCM,          /* Compressed Nintendo GameCube/Wii DSP data. */
-    FMOD_SOUND_FORMAT_IMAADPCM,         /* Compressed IMA ADPCM / Xbox ADPCM data. */
+    FMOD_SOUND_FORMAT_GCADPCM,          /* Compressed Nintendo 3DS/Wii DSP data. */
+    FMOD_SOUND_FORMAT_IMAADPCM,         /* Compressed IMA ADPCM data. */
     FMOD_SOUND_FORMAT_VAG,              /* Compressed PlayStation Portable ADPCM data. */
-    FMOD_SOUND_FORMAT_HEVAG,            /* Compressed NGP ADPCM data. */
-    FMOD_SOUND_FORMAT_XMA,              /* Compressed Xbox360 data. */
+    FMOD_SOUND_FORMAT_HEVAG,            /* Compressed PSVita ADPCM data. */
+    FMOD_SOUND_FORMAT_XMA,              /* Compressed Xbox360 XMA data. */
     FMOD_SOUND_FORMAT_MPEG,             /* Compressed MPEG layer 2 or 3 data. */
     FMOD_SOUND_FORMAT_CELT,             /* Compressed CELT data. */
-    FMOD_SOUND_FORMAT_AT9,              /* Compressed ATRAC9 data. */
+    FMOD_SOUND_FORMAT_AT9,              /* Compressed PSVita ATRAC9 data. */
+    FMOD_SOUND_FORMAT_XWMA,             /* Compressed Xbox360 xWMA data. */
+    FMOD_SOUND_FORMAT_VORBIS,           /* Compressed Vorbis data. */
 
     FMOD_SOUND_FORMAT_MAX,              /* Maximum number of sound formats supported. */   
     FMOD_SOUND_FORMAT_FORCEINT = 65536  /* Makes sure this enum is signed 32bit. */
@@ -829,23 +843,23 @@ typedef enum
     Sound description bitfields, bitwise OR them together for loading and describing sounds.
 
     [REMARKS]
-    By default a sound will open as a static sound that is decompressed fully into memory to PCM. (ie equivalent of FMOD_CREATESAMPLE)
-    To have a sound stream instead, use FMOD_CREATESTREAM, or use the wrapper function System::createStream.
-    Some opening modes (ie FMOD_OPENUSER, FMOD_OPENMEMORY, FMOD_OPENMEMORY_POINT, FMOD_OPENRAW) will need extra information.
+    By default a sound will open as a static sound that is decompressed fully into memory to PCM. (ie equivalent of FMOD_CREATESAMPLE)<br>
+    To have a sound stream instead, use FMOD_CREATESTREAM, or use the wrapper function System::createStream.<br>
+    Some opening modes (ie FMOD_OPENUSER, FMOD_OPENMEMORY, FMOD_OPENMEMORY_POINT, FMOD_OPENRAW) will need extra information.<br>
     This can be provided using the FMOD_CREATESOUNDEXINFO structure.
-    
-    Specifying FMOD_OPENMEMORY_POINT will POINT to your memory rather allocating its own sound buffers and duplicating it internally.
+    <br>
+    Specifying FMOD_OPENMEMORY_POINT will POINT to your memory rather allocating its own sound buffers and duplicating it internally.<br>
     <b><u>This means you cannot free the memory while FMOD is using it, until after Sound::release is called.</b></u>
-    With FMOD_OPENMEMORY_POINT, for PCM formats, only WAV, FSB, and RAW are supported.  For compressed formats, only those formats supported by FMOD_CREATECOMPRESSEDSAMPLE are supported.
-    With FMOD_OPENMEMORY_POINT and FMOD_OPENRAW or PCM, if using them together, note that you must pad the data on each side by 16 bytes.  This is so fmod can modify the ends of the data for looping/interpolation/mixing purposes.  If a wav file, you will need to insert silence, and then reset loop points to stop the playback from playing that silence.
-    With FMOD_OPENMEMORY_POINT, For Wii/PSP FMOD_HARDWARE supports this flag for the GCADPCM/VAG formats.  On other platforms FMOD_SOFTWARE must be used.
-    
+    With FMOD_OPENMEMORY_POINT, for PCM formats, only WAV, FSB, and RAW are supported.  For compressed formats, only those formats supported by FMOD_CREATECOMPRESSEDSAMPLE are supported.<br>
+    With FMOD_OPENMEMORY_POINT and FMOD_OPENRAW or PCM, if using them together, note that you must pad the data on each side by 16 bytes.  This is so fmod can modify the ends of the data for looping/interpolation/mixing purposes.  If a wav file, you will need to insert silence, and then reset loop points to stop the playback from playing that silence.<br>
+    With FMOD_OPENMEMORY_POINT, For Wii/PSP FMOD_HARDWARE supports this flag for the GCADPCM/VAG formats.  On other platforms FMOD_SOFTWARE must be used.<br>
+    <br>
     <b>Xbox 360 memory</b> On Xbox 360 Specifying FMOD_OPENMEMORY_POINT to a virtual memory address will cause FMOD_ERR_INVALID_ADDRESS
-    to be returned.  Use physical memory only for this functionality.
-    
+    to be returned.  Use physical memory only for this functionality.<br>
+    <br>
     FMOD_LOWMEM is used on a sound if you want to minimize the memory overhead, by having FMOD not allocate memory for certain 
-    features that are not likely to be used in a game environment.  These are :
-    1. Sound::getName functionality is removed.  256 bytes per sound is saved.
+    features that are not likely to be used in a game environment.  These are :<br>
+    1. Sound::getName functionality is removed.  256 bytes per sound is saved.<br>
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -862,13 +876,13 @@ typedef enum
     Sound::getOpenState
 ]
 */
-#define FMOD_DEFAULT                   0x00000000  /* FMOD_DEFAULT is a default sound type.  Equivalent to all the defaults listed below.  FMOD_LOOP_OFF, FMOD_2D, FMOD_HARDWARE.  (Note - only Windows with a high spec soundcard, PSP, and Wii support FMOD_HARDWARE) */
+#define FMOD_DEFAULT                   0x00000000  /* Default for all modes listed below. FMOD_LOOP_OFF, FMOD_2D, FMOD_HARDWARE */
 #define FMOD_LOOP_OFF                  0x00000001  /* For non looping sounds. (DEFAULT).  Overrides FMOD_LOOP_NORMAL / FMOD_LOOP_BIDI. */
 #define FMOD_LOOP_NORMAL               0x00000002  /* For forward looping sounds. */
 #define FMOD_LOOP_BIDI                 0x00000004  /* For bidirectional looping sounds. (only works on software mixed static sounds). */
 #define FMOD_2D                        0x00000008  /* Ignores any 3d processing. (DEFAULT). */
 #define FMOD_3D                        0x00000010  /* Makes the sound positionable in 3D.  Overrides FMOD_2D. */
-#define FMOD_HARDWARE                  0x00000020  /* Attempts to make sounds use hardware acceleration. (DEFAULT).  Note on platforms that don't support FMOD_HARDWARE (only Windows with a high spec soundcard, PSP, and Wii support FMOD_HARDWARE), this will be internally treated as FMOD_SOFTWARE. */
+#define FMOD_HARDWARE                  0x00000020  /* Attempts to make sounds use hardware acceleration. (DEFAULT).  Note on platforms that don't support FMOD_HARDWARE (only 3DS, PS Vita, PSP, Wii and Wii U support FMOD_HARDWARE), this will be internally treated as FMOD_SOFTWARE. */
 #define FMOD_SOFTWARE                  0x00000040  /* Makes the sound be mixed by the FMOD CPU based software mixer.  Overrides FMOD_HARDWARE.  Use this for FFT, DSP, compressed sample support, 2D multi-speaker support and other software related features. */
 #define FMOD_CREATESTREAM              0x00000080  /* Decompress at runtime, streaming from the source provided (ie from disk).  Overrides FMOD_CREATESAMPLE and FMOD_CREATECOMPRESSEDSAMPLE.  Note a stream can only be played once at a time due to a stream only having 1 stream buffer and file handle.  Open multiple streams to have them play concurrently. */
 #define FMOD_CREATESAMPLE              0x00000100  /* Decompress at loadtime, decompressing or decoding whole file into memory as the target sample format (ie PCM).  Fastest for FMOD_SOFTWARE based playback and most flexible.  */
@@ -889,7 +903,6 @@ typedef enum
 #define FMOD_3D_LINEARSQUAREROLLOFF    0x00400000  /* This sound will follow a linear-square rolloff model where mindistance = full volume, maxdistance = silence.  Rolloffscale is ignored. */
 #define FMOD_3D_CUSTOMROLLOFF          0x04000000  /* This sound will follow a rolloff model defined by Sound::set3DCustomRolloff / Channel::set3DCustomRolloff.  */
 #define FMOD_3D_IGNOREGEOMETRY         0x40000000  /* Is not affect by geometry occlusion.  If not specified in Sound::setMode, or Channel::setMode, the flag is cleared and it is affected by geometry again. */
-#define FMOD_REVERB_CHANNEL_DISABLE    0x00800000  /* Prevent reverb from being attached to the channels playing this sound.  Only relevant for FMOD_SOFTWARE based sounds. */
 #define FMOD_UNICODE                   0x01000000  /* Filename is double-byte unicode. */
 #define FMOD_IGNORETAGS                0x02000000  /* Skips id3v2/asf/etc tag checks when opening a sound, to reduce seek/read overhead when opening files (helps with CD performance). */
 #define FMOD_LOWMEM                    0x08000000  /* Removes some features from samples to give a lower memory overhead, like Sound::getName.  See remarks. */
@@ -906,8 +919,8 @@ typedef enum
     These values describe what state a sound is in after FMOD_NONBLOCKING has been used to open it.
 
     [REMARKS]
-    With streams, if you are using FMOD_NONBLOCKING, note that if the user calls Sound::getSubSound, a stream will go into FMOD_OPENSTATE_SEEKING state and sound related commands will return FMOD_ERR_NOTREADY.
-    With streams, if you are using FMOD_NONBLOCKING, note that if the user calls Channel::getPosition, a stream will go into FMOD_OPENSTATE_SETPOSITION state and sound related commands will return FMOD_ERR_NOTREADY.
+    With streams, if you are using FMOD_NONBLOCKING, note that if the user calls Sound::getSubSound, a stream will go into FMOD_OPENSTATE_SEEKING state and sound related commands will return FMOD_ERR_NOTREADY.<br>
+    With streams, if you are using FMOD_NONBLOCKING, note that if the user calls Channel::getPosition, a stream will go into FMOD_OPENSTATE_SETPOSITION state and sound related commands will return FMOD_ERR_NOTREADY.<br>
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -974,9 +987,9 @@ typedef enum
     These callback types are used with Channel::setCallback.
 
     [REMARKS]
-    Each callback has commanddata parameters passed as int unique to the type of callback.
-    See reference to FMOD_CHANNEL_CALLBACK to determine what they might mean for each type of callback.
-    
+    Each callback has commanddata parameters passed as int unique to the type of callback.<br>
+    See reference to FMOD_CHANNEL_CALLBACK to determine what they might mean for each type of callback.<br>
+    <br>
     <b>Note!</b>  Currently the user must call System::update for these callbacks to trigger!
 
     [PLATFORMS]
@@ -1007,10 +1020,12 @@ typedef enum
     These callback types are used with System::setCallback.
 
     [REMARKS]
-    Each callback has commanddata parameters passed as void* unique to the type of callback.
-    See reference to FMOD_SYSTEM_CALLBACK to determine what they might mean for each type of callback.
-    
+    Each callback has commanddata parameters passed as void* unique to the type of callback.<br>
+    See reference to FMOD_SYSTEM_CALLBACK to determine what they might mean for each type of callback.<br>
+    <br>
     <b>Note!</b> Using FMOD_SYSTEM_CALLBACKTYPE_DEVICELISTCHANGED (on Mac only) requires the application to be running an event loop which will allow external changes to device list to be detected by FMOD.
+    <br>
+    <b>Note!</b> The 'system' object pointer will be null for FMOD_SYSTEM_CALLBACKTYPE_THREADCREATED and FMOD_SYSTEM_CALLBACKTYPE_MEMORYALLOCATIONFAILED callbacks.
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -1026,8 +1041,8 @@ typedef enum
 {
     FMOD_SYSTEM_CALLBACKTYPE_DEVICELISTCHANGED,         /* Called from System::update when the enumerated list of devices has changed. */
     FMOD_SYSTEM_CALLBACKTYPE_DEVICELOST,                /* Called from System::update when an output device has been lost due to control panel parameter changes and FMOD cannot automatically recover. */
-    FMOD_SYSTEM_CALLBACKTYPE_MEMORYALLOCATIONFAILED,    /* Called directly when a memory allocation fails somewhere in FMOD. */
-    FMOD_SYSTEM_CALLBACKTYPE_THREADCREATED,             /* Called directly when a thread is created. */
+    FMOD_SYSTEM_CALLBACKTYPE_MEMORYALLOCATIONFAILED,    /* Called directly when a memory allocation fails somewhere in FMOD.  (NOTE - 'system' will be NULL in this callback type.)*/
+    FMOD_SYSTEM_CALLBACKTYPE_THREADCREATED,             /* Called directly when a thread is created. (NOTE - 'system' will be NULL in this callback type.) */
     FMOD_SYSTEM_CALLBACKTYPE_BADDSPCONNECTION,          /* Called when a bad connection was made with DSP::addInput. Usually called from mixer thread because that is where the connections are made.  */
     FMOD_SYSTEM_CALLBACKTYPE_BADDSPLEVEL,               /* Called when too many effects were added exceeding the maximum tree depth of 128.  This is most likely caused by accidentally adding too many DSP effects. Usually called from mixer thread because that is where the connections are made.  */
 
@@ -1065,15 +1080,35 @@ typedef float       (F_CALLBACK *FMOD_3D_ROLLOFFCALLBACK)    (FMOD_CHANNEL *chan
 [ENUM]
 [
     [DESCRIPTION]   
-    List of windowing methods used in spectrum analysis to reduce leakage / transient signals intefering with the analysis.
-    This is a problem with analysis of continuous signals that only have a small portion of the signal sample (the fft window size).
+    List of windowing methods used in spectrum analysis to reduce leakage / transient signals intefering with the analysis.<br>
+    This is a problem with analysis of continuous signals that only have a small portion of the signal sample (the fft window size).<br>
     Windowing the signal with a curve or triangle tapers the sides of the fft window to help alleviate this problem.
 
     [REMARKS]
-    Cyclic signals such as a sine wave that repeat their cycle in a multiple of the window size do not need windowing.
-    I.e. If the sine wave repeats every 1024, 512, 256 etc samples and the FMOD fft window is 1024, then the signal would not need windowing.
-    Not windowing is the same as FMOD_DSP_FFT_WINDOW_RECT, which is the default.
-    If the cycle of the signal (ie the sine wave) is not a multiple of the window size, it will cause frequency abnormalities, so a different windowing method is needed.
+    Cyclic signals such as a sine wave that repeat their cycle in a multiple of the window size do not need windowing.<br>
+    I.e. If the sine wave repeats every 1024, 512, 256 etc samples and the FMOD fft window is 1024, then the signal would not need windowing.<br>
+    Not windowing is the same as FMOD_DSP_FFT_WINDOW_RECT, which is the default.<br>
+    If the cycle of the signal (ie the sine wave) is not a multiple of the window size, it will cause frequency abnormalities, so a different windowing method is needed.<br>
+    <exclude>
+    <br>
+    FMOD_DSP_FFT_WINDOW_RECT.<br>
+    <img src="..\static\rectangle.gif"></img><br>
+    <br>
+    FMOD_DSP_FFT_WINDOW_TRIANGLE.<br>
+    <img src="..\static\triangle.gif"></img><br>
+    <br>
+    FMOD_DSP_FFT_WINDOW_HAMMING.<br>
+    <img src="..\static\hamming.gif"></img><br>
+    <br>
+    FMOD_DSP_FFT_WINDOW_HANNING.<br>
+    <img src="..\static\hanning.gif"></img><br>
+    <br>
+    FMOD_DSP_FFT_WINDOW_BLACKMAN.<br>
+    <img src="..\static\blackman.gif"></img><br>
+    <br>
+    FMOD_DSP_FFT_WINDOW_BLACKMANHARRIS.<br>
+    <img src="..\static\blackmanharris.gif"></img>
+    </exclude>
     
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -1104,7 +1139,7 @@ typedef enum
     List of interpolation types that the FMOD Ex software mixer supports.  
 
     [REMARKS]
-    The default resampler type is FMOD_DSP_RESAMPLER_LINEAR.
+    The default resampler type is FMOD_DSP_RESAMPLER_LINEAR.<br>
     Use System::setSoftwareFormat to tell FMOD the resampling quality you require for FMOD_SOFTWARE based sounds.
 
     [PLATFORMS]
@@ -1200,12 +1235,12 @@ typedef enum
 
     [REMARKS]
     If you haven't called Channel::setDelay yet, if you call Channel::getDelay with FMOD_DELAYTYPE_DSPCLOCK_START it will return the 
-    equivalent global DSP clock value to determine when a channel started, so that you can use it for other channels to sync against.
-    
-    Use System::getDSPClock to also get the current dspclock time, a base for future calls to Channel::setDelay.
-    
+    equivalent global DSP clock value to determine when a channel started, so that you can use it for other channels to sync against.<br>
+    <br>
+    Use System::getDSPClock to also get the current dspclock time, a base for future calls to Channel::setDelay.<br>
+    <br>
     Use FMOD_64BIT_ADD or FMOD_64BIT_SUB to add a hi/lo combination together and cope with wraparound.
-    
+    <br>
     If FMOD_DELAYTYPE_END_MS is specified, the value is not treated as a 64 bit number, just the delayhi value is used and it is treated as milliseconds.
 
     [PLATFORMS]
@@ -1240,8 +1275,8 @@ typedef enum
     Structure describing a piece of tag data.
 
     [REMARKS]
-    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.
-    Members marked with [w] mean the variable can be written to.  The user can set the value.
+    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.<br>
+    Members marked with [w] mean the variable can be written to.  The user can set the value.<br>
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -1270,8 +1305,8 @@ typedef struct FMOD_TAG
     Structure describing a CD/DVD table of contents
 
     [REMARKS]
-    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.
-    Members marked with [w] mean the variable can be written to.  The user can set the value.
+    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.<br>
+    Members marked with [w] mean the variable can be written to.  The user can set the value.<br>
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -1332,9 +1367,9 @@ typedef struct FMOD_CDTOC
 [ENUM]
 [
     [DESCRIPTION]
-    When creating a multichannel sound, FMOD will pan them to their default speaker locations, for example a 6 channel sound will default to one channel per 5.1 output speaker.
-    Another example is a stereo sound.  It will default to left = front left, right = front right.
-    
+    When creating a multichannel sound, FMOD will pan them to their default speaker locations, for example a 6 channel sound will default to one channel per 5.1 output speaker.<br>
+    Another example is a stereo sound.  It will default to left = front left, right = front right.<br>
+    <br>
     This is for sounds that are not 'default'.  For example you might have a sound that is 6 channels but actually made up of 3 stereo pairs, that should all be located in front left, front right only.
 
     [REMARKS]
@@ -1361,69 +1396,69 @@ typedef enum
 [STRUCTURE] 
 [
     [DESCRIPTION]
-    Use this structure with System::createSound when more control is needed over loading.
-    The possible reasons to use this with System::createSound are:
-    - Loading a file from memory.
-    - Loading a file from within another larger (possibly wad/pak) file, by giving the loader an offset and length.
-    - To create a user created / non file based sound.
-    - To specify a starting subsound to seek to within a multi-sample sounds (ie FSB/DLS/SF2) when created as a stream.
-    - To specify which subsounds to load for multi-sample sounds (ie FSB/DLS/SF2) so that memory is saved and only a subset is actually loaded/read from disk.
-    - To specify 'piggyback' read and seek callbacks for capture of sound data as fmod reads and decodes it.  Useful for ripping decoded PCM data from sounds as they are loaded / played.
-    - To specify a MIDI DLS/SF2 sample set file to load when opening a MIDI file.
+    Use this structure with System::createSound when more control is needed over loading.<br>
+    The possible reasons to use this with System::createSound are:<br>
+    <li>Loading a file from memory.
+    <li>Loading a file from within another larger (possibly wad/pak) file, by giving the loader an offset and length.
+    <li>To create a user created / non file based sound.
+    <li>To specify a starting subsound to seek to within a multi-sample sounds (ie FSB/DLS/SF2) when created as a stream.
+    <li>To specify which subsounds to load for multi-sample sounds (ie FSB/DLS/SF2) so that memory is saved and only a subset is actually loaded/read from disk.
+    <li>To specify 'piggyback' read and seek callbacks for capture of sound data as fmod reads and decodes it.  Useful for ripping decoded PCM data from sounds as they are loaded / played.
+    <li>To specify a MIDI DLS/SF2 sample set file to load when opening a MIDI file.
     See below on what members to fill for each of the above types of sound you want to create.
 
     [REMARKS]
-    This structure is optional!  Specify 0 or NULL in System::createSound if you don't need it!
-    
-    <u>Loading a file from memory.</u>
-    - Create the sound using the FMOD_OPENMEMORY flag.
-    - Mandatory.  Specify 'length' for the size of the memory block in bytes.
-    - Other flags are optional.
-    
-    
-    <u>Loading a file from within another larger (possibly wad/pak) file, by giving the loader an offset and length.</u>
-    - Mandatory.  Specify 'fileoffset' and 'length'.
-    - Other flags are optional.
-    
-    
-    <u>To create a user created / non file based sound.</u>
-    - Create the sound using the FMOD_OPENUSER flag.
-    - Mandatory.  Specify 'defaultfrequency, 'numchannels' and 'format'.
-    - Other flags are optional.
-    
-    
-    <u>To specify a starting subsound to seek to and flush with, within a multi-sample stream (ie FSB/DLS/SF2).</u>
-    
-    - Mandatory.  Specify 'initialsubsound'.
-    
-    
-    <u>To specify which subsounds to load for multi-sample sounds (ie FSB/DLS/SF2) so that memory is saved and only a subset is actually loaded/read from disk.</u>
-    
-    - Mandatory.  Specify 'inclusionlist' and 'inclusionlistnum'.
-    
-    
-    <u>To specify 'piggyback' read and seek callbacks for capture of sound data as fmod reads and decodes it.  Useful for ripping decoded PCM data from sounds as they are loaded / played.</u>
-    
-    - Mandatory.  Specify 'pcmreadcallback' and 'pcmseekcallback'.
-    
-    
-    <u>To specify a MIDI DLS/SF2 sample set file to load when opening a MIDI file.</u>
-    
-    - Mandatory.  Specify 'dlsname'.
-    
-    
+    This structure is optional!  Specify 0 or NULL in System::createSound if you don't need it!<br>
+    <br>
+    <u>Loading a file from memory.</u><br>
+    <li>Create the sound using the FMOD_OPENMEMORY flag.<br>
+    <li>Mandatory.  Specify 'length' for the size of the memory block in bytes.
+    <li>Other flags are optional.
+    <br>
+    <br>
+    <u>Loading a file from within another larger (possibly wad/pak) file, by giving the loader an offset and length.</u><br>
+    <li>Mandatory.  Specify 'fileoffset' and 'length'.
+    <li>Other flags are optional.
+    <br>
+    <br>
+    <u>To create a user created / non file based sound.</u><br>
+    <li>Create the sound using the FMOD_OPENUSER flag.
+    <li>Mandatory.  Specify 'defaultfrequency, 'numchannels' and 'format'.
+    <li>Other flags are optional.
+    <br>
+    <br>
+    <u>To specify a starting subsound to seek to and flush with, within a multi-sample stream (ie FSB/DLS/SF2).</u><br>
+    <br>
+    <li>Mandatory.  Specify 'initialsubsound'.
+    <br>
+    <br>
+    <u>To specify which subsounds to load for multi-sample sounds (ie FSB/DLS/SF2) so that memory is saved and only a subset is actually loaded/read from disk.</u><br>
+    <br>
+    <li>Mandatory.  Specify 'inclusionlist' and 'inclusionlistnum'.
+    <br>
+    <br>
+    <u>To specify 'piggyback' read and seek callbacks for capture of sound data as fmod reads and decodes it.  Useful for ripping decoded PCM data from sounds as they are loaded / played.</u><br>
+    <br>
+    <li>Mandatory.  Specify 'pcmreadcallback' and 'pcmseekcallback'.
+    <br>
+    <br>
+    <u>To specify a MIDI DLS/SF2 sample set file to load when opening a MIDI file.</u><br>
+    <br>
+    <li>Mandatory.  Specify 'dlsname'.
+    <br>
+    <br>
     Setting the 'decodebuffersize' is for cpu intensive codecs that may be causing stuttering, not file intensive codecs (ie those from CD or netstreams) which are normally 
-    altered with System::setStreamBufferSize.  As an example of cpu intensive codecs, an mp3 file will take more cpu to decode than a PCM wav file.
-    If you have a stuttering effect, then it is using more cpu than the decode buffer playback rate can keep up with.  Increasing the decode buffersize will most likely solve this problem.
-    
-    
+    altered with System::setStreamBufferSize.  As an example of cpu intensive codecs, an mp3 file will take more cpu to decode than a PCM wav file.<br>
+    If you have a stuttering effect, then it is using more cpu than the decode buffer playback rate can keep up with.  Increasing the decode buffersize will most likely solve this problem.<br>
+    <br>
+    <br>
     FSB codec.  If inclusionlist and numsubsounds are used together, this will trigger a special mode where subsounds are shuffled down to save memory.  (useful for large FSB 
     files where you only want to load 1 sound).  There will be no gaps, ie no null subsounds.  As an example, if there are 10,000 subsounds and there is an inclusionlist with only 1 entry, 
     and numsubsounds = 1, then subsound 0 will be that entry, and there will only be the memory allocated for 1 subsound.  Previously there would still be 10,000 subsound pointers and other
-    associated codec entries allocated along with it multiplied by 10,000.
-    
-    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.
-    Members marked with [w] mean the variable can be written to.  The user can set the value.
+    associated codec entries allocated along with it multiplied by 10,000.<br>
+    <br>
+    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.<br>
+    Members marked with [w] mean the variable can be written to.  The user can set the value.<br>
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -1480,32 +1515,32 @@ typedef struct FMOD_CREATESOUNDEXINFO
 [STRUCTURE] 
 [
     [DESCRIPTION]
-    Structure defining a reverb environment.
+    Structure defining a reverb environment.<br>
 
     [REMARKS]
-    Note the default reverb properties are the same as the FMOD_PRESET_GENERIC preset.
+    Note the default reverb properties are the same as the FMOD_PRESET_GENERIC preset.<br>
     Note that integer values that typically range from -10,000 to 1000 are represented in 
-    decibels, and are of a logarithmic scale, not linear, wheras float values are always linear.
-    
-    The numerical values listed below are the maximum, minimum and default values for each variable respectively.
-    
-    <b>SUPPORTED</b> next to each parameter means the platform the parameter can be set on.  Some platforms support all parameters and some don't.
-    WII   means Nintendo Wii hardware reverb (must use FMOD_HARDWARE).
-    PSP   means Playstation Portable hardware reverb (must use FMOD_HARDWARE).
-    SFX   means FMOD SFX software reverb.  This works on any platform that uses FMOD_SOFTWARE for loading sounds.
+    decibels, and are of a logarithmic scale, not linear, wheras float values are always linear.<br>
+    <br>
+    The numerical values listed below are the maximum, minimum and default values for each variable respectively.<br>
+    <br>
+    <b>SUPPORTED</b> next to each parameter means the platform the parameter can be set on.  Some platforms support all parameters and some don't.<br>
+    WII   means Nintendo Wii hardware reverb (must use FMOD_HARDWARE).<br>
+    PSP   means Playstation Portable hardware reverb (must use FMOD_HARDWARE).<br>
+    SFX   means FMOD SFX software reverb.  This works on any platform that uses FMOD_SOFTWARE for loading sounds.<br>
     ---   means unsupported/deprecated.  Will either be removed or supported by SFX in the future.
-    
-    Nintendo Wii Notes:
-    This structure supports only limited parameters, and maps them to the Wii hardware reverb as follows.
-    DecayTime = 'time'
-    ReverbDelay = 'predelay'
-    ModulationDepth = 'damping'
-    Reflections = 'coloration'
-    EnvDiffusion = 'crosstalk'
-    Room = 'mix'
-    
-    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.
-    Members marked with [w] mean the variable can be written to.  The user can set the value.
+    <br>
+    Nintendo Wii Notes:<br>
+    This structure supports only limited parameters, and maps them to the Wii hardware reverb as follows.<br>
+    DecayTime = 'time'<br>
+    ReverbDelay = 'predelay'<br>
+    ModulationDepth = 'damping'<br>
+    Reflections = 'coloration'<br>
+    EnvDiffusion = 'crosstalk'<br>
+    Room = 'mix'<br>
+    <br>
+    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.<br>
+    Members marked with [w] mean the variable can be written to.  The user can set the value.<br>
     Members marked with [r/w] are either read or write depending on if you are using System::setReverbProperties (w) or System::getReverbProperties (r).
 
     [PLATFORMS]
@@ -1519,27 +1554,27 @@ typedef struct FMOD_CREATESOUNDEXINFO
 ]
 */
 typedef struct FMOD_REVERB_PROPERTIES
-{                                   /*       MIN    MAX    DEFAULT DESCRIPTION */
-    int          Instance;          /* [w]   0      3      0       Environment Instance.                                                 (SUPPORTED:SFX(4 instances) and Wii (3 instances)) */
-    int          Environment;       /* [r/w] -1     25     -1      Sets all listener properties.  -1 = OFF.                              (SUPPORTED:SFX(-1 only)/PSP) */
-    float        EnvDiffusion;      /* [r/w] 0.0    1.0    1.0     Environment diffusion                                                 (SUPPORTED:WII) */
-    int          Room;              /* [r/w] -10000 0      -1000   Room effect level (at mid frequencies)                                (SUPPORTED:SFX/WII/PSP) */
-    int          RoomHF;            /* [r/w] -10000 0      -100    Relative room effect level at high frequencies                        (SUPPORTED:SFX) */
-    int          RoomLF;            /* [r/w] -10000 0      0       Relative room effect level at low frequencies                         (SUPPORTED:SFX) */
-    float        DecayTime;         /* [r/w] 0.1    20.0   1.49    Reverberation decay time at mid frequencies                           (SUPPORTED:SFX/WII) */
-    float        DecayHFRatio;      /* [r/w] 0.1    2.0    0.83    High-frequency to mid-frequency decay time ratio                      (SUPPORTED:SFX) */
-    float        DecayLFRatio;      /* [r/w] 0.1    2.0    1.0     Low-frequency to mid-frequency decay time ratio                       (SUPPORTED:---) */
-    int          Reflections;       /* [r/w] -10000 1000   -2602   Early reflections level relative to room effect                       (SUPPORTED:SFX/WII) */
-    float        ReflectionsDelay;  /* [r/w] 0.0    0.3    0.007   Initial reflection delay time                                         (SUPPORTED:SFX) */
-    int          Reverb;            /* [r/w] -10000 2000   200     Late reverberation level relative to room effect                      (SUPPORTED:SFX) */
-    float        ReverbDelay;       /* [r/w] 0.0    0.1    0.011   Late reverberation delay time relative to initial reflection          (SUPPORTED:SFX/WII) */
-    float        ModulationTime;    /* [r/w] 0.04   4.0    0.25    Modulation time                                                       (SUPPORTED:---) */
-    float        ModulationDepth;   /* [r/w] 0.0    1.0    0.0     Modulation depth                                                      (SUPPORTED:WII) */
-    float        HFReference;       /* [r/w] 1000.0 20000  5000.0  Reference high frequency (hz)                                         (SUPPORTED:SFX) */
-    float        LFReference;       /* [r/w] 20.0   1000.0 250.0   Reference low frequency (hz)                                          (SUPPORTED:SFX) */
-    float        Diffusion;         /* [r/w] 0.0    100.0  100.0   Value that controls the echo density in the late reverberation decay. (SUPPORTED:SFX) */
-    float        Density;           /* [r/w] 0.0    100.0  100.0   Value that controls the modal density in the late reverberation decay (SUPPORTED:SFX) */
-    unsigned int Flags;             /* [r/w] FMOD_REVERB_FLAGS - modifies the behavior of above properties                               (SUPPORTED:WII) */
+{                                   /*       MIN    MAX     DEFAULT DESCRIPTION */
+    int          Instance;          /* [w]   0      3       0       Environment Instance.                                                 (SUPPORTED:SFX(4 instances) and Wii (3 instances)) */
+    int          Environment;       /* [r/w] -1     25      -1      Sets all listener properties.  -1 = OFF.                              (SUPPORTED:SFX(-1 only)/PSP) */
+    float        EnvDiffusion;      /* [r/w] 0.0    1.0     1.0     Environment diffusion                                                 (SUPPORTED:WII) */
+    int          Room;              /* [r/w] -10000 0       -1000   Room effect level (at mid frequencies)                                (SUPPORTED:SFX/WII/PSP) */
+    int          RoomHF;            /* [r/w] -10000 0       -100    Relative room effect level at high frequencies                        (SUPPORTED:SFX) */
+    int          RoomLF;            /* [r/w] -10000 0       0       Relative room effect level at low frequencies                         (SUPPORTED:SFX) */
+    float        DecayTime;         /* [r/w] 0.1    20.0    1.49    Reverberation decay time at mid frequencies                           (SUPPORTED:SFX/WII) */
+    float        DecayHFRatio;      /* [r/w] 0.1    2.0     0.83    High-frequency to mid-frequency decay time ratio                      (SUPPORTED:SFX) */
+    float        DecayLFRatio;      /* [r/w] 0.1    2.0     1.0     Low-frequency to mid-frequency decay time ratio                       (SUPPORTED:---) */
+    int          Reflections;       /* [r/w] -10000 1000    -2602   Early reflections level relative to room effect                       (SUPPORTED:SFX/WII) */
+    float        ReflectionsDelay;  /* [r/w] 0.0    0.3     0.007   Initial reflection delay time                                         (SUPPORTED:SFX) */
+    int          Reverb;            /* [r/w] -10000 2000    200     Late reverberation level relative to room effect                      (SUPPORTED:SFX) */
+    float        ReverbDelay;       /* [r/w] 0.0    0.1     0.011   Late reverberation delay time relative to initial reflection          (SUPPORTED:SFX/WII) */
+    float        ModulationTime;    /* [r/w] 0.04   4.0     0.25    Modulation time                                                       (SUPPORTED:---) */
+    float        ModulationDepth;   /* [r/w] 0.0    1.0     0.0     Modulation depth                                                      (SUPPORTED:WII) */
+    float        HFReference;       /* [r/w] 20.0   20000.0 5000.0  Reference high frequency (hz)                                         (SUPPORTED:SFX) */
+    float        LFReference;       /* [r/w] 20.0   1000.0  250.0   Reference low frequency (hz)                                          (SUPPORTED:SFX) */
+    float        Diffusion;         /* [r/w] 0.0    100.0   100.0   Value that controls the echo density in the late reverberation decay. (SUPPORTED:SFX) */
+    float        Density;           /* [r/w] 0.0    100.0   100.0   Value that controls the modal density in the late reverberation decay (SUPPORTED:SFX) */
+    unsigned int Flags;             /* [r/w] FMOD_REVERB_FLAGS - modifies the behavior of above properties                                (SUPPORTED:WII) */
 } FMOD_REVERB_PROPERTIES;
 
 
@@ -1563,6 +1598,7 @@ typedef struct FMOD_REVERB_PROPERTIES
 */
 #define FMOD_REVERB_FLAGS_HIGHQUALITYREVERB     0x00000400 /* Wii. Use high quality reverb */
 #define FMOD_REVERB_FLAGS_HIGHQUALITYDPL2REVERB 0x00000800 /* Wii. Use high quality DPL2 reverb */
+#define FMOD_REVERB_FLAGS_HARDWAREONLY          0x00001000 /* Don't create an SFX reverb for FMOD_SOFTWARE channels, hardware reverb only */
 #define FMOD_REVERB_FLAGS_DEFAULT               0x00000000
 /* [DEFINE_END] */
 
@@ -1574,9 +1610,9 @@ typedef struct FMOD_REVERB_PROPERTIES
     FMOD_REVERB_PRESETS
 
     [DESCRIPTION]   
-    A set of predefined environment PARAMETERS.
-    These are used to initialize an FMOD_REVERB_PROPERTIES structure statically.
-    i.e.
+    A set of predefined environment PARAMETERS.<br>
+    These are used to initialize an FMOD_REVERB_PROPERTIES structure statically.<br>
+    i.e.<br>
     FMOD_REVERB_PROPERTIES prop = FMOD_PRESET_GENERIC;
 
     [REMARKS]
@@ -1631,30 +1667,30 @@ typedef struct FMOD_REVERB_PROPERTIES
 [STRUCTURE] 
 [
     [DESCRIPTION]
-    Structure defining the properties for a reverb source, related to a FMOD channel.
-    
-    Note the default reverb properties are the same as the FMOD_PRESET_GENERIC preset.
+    Structure defining the properties for a reverb source, related to a FMOD channel.<br>
+    <br>
+    Note the default reverb properties are the same as the FMOD_PRESET_GENERIC preset.<br>
     Note that integer values that typically range from -10,000 to 1000 are represented in 
-    decibels, and are of a logarithmic scale, not linear, wheras float values are typically linear.
-    PORTABILITY: Each member has the platform it supports in braces ie (win32/wii).
-    
-    The numerical values listed below are the maximum, minimum and default values for each variable respectively.
+    decibels, and are of a logarithmic scale, not linear, wheras float values are typically linear.<br>
+    PORTABILITY: Each member has the platform it supports in braces ie (win32/wii).<br>
+    <br>
+    The numerical values listed below are the maximum, minimum and default values for each variable respectively.<br>
 
     [REMARKS]
-    <b>SUPPORTED</b> next to each parameter means the platform the parameter can be set on.  Some platforms support all parameters and some don't.
-    WII   means Nintendo Wii hardware reverb (must use FMOD_HARDWARE).
-    PSP   means Playstation Portable hardware reverb (must use FMOD_HARDWARE).
-    SFX   means FMOD SFX software reverb.  This works on any platform that uses FMOD_SOFTWARE for loading sounds.
+    <b>SUPPORTED</b> next to each parameter means the platform the parameter can be set on.  Some platforms support all parameters and some don't.<br>
+    WII   means Nintendo Wii hardware reverb (must use FMOD_HARDWARE).<br>
+    PSP   means Playstation Portable hardware reverb (must use FMOD_HARDWARE).<br>
+    SFX   means FMOD SFX software reverb.  This works on any platform that uses FMOD_SOFTWARE for loading sounds.<br>
     ---   means unsupported/deprecated.  Will either be removed or supported by SFX in the future.
-    
-    
-    <b>'ConnectionPoint' Parameter.</b>  This parameter is for the FMOD software reverb only (known as SFX in the list above).
-    By default the dsp network connection for a channel and its reverb is between the 'SFX Reverb' unit, and the channel's wavetable/resampler/dspcodec/oscillator unit (the unit below the channel DSP head).  NULL can be used for this parameter to make it use this default behaviour.
-    This parameter allows the user to connect the SFX reverb to somewhere else internally, for example the channel DSP head, or a related channelgroup.  The event system uses this so that it can have the output of an event going to the reverb, instead of just the output of the event's channels (thereby ignoring event effects/submixes etc).
-    Do not use if you are unaware of DSP network connection issues.  Leave it at the default of NULL instead.
-    
-    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.
-    Members marked with [w] mean the variable can be written to.  The user can set the value.
+    <br>
+    <br>
+    <b>'ConnectionPoint' Parameter.</b>  This parameter is for the FMOD software reverb only (known as SFX in the list above).<br>
+    By default the dsp network connection for a channel and its reverb is between the 'SFX Reverb' unit, and the channel's wavetable/resampler/dspcodec/oscillator unit (the unit below the channel DSP head).  NULL can be used for this parameter to make it use this default behaviour.<br>
+    This parameter allows the user to connect the SFX reverb to somewhere else internally, for example the channel DSP head, or a related channelgroup.  The event system uses this so that it can have the output of an event going to the reverb, instead of just the output of the event's channels (thereby ignoring event effects/submixes etc).<br>
+    Do not use if you are unaware of DSP network connection issues.  Leave it at the default of NULL instead.<br>
+    <br>
+    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.<br>
+    Members marked with [w] mean the variable can be written to.  The user can set the value.<br>
     Members marked with [r/w] are either read or write depending on if you are using Channel::setReverbProperties (w) or Channel::getReverbProperties (r).
 
     [PLATFORMS]
@@ -1685,12 +1721,12 @@ typedef struct FMOD_REVERB_CHANNELPROPERTIES
     Values for the Flags member of the FMOD_REVERB_CHANNELPROPERTIES structure.
 
     [REMARKS]
-    For SFX Reverb, there is support for multiple reverb environments.
+    For SFX Reverb, there is support for multiple reverb environments.<br>
     Use FMOD_REVERB_CHANNELFLAGS_ENVIRONMENT0 to FMOD_REVERB_CHANNELFLAGS_ENVIRONMENT3 in the flags member 
-    of FMOD_REVERB_CHANNELPROPERTIES to specify which environment instance(s) to target. 
-    - If you do not specify any instance the first reverb instance will be used.
-    - If you specify more than one instance with getReverbProperties, the first instance will be used.
-    - If you specify more than one instance with setReverbProperties, it will set more than 1 instance at once.
+    of FMOD_REVERB_CHANNELPROPERTIES to specify which environment instance(s) to target. <br>
+    - If you do not specify any instance the first reverb instance will be used.<br>
+    - If you specify more than one instance with getReverbProperties, the first instance will be used.<br>
+    - If you specify more than one instance with setReverbProperties, it will set more than 1 instance at once.<br>
 
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
@@ -1715,17 +1751,17 @@ typedef struct FMOD_REVERB_CHANNELPROPERTIES
     Settings for advanced features like configuring memory and cpu usage for the FMOD_CREATECOMPRESSEDSAMPLE feature.
 
     [REMARKS]
-    maxMPEGcodecs / maxADPCMcodecs / maxXMAcodecs will determine the maximum cpu usage of playing realtime samples.  Use this to lower potential excess cpu usage and also control memory usage.
-    
+    maxMPEGcodecs / maxADPCMcodecs / maxXMAcodecs will determine the maximum cpu usage of playing realtime samples.  Use this to lower potential excess cpu usage and also control memory usage.<br>
+    <br>
     maxPCMcodecs is for use with PS3 only. It will determine the maximum number of PCM voices that can be played at once. This includes streams of any format and all sounds created
     *without* the FMOD_CREATECOMPRESSEDSAMPLE flag.
-    
-    Memory will be allocated for codecs 'up front' (during System::init) if these values are specified as non zero.  If any are zero, it allocates memory for the codec whenever a file of the type in question is loaded.  So if maxMPEGcodecs is 0 for example, it will allocate memory for the mpeg codecs the first time an mp3 is loaded or an mp3 based .FSB file is loaded.
-    
-    Due to inefficient encoding techniques on certain .wav based ADPCM files, FMOD can can need an extra 29720 bytes per codec.  This means for lowest memory consumption.  Use FSB as it uses an optimal/small ADPCM block size.
-    
-    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.
-    Members marked with [w] mean the variable can be written to.  The user can set the value.
+    <br>
+    Memory will be allocated for codecs 'up front' (during System::init) if these values are specified as non zero.  If any are zero, it allocates memory for the codec whenever a file of the type in question is loaded.  So if maxMPEGcodecs is 0 for example, it will allocate memory for the mpeg codecs the first time an mp3 is loaded or an mp3 based .FSB file is loaded.<br>
+    <br>
+    Due to inefficient encoding techniques on certain .wav based ADPCM files, FMOD can can need an extra 29720 bytes per codec.  This means for lowest memory consumption.  Use FSB as it uses an optimal/small ADPCM block size.<br>
+    <br>
+    Members marked with [r] mean the variable is modified by FMOD and is for reading purposes only.  Do not change this value.<br>
+    Members marked with [w] mean the variable can be written to.  The user can set the value.<br>
     Members marked with [r/w] are either read or write depending on if you are using System::setAdvancedSettings (w) or System::getAdvancedSettings (r).
 
     [PLATFORMS]
@@ -1745,23 +1781,27 @@ typedef struct FMOD_ADVANCEDSETTINGS
     int             maxADPCMcodecs;             /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_CREATECOMPRESSEDSAMPLE only.  ADPCM codecs consume  2,136 bytes per instance and this number will determine how many ADPCM channels can be played simultaneously.  Default = 32. */
     int             maxXMAcodecs;               /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_CREATECOMPRESSEDSAMPLE only.  XMA   codecs consume 14,836 bytes per instance and this number will determine how many XMA channels can be played simultaneously.    Default = 32. */
     int             maxCELTcodecs;              /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_CREATECOMPRESSEDSAMPLE only.  CELT  codecs consume 11,500 bytes per instance and this number will determine how many CELT channels can be played simultaneously.   Default = 32. */    
+    int             maxVORBIScodecs;            /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_CREATECOMPRESSEDSAMPLE only.  Vorbis codecs consume 12,000 bytes per instance and this number will determine how many Vorbis channels can be played simultaneously. Default = 32. */    
     int             maxPCMcodecs;               /* [r/w] Optional. Specify 0 to ignore. For use with PS3 only.                          PCM   codecs consume 12,672 bytes per instance and this number will determine how many streams and PCM voices can be played simultaneously. Default = 16. */
     int             ASIONumChannels;            /* [r/w] Optional. Specify 0 to ignore. Number of channels available on the ASIO device. */
     char          **ASIOChannelList;            /* [r/w] Optional. Specify 0 to ignore. Pointer to an array of strings (number of entries defined by ASIONumChannels) with ASIO channel names. */
     FMOD_SPEAKER   *ASIOSpeakerList;            /* [r/w] Optional. Specify 0 to ignore. Pointer to a list of speakers that the ASIO channels map to.  This can be called after System::init to remap ASIO output. */
     int             max3DReverbDSPs;            /* [r/w] Optional. Specify 0 to ignore. The max number of 3d reverb DSP's in the system. (NOTE: CURRENTLY DISABLED / UNUSED) */
-    float           HRTFMinAngle;               /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_SOFTWARE_HRTF.  The angle range (0-360) of a 3D sound in relation to the listener, at which the HRTF function begins to have an effect. 0 = in front of the listener. 180 = from 90 degrees to the left of the listener to 90 degrees to the right. 360 = behind the listener. Default = 180.0. */
-    float           HRTFMaxAngle;               /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_SOFTWARE_HRTF.  The angle range (0-360) of a 3D sound in relation to the listener, at which the HRTF function has maximum effect. 0 = front of the listener. 180 = from 90 degrees to the left of the listener to 90 degrees to the right. 360 = behind the listener. Default = 360.0. */
-    float           HRTFFreq;                   /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_SOFTWARE_HRTF.  The cutoff frequency of the HRTF's lowpass filter function when at maximum effect. (i.e. at HRTFMaxAngle).  Default = 4000.0. */
+    float           HRTFMinAngle;               /* [r/w] Optional.                      For use with FMOD_INIT_HRTF_LOWPASS.  The angle range (0-360) of a 3D sound in relation to the listener, at which the HRTF function begins to have an effect. 0 = in front of the listener. 180 = from 90 degrees to the left of the listener to 90 degrees to the right. 360 = behind the listener. Default = 180.0. */
+    float           HRTFMaxAngle;               /* [r/w] Optional.                      For use with FMOD_INIT_HRTF_LOWPASS.  The angle range (0-360) of a 3D sound in relation to the listener, at which the HRTF function has maximum effect. 0 = front of the listener. 180 = from 90 degrees to the left of the listener to 90 degrees to the right. 360 = behind the listener. Default = 360.0. */
+    float           HRTFFreq;                   /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_HRTF_LOWPASS.  The cutoff frequency of the HRTF's lowpass filter function when at maximum effect. (i.e. at HRTFMaxAngle).  Default = 4000.0. */
     float           vol0virtualvol;             /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_VOL0_BECOMES_VIRTUAL.  If this flag is used, and the volume is 0.0, then the sound will become virtual.  Use this value to raise the threshold to a different point where a sound goes virtual. */
-    int             eventqueuesize;             /* [r/w] Optional. Specify 0 to ignore. For use with FMOD Event system only.  Specifies the number of slots available for simultaneous non blocking loads, across all threads.  Default = 64. */
+    int             eventqueuesize;             /* [r/w] Optional. Specify 0 to ignore. For use with FMOD Event system only.  Specifies the number of slots available for simultaneous non blocking loads, across all threads.  Default = 32. */
     unsigned int    defaultDecodeBufferSize;    /* [r/w] Optional. Specify 0 to ignore. For streams. This determines the default size of the double buffer (in milliseconds) that a stream uses.  Default = 400ms */
     char           *debugLogFilename;           /* [r/w] Optional. Specify 0 to ignore. Gives fmod's logging system a path/filename.  Normally the log is placed in the same directory as the executable and called fmod.log. When using System::getAdvancedSettings, provide at least 256 bytes of memory to copy into. */
     unsigned short  profileport;                /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_ENABLE_PROFILE.  Specify the port to listen on for connections by the profiler application. */
     unsigned int    geometryMaxFadeTime;        /* [r/w] Optional. Specify 0 to ignore. The maximum time in miliseconds it takes for a channel to fade to the new level when its occlusion changes. */
     unsigned int    maxSpectrumWaveDataBuffers; /* [r/w] Optional. Specify 0 to ignore. Tells System::init to allocate a pool of wavedata/spectrum buffers to prevent memory fragmentation, any additional buffers will be allocated normally. */
     unsigned int    musicSystemCacheDelay;      /* [r/w] Optional. Specify 0 to ignore. The delay the music system should allow for loading a sample from disk (in milliseconds). Default = 400 ms. */
-    float           distanceFilterCentreFreq;   /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_DISTANCE_FILTERING.  The default centre frequency in Hz for the distance filtering effect. Default = 1500.0. */
+    float           distanceFilterCenterFreq;   /* [r/w] Optional. Specify 0 to ignore. For use with FMOD_INIT_DISTANCE_FILTERING.  The default center frequency in Hz for the distance filtering effect. Default = 1500.0. */
+    unsigned int    stackSizeStream;            /* [r/w] Optional. Specify 0 to ignore. Specify the stack size for the FMOD Stream thread in bytes.  Useful for custom codecs that use excess stack.  Default 49,152 (48kb) */
+    unsigned int    stackSizeNonBlocking;       /* [r/w] Optional. Specify 0 to ignore. Specify the stack size for the FMOD_NONBLOCKING loading thread.  Useful for custom codecs that use excess stack.  Default 65,536 (64kb) */
+    unsigned int    stackSizeMixer;             /* [r/w] Optional. Specify 0 to ignore. Specify the stack size for the FMOD mixer thread.  Useful for custom dsps that use excess stack.  Default 49,152 (48kb) */
 } FMOD_ADVANCEDSETTINGS;
 
 
@@ -1821,6 +1861,7 @@ FMOD_RESULT F_API FMOD_File_GetDiskBusy            (int *busy);
 FMOD_RESULT F_API FMOD_System_Create               (FMOD_SYSTEM **system); 
 FMOD_RESULT F_API FMOD_System_Release              (FMOD_SYSTEM *system); 
 
+/*$ preserve end $*/
 
 /*
     'System' API
@@ -1866,7 +1907,8 @@ FMOD_RESULT F_API FMOD_System_GetPluginInfo          (FMOD_SYSTEM *system, unsig
 FMOD_RESULT F_API FMOD_System_SetOutputByPlugin      (FMOD_SYSTEM *system, unsigned int handle);
 FMOD_RESULT F_API FMOD_System_GetOutputByPlugin      (FMOD_SYSTEM *system, unsigned int *handle);
 FMOD_RESULT F_API FMOD_System_CreateDSPByPlugin      (FMOD_SYSTEM *system, unsigned int handle, FMOD_DSP **dsp);
-FMOD_RESULT F_API FMOD_System_CreateCodec            (FMOD_SYSTEM *system, FMOD_CODEC_DESCRIPTION *description, unsigned int priority);
+FMOD_RESULT F_API FMOD_System_RegisterCodec          (FMOD_SYSTEM *system, FMOD_CODEC_DESCRIPTION *description, unsigned int *handle, unsigned int priority);
+FMOD_RESULT F_API FMOD_System_RegisterDSP            (FMOD_SYSTEM *system, FMOD_DSP_DESCRIPTION *description, unsigned int *handle);
 
 /*
      Init/Close                            
@@ -2190,8 +2232,6 @@ FMOD_RESULT F_API FMOD_ChannelGroup_SetPaused        (FMOD_CHANNELGROUP *channel
 FMOD_RESULT F_API FMOD_ChannelGroup_GetPaused        (FMOD_CHANNELGROUP *channelgroup, FMOD_BOOL *paused);
 FMOD_RESULT F_API FMOD_ChannelGroup_SetMute          (FMOD_CHANNELGROUP *channelgroup, FMOD_BOOL mute);
 FMOD_RESULT F_API FMOD_ChannelGroup_GetMute          (FMOD_CHANNELGROUP *channelgroup, FMOD_BOOL *mute);
-FMOD_RESULT F_API FMOD_ChannelGroup_SetReverbProperties(FMOD_CHANNELGROUP *channelgroup, const FMOD_REVERB_CHANNELPROPERTIES *prop);
-FMOD_RESULT F_API FMOD_ChannelGroup_GetReverbProperties(FMOD_CHANNELGROUP *channelgroup, FMOD_REVERB_CHANNELPROPERTIES *prop);
 
 /*
      Channelgroup override values.  (recursively overwrites whatever settings the channels had)
@@ -2426,6 +2466,7 @@ FMOD_RESULT F_API FMOD_Reverb_SetUserData            (FMOD_REVERB *reverb, void 
 FMOD_RESULT F_API FMOD_Reverb_GetUserData            (FMOD_REVERB *reverb, void **userdata);
 
 FMOD_RESULT F_API FMOD_Reverb_GetMemoryInfo          (FMOD_REVERB *reverb, unsigned int memorybits, unsigned int event_memorybits, unsigned int *memoryused, FMOD_MEMORY_USAGE_DETAILS *memoryused_details);
+/*$ preserve start $*/
 
 #ifdef __cplusplus
 }
@@ -2433,3 +2474,4 @@ FMOD_RESULT F_API FMOD_Reverb_GetMemoryInfo          (FMOD_REVERB *reverb, unsig
 
 #endif
 
+/*$ preserve end $*/

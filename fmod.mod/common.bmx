@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2011 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -127,6 +127,53 @@ Extern
 	Function bmx_FMOD_ChannelGroup_GetChannel:Byte Ptr(handle:Byte Ptr, index:Int)
 
 	Function bmx_fmodreverbchannelproperties_delete(handle:Byte Ptr)
+
+	Function bmx_advancedsettings_create:Byte Ptr()
+	Function bmx_advancedsettings_delete(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmaxMPEGcodecs(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmaxMPEGcodecs:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmaxADPCMcodecs(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmaxADPCMcodecs:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmaxXMAcodecs(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmaxXMAcodecs:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmaxCELTcodecs(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmaxCELTcodecs:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmaxVORBIScodecs(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmaxVORBIScodecs:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmaxPCMcodecs(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmaxPCMcodecs:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setASIONumChannels(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getASIONumChannels:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmax3DReverbDSPs(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmax3DReverbDSPs:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setHRTFMinAngle(handle:Byte Ptr, value:Float)
+	Function bmx_advancedsettings_getHRTFMinAngle:Float(handle:Byte Ptr)
+	Function bmx_advancedsettings_setHRTFMaxAngle(handle:Byte Ptr, value:Float)
+	Function bmx_advancedsettings_getHRTFMaxAngle:Float(handle:Byte Ptr)
+	Function bmx_advancedsettings_setHRTFFreq(handle:Byte Ptr, value:Float)
+	Function bmx_advancedsettings_getHRTFFreq:Float(handle:Byte Ptr)
+	Function bmx_advancedsettings_setvol0virtualvol(handle:Byte Ptr, value:Float)
+	Function bmx_advancedsettings_getvol0virtualvol:Float(handle:Byte Ptr)
+	Function bmx_advancedsettings_seteventqueuesize(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_geteventqueuesize:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setdefaultDecodeBufferSize(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getdefaultDecodeBufferSize:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setprofileport(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getprofileport:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setgeometryMaxFadeTime(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getgeometryMaxFadeTime:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmaxSpectrumWaveDataBuffers(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmaxSpectrumWaveDataBuffers:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setmusicSystemCacheDelay(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getmusicSystemCacheDelay:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setdistanceFilterCenterFreq(handle:Byte Ptr, value:Float)
+	Function bmx_advancedsettings_getdistanceFilterCenterFreq:Float(handle:Byte Ptr)
+	Function bmx_advancedsettings_setstackSizeStream(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getstackSizeStream:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setstackSizeNonBlocking(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getstackSizeNonBlocking:Int(handle:Byte Ptr)
+	Function bmx_advancedsettings_setstackSizeMixer(handle:Byte Ptr, value:Int)
+	Function bmx_advancedsettings_getstackSizeMixer:Int(handle:Byte Ptr)
 
 End Extern
 
@@ -523,14 +570,19 @@ about: Anything created with FMOD_SOFTWARE will fail and DSP will not work.
 End Rem
 Const FMOD_INIT_SOFTWARE_DISABLE:Int = $00000004
 Rem
-bbdoc: All platforms - All FMOD_SOFTWARE with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which is automatically used when Channel::set3DOcclusion is used or the geometry API. 
+bbdoc: All platforms - All FMOD_SOFTWARE (and FMOD_HARDWARE on 3DS and NGP) with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which is automatically used when Channel::set3DOcclusion is used or the geometry API. 
 End Rem
-Const FMOD_INIT_SOFTWARE_OCCLUSION:Int = $00000008
+Const FMOD_INIT_OCCLUSION_LOWPASS:Int = $00000008
 Rem
-bbdoc: All platforms - All FMOD_SOFTWARE with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which causes sounds to sound duller when the sound goes behind the listener.
+bbdoc: All platforms - All FMOD_SOFTWARE (and FMOD_HARDWARE on 3DS and NGP) with FMOD_3D based voices will add a software lowpass filter effect into the DSP chain which causes sounds to sound duller when the sound goes behind the listener.
 about: Use System::setAdvancedSettings to adjust cutoff frequency. 
 End Rem
-Const FMOD_INIT_SOFTWARE_HRTF:Int = $00000010
+Const FMOD_INIT_HRTF_LOWPASS:Int = $00000010
+Rem
+bbdoc: All platforms - All FMOD_SOFTWARE with FMOD_3D based voices will add a software lowpass and highpass filter effect into the DSP chain which will act as a distance-automated bandpass filter.
+about: Use System::setAdvancedSettings to adjust the center frequency. 
+End Rem
+Const FMOD_INIT_DISTANCE_FILTERING:Int = $00000200
 Rem
 bbdoc: All platforms - SFX reverb is run using 22/24khz delay buffers, halving the memory required. 
 End Rem
@@ -549,36 +601,7 @@ bbdoc: Win32 Vista only - for WASAPI output - Enable exclusive access to hardwar
 End Rem
 Const FMOD_INIT_WASAPI_EXCLUSIVE:Int = $00000100
 Rem
-bbdoc: Win32 only - for DirectSound output - FMOD_HARDWARE | FMOD_3D buffers use simple stereo panning/doppler/attenuation when 3D hardware acceleration is not present. 
-End Rem
-Const FMOD_INIT_DSOUND_HRTFNONE:Int = $00000200
-Rem
-bbdoc: Win32 only - for DirectSound output - FMOD_HARDWARE | FMOD_3D buffers use a slightly higher quality algorithm when 3D hardware acceleration is not present. 
-End Rem
-Const FMOD_INIT_DSOUND_HRTFLIGHT:Int = $00000400
-Rem
-bbdoc: Win32 only - for DirectSound output - FMOD_HARDWARE | FMOD_3D buffers use full quality 3D playback when 3d hardware acceleration is not present. 
-End Rem
-Const FMOD_INIT_DSOUND_HRTFFULL:Int = $00000800
-Rem
-bbdoc: PS2 only - Disable reverb on CORE 0 to regain 256k SRAM. 
-End Rem
-Const FMOD_INIT_PS2_DISABLECORE0REVERB:Int = $00010000
-Rem
-bbdoc: PS2 only - Disable reverb on CORE 1 to regain 256k SRAM. 
-End Rem
-Const FMOD_INIT_PS2_DISABLECORE1REVERB:Int = $00020000
-Rem
-bbdoc: PS2 only - Disable FMOD's usage of the scratchpad. 
-End Rem
-Const FMOD_INIT_PS2_DONTUSESCRATCHPAD:Int = $00040000
-Rem
-bbdoc: PS2 only - Changes FMOD from using SPU DMA channel 0 for software mixing, and 1 for sound data upload/file streaming, to 1 and 0 respectively. 
-End Rem
-Const FMOD_INIT_PS2_SWAPDMACHANNELS:Int = $00080000
-Rem
-bbdoc: PS3 only - Prefer DTS over Dolby Digital if both are supported.
-about: Note: 8 and 6 channel LPCM is always preferred over both DTS and Dolby Digital. 
+bbdoc: PS3 only - Prefer DTS over Dolby Digital if both are supported. Note: 8 and 6 channel LPCM is always preferred over both DTS and Dolby Digital. 
 End Rem
 Const FMOD_INIT_PS3_PREFERDTS:Int = $00800000
 Rem
@@ -586,10 +609,10 @@ bbdoc: PS3 only - Force PS3 system output mode to 2 channel LPCM.
 End Rem
 Const FMOD_INIT_PS3_FORCE2CHLPCM:Int = $01000000
 Rem
-bbdoc: Xbox only - By default DirectSound attenuates all sound by 6db to avoid clipping/distortion.
-about: CAUTION.  If you use this flag you are responsible for the final mix to make sure clipping / distortion doesn't happen. 
+bbdoc: Wii / 3DS - Disable Dolby Pro Logic surround.
+about: Speakermode will be set to STEREO even if user has selected surround in the system settings. 
 End Rem
-Const FMOD_INIT_XBOX_REMOVEHEADROOM:Int = $00100000
+Const FMOD_INIT_DISABLEDOLBY:Int = $00100000
 Rem
 bbdoc: Xbox 360 / PS3 - The "music" channelgroup which by default pauses when custom 360 dashboard / PS3 BGM music is played, can be changed to mute (therefore continues playing) instead of pausing, by using this flag. 
 End Rem
@@ -599,19 +622,22 @@ bbdoc: Win32/Wii/PS3/Xbox/Xbox 360 - FMOD Mixer thread is woken up to do a mix w
 End Rem
 Const FMOD_INIT_SYNCMIXERWITHUPDATE:Int = $00400000
 Rem
-bbdoc: Win32/Mac/Linux/Solaris - Use DTS Neural surround downmixing from 7.1 if speakermode set to FMOD_SPEAKERMODE_STEREO or FMOD_SPEAKERMODE_5POINT1.
-about: Internal DSP structure will be set to 7.1. 
-End Rem
-Const FMOD_INIT_DTS_NEURALSURROUND:Int = $02000000
-Rem
 bbdoc: All platforms - With the geometry engine, only process the closest polygon rather than accumulating all polygons the sound to listener line intersects. 
 End Rem
 Const FMOD_INIT_GEOMETRY_USECLOSEST:Int = $04000000
 Rem
-bbdoc: Win32 - Disables MyEars HRTF 7.1 downmixing.
-about: MyEars will otherwise be disbaled if speakermode is not set to FMOD_SPEAKERMODE_STEREO or the data file is missing. 
+bbdoc: Win32 - Disables automatic setting of FMOD_SPEAKERMODE_STEREO to FMOD_SPEAKERMODE_MYEARS if the MyEars profile exists on the PC.
+about: MyEars is HRTF 7.1 downmixing through headphones. 
 End Rem
-Const FMOD_INIT_DISABLE_MYEARS:Int = $08000000
+Const FMOD_INIT_DISABLE_MYEARS_AUTODETECT:Int = $08000000
+Rem
+bbdoc: PS3 only - Disable DTS output mode selection 
+End Rem
+Const FMOD_INIT_PS3_DISABLEDTS:Int = $10000000
+Rem
+bbdoc: PS3 only - Disable Dolby Digital output mode selection 
+End Rem
+Const FMOD_INIT_PS3_DISABLEDOLBYDIGITAL:Int = $20000000
 
 
 Rem
@@ -672,15 +698,13 @@ about: This is always ahead of audible time, and is only used for processing.
 End Rem
 Const FMOD_TIMEUNIT_BUFFERED:Int = $10000000 
 
+
 Rem
-bbdoc: FMOD_DEFAULT is a default sound type.
-about: Equivalent to all the defaults listed below.  FMOD_LOOP_OFF, FMOD_2D, FMOD_HARDWARE. 
-(Note - only Windows with a high spec soundcard, PS2, PSP, and Wii support FMOD_HARDWARE) 
+bbdoc: Default for all modes listed below. FMOD_LOOP_OFF, FMOD_2D, FMOD_HARDWARE 
 End Rem
 Const FMOD_DEFAULT:Int = $00000000
 Rem
-bbdoc: For non looping sounds. (DEFAULT).
-about: Overrides FMOD_LOOP_NORMAL / FMOD_LOOP_BIDI. 
+bbdoc: For non looping sounds. (DEFAULT).  Overrides FMOD_LOOP_NORMAL / FMOD_LOOP_BIDI. 
 End Rem
 Const FMOD_LOOP_OFF:Int = $00000001
 Rem
@@ -688,8 +712,7 @@ bbdoc: For forward looping sounds.
 End Rem
 Const FMOD_LOOP_NORMAL:Int = $00000002
 Rem
-bbdoc: For bidirectional looping sounds.
-about: (only works on software mixed static sounds). 
+bbdoc: For bidirectional looping sounds. (only works on software mixed static sounds). 
 End Rem
 Const FMOD_LOOP_BIDI:Int = $00000004
 Rem
@@ -697,13 +720,12 @@ bbdoc: Ignores any 3d processing. (DEFAULT).
 End Rem
 Const FMOD_2D:Int = $00000008
 Rem
-bbdoc: Makes the sound positionable in 3D.
-about: Overrides FMOD_2D. 
+bbdoc: Makes the sound positionable in 3D.  Overrides FMOD_2D. 
 End Rem
 Const FMOD_3D:Int = $00000010
 Rem
-bbdoc: Attempts to make sounds use hardware acceleration. (DEFAULT).
-about: Note on platforms that don't support FMOD_HARDWARE (only Windows with a high spec soundcard, PS2, PSP, and Wii support FMOD_HARDWARE), this will be internally treated as FMOD_SOFTWARE. 
+bbdoc: Attempts to make sounds use hardware acceleration. (DEFAULT). 
+about: Note on platforms that don't support FMOD_HARDWARE (only 3DS, PS Vita, PSP, Wii and Wii U support FMOD_HARDWARE), this will be internally treated as FMOD_SOFTWARE. 
 End Rem
 Const FMOD_HARDWARE:Int = $00000020
 Rem
@@ -727,8 +749,8 @@ about: During playback the FMOD software mixer will decode it in realtime as a '
 End Rem
 Const FMOD_CREATECOMPRESSEDSAMPLE:Int = $00000200
 Rem
-bbdoc: Opens a user created static sample or stream.
-about: Use FMOD_CREATESOUNDEXINFO to specify format and/or read callbacks.  If a user created 'sample' is created with no read callback, the sample will be empty.  Use Sound::lock and Sound::unlock to place sound data into the sound if this is the case. 
+bbdoc: Opens a user created static sample or stream. Use FMOD_CREATESOUNDEXINFO to specify format and/or read callbacks.
+about: If a user created 'sample' is created with no read callback, the sample will be empty.  Use Sound::lock and Sound::unlock to place sound data into the sound if this is the case. 
 End Rem
 Const FMOD_OPENUSER:Int = $00000400
 Rem
@@ -779,14 +801,19 @@ bbdoc: Make the sound's position, velocity and orientation absolute (relative to
 End Rem
 Const FMOD_3D_WORLDRELATIVE:Int = $00080000
 Rem
-bbdoc: This sound will follow the standard logarithmic rolloff model where mindistance = full volume, maxdistance = where sound stops attenuating, and rolloff is fixed according to the global rolloff factor.  (DEFAULT) 
+bbdoc: This sound will follow the inverse rolloff model where mindistance = full volume, maxdistance = where sound stops attenuating, and rolloff is fixed according to the global rolloff factor.  (DEFAULT) 
 End Rem
-Const FMOD_3D_LOGROLLOFF:Int = $00100000
+Const FMOD_3D_INVERSEROLLOFF:Int = $00100000
 Rem
 bbdoc: This sound will follow a linear rolloff model where mindistance = full volume, maxdistance = silence.
 about: Rolloffscale is ignored. 
 End Rem
 Const FMOD_3D_LINEARROLLOFF:Int = $00200000
+Rem
+bbdoc: This sound will follow a linear-square rolloff model where mindistance = full volume, maxdistance = silence.
+about: Rolloffscale is ignored. 
+End Rem
+Const FMOD_3D_LINEARSQUAREROLLOFF:Int = $00400000
 Rem
 bbdoc: This sound will follow a rolloff model defined by Sound::set3DCustomRolloff / Channel::set3DCustomRolloff.  
 End Rem
@@ -796,15 +823,6 @@ bbdoc: Is not affect by geometry occlusion.
 about: If not specified in Sound::setMode, or Channel::setMode, the flag is cleared and it is affected by geometry again. 
 End Rem
 Const FMOD_3D_IGNOREGEOMETRY:Int = $40000000
-Rem
-bbdoc: For CDDA sounds only - use ASPI instead of NTSCSI to access the specified CD/DVD device. 
-End Rem
-Const FMOD_CDDA_FORCEASPI:Int = $00400000
-Rem
-bbdoc: For CDDA sounds only - perform jitter correction.
-about: Jitter correction helps produce a more accurate CDDA stream at the cost of more CPU time. 
-End Rem
-Const FMOD_CDDA_JITTERCORRECT:Int = $00800000
 Rem
 bbdoc: Filename is double-byte unicode. 
 End Rem
@@ -819,7 +837,8 @@ about: See remarks.
 End Rem
 Const FMOD_LOWMEM:Int = $08000000
 Rem
-bbdoc: Load sound into the secondary RAM of supported platform. On PS3, sounds will be loaded into RSX/VRAM. 
+bbdoc: Load sound into the secondary RAM of supported platform.
+about: On PS3, sounds will be loaded into RSX/VRAM. 
 End Rem
 Const FMOD_LOADSECONDARYRAM:Int = $20000000
 Rem
@@ -1222,26 +1241,127 @@ End Rem
 Const FMOD_ERR_MUSIC_NOTFOUND:Int = 91       
 
 
+
+Rem
+bbdoc: This unit was created via a non FMOD plugin so has an unknown purpose. 
+End Rem
 Const FMOD_DSP_TYPE_UNKNOWN:Int = 0
+
+Rem
+bbdoc: This unit does nothing but take inputs and mix them together then feed the result to the soundcard unit. 
+End Rem
 Const FMOD_DSP_TYPE_MIXER:Int = 1
+
+Rem
+bbdoc: This unit generates sine/square/saw/triangle or noise tones. 
+End Rem
 Const FMOD_DSP_TYPE_OSCILLATOR:Int = 2
+
+Rem
+bbdoc: This unit filters sound using a high quality, resonant lowpass filter algorithm but consumes more CPU time. 
+End Rem
 Const FMOD_DSP_TYPE_LOWPASS:Int = 3
+
+Rem
+bbdoc: This unit filters sound using a resonant lowpass filter algorithm that is used in Impulse Tracker, but with limited cutoff range (0 to 8060hz). 
+End Rem
 Const FMOD_DSP_TYPE_ITLOWPASS:Int = 4
+
+Rem
+bbdoc: This unit filters sound using a resonant highpass filter algorithm. 
+End Rem
 Const FMOD_DSP_TYPE_HIGHPASS:Int = 5
+
+Rem
+bbdoc: This unit produces an echo on the sound and fades out at the desired rate. 
+End Rem
 Const FMOD_DSP_TYPE_ECHO:Int = 6
+
+Rem
+bbdoc: This unit produces a flange effect on the sound. 
+End Rem
 Const FMOD_DSP_TYPE_FLANGE:Int = 7
+
+Rem
+bbdoc: This unit distorts the sound. 
+End Rem
 Const FMOD_DSP_TYPE_DISTORTION:Int = 8
+
+Rem
+bbdoc: This unit normalizes or amplifies the sound to a certain level. 
+End Rem
 Const FMOD_DSP_TYPE_NORMALIZE:Int = 9
+
+Rem
+bbdoc: This unit attenuates or amplifies a selected frequency range. 
+End Rem
 Const FMOD_DSP_TYPE_PARAMEQ:Int = 10
+
+Rem
+bbdoc: This unit bends the pitch of a sound without changing the speed of playback. 
+End Rem
 Const FMOD_DSP_TYPE_PITCHSHIFT:Int = 11
+
+Rem
+bbdoc: This unit produces a chorus effect on the sound. 
+End Rem
 Const FMOD_DSP_TYPE_CHORUS:Int = 12
-Const FMOD_DSP_TYPE_REVERB:Int = 13
-Const FMOD_DSP_TYPE_VSTPLUGIN:Int = 14
-Const FMOD_DSP_TYPE_WINAMPPLUGIN:Int = 15
-Const FMOD_DSP_TYPE_ITECHO:Int = 16
-Const FMOD_DSP_TYPE_COMPRESSOR:Int = 17
-Const FMOD_DSP_TYPE_SFXREVERB:Int = 18
-Const FMOD_DSP_TYPE_LOWPASS_SIMPLE:Int = 19
+
+Rem
+bbdoc: This unit allows the use of Steinberg VST plugins 
+End Rem
+Const FMOD_DSP_TYPE_VSTPLUGIN:Int = 13
+
+Rem
+bbdoc: This unit allows the use of Nullsoft Winamp plugins 
+End Rem
+Const FMOD_DSP_TYPE_WINAMPPLUGIN:Int = 14
+
+Rem
+bbdoc: This unit produces an echo on the sound and fades out at the desired rate as is used in Impulse Tracker. 
+End Rem
+Const FMOD_DSP_TYPE_ITECHO:Int = 15
+
+Rem
+bbdoc: This unit implements dynamic compression (linked multichannel, wideband) 
+End Rem
+Const FMOD_DSP_TYPE_COMPRESSOR:Int = 16
+
+Rem
+bbdoc: This unit implements SFX reverb 
+End Rem
+Const FMOD_DSP_TYPE_SFXREVERB:Int = 17
+
+Rem
+bbdoc: This unit filters sound using a simple lowpass with no resonance, but has flexible cutoff and is fast. 
+End Rem
+Const FMOD_DSP_TYPE_LOWPASS_SIMPLE:Int = 18
+
+Rem
+bbdoc: This unit produces different delays on individual channels of the sound. 
+End Rem
+Const FMOD_DSP_TYPE_DELAY:Int = 19
+
+Rem
+bbdoc: This unit produces a tremolo / chopper effect on the sound. 
+End Rem
+Const FMOD_DSP_TYPE_TREMOLO:Int = 20
+
+Rem
+bbdoc: This unit allows the use of LADSPA standard plugins. 
+End Rem
+Const FMOD_DSP_TYPE_LADSPAPLUGIN:Int = 21
+
+Rem
+bbdoc: This unit filters sound using a simple highpass with no resonance, but has flexible cutoff and is fast. 
+End Rem
+Const FMOD_DSP_TYPE_HIGHPASS_SIMPLE:Int = 22
+
+Rem
+bbdoc: Offset that platform specific FMOD_HARDWARE DSPs will start at. 
+End Rem
+Const FMOD_DSP_TYPE_HARDWARE:Int = 1000
+
 
 Rem
 bbdoc: Echo delay in ms.

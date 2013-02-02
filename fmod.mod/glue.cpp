@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2011 Bruce A Henderson
+  Copyright (c) 2008-2013 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -134,6 +134,53 @@ extern "C" {
 	MAX_FMOD_CHANNEL * bmx_FMOD_ChannelGroup_GetChannel(FMOD_CHANNELGROUP *channelgroup, int index);
 
 	void bmx_fmodreverbchannelproperties_delete(FMOD_REVERB_CHANNELPROPERTIES * prop);
+
+	FMOD_ADVANCEDSETTINGS * bmx_advancedsettings_create();
+	void bmx_advancedsettings_delete(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmaxMPEGcodecs(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmaxMPEGcodecs(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmaxADPCMcodecs(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmaxADPCMcodecs(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmaxXMAcodecs(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmaxXMAcodecs(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmaxCELTcodecs(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmaxCELTcodecs(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmaxVORBIScodecs(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmaxVORBIScodecs(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmaxPCMcodecs(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmaxPCMcodecs(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setASIONumChannels(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getASIONumChannels(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmax3DReverbDSPs(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmax3DReverbDSPs(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setHRTFMinAngle(FMOD_ADVANCEDSETTINGS * settings, float value);
+	float bmx_advancedsettings_getHRTFMinAngle(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setHRTFMaxAngle(FMOD_ADVANCEDSETTINGS * settings, float value);
+	float bmx_advancedsettings_getHRTFMaxAngle(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setHRTFFreq(FMOD_ADVANCEDSETTINGS * settings, float value);
+	float bmx_advancedsettings_getHRTFFreq(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setvol0virtualvol(FMOD_ADVANCEDSETTINGS * settings, float value);
+	float bmx_advancedsettings_getvol0virtualvol(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_seteventqueuesize(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_geteventqueuesize(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setdefaultDecodeBufferSize(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getdefaultDecodeBufferSize(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setprofileport(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getprofileport(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setgeometryMaxFadeTime(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getgeometryMaxFadeTime(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmaxSpectrumWaveDataBuffers(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmaxSpectrumWaveDataBuffers(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setmusicSystemCacheDelay(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getmusicSystemCacheDelay(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setdistanceFilterCenterFreq(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getdistanceFilterCenterFreq(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setstackSizeStream(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getstackSizeStream(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setstackSizeNonBlocking(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getstackSizeNonBlocking(FMOD_ADVANCEDSETTINGS * settings);
+	void bmx_advancedsettings_setstackSizeMixer(FMOD_ADVANCEDSETTINGS * settings, int value);
+	int bmx_advancedsettings_getstackSizeMixer(FMOD_ADVANCEDSETTINGS * settings);
 
 }
 
@@ -549,7 +596,7 @@ FMOD_RESULT bmx_FMOD_Channel_SetPosition(MAX_FMOD_CHANNEL *channel, unsigned int
 // ++++++++++++++++++++++++++++++++
 
 FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create() {
-	FMOD_CREATESOUNDEXINFO * info = new FMOD_CREATESOUNDEXINFO;
+	FMOD_CREATESOUNDEXINFO * info = (FMOD_CREATESOUNDEXINFO *)malloc(sizeof(FMOD_CREATESOUNDEXINFO));
 	
 	memset(info, 0, sizeof(FMOD_CREATESOUNDEXINFO)); // need to zerofy the data
 	
@@ -562,7 +609,7 @@ void bmx_soundexinfo_setlength(FMOD_CREATESOUNDEXINFO * info, int length) {
 }
 
 void bmx_soundexinfo_delete(FMOD_CREATESOUNDEXINFO * info) {
-	delete info;
+	free(info);
 }
 
 void bmx_soundexinfo_setnumchannels(FMOD_CREATESOUNDEXINFO * info, int numChannels) {
@@ -720,6 +767,197 @@ MAX_FMOD_CHANNEL * bmx_FMOD_ChannelGroup_GetChannel(FMOD_CHANNELGROUP *channelgr
 
 void bmx_fmodreverbchannelproperties_delete(FMOD_REVERB_CHANNELPROPERTIES * prop) {
 	delete prop;
+}
+
+// ++++++++++++++++++++++++++++++++
+
+FMOD_ADVANCEDSETTINGS * bmx_advancedsettings_create() {
+	FMOD_ADVANCEDSETTINGS * settings = (FMOD_ADVANCEDSETTINGS *)malloc(sizeof(FMOD_ADVANCEDSETTINGS));
+	
+	memset(settings, 0, sizeof(FMOD_ADVANCEDSETTINGS)); // need to zerofy the data
+	
+	settings->cbsize = sizeof(FMOD_ADVANCEDSETTINGS);
+	return settings;
+}
+
+void bmx_advancedsettings_delete(FMOD_ADVANCEDSETTINGS * settings) {
+	free(settings);
+}
+
+void bmx_advancedsettings_setmaxMPEGcodecs(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->maxMPEGcodecs = value;
+}
+
+int bmx_advancedsettings_getmaxMPEGcodecs(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->maxMPEGcodecs;
+}
+
+void bmx_advancedsettings_setmaxADPCMcodecs(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->maxADPCMcodecs = value;
+}
+
+int bmx_advancedsettings_getmaxADPCMcodecs(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->maxADPCMcodecs;
+}
+
+void bmx_advancedsettings_setmaxXMAcodecs(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->maxXMAcodecs = value;
+}
+
+int bmx_advancedsettings_getmaxXMAcodecs(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->maxXMAcodecs;
+}
+
+void bmx_advancedsettings_setmaxCELTcodecs(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->maxCELTcodecs = value;
+}
+
+int bmx_advancedsettings_getmaxCELTcodecs(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->maxCELTcodecs;
+}
+
+void bmx_advancedsettings_setmaxVORBIScodecs(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->maxVORBIScodecs = value;
+}
+
+int bmx_advancedsettings_getmaxVORBIScodecs(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->maxVORBIScodecs;
+}
+
+void bmx_advancedsettings_setmaxPCMcodecs(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->maxPCMcodecs = value;
+}
+
+int bmx_advancedsettings_getmaxPCMcodecs(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->maxPCMcodecs;
+}
+
+void bmx_advancedsettings_setASIONumChannels(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->ASIONumChannels = value;
+}
+
+int bmx_advancedsettings_getASIONumChannels(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->ASIONumChannels;
+}
+
+void bmx_advancedsettings_setmax3DReverbDSPs(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->max3DReverbDSPs = value;
+}
+
+int bmx_advancedsettings_getmax3DReverbDSPs(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->max3DReverbDSPs;
+}
+
+void bmx_advancedsettings_setHRTFMinAngle(FMOD_ADVANCEDSETTINGS * settings, float value) {
+	settings->HRTFMinAngle = value;
+}
+
+float bmx_advancedsettings_getHRTFMinAngle(FMOD_ADVANCEDSETTINGS * settings) {
+	return settings->HRTFMinAngle;
+}
+
+void bmx_advancedsettings_setHRTFMaxAngle(FMOD_ADVANCEDSETTINGS * settings, float value) {
+	settings->HRTFMaxAngle = value;
+}
+
+float bmx_advancedsettings_getHRTFMaxAngle(FMOD_ADVANCEDSETTINGS * settings) {
+	return settings->HRTFMaxAngle;
+}
+
+void bmx_advancedsettings_setHRTFFreq(FMOD_ADVANCEDSETTINGS * settings, float value) {
+	settings->HRTFFreq = value;
+}
+
+float bmx_advancedsettings_getHRTFFreq(FMOD_ADVANCEDSETTINGS * settings) {
+	return settings->HRTFFreq;
+}
+
+void bmx_advancedsettings_setvol0virtualvol(FMOD_ADVANCEDSETTINGS * settings, float value) {
+	settings->vol0virtualvol = value;
+}
+
+float bmx_advancedsettings_getvol0virtualvol(FMOD_ADVANCEDSETTINGS * settings) {
+	return settings->vol0virtualvol;
+}
+
+void bmx_advancedsettings_seteventqueuesize(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->eventqueuesize = value;
+}
+
+int bmx_advancedsettings_geteventqueuesize(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->eventqueuesize;
+}
+
+void bmx_advancedsettings_setdefaultDecodeBufferSize(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->defaultDecodeBufferSize = value;
+}
+
+int bmx_advancedsettings_getdefaultDecodeBufferSize(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->defaultDecodeBufferSize;
+}
+
+void bmx_advancedsettings_setprofileport(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->profileport = value;
+}
+
+int bmx_advancedsettings_getprofileport(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->profileport;
+}
+
+void bmx_advancedsettings_setgeometryMaxFadeTime(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->geometryMaxFadeTime = value;
+}
+
+int bmx_advancedsettings_getgeometryMaxFadeTime(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->geometryMaxFadeTime;
+}
+
+void bmx_advancedsettings_setmaxSpectrumWaveDataBuffers(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->maxSpectrumWaveDataBuffers = value;
+}
+
+int bmx_advancedsettings_getmaxSpectrumWaveDataBuffers(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->maxSpectrumWaveDataBuffers;
+}
+
+void bmx_advancedsettings_setmusicSystemCacheDelay(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->musicSystemCacheDelay = value;
+}
+
+int bmx_advancedsettings_getmusicSystemCacheDelay(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->musicSystemCacheDelay;
+}
+
+void bmx_advancedsettings_setdistanceFilterCenterFreq(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->distanceFilterCenterFreq = value;
+}
+
+int bmx_advancedsettings_getdistanceFilterCenterFreq(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->distanceFilterCenterFreq;
+}
+
+void bmx_advancedsettings_setstackSizeStream(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->stackSizeStream = value;
+}
+
+int bmx_advancedsettings_getstackSizeStream(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->stackSizeStream;
+}
+
+void bmx_advancedsettings_setstackSizeNonBlocking(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->stackSizeNonBlocking = value;
+}
+
+int bmx_advancedsettings_getstackSizeNonBlocking(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->stackSizeNonBlocking;
+}
+
+void bmx_advancedsettings_setstackSizeMixer(FMOD_ADVANCEDSETTINGS * settings, int value) {
+	settings->stackSizeMixer = value;
+}
+
+int bmx_advancedsettings_getstackSizeMixer(FMOD_ADVANCEDSETTINGS * settings) {
+	return (int)settings->stackSizeMixer;
 }
 
 

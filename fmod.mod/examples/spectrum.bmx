@@ -128,8 +128,8 @@ While Not KeyDown(KEY_ESCAPE) And Not AppTerminate()
 	
 	Flip
 	
-	If KeyDown(KEY_D) Then b_Decibels :~ 1
-	If KeyDown(KEY_A) Then b_Average :~ 1
+	If KeyHit(KEY_D) Then b_Decibels :~ 1
+	If KeyHit(KEY_A) Then b_Average :~ 1
 		
 Wend
 
