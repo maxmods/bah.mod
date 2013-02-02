@@ -404,7 +404,7 @@ save_err:
 
 static NEOERR *wdb_load_defn (WDB *wdb, const char *name)
 {
-  char path[_POSIX_PATH_MAX];
+  char path[PATH_BUF_SIZE];
   char line[1024];
   FILE *fp;
   NEOERR *err = STATUS_OK;
@@ -445,8 +445,8 @@ static NEOERR *wdb_load_defn (WDB *wdb, const char *name)
 
 static NEOERR *wdb_save_defn (WDB *wdb, const char *name)
 {
-  char path[_POSIX_PATH_MAX];
-  char path2[_POSIX_PATH_MAX];
+  char path[PATH_BUF_SIZE];
+  char path2[PATH_BUF_SIZE];
   FILE *fp;
   NEOERR *err = STATUS_OK;
   int r;
@@ -482,7 +482,7 @@ static NEOERR *wdb_save_defn (WDB *wdb, const char *name)
 NEOERR *wdb_open (WDB **wdb, const char *name, int flags)
 {
   WDB *my_wdb;
-  char path[_POSIX_PATH_MAX];
+  char path[PATH_BUF_SIZE];
   NEOERR *err = STATUS_OK;
   int r;
 
@@ -592,9 +592,11 @@ void wdb_destroy (WDB **wdb)
 { \
   if (plen + 4 > pmax) \
   { \
+    void *new_ptr; \
     pmax *= 2; \
-    pdata = realloc ((void *)pdata, pmax); \
-    if (pdata == NULL) goto pack_err; \
+    new_ptr = realloc ((void *)pdata, pmax); \
+    if (new_ptr == NULL) goto pack_err; \
+    pdata = new_ptr; \
   } \
   pdata[plen++] = (0x0ff & (pn >> 0)); \
   pdata[plen++] = (0x0ff & (pn >> 8)); \
@@ -615,9 +617,11 @@ void wdb_destroy (WDB **wdb)
 { \
   if (plen + 1 > pmax) \
   { \
+    void *new_ptr; \
     pmax *= 2; \
-    pdata = realloc ((void *)pdata, pmax); \
-    if (pdata == NULL) goto pack_err; \
+    new_ptr = realloc ((void *)pdata, pmax); \
+    if (new_ptr == NULL) goto pack_err; \
+    pdata = new_ptr; \
   } \
   pdata[plen++] = (0x0ff & (pn >> 0)); \
 }
@@ -633,10 +637,11 @@ void wdb_destroy (WDB **wdb)
 { \
   if (plen + 4 + dl > pmax) \
   { \
-    while (plen + 4 + dl > pmax) \
-      pmax *= 2; \
-    pdata = realloc ((void *)pdata, pmax); \
-    if (pdata == NULL) goto pack_err; \
+    void *new_ptr; \
+    while (plen + 4 + dl > pmax) pmax *= 2; \
+    new_ptr = realloc ((void *)pdata, pmax); \
+    if (new_ptr == NULL) goto pack_err; \
+    pdata = new_ptr; \
   } \
   pdata[plen++] = (0x0ff & (dl >> 0)); \
   pdata[plen++] = (0x0ff & (dl >> 8)); \
@@ -1005,7 +1010,7 @@ NEOERR *wdb_create (WDB **wdb, const char *path, const char *name,
                     const char *key, ULIST *col_def, int flags)
 {
   WDB *my_wdb;
-  char d_path[_POSIX_PATH_MAX];
+  char d_path[PATH_BUF_SIZE];
   NEOERR *err = STATUS_OK;
   int x, len, r;
   char *s;

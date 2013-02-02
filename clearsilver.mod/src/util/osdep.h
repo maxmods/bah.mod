@@ -10,7 +10,6 @@
 
 #define __BEGIN_DECLS
 #define __END_DECLS
-#define _POSIX_PATH_MAX 255
 
 #define	S_IXGRP         S_IXUSR
 #define	S_IWGRP         S_IWUSR
@@ -30,6 +29,7 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list arg);
 int mkstemp(char *path);
 
 #define os_random rand
+#define sleep _sleep
 
 #else // UNIX......
 

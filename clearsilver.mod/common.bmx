@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,16 @@
 SuperStrict
 
 Import Pub.ZLib
+Import BaH.StreamHtmlParser
 
 Import "src/*.h"
+Import "../streamhtmlparser.mod/src/*.h"
 
 ' util
 
 ?win32
-Import "src/util/regex/*.h"
-Import "src/util/regex/regex.c"
+Import "src/util/hsregex/*.h"
+Import "src/util/hsregex/engine.c"
 ?linux
 Import "src/util/dict.c"
 Import "src/util/skiplist.c"
@@ -43,9 +45,9 @@ Import "src/util/neo_server.c"
 Import "src/util/ulocks.c"
 ?
 
+Import "src/util/neo_auto.c"
 Import "src/util/neo_date.c"
 Import "src/util/neo_hash.c"
-'Import "src/util/neo_net.c"
 Import "src/util/neo_str.c"
 Import "src/util/snprintf.c"
 'Import "src/util/wdb.c"

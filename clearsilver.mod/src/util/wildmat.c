@@ -1,4 +1,4 @@
-/* $Revision: 1.2 $
+/* $LastChangedRevision$
  **
  ** Do shell-style pattern matching for ?, \, [], and * characters.
  ** Might not be robust in face of malformed patterns; e.g., "foo[a-"

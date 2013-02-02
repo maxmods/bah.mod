@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,11 @@ Module BaH.ClearSilver
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: ClearSilver - 2001-2008 Brandon Long"
-ModuleInfo "Copyright: Wrapper - 2007, 2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (ClearSilver 0.10.4)"
+ModuleInfo "History: Initial Release. (ClearSilver 0.10.5)"
 
 Import BRL.LinkedList
 

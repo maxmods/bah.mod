@@ -267,11 +267,11 @@ FILE *cgi_filehandle (CGI *cgi, const char *form_name);
  *              removed from future versions in favor of some sort of
  *              user error mechanism.
  * Input: cgi - a pointer to a CGI struct
- *        err - a NEOERR (see util/neo_err.h for details)
+ *        nerr - a NEOERR (see util/neo_err.h for details)
  * Output: None
  * Return: None
  */
-void cgi_neo_error (CGI *cgi, NEOERR *err);
+void cgi_neo_error (CGI *cgi, NEOERR *nerr);
 
 /*
  * Function: cgi_error - display an error string to the user
@@ -284,7 +284,8 @@ void cgi_neo_error (CGI *cgi, NEOERR *err);
  * Output: None
  * Return: None
  */
-void cgi_error (CGI *cgi, const char *fmt, ...);
+void cgi_error (CGI *cgi, const char *fmt, ...)
+                ATTRIBUTE_PRINTF(2,3);
 
 /*
  * Function: cgi_debug_init - initialize standalone debugging
@@ -328,6 +329,41 @@ NEOERR *cgi_url_escape (const char *buf, char **esc);
 NEOERR *cgi_url_escape_more (const char *buf, char **esc, const char *other);
 
 /*
+ * Function: cgi_url_validate - validate that url is of an allowed format
+ * Description: cgi_url_validate will check that a URL starts with 
+ *              one of the accepted safe schemes. 
+ *              If not, it returns "#" as a safe substitute.
+ *              Currently accepted schemes are http, https, ftp and mailto.
+ *              It then html escapes the entire URL so that it is safe to
+ *              insert in an href attribute.
+ * Input: buf - a 0 terminated string
+ * Output: esc - a newly allocated string 
+ * Return: NERR_NOMEM - no memory available to allocate the escaped string
+ */
+NEOERR *cgi_url_validate (const char *buf, char **esc);
+
+/*
+ * Function: cgi_css_url_validate - validate that url is safe to use in CSS.
+ * Description: cgi_css_url_validate will check that a URL is safe against XSS
+ *              by verifying that it is relative, or that it starts with 
+ *              one of the accepted safe schemes. If not, it returns "#" as
+ *              a safe substitute. Currently accepted schemes are http, https,
+ *              ftp and mailto. It then escapes the entire URL so that the URL
+ *              is safe inside @import statements or in a CSS property such as
+ *              'background: url("URL")'. 'Safe' here means that it cannot
+ *              escape out of the enclosing parenthesis or a surrounding
+ *              <style> tag.
+ *
+ *              References:
+ *               CSS 2.1 URLs: http://www.w3.org/TR/CSS21/syndata.html#url
+ *               CSS 1 URLs: http://www.w3.org/TR/REC-CSS1/#url
+ * Input: buf - a 0 terminated string
+ * Output: esc - a newly allocated string
+ * Return: NERR_NOMEM - no memory available to allocate the escaped string
+ */
+NEOERR *cgi_css_url_validate (const char *buf, char **esc);
+
+/*
  * Function: cgi_url_unescape - unescape an url encoded string
  * Description: cgi_url_unescape will do URL unescaping on the passed in
  *              string.  This function modifies the string in place
@@ -351,7 +387,8 @@ char *cgi_url_unescape (char *buf);
  * Output: None
  * Return: None
  */
-void cgi_redirect (CGI *cgi, const char *fmt, ...);
+void cgi_redirect (CGI *cgi, const char *fmt, ...)
+                   ATTRIBUTE_PRINTF(2,3);
 
 /*
  * Function: cgi_redirect_uri - send an HTTP 302 redirect response
@@ -367,7 +404,8 @@ void cgi_redirect (CGI *cgi, const char *fmt, ...);
  * Output: None
  * Return: None
  */
-void cgi_redirect_uri (CGI *cgi, const char *fmt, ...);
+void cgi_redirect_uri (CGI *cgi, const char *fmt, ...)
+                       ATTRIBUTE_PRINTF(2,3);
 
 /*
  * Function: cgi_vredirect - send an HTTP 302 redirect response
@@ -380,7 +418,9 @@ void cgi_redirect_uri (CGI *cgi, const char *fmt, ...);
  * Output: None
  * Return: None
  */
+#ifndef SWIG // va_list causes problems for SWIG.
 void cgi_vredirect (CGI *cgi, int uri, const char *fmt, va_list ap);
+#endif
 
 
 /*
@@ -450,13 +490,27 @@ NEOERR *cgi_cookie_set (CGI *cgi, const char *name, const char *value,
 NEOERR *cgi_cookie_clear (CGI *cgi, const char *name, const char *domain, 
                           const char *path);
 
+/*
+ * Function: cgi_register_strfuncs - Register CGI CS strfuncs
+ * Description: cgi_register_strfuncs is a helper function which
+ *              registers all of the CGI specific string functions on
+ *              the given CSPARSE.  These include url_escape,
+ *              html_escape, text_html, js_escape, html_strip,
+ *              url_validate, css_url_validate and null_escape.
+ * Input: cs - a CSPARSE struct
+ * Output: None
+ * Return: NERR_NOMEM - failure to allocate memory
+ *         NERR_DUPLICATE - if any of the functions have already been
+ *         added, or if this function has been called already.
+ */
+NEOERR *cgi_register_strfuncs(CSPARSE *cs);
+
 /* not documented *yet* */
 NEOERR *cgi_text_html_strfunc(const char *str, char **ret);
 NEOERR *cgi_html_strip_strfunc(const char *str, char **ret);
 NEOERR *cgi_html_escape_strfunc(const char *str, char **ret);
 NEOERR *cgi_js_escape (const char *buf, char **esc);
 void cgi_html_ws_strip(STRING *str, int level);
-NEOERR *cgi_register_strfuncs(CSPARSE *cs);
 
 /* internal use only */
 NEOERR * parse_rfc2388 (CGI *cgi);
