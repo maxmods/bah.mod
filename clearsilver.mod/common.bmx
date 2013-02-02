@@ -30,7 +30,10 @@ Import "../streamhtmlparser.mod/src/*.h"
 
 ?win32
 Import "src/util/hsregex/*.h"
-Import "src/util/hsregex/engine.c"
+Import "src/util/hsregex/regexec.c"
+Import "src/util/hsregex/regcomp.c"
+Import "src/util/hsregex/regfree.c"
+Import "src/util/hsregex/regerror.c"
 ?linux
 Import "src/util/dict.c"
 Import "src/util/skiplist.c"
