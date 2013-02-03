@@ -848,398 +848,412 @@ Const FMOD_VIRTUAL_PLAYFROMSTART:Int = $80000000
 
 
 Rem
-bbdoc: No errors.
+bbdoc: No errors. 
 End Rem
-Const FMOD_OK:Int = 0                       
+Const FMOD_OK:Int = 0
 Rem
-bbdoc: Tried to call lock a second time before unlock was called.
+bbdoc: Tried to call lock a second time before unlock was called. 
 End Rem
-Const FMOD_ERR_ALREADYLOCKED:Int = 1        
+Const FMOD_ERR_ALREADYLOCKED:Int = 1
 Rem
-bbdoc: Tried to call a function on a data type that does not allow this type of functionality (ie calling Sound::lock on a streaming sound).
+bbdoc: Tried to call a function on a data type that does not allow this type of functionality (ie calling Sound::lock on a streaming sound). 
 End Rem
-Const FMOD_ERR_BADCOMMAND:Int = 2           
+Const FMOD_ERR_BADCOMMAND:Int = 2
 Rem
-bbdoc: Neither NTSCSI nor ASPI could be initialised.
+bbdoc: Neither NTSCSI nor ASPI could be initialised. 
 End Rem
-Const FMOD_ERR_CDDA_DRIVERS:Int = 3         
+Const FMOD_ERR_CDDA_DRIVERS:Int = 3
 Rem
-bbdoc: An error occurred while initialising the CDDA subsystem.
+bbdoc: An error occurred while initialising the CDDA subsystem. 
 End Rem
-Const FMOD_ERR_CDDA_INIT:Int = 4            
+Const FMOD_ERR_CDDA_INIT:Int = 4
 Rem
-bbdoc: Couldn't find the specified device.
+bbdoc: Couldn't find the specified device. 
 End Rem
-Const FMOD_ERR_CDDA_INVALID_DEVICE:Int = 5  
+Const FMOD_ERR_CDDA_INVALID_DEVICE:Int = 5
 Rem
-bbdoc: No audio tracks on the specified disc.
+bbdoc: No audio tracks on the specified disc. 
 End Rem
-Const FMOD_ERR_CDDA_NOAUDIO:Int = 6         
+Const FMOD_ERR_CDDA_NOAUDIO:Int = 6
 Rem
 bbdoc: No CD/DVD devices were found. 
 End Rem
-Const FMOD_ERR_CDDA_NODEVICES:Int = 7       
+Const FMOD_ERR_CDDA_NODEVICES:Int =  7
 Rem
-bbdoc: No disc present in the specified drive.
+bbdoc: No disc present in the specified drive. 
 End Rem
-Const FMOD_ERR_CDDA_NODISC:Int = 8          
+Const FMOD_ERR_CDDA_NODISC:Int = 8
 Rem
-bbdoc: A CDDA read error occurred.
+bbdoc: A CDDA read error occurred. 
 End Rem
-Const FMOD_ERR_CDDA_READ:Int = 9            
+Const FMOD_ERR_CDDA_READ:Int = 9
 Rem
-bbdoc: Error trying to allocate a channel.
+bbdoc: Error trying to allocate a channel. 
 End Rem
-Const FMOD_ERR_CHANNEL_ALLOC:Int = 10        
+Const FMOD_ERR_CHANNEL_ALLOC:Int = 10
 Rem
-bbdoc: The specified channel has been reused to play another sound.
+bbdoc: The specified channel has been reused to play another sound. 
 End Rem
-Const FMOD_ERR_CHANNEL_STOLEN:Int = 11       
+Const FMOD_ERR_CHANNEL_STOLEN:Int = 11
 Rem
 bbdoc: A Win32 COM related error occured.
-about: COM failed to initialize or a QueryInterface failed meaning a Windows codec or driver was not installed properly.
+about: COM failed to initialize or a QueryInterface failed meaning a Windows codec or driver was not installed properly. 
 End Rem
-Const FMOD_ERR_COM:Int = 12                  
+Const FMOD_ERR_COM:Int = 12
 Rem
 bbdoc: DMA Failure.
-about: See debug output for more information.
+about: See debug output for more information. 
 End Rem
-Const FMOD_ERR_DMA:Int = 13                  
+Const FMOD_ERR_DMA:Int = 13
 Rem
 bbdoc: DSP connection error.
-about: Connection possibly caused a cyclic dependancy.
+about: Connection possibly caused a cyclic dependancy.  Or tried to connect a tree too many units deep (more than 128). 
 End Rem
-Const FMOD_ERR_DSP_CONNECTION:Int = 14       
+Const FMOD_ERR_DSP_CONNECTION:Int = 14
 Rem
 bbdoc: DSP Format error.
-about: A DSP unit may have attempted to connect to this network with the wrong format.
+about: A DSP unit may have attempted to connect to this network with the wrong format. 
 End Rem
-Const FMOD_ERR_DSP_FORMAT:Int = 15           
+Const FMOD_ERR_DSP_FORMAT:Int = 15
 Rem
 bbdoc: DSP connection error.
-about: Couldn't find the DSP unit specified.
+about: Couldn't find the DSP unit specified. 
 End Rem
-Const FMOD_ERR_DSP_NOTFOUND:Int = 16         
+Const FMOD_ERR_DSP_NOTFOUND:Int = 16
 Rem
 bbdoc: DSP error.
-about: Cannot perform this operation while the network is in the middle of running.
-This will most likely happen if a connection or disconnection is attempted in a DSP callback.
+about: Cannot perform this operation while the network is in the middle of running.  This will most likely happen if a connection or disconnection is attempted in a DSP callback. 
 End Rem
-Const FMOD_ERR_DSP_RUNNING:Int = 17          
+Const FMOD_ERR_DSP_RUNNING:Int = 17
 Rem
 bbdoc: DSP connection error.
-about: The unit being connected to or disconnected should only have 1 input or output.
+about: The unit being connected to or disconnected should only have 1 input or output. 
 End Rem
 Const FMOD_ERR_DSP_TOOMANYCONNECTIONS:Int = 18
 Rem
-bbdoc: Error loading file.
+bbdoc: Error loading file. 
 End Rem
-Const FMOD_ERR_FILE_BAD:Int = 19             
+Const FMOD_ERR_FILE_BAD:Int = 19
 Rem
 bbdoc: Couldn't perform seek operation.
-about: This is a limitation of the medium (ie netstreams) or the file format.
+about: This is a limitation of the medium (ie netstreams) or the file format. 
 End Rem
-Const FMOD_ERR_FILE_COULDNOTSEEK:Int = 20    
+Const FMOD_ERR_FILE_COULDNOTSEEK:Int = 20
 Rem
-bbdoc: Media was ejected while reading.
+bbdoc: Media was ejected while reading. 
 End Rem
-Const FMOD_ERR_FILE_DISKEJECTED:Int = 21     
+Const FMOD_ERR_FILE_DISKEJECTED:Int = 21
 Rem
-bbdoc: End of file unexpectedly reached while trying to read essential data (truncated data?).
+bbdoc: End of file unexpectedly reached while trying to read essential data (truncated data?). 
 End Rem
-Const FMOD_ERR_FILE_EOF:Int = 22             
+Const FMOD_ERR_FILE_EOF:Int = 22
 Rem
-bbdoc: File not found.
+bbdoc: File not found. 
 End Rem
-Const FMOD_ERR_FILE_NOTFOUND:Int = 23        
+Const FMOD_ERR_FILE_NOTFOUND:Int = 23
 Rem
-bbdoc: Unwanted file access occured.
+bbdoc: Unwanted file access occured. 
 End Rem
-Const FMOD_ERR_FILE_UNWANTED:Int = 24        
+Const FMOD_ERR_FILE_UNWANTED:Int = 24
 Rem
-bbdoc: Unsupported file or audio format.
+bbdoc: Unsupported file or audio format. 
 End Rem
-Const FMOD_ERR_FORMAT:Int = 25               
+Const FMOD_ERR_FORMAT:Int = 25
 Rem
 bbdoc: A HTTP error occurred.
-about: This is a catch-all for HTTP errors not listed elsewhere.
+about: This is a catch-all for HTTP errors not listed elsewhere. 
 End Rem
-Const FMOD_ERR_HTTP:Int = 26                 
+Const FMOD_ERR_HTTP:Int = 26
 Rem
-bbdoc: The specified resource requires authentication or is forbidden.
+bbdoc: The specified resource requires authentication or is forbidden. 
 End Rem
-Const FMOD_ERR_HTTP_ACCESS:Int = 27          
+Const FMOD_ERR_HTTP_ACCESS:Int = 27
 Rem
-bbdoc: Proxy authentication is required to access the specified resource.
+bbdoc: Proxy authentication is required to access the specified resource. 
 End Rem
-Const FMOD_ERR_HTTP_PROXY_AUTH:Int = 28      
+Const FMOD_ERR_HTTP_PROXY_AUTH:Int = 28
 Rem
-bbdoc: A HTTP server error occurred.
+bbdoc: A HTTP server error occurred. 
 End Rem
-Const FMOD_ERR_HTTP_SERVER_ERROR:Int = 29    
+Const FMOD_ERR_HTTP_SERVER_ERROR:Int = 29
 Rem
-bbdoc: The HTTP request timed out.
+bbdoc: The HTTP request timed out. 
 End Rem
-Const FMOD_ERR_HTTP_TIMEOUT:Int = 30         
+Const FMOD_ERR_HTTP_TIMEOUT:Int = 30
 Rem
-bbdoc: FMOD was not initialized correctly to support this function.
+bbdoc: FMOD was not initialized correctly to support this function. 
 End Rem
-Const FMOD_ERR_INITIALIZATION:Int = 31       
+Const FMOD_ERR_INITIALIZATION:Int = 31
 Rem
-bbdoc: Cannot call this command after System::init.
+bbdoc: Cannot call this command after System::init. 
 End Rem
-Const FMOD_ERR_INITIALIZED:Int = 32          
+Const FMOD_ERR_INITIALIZED:Int = 32
 Rem
 bbdoc: An error occured that wasn't supposed to.
-about: Contact support.
+about: Contact support. 
 End Rem
-Const FMOD_ERR_INTERNAL:Int = 33             
+Const FMOD_ERR_INTERNAL:Int = 33
 Rem
-bbdoc: On Xbox 360, this memory address passed to FMOD must be physical, (ie allocated with XPhysicalAlloc.)
+bbdoc: On Xbox 360, this memory address passed to FMOD must be physical, (ie allocated with XPhysicalAlloc.) 
 End Rem
-Const FMOD_ERR_INVALID_ADDRESS:Int = 34      
+Const FMOD_ERR_INVALID_ADDRESS:Int = 34
 Rem
-bbdoc: Value passed in was a NaN, Inf or denormalized float.
+bbdoc: Value passed in was a NaN, Inf or denormalized float. 
 End Rem
-Const FMOD_ERR_INVALID_FLOAT:Int = 35        
+Const FMOD_ERR_INVALID_FLOAT:Int = 35
 Rem
-bbdoc: An invalid object handle was used.
+bbdoc: An invalid object handle was used. 
 End Rem
-Const FMOD_ERR_INVALID_HANDLE:Int = 36       
+Const FMOD_ERR_INVALID_HANDLE:Int = 36
 Rem
-bbdoc: An invalid parameter was passed to this function.
+bbdoc: An invalid parameter was passed to this function. 
 End Rem
-Const FMOD_ERR_INVALID_PARAM:Int = 37        
+Const FMOD_ERR_INVALID_PARAM:Int = 37
 Rem
-bbdoc: An invalid speaker was passed to this function based on the current speaker mode.
+bbdoc: An invalid seek position was passed to this function. 
 End Rem
-Const FMOD_ERR_INVALID_SPEAKER:Int = 38      
+Const FMOD_ERR_INVALID_POSITION:Int = 38
 Rem
-bbdoc: The vectors passed in are not unit length, or perpendicular.
+bbdoc: An invalid speaker was passed to this function based on the current speaker mode. 
 End Rem
-Const FMOD_ERR_INVALID_VECTOR:Int = 39       
+Const FMOD_ERR_INVALID_SPEAKER:Int = 39
 Rem
-bbdoc: PS2 only.  fmodex.irx failed to initialize.
-about: This is most likely because you forgot to load it.
+bbdoc: The syncpoint did not come from this sound handle. 
 End Rem
-Const FMOD_ERR_IRX:Int = 40                  
+Const FMOD_ERR_INVALID_SYNCPOINT:Int = 40
 Rem
-bbdoc: Reached maximum audible playback count for this sound's soundgroup.
+bbdoc: The vectors passed in are not unit length, or perpendicular. 
 End Rem
-Const FMOD_ERR_MAXAUDIBLE:Int = 41           
+Const FMOD_ERR_INVALID_VECTOR:Int = 41
 Rem
-bbdoc: Not enough memory or resources.
+bbdoc: Reached maximum audible playback count for this sound's soundgroup. 
 End Rem
-Const FMOD_ERR_MEMORY:Int = 42               
+Const FMOD_ERR_MAXAUDIBLE:Int = 42
 Rem
-bbdoc: Can't use FMOD_OPENMEMORY_POINT on non PCM source data, or non mp3/xma/adpcm data if const FMOD_CREATECOMPRESSEDSAMPLE was used.
+bbdoc: Not enough memory or resources. 
 End Rem
-Const FMOD_ERR_MEMORY_CANTPOINT:Int = 43     
+Const FMOD_ERR_MEMORY:Int = 43
 Rem
-bbdoc: PS2 only.  Not enough memory or resources on PlayStation 2 IOP ram.
+bbdoc: Can't use FMOD_OPENMEMORY_POINT on non PCM source data, or non mp3/xma/adpcm data if FMOD_CREATECOMPRESSEDSAMPLE was used. 
 End Rem
-Const FMOD_ERR_MEMORY_IOP:Int = 44           
+Const FMOD_ERR_MEMORY_CANTPOINT:Int = 44
 Rem
-bbdoc: Not enough memory or resources on console sound ram.
+bbdoc: Not enough memory or resources on console sound ram. 
 End Rem
-Const FMOD_ERR_MEMORY_SRAM:Int = 45          
+Const FMOD_ERR_MEMORY_SRAM:Int = 45
 Rem
-bbdoc: Tried to call a command on a 3d sound when the command was meant for 2d sound.
+bbdoc: Tried to call a command on a 3d sound when the command was meant for 2d sound. 
 End Rem
-Const FMOD_ERR_NEEDS2D:Int = 46              
+Const FMOD_ERR_NEEDS2D:Int = 46
 Rem
-bbdoc: Tried to call a command on a 2d sound when the command was meant for 3d sound.
+bbdoc: Tried to call a command on a 2d sound when the command was meant for 3d sound. 
 End Rem
-Const FMOD_ERR_NEEDS3D:Int = 47              
+Const FMOD_ERR_NEEDS3D:Int = 47
 Rem
 bbdoc: Tried to use a feature that requires hardware support.
-about: (ie trying to play a VAG compressed sound in software on PS2).
+about: (ie trying to play a GCADPCM compressed sound in software on Wii). 
 End Rem
-Const FMOD_ERR_NEEDSHARDWARE:Int = 48        
+Const FMOD_ERR_NEEDSHARDWARE:Int = 48
 Rem
 bbdoc: Tried to use a feature that requires the software engine.
-about: Software engine has either been turned off, or command was executed on a hardware channel which does not support this feature.
+about: Software engine has either been turned off, or command was executed on a hardware channel which does not support this feature. 
 End Rem
-Const FMOD_ERR_NEEDSSOFTWARE:Int = 49        
+Const FMOD_ERR_NEEDSSOFTWARE:Int = 49
 Rem
-bbdoc: Couldn't connect to the specified host.
+bbdoc: Couldn't connect to the specified host. 
 End Rem
-Const FMOD_ERR_NET_CONNECT:Int = 50          
+Const FMOD_ERR_NET_CONNECT:Int = 50
 Rem
 bbdoc: A socket error occurred.
-about: This is a catch-all for socket-related errors not listed elsewhere.
+about: This is a catch-all for socket-related errors not listed elsewhere. 
 End Rem
-Const FMOD_ERR_NET_SOCKET_ERROR:Int = 51     
+Const FMOD_ERR_NET_SOCKET_ERROR:Int = 51
 Rem
-bbdoc: The specified URL couldn't be resolved.
+bbdoc: The specified URL couldn't be resolved. 
 End Rem
-Const FMOD_ERR_NET_URL:Int = 52              
+Const FMOD_ERR_NET_URL:Int = 52
 Rem
-bbdoc: Operation on a non-blocking socket could not complete immediately.
+bbdoc: Operation on a non-blocking socket could not complete immediately. 
 End Rem
-Const FMOD_ERR_NET_WOULD_BLOCK:Int = 53      
+Const FMOD_ERR_NET_WOULD_BLOCK:Int = 53
 Rem
-bbdoc: Operation could not be performed because specified sound is not ready.
+bbdoc: Operation could not be performed because specified sound/DSP connection is not ready. 
 End Rem
-Const FMOD_ERR_NOTREADY:Int = 54             
+Const FMOD_ERR_NOTREADY:Int = 54
 Rem
-bbdoc: Error initializing output device, but more specifically, the output device is already in use and cannot be reused.
+bbdoc: Error initializing output device, but more specifically, the output device is already in use and cannot be reused. 
 End Rem
-Const FMOD_ERR_OUTPUT_ALLOCATED:Int = 55     
+Const FMOD_ERR_OUTPUT_ALLOCATED:Int = 55
 Rem
-bbdoc: Error creating hardware sound buffer.
+bbdoc: Error creating hardware sound buffer. 
 End Rem
-Const FMOD_ERR_OUTPUT_CREATEBUFFER:Int = 56  
+Const FMOD_ERR_OUTPUT_CREATEBUFFER:Int = 56
 Rem
-bbdoc: A call to a standard soundcard driver failed, which could possibly mean a bug in the driver or resources were missing or exhausted.
+bbdoc: A call to a standard soundcard driver failed, which could possibly mean a bug in the driver or resources were missing or exhausted. 
 End Rem
-Const FMOD_ERR_OUTPUT_DRIVERCALL:Int = 57    
+Const FMOD_ERR_OUTPUT_DRIVERCALL:Int = 57
 Rem
 bbdoc: Error enumerating the available driver list.
-about: List may be inconsistent due to a recent device addition or removal.
+about: List may be inconsistent due to a recent device addition or removal. 
 End Rem
-Const FMOD_ERR_OUTPUT_ENUMERATION:Int = 58   
+Const FMOD_ERR_OUTPUT_ENUMERATION:Int = 58
 Rem
-bbdoc: Soundcard does not support the minimum features needed for this soundsystem (16bit stereo output).
+bbdoc: Soundcard does not support the minimum features needed for this soundsystem (16bit stereo output). 
 End Rem
-Const FMOD_ERR_OUTPUT_FORMAT:Int = 59        
+Const FMOD_ERR_OUTPUT_FORMAT:Int = 59
 Rem
-bbdoc: Error initializing output device.
+bbdoc: Error initializing output device. 
 End Rem
-Const FMOD_ERR_OUTPUT_INIT:Int = 60          
+Const FMOD_ERR_OUTPUT_INIT:Int = 60
 Rem
-bbdoc: FMOD_HARDWARE was specified but the sound card does not have the resources nescessary to play it.
+bbdoc: FMOD_HARDWARE was specified but the sound card does not have the resources necessary to play it. 
 End Rem
-Const FMOD_ERR_OUTPUT_NOHARDWARE:Int = 61    
+Const FMOD_ERR_OUTPUT_NOHARDWARE:Int = 61
 Rem
-bbdoc: Attempted to create a software sound but no software channels were specified in System::init.
+bbdoc: Attempted to create a software sound but no software channels were specified in System::init. 
 End Rem
-Const FMOD_ERR_OUTPUT_NOSOFTWARE:Int = 62    
+Const FMOD_ERR_OUTPUT_NOSOFTWARE:Int = 62
 Rem
-bbdoc: Panning only works with mono or stereo sound sources.
+bbdoc: Panning only works with mono or stereo sound sources. 
 End Rem
-Const FMOD_ERR_PAN:Int = 63                  
+Const FMOD_ERR_PAN:Int = 63
 Rem
-bbdoc: An unspecified error has been returned from a 3rd party plugin.
+bbdoc: An unspecified error has been returned from a 3rd party plugin. 
 End Rem
-Const FMOD_ERR_PLUGIN:Int = 64               
+Const FMOD_ERR_PLUGIN:Int = 64
 Rem
-bbdoc: The number of allowed instances of a plugin has been exceeded.
+bbdoc: The number of allowed instances of a plugin has been exceeded. 
 End Rem
-Const FMOD_ERR_PLUGIN_INSTANCES:Int = 65     
+Const FMOD_ERR_PLUGIN_INSTANCES:Int = 65
 Rem
-bbdoc: A requested output, dsp unit type or codec was not available.
+bbdoc: A requested output, dsp unit type or codec was not available. 
 End Rem
-Const FMOD_ERR_PLUGIN_MISSING:Int = 66       
+Const FMOD_ERR_PLUGIN_MISSING:Int = 66
 Rem
-bbdoc: A resource that the plugin requires cannot be found. (ie the DLS file for MIDI playback)
+bbdoc: A resource that the plugin requires cannot be found.
+about: (ie the DLS file for MIDI playback) 
 End Rem
-Const FMOD_ERR_PLUGIN_RESOURCE:Int = 67      
+Const FMOD_ERR_PLUGIN_RESOURCE:Int = 67
 Rem
-bbdoc: An error occured trying to initialize the recording device.
+bbdoc: The specified sound is still in use by the event system, call EventSystem::unloadFSB before trying to release it. 
 End Rem
-Const FMOD_ERR_RECORD:Int = 68               
+Const FMOD_ERR_PRELOADED:Int = 68
 Rem
-bbdoc: Specified Instance in FMOD_REVERB_PROPERTIES couldn't be set.
-about: Most likely because it is an invalid instance number, or another application has locked the EAX4 FX slot.
+bbdoc: The specified sound is still in use by the event system, wait for the event which is using it finish with it. 
 End Rem
-Const FMOD_ERR_REVERB_INSTANCE:Int = 69      
+Const FMOD_ERR_PROGRAMMERSOUND:Int = 69
+Rem
+bbdoc: An error occured trying to initialize the recording device. 
+End Rem
+Const FMOD_ERR_RECORD:Int = 70
+Rem
+bbdoc: Specified instance in FMOD_REVERB_PROPERTIES couldn't be set.
+about: Most likely because it is an invalid instance number or the reverb doesnt exist. 
+End Rem
+Const FMOD_ERR_REVERB_INSTANCE:Int = 71
 Rem
 bbdoc: This subsound is already being used by another sound, you cannot have more than one parent to a sound.
-about: Null out the other parent's entry first.
+about: Null out the other parent's entry first. 
 End Rem
-Const FMOD_ERR_SUBSOUND_ALLOCATED:Int = 70   
+Const FMOD_ERR_SUBSOUND_ALLOCATED:Int = 72
+Rem
+bbdoc: Shared subsounds cannot be replaced or moved from their parent stream, such as when the parent stream is an FSB file. 
+End Rem
+Const FMOD_ERR_SUBSOUND_CANTMOVE:Int = 73
 Rem
 bbdoc: The subsound's mode bits do not match with the parent sound's mode bits.
-about: See documentation for function that it was called with.
+about: See documentation for function that it was called with. 
 End Rem
-Const FMOD_ERR_SUBSOUND_MODE:Int = 71        
+Const FMOD_ERR_SUBSOUND_MODE:Int = 74
 Rem
-bbdoc: The error occured because the sound referenced contains subsounds.
-about: ie. you cannot play the parent sound as a static sample, only its subsounds.
+bbdoc: The error occured because the sound referenced contains subsounds when it shouldn't have, or it doesn't contain subsounds when it should have.
+about: The operation may also not be able to be performed on a parent sound, or a parent sound was played without setting up a sentence first. 
 End Rem
-Const FMOD_ERR_SUBSOUNDS:Int = 72            
+Const FMOD_ERR_SUBSOUNDS:Int = 75
 Rem
-bbdoc: The specified tag could not be found or there are no tags.
+bbdoc: The specified tag could not be found or there are no tags. 
 End Rem
-Const FMOD_ERR_TAGNOTFOUND:Int = 73          
+Const FMOD_ERR_TAGNOTFOUND:Int = 76
 Rem
 bbdoc: The sound created exceeds the allowable input channel count.
-about: This can be increased using the maxinputchannels parameter in System::setSoftwareFormat.
+about: This can be increased using the maxinputchannels parameter in System::setSoftwareFormat. 
 End Rem
-Const FMOD_ERR_TOOMANYCHANNELS:Int = 74      
+Const FMOD_ERR_TOOMANYCHANNELS:Int = 77
 Rem
-bbdoc: Something in FMOD hasn't been implemented when it should be! contact support!
+bbdoc: Something in FMOD hasn't been implemented when it should be! contact support! 
 End Rem
-Const FMOD_ERR_UNIMPLEMENTED:Int = 75        
+Const FMOD_ERR_UNIMPLEMENTED:Int = 78
 Rem
-bbdoc: This command failed because System::init or System::setDriver was not called.
+bbdoc: This command failed because System::init or System::setDriver was not called. 
 End Rem
-Const FMOD_ERR_UNINITIALIZED:Int = 76        
+Const FMOD_ERR_UNINITIALIZED:Int = 79
 Rem
 bbdoc: A command issued was not supported by this object.
-about: Possibly a plugin without certain callbacks specified.
+about: Possibly a plugin without certain callbacks specified. 
 End Rem
-Const FMOD_ERR_UNSUPPORTED:Int = 77          
+Const FMOD_ERR_UNSUPPORTED:Int = 80
 Rem
-bbdoc: An error caused by System::update occured.
+bbdoc: An error caused by System::update occured. 
 End Rem
-Const FMOD_ERR_UPDATE:Int = 78               
+Const FMOD_ERR_UPDATE:Int = 81
 Rem
-bbdoc: The version number of this file format is not supported.
+bbdoc: The version number of this file format is not supported. 
 End Rem
-Const FMOD_ERR_VERSION:Int = 79              
+Const FMOD_ERR_VERSION:Int = 82
 Rem
-bbdoc: An Event failed to be retrieved, most likely due to 'just fail' being specified as the max playbacks behavior.
+bbdoc: An Event failed to be retrieved, most likely due to 'just fail' being specified as the max playbacks behavior. 
 End Rem
-Const FMOD_ERR_EVENT_FAILED:Int = 80         
+Const FMOD_ERR_EVENT_FAILED:Int = 83
+Rem
+bbdoc: Can't execute this command on an EVENT_INFOONLY event. 
+End Rem
+Const FMOD_ERR_EVENT_INFOONLY:Int = 84
 Rem
 bbdoc: An error occured that wasn't supposed to.
-about: See debug log for reason.
+about: See debug log for reason. 
 End Rem
-Const FMOD_ERR_EVENT_INTERNAL:Int = 81       
+Const FMOD_ERR_EVENT_INTERNAL:Int = 85
 Rem
-bbdoc: Can't execute this command on an EVENT_INFOONLY event.
+bbdoc: Event failed because 'Max streams' was hit when FMOD_EVENT_INIT_FAIL_ON_MAXSTREAMS was specified. 
 End Rem
-Const FMOD_ERR_EVENT_INFOONLY:Int = 82       
+Const FMOD_ERR_EVENT_MAXSTREAMS:Int = 86
 Rem
-bbdoc: Event failed because 'Max streams' was hit when FMOD_INIT_FAIL_ON_MAXSTREAMS was specified.
+bbdoc: FSB mismatches the FEV it was compiled with, the stream/sample mode it was meant to be created with was different, or the FEV was built for a different platform. 
 End Rem
-Const FMOD_ERR_EVENT_MAXSTREAMS:Int = 83     
+Const FMOD_ERR_EVENT_MISMATCH:Int = 87
 Rem
-bbdoc: FSB mismatches the FEV it was compiled with or FEV was built for a different platform.
+bbdoc: A category with the same name already exists. 
 End Rem
-Const FMOD_ERR_EVENT_MISMATCH:Int = 84       
+Const FMOD_ERR_EVENT_NAMECONFLICT:Int = 88
 Rem
-bbdoc: A category with the same name already exists.
+bbdoc: The requested event, event group, event category or event property could not be found. 
 End Rem
-Const FMOD_ERR_EVENT_NAMECONFLICT:Int = 85   
+Const FMOD_ERR_EVENT_NOTFOUND:Int = 89
 Rem
-bbdoc: The requested event, event group, event category or event property could not be found.
+bbdoc: Tried to call a function on a complex event that's only supported by simple events. 
 End Rem
-Const FMOD_ERR_EVENT_NOTFOUND:Int = 86       
+Const FMOD_ERR_EVENT_NEEDSSIMPLE:Int = 90
 Rem
-bbdoc: Tried to call a function on a complex event that's only supported by simple events.
+bbdoc: An event with the same GUID already exists. 
 End Rem
-Const FMOD_ERR_EVENT_NEEDSSIMPLE:Int = 87    
+Const FMOD_ERR_EVENT_GUIDCONFLICT:Int = 91
 Rem
-bbdoc: An event with the same GUID already exists.
+bbdoc: The specified project or bank has already been loaded.
+about: Having multiple copies of the same project loaded simultaneously is forbidden. 
 End Rem
-Const FMOD_ERR_EVENT_GUIDCONFLICT:Int = 88   
+Const FMOD_ERR_EVENT_ALREADY_LOADED:Int = 92
 Rem
-bbdoc: The specified project has already been loaded.
-about: Having multiple copies of the same project loaded simultaneously is forbidden.
+bbdoc: Music system is not initialized probably because no music data is loaded. 
 End Rem
-Const FMOD_ERR_EVENT_ALREADY_LOADED:Int = 89 
+Const FMOD_ERR_MUSIC_UNINITIALIZED:Int = 93
 Rem
-bbdoc: Music system is not initialized probably because no music data is loaded.
+bbdoc: The requested music entity could not be found. 
 End Rem
-Const FMOD_ERR_MUSIC_UNINITIALIZED:Int = 90  
+Const FMOD_ERR_MUSIC_NOTFOUND:Int = 94
 Rem
-bbdoc: The requested music entity could not be found.
+bbdoc: The music callback is required, but it has not been set. 
 End Rem
-Const FMOD_ERR_MUSIC_NOTFOUND:Int = 91       
-
+Const FMOD_ERR_MUSIC_NOCALLBACK:Int = 95
 
 
 Rem
@@ -1712,118 +1726,199 @@ End Rem
 Const FMOD_DSP_LOWPASS_RESONANCE:Int = 1
 
 
+Rem
+bbdoc: Unitialized / unknown. 
+End Rem
 Const FMOD_SOUND_FORMAT_NONE:Int = 0
+Rem
+bbdoc: 8bit integer PCM data. 
+End Rem
 Const FMOD_SOUND_FORMAT_PCM8:Int = 1
+Rem
+bbdoc: 16bit integer PCM data. 
+End Rem
 Const FMOD_SOUND_FORMAT_PCM16:Int = 2
+Rem
+bbdoc: 24bit integer PCM data. 
+End Rem
 Const FMOD_SOUND_FORMAT_PCM24:Int = 3
+Rem
+bbdoc: 32bit integer PCM data. 
+End Rem
 Const FMOD_SOUND_FORMAT_PCM32:Int = 4
+Rem
+bbdoc: 32bit floating point PCM data. 
+End Rem
 Const FMOD_SOUND_FORMAT_PCMFLOAT:Int = 5
+Rem
+bbdoc: Compressed Nintendo 3DS/Wii DSP data. 
+End Rem
 Const FMOD_SOUND_FORMAT_GCADPCM:Int = 6
+Rem
+bbdoc: Compressed IMA ADPCM data. 
+End Rem
 Const FMOD_SOUND_FORMAT_IMAADPCM:Int = 7
+Rem
+bbdoc: Compressed PlayStation Portable ADPCM data. 
+End Rem
 Const FMOD_SOUND_FORMAT_VAG:Int = 8
-Const FMOD_SOUND_FORMAT_XMA:Int = 9
-Const FMOD_SOUND_FORMAT_MPEG:Int = 10
+Rem
+bbdoc: Compressed PSVita ADPCM data. 
+End Rem
+Const FMOD_SOUND_FORMAT_HEVAG:Int = 9
+Rem
+bbdoc: Compressed Xbox360 XMA data. 
+End Rem
+Const FMOD_SOUND_FORMAT_XMA:Int = 10
+Rem
+bbdoc: Compressed MPEG layer 2 or 3 data. 
+End Rem
+Const FMOD_SOUND_FORMAT_MPEG:Int = 11
+Rem
+bbdoc: Compressed CELT data. 
+End Rem
+Const FMOD_SOUND_FORMAT_CELT:Int = 12
+Rem
+bbdoc: Compressed PSVita ATRAC9 data. 
+End Rem
+Const FMOD_SOUND_FORMAT_AT9:Int = 13
+Rem
+bbdoc: Compressed Xbox360 xWMA data. 
+End Rem
+Const FMOD_SOUND_FORMAT_XWMA:Int = 14
+Rem
+bbdoc: Compressed Vorbis data. 
+End Rem
+Const FMOD_SOUND_FORMAT_VORBIS:Int = 15
+Rem
+bbdoc: Maximum number of sound formats supported. 
+End Rem
+Const FMOD_SOUND_FORMAT_MAX:Int =    16
+
 
 Rem
 bbdoc: 3rd party / unknown plugin format. 
 End Rem
-Const FMOD_SOUND_TYPE_UNKNOWN:Int = 0         
+Const FMOD_SOUND_TYPE_UNKNOWN:Int = 0
 Rem
-bbdoc: AAC.  Currently unsupported. 
+bbdoc: AIFF. 
 End Rem
-Const FMOD_SOUND_TYPE_AAC:Int = 1             
-Rem
-bbdoc: AIFF.
-End Rem
-Const FMOD_SOUND_TYPE_AIFF:Int = 2            
+Const FMOD_SOUND_TYPE_AIFF:Int = 1
 Rem
 bbdoc: Microsoft Advanced Systems Format (ie WMA/ASF/WMV). 
 End Rem
-Const FMOD_SOUND_TYPE_ASF:Int = 3             
+Const FMOD_SOUND_TYPE_ASF:Int = 2
 Rem
 bbdoc: Sony ATRAC 3 format 
 End Rem
-Const FMOD_SOUND_TYPE_AT3:Int = 4             
+Const FMOD_SOUND_TYPE_AT3:Int = 3
 Rem
 bbdoc: Digital CD audio. 
 End Rem
-Const FMOD_SOUND_TYPE_CDDA:Int = 5            
+Const FMOD_SOUND_TYPE_CDDA:Int = 4
 Rem
 bbdoc: Sound font / downloadable sound bank. 
 End Rem
-Const FMOD_SOUND_TYPE_DLS:Int = 6             
+Const FMOD_SOUND_TYPE_DLS:Int = 5
 Rem
 bbdoc: FLAC lossless codec. 
 End Rem
-Const FMOD_SOUND_TYPE_FLAC:Int = 7            
+Const FMOD_SOUND_TYPE_FLAC:Int = 6
 Rem
 bbdoc: FMOD Sample Bank. 
 End Rem
-Const FMOD_SOUND_TYPE_FSB:Int = 8             
+Const FMOD_SOUND_TYPE_FSB:Int = 7
 Rem
-bbdoc: GameCube ADPCM
+bbdoc: Nintendo GameCube/Wii ADPCM 
 End Rem
-Const FMOD_SOUND_TYPE_GCADPCM:Int = 9         
+Const FMOD_SOUND_TYPE_GCADPCM:Int = 8
 Rem
-bbdoc: Impulse Tracker.
+bbdoc: Impulse Tracker. 
 End Rem
-Const FMOD_SOUND_TYPE_IT:Int = 10             
+Const FMOD_SOUND_TYPE_IT:Int = 9
 Rem
-bbdoc: MIDI. 
+bbdoc: MIDI.
+about: extracodecdata is a pointer to an FMOD_MIDI_EXTRACODECDATA structure. 
 End Rem
-Const FMOD_SOUND_TYPE_MIDI:Int = 11           
+Const FMOD_SOUND_TYPE_MIDI:Int = 10
 Rem
 bbdoc: Protracker / Fasttracker MOD. 
 End Rem
-Const FMOD_SOUND_TYPE_MOD:Int = 12            
+Const FMOD_SOUND_TYPE_MOD:Int = 11
 Rem
 bbdoc: MP2/MP3 MPEG. 
 End Rem
-Const FMOD_SOUND_TYPE_MPEG:Int = 13           
+Const FMOD_SOUND_TYPE_MPEG:Int = 12
 Rem
-bbdoc: Ogg vorbis.
+bbdoc: Ogg vorbis. 
 End Rem
-Const FMOD_SOUND_TYPE_OGGVORBIS:Int = 14      
+Const FMOD_SOUND_TYPE_OGGVORBIS:Int = 13
 Rem
-bbdoc: Information only from ASX/PLS/M3U/WAX playlists
+bbdoc: Information only from ASX/PLS/M3U/WAX playlists 
 End Rem
-Const FMOD_SOUND_TYPE_PLAYLIST:Int = 15       
+Const FMOD_SOUND_TYPE_PLAYLIST:Int = 14
 Rem
-bbdoc: Raw PCM data.
+bbdoc: Raw PCM data. 
 End Rem
-Const FMOD_SOUND_TYPE_RAW:Int = 16            
+Const FMOD_SOUND_TYPE_RAW:Int = 15
 Rem
 bbdoc: ScreamTracker 3. 
 End Rem
-Const FMOD_SOUND_TYPE_S3M:Int = 17            
+Const FMOD_SOUND_TYPE_S3M:Int = 16
 Rem
 bbdoc: Sound font 2 format. 
 End Rem
-Const FMOD_SOUND_TYPE_SF2:Int = 18            
+Const FMOD_SOUND_TYPE_SF2:Int = 17
 Rem
 bbdoc: User created sound. 
 End Rem
-Const FMOD_SOUND_TYPE_USER:Int = 19           
+Const FMOD_SOUND_TYPE_USER:Int = 18
 Rem
-bbdoc: Microsoft WAV.
+bbdoc: Microsoft WAV. 
 End Rem
-Const FMOD_SOUND_TYPE_WAV:Int = 20            
+Const FMOD_SOUND_TYPE_WAV:Int = 19
 Rem
-bbdoc: FastTracker 2 XM.
+bbdoc: FastTracker 2 XM. 
 End Rem
-Const FMOD_SOUND_TYPE_XM:Int = 21             
+Const FMOD_SOUND_TYPE_XM:Int = 20
 Rem
 bbdoc: Xbox360 XMA 
 End Rem
-Const FMOD_SOUND_TYPE_XMA:Int = 22            
+Const FMOD_SOUND_TYPE_XMA:Int = 21
 Rem
-bbdoc: PlayStation 2 / PlayStation Portable adpcm VAG format.
+bbdoc: PlayStation Portable ADPCM VAG format. 
 End Rem
-Const FMOD_SOUND_TYPE_VAG:Int = 23            
+Const FMOD_SOUND_TYPE_VAG:Int = 22
+Rem
+bbdoc: iPhone hardware decoder, supports AAC, ALAC and MP3. 
+about: extracodecdata is a pointer to an FMOD_AUDIOQUEUE_EXTRACODECDATA structure. 
+End Rem
+Const FMOD_SOUND_TYPE_AUDIOQUEUE:Int = 23
+Rem
+bbdoc: Xbox360 XWMA 
+End Rem
+Const FMOD_SOUND_TYPE_XWMA:Int = 24
+Rem
+bbdoc: 3DS BCWAV container format for DSP ADPCM and PCM 
+End Rem
+Const FMOD_SOUND_TYPE_BCWAV:Int = 25
+Rem
+bbdoc: NGP ATRAC 9 format 
+End Rem
+Const FMOD_SOUND_TYPE_AT9:Int = 26
+Rem
+bbdoc: Raw vorbis 
+End Rem
+Const FMOD_SOUND_TYPE_VORBIS:Int = 27
+Rem
+bbdoc: Microsoft Media Foundation wrappers, supports ASF/WMA 
+End Rem
+Const FMOD_SOUND_TYPE_MEDIA_FOUNDATION:Int = 28
 Rem
 bbdoc: Maximum number of sound types supported. 
 End Rem
-Const FMOD_SOUND_TYPE_MAX:Int = 24            
+Const FMOD_SOUND_TYPE_MAX:Int = 29
+
    
 Rem
 bbdoc: 'EnvSize' affects reverberation decay time
@@ -1992,7 +2087,7 @@ Const FMOD_DSP_FFT_WINDOW_FORCEINT:Int = 65536
 
 Rem
 bbdoc: There is no specific speakermode.
-about: Sound channels are mapped in order of input to output. 
+about: Sound channels are mapped in order of input to output.
 Use System::setSoftwareFormat to specify speaker count. See remarks for more information. 
 End Rem
 Const FMOD_SPEAKERMODE_RAW:Int = 0
@@ -2025,14 +2120,18 @@ about: This includes front left, front right, center, rear left, rear right, sid
 End Rem
 Const FMOD_SPEAKERMODE_7POINT1:Int = 6
 Rem
-bbdoc: Stereo output, but data is encoded to be played on a Prologic 2 / CircleSurround decoder in 5.1 via an analog connection.  See remarks about limitations. 
+bbdoc: Stereo compatible output, embedded with surround information.
+about: SRS 5.1/Prologic/Prologic2 decoders will split the signal into a 5.1 speaker set-up or SRS virtual surround will decode
+into a 2-speaker/headphone setup.  See remarks about limitations.
 End Rem
-Const FMOD_SPEAKERMODE_PROLOGIC:Int = 7
+Const FMOD_SPEAKERMODE_SRS5_1_MATRIX:Int = 7
 Rem
-bbdoc: Stereo output, but data is encoded using personalized HRTF algorithms.  See myears.net.au 
+bbdoc: Stereo output, but data is encoded using personalized HRTF algorithms.
+about: See myears.net.au 
 End Rem
 Const FMOD_SPEAKERMODE_MYEARS:Int = 8
 Rem
 bbdoc: Maximum number of speaker modes supported. 
 End Rem
 Const FMOD_SPEAKERMODE_MAX:Int = 9
+

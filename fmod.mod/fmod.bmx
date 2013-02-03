@@ -26,12 +26,14 @@ about: FMOD Ex sound system.
 End Rem
 Module BaH.FMOD
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FMOD - See http://www.fmod.org"
 ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
 ModuleInfo "Copyright: FMOD - 2004-2011 Firelight Technologies, Pty, Ltd"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Re-synchronised consts to match header values."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (FMOD 4.44.06)"
 
@@ -1203,6 +1205,7 @@ Type TFMODSound
 	<li><b>percentBuffered</b> : A variable that receives the percentage of the file buffer filled progress of a stream.</li>
 	<li><b>starving</b> : A variable that receives the starving state of a sound. If a stream has decoded more than
 	the stream file buffer has ready for it, it will return TRUE. </li>
+	<li><b>diskBusy</b> : A variable that receives the disk busy state of a sound. That is, whether the disk is currently being accessed for the sound.</li>
 	</ul>
 	<p>
 	When a sound is opened with FMOD_NONBLOCKING, it is opened and prepared in the background, or asynchronously.
