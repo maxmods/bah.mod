@@ -27,8 +27,6 @@
 #include <config.h>
 #endif
 
-#ifdef WITH_ASF
-
 #include <taglib.h>
 #include <tdebug.h>
 #include "asfattribute.h"
@@ -37,7 +35,7 @@
 
 using namespace TagLib;
 
-class ASF::Picture::PicturePriavte : public RefCounter
+class ASF::Picture::PicturePrivate : public RefCounter
 {
 public:
   bool valid;
@@ -53,7 +51,7 @@ public:
 
 ASF::Picture::Picture()
 {
-  d = new PicturePriavte();
+  d = new PicturePrivate();
   d->valid = true;
 }
 
@@ -182,4 +180,3 @@ ASF::Picture ASF::Picture::fromInvalid()
   return ret;
 }
 
-#endif

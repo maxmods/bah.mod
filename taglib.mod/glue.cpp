@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2009-2011 Bruce A Henderson
+   Copyright (c) 2009-2013 Bruce A Henderson
  
    The contents of this file are subject to the Mozilla Public License
    Version 1.1 (the "License"); you may not use this file except in
@@ -34,12 +34,16 @@
 #include <vorbisproperties.h>
 #include <mp4file.h>
 #include <mp4tag.h>
+#include <tpropertymap.h>
+#include <apetag.h>
 
 class MaxID3v2FrameList;
 class MaxMP4ItemListMap;
 class MaxMP4CoverArtList;
 class MaxByteVector;
 class MaxOggFieldListMap;
+class MaxPropertyMap;
+class MaxAPEItemListMap;
 
 extern "C" {
 
@@ -59,8 +63,9 @@ extern "C" {
 	BBObject * _bah_taglib_TTLID3v2Header__create(TagLib::ID3v2::Header * header);
 	
 	BBObject * _bah_taglib_TTLMP4Item__create(const TagLib::MP4::Item * item);
-	
 	BBObject * _bah_taglib_TTLMP4CoverArt__create(const TagLib::MP4::CoverArt * art);
+
+	BBObject * _bah_taglib_TTLAPEItem__create(const TagLib::APE::Item * item);
 	
 	BBObject * getID3v2Header(TagLib::ID3v2::Header * header);
 	BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header);
@@ -87,6 +92,7 @@ extern "C" {
 	void bmx_taglib_tag_setyear(TagLib::Tag * tag, TagLib::uint value);
 	void bmx_taglib_tag_settrack(TagLib::Tag * tag, TagLib::uint value);
 	int bmx_taglib_tag_isempty(TagLib::Tag * tag);
+	MaxPropertyMap * bmx_taglib_tag_properties(TagLib::Tag * tag);
 
 	int bmx_taglib_audoproperties_length(TagLib::AudioProperties * prop);
 	int bmx_taglib_audoproperties_bitrate(TagLib::AudioProperties * prop);
@@ -240,6 +246,27 @@ extern "C" {
 	BBArray * bmx_taglib_mp4item_tostrings(TagLib::MP4::Item * item);
 
 	int bmx_taglib_mp4properties_bitspersample(TagLib::MP4::Properties * properties);
+
+	int bmx_taglib_propertymap_contains(MaxPropertyMap * pmap, BBString * key);
+	BBArray * bmx_taglib_propertymap_values(MaxPropertyMap * pmap, BBString * key);
+	void bmx_taglib_propertymap_free(MaxPropertyMap * pmap);
+
+	int bmx_taglib_apetag_checkkey(BBString * key);
+
+	MaxAPEItemListMap * bmx_taglib_apetag_itemlist(TagLib::APE::Tag * tag);
+
+	BBObject * bmx_taglib_apeitemlistmap_item(MaxAPEItemListMap * list, BBString * key);
+	int bmx_taglib_apeitemlistmap_isempty(MaxAPEItemListMap * list);
+	int bmx_taglib_apeitemlistmap_size(MaxAPEItemListMap * list);
+	void bmx_taglib_apeitemlistmap_reset(MaxAPEItemListMap * list);
+	void bmx_taglib_apeitemlistmap_free(MaxAPEItemListMap * list);
+	BBObject * bmx_taglib_apeitemlistmap_nextitem(MaxAPEItemListMap * list);
+
+	BBString * bmx_taglib_apeitem_key(TagLib::APE::Item * item);
+	int bmx_taglib_apeitem_size(TagLib::APE::Item * item);
+	BBArray * bmx_taglib_apeitem_values(TagLib::APE::Item * item);
+	int bmx_taglib_apeitem_isreadonly(TagLib::APE::Item * item);
+	int bmx_taglib_apeitem_isempty(TagLib::APE::Item * item);
 
 }
 
@@ -420,6 +447,64 @@ public:
 private:
 	TagLib::Ogg::FieldListMap fieldList;
 	TagLib::Ogg::FieldListMap::ConstIterator it;
+};
+
+// ****************************************
+
+class MaxPropertyMap
+{
+public:
+	MaxPropertyMap(const TagLib::PropertyMap & p)
+		: propertyMap(p)
+	{
+	}
+	
+	~MaxPropertyMap()
+	{
+	}
+	
+	TagLib::PropertyMap & PropertyMap() {
+		return propertyMap;
+	}
+
+private:
+	TagLib::PropertyMap propertyMap;
+};
+
+// ****************************************
+
+class MaxAPEItemListMap
+{
+public:
+	MaxAPEItemListMap(const TagLib::APE::ItemListMap & f)
+		: itemList(f)
+	{
+		it = itemList.begin();
+	}
+	
+	~MaxAPEItemListMap()
+	{
+	}
+	
+	BBObject * nextItem() {
+		if (it != itemList.end()) {
+			return _bah_taglib_TTLAPEItem__create(&(*it++).second);
+		} else {
+			return &bbNullObject;
+		}
+	}
+	
+	void reset() {
+		it = itemList.begin();
+	}
+	
+	TagLib::APE::ItemListMap & List() {
+		return itemList;
+	}
+
+private:
+	TagLib::APE::ItemListMap itemList;
+	TagLib::APE::ItemListMap::ConstIterator it;
 };
 
 // ****************************************
@@ -654,6 +739,9 @@ int bmx_taglib_tag_isempty(TagLib::Tag * tag) {
 	return static_cast<int>(tag->isEmpty());
 }
 
+MaxPropertyMap * bmx_taglib_tag_properties(TagLib::Tag * tag) {
+	return new MaxPropertyMap(tag->properties());
+}
 
 // ****************************************
 
@@ -1377,4 +1465,123 @@ int bmx_taglib_mp4properties_bitspersample(TagLib::MP4::Properties * properties)
 }
 
 // ****************************************
+
+int bmx_taglib_propertymap_contains(MaxPropertyMap * pmap, BBString * key) {
+	char * k = 0;
+	if (key != &bbEmptyString) {
+		k = bbStringToUTF8String(key);
+	}
+
+	if (k) {
+		int ret = static_cast<int>(pmap->PropertyMap().contains(TagLib::String(k, TagLib::String::UTF8)));
+		bbMemFree(k);
+		return ret;
+	} else {
+		return 0;
+	}
+}
+
+BBArray * bmx_taglib_propertymap_values(MaxPropertyMap * pmap, BBString * key) {
+	char * k = 0;
+	if (key != &bbEmptyString) {
+		k = bbStringToUTF8String(key);
+	}
+
+	if (k) {
+		TagLib::StringList slist = pmap->PropertyMap()[TagLib::String(k, TagLib::String::UTF8)];
+		bbMemFree(k);
+		return bmx_taglib_stringlistToBBArray(slist);
+	} else {
+		return &bbEmptyArray;
+	}
+}
+
+void bmx_taglib_propertymap_free(MaxPropertyMap * pmap) {
+	delete pmap;
+}
+
+// ****************************************
+
+int bmx_taglib_apetag_checkkey(BBString * key) {
+	char * k = 0;
+	if (key != &bbEmptyString) {
+		k = bbStringToUTF8String(key);
+	}
+
+	if (k) {
+		int ret = static_cast<int>(TagLib::APE::Tag::checkKey(TagLib::String(k, TagLib::String::UTF8)));
+		bbMemFree(k);
+		return ret;
+	} else {
+		return 0;
+	}	
+}
+
+// ****************************************
+
+MaxAPEItemListMap * bmx_taglib_apetag_itemlist(TagLib::APE::Tag * tag) {
+	return new MaxAPEItemListMap(tag->itemListMap());
+}
+
+// ****************************************
+
+BBObject * bmx_taglib_apeitemlistmap_item(MaxAPEItemListMap * list, BBString * key) {
+
+	char * k = 0;
+	if (key != &bbEmptyString) {
+		k = bbStringToUTF8String(key);
+	}
+	
+	if (k) {
+		BBObject * obj = _bah_taglib_TTLAPEItem__create(&list->List()[TagLib::String(k, TagLib::String::UTF8)]);
+		bbMemFree(k);
+		return obj;
+	} else {
+		return &bbNullObject;
+	}
+	
+}
+
+int bmx_taglib_apeitemlistmap_isempty(MaxAPEItemListMap * list) {
+	return static_cast<int>(list->List().isEmpty());
+}
+
+int bmx_taglib_apeitemlistmap_size(MaxAPEItemListMap * list) {
+	return list->List().size();
+}
+
+void bmx_taglib_apeitemlistmap_reset(MaxAPEItemListMap * list) {
+	list->reset();
+}
+
+void bmx_taglib_apeitemlistmap_free(MaxAPEItemListMap * list) {
+	delete list;
+}
+
+BBObject * bmx_taglib_apeitemlistmap_nextitem(MaxAPEItemListMap * list) {
+	return list->nextItem();
+}
+
+// ****************************************
+
+BBString * bmx_taglib_apeitem_key(TagLib::APE::Item * item) {
+	return bbStringFromUTF8String(item->key().toCString(true));
+}
+
+int bmx_taglib_apeitem_size(TagLib::APE::Item * item) {
+	return item->size();
+}
+
+BBArray * bmx_taglib_apeitem_values(TagLib::APE::Item * item) {
+	TagLib::StringList list = item->values();
+	return bmx_taglib_stringlistToBBArray(list);
+}
+
+int bmx_taglib_apeitem_isreadonly(TagLib::APE::Item * item) {
+	return item->isReadOnly();
+}
+
+int bmx_taglib_apeitem_isempty(TagLib::APE::Item * item) {
+	return item->isEmpty();
+}
 

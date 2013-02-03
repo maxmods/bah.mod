@@ -75,6 +75,13 @@ Ogg::FLAC::File::File(FileName file, bool readProperties,
   read(readProperties, propertiesStyle);
 }
 
+Ogg::FLAC::File::File(IOStream *stream, bool readProperties,
+                      Properties::ReadStyle propertiesStyle) : Ogg::File(stream)
+{
+  d = new FilePrivate;
+  read(readProperties, propertiesStyle);
+}
+
 Ogg::FLAC::File::~File()
 {
   delete d;
@@ -256,9 +263,9 @@ void Ogg::FLAC::File::scan()
       d->hasXiphComment = true;
       d->commentPacket = ipacket;
     }
-    else if(blockType > 5)
+    else if(blockType > 5) {
       debug("Ogg::FLAC::File::scan() -- Unknown metadata block");
-
+    }
   }
 
   // End of metadata, now comes the datastream

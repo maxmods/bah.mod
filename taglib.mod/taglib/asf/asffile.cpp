@@ -27,8 +27,6 @@
 #include <config.h>
 #endif
 
-#ifdef WITH_ASF
-
 #include <tdebug.h>
 #include <tbytevectorlist.h>
 #include <tstring.h>
@@ -69,6 +67,9 @@ static ByteVector extendedContentDescriptionGuid("\x40\xA4\xD0\xD2\x07\xE3\xD2\x
 static ByteVector headerExtensionGuid("\xb5\x03\xbf_.\xa9\xcf\x11\x8e\xe3\x00\xc0\x0c Se", 16);
 static ByteVector metadataGuid("\xEA\xCB\xF8\xC5\xAF[wH\204g\xAA\214D\xFAL\xCA", 16);
 static ByteVector metadataLibraryGuid("\224\034#D\230\224\321I\241A\x1d\x13NEpT", 16);
+static ByteVector contentEncryptionGuid("\xFB\xB3\x11\x22\x23\xBD\xD2\x11\xB4\xB7\x00\xA0\xC9\x55\xFC\x6E", 16);
+static ByteVector extendedContentEncryptionGuid("\x14\xE6\x8A\x29\x22\x26 \x17\x4C\xB9\x35\xDA\xE0\x7E\xE9\x28\x9C", 16);
+static ByteVector advancedContentEncryptionGuid("\xB6\x9B\x07\x7A\xA4\xDA\x12\x4E\xA5\xCA\x91\xD3\x8D\xC1\x1A\x8D", 16);
 
 class ASF::File::BaseObject
 {
@@ -141,10 +142,18 @@ class ASF::File::HeaderExtensionObject : public ASF::File::BaseObject
 {
 public:
   List<ASF::File::BaseObject *> objects;
+  ~HeaderExtensionObject();
   ByteVector guid();
   void parse(ASF::File *file, uint size);
   ByteVector render(ASF::File *file);
 };
+
+ASF::File::HeaderExtensionObject::~HeaderExtensionObject()
+{
+  for(unsigned int i = 0; i < objects.size(); i++) {
+    delete objects[i];
+  }
+}
 
 void ASF::File::BaseObject::parse(ASF::File *file, unsigned int size)
 {
@@ -319,7 +328,16 @@ void ASF::File::HeaderExtensionObject::parse(ASF::File *file, uint /*size*/)
   long long dataPos = 0;
   while(dataPos < dataSize) {
     ByteVector guid = file->readBlock(16);
-    long long size = file->readQWORD();
+    if(guid.size() != 16) {
+      file->setValid(false);
+      break;
+    }
+    bool ok;
+    long long size = file->readQWORD(&ok);
+    if(!ok) {
+      file->setValid(false);
+      break;
+    }
     BaseObject *obj;
     if(guid == metadataGuid) {
       obj = new MetadataObject();
@@ -330,7 +348,7 @@ void ASF::File::HeaderExtensionObject::parse(ASF::File *file, uint /*size*/)
     else {
       obj = new UnknownObject(guid);
     }
-    obj->parse(file, size);
+    obj->parse(file, (unsigned int)size);
     objects.append(obj);
     dataPos += size;
   }
@@ -350,8 +368,15 @@ ByteVector ASF::File::HeaderExtensionObject::render(ASF::File *file)
 // public members
 ////////////////////////////////////////////////////////////////////////////////
 
-ASF::File::File(FileName file, bool readProperties, Properties::ReadStyle propertiesStyle) 
+ASF::File::File(FileName file, bool readProperties, Properties::ReadStyle propertiesStyle)
   : TagLib::File(file)
+{
+  d = new FilePrivate;
+  read(readProperties, propertiesStyle);
+}
+
+ASF::File::File(IOStream *stream, bool readProperties, Properties::ReadStyle propertiesStyle)
+  : TagLib::File(stream)
 {
   d = new FilePrivate;
   read(readProperties, propertiesStyle);
@@ -389,19 +414,37 @@ void ASF::File::read(bool /*readProperties*/, Properties::ReadStyle /*properties
   ByteVector guid = readBlock(16);
   if(guid != headerGuid) {
     debug("ASF: Not an ASF file.");
+    setValid(false);
     return;
   }
 
   d->tag = new ASF::Tag();
   d->properties = new ASF::Properties();
 
-  d->size = readQWORD();
-  int numObjects = readDWORD();
+  bool ok;
+  d->size = readQWORD(&ok);
+  if(!ok) {
+    setValid(false);
+    return;
+  }
+  int numObjects = readDWORD(&ok);
+  if(!ok) {
+    setValid(false);
+    return;
+  }
   seek(2, Current);
 
   for(int i = 0; i < numObjects; i++) {
     ByteVector guid = readBlock(16);
-    long size = (long)readQWORD();
+    if(guid.size() != 16) {
+      setValid(false);
+      break;
+    }
+    long size = (long)readQWORD(&ok);
+    if(!ok) {
+      setValid(false);
+      break;
+    }
     BaseObject *obj;
     if(guid == filePropertiesGuid) {
       obj = new FilePropertiesObject();
@@ -419,6 +462,11 @@ void ASF::File::read(bool /*readProperties*/, Properties::ReadStyle /*properties
       obj = new HeaderExtensionObject();
     }
     else {
+      if(guid == contentEncryptionGuid ||
+         guid == extendedContentEncryptionGuid ||
+         guid == advancedContentEncryptionGuid) {
+        d->properties->setEncrypted(true);
+      }
       obj = new UnknownObject(guid);
     }
     obj->parse(this, size);
@@ -429,7 +477,12 @@ void ASF::File::read(bool /*readProperties*/, Properties::ReadStyle /*properties
 bool ASF::File::save()
 {
   if(readOnly()) {
-    debug("ASF: File is read-only.");
+    debug("ASF::File::save() -- File is read only.");
+    return false;
+  }
+
+  if(!isValid()) {
+    debug("ASF::File::save() -- Trying to save invalid file.");
     return false;
   }
 
@@ -482,7 +535,7 @@ bool ASF::File::save()
     data.append(d->objects[i]->render(this));
   }
   data = headerGuid + ByteVector::fromLongLong(data.size() + 30, false) + ByteVector::fromUInt(d->objects.size(), false) + ByteVector("\x01\x02", 2) + data;
-  insert(data, 0, d->size);
+  insert(data, 0, (TagLib::ulong)d->size);
 
   return true;
 }
@@ -491,27 +544,47 @@ bool ASF::File::save()
 // protected members
 ////////////////////////////////////////////////////////////////////////////////
 
-int ASF::File::readBYTE()
+int ASF::File::readBYTE(bool *ok)
 {
   ByteVector v = readBlock(1);
+  if(v.size() != 1) {
+    if(ok) *ok = false;
+    return 0;
+  }
+  if(ok) *ok = true;
   return v[0];
 }
 
-int ASF::File::readWORD()
+int ASF::File::readWORD(bool *ok)
 {
   ByteVector v = readBlock(2);
+  if(v.size() != 2) {
+    if(ok) *ok = false;
+    return 0;
+  }
+  if(ok) *ok = true;
   return v.toUShort(false);
 }
 
-unsigned int ASF::File::readDWORD()
+unsigned int ASF::File::readDWORD(bool *ok)
 {
   ByteVector v = readBlock(4);
+  if(v.size() != 4) {
+    if(ok) *ok = false;
+    return 0;
+  }
+  if(ok) *ok = true;
   return v.toUInt(false);
 }
 
-long long ASF::File::readQWORD()
+long long ASF::File::readQWORD(bool *ok)
 {
   ByteVector v = readBlock(8);
+  if(v.size() != 8) {
+    if(ok) *ok = false;
+    return 0;
+  }
+  if(ok) *ok = true;
   return v.toLongLong(false);
 }
 
@@ -540,4 +613,3 @@ ByteVector ASF::File::renderString(const String &str, bool includeLength)
   return data;
 }
 
-#endif

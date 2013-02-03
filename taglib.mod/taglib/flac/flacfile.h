@@ -29,6 +29,7 @@
 #include "taglib_export.h"
 #include "tfile.h"
 #include "tlist.h"
+#include "tag.h"
 
 #include "flacpicture.h"
 #include "flacproperties.h"
@@ -36,7 +37,6 @@
 namespace TagLib {
 
   class Tag;
-
   namespace ID3v2 { class FrameFactory; class Tag; }
   namespace ID3v1 { class Tag; }
   namespace Ogg { class XiphComment; }
@@ -91,6 +91,22 @@ namespace TagLib {
            Properties::ReadStyle propertiesStyle = Properties::Average);
 
       /*!
+       * Contructs a FLAC file from \a file.  If \a readProperties is true the
+       * file's audio properties will also be read using \a propertiesStyle.  If
+       * false, \a propertiesStyle is ignored.
+       *
+       * If this file contains and ID3v2 tag the frames will be created using
+       * \a frameFactory.
+       *
+       * \note TagLib will *not* take ownership of the stream, the caller is
+       * responsible for deleting it after the File object.
+       */
+      // BIC: merge with the above constructor
+      File(IOStream *stream, ID3v2::FrameFactory *frameFactory,
+           bool readProperties = true,
+           Properties::ReadStyle propertiesStyle = Properties::Average);
+
+      /*!
        * Destroys this instance of the File.
        */
       virtual ~File();
@@ -104,6 +120,23 @@ namespace TagLib {
        * \see XiphComment()
        */
       virtual TagLib::Tag *tag() const;
+
+      /*!
+       * Implements the unified property interface -- export function.
+       * If the file contains more than one tag (e.g. XiphComment and ID3v1),
+       * only the first one (in the order XiphComment, ID3v2, ID3v1) will be
+       * converted to the PropertyMap.
+       */
+      PropertyMap properties() const;
+
+      void removeUnsupportedProperties(const StringList &);
+
+      /*!
+       * Implements the unified property interface -- import function.
+       * As with the export, only one tag is taken into account. If the file
+       * has no tag at all, a XiphComment will be created.
+       */
+      PropertyMap setProperties(const PropertyMap &);
 
       /*!
        * Returns the FLAC::Properties for this file.  If no audio properties
@@ -188,6 +221,12 @@ namespace TagLib {
        * Returns a list of pictures attached to the FLAC file.
        */
       List<Picture *> pictureList();
+
+      /*!
+       * Removes an attached picture. If \a del is true the picture's memory
+       * will be freed; if it is false, it must be deleted by the user.
+       */
+      void removePicture(Picture *picture, bool del = true);
 
       /*!
        * Remove all attached images.

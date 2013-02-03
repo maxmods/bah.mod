@@ -97,6 +97,30 @@ namespace TagLib {
            Properties::ReadStyle propertiesStyle = Properties::Average);
 
       /*!
+       * Contructs an TrueAudio file from \a file.  If \a readProperties is true the
+       * file's audio properties will also be read using \a propertiesStyle.  If
+       * false, \a propertiesStyle is ignored.
+       *
+       * \note TagLib will *not* take ownership of the stream, the caller is
+       * responsible for deleting it after the File object.
+       */
+      File(IOStream *stream, bool readProperties = true,
+           Properties::ReadStyle propertiesStyle = Properties::Average);
+
+      /*!
+       * Contructs an TrueAudio file from \a file.  If \a readProperties is true the
+       * file's audio properties will also be read using \a propertiesStyle.  If
+       * false, \a propertiesStyle is ignored. The frames will be created using
+       * \a frameFactory.
+       *
+       * \note TagLib will *not* take ownership of the stream, the caller is
+       * responsible for deleting it after the File object.
+       */
+      File(IOStream *stream, ID3v2::FrameFactory *frameFactory,
+           bool readProperties = true,
+           Properties::ReadStyle propertiesStyle = Properties::Average);
+
+      /*!
        * Destroys this instance of the File.
        */
       virtual ~File();
@@ -105,6 +129,20 @@ namespace TagLib {
        * Returns the Tag for this file.
        */
       virtual TagLib::Tag *tag() const;
+
+      /*!
+       * Implements the unified property interface -- export function.
+       * If the file contains both ID3v1 and v2 tags, only ID3v2 will be
+       * converted to the PropertyMap.
+       */
+      PropertyMap properties() const;
+
+      /*!
+       * Implements the unified property interface -- import function.
+       * As with the export, only one tag is taken into account. If the file
+       * has no tag at all, ID3v2 will be created.
+       */
+      PropertyMap setProperties(const PropertyMap &);
 
       /*!
        * Returns the TrueAudio::Properties for this file.  If no audio properties

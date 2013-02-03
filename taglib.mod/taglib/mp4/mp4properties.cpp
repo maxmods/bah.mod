@@ -27,8 +27,6 @@
 #include <config.h>
 #endif
 
-#ifdef WITH_MP4
-
 #include <tdebug.h>
 #include <tstring.h>
 #include "mp4file.h"
@@ -40,13 +38,14 @@ using namespace TagLib;
 class MP4::Properties::PropertiesPrivate
 {
 public:
-  PropertiesPrivate() : length(0), bitrate(0), sampleRate(0), channels(0), bitsPerSample(0) {}
+  PropertiesPrivate() : length(0), bitrate(0), sampleRate(0), channels(0), bitsPerSample(0), encrypted(false) {}
 
   int length;
   int bitrate;
   int sampleRate;
   int channels;
   int bitsPerSample;
+  bool encrypted;
 };
 
 MP4::Properties::Properties(File *file, MP4::Atoms *atoms, ReadStyle style)
@@ -91,15 +90,24 @@ MP4::Properties::Properties(File *file, MP4::Atoms *atoms, ReadStyle style)
 
   file->seek(mdhd->offset);
   data = file->readBlock(mdhd->length);
-  if(data[8] == 0) {
-    unsigned int unit = data.mid(20, 4).toUInt();
-    unsigned int length = data.mid(24, 4).toUInt();
-    d->length = length / unit;
-  }
-  else {
+  uint version = data[8];
+  if(version == 1) {
+    if (data.size() < 36 + 8) {
+      debug("MP4: Atom 'trak.mdia.mdhd' is smaller than expected");
+      return;
+    }
     long long unit = data.mid(28, 8).toLongLong();
     long long length = data.mid(36, 8).toLongLong();
-    d->length = int(length / unit);
+    d->length = unit ? int(length / unit) : 0;
+  }
+  else {
+    if (data.size() < 24 + 4) {
+      debug("MP4: Atom 'trak.mdia.mdhd' is smaller than expected");
+      return;
+    }
+    unsigned int unit = data.mid(20, 4).toUInt();
+    unsigned int length = data.mid(24, 4).toUInt();
+    d->length = unit ? length / unit : 0;
   }
 
   MP4::Atom *atom = trak->find("mdia", "minf", "stbl", "stsd");
@@ -128,6 +136,19 @@ MP4::Properties::Properties(File *file, MP4::Atoms *atoms, ReadStyle style)
         d->bitrate = (data.mid(pos, 4).toUInt() + 500) / 1000;
       }
     }
+  }
+  else if (data.mid(20, 4) == "alac") {
+    if (atom->length == 88 && data.mid(56, 4) == "alac") {
+      d->bitsPerSample = data.at(69);
+      d->channels = data.at(73);
+      d->bitrate = data.mid(80, 4).toUInt() / 1000;
+      d->sampleRate = data.mid(84, 4).toUInt();
+    }
+  }
+
+  MP4::Atom *drms = atom->find("drms");
+  if(drms) {
+    d->encrypted = true;
   }
 }
 
@@ -166,4 +187,9 @@ MP4::Properties::bitsPerSample() const
   return d->bitsPerSample;
 }
 
-#endif
+bool
+MP4::Properties::isEncrypted() const
+{
+  return d->encrypted;
+}
+

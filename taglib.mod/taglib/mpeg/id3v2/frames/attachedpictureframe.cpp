@@ -15,8 +15,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
- *   USA                                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
  *                                                                         *
  *   Alternatively, this file is available under the Mozilla Public        *
  *   License Version 1.1.  You may obtain a copy of the License at         *
@@ -136,7 +136,7 @@ void AttachedPictureFrame::parseFields(const ByteVector &data)
   int pos = 1;
 
   d->mimeType = readStringField(data, String::Latin1, &pos);
-  /* Now we need at least two more bytes available */	
+  /* Now we need at least two more bytes available */
   if (uint(pos) + 1 >= data.size()) {
     debug("Truncated picture frame.");
     return;
@@ -152,7 +152,7 @@ ByteVector AttachedPictureFrame::renderFields() const
 {
   ByteVector data;
 
-  String::Type encoding = checkEncoding(d->description, d->textEncoding);
+  String::Type encoding = checkTextEncoding(d->description, d->textEncoding);
 
   data.append(char(encoding));
   data.append(d->mimeType.data(String::Latin1));
@@ -210,8 +210,6 @@ void AttachedPictureFrameV22::parseFields(const ByteVector &data)
 
 AttachedPictureFrameV22::AttachedPictureFrameV22(const ByteVector &data, Header *h)
 {
-  d = new AttachedPictureFramePrivate;
-
   // set v2.2 header to make fieldData work correctly
   setHeader(h, true);
 
@@ -220,5 +218,5 @@ AttachedPictureFrameV22::AttachedPictureFrameV22(const ByteVector &data, Header 
   // now set the v2.4 header
   Frame::Header *newHeader = new Frame::Header("APIC");
   newHeader->setFrameSize(h->frameSize());
-  setHeader(newHeader, false);
+  setHeader(newHeader, true);
 }

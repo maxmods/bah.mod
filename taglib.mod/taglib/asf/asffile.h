@@ -54,8 +54,24 @@ namespace TagLib {
        *
        * \note In the current implementation, both \a readProperties and
        * \a propertiesStyle are ignored.
+       *
+       * \note TagLib will *not* take ownership of the stream, the caller is
+       * responsible for deleting it after the File object.
        */
       File(FileName file, bool readProperties = true, Properties::ReadStyle propertiesStyle = Properties::Average);
+
+      /*!
+       * Contructs an ASF file from \a file.  If \a readProperties is true the
+       * file's audio properties will also be read using \a propertiesStyle.  If
+       * false, \a propertiesStyle is ignored.
+       *
+       * \note In the current implementation, both \a readProperties and
+       * \a propertiesStyle are ignored.
+       *
+       * \note TagLib will *not* take ownership of the stream, the caller is
+       * responsible for deleting it after the File object.
+       */
+      File(IOStream *stream, bool readProperties = true, Properties::ReadStyle propertiesStyle = Properties::Average);
 
       /*!
        * Destroys this instance of the File.
@@ -88,10 +104,10 @@ namespace TagLib {
 
     private:
 
-      int readBYTE();
-      int readWORD();
-      unsigned int readDWORD();
-      long long readQWORD();
+      int readBYTE(bool *ok = 0);
+      int readWORD(bool *ok = 0);
+      unsigned int readDWORD(bool *ok = 0);
+      long long readQWORD(bool *ok = 0);
       static ByteVector renderString(const String &str, bool includeLength = false);
       String readString(int len);
       void read(bool readProperties, Properties::ReadStyle propertiesStyle);

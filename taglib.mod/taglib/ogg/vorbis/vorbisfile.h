@@ -71,6 +71,17 @@ namespace TagLib {
            Properties::ReadStyle propertiesStyle = Properties::Average);
 
       /*!
+       * Contructs a Vorbis file from \a file.  If \a readProperties is true the
+       * file's audio properties will also be read using \a propertiesStyle.  If
+       * false, \a propertiesStyle is ignored.
+       *
+       * \note TagLib will *not* take ownership of the stream, the caller is
+       * responsible for deleting it after the File object.
+       */
+      File(IOStream *stream, bool readProperties = true,
+           Properties::ReadStyle propertiesStyle = Properties::Average);
+
+      /*!
        * Destroys this instance of the File.
        */
       virtual ~File();
@@ -81,6 +92,19 @@ namespace TagLib {
        * TagLib::File::tag().
        */
       virtual Ogg::XiphComment *tag() const;
+
+
+      /*!
+       * Implements the unified property interface -- export function.
+       * This forwards directly to XiphComment::properties().
+       */
+      PropertyMap properties() const;
+
+      /*!
+       * Implements the unified tag dictionary interface -- import function.
+       * Like properties(), this is a forwarder to the file's XiphComment.
+       */
+      PropertyMap setProperties(const PropertyMap &);
 
       /*!
        * Returns the Vorbis::Properties for this file.  If no audio properties

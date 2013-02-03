@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2011 Bruce A Henderson
+' Copyright (c) 2009-2013 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -46,6 +46,7 @@ Extern
 	Function bmx_taglib_tag_setyear(handle:Byte Ptr, value:Int)
 	Function bmx_taglib_tag_settrack(handle:Byte Ptr, value:Int)
 	Function bmx_taglib_tag_isempty:Int(handle:Byte Ptr)
+	Function bmx_taglib_tag_properties:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_taglib_audoproperties_length:Int(handle:Byte Ptr)
 	Function bmx_taglib_audoproperties_bitrate:Int(handle:Byte Ptr)
@@ -199,6 +200,27 @@ Extern
 	Function bmx_taglib_mp4item_tostrings:String[](handle:Byte Ptr)
 
 	Function bmx_taglib_mp4properties_bitspersample:Int(handle:Byte Ptr)
+
+	Function bmx_taglib_propertymap_contains:Int(handle:Byte Ptr, key:String)
+	Function bmx_taglib_propertymap_values:String[](handle:Byte Ptr, key:String)
+	Function bmx_taglib_propertymap_free(handle:Byte Ptr)
+
+	Function bmx_taglib_apetag_checkkey:Int(key:String)
+
+	Function bmx_taglib_apetag_itemlist:Byte Ptr(handle:Byte Ptr)
+	
+	Function bmx_taglib_apeitemlistmap_item:Object(handle:Byte Ptr, key:String)
+	Function bmx_taglib_apeitemlistmap_isempty:Int(handle:Byte Ptr)
+	Function bmx_taglib_apeitemlistmap_size:Int(handle:Byte Ptr)
+	Function bmx_taglib_apeitemlistmap_reset(handle:Byte Ptr)
+	Function bmx_taglib_apeitemlistmap_free(handle:Byte Ptr)
+	Function bmx_taglib_apeitemlistmap_nextitem:Object(handle:Byte Ptr)
+
+	Function bmx_taglib_apeitem_key:String(handle:Byte Ptr)
+	Function bmx_taglib_apeitem_size:Int(handle:Byte Ptr)
+	Function bmx_taglib_apeitem_values:String[](handle:Byte Ptr)
+	Function bmx_taglib_apeitem_isreadonly:Int(handle:Byte Ptr)
+	Function bmx_taglib_apeitem_isempty:Int(handle:Byte Ptr)
 
 End Extern
 
