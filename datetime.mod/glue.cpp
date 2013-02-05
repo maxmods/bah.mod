@@ -187,7 +187,7 @@ extern "C" {
 	BBString * bmx_weekday_to_string(int wd);
 	
 	date_facet * bmx_datefacet_new();
-	BBString * bmx_date_asformat(date * d, BBString * format, std::locale * loc, date_facet * d);
+	BBString * bmx_date_asformat(date * d, BBString * format, std::locale * loc, date_facet * facet);
 	std::locale * bmx_locale_new(date_facet * d, BBString * loc);
 	time_facet * bmx_timefacet_new();
 	
