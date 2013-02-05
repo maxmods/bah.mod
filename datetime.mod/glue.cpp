@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2011 Bruce A Henderson
+ Copyright (c) 2007-2013 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,8 @@ extern "C" {
 	int bmx_datetime_day(date * d);
 	void bmx_datetime_ymd(date * dt, int * y, int * m, int * d);
 	
-	date * bmx_datetime_fromstring(const char * d);
-	date * bmx_datetime_fromundelimitedstring(const char * d);
+	date * bmx_datetime_fromstring(BBString * d);
+	date * bmx_datetime_fromundelimitedstring(BBString * d);
 	
 	int bmx_datetime_day_of_week(date * d);
 	int bmx_datetime_day_of_year(date * d);
@@ -79,7 +79,7 @@ extern "C" {
 	BBString * bmx_datetime_period_to_simple_string(date_period * p);
 	BBString * bmx_datetime_to_iso_string(date * d);
 	BBString * bmx_datetime_to_iso_extended_string(date * d);
-	BBString * bmx_datetime_to_string(date * d);
+	BBString * bmx_datetime_to_string(date * d, std::locale * loc, date_facet * facet);
 	BBString * bmx_datetime_period_to_string(date_period * p);
 	
 	bool bmx_datetime_period_isnull(date_period * p);
@@ -120,8 +120,8 @@ extern "C" {
 	BBString * bmx_datetime_iter_to_simple_string(date_iterator * d);
 	BBString * bmx_datetime_iter_to_iso_string(date_iterator * d);
 	BBString * bmx_datetime_iter_to_iso_extended_string(date_iterator * d);
-	BBString * bmx_datetime_iter_to_string(date_iterator * d);
-	BBString * bmx_datetime_iter_asformat(date_iterator * d, const char * format);
+	BBString * bmx_datetime_iter_to_string(date_iterator * d, std::locale * loc, date_facet * facet);
+	BBString * bmx_datetime_iter_asformat(date_iterator * d, BBString * format, std::locale * loc, date_facet * facet);
 	
 	time_duration * bmx_time_duration(int hours, int minutes, int seconds, int fraction);
 	void bmx_time_duration_delete(time_duration * d);
@@ -146,7 +146,7 @@ extern "C" {
 	bool bmx_time_duration_less(time_duration * d1, time_duration * d2);
 	bool bmx_time_duration_greater(time_duration * d1, time_duration * d2);
 	bool bmx_time_duration_equal(time_duration * d1, time_duration * d2);
-	BBString * bmx_time_duration_asformat(time_duration * d, const char * format);
+	BBString * bmx_time_duration_asformat(time_duration * d, BBString * format, std::locale * loc, time_facet * facet);
 
 	int bmx_time_ticks_per_second();
 	int bmx_time_num_fractional_digits();
@@ -162,7 +162,7 @@ extern "C" {
 	BBString * bmx_ptime_to_simple_string(ptime * p);
 	BBString * bmx_ptime_to_iso_string(ptime * p);
 	BBString * bmx_ptime_to_iso_extended_string(ptime * p);
-	BBString * bmx_ptime_to_string(ptime * p);
+	BBString * bmx_ptime_to_string(ptime * p, std::locale * loc, time_facet * facet);
 	ptime * bmx_ptime_add_days(ptime * p, int d);
 	ptime * bmx_ptime_subtract_days(ptime * p, int d);
 	ptime * bmx_ptime_add_duration(ptime * p, time_duration * d);
@@ -172,7 +172,7 @@ extern "C" {
 	bool bmx_ptime_greater(ptime * p1, ptime * p2);
 	bool bmx_ptime_equal(ptime * p1, ptime * p2);
 	ptime * bmx_ptime_from_time_t(std::time_t * t);
-	BBString * bmx_ptime_asformat(ptime * p, const char * f);
+	BBString * bmx_ptime_asformat(ptime * p, BBString * f, std::locale * loc, time_facet * facet);
 
 	partial_date * bmx_partial_date_new(int day, int month);
 	date * bmx_partial_date_get_date(partial_date *  p, int year);
@@ -187,11 +187,9 @@ extern "C" {
 	BBString * bmx_weekday_to_string(int wd);
 	
 	date_facet * bmx_datefacet_new();
-	void bmx_datefacet_setcurrent(std::locale * loc, date_facet * d);
-	BBString * bmx_date_asformat(date * d, const char * format);
-	std::locale * bmx_locale_new(date_facet * d, const char * loc);
+	BBString * bmx_date_asformat(date * d, BBString * format, std::locale * loc, date_facet * d);
+	std::locale * bmx_locale_new(date_facet * d, BBString * loc);
 	time_facet * bmx_timefacet_new();
-	void bmx_timefacet_setcurrent(std::locale * loc, time_facet * d);
 	
 	void bmx_char_free(char * s);
 	
@@ -214,7 +212,7 @@ extern "C" {
 	bool bmx_time_period_isgreater(time_period * tp1, time_period * tp2);
 	bool bmx_time_period_isequal(time_period * tp1, time_period * tp2);
 	
-	posix_time_zone * bmx_posix_time_zone(const char * id);
+	posix_time_zone * bmx_posix_time_zone(BBString * id);
 	BBString * bmx_time_zone_dst_zone_abbrev(time_zone * tz);
 	BBString * bmx_time_zone_std_zone_abbrev(time_zone * tz);
 	BBString * bmx_time_zone_dst_zone_name(time_zone * tz);
@@ -227,14 +225,14 @@ extern "C" {
 	BBString * bmx_time_zone_to_posix_string(time_zone * tz);
 	
 	tz_database * bmx_tz_database();
-	tz_database * bmx_tz_load_from_file(const char * filename);
-	time_zone_ptr bmx_tz_time_zone_from_region(tz_database * db, const char * id);
+	tz_database * bmx_tz_load_from_file(BBString * filename);
+	time_zone_ptr bmx_tz_time_zone_from_region(tz_database * db, BBString * id);
 	
 	local_date_time * bmx_local_date_time_new_sec_clock(time_zone * tz);
 	local_date_time * bmx_local_date_time_new_time(ptime * p, time_zone * tz);
 	
 	BBString * bmx_month_to_string(int m);
-	void bmx_date_facet_format(date_facet * f, const char * fmt);
+	void bmx_date_facet_format(date_facet * f, BBString * fmt);
 	void bmx_date_facet_set_iso_format(date_facet * f);
 	void bmx_date_facet_set_iso_extended_format(date_facet * f);
 	
@@ -242,15 +240,15 @@ extern "C" {
 	void bmx_date_facet_long_month_names(date_facet * f, const char ** names);
 	void bmx_date_facet_short_weekday_names(date_facet * f, const char ** names);
 	void bmx_date_facet_long_weekday_names(date_facet * f, const char ** names);
-	void bmx_date_facet_month_format(date_facet * f, const char * fmt);
-	void bmx_date_facet_weekday_format(date_facet * f, const char * fmt);
+	void bmx_date_facet_month_format(date_facet * f, BBString * fmt);
+	void bmx_date_facet_weekday_format(date_facet * f, BBString * fmt);
 
-	void bmx_time_facet_format(time_facet * f, const char * fmt);
+	void bmx_time_facet_format(time_facet * f, BBString * fmt);
 	void bmx_time_facet_set_iso_format(time_facet * f);
 	void bmx_time_facet_set_iso_extended_format(time_facet * f);
-	void bmx_time_facet_month_format(time_facet * f, const char * fmt);
-	void bmx_time_facet_weekday_format(time_facet * f, const char * fmt);
-	void bmx_time_facet_time_duration_format(time_facet * f, const char * fmt);
+	void bmx_time_facet_month_format(time_facet * f, BBString * fmt);
+	void bmx_time_facet_weekday_format(time_facet * f, BBString * fmt);
+	void bmx_time_facet_time_duration_format(time_facet * f, BBString * fmt);
 	
 	nth_day_of_the_week_in_month * bmx_nth_day_of_week_in_month_new(int nth, int weekday, int month);
 	date * bmx_nth_day_of_week_in_month_get_date(nth_day_of_the_week_in_month *  p, int year);
@@ -310,20 +308,18 @@ extern "C" {
 	int bmx_end_of_month_day(int y, int m);
 }
 
-static date_facet * currentDateFacet = 0;
-static time_facet * currentTimeFacet = 0;
-static std::stringstream outputStringStream;
+//static std::stringstream outputStringStream;
 
 
-BBString * bmx_BBString_from_stream() {
-	BBString * s = bbStringFromCString(outputStringStream.str().c_str());
-	outputStringStream.str("");
+BBString * bmx_BBString_from_stream(std::stringstream & stream) {
+	BBString * s = bbStringFromUTF8String(stream.str().c_str());
+//	outputStringStream.str("");
 	return s;
 }
 
-char * bmx_cstr_from_stream() {
-	char * s = strdup(outputStringStream.str().c_str());
-	outputStringStream.str("");
+char * bmx_cstr_from_stream(std::stringstream & stream) {
+	char * s = strdup(stream.str().c_str());
+//	outputStringStream.str("");
 	return s;
 }
 
@@ -381,18 +377,26 @@ void bmx_datetime_ymd(date * dt, int * y, int * m, int * d) {
 	*d = ymd.day;
 }
 
-date * bmx_datetime_fromstring(const char * d) {
+date * bmx_datetime_fromstring(BBString * dt) {
+	char * d = bbStringToUTF8String(dt);
 	try {
-		return new date(from_string(std::string(d)));
+		date * _date = new date(from_string(std::string(d)));
+		bbMemFree(d);
+		return _date;
 	} catch (...) {
+		bbMemFree(d);
 		return 0;
 	}
 }
 
-date * bmx_datetime_fromundelimitedstring(const char * d) {
+date * bmx_datetime_fromundelimitedstring(BBString * dt) {
+	char * d = bbStringToUTF8String(dt);
 	try {
-		return new date(from_undelimited_string(std::string(d)));
+		date * _date = new date(from_undelimited_string(std::string(d)));
+		bbMemFree(d);
+		return _date;
 	} catch (...) {
+		bbMemFree(d);
 		return 0;
 	}
 }
@@ -459,38 +463,34 @@ int bmx_datetime_period_length(date_period * p) {
 }
 
 BBString * bmx_datetime_to_simple_string(date * d) {
-	return bbStringFromCString(to_simple_string(*d).c_str());
-	/*currentDateFacet->format("%Y-%b-%d");*/
+	return bbStringFromUTF8String(to_simple_string(*d).c_str());
 }
 
-BBString * bmx_datetime_to_string(date * d) {
+BBString * bmx_datetime_to_string(date * d, std::locale * loc, date_facet * facet) {
+	std::stringstream outputStringStream;
+	outputStringStream.imbue(std::locale(*loc, facet));
 	outputStringStream << *d;
-	return bmx_BBString_from_stream();
+	BBString * ret = bmx_BBString_from_stream(outputStringStream);
+	return ret;
 }
 
 
 BBString * bmx_datetime_period_to_simple_string(date_period * p) {
-	return bbStringFromCString(to_simple_string(*p).c_str());
+	return bbStringFromUTF8String(to_simple_string(*p).c_str());
 }
 
 BBString * bmx_datetime_to_iso_string(date * d) {
-	return bbStringFromCString(to_iso_string(*d).c_str());
-	//currentDateFacet->format("%Y%m%d");
-	//outputStringStream << *d;
-	//return bmx_BBString_from_stream();
+	return bbStringFromUTF8String(to_iso_string(*d).c_str());
 }
 
 BBString * bmx_datetime_to_iso_extended_string(date * d) {
-	return bbStringFromCString(to_iso_extended_string(*d).c_str());
-	//currentDateFacet->format("%Y-%m-%d");
-	//outputStringStream << *d;
-	//return bmx_BBString_from_stream();
+	return bbStringFromUTF8String(to_iso_extended_string(*d).c_str());
 }
 
 BBString * bmx_datetime_period_to_string(date_period * p) {
+	std::stringstream outputStringStream;
 	outputStringStream << *p;
-	return bmx_BBString_from_stream();
-	//return bbStringFromCString(to_simple_string(*p).c_str());
+	return bmx_BBString_from_stream(outputStringStream);
 }
 
 bool bmx_datetime_period_isnull(date_period * p) {
@@ -632,26 +632,33 @@ long bmx_datetime_iter_date_subdate(date_iterator * d1, date * d2) {
 }
 
 BBString * bmx_datetime_iter_to_simple_string(date_iterator * d) {
-	return bbStringFromCString(to_simple_string((**d)).c_str());
+	return bbStringFromUTF8String(to_simple_string((**d)).c_str());
 }
 
 BBString * bmx_datetime_iter_to_iso_string(date_iterator * d) {
-	return bbStringFromCString(to_iso_string((**d)).c_str());
+	return bbStringFromUTF8String(to_iso_string((**d)).c_str());
 }
 
 BBString * bmx_datetime_iter_to_iso_extended_string(date_iterator * d) {
-	return bbStringFromCString(to_iso_extended_string((**d)).c_str());
+	return bbStringFromUTF8String(to_iso_extended_string((**d)).c_str());
 }
 
-BBString * bmx_datetime_iter_to_string(date_iterator * d) {
+BBString * bmx_datetime_iter_to_string(date_iterator * d, std::locale * loc, date_facet * facet) {
+	std::stringstream outputStringStream;
+	outputStringStream.imbue(std::locale(*loc, facet));
 	outputStringStream << (**d);
-	return bmx_BBString_from_stream();
+	return bmx_BBString_from_stream(outputStringStream);
 }
 
-BBString * bmx_datetime_iter_asformat(date_iterator * d, const char * format) {
-	currentDateFacet->format(format);
+BBString * bmx_datetime_iter_asformat(date_iterator * d, BBString * format, std::locale * loc, date_facet * facet) {
+	std::stringstream outputStringStream;
+	char * f = bbStringToUTF8String(format);
+	facet->format(f);
+	outputStringStream.imbue(std::locale(*loc, facet));
 	outputStringStream << **d;
-	return bmx_BBString_from_stream();
+	BBString * ret = bmx_BBString_from_stream(outputStringStream);
+	bbMemFree(f);
+	return ret;
 }
 
 
@@ -720,11 +727,11 @@ time_duration * bmx_time_duration_invert_sign(time_duration * d) {
 }
 
 BBString * bmx_time_duration_to_string(time_duration * d) {
-	return bbStringFromCString(to_simple_string(*d).c_str());
+	return bbStringFromUTF8String(to_simple_string(*d).c_str());
 }
 
 BBString * bmx_time_duration_to_iso_string(time_duration * d) {
-	return bbStringFromCString(to_iso_string(*d).c_str());
+	return bbStringFromUTF8String(to_iso_string(*d).c_str());
 }
 
 time_duration * bmx_time_duration_add(time_duration * d1, time_duration * d2) {
@@ -755,10 +762,15 @@ bool bmx_time_duration_equal(time_duration * d1, time_duration * d2) {
 	return *d1 == *d2;
 }
 
-BBString * bmx_time_duration_asformat(time_duration * d, const char * format) {
-	currentTimeFacet->time_duration_format(format);
+BBString * bmx_time_duration_asformat(time_duration * d, BBString * format, std::locale * loc, time_facet * facet) {
+	std::stringstream outputStringStream;
+	char * f = bbStringToUTF8String(format);
+	facet->time_duration_format(f);
+	outputStringStream.imbue(std::locale(*loc, facet));
 	outputStringStream << *d;
-	return bmx_BBString_from_stream();
+	BBString * ret = bmx_BBString_from_stream(outputStringStream);
+	bbMemFree(f);
+	return ret;
 }
 
 ptime * bmx_ptime_new(date * d, time_duration * t) {
@@ -794,20 +806,22 @@ time_duration * bmx_ptime_time_of_day(ptime * p) {
 }
 
 BBString * bmx_ptime_to_simple_string(ptime * p) {
-	return bbStringFromCString(to_simple_string(*p).c_str());
+	return bbStringFromUTF8String(to_simple_string(*p).c_str());
 }
 
-BBString * bmx_ptime_to_string(ptime * p) {
+BBString * bmx_ptime_to_string(ptime * p, std::locale * loc, time_facet * facet) {
+	std::stringstream outputStringStream;
+	outputStringStream.imbue(std::locale(*loc, facet));
 	outputStringStream << (*p);
-	return bmx_BBString_from_stream();
+	return bmx_BBString_from_stream(outputStringStream);
 }
 
 BBString * bmx_ptime_to_iso_string(ptime * p) {
-	return bbStringFromCString(to_iso_string(*p).c_str());
+	return bbStringFromUTF8String(to_iso_string(*p).c_str());
 }
 
 BBString * bmx_ptime_to_iso_extended_string(ptime * p) {
-	return bbStringFromCString(to_iso_extended_string(*p).c_str());
+	return bbStringFromUTF8String(to_iso_extended_string(*p).c_str());
 }
 
 ptime * bmx_ptime_add_days(ptime * p, int d) {
@@ -842,10 +856,15 @@ bool bmx_ptime_equal(ptime * p1, ptime * p2) {
 	return *p1 == *p2;
 }
 
-BBString * bmx_ptime_asformat(ptime * p, const char * format) {
-	currentTimeFacet->format(format);
+BBString * bmx_ptime_asformat(ptime * p, BBString * format, std::locale * loc, time_facet * facet) {
+	std::stringstream outputStringStream;
+	char * f = bbStringToUTF8String(format);
+	facet->format(f);
+	outputStringStream.imbue(std::locale(*loc, facet));
 	outputStringStream << *p;
-	return bmx_BBString_from_stream();
+	BBString * ret = bmx_BBString_from_stream(outputStringStream);
+	bbMemFree(f);
+	return ret;
 }
 
 partial_date * bmx_partial_date_new(int day, int month) {
@@ -885,8 +904,9 @@ void bmx_first_day_of_week_in_month_delete(first_day_of_the_week_in_month *  p) 
 }
 
 BBString * bmx_weekday_to_string(int wd) {
+	std::stringstream outputStringStream;
 	outputStringStream << greg_weekday((unsigned short)wd);
-	return bmx_BBString_from_stream();
+	return bmx_BBString_from_stream(outputStringStream);
 }
 
 
@@ -898,34 +918,27 @@ time_facet * bmx_timefacet_new() {
 	return new time_facet;
 }
 
-void bmx_datefacet_setcurrent(std::locale * loc, date_facet * d) {
-	if (currentDateFacet) {
-		delete currentDateFacet;
-	}
-	currentDateFacet = d;
-	outputStringStream.imbue(*loc);
-}
-
-void bmx_timefacet_setcurrent(std::locale * loc, time_facet * t) {
-	if (currentTimeFacet) {
-		delete currentTimeFacet;
-	}
-	currentTimeFacet = t;
-	outputStringStream.imbue(*loc);
-}
-
-BBString * bmx_date_asformat(date * d, const char * format) {
-	currentDateFacet->format(format);
+BBString * bmx_date_asformat(date * d, BBString * format, std::locale * loc, date_facet * facet) {
+	std::stringstream outputStringStream;
+	char * f = bbStringToUTF8String(format);
+	facet->format(f);
+	outputStringStream.imbue(std::locale(*loc, facet));
 	outputStringStream << *d;
-	return bmx_BBString_from_stream();
+	BBString * ret = bmx_BBString_from_stream(outputStringStream);
+	bbMemFree(f);
+	return ret;
 }
 
-std::locale * bmx_locale_new(date_facet * d, const char * loc) {
+std::locale * bmx_locale_new(date_facet * d, BBString * loc) {
+	std::locale * _loc = 0;
+	char * l = bbStringToUTF8String(loc);
 	try {
-		return new std::locale(std::locale(loc), d);
-	} catch (...) {
-		return new std::locale(std::locale(""), d);
+		_loc = new std::locale(std::locale(l), d);
+	} catch (std::exception & e) {
+		_loc = new std::locale(std::locale(), d);
 	}
+	bbMemFree(l);
+	return _loc;
 }
 
 void bmx_char_free(char * s) {
@@ -1008,24 +1021,27 @@ ptime * bmx_ptime_from_time_t(std::time_t * t) {
 	return new ptime(from_time_t(*t));
 }
 
-posix_time_zone * bmx_posix_time_zone(const char * id) {
-	return new posix_time_zone(std::string(id));
+posix_time_zone * bmx_posix_time_zone(BBString * id) {
+	char * d = bbStringToUTF8String(id);
+	posix_time_zone * _zone = new posix_time_zone(std::string(d));
+	bbMemFree(d);
+	return _zone;
 }
 
 BBString * bmx_time_zone_dst_zone_abbrev(time_zone * tz) {
-	return bbStringFromCString(tz->dst_zone_abbrev().c_str());
+	return bbStringFromUTF8String(tz->dst_zone_abbrev().c_str());
 }
 
 BBString * bmx_time_zone_std_zone_abbrev(time_zone * tz) {
-	return bbStringFromCString(tz->std_zone_abbrev().c_str());
+	return bbStringFromUTF8String(tz->std_zone_abbrev().c_str());
 }
 
 BBString * bmx_time_zone_dst_zone_name(time_zone * tz) {
-	return bbStringFromCString(tz->dst_zone_name().c_str());
+	return bbStringFromUTF8String(tz->dst_zone_name().c_str());
 }
 
 BBString * bmx_time_zone_std_zone_name(time_zone * tz) {
-	return bbStringFromCString(tz->std_zone_name().c_str());
+	return bbStringFromUTF8String(tz->std_zone_name().c_str());
 }
 
 bool bmx_time_zone_has_dst(time_zone * tz) {
@@ -1050,21 +1066,26 @@ time_duration * bmx_time_zone_dst_offset(time_zone * tz) {
 }
 
 BBString * bmx_time_zone_to_posix_string(time_zone * tz) {
-	return bbStringFromCString(tz->to_posix_string().c_str());
+	return bbStringFromUTF8String(tz->to_posix_string().c_str());
 }
 
 tz_database * bmx_tz_database() {
 	return new tz_database();
 }
 
-tz_database * bmx_tz_load_from_file(const char * filename) {
+tz_database * bmx_tz_load_from_file(BBString * filename) {
+	char * f = bbStringToUTF8String(filename);
 	tz_database * db = new tz_database();
-	db->load_from_file(std::string(filename));
+	db->load_from_file(std::string(f));
+	bbMemFree(f);
 	return db;
 }
 
-time_zone_ptr bmx_tz_time_zone_from_region(tz_database * db, const char * id) {
-	return db->time_zone_from_region(std::string(id));
+time_zone_ptr bmx_tz_time_zone_from_region(tz_database * db, BBString * id) {
+	char * d = bbStringToUTF8String(id);
+	time_zone_ptr p = db->time_zone_from_region(std::string(d));
+	bbMemFree(d);
+	return p;
 }
 
 local_date_time * bmx_local_date_time_new_sec_clock(time_zone * tz) {
@@ -1076,12 +1097,15 @@ local_date_time * bmx_local_date_time_new_time(ptime * p, time_zone * tz) {
 }
 
 BBString * bmx_month_to_string(int m) {
+	std::stringstream outputStringStream;
 	outputStringStream << greg_month((unsigned short)m);
-	return bmx_BBString_from_stream();
+	return bmx_BBString_from_stream(outputStringStream);
 }
 
-void bmx_date_facet_format(date_facet * f, const char * fmt) {
-	f->format(fmt);
+void bmx_date_facet_format(date_facet * f, BBString * fmt) {
+	char * s = bbStringToUTF8String(fmt);
+	f->format(s);
+	bbMemFree(s);
 }
 
 void bmx_date_facet_set_iso_format(date_facet * f) {
@@ -1136,16 +1160,22 @@ void bmx_date_facet_long_weekday_names(date_facet * f, const char ** names) {
 	f->long_weekday_names(v_names);
 }
 
-void bmx_date_facet_month_format(date_facet * f, const char * fmt) {
-	f->month_format(fmt);
+void bmx_date_facet_month_format(date_facet * f, BBString * fmt) {
+	char * s = bbStringToUTF8String(fmt);
+	f->month_format(s);
+	bbMemFree(s);
 }
 
-void bmx_date_facet_weekday_format(date_facet * f, const char * fmt) {
-	f->weekday_format(fmt);
+void bmx_date_facet_weekday_format(date_facet * f, BBString * fmt) {
+	char * s = bbStringToUTF8String(fmt);
+	f->weekday_format(s);
+	bbMemFree(s);
 }
 
-void bmx_time_facet_format(time_facet * f, const char * fmt) {
-	f->format(fmt);
+void bmx_time_facet_format(time_facet * f, BBString * fmt) {
+	char * s = bbStringToUTF8String(fmt);
+	f->format(s);
+	bbMemFree(s);
 }
 
 void bmx_time_facet_set_iso_format(time_facet * f) {
@@ -1156,16 +1186,22 @@ void bmx_time_facet_set_iso_extended_format(time_facet * f) {
 	f->set_iso_extended_format();
 }
 
-void bmx_time_facet_month_format(time_facet * f, const char * fmt) {
-	f->month_format(fmt);
+void bmx_time_facet_month_format(time_facet * f, BBString * fmt) {
+	char * s = bbStringToUTF8String(fmt);
+	f->month_format(s);
+	bbMemFree(s);
 }
 
-void bmx_time_facet_weekday_format(time_facet * f, const char * fmt) {
-	f->weekday_format(fmt);
+void bmx_time_facet_weekday_format(time_facet * f, BBString * fmt) {
+	char * s = bbStringToUTF8String(fmt);
+	f->weekday_format(s);
+	bbMemFree(s);
 }
 
-void bmx_time_facet_time_duration_format(time_facet * f, const char * fmt) {
-	f->time_duration_format(fmt);
+void bmx_time_facet_time_duration_format(time_facet * f, BBString * fmt) {
+	char * s = bbStringToUTF8String(fmt);
+	f->time_duration_format(s);
+	bbMemFree(s);
 }
 
 nth_day_of_the_week_in_month * bmx_nth_day_of_week_in_month_new(int nth, int weekday, int month) {
@@ -1256,8 +1292,9 @@ ptime * bmx_local_date_time_local_time(local_date_time * ldt) {
 }
 
 BBString * bmx_local_date_time_to_string(local_date_time * ldt) {
+	std::stringstream outputStringStream;
 	outputStringStream << *ldt;
-	return bmx_BBString_from_stream();
+	return bmx_BBString_from_stream(outputStringStream);
 }
 
 bool bmx_local_date_time_less(local_date_time * ldt1, local_date_time * ldt2) {

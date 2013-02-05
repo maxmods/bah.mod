@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,14 @@ Module BaH.DateTime
 
 ModuleInfo "Version: 1.03"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2011 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.03"
-ModuleInfo "History: Updated to boost 1.45"
+ModuleInfo "History: Updated to boost 1.52"
 ModuleInfo "History: Added TTimeFacet, and format methods for TTime and TTimeDuration."
+ModuleInfo "History: Reworked format functionality to accept facets."
+ModuleInfo "History: Rewrote glue String handling."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to boost 1.42"
 ModuleInfo "History: 1.01"
@@ -300,7 +302,7 @@ Type TDate
 	about: This is based on the current weekday format as specified by #TDateFacet.
 	End Rem
 	Method WeekDay:String()
-		Return convertUTF8toISO8859(bmx_weekday_to_string(dayOfWeek()))
+		Return bmx_weekday_to_string(dayOfWeek())
 	End Method
 	
 	Rem
@@ -423,28 +425,28 @@ Type TDate
 	bbdoc: To YYYY-mmm-DD string where mmm 3 char month name.
 	End Rem
 	Method toString:String()
-		Return convertUTF8toISO8859(bmx_datetime_to_string(datePtr))
+		Return bmx_datetime_to_string(datePtr, currentDateFacet.localePtr, currentDateFacet.facetPtr)
 	End Method
 
 	Rem
 	bbdoc: To YYYY-mmm-DD string where mmm 3 char month name.
 	End Rem
 	Method toSimpleString:String()
-		Return convertUTF8toISO8859(bmx_datetime_to_simple_string(datePtr))
+		Return bmx_datetime_to_simple_string(datePtr)
 	End Method
 	
 	Rem
 	bbdoc: To YYYYMMDD where all components are integers.
 	End Rem
 	Method toISOString:String()
-		Return convertUTF8toISO8859(bmx_datetime_to_iso_string(datePtr))
+		Return bmx_datetime_to_iso_string(datePtr)
 	End Method
 	
 	Rem
 	bbdoc: To YYYY-MM-DD where all components are integers.s
 	End Rem
 	Method toISOExtendedString:String()
-		Return convertUTF8toISO8859(bmx_datetime_to_iso_extended_string(datePtr))
+		Return bmx_datetime_to_iso_extended_string(datePtr)
 	End Method
 	
 	Rem
@@ -520,8 +522,12 @@ Type TDate
 	</pre>
 	<a href="../examples/tdate_format.bmx">Example source</a>
 	End Rem
-	Method format:String(f:String)
-		Return convertUTF8toISO8859(bmx_date_asformat(datePtr, f))
+	Method format:String(f:String, facet:TDateFacet = Null)
+		If facet Then
+			Return bmx_date_asformat(datePtr, f, facet.localePtr, facet.facetPtr)
+		Else
+			Return bmx_date_asformat(datePtr, f, currentDateFacet.localePtr, currentDateFacet.facetPtr)
+		End If
 	End Method
 	
 	' deletes the date instance
@@ -984,7 +990,7 @@ Type TDatePeriod
 	bbdoc: To [YYYY-mmm-DD/YYYY-mmm-DD] string where mmm is 3 char month name.
 	End Rem
 	Method toString:String()
-		Return convertUTF8toISO8859(bmx_datetime_period_to_string(datePeriodPtr))
+		Return bmx_datetime_period_to_string(datePeriodPtr)
 	End Method
 
 	
@@ -1078,19 +1084,23 @@ Type TDateIterator Extends TDate Abstract
 	End Method
 	
 	Method toString:String()
-		Return convertUTF8toISO8859(bmx_datetime_iter_to_string(datePtr))
+		Return bmx_datetime_iter_to_string(datePtr, currentDateFacet.localePtr, currentDateFacet.facetPtr)
 	End Method
 	
 	Method toISOString:String()
-		Return convertUTF8toISO8859(bmx_datetime_iter_to_iso_string(datePtr))
+		Return bmx_datetime_iter_to_iso_string(datePtr)
 	End Method
 	
 	Method toISOExtendedString:String()
-		Return convertUTF8toISO8859(bmx_datetime_iter_to_iso_extended_string(datePtr))
+		Return bmx_datetime_iter_to_iso_extended_string(datePtr)
 	End Method
 
-	Method format:String(f:String)
-		Return convertUTF8toISO8859(bmx_datetime_iter_asformat(datePtr, f))
+	Method format:String(f:String, facet:TDateFacet = Null)
+		If facet Then
+			Return bmx_datetime_iter_asformat(datePtr, f, facet.localePtr, facet.facetPtr)
+		Else
+			Return bmx_datetime_iter_asformat(datePtr, f, currentDateFacet.localePtr, currentDateFacet.facetPtr)
+		End If
 	End Method
 
 	Method Delete()
@@ -1317,21 +1327,21 @@ Type TTime
 	about: Fractional seconds only included if non-zero.
 	End Rem
 	Method toString:String()
-		Return convertUTF8toISO8859(bmx_ptime_to_string(ptimePtr))
+		Return bmx_ptime_to_string(ptimePtr, currentDateFacet.localePtr, currentDateFacet.facetPtr)
 	End Method
 	
 	Rem
 	bbdoc: Convert to form YYYYMMDDTHHMMSS,fffffffff where T is the date-time separator.
 	End Rem
 	Method toISOString:String()
-		Return convertUTF8toISO8859(bmx_ptime_to_iso_string(ptimePtr))
+		Return bmx_ptime_to_iso_string(ptimePtr)
 	End Method
 	
 	Rem
 	bbdoc: Convert to form YYYY-MM-DDTHH:MM:SS,fffffffff where T is the date-time separator.
 	End Rem
 	Method toISOExtendedString:String()
-		Return convertUTF8toISO8859(bmx_ptime_to_iso_extended_string(ptimePtr))
+		Return bmx_ptime_to_iso_extended_string(ptimePtr)
 	End Method
 	
 	Rem
@@ -1471,8 +1481,12 @@ Type TTime
 	Rem
 	bbdoc: 
 	End Rem
-	Method format:String(f:String)
-		Return convertUTF8toISO8859(bmx_ptime_asformat(ptimePtr, f))
+	Method format:String(f:String, facet:TTimeFacet = Null)
+		If facet Then
+			Return bmx_ptime_asformat(ptimePtr, f, facet.localePtr, facet.facetPtr)
+		Else
+			Return bmx_ptime_asformat(ptimePtr, f, currentTimeFacet.localePtr, currentTimeFacet.facetPtr)
+		End If
 	End Method
 
 	' for sorting !
@@ -1794,8 +1808,12 @@ Type TTimeDuration
 	Rem
 	bbdoc: 
 	End Rem
-	Method format:String(f:String)
-		Return convertUTF8toISO8859(bmx_time_duration_asformat(durationPtr, f))
+	Method format:String(f:String, facet:TTimeFacet = Null)
+		If facet Then
+			Return bmx_time_duration_asformat(durationPtr, f, facet.localePtr, facet.facetPtr)
+		Else
+			Return bmx_time_duration_asformat(durationPtr, f, currentTimeFacet.localePtr, currentTimeFacet.facetPtr)
+		End If
 	End Method
 
 	' for sorting !
@@ -2155,7 +2173,7 @@ Type TLocalDateTime
 	End Method
 	
 	Method toString:String()
-		Return convertUTF8toISO8859(bmx_local_date_time_to_string(localDateTimePtr))
+		Return bmx_local_date_time_to_string(localDateTimePtr)
 	End Method
 	
 	Rem
@@ -2812,13 +2830,22 @@ End Rem
 Global defaultDateFacet:TDateFacet = TDateFacet.Create()
 
 Rem
+bbdoc: The current date facet (for use with toString() type formatting)
+End Rem
+Global currentDateFacet:TDateFacet = defaultDateFacet
+
+Rem
 bbdoc: The default time facet
 End Rem
 Global defaultTimeFacet:TTimeFacet = TTimeFacet.Create()
 
+Rem
+bbdoc: The current time facet (for use with toString() type formatting)
+End Rem
+Global currentTimeFacet:TTimeFacet = defaultTimeFacet
 
-SetCurrentDateFacet(defaultDateFacet)
-SetCurrentTimeFacet(defaultTimeFacet)
+'SetCurrentDateFacet(defaultDateFacet)
+'SetCurrentTimeFacet(defaultTimeFacet)
 
 Type TLocaleFacet
 ?linux
@@ -2840,7 +2867,7 @@ End Rem
 Type TDateFacet Extends TLocaleFacet
 
 	Function Create:TDateFacet()
-		Return CreateForLocale(defaultLocale)
+		Return CreateForLocale(TLocaleFacet.defaultLocale)
 	End Function
 
 	Function CreateForLocale:TDateFacet(locale:String)
@@ -3038,7 +3065,7 @@ bbdoc: Sets the current date facet.
 about: This controls the appearance of date information.
 End Rem
 Function SetCurrentDateFacet(facet:TDateFacet)
-	bmx_datefacet_setcurrent(facet.localePtr, facet.facetPtr)
+	currentDateFacet = facet
 End Function
 
 Rem
@@ -3046,7 +3073,7 @@ bbdoc: Sets the current time facet.
 about: This controls the appearance of time and time duration information.
 End Rem
 Function SetCurrentTimeFacet(facet:TTimeFacet)
-	bmx_timefacet_setcurrent(facet.localePtr, facet.facetPtr)
+	currentTimeFacet = facet
 End Function
 
 Rem
@@ -3071,7 +3098,7 @@ about: This is based on the current weekday format as specified by #TDateFacet.<
 Valid weekdays include #Sunday, #Monday, #Tuesday, #Wednesday, #Thursday, #Friday, #Saturday (0-6).
 End Rem
 Function WeekDay:String(WeekDay:Int)
-	Return convertUTF8toISO8859(bmx_weekday_to_string(WeekDay))
+	Return bmx_weekday_to_string(WeekDay)
 End Function
 
 Rem
@@ -3079,7 +3106,7 @@ bbdoc: Get the month text for the specified @month (1 - 12).
 about: This is based on the current month format as specified by #TDateFacet.
 End Rem
 Function Month:String(Month:Int)
-	Return convertUTF8toISO8859(bmx_month_to_string(Month))
+	Return bmx_month_to_string(Month)
 End Function
 
 Rem

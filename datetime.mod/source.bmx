@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,8 @@ Extern
 	Function bmx_datetime_day:Int(date:Byte Ptr)
 	Function bmx_datetime_ymd(date:Byte Ptr, year:Int Ptr, Month:Int Ptr, day:Int Ptr)
 	
-	Function bmx_datetime_fromstring:Byte Ptr(date:Byte Ptr)
-	Function bmx_datetime_fromundelimitedstring:Byte Ptr(date:Byte Ptr)
+	Function bmx_datetime_fromstring:Byte Ptr(date:String)
+	Function bmx_datetime_fromundelimitedstring:Byte Ptr(date:String)
 	
 	Function bmx_datetime_day_of_week:Int(date:Byte Ptr)
 	Function bmx_datetime_day_of_year:Int(date:Byte Ptr)
@@ -123,8 +123,8 @@ Extern
 	Function bmx_datetime_iter_to_simple_string:String(date:Byte Ptr)
 	Function bmx_datetime_iter_to_iso_string:String(date:Byte Ptr)
 	Function bmx_datetime_iter_to_iso_extended_string:String(date:Byte Ptr)
-	Function bmx_datetime_iter_to_string:String(date:Byte Ptr)
-	Function bmx_datetime_iter_asformat:String(date:Byte Ptr, f:Byte Ptr)
+	Function bmx_datetime_iter_to_string:String(date:Byte Ptr, locale:Byte Ptr, facet:Byte Ptr)
+	Function bmx_datetime_iter_asformat:String(date:Byte Ptr, f:String, locale:Byte Ptr, facet:Byte Ptr)
 
 	Function bmx_time_duration:Byte Ptr(hours:Int, minutes:Int, seconds:Int, fraction:Int)
 	Function bmx_time_duration_delete(duration:Byte Ptr)
@@ -149,7 +149,7 @@ Extern
 	Function bmx_time_duration_less:Int(d1:Byte Ptr, d2:Byte Ptr)
 	Function bmx_time_duration_greater:Int(d1:Byte Ptr, d2:Byte Ptr)
 	Function bmx_time_duration_equal:Int(d1:Byte Ptr, d2:Byte Ptr)
-	Function bmx_time_duration_asformat:String(duration:Byte Ptr, f:Byte Ptr)
+	Function bmx_time_duration_asformat:String(duration:Byte Ptr, f:String, locale:Byte Ptr, facet:Byte Ptr)
 	
 	Function bmx_time_ticks_per_second:Int()
 	Function bmx_time_num_fractional_digits:Int()
@@ -162,7 +162,7 @@ Extern
 	Function bmx_ptime_universal_microsecond_new:Byte Ptr()
 	Function bmx_ptime_date:Byte Ptr(time:Byte Ptr)
 	Function bmx_ptime_time_of_day:Byte Ptr(time:Byte Ptr)
-	Function bmx_ptime_to_string:String(time:Byte Ptr)
+	Function bmx_ptime_to_string:String(time:Byte Ptr, locale:Byte Ptr, facet:Byte Ptr)
 	Function bmx_ptime_to_iso_string:String(time:Byte Ptr)
 	Function bmx_ptime_to_iso_extended_string:String(time:Byte Ptr)
 	Function bmx_ptime_add_days:Byte Ptr(time:Byte Ptr, days:Int)
@@ -174,7 +174,7 @@ Extern
 	Function bmx_ptime_greater:Int(t1:Byte Ptr, t2:Byte Ptr)
 	Function bmx_ptime_equal:Int(t1:Byte Ptr, t2:Byte Ptr)
 	Function bmx_ptime_from_time_t:Byte Ptr(time:Byte Ptr)
-	Function bmx_ptime_asformat:String(time:Byte Ptr, f:Byte Ptr)
+	Function bmx_ptime_asformat:String(time:Byte Ptr, f:String, locale:Byte Ptr, facet:Byte Ptr)
 	
 	Function bmx_partial_date_new:Byte Ptr(day:Int, Month:Int)
 	Function bmx_partial_date_get_date:Byte Ptr(ybg:Byte Ptr, year:Int)
@@ -191,11 +191,9 @@ Extern
 	Function bmx_weekday_to_string:String(WeekDay:Int)
 	
 	Function bmx_datefacet_new:Byte Ptr()
-	Function bmx_locale_new:Byte Ptr(facet:Byte Ptr, locale:Byte Ptr)
-	Function bmx_datefacet_setcurrent(locale:Byte Ptr, facet:Byte Ptr)
-	Function bmx_date_asformat:String(date:Byte Ptr, format:Byte Ptr)
+	Function bmx_locale_new:Byte Ptr(facet:Byte Ptr, locale:String)
+	Function bmx_date_asformat:String(date:Byte Ptr, format:String, locale:Byte Ptr, facet:Byte Ptr)
 	Function bmx_timefacet_new:Byte Ptr()
-	Function bmx_timefacet_setcurrent(locale:Byte Ptr, facet:Byte Ptr)
 
 	Function _strlen:Int(s:Byte Ptr) = "strlen"
 	Function bmx_char_free(s:Byte Ptr)
@@ -219,7 +217,7 @@ Extern
 	Function bmx_time_period_isgreater:Int(tp1:Byte Ptr, tp2:Byte Ptr)
 	Function bmx_time_period_isequal:Int(tp1:Byte Ptr, tp2:Byte Ptr)
 	
-	Function bmx_posix_time_zone:Byte Ptr(id:Byte Ptr)
+	Function bmx_posix_time_zone:Byte Ptr(id:String)
 	Function bmx_time_zone_dst_zone_abbrev:String(tz:Byte Ptr)
 	Function bmx_time_zone_std_zone_abbrev:String(tz:Byte Ptr)
 	Function bmx_time_zone_dst_zone_name:String(tz:Byte Ptr)
@@ -232,31 +230,31 @@ Extern
 	Function bmx_time_zone_to_posix_string:String(tz:Byte Ptr)
 	
 	Function bmx_tz_database:Byte Ptr()
-	Function bmx_tz_load_from_file:Byte Ptr(filename:Byte Ptr)
-	Function bmx_tz_time_zone_from_region:Byte Ptr(db:Byte Ptr, id:Byte Ptr)
+	Function bmx_tz_load_from_file:Byte Ptr(filename:String)
+	Function bmx_tz_time_zone_from_region:Byte Ptr(db:Byte Ptr, id:String)
 	
 	Function bmx_local_date_time_new_sec_clock:Byte Ptr(zone:Byte Ptr)
 	Function bmx_local_date_time_new_time:Byte Ptr(time:Byte Ptr, zone:Byte Ptr)
 	
 	Function bmx_month_to_string:String(Month:Int)
-	Function bmx_date_facet_format(facet:Byte Ptr, fmt:Byte Ptr)
+	Function bmx_date_facet_format(facet:Byte Ptr, fmt:String)
 	Function bmx_date_facet_set_iso_format(facet:Byte Ptr)
 	Function bmx_date_facet_set_iso_extended_format(facet:Byte Ptr)
 	
-	Function bmx_datetime_to_string:String(datetime:Byte Ptr)
+	Function bmx_datetime_to_string:String(datetime:Byte Ptr, locale:Byte Ptr, facet:Byte Ptr)
 	Function bmx_date_facet_short_month_names(facet:Byte Ptr, names:Byte Ptr)
 	Function bmx_date_facet_long_month_names(facet:Byte Ptr, names:Byte Ptr)
 	Function bmx_date_facet_short_weekday_names(facet:Byte Ptr, names:Byte Ptr)
 	Function bmx_date_facet_long_weekday_names(facet:Byte Ptr, names:Byte Ptr)
-	Function bmx_date_facet_month_format(facet:Byte Ptr, fmt:Byte Ptr)
-	Function bmx_date_facet_weekday_format(facet:Byte Ptr, fmt:Byte Ptr)
+	Function bmx_date_facet_month_format(facet:Byte Ptr, fmt:String)
+	Function bmx_date_facet_weekday_format(facet:Byte Ptr, fmt:String)
 
-	Function bmx_time_facet_format(facet:Byte Ptr, fmt:Byte Ptr)
+	Function bmx_time_facet_format(facet:Byte Ptr, fmt:String)
 	Function bmx_time_facet_set_iso_format(facet:Byte Ptr)
 	Function bmx_time_facet_set_iso_extended_format(facet:Byte Ptr)
-	Function bmx_time_facet_month_format(facet:Byte Ptr, fmt:Byte Ptr)
-	Function bmx_time_facet_weekday_format(facet:Byte Ptr, fmt:Byte Ptr)
-	Function bmx_time_facet_time_duration_format(facet:Byte Ptr, fmt:Byte Ptr)
+	Function bmx_time_facet_month_format(facet:Byte Ptr, fmt:String)
+	Function bmx_time_facet_weekday_format(facet:Byte Ptr, fmt:String)
+	Function bmx_time_facet_time_duration_format(facet:Byte Ptr, fmt:String)
 
 	Function bmx_nth_day_of_week_in_month_new:Byte Ptr(nth:Int, WeekDay:Int, Month:Int)
 	Function bmx_nth_day_of_week_in_month_get_date:Byte Ptr(ybg:Byte Ptr, year:Int)
@@ -317,84 +315,6 @@ Extern
 	
 End Extern
 
-' Convert from utf8 to Max
-Function convertUTF8toISO8859:String(s:String)
-
-	Local l:Int = s.length
-
-	Local b:Short[] = New Short[l]
-	Local bc:Int = -1
-	Local c:Int
-	Local d:Int
-	Local e:Int
-	For Local i:Int = 0 Until l
-		bc:+1
-		c = s[i]
-		If c<128 
-			b[bc] = c
-			Continue
-		End If
-		i:+1
-		d=s[i]
-		If c<224 
-			b[bc] = (c-192)*64+(d-128)
-			Continue
-		End If
-		i:+1
-		e = s[i]
-		If c < 240 
-			b[bc] = (c-224)*4096+(d-128)*64+(e-128)
-			If b[bc] = 8233 Then
-				b[bc] = 10
-			End If
-			Continue
-		End If
-	Next
-
-	Return String.fromshorts(b, bc + 1)
-End Function
-
-Function convertISO8859toUTF8:String(text:String)
-	If Not text Then
-		Return ""
-	End If
-	
-	Local l:Int = text.length
-	If l = 0 Then
-		Return ""
-	End If
-	
-	Local count:Int = 0
-	Local s:Byte[] = New Byte[l * 3]
-	
-	For Local i:Int = 0 Until l
-		Local char:Int = text[i]
-
-		If char < 128 Then
-			s[count] = char
-			count:+ 1
-			Continue
-		Else If char<2048
-			s[count] = char/64 | 192
-			count:+ 1
-			s[count] = char Mod 64 | 128
-			count:+ 1
-			Continue
-		Else
-			s[count] =  char/4096 | 224
-			count:+ 1
-			s[count] = char/64 Mod 64 | 128
-			count:+ 1
-			s[count] = char Mod 64 | 128
-			count:+ 1
-			Continue
-		EndIf
-		
-	Next
-
-	Return String.fromBytes(s, count)
-End Function
-
 Function arrayToCStrings:Byte Ptr(stringArray:String[])
 
 	Local cStrings:Byte Ptr = MemAlloc(4 * stringArray.length)
@@ -402,7 +322,7 @@ Function arrayToCStrings:Byte Ptr(stringArray:String[])
 		
 	For Local i:Int = 0 Until stringArray.length
 		
-		p[i] = Int(convertISO8859toUTF8(stringArray[i]).toCString())
+		p[i] = Int(stringArray[i].toUTF8String())
 		
 	Next
 
