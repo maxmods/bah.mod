@@ -2860,7 +2860,13 @@ Type TLocaleFacet
 	Field facetPtr:Byte Ptr
 	Field locale:String
 
-	Field generator:TBLGenerator
+	Global generator:TBLGenerator
+	
+	Method New()
+		If Not generator Then
+			generator = New TBLGenerator.Create()
+		End If
+	End Method
 	
 End Type
 
@@ -2876,10 +2882,8 @@ Type TDateFacet Extends TLocaleFacet
 	Function CreateForLocale:TDateFacet(locale:String)
 		Local this:TDateFacet = New TDateFacet
 		
-		this.generator = New TBLGenerator.Create()
-		
 		this.facetPtr = bmx_datefacet_new()
-		this.localePtr = bmx_locale_new(this.facetPtr, this.generator.genPtr, locale)
+		this.localePtr = bmx_locale_new(this.facetPtr, generator.genPtr, locale)
 		this.locale = locale
 		
 		Return this
@@ -2991,10 +2995,8 @@ Type TTimeFacet Extends TDateFacet
 	Function CreateForLocale:TTimeFacet(locale:String)
 		Local this:TTimeFacet = New TTimeFacet
 
-		this.generator = New TBLGenerator.Create()
-
 		this.facetPtr = bmx_timefacet_new()
-		this.localePtr = bmx_locale_new(this.facetPtr, this.generator.genPtr, locale)
+		this.localePtr = bmx_locale_new(this.facetPtr, generator.genPtr, locale)
 		this.locale = locale
 		
 		Return this
