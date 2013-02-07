@@ -53,6 +53,12 @@ Import BaH.libiconv
 
 Import "common.bmx"
 
+
+Private
+Global localeGenerator:TBLGenerator = New TBLGenerator.Create()
+
+Public
+
 Rem
 bbdoc: 
 End Rem
@@ -77,6 +83,28 @@ Type TBLGenerator
 
 End Type
 
+Rem
+bbdoc: The system default locale
+End Rem
+Global defaultLocale:TBLLocale = localeGenerator.Generate("")
+
+Rem
+bbdoc: The current locale
+End Rem
+Global currentLocale:TBLLocale = defaultLocale
+
+Rem
+bbdoc: Sets the current locale.
+End Rem
+Function SetLocale(locale:Object)
+	If locale Then
+		If String(locale) Then
+			currentLocale = TBLLocale.Create(String(locale))
+		Else If TBLLocale(locale) Then
+			currentLocale = TBLLocale(locale)
+		End If
+	End If
+End Function
 
 Rem
 bbdoc: 
@@ -84,6 +112,10 @@ End Rem
 Type TBLLocale
 
 	Field localePtr:Byte Ptr
+	
+	Function Create:TBLLocale(locale:String)
+		Return localeGenerator.generate(locale)
+	End Function
 	
 	Function _create:TBLLocale(localePtr:Byte Ptr)
 		If localePtr Then
@@ -127,3 +159,30 @@ Type TBLLocale
 	
 End Type
 
+Rem
+bbdoc: Return an int as a locale formatted string, using the current locale.
+End Rem
+Function IntAsNumber:String(value:Int)
+	Return bmx_boostlocale_intasnumber(currentLocale.localePtr, value)
+End Function
+
+Rem
+bbdoc: Return a float as a locale formatted string, using the current locale.
+End Rem
+Function FloatAsNumber:String(value:Float)
+	Return bmx_boostlocale_floatasnumber(currentLocale.localePtr, value)
+End Function
+
+Rem
+bbdoc: Return an int as a locale formatted currency string, using the current locale.
+End Rem
+Function IntAsCurrency:String(value:Int)
+	Return bmx_boostlocale_intascurrency(currentLocale.localePtr, value)
+End Function
+
+Rem
+bbdoc: Return a float as a locale formatted currency string, using the current locale.
+End Rem
+Function FloatAsCurrency:String(value:Float)
+	Return bmx_boostlocale_floatascurrency(currentLocale.localePtr, value)
+End Function
