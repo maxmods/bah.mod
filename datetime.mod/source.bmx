@@ -191,7 +191,7 @@ Extern
 	Function bmx_weekday_to_string:String(WeekDay:Int)
 	
 	Function bmx_datefacet_new:Byte Ptr()
-	Function bmx_locale_new:Byte Ptr(facet:Byte Ptr, locale:String)
+	Function bmx_locale_new:Byte Ptr(facet:Byte Ptr, gen:Byte Ptr, locale:String)
 	Function bmx_date_asformat:String(date:Byte Ptr, format:String, locale:Byte Ptr, facet:Byte Ptr)
 	Function bmx_timefacet_new:Byte Ptr()
 

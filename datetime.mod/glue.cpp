@@ -29,6 +29,8 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/date_time/local_time/local_time.hpp"
 
+#include "boost/locale.hpp"
+
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -188,7 +190,7 @@ extern "C" {
 	
 	date_facet * bmx_datefacet_new();
 	BBString * bmx_date_asformat(date * d, BBString * format, std::locale * loc, date_facet * facet);
-	std::locale * bmx_locale_new(date_facet * d, BBString * loc);
+	std::locale * bmx_locale_new(date_facet * d, boost::locale::generator * gen, BBString * loc);
 	time_facet * bmx_timefacet_new();
 	
 	void bmx_char_free(char * s);
@@ -929,13 +931,13 @@ BBString * bmx_date_asformat(date * d, BBString * format, std::locale * loc, dat
 	return ret;
 }
 
-std::locale * bmx_locale_new(date_facet * d, BBString * loc) {
+std::locale * bmx_locale_new(date_facet * d, boost::locale::generator * gen, BBString * loc) {
 	std::locale * _loc = 0;
 	char * l = bbStringToUTF8String(loc);
 	try {
-		_loc = new std::locale(std::locale(l), d);
+		_loc = new std::locale(gen->generate(l), d);
 	} catch (std::exception & e) {
-		_loc = new std::locale(std::locale(), d);
+		_loc = new std::locale(gen->generate(""), d);
 	}
 	bbMemFree(l);
 	return _loc;

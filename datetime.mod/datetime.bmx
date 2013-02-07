@@ -40,6 +40,7 @@ ModuleInfo "History: Updated to boost 1.52"
 ModuleInfo "History: Added TTimeFacet, and format methods for TTime and TTimeDuration."
 ModuleInfo "History: Reworked format functionality to accept facets."
 ModuleInfo "History: Rewrote glue String handling."
+ModuleInfo "History: New BaH.BoostLocale requirement - for much improved localised date/time support."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to boost 1.42"
 ModuleInfo "History: 1.01"
@@ -51,7 +52,7 @@ ModuleInfo "History: Initial Release."
 
 ModuleInfo "CC_OPTS: -fexceptions"
 
-Import BaH.Boost
+Import BaH.BoostLocale
 
 Import "source.bmx"
 
@@ -2859,6 +2860,8 @@ Type TLocaleFacet
 	Field facetPtr:Byte Ptr
 	Field locale:String
 
+	Field generator:TBLGenerator
+	
 End Type
 
 Rem
@@ -2873,8 +2876,10 @@ Type TDateFacet Extends TLocaleFacet
 	Function CreateForLocale:TDateFacet(locale:String)
 		Local this:TDateFacet = New TDateFacet
 		
+		this.generator = New TBLGenerator.Create()
+		
 		this.facetPtr = bmx_datefacet_new()
-		this.localePtr = bmx_locale_new(this.facetPtr, locale)
+		this.localePtr = bmx_locale_new(this.facetPtr, this.generator.genPtr, locale)
 		this.locale = locale
 		
 		Return this
@@ -2986,8 +2991,10 @@ Type TTimeFacet Extends TDateFacet
 	Function CreateForLocale:TTimeFacet(locale:String)
 		Local this:TTimeFacet = New TTimeFacet
 
+		this.generator = New TBLGenerator.Create()
+
 		this.facetPtr = bmx_timefacet_new()
-		this.localePtr = bmx_locale_new(this.facetPtr, locale)
+		this.localePtr = bmx_locale_new(this.facetPtr, this.generator.genPtr, locale)
 		this.locale = locale
 		
 		Return this
