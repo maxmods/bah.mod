@@ -33,7 +33,11 @@ Import "../boost.mod/src/libs/locale/src/posix/posix_backend.cpp"
 
 
 ?Win32
-
+Import "../boost.mod/src/libs/locale/src/win32/collate.cpp"
+Import "../boost.mod/src/libs/locale/src/win32/converter.cpp"
+Import "../boost.mod/src/libs/locale/src/win32/lcid.cpp"
+Import "../boost.mod/src/libs/locale/src/win32/numeric.cpp"
+Import "../boost.mod/src/libs/locale/src/win32/win_backend.cpp"
 ?
 
 
