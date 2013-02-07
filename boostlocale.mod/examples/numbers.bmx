@@ -3,10 +3,10 @@ SuperStrict
 Framework BaH.BoostLocale
 Import BRL.StandardIO
 
-numbers("en_US")
-numbers("de_DE")
-numbers("ru_RU")
-numbers("zh_CN")
+numbers("en_US.UTF-8")
+numbers("de_DE.UTF-8")
+numbers("ru_RU.UTF-8")
+numbers("zh_CN.UTF-8")
 
 
 Function numbers(locale:String)
@@ -18,6 +18,6 @@ Function numbers(locale:String)
 	Print "This is how we show currency in this locale :  " + FloatAsCurrency(5103.34)
 
 	Print ""
-	
+
 End Function
 
