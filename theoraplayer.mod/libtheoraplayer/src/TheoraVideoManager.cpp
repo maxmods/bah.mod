@@ -2,12 +2,10 @@
 This source file is part of the Theora Video Playback Library
 For latest info, see http://libtheoraplayer.sourceforge.net/
 *************************************************************************************
-Copyright (c) 2008-2012 Kresimir Spes (kspes@cateia.com)
+Copyright (c) 2008-2013 Kresimir Spes (kspes@cateia.com)
 This program is free software; you can redistribute it and/or modify it under
 the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 *************************************************************************************/
-#include <theora/codec.h>
-#include <vorbis/codec.h>
 #include "TheoraVideoManager.h"
 #include "TheoraWorkerThread.h"
 #include "TheoraVideoClip.h"
@@ -15,11 +13,22 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #include "TheoraUtil.h"
 #include "TheoraDataSource.h"
 #include "TheoraException.h"
-
-TheoraVideoManager* g_ManagerSingleton=0;
+#ifdef __THEORA
+	#include <theora/codec.h>
+	#include <vorbis/codec.h>
+	#include "TheoraVideoClip_Theora.h"
+#endif
+#ifdef __AVFOUNDATION
+	#include "TheoraVideoClip_AVFoundation.h"
+#endif
 // declaring function prototype here so I don't have to put it in a header file
 // it only needs to be used by this plugin and called once
-void createYUVtoRGBtables();
+extern "C"
+{
+	void initYUVConversionModule();
+}
+
+TheoraVideoManager* g_ManagerSingleton=0;
 
 void theora_writelog(std::string output)
 {
@@ -50,15 +59,21 @@ TheoraVideoManager::TheoraVideoManager(int num_worker_threads) :
 
 	g_ManagerSingleton = this;
 
-	logMessage("Initializing Theora Playback Library (" + getVersionString() + ")\n" + 
+	logMessage("Initializing Theora Playback Library (" + getVersionString() + ")\n" +
+#ifdef __THEORA
 	           "  - libtheora version: " + th_version_string() + "\n" + 
-	           "  - libvorbis version: " + vorbis_version_string() + "\n" + 
+	           "  - libvorbis version: " + vorbis_version_string() + "\n" +
+#endif
+#ifdef __AVFOUNDATION
+			   "  - using Apple AVFoundation classes\n"
+#endif
 			   "------------------------------------");
 	mAudioFactory = NULL;
 	mWorkMutex = new TheoraMutex();
 
 	// for CPU based yuv2rgb decoding
-	createYUVtoRGBtables();
+	initYUVConversionModule();
+
 	createWorkerThreads(num_worker_threads);
 }
 
@@ -115,7 +130,30 @@ TheoraVideoClip* TheoraVideoManager::createVideoClip(TheoraDataSource* data_sour
 	TheoraVideoClip* clip = NULL;
 	int nPrecached = numPrecachedOverride ? numPrecachedOverride : mDefaultNumPrecachedFrames;
 	logMessage("Creating video from data source: "+data_source->repr());
-	clip = new TheoraVideoClip(data_source,output_mode,nPrecached,usePower2Stride);
+	
+#ifdef __AVFOUNDATION
+	TheoraFileDataSource* fileDataSource = dynamic_cast<TheoraFileDataSource*>(data_source);
+	std::string filename;
+	if (fileDataSource == NULL)
+	{
+		TheoraMemoryFileDataSource* memoryDataSource = dynamic_cast<TheoraMemoryFileDataSource*>(data_source);
+		if (memoryDataSource != NULL) filename = memoryDataSource->getFilename();
+		// if the user has his own data source, it's going to be a problem for AVAssetReader since it only supports reading from files...
+	}
+	else filename = fileDataSource->getFilename();
+
+	if (filename.size() > 4 && filename.substr(filename.size() - 4, filename.size()) == ".mp4")
+	{
+		clip = new TheoraVideoClip_AVFoundation(data_source,output_mode,nPrecached,usePower2Stride);
+	}
+#endif
+#if defined(__AVFOUNDATION) && defined(__THEORA)
+	else
+#endif
+#ifdef __THEORA
+		clip = new TheoraVideoClip_Theora(data_source,output_mode,nPrecached,usePower2Stride);
+#endif
+	clip->load(data_source);
 	mClips.push_back(clip);
 	mWorkMutex->unlock();
 	return clip;
@@ -150,21 +188,21 @@ TheoraVideoClip* TheoraVideoManager::requestWork(TheoraWorkerThread* caller)
 {
 	if (!mWorkMutex) return NULL;
 	mWorkMutex->lock();
-	TheoraVideoClip* c=NULL;
+	TheoraVideoClip* c = NULL;
 
-	float priority,last_priority=100000;
+	float priority, last_priority = 100000;
 
-	foreach(TheoraVideoClip*,mClips)
+	foreach (TheoraVideoClip*, mClips)
 	{
 		if ((*it)->isBusy()) continue;
-		priority=(*it)->getPriorityIndex();
-		if (priority < last_priority)
+		priority = (*it)->getPriorityIndex();
+		if (priority < last_priority || (priority == last_priority && rand()%2 == 0)) // use randomization to prevent clip starvation in resource demanding situations
 		{
-			last_priority=priority;
-			c=*it;
+			last_priority = priority;
+			c = *it;
 		}
 	}
-	if (c) c->mAssignedWorkerThread=caller;
+	if (c) c->mAssignedWorkerThread = caller;
 	
 	mWorkMutex->unlock();
 	return c;
@@ -218,20 +256,33 @@ void TheoraVideoManager::setNumWorkerThreads(int n)
 
 std::string TheoraVideoManager::getVersionString()
 {
-	int a,b,c;
-	getVersion(&a,&b,&c);
-	std::string out=str(a)+"."+str(b);
+	int a, b, c;
+	getVersion(&a, &b, &c);
+	std::string out = str(a) + "." + str(b);
 	if (c != 0)
 	{
-		if (c < 0) out+=" RC"+str(-c);
-		else       out+="."+str(c);
+		if (c < 0) out += " RC" + str(-c);
+		else       out += "." + str(c);
 	}
 	return out;
 }
 
-void TheoraVideoManager::getVersion(int* a, int* b, int* c)
+void TheoraVideoManager::getVersion(int* a, int* b, int* c) // TODO, return a struct instead of the current solution.
 {
-	*a=1;
-	*b=0;
-	*c=-3;
+	*a = 1;
+	*b = 0;
+	*c = -4;
+}
+
+std::vector<std::string> TheoraVideoManager::getSupportedDecoders()
+{
+	std::vector<std::string> lst;
+#ifdef __THEORA
+	lst.push_back("Theora");
+#endif
+#ifdef __AVFOUNDATION
+	lst.push_back("AVFoundation");
+#endif
+	
+	return lst;
 }

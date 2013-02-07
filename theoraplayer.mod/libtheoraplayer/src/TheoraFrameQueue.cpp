@@ -2,19 +2,19 @@
 This source file is part of the Theora Video Playback Library
 For latest info, see http://libtheoraplayer.sourceforge.net/
 *************************************************************************************
-Copyright (c) 2008-2012 Kresimir Spes (kspes@cateia.com)
+Copyright (c) 2008-2013 Kresimir Spes (kspes@cateia.com)
 This program is free software; you can redistribute it and/or modify it under
 the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 *************************************************************************************/
 #include "TheoraFrameQueue.h"
 #include "TheoraVideoFrame.h"
+#include "TheoraVideoManager.h"
 #include "TheoraUtil.h"
 
 
-TheoraFrameQueue::TheoraFrameQueue(int n,TheoraVideoClip* parent)
+TheoraFrameQueue::TheoraFrameQueue(TheoraVideoClip* parent)
 {
-	mParent=parent;
-	setSize(n);
+	mParent = parent;
 }
 
 TheoraFrameQueue::~TheoraFrameQueue()
@@ -22,6 +22,17 @@ TheoraFrameQueue::~TheoraFrameQueue()
 	foreach_l(TheoraVideoFrame*,mQueue)
 		delete (*it);
 	mQueue.clear();
+}
+
+TheoraVideoFrame* TheoraFrameQueue::createFrameInstance(TheoraVideoClip* clip)
+{
+	TheoraVideoFrame* frame = new TheoraVideoFrame(clip);
+	if (frame->getBuffer() == NULL) // This can happen if you run out of memory
+	{
+		delete frame;
+		return NULL;
+	}
+	return frame;
 }
 
 void TheoraFrameQueue::setSize(int n)
@@ -33,9 +44,17 @@ void TheoraFrameQueue::setSize(int n)
 			delete (*it);
 		mQueue.clear();
 	}
-for (int i=0;i<n;i++)
-		mQueue.push_back(new TheoraVideoFrame(mParent));
-
+	TheoraVideoFrame* frame;
+	for (int i = 0;i < n; i++)
+	{
+		frame = createFrameInstance(mParent);
+		if (frame != NULL) mQueue.push_back(frame);
+		else
+		{
+			TheoraVideoManager::getSingleton().logMessage("TheoraFrameQueue: unable to create " + str(n) + " frames, out of memory. Created " + str(mQueue.size()) + " frames.");
+			break;
+		}
+	}
 	mMutex.unlock();
 }
 
@@ -46,9 +65,9 @@ int TheoraFrameQueue::getSize()
 
 TheoraVideoFrame* TheoraFrameQueue::getFirstAvailableFrame()
 {
-	TheoraVideoFrame* frame=0;
+	TheoraVideoFrame* frame = NULL;
 	mMutex.lock();
-	if (mQueue.front()->mReady) frame=mQueue.front();
+	if (mQueue.front()->mReady) frame = mQueue.front();
 	mMutex.unlock();
 	return frame;
 }
@@ -73,15 +92,15 @@ void TheoraFrameQueue::pop()
 
 TheoraVideoFrame* TheoraFrameQueue::requestEmptyFrame()
 {
-	TheoraVideoFrame* frame=0;
+	TheoraVideoFrame* frame = NULL;
 	mMutex.lock();
-	foreach_l(TheoraVideoFrame*,mQueue)
+	foreach_l (TheoraVideoFrame*, mQueue)
 	{
 		if (!(*it)->mInUse)
 		{
-			(*it)->mInUse=true;
-			(*it)->mReady=false;
-			frame=(*it);
+			(*it)->mInUse = 1;
+			(*it)->mReady = 0;
+			frame = (*it);
 			break;
 		}
 	}

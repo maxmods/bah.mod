@@ -2,7 +2,7 @@
 This source file is part of the Theora Video Playback Library
 For latest info, see http://libtheoraplayer.sourceforge.net/
 *************************************************************************************
-Copyright (c) 2008-2012 Kresimir Spes (kspes@cateia.com)
+Copyright (c) 2008-2013 Kresimir Spes (kspes@cateia.com)
 This program is free software; you can redistribute it and/or modify it under
 the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 *************************************************************************************/
@@ -14,7 +14,6 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #include "TheoraExport.h"
 
 // forward class declarations
-class TheoraInfoStruct;
 class TheoraMutex;
 class TheoraFrameQueue;
 class TheoraTimer;
@@ -53,15 +52,6 @@ enum TheoraOutputMode
 	TH_AYUV   = 20,
 	TH_XYUV   = 21
 };
-/**
-	This is an internal structure which TheoraVideoClip uses to store audio packets
-*/
-struct TheoraAudioPacket
-{
-	float* pcm;
-	int num_samples; //! size in number of float samples (stereo has twice the number of samples)
-	TheoraAudioPacket* next; // pointer to the next audio packet, to implement a linked list
-};
 
 /**
 	This object contains all data related to video playback, eg. the open source file,
@@ -72,21 +62,19 @@ class TheoraPlayerExport TheoraVideoClip
 	friend class TheoraWorkerThread;
 	friend class TheoraVideoFrame;
 	friend class TheoraVideoManager;
-
+protected:
 	TheoraFrameQueue* mFrameQueue;
 	TheoraAudioInterface* mAudioInterface;
 	TheoraDataSource* mStream;
 
-	TheoraTimer *mTimer,*mDefaultTimer;
+	TheoraTimer *mTimer, *mDefaultTimer;
 
 	TheoraWorkerThread* mAssignedWorkerThread;
 	
 	bool mUseAlpha;
 	
 	// benchmark vars
-	int mNumDroppedFrames,mNumDisplayedFrames;
-
-	int mTheoraStreams, mVorbisStreams;	// Keeps track of Theora and Vorbis Streams
+	int mNumDroppedFrames, mNumDisplayedFrames;
 
 	int mNumPrecachedFrames;
 
@@ -97,7 +85,6 @@ class TheoraPlayerExport TheoraVideoClip
 	int mNumFrames;
 
 	float mAudioGain; //! multiplier for audio samples. between 0 and 1
-	TheoraAudioPacket* mTheoraAudioPacketQueue;
 
 	TheoraOutputMode mOutputMode, mRequestedOutputMode;
 	bool mAutoRestart;
@@ -106,10 +93,9 @@ class TheoraPlayerExport TheoraVideoClip
 
 	float mUserPriority; //! TODO implementation
 
-	TheoraInfoStruct* mInfo; // a pointer is used to avoid having to include theora & vorbis headers
-
 	TheoraMutex* mAudioMutex; //! syncs audio decoding and extraction
-
+	TheoraMutex* mThreadAccessMutex;
+	
 	/**
 	 * Get the priority of a video clip. based on a forumula that includes user
 	 * priority factor, whether the video is paused or not, how many precached
@@ -120,9 +106,8 @@ class TheoraPlayerExport TheoraVideoClip
 	 */
 	int calculatePriority();
 	void readTheoraVorbisHeaders();
-	long seekPage(long targetFrame, bool return_keyframe);
-	void doSeek(); //! called by WorkerThread to seek to mSeekFrame
-	bool _readData();
+	virtual void doSeek() = 0; //! called by WorkerThread to seek to mSeekFrame
+	virtual bool _readData() = 0;
 	bool isBusy();
 
 	/**
@@ -131,26 +116,21 @@ class TheoraPlayerExport TheoraVideoClip
 	 * audio enabled video clip.
 	 * @return last decoded timestamp (if found in decoded packet's granule position)
 	 */
-	float decodeAudio();
-	float getAudioPacketQueueLength();
-	//! adds an audio packet to the packet queue
-	void addAudioPacket(float** buffer, int num_samples);
-	//! return a decoded audio packet or NULL if packet queue is empty
-	TheoraAudioPacket* popAudioPacket();
-	void destroyAudioPacket(TheoraAudioPacket* p);
-	void destroyAllAudioPackets();
+	virtual float decodeAudio() = 0;
 
-	void load(TheoraDataSource* source);
+	virtual void load(TheoraDataSource* source) = 0;
 
-	void _restart(); // resets the decoder and stream but leaves the frame queue intact
+	virtual void _restart() = 0; // resets the decoder and stream but leaves the frame queue intact
 public:
 	TheoraVideoClip(TheoraDataSource* data_source,
 		            TheoraOutputMode output_mode,
 					int nPrecachedFrames,
 					bool usePower2Stride);
-	~TheoraVideoClip();
+	virtual ~TheoraVideoClip();
 
 	std::string getName();
+	//! Returns the string name of the decoder backend (eg. Theora, AVFoundation)
+	virtual std::string getDecoderName() = 0;
 
 	//! benchmark function
 	int getNumDisplayedFrames() { return mNumDisplayedFrames; }
@@ -178,7 +158,7 @@ public:
 	void setTimer(TheoraTimer* timer);
 
 	//! used by TheoraWorkerThread, do not call directly
-	void decodeNextFrame();
+	virtual bool decodeNextFrame() = 0;
 
 	//! advance time. TheoraVideoManager calls this
 	void update(float time_increase);
@@ -208,7 +188,7 @@ public:
 
 		TheoraWorkerThread calls this
 	 */
-	void decodedAudioCheck();
+	virtual void decodedAudioCheck() = 0;
 
 	void setAudioInterface(TheoraAudioInterface* iface);
 	TheoraAudioInterface* getAudioInterface();

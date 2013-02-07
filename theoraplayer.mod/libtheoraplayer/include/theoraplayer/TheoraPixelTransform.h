@@ -6,45 +6,13 @@ Copyright (c) 2008-2013 Kresimir Spes (kspes@cateia.com)
 This program is free software; you can redistribute it and/or modify it under
 the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 *************************************************************************************/
-#include <stdio.h>
-#include <algorithm>
-#include <math.h>
-#include <map>
-#include "TheoraUtil.h"
-#include "TheoraException.h"
+#ifndef _TheoraPixelTransform_h
+#define _TheoraPixelTransform_h
 
-#ifdef _WIN32
-#include <windows.h>
-#pragma warning( disable: 4996 ) // MSVC++
+struct TheoraPixelTransform
+{
+	unsigned char *raw, *y, *u, *v, *out;
+	unsigned int w, h, rawStride, yStride, uStride, vStride;
+};
+
 #endif
-
-std::string str(int i)
-{
-    char s[32];
-    sprintf(s, "%d", i);
-    return std::string(s);
-}
-
-std::string strf(float i)
-{
-    char s[32];
-    sprintf(s, "%.3f", i);
-    return std::string(s);
-}
-
-void _psleep(int milliseconds)
-{
-#ifndef _WIN32
-    usleep(milliseconds * 1000);
-#else
-	Sleep(milliseconds);
-#endif
-}
-
-
-int _nextPow2(int x)
-{
-	int y;
-	for (y = 1; y < x; y *= 2);
-	return y;
-}

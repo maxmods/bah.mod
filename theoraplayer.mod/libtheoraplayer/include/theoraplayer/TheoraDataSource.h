@@ -2,7 +2,7 @@
 This source file is part of the Theora Video Playback Library
 For latest info, see http://libtheoraplayer.sourceforge.net/
 *************************************************************************************
-Copyright (c) 2008-2012 Kresimir Spes (kspes@cateia.com)
+Copyright (c) 2008-2013 Kresimir Spes (kspes@cateia.com)
 This program is free software; you can redistribute it and/or modify it under
 the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 *************************************************************************************/
@@ -48,6 +48,8 @@ class TheoraPlayerExport TheoraFileDataSource : public TheoraDataSource
 	FILE* mFilePtr;
 	std::string mFilename;
 	unsigned long mSize;
+	
+	void openFile();
 public:
 	TheoraFileDataSource(std::string filename);
 	~TheoraFileDataSource();
@@ -57,6 +59,8 @@ public:
 	std::string repr() { return mFilename; }
 	unsigned long size();
 	unsigned long tell();
+	
+	std::string getFilename() { return mFilename; }
 };
 
 /**
@@ -78,6 +82,7 @@ public:
 	std::string repr() { return "MEM:"+mFilename; }
 	unsigned long size();
 	unsigned long tell();
+	std::string getFilename() { return mFilename; }
 };
 
 #endif

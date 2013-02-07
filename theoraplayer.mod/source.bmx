@@ -1,4 +1,4 @@
-' Copyright (c) 2011-2012 Bruce A Henderson
+' Copyright (c) 2011-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ Import BRL.Blitz
 Import "libtheora/include/*.h"
 
 Import "libtheoraplayer/include/theoraplayer/*.h"
+Import "libtheoraplayer/src/Theora/*.h"
 Import "libtheoraplayer/src/*.h"
 
 Import "../oggvorbis.mod/libogg-1.3.0/include/*.h"
@@ -37,6 +38,7 @@ Import "../oggvorbis.mod/libvorbis-1.2.3/include/*.h"
 
 Import "libtheoraplayer/src/TheoraAsync.cpp"
 Import "libtheoraplayer/src/TheoraAudioInterface.cpp"
+Import "libtheoraplayer/src/TheoraAudioPacketQueue.cpp"
 Import "libtheoraplayer/src/TheoraDataSource.cpp"
 Import "libtheoraplayer/src/TheoraException.cpp"
 Import "libtheoraplayer/src/TheoraFrameQueue.cpp"
@@ -47,6 +49,12 @@ Import "libtheoraplayer/src/TheoraVideoFrame.cpp"
 Import "libtheoraplayer/src/TheoraVideoManager.cpp"
 Import "libtheoraplayer/src/TheoraWorkerThread.cpp"
 
+Import "libtheoraplayer/src/Theora/TheoraVideoClip_Theora.cpp"
+
+Import "libtheoraplayer/src/YUV/C/yuv_c.c"
+Import "libtheoraplayer/src/YUV/C/yuv420_grey_c.c"
+Import "libtheoraplayer/src/YUV/C/yuv420_rgb_c.c"
+Import "libtheoraplayer/src/YUV/C/yuv420_yuv_c.c"
 
 Import "libtheora/src/analyze.c"
 Import "libtheora/src/apiwrapper.c"
