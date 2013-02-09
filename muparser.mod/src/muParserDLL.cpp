@@ -200,7 +200,7 @@ API_EXPORT(const muChar_t*) mupGetVersion(muParserHandle_t a_hParser)
 //---------------------------------------------------------------------------
 /** \brief Evaluate the expression.
 */
-API_EXPORT(double) mupEval(muParserHandle_t a_hParser)
+API_EXPORT(muFloat_t) mupEval(muParserHandle_t a_hParser)
 {
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -613,8 +613,8 @@ API_EXPORT(void) mupDefineOprt( muParserHandle_t a_hParser,
 
 //---------------------------------------------------------------------------
 API_EXPORT(void) mupDefineVar(muParserHandle_t a_hParser, 
-                              const char *a_szName, 
-                              double *a_pVar)
+                              const muChar_t *a_szName, 
+                              muFloat_t *a_pVar)
 {
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -624,8 +624,8 @@ API_EXPORT(void) mupDefineVar(muParserHandle_t a_hParser,
 
 //---------------------------------------------------------------------------
 API_EXPORT(void) mupDefineBulkVar(muParserHandle_t a_hParser, 
-                              const char *a_szName, 
-                              double *a_pVar)
+                                  const muChar_t *a_szName, 
+                                  muFloat_t *a_pVar)
 {
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -634,7 +634,9 @@ API_EXPORT(void) mupDefineBulkVar(muParserHandle_t a_hParser,
 }
 
 //---------------------------------------------------------------------------
-API_EXPORT(void) mupDefineConst(muParserHandle_t a_hParser, const char *a_szName, double a_fVal)
+API_EXPORT(void) mupDefineConst(muParserHandle_t a_hParser, 
+								const muChar_t *a_szName, 
+								muFloat_t a_fVal)
 {
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -643,7 +645,9 @@ API_EXPORT(void) mupDefineConst(muParserHandle_t a_hParser, const char *a_szName
 }
 
 //---------------------------------------------------------------------------
-API_EXPORT(void) mupDefineStrConst(muParserHandle_t a_hParser, const char *a_szName, const char *a_szVal)
+API_EXPORT(void) mupDefineStrConst(muParserHandle_t a_hParser, 
+								   const muChar_t *a_szName, 
+								   const muChar_t *a_szVal)
 {
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -656,11 +660,9 @@ API_EXPORT(const muChar_t*) mupGetExpr(muParserHandle_t a_hParser)
 {
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
-//    return p->GetExpr().c_str();
 
     // C# explodes when pMsg is returned directly. For some reason it can't access
     // the memory where the message lies directly.
-//    static char szBuf[1024];
     sprintf(s_tmpOutBuf, "%s", p->GetExpr().c_str());
     return s_tmpOutBuf;
   
@@ -711,7 +713,8 @@ API_EXPORT(void) mupDefineOprtChars( muParserHandle_t a_hParser,
 }
 
 //---------------------------------------------------------------------------
-API_EXPORT(void) mupDefineInfixOprtChars(muParserHandle_t a_hParser, const char *a_szCharset)
+API_EXPORT(void) mupDefineInfixOprtChars(muParserHandle_t a_hParser, 
+										 const muChar_t *a_szCharset)
 {
   muParser_t* const p(AsParser(a_hParser));
   p->DefineInfixOprtChars(a_szCharset);
@@ -750,11 +753,14 @@ API_EXPORT(int) mupGetVarNum(muParserHandle_t a_hParser)
     During the calculation user defined callback functions present in the expression
     will be called, this is unavoidable.
 */
-API_EXPORT(void) mupGetVar(muParserHandle_t a_hParser, unsigned a_iVar, const char **a_szName, double **a_pVar)
+API_EXPORT(void) mupGetVar(muParserHandle_t a_hParser, 
+						   unsigned a_iVar, 
+						   const muChar_t **a_szName, 
+						   muFloat_t **a_pVar)
 {
   // A static buffer is needed for the name since i cant return the
   // pointer from the map.
-  static char  szName[1024];
+  static muChar_t  szName[1024];
 
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -819,11 +825,14 @@ API_EXPORT(int) mupGetExprVarNum(muParserHandle_t a_hParser)
     \param a_pVar [out] Pointer to the variable.
     \throw nothrow
 */
-API_EXPORT(void) mupGetExprVar(muParserHandle_t a_hParser, unsigned a_iVar, const char **a_szName, double **a_pVar)
+API_EXPORT(void) mupGetExprVar(muParserHandle_t a_hParser, 
+							   unsigned a_iVar, 
+							   const muChar_t **a_szName, 
+							   muFloat_t **a_pVar)
 {
   // A static buffer is needed for the name since i cant return the
   // pointer from the map.
-  static char  szName[1024];
+  static muChar_t  szName[1024];
 
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -917,7 +926,7 @@ API_EXPORT(void) mupGetConst( muParserHandle_t a_hParser,
 {
   // A static buffer is needed for the name since i cant return the
   // pointer from the map.
-  static char  szName[1024];
+  static muChar_t szName[1024];
 
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
@@ -993,7 +1002,7 @@ API_EXPORT(void) mupSetErrorHandler(muParserHandle_t a_hParser, muErrorHandler_t
 API_EXPORT(const muChar_t*) mupGetErrorMsg(muParserHandle_t a_hParser)
 {
   ParserTag* const p(AsParserTag(a_hParser));
-  const char *pMsg = p->exc.GetMsg().c_str();
+  const muChar_t *pMsg = p->exc.GetMsg().c_str();
 
   // C# explodes when pMsg is returned directly. For some reason it can't access
   // the memory where the message lies directly.
@@ -1007,7 +1016,7 @@ API_EXPORT(const muChar_t*) mupGetErrorMsg(muParserHandle_t a_hParser)
 API_EXPORT(const muChar_t*) mupGetErrorToken(muParserHandle_t a_hParser)
 {
   ParserTag* const p(AsParserTag(a_hParser));
-  const char *pToken = p->exc.GetToken().c_str();
+  const muChar_t *pToken = p->exc.GetToken().c_str();
 
   // C# explodes when pMsg is returned directly. For some reason it can't access
   // the memory where the message lies directly.

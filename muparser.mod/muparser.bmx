@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2011 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@ Module BaH.muParser
 
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
-ModuleInfo "Copyright: muParser - 2004-2011 Ingo Berg"
+ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
+ModuleInfo "Copyright: muParser - 2004-2012 Ingo Berg"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Updated to latest in SVN (rev 531)."
+ModuleInfo "History: Updated to muParser 2.2.3."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release (muparser 1.30 svn 20081110)"
 

@@ -1,19 +1,98 @@
+#######################################################################
+#                                                                     #
+#                                                                     #
+#                 __________                                          #
+#    _____   __ __\______   \_____  _______  ______  ____ _______     #
+#   /     \ |  |  \|     ___/\__  \ \_  __ \/  ___/_/ __ \\_  __ \    #
+#  |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/    #
+#  |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|       #
+#        \/                       \/            \/      \/            #
+#					  Fast math parser Library    #
+#                                                                     #
+#  Copyright (C) 2012 Ingo Berg                                       #
+#                                                                     #
+#  Web:     muparser.beltoforion.de                                   #
+#  e-mail:  muparser@beltoforion.de                                   #
+#                                                                     #
+#                                                                     #
+#######################################################################
 
-                 __________
-    _____   __ __\______   \_____  _______  ______  ____ _______
-   /     \ |  |  \|     ___/\__  \ \_  __ \/  ___/_/ __ \\_  __ \
-  |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
-  |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|
-        \/                       \/            \/      \/
-					  Fast math parser Library	
-
-  Copyright (C) 2011 Ingo Berg
 
 History:
 --------
 
-Rev 2.0.0: 29.06.2011 (under Development; available via SVN as Prerelease version)
-----------------------------------------------------------------------------------
+Rev 2.2.3: 21.09.2012
+---------------------
+  Bugfixes:
+   * Bugfix for Intel Compilers added: The power operator did not work properly 
+     with Intel C++ composer XE 2011.
+     (see https://sourceforge.net/projects/muparser/forums/forum/462843/topic/5117983/index/page/1)
+   * Issue 3509860: Callbacks of functions with string parameters called twice
+     (see http://sourceforge.net/tracker/?func=detail&aid=3509860&group_id=137191&atid=737979)
+   * Issue 3570423: example1 shows slot number in hexadecimal
+     (see https://sourceforge.net/tracker/?func=detail&aid=3570423&group_id=137191&atid=737979)
+
+Rev 2.2.2: 18.02.2012
+---------------------
+  Bugfixes:
+   * Optimizer did'nt work properly for division:
+     (see https://sourceforge.net/projects/muparser/forums/forum/462843/topic/5037825)
+
+Rev 2.2.1: 22.01.2012
+---------------------
+  Bugfixes:
+   * Optimizer bug in 64 bit systems fixed
+     (see https://sourceforge.net/projects/muparser/forums/forum/462843/topic/4977977/index/page/1)
+	 
+Rev 2.2.0: 22.01.2012
+---------------------
+  Improvements:
+   * Optimizer rewritten and improved. In general: more optimizations are 
+     now applied to the bytecode. The downside is that callback Functions 
+     can no longer be flagged as non-optimizable. (The flag is still present 
+     but ignored) This is necessary since the optimizer had to call the 
+     functions in order to precalculate the result (see Bugfixes). These calls 
+     posed a problems for callback functions with side  effects and if-then-else 
+     clauses in general since they undermined the shortcut evaluation prinziple.
+
+  Bugfixes:
+   * Infix operators where not properly detected in the presence of a constant 
+     name starting with an underscore which is a valid character for infix 
+     operators too (i.e. "-_pi").
+   * Issue 3463353: Callback functions are called twice during the first call to eval.
+   * Issue 3447007: GetUsedVar unnecessaryly executes callback functions.
+
+
+Rev 2.1.0: 19.11.2011
+---------------------
+  New feature:
+   * Function atan2 added
+
+  Bugfixes:
+   * Issue 3438380:  Changed behaviour of tellg with GCC >4.6 led to failures  
+                     in value detection callbacks.
+   * Issue 3438715:  only "double" is a valid MUP_BASETYPE 
+                     MUP_BASETYPE can now be any of:
+                       float, 
+                       double, 
+                       long double, 
+                       short, 
+                       unsigned short, 
+                       unsigned int, 
+                       long,
+                       unsigned long. 
+                     Previousely only floating point types were allowed. 
+                     Using "int" is still not allowed!
+   * Compiler issues with GCC 4.6 fixed
+   * Custom value recognition callbacks added with AddValIdent had lower
+     priority than built in functions. This was causing problems with 
+     hex value recognition since detection of non hex values had priority
+     over the detection of hex values. The "0" in the hex prefix "0x" would 
+     be read as a separate non-hex number leaving the rest of the expression
+     unparseable.
+
+Rev 2.0.0: 04.09.2011
+---------------------
 This release introduces a new version numbering scheme in order to make
 future changes in the ABI apparent to users of the library. The number is
 now based on the SONAME property as used by GNU/Linux. 
