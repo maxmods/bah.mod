@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,17 @@ Extern
 	Function bmx_gme_set_tempo(handle:Byte Ptr, tempo:Double)
 	Function bmx_gme_mute_voice(handle:Byte Ptr, index:Int, mute:Int)
 	Function bmx_gme_mute_voices(handle:Byte Ptr, mutingMask:Int)
+	Function bmx_gme_get_trackinfo:String(handle:Byte Ptr, info:Byte Ptr Ptr, track:Int)
 
+	Function bmx_gme_trackinfo_system:String(handle:Byte Ptr)
+	Function bmx_gme_trackinfo_game:String(handle:Byte Ptr)
+	Function bmx_gme_trackinfo_song:String(handle:Byte Ptr)
+	Function bmx_gme_trackinfo_author:String(handle:Byte Ptr)
+	Function bmx_gme_trackinfo_copyright:String(handle:Byte Ptr)
+	Function bmx_gme_trackinfo_comment:String(handle:Byte Ptr)
+	Function bmx_gme_trackinfo_dumper:String(handle:Byte Ptr)
+	Function bmx_gme_trackinfo_free(handle:Byte Ptr)
+		
 End Extern
 
 

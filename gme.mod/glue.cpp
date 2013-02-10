@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2009 Bruce A Henderson
+  Copyright (c) 2008-2013 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -105,4 +105,38 @@ void bmx_gme_mute_voices(MaxMusicEmu * emu, int mutingMask) {
 	gme_mute_voices(emu->emu, mutingMask);
 }
 
+BBString * bmx_gme_get_trackinfo(MaxMusicEmu * emu, gme_info_t ** info, int track) {
+	return bbStringFromCString(gme_track_info(emu->emu, info, track));
+}
 
+BBString * bmx_gme_trackinfo_system(gme_info_t * info) {
+	return bbStringFromCString(info->system);
+}
+
+BBString * bmx_gme_trackinfo_game(gme_info_t * info) {
+	return bbStringFromCString(info->game);
+}
+
+BBString * bmx_gme_trackinfo_song(gme_info_t * info) {
+	return bbStringFromCString(info->song);
+}
+
+BBString * bmx_gme_trackinfo_author(gme_info_t * info) {
+	return bbStringFromCString(info->author);
+}
+
+BBString * bmx_gme_trackinfo_copyright(gme_info_t * info) {
+	return bbStringFromCString(info->copyright);
+}
+
+BBString * bmx_gme_trackinfo_comment(gme_info_t * info) {
+	return bbStringFromCString(info->comment);
+}
+
+BBString * bmx_gme_trackinfo_dumper(gme_info_t * info) {
+	return bbStringFromCString(info->dumper);
+}
+
+void bmx_gme_trackinfo_free(gme_info_t * info) {
+	gme_free_info(info);
+}

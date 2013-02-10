@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,19 @@ SuperStrict
 
 Rem
 bbdoc: Game Music Emulator
+about: Plays different classic game audio files.
 End Rem
 Module BaH.GME
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: GME - LGPL"
-ModuleInfo "Copyright: Wrapper - 2008-2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
 ModuleInfo "Copyright: GME - Shay Green, http://www.fly.net/~~ant/libs/audio.html"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to GME 0.5.5"
+ModuleInfo "History: Added GetTrackInfo() method for track information."
 ModuleInfo "History: 1.00 Initial Release"
 
 ?macos
@@ -210,6 +214,22 @@ Type TMusicEmu
 		bmx_gme_mute_voices(emuPtr, mutingMask)
 	End Method
 
+	Rem
+	bbdoc: Gets information for a particular track (length, name, author, etc.)
+	End Rem
+	Method GetTrackInfo:TGMETrackInfo(track:Int)
+		Local info:TGMETrackInfo = New TGMETrackInfo
+
+		Local err:String = bmx_gme_get_trackinfo(emuPtr, Varptr info.infoPtr, track)
+		
+		If err Then
+			DebugLog err
+			Return Null
+		End If
+		
+		Return info
+	End Method
+
 	Method Delete()
 		If emuPtr Then
 			bmx_gme_emu_delete(emuPtr)
@@ -380,8 +400,79 @@ Type TGMEPlayer
 	Method Update()
 	End Method
 	
+	Rem
+	bbdoc: Gets information for a particular track (length, name, author, etc.)
+	End Rem
+	Method GetTrackInfo:TGMETrackInfo(track:Int)
+		Return emu.GetTrackInfo(track)
+	End Method
+	
 End Type
 
+Rem
+bbdoc: Track information
+End Rem
+Type TGMETrackInfo
+
+	Field infoPtr:Byte Ptr
+
+	Rem
+	bbdoc: Game system.
+	End Rem
+	Method System:String()
+		Return bmx_gme_trackinfo_system(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The game the track belongs to.
+	End Rem
+	Method Game:String()
+		Return bmx_gme_trackinfo_game(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Name of the track.
+	End Rem
+	Method Song:String()
+		Return bmx_gme_trackinfo_song(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Author of the track
+	End Rem
+	Method Author:String()
+		Return bmx_gme_trackinfo_author(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Track copyright.
+	End Rem
+	Method Copyright:String()
+		Return bmx_gme_trackinfo_copyright(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Comment
+	End Rem
+	Method Comment:String()
+		Return bmx_gme_trackinfo_comment(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The name of the dumper who extracted the track data from its source.
+	End Rem
+	Method Dumper:String()
+		Return bmx_gme_trackinfo_dumper(infoPtr)
+	End Method
+	
+	Method Delete()
+		If infoPtr Then
+			bmx_gme_trackinfo_free(infoPtr)
+			infoPtr = Null
+		End If
+	End Method
+
+End Type
 
 Type TGMEDriver
 

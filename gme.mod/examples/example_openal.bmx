@@ -12,7 +12,7 @@ Import BRL.GLMax2D
 ' create a player
 Local player:TGMEPlayer = GetGMEPlayer()
 ' load some music
-player.LoadFile("test.nsf", 44100)
+player.LoadFile("Milkrace.ay", 44100)
 
 
 ' hopefully, everything loaded okay.
@@ -30,7 +30,7 @@ player.Play(currentTrack)
 
 
 Local playing:Int = True
-
+Local info:TGMETrackInfo = player.GetTrackInfo(currentTrack)
 	
 Graphics 640, 480, 0
 
@@ -39,6 +39,10 @@ Graphics 640, 480, 0
 While Not KeyDown(key_escape)
 
 	player.Update()
+	
+	If playing And player.TrackEnded() Then
+		playing = False
+	End If
 
 	If KeyHit(KEY_UP) Then
 		currentTrack:+ 1
@@ -48,6 +52,8 @@ While Not KeyDown(key_escape)
 		
 		player.Play(currentTrack)
 		
+		info = player.GetTrackInfo(currentTrack)
+		
 	Else If KeyHit(KEY_DOWN) Then
 		currentTrack:- 1
 		If currentTrack < 0 Then
@@ -55,6 +61,9 @@ While Not KeyDown(key_escape)
 		End If
 
 		player.Play(currentTrack)
+
+		info = player.GetTrackInfo(currentTrack)
+
 	ElseIf KeyDown(KEY_EQUALS) Then
 		Local vol:Float = player.GetVolume()
 		vol:+ 0.01
@@ -75,7 +84,11 @@ While Not KeyDown(key_escape)
 		If playing Then
 			player.Pause()
 		Else
-			player.Resume()
+			If player.TrackEnded() Then
+				player.Play(currentTrack)
+			Else
+				player.Resume()
+			End If
 		End If
 		playing = Not playing
 	End If
@@ -92,10 +105,25 @@ While Not KeyDown(key_escape)
 		If playing Then
 			DrawText "(Playing)", 30, 100
 		Else
-			DrawText "(Paused)", 30, 100
+			If player.TrackEnded() Then
+				DrawText "(Finished)", 30, 100
+			Else
+				DrawText "(Paused)", 30, 100
+			End If
 		End If
 		
 		DrawText "Volume : " + player.GetVolume(), 30, 130
+		
+		If info Then
+			DrawText "Info :", 30, 180
+			DrawText "System    :  " + info.System(), 60, 200
+			DrawText "Game      :  " + info.Game(), 60, 215
+			DrawText "Song      :  " + info.Song(), 60, 230
+			DrawText "Author    :  " + info.Author(), 60, 245
+			DrawText "Copyright :  " + info.Copyright(), 60, 260
+			DrawText "Comment   :  " + info.Comment(), 60, 275
+			DrawText "Dumper    :  " + info.Dumper(), 60, 290
+		End If
 	Flip
 	
 Wend

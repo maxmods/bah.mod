@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2009 Bruce A Henderson
+  Copyright (c) 2008-2013 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,16 @@ extern "C" {
 	void bmx_gme_set_tempo(MaxMusicEmu * emu, double tempo);
 	void bmx_gme_mute_voice(MaxMusicEmu * emu, int index, int mute);
 	void bmx_gme_mute_voices(MaxMusicEmu * emu, int mutingMask);
+	BBString * bmx_gme_get_trackinfo(MaxMusicEmu * emu, gme_info_t ** info, int track);
+
+	BBString * bmx_gme_trackinfo_system(gme_info_t * info);
+	BBString * bmx_gme_trackinfo_game(gme_info_t * info);
+	BBString * bmx_gme_trackinfo_song(gme_info_t * info);
+	BBString * bmx_gme_trackinfo_author(gme_info_t * info);
+	BBString * bmx_gme_trackinfo_copyright(gme_info_t * info);
+	BBString * bmx_gme_trackinfo_comment(gme_info_t * info);
+	BBString * bmx_gme_trackinfo_dumper(gme_info_t * info);
+	void bmx_gme_trackinfo_free(gme_info_t * info);
 
 }
 
@@ -58,5 +68,6 @@ public:
 	~MaxMusicEmu();
 	
 	Music_Emu * emu;
+
 };
 
