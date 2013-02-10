@@ -21,7 +21,6 @@ Local isMod:Int = False
 
 ' rocking!
 Local url:String = "http://www.sky.fm/mp3/soundtracks.pls"
-'Local url:String = "http://194.158.114.68:5000"
 
 Local syncData:TBassSyncData = New TBassSyncData
 
