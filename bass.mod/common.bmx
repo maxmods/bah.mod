@@ -146,7 +146,7 @@ End Extern
 
 ?win32
 Extern "win32"
-?macos
+?Not win32
 Extern
 ?
 	Function BASS_Init:Int(device:Int, freq:Int, flags:Int, win:Byte Ptr, clsid:Byte Ptr)
