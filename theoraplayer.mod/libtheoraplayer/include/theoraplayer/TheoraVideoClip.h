@@ -10,6 +10,10 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #ifndef _TheoraVideoClip_h
 #define _TheoraVideoClip_h
 
+#ifdef _WIN32
+#include <string.h> // BaH
+#endif
+
 #include <string>
 #include "TheoraExport.h"
 
