@@ -35,6 +35,7 @@ ModuleInfo "Copyright: GME - Shay Green, http://www.fly.net/~~ant/libs/audio.htm
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to GME 0.5.5"
 ModuleInfo "History: Added GetTrackInfo() method for track information."
+ModuleInfo "History: Removed creation of extra Emu object for incbin'd tracks."
 ModuleInfo "History: 1.00 Initial Release"
 
 ?macos
@@ -74,13 +75,15 @@ Type TMusicEmu
 	bbdoc: Creates an instance of TMusicEmu for the provided audio file, to playback at the given @sampleRate.
 	End Rem
 	Function Create:TMusicEmu(file:String, sampleRate:Int)
-		Local this:TMusicEmu = New TMusicEmu
-		this.emuPtr = _driver.GetEmu()
+		Local this:TMusicEmu
 		
 		Local err:String
 		Local i:Int = file.Find( "::",0 )
 		' a "normal" filename?
 		If i = -1 Then
+			this = New TMusicEmu
+			this.emuPtr = _driver.GetEmu()
+
 			err = bmx_gme_open_file(this.emuPtr, file, sampleRate)
 		Else
 			Local proto:String = file[..i].ToLower()
