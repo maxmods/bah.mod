@@ -40,6 +40,7 @@ class GMEBASS : public MaxMusicEmu
 {
 public:
 	GMEBASS()
+		: MaxMusicEmu()
 	{
 	}
 	

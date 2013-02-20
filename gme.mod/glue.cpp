@@ -23,6 +23,7 @@
 #include "glue.h"
 
 MaxMusicEmu::MaxMusicEmu()
+	: emu(0)
 {
 }
 	
