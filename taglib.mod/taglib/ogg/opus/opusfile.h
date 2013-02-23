@@ -1,5 +1,5 @@
 /***************************************************************************
-    copyright            : (C) 2006 by Lukáš Lalinský
+    copyright            : (C) 2012 by Lukáš Lalinský
     email                : lalinsky@gmail.com
 
     copyright            : (C) 2002 - 2008 by Scott Wheeler
@@ -27,36 +27,36 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#ifndef TAGLIB_SPEEXFILE_H
-#define TAGLIB_SPEEXFILE_H
+#ifndef TAGLIB_OPUSFILE_H
+#define TAGLIB_OPUSFILE_H
 
 #include "oggfile.h"
 #include "xiphcomment.h"
 
-#include "speexproperties.h"
+#include "opusproperties.h"
 
 namespace TagLib {
 
   namespace Ogg {
 
-    //! A namespace containing classes for Speex metadata
+    //! A namespace containing classes for Opus metadata
 
-    namespace Speex {
+    namespace Opus {
 
-      //! An implementation of Ogg::File with Speex specific methods
+      //! An implementation of Ogg::File with Opus specific methods
 
       /*!
-       * This is the central class in the Ogg Speex metadata processing collection
+       * This is the central class in the Ogg Opus metadata processing collection
        * of classes.  It's built upon Ogg::File which handles processing of the Ogg
        * logical bitstream and breaking it down into pages which are handled by
-       * the codec implementations, in this case Speex specifically.
+       * the codec implementations, in this case Opus specifically.
        */
 
       class TAGLIB_EXPORT File : public Ogg::File
       {
       public:
         /*!
-         * Contructs a Speex file from \a file.  If \a readProperties is true the
+         * Contructs a Opus file from \a file.  If \a readProperties is true the
          * file's audio properties will also be read using \a propertiesStyle.  If
          * false, \a propertiesStyle is ignored.
          */
@@ -64,7 +64,7 @@ namespace TagLib {
              Properties::ReadStyle propertiesStyle = Properties::Average);
 
         /*!
-         * Contructs a Speex file from \a file.  If \a readProperties is true the
+         * Contructs a Opus file from \a file.  If \a readProperties is true the
          * file's audio properties will also be read using \a propertiesStyle.  If
          * false, \a propertiesStyle is ignored.
          *
@@ -99,12 +99,10 @@ namespace TagLib {
         PropertyMap setProperties(const PropertyMap &);
 
         /*!
-         * Returns the Speex::Properties for this file.  If no audio properties
+         * Returns the Opus::Properties for this file.  If no audio properties
          * were read then this will return a null pointer.
          */
         virtual Properties *audioProperties() const;
-
-
 
         virtual bool save();
 

@@ -36,6 +36,7 @@
 #include <mp4tag.h>
 #include <tpropertymap.h>
 #include <apetag.h>
+#include <flacfile.h>
 
 class MaxID3v2FrameList;
 class MaxMP4ItemListMap;
@@ -44,6 +45,7 @@ class MaxByteVector;
 class MaxOggFieldListMap;
 class MaxPropertyMap;
 class MaxAPEItemListMap;
+class MaxFLACPictureList;
 
 extern "C" {
 
@@ -66,11 +68,13 @@ extern "C" {
 	BBObject * _bah_taglib_TTLMP4CoverArt__create(const TagLib::MP4::CoverArt * art);
 
 	BBObject * _bah_taglib_TTLAPEItem__create(const TagLib::APE::Item * item);
+
+	BBObject * _bah_taglib_TTLFLACPicture__create(const TagLib::FLAC::Picture * picture);
 	
 	BBObject * getID3v2Header(TagLib::ID3v2::Header * header);
 	BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header);
 	
-	TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, int readAudioProperties, TagLib::AudioProperties::ReadStyle audioPropertiesStyle);
+	TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, int readAudioProperties, int audioPropertiesStyle);
 	TagLib::Tag * bmx_taglib_fileref_tag(TagLib::FileRef * ref);
 	TagLib::AudioProperties * bmx_taglib_fileref_audioproperties(TagLib::FileRef * ref);
 	void bmx_taglib_fileref_delete(TagLib::FileRef * ref);
@@ -106,7 +110,10 @@ extern "C" {
 	int bmx_taglib_mpegproperties_iscopyrighted(TagLib::MPEG::Header * header);
 	int bmx_taglib_mpegproperties_isoriginal(TagLib::MPEG::Header * header);
 
-	TagLib::MPEG::File * bmx_taglib_mpegfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle);
+	int bmx_taglib_file_readonly(TagLib::File * file);
+	MaxPropertyMap * bmx_taglib_file_properties(TagLib::File * file);
+
+	TagLib::MPEG::File * bmx_taglib_mpegfile_create(BBString * filename, int readProperties, int propertiesStyle);
 	void bmx_taglib_mpegfile_free(TagLib::MPEG::File * file);
 	TagLib::MPEG::Properties * bmx_taglib_mpegfile_audioproperties(TagLib::MPEG::File * file);
 	int bmx_taglib_mpegfile_save(TagLib::MPEG::File * file);
@@ -147,7 +154,7 @@ extern "C" {
 	int bmx_taglib_file_isreadable(BBString * file);
 	int bmx_taglib_file_iswritable(BBString * name);
 
-	TagLib::Ogg::Vorbis::File * bmx_taglib_oggvorbisfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle);
+	TagLib::Ogg::Vorbis::File * bmx_taglib_oggvorbisfile_create(BBString * filename, int readProperties, int propertiesStyle);
 	void bmx_taglib_oggvorbisfile_free(TagLib::Ogg::Vorbis::File * file);
 	TagLib::Vorbis::Properties * bmx_taglib_oggvorbisfile_audioproperties(TagLib::Ogg::Vorbis::File * file);
 	int bmx_taglib_oggvorbisfile_save(TagLib::Ogg::Vorbis::File * file);
@@ -209,7 +216,7 @@ extern "C" {
 	void bmx_taglib_id3v2commentsframe_setdescription(TagLib::ID3v2::CommentsFrame * frame, BBString * description);
 	void bmx_taglib_id3v2commentsframe_settext(TagLib::ID3v2::CommentsFrame * frame, BBString * text);
 
-	TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle);
+	TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readProperties, int propertiesStyle);
 	TagLib::MP4::Properties * bmx_taglib_mp4file_audioproperties(TagLib::MP4::File * file);
 	int bmx_taglib_mp4file_save(TagLib::MP4::File * file);
 	TagLib::MP4::Tag * bmx_taglib_mp4file_tag(TagLib::MP4::File * file);
@@ -267,6 +274,45 @@ extern "C" {
 	BBArray * bmx_taglib_apeitem_values(TagLib::APE::Item * item);
 	int bmx_taglib_apeitem_isreadonly(TagLib::APE::Item * item);
 	int bmx_taglib_apeitem_isempty(TagLib::APE::Item * item);
+
+	TagLib::FLAC::File * bmx_taglib_flacfile_create(BBString * filename, int readProperties, int propertiesStyle);
+	void bmx_taglib_flacfile_free(TagLib::FLAC::File * file);
+	TagLib::FLAC::Properties * bmx_taglib_flacfile_audioproperties(TagLib::FLAC::File * file);
+	int bmx_taglib_flacfile_save(TagLib::FLAC::File * file);
+	TagLib::ID3v2::Tag * bmx_taglib_flacfile_id3v2tag(TagLib::FLAC::File * file, int create);
+	TagLib::ID3v1::Tag * bmx_taglib_flacfile_id3v1tag(TagLib::FLAC::File * file, int create);
+	MaxFLACPictureList * bmx_taglib_flacfile_picturelist(TagLib::FLAC::File * file);
+	void bmx_taglib_flacfile_removepictures(TagLib::FLAC::File * file);
+	void bmx_taglib_flacfile_addpicture(TagLib::FLAC::File * file, TagLib::FLAC::Picture * picture);
+	TagLib::Ogg::XiphComment * bmx_taglib_flacfile_xiphcomment(TagLib::FLAC::File * file, int create);
+
+	int bmx_taglib_flacproperties_samplewidth(TagLib::FLAC::Properties * properties);
+	void bmx_taglib_flacproperties_sampleframes(TagLib::FLAC::Properties * properties, BBInt64 * frames);
+	MaxByteVector * bmx_taglib_flacproperties_signature(TagLib::FLAC::Properties * properties);
+
+	BBObject * bmx_taglib_flacpicturelist_picture(MaxFLACPictureList * list, int index);
+	int bmx_taglib_flacpicturelist_isempty(MaxFLACPictureList * list);
+	int bmx_taglib_flacpicturelist_size(MaxFLACPictureList * list);
+	void bmx_taglib_flacpicturelist_reset(MaxFLACPictureList * list);
+	void bmx_taglib_flacpicturelist_free(MaxFLACPictureList * list);
+	BBObject * bmx_taglib_flacpicturelist_nextitem(MaxFLACPictureList * list);
+
+	int bmx_taglib_flacpicture_colordepth(TagLib::FLAC::Picture * pic);
+	MaxByteVector * bmx_taglib_flacpicture_data(TagLib::FLAC::Picture * pic);
+	BBString * bmx_taglib_flacpicture_description(TagLib::FLAC::Picture * pic);
+	int bmx_taglib_flacpicture_height(TagLib::FLAC::Picture * pic);
+	BBString * bmx_taglib_flacpicture_mimetype(TagLib::FLAC::Picture * pic);
+	int bmx_taglib_flacpicture_numcolors(TagLib::FLAC::Picture * pic);
+	void bmx_taglib_flacpicture_setcolordepth(TagLib::FLAC::Picture * pic, int depth);
+	void bmx_taglib_flacpicture_setdata(TagLib::FLAC::Picture * pic, MaxByteVector * data);
+	void bmx_taglib_flacpicture_setdescription(TagLib::FLAC::Picture * pic, BBString * desc);
+	void bmx_taglib_flacpicture_setheight(TagLib::FLAC::Picture * pic, int height);
+	void bmx_taglib_flacpicture_setmimetype(TagLib::FLAC::Picture * pic, BBString * mimeType);
+	void bmx_taglib_flacpicture_setnumcolors(TagLib::FLAC::Picture * pic, int numColors);
+	void bmx_taglib_flacpicture_settype(TagLib::FLAC::Picture * pic, int pictureType);
+	void bmx_taglib_flacpicture_setwidth(TagLib::FLAC::Picture * pic, int w);
+	int bmx_taglib_flacpicture_picturetype(TagLib::FLAC::Picture * pic);
+	int bmx_taglib_flacpicture_width(TagLib::FLAC::Picture * pic);
 
 }
 
@@ -509,6 +555,42 @@ private:
 
 // ****************************************
 
+class MaxFLACPictureList
+{
+public:
+	MaxFLACPictureList(const TagLib::List<TagLib::FLAC::Picture *> & p)
+		: pictureList(p)
+	{
+		it = pictureList.begin();
+	}
+	
+	~MaxFLACPictureList()
+	{
+	}
+	
+	BBObject * nextItem() {
+		if (it != pictureList.end()) {
+			return _bah_taglib_TTLFLACPicture__create(*it++);
+		} else {
+			return &bbNullObject;
+		}
+	}
+	
+	void reset() {
+		it = pictureList.begin();
+	}
+	
+	TagLib::List<TagLib::FLAC::Picture *> & List() {
+		return pictureList;
+	}
+
+private:
+	TagLib::List<TagLib::FLAC::Picture *> pictureList;
+	TagLib::List<TagLib::FLAC::Picture *>::ConstIterator it;
+};
+
+// ****************************************
+
 BBObject * getID3v2Header(TagLib::ID3v2::Header * header) {
 
 	if (!header) {
@@ -619,14 +701,14 @@ BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header) {
 
 // ****************************************
 
-TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, int readAudioProperties, TagLib::AudioProperties::ReadStyle audioPropertiesStyle) {
+TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, int readAudioProperties, int audioPropertiesStyle) {
 
 #ifdef WIN32
 	wchar_t * f = (wchar_t*)bbStringToWString(filename);
 #else
 	char * f = bbStringToUTF8String(filename);
 #endif
-	TagLib::FileRef * ref = new TagLib::FileRef(f, static_cast<bool>(readAudioProperties), audioPropertiesStyle);
+	TagLib::FileRef * ref = new TagLib::FileRef(f, static_cast<bool>(readAudioProperties), static_cast<TagLib::AudioProperties::ReadStyle >(audioPropertiesStyle));
 	bbMemFree(f);
 	
 	return ref;
@@ -791,7 +873,17 @@ int bmx_taglib_mpegproperties_isoriginal(TagLib::MPEG::Header * header) {
 
 // ****************************************
 
-TagLib::MPEG::File * bmx_taglib_mpegfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle) {
+int bmx_taglib_file_readonly(TagLib::File * file) {
+	return static_cast<int>(file->readOnly());
+}
+
+MaxPropertyMap * bmx_taglib_file_properties(TagLib::File * file) {
+	return new MaxPropertyMap(file->properties());
+}
+
+// ****************************************
+
+TagLib::MPEG::File * bmx_taglib_mpegfile_create(BBString * filename, int readProperties, int propertiesStyle) {
 
 #ifdef WIN32
 	wchar_t * f = (wchar_t*)bbStringToWString(filename);
@@ -799,7 +891,7 @@ TagLib::MPEG::File * bmx_taglib_mpegfile_create(BBString * filename, int readPro
 	char * f = bbStringToUTF8String(filename);
 #endif
 
-	TagLib::MPEG::File * file = new TagLib::MPEG::File(f, static_cast<bool>(readProperties), propertiesStyle);
+	TagLib::MPEG::File * file = new TagLib::MPEG::File(f, static_cast<bool>(readProperties), static_cast<TagLib::AudioProperties::ReadStyle >(propertiesStyle));
 	bbMemFree(f);
 	
 	return file;
@@ -936,7 +1028,7 @@ int bmx_taglib_file_iswritable(BBString * name) {
 
 // ****************************************
 
-TagLib::Ogg::Vorbis::File * bmx_taglib_oggvorbisfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle) {
+TagLib::Ogg::Vorbis::File * bmx_taglib_oggvorbisfile_create(BBString * filename, int readProperties, int propertiesStyle) {
 
 #ifdef WIN32
 	wchar_t * f = (wchar_t*)bbStringToWString(filename);
@@ -944,7 +1036,7 @@ TagLib::Ogg::Vorbis::File * bmx_taglib_oggvorbisfile_create(BBString * filename,
 	char * f = bbStringToUTF8String(filename);
 #endif
 
-	TagLib::Ogg::Vorbis::File * file = new TagLib::Ogg::Vorbis::File(f, static_cast<bool>(readProperties), propertiesStyle);
+	TagLib::Ogg::Vorbis::File * file = new TagLib::Ogg::Vorbis::File(f, static_cast<bool>(readProperties), static_cast<TagLib::AudioProperties::ReadStyle >(propertiesStyle));
 	bbMemFree(f);
 	
 	return file;
@@ -1184,7 +1276,7 @@ void bmx_taglib_id3v2commentsframe_settext(TagLib::ID3v2::CommentsFrame * frame,
 
 // ****************************************
 
-TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle) {
+TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readProperties, int propertiesStyle) {
 
 
 #ifdef WIN32
@@ -1193,7 +1285,7 @@ TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readPrope
 	char * f = bbStringToUTF8String(filename);
 #endif
 
-	TagLib::MP4::File * file = new TagLib::MP4::File(f, static_cast<bool>(readProperties), propertiesStyle);
+	TagLib::MP4::File * file = new TagLib::MP4::File(f, static_cast<bool>(readProperties), static_cast<TagLib::AudioProperties::ReadStyle >(propertiesStyle));
 	bbMemFree(f);
 	
 	return file;
@@ -1585,3 +1677,169 @@ int bmx_taglib_apeitem_isempty(TagLib::APE::Item * item) {
 	return item->isEmpty();
 }
 
+// ****************************************
+
+TagLib::FLAC::File * bmx_taglib_flacfile_create(BBString * filename, int readProperties, int propertiesStyle) {
+#ifdef WIN32
+	wchar_t * f = (wchar_t*)bbStringToWString(filename);
+#else
+	char * f = bbStringToUTF8String(filename);
+#endif
+
+	TagLib::FLAC::File * file = new TagLib::FLAC::File(f, static_cast<bool>(readProperties), static_cast<TagLib::AudioProperties::ReadStyle >(propertiesStyle));
+	bbMemFree(f);
+	
+	return file;
+}
+
+void bmx_taglib_flacfile_free(TagLib::FLAC::File * file) {
+	delete file;
+}
+
+TagLib::FLAC::Properties * bmx_taglib_flacfile_audioproperties(TagLib::FLAC::File * file) {
+	return file->audioProperties();
+}
+
+int bmx_taglib_flacfile_save(TagLib::FLAC::File * file) {
+	return static_cast<int>(file->save());
+}
+
+TagLib::ID3v2::Tag * bmx_taglib_flacfile_id3v2tag(TagLib::FLAC::File * file, int create) {
+	return file->ID3v2Tag(static_cast<bool>(create));
+}
+
+TagLib::ID3v1::Tag * bmx_taglib_flacfile_id3v1tag(TagLib::FLAC::File * file, int create) {
+	return file->ID3v1Tag(static_cast<bool>(create));
+}
+
+MaxFLACPictureList * bmx_taglib_flacfile_picturelist(TagLib::FLAC::File * file) {
+
+}
+
+void bmx_taglib_flacfile_removepictures(TagLib::FLAC::File * file) {
+	file->removePictures();
+}
+
+void bmx_taglib_flacfile_addpicture(TagLib::FLAC::File * file, TagLib::FLAC::Picture * picture) {
+	file->addPicture(picture);
+}
+
+TagLib::Ogg::XiphComment * bmx_taglib_flacfile_xiphcomment(TagLib::FLAC::File * file, int create) {
+	return file->xiphComment(static_cast<bool>(create));
+}
+
+// ****************************************
+
+int bmx_taglib_flacproperties_samplewidth(TagLib::FLAC::Properties * properties) {
+	return properties->sampleWidth();
+}
+
+void bmx_taglib_flacproperties_sampleframes(TagLib::FLAC::Properties * properties, BBInt64 * frames) {
+	*frames = static_cast<BBInt64>(properties->sampleFrames());
+}
+
+MaxByteVector * bmx_taglib_flacproperties_signature(TagLib::FLAC::Properties * properties) {
+	return new MaxByteVector(properties->signature());
+}
+
+// ****************************************
+
+BBObject * bmx_taglib_flacpicturelist_picture(MaxFLACPictureList * list, int index) {
+	return _bah_taglib_TTLFLACPicture__create(list->List()[index]);
+}
+
+int bmx_taglib_flacpicturelist_isempty(MaxFLACPictureList * list) {
+	return static_cast<int>(list->List().isEmpty());
+}
+
+int bmx_taglib_flacpicturelist_size(MaxFLACPictureList * list) {
+	return list->List().size();
+}
+
+void bmx_taglib_flacpicturelist_reset(MaxFLACPictureList * list) {
+	list->reset();
+}
+
+void bmx_taglib_flacpicturelist_free(MaxFLACPictureList * list) {
+	delete list;
+}
+
+BBObject * bmx_taglib_flacpicturelist_nextitem(MaxFLACPictureList * list) {
+	return list->nextItem();
+}
+
+// ****************************************
+
+int bmx_taglib_flacpicture_colordepth(TagLib::FLAC::Picture * pic) {
+	return pic->colorDepth();
+}
+
+MaxByteVector * bmx_taglib_flacpicture_data(TagLib::FLAC::Picture * pic) {
+	return new MaxByteVector(pic->data());
+}
+
+BBString * bmx_taglib_flacpicture_description(TagLib::FLAC::Picture * pic) {
+	return bbStringFromUTF8String(pic->description().toCString(true));
+}
+
+int bmx_taglib_flacpicture_height(TagLib::FLAC::Picture * pic) {
+	return pic->height();
+}
+
+BBString * bmx_taglib_flacpicture_mimetype(TagLib::FLAC::Picture * pic) {
+	return bbStringFromUTF8String(pic->mimeType().toCString(true));
+}
+
+int bmx_taglib_flacpicture_numcolors(TagLib::FLAC::Picture * pic) {
+	return pic->numColors();
+}
+
+void bmx_taglib_flacpicture_setcolordepth(TagLib::FLAC::Picture * pic, int depth) {
+	pic->setColorDepth(depth);
+}
+
+void bmx_taglib_flacpicture_setdata(TagLib::FLAC::Picture * pic, MaxByteVector * data) {
+	pic->setData(data->Vector());
+}
+
+void bmx_taglib_flacpicture_setdescription(TagLib::FLAC::Picture * pic, BBString * desc) {
+	char * t = 0;
+	if (desc != &bbEmptyString) {
+		t = bbStringToUTF8String(desc);
+	}
+	pic->setDescription((t) ? TagLib::String(t, TagLib::String::UTF8) : TagLib::String::null);
+	if (t) bbMemFree(t);
+}
+
+void bmx_taglib_flacpicture_setheight(TagLib::FLAC::Picture * pic, int height) {
+	pic->setHeight(height);
+}
+
+void bmx_taglib_flacpicture_setmimetype(TagLib::FLAC::Picture * pic, BBString * mimeType) {
+	char * t = 0;
+	if (mimeType != &bbEmptyString) {
+		t = bbStringToUTF8String(mimeType);
+	}
+	pic->setMimeType((t) ? TagLib::String(t, TagLib::String::UTF8) : TagLib::String::null);
+	if (t) bbMemFree(t);
+}
+
+void bmx_taglib_flacpicture_setnumcolors(TagLib::FLAC::Picture * pic, int numColors) {
+	pic->setNumColors(numColors);
+}
+
+void bmx_taglib_flacpicture_settype(TagLib::FLAC::Picture * pic, int pictureType) {
+	pic->setType(static_cast<TagLib::FLAC::Picture::Type>(pictureType));
+}
+
+void bmx_taglib_flacpicture_setwidth(TagLib::FLAC::Picture * pic, int w) {
+	pic->setWidth(w);
+}
+
+int bmx_taglib_flacpicture_picturetype(TagLib::FLAC::Picture * pic) {
+	return static_cast<int>(pic->type());
+}
+
+int bmx_taglib_flacpicture_width(TagLib::FLAC::Picture * pic) {
+	return pic->width();
+}

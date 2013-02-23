@@ -59,6 +59,9 @@ Extern
 	Function bmx_taglib_mpegproperties_channelmode:Int(handle:Byte Ptr)
 	Function bmx_taglib_mpegproperties_iscopyrighted:Int(handle:Byte Ptr)
 	Function bmx_taglib_mpegproperties_isoriginal:Int(handle:Byte Ptr)
+	
+	Function bmx_taglib_file_readonly:Int(handle:Byte Ptr)
+	Function bmx_taglib_file_properties:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_taglib_mpegfile_create:Byte Ptr(filename:String, readProperties:Int, propertiesStyle:Int)
 	Function bmx_taglib_mpegfile_free(handle:Byte Ptr)
@@ -221,6 +224,45 @@ Extern
 	Function bmx_taglib_apeitem_values:String[](handle:Byte Ptr)
 	Function bmx_taglib_apeitem_isreadonly:Int(handle:Byte Ptr)
 	Function bmx_taglib_apeitem_isempty:Int(handle:Byte Ptr)
+
+	Function bmx_taglib_flacfile_create:Byte Ptr(filename:String, readProperties:Int, propertiesStyle:Int)
+	Function bmx_taglib_flacfile_free(handle:Byte Ptr)
+	Function bmx_taglib_flacfile_audioproperties:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_flacfile_save:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacfile_id3v2tag:Byte Ptr(handle:Byte Ptr, _create:Int)
+	Function bmx_taglib_flacfile_id3v1tag:Byte Ptr(handle:Byte Ptr, _create:Int)
+	Function bmx_taglib_flacfile_picturelist:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_flacfile_removepictures(handle:Byte Ptr)
+	Function bmx_taglib_flacfile_addpicture(handle:Byte Ptr, picture:Byte Ptr)
+	Function bmx_taglib_flacfile_xiphcomment:Byte Ptr(handle:Byte Ptr, _create:Int)
+
+	Function bmx_taglib_flacproperties_samplewidth:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacproperties_sampleframes(handle:Byte Ptr, frames:Long Ptr)
+	Function bmx_taglib_flacproperties_signature:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_taglib_flacpicturelist_picture:Object(handle:Byte Ptr, index:Int)
+	Function bmx_taglib_flacpicturelist_isempty:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacpicturelist_size:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacpicturelist_reset(handle:Byte Ptr)
+	Function bmx_taglib_flacpicturelist_free(handle:Byte Ptr)
+	Function bmx_taglib_flacpicturelist_nextitem:Object(handle:Byte Ptr)
+
+	Function bmx_taglib_flacpicture_colordepth:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacpicture_data:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_flacpicture_description:String(handle:Byte Ptr)
+	Function bmx_taglib_flacpicture_height:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacpicture_mimetype:String(handle:Byte Ptr)
+	Function bmx_taglib_flacpicture_numcolors:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacpicture_setcolordepth(handle:Byte Ptr, depth:Int)
+	Function bmx_taglib_flacpicture_setdata(handle:Byte Ptr, data:Byte Ptr)
+	Function bmx_taglib_flacpicture_setdescription(handle:Byte Ptr, desc:String)
+	Function bmx_taglib_flacpicture_setheight(handle:Byte Ptr, height:Int)
+	Function bmx_taglib_flacpicture_setmimetype(handle:Byte Ptr, mimeType:String)
+	Function bmx_taglib_flacpicture_setnumcolors(handle:Byte Ptr, numColors:Int)
+	Function bmx_taglib_flacpicture_settype(handle:Byte Ptr, pictureType:Int)
+	Function bmx_taglib_flacpicture_setwidth(handle:Byte Ptr, w:Int)
+	Function bmx_taglib_flacpicture_picturetype:Int(handle:Byte Ptr)
+	Function bmx_taglib_flacpicture_width:Int(handle:Byte Ptr)
 
 End Extern
 

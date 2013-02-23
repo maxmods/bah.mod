@@ -32,6 +32,7 @@ Import "taglib/mpc/*.h"
 Import "taglib/mp4/*.h"
 Import "taglib/ogg/vorbis/*.h"
 Import "taglib/ogg/speex/*.h"
+Import "taglib/ogg/opus/*.h"
 Import "taglib/mpeg/id3v2/*.h"
 Import "taglib/mpeg/id3v2/frames/*.h"
 Import "taglib/mpeg/id3v1/*.h"
@@ -129,11 +130,15 @@ Import "taglib/ogg/speex/speexproperties.cpp"
 Import "taglib/ogg/vorbis/vorbisfile.cpp"
 Import "taglib/ogg/vorbis/vorbisproperties.cpp"
 
+Import "taglib/ogg/opus/opusfile.cpp"
+Import "taglib/ogg/opus/opusproperties.cpp"
+
 Import "taglib/riff/rifffile.cpp"
 
 Import "taglib/riff/aiff/aifffile.cpp"
 Import "taglib/riff/aiff/aiffproperties.cpp"
 
+Import "taglib/riff/wav/infotag.cpp"
 Import "taglib/riff/wav/wavfile.cpp"
 Import "taglib/riff/wav/wavproperties.cpp"
 

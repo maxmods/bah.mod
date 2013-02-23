@@ -1,6 +1,10 @@
 /***************************************************************************
-    copyright            : (C) 2008 by Scott Wheeler
+    copyright            : (C) 2012 by Lukáš Lalinský
+    email                : lalinsky@gmail.com
+
+    copyright            : (C) 2002 - 2008 by Scott Wheeler
     email                : wheeler@kde.org
+                           (original Vorbis implementation)
  ***************************************************************************/
 
 /***************************************************************************
@@ -23,121 +27,111 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <tbytevector.h>
+#include <bitset>
+
+#include <tstring.h>
 #include <tdebug.h>
-#include <id3v2tag.h>
-#include <tstringlist.h>
 #include <tpropertymap.h>
 
-#include "aifffile.h"
+#include "opusfile.h"
 
 using namespace TagLib;
+using namespace TagLib::Ogg;
 
-class RIFF::AIFF::File::FilePrivate
+class Opus::File::FilePrivate
 {
 public:
   FilePrivate() :
-    properties(0),
-    tag(0),
-    tagChunkID("ID3 ")
-  {
-
-  }
+    comment(0),
+    properties(0) {}
 
   ~FilePrivate()
   {
+    delete comment;
     delete properties;
-    delete tag;
   }
 
+  Ogg::XiphComment *comment;
   Properties *properties;
-  ID3v2::Tag *tag;
-  ByteVector tagChunkID;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // public members
 ////////////////////////////////////////////////////////////////////////////////
 
-RIFF::AIFF::File::File(FileName file, bool readProperties,
-                       Properties::ReadStyle propertiesStyle) : RIFF::File(file, BigEndian)
+Opus::File::File(FileName file, bool readProperties,
+                   Properties::ReadStyle propertiesStyle) : Ogg::File(file)
 {
   d = new FilePrivate;
-  if(isOpen())
-    read(readProperties, propertiesStyle);
+  read(readProperties, propertiesStyle);
 }
 
-RIFF::AIFF::File::File(IOStream *stream, bool readProperties,
-                       Properties::ReadStyle propertiesStyle) : RIFF::File(stream, BigEndian)
+Opus::File::File(IOStream *stream, bool readProperties,
+                   Properties::ReadStyle propertiesStyle) : Ogg::File(stream)
 {
   d = new FilePrivate;
-  if(isOpen())
-    read(readProperties, propertiesStyle);
+  read(readProperties, propertiesStyle);
 }
 
-RIFF::AIFF::File::~File()
+Opus::File::~File()
 {
   delete d;
 }
 
-ID3v2::Tag *RIFF::AIFF::File::tag() const
+Ogg::XiphComment *Opus::File::tag() const
 {
-  return d->tag;
+  return d->comment;
 }
 
-PropertyMap RIFF::AIFF::File::properties() const
+PropertyMap Opus::File::properties() const
 {
-  return d->tag->properties();
+  return d->comment->properties();
 }
 
-void RIFF::AIFF::File::removeUnsupportedProperties(const StringList &unsupported)
+PropertyMap Opus::File::setProperties(const PropertyMap &properties)
 {
-  d->tag->removeUnsupportedProperties(unsupported);
+  return d->comment->setProperties(properties);
 }
 
-PropertyMap RIFF::AIFF::File::setProperties(const PropertyMap &properties)
-{
-  return d->tag->setProperties(properties);
-}
-
-
-RIFF::AIFF::Properties *RIFF::AIFF::File::audioProperties() const
+Opus::Properties *Opus::File::audioProperties() const
 {
   return d->properties;
 }
 
-bool RIFF::AIFF::File::save()
+bool Opus::File::save()
 {
-  if(readOnly()) {
-    debug("RIFF::AIFF::File::save() -- File is read only.");
-    return false;
-  }
+  if(!d->comment)
+    d->comment = new Ogg::XiphComment;
 
-  if(!isValid()) {
-    debug("RIFF::AIFF::File::save() -- Trying to save invalid file.");
-    return false;
-  }
+  setPacket(1, ByteVector("OpusTags", 8) + d->comment->render(false));
 
-  setChunkData(d->tagChunkID, d->tag->render());
-
-  return true;
+  return Ogg::File::save();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // private members
 ////////////////////////////////////////////////////////////////////////////////
 
-void RIFF::AIFF::File::read(bool readProperties, Properties::ReadStyle propertiesStyle)
+void Opus::File::read(bool readProperties, Properties::ReadStyle propertiesStyle)
 {
-  for(uint i = 0; i < chunkCount(); i++) {
-    if(chunkName(i) == "ID3 " || chunkName(i) == "id3 ") {
-      d->tagChunkID = chunkName(i);
-      d->tag = new ID3v2::Tag(this, chunkOffset(i));
-    }
-    else if(chunkName(i) == "COMM" && readProperties)
-      d->properties = new Properties(chunkData(i), propertiesStyle);
+  ByteVector opusHeaderData = packet(0);
+
+  if(!opusHeaderData.startsWith("OpusHead")) {
+    setValid(false);
+    debug("Opus::File::read() -- invalid Opus identification header");
+    return;
   }
 
-  if(!d->tag)
-    d->tag = new ID3v2::Tag;
+  ByteVector commentHeaderData = packet(1);
+
+  if(!commentHeaderData.startsWith("OpusTags")) {
+    setValid(false);
+    debug("Opus::File::read() -- invalid Opus tags header");
+    return;
+  }
+
+  d->comment = new Ogg::XiphComment(commentHeaderData.mid(8));
+
+  if(readProperties)
+    d->properties = new Properties(this, propertiesStyle);
 }

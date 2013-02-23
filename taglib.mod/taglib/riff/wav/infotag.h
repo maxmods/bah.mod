@@ -23,10 +23,13 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#ifndef TAGLIB_ID3V1TAG_H
-#define TAGLIB_ID3V1TAG_H
+#ifndef TAGLIB_INFOTAG_H
+#define TAGLIB_INFOTAG_H
 
 #include "tag.h"
+#include "tmap.h"
+#include "tstring.h"
+#include "tstringlist.h"
 #include "tbytevector.h"
 #include "taglib_export.h"
 
@@ -34,143 +37,120 @@ namespace TagLib {
 
   class File;
 
-  //! An ID3v1 implementation
+  //! A RIFF Info tag implementation. 
+  namespace RIFF {
+  namespace Info {
 
-  namespace ID3v1 {
+    typedef Map<ByteVector, String> FieldListMap;
 
-    //! A abstraction for the string to data encoding in ID3v1 tags.
+    //! A abstraction for the string to data encoding in Info tags.
 
     /*!
-     * ID3v1 should in theory always contain ISO-8859-1 (Latin1) data.  In
-     * practice it does not.  TagLib by default only supports ISO-8859-1 data
-     * in ID3v1 tags.
+     * RIFF Info tag has no clear definitions about character encodings.
+     * In practice, local encoding of each system is largely used and UTF-8 is
+     * popular too.
      *
-     * However by subclassing this class and reimplementing parse() and render()
-     * and setting your reimplementation as the default with
-     * ID3v1::Tag::setStringHandler() you can define how you would like these
-     * transformations to be done.
-     *
-     * \warning It is advisable <b>not</b> to write non-ISO-8859-1 data to ID3v1
-     * tags.  Please consider disabling the writing of ID3v1 tags in the case
-     * that the data is not ISO-8859-1.
+     * Here is an option to read and write tags in your preferrd encoding 
+     * by subclassing this class, reimplementing parse() and render() and setting 
+     * your reimplementation as the default with Info::Tag::setStringHandler().
      *
      * \see ID3v1::Tag::setStringHandler()
      */
 
     class TAGLIB_EXPORT StringHandler
     {
-      TAGLIB_IGNORE_MISSING_DESTRUCTOR
     public:
-      // BIC: Add virtual destructor.
       StringHandler();
+      ~StringHandler();
 
       /*!
        * Decode a string from \a data.  The default implementation assumes that
-       * \a data is an ISO-8859-1 (Latin1) character array.
+       * \a data is an UTF-8 character array.
        */
       virtual String parse(const ByteVector &data) const;
 
       /*!
        * Encode a ByteVector with the data from \a s.  The default implementation
-       * assumes that \a s is an ISO-8859-1 (Latin1) string.  If the string is
-       * does not conform to ISO-8859-1, no value is written.
-       *
-       * \warning It is recommended that you <b>not</b> override this method, but
-       * instead do not write an ID3v1 tag in the case that the data is not
-       * ISO-8859-1.
+       * assumes that \a s is an UTF-8 string. 
        */
       virtual ByteVector render(const String &s) const;
     };
 
-    //! The main class in the ID3v1 implementation
+    //! The main class in the ID3v2 implementation
 
     /*!
-     * This is an implementation of the ID3v1 format.  ID3v1 is both the simplist
-     * and most common of tag formats but is rather limited.  Because of its
-     * pervasiveness and the way that applications have been written around the
-     * fields that it provides, the generic TagLib::Tag API is a mirror of what is
-     * provided by ID3v1.
-     *
-     * ID3v1 tags should generally only contain Latin1 information.  However because
-     * many applications do not follow this rule there is now support for overriding
-     * the ID3v1 string handling using the ID3v1::StringHandler class.  Please see
-     * the documentation for that class for more information.
-     *
-     * \see StringHandler
-     *
-     * \note Most fields are truncated to a maximum of 28-30 bytes.  The
-     * truncation happens automatically when the tag is rendered.
+     * This is the main class in the INFO tag implementation.  RIFF INFO tag is a 
+     * metadata format found in WAV audio and AVI video files.  Though it is a part 
+     * of Microsoft/IBM's RIFF specification, the author could not find the official 
+     * documents about it.  So, this implementation is refering to unofficial documents 
+     * online and some applications' behaviors especially Windows Explorer.
      */
-
     class TAGLIB_EXPORT Tag : public TagLib::Tag
     {
     public:
       /*!
-       * Create an ID3v1 tag with default values.
+       * Constructs an empty Info tag.
        */
       Tag();
 
       /*!
-       * Create an ID3v1 tag and parse the data in \a file starting at
-       * \a tagOffset.
+       * Constructs an Info tag read from \a data which is contents of "LIST" chunk.
        */
-      Tag(File *file, long tagOffset);
+      Tag(const ByteVector &data);
 
-      /*!
-       * Destroys this Tag instance.
-       */
       virtual ~Tag();
 
-      /*!
-       * Renders the in memory values to a ByteVector suitable for writing to
-       * the file.
-       */
-      ByteVector render() const;
-
-      /*!
-       * Returns the string "TAG" suitable for usage in locating the tag in a
-       * file.
-       */
-      static ByteVector fileIdentifier();
-
-      // Reimplementations.
+      // Reimplementations
 
       virtual String title() const;
       virtual String artist() const;
       virtual String album() const;
       virtual String comment() const;
       virtual String genre() const;
-      virtual TagLib::uint year() const;
-      virtual TagLib::uint track() const;
+      virtual uint year() const;
+      virtual uint track() const;
 
       virtual void setTitle(const String &s);
       virtual void setArtist(const String &s);
       virtual void setAlbum(const String &s);
       virtual void setComment(const String &s);
       virtual void setGenre(const String &s);
-      virtual void setYear(TagLib::uint i);
-      virtual void setTrack(TagLib::uint i);
+      virtual void setYear(uint i);
+      virtual void setTrack(uint i);
 
-      /*!
-       * Returns the genre in number.
-       *
-       * /note Normally 255 indicates that this tag contains no genre.
+      virtual bool isEmpty() const;
+      /*
+       * Gets the value of the field with the ID \a id.
        */
-      TagLib::uint genreNumber() const;
+      String fieldText(const ByteVector &id) const;
+        
+      /*
+        * Sets the value of the field with the ID \a id to \a s.
+        * If the field does not exist, it is created.
+        * If \s is empty, the field is removed.
+        *
+        * \note fieldId must be four-byte long pure ascii string.  This function 
+        * performs nothing if fieldId is invalid.
+        */
+      void setFieldText(const ByteVector &id, const String &s);
 
-      /*!
-       * Sets the genre in number to \a i.
-       *
-       * /note Valid value is from 0 up to 255. Normally 255 indicates that
-       * this tag contains no genre.
+      /*
+       * Removes the field with the ID \a id.
        */
-      void setGenreNumber(TagLib::uint i);
+      void removeField(const ByteVector &id);
 
       /*!
-       * Sets the string handler that decides how the ID3v1 data will be
+       * Render the tag back to binary data, suitable to be written to disk.
+       *
+       * \note Returns empty ByteVector is the tag contains no fields. 
+       */
+      ByteVector render() const;
+
+      /*!
+       * Sets the string handler that decides how the text data will be
        * converted to and from binary data.
        * If the parameter \a handler is null, the previous handler is
-       * released and default ISO-8859-1 handler is restored.
+       * released and default UTF-8 handler is restored.
        *
        * \note The caller is responsible for deleting the previous handler
        * as needed after it is released.
@@ -178,16 +158,13 @@ namespace TagLib {
        * \see StringHandler
        */
       static void setStringHandler(const StringHandler *handler);
-
+    
     protected:
-      /*!
-       * Reads from the file specified in the constructor.
-       */
-      void read();
       /*!
        * Pareses the body of the tag in \a data.
        */
       void parse(const ByteVector &data);
+
 
     private:
       Tag(const Tag &);
@@ -196,7 +173,7 @@ namespace TagLib {
       class TagPrivate;
       TagPrivate *d;
     };
-  }
+  }}
 }
 
 #endif
