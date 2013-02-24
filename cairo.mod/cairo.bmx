@@ -29,6 +29,8 @@ ModuleInfo "Copyright: Wrapper - Bruce A Henderson, based on initial work by Dun
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.25"
+ModuleInfo "History: Cairo update to 1.12.14."
+ModuleInfo "History: Pixman update to 0.28.2."
 ModuleInfo "History: Removed direct support for png loading and saving. Fixes issue with 3rd party image loaders."
 ModuleInfo "History: 1.24"
 ModuleInfo "History: Cairo update to 1.10.2."
