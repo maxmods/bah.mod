@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2011 Bruce A Henderson
+' Copyright (c) 2006-2013 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -280,6 +280,19 @@ Extern
 	Function cairo_region_union_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
 	Function cairo_region_xor_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
 	
+	Function cairo_pattern_create_mesh:Byte Ptr()
+	Function cairo_mesh_pattern_begin_patch(patternPtr:Byte Ptr)
+	Function cairo_mesh_pattern_end_patch(patternPtr:Byte Ptr)
+	Function cairo_mesh_pattern_move_to(patternPtr:Byte Ptr, x:Double, y:Double)
+	Function cairo_mesh_pattern_line_to(patternPtr:Byte Ptr, x:Double, y:Double)
+	Function cairo_mesh_pattern_curve_to(patternPtr:Byte Ptr, x1:Double, y1:Double, x2:Double, y2:Double, x3:Double, y3:Double)
+	Function cairo_mesh_pattern_set_control_point(patternPtr:Byte Ptr, pointNum:Int, x:Double, y:Double)
+	Function cairo_mesh_pattern_set_corner_color_rgb(patternPtr:Byte Ptr, cornerNum:Int, red:Double, green:Double, blue:Double)
+	Function cairo_mesh_pattern_set_corner_color_rgba(patternPtr:Byte Ptr, cornerNum:Int, red:Double, green:Double, blue:Double, alpha:Double)
+	Function cairo_mesh_pattern_get_patch_count:Int(patternPtr:Byte Ptr, count:Int Ptr)
+	Function cairo_mesh_pattern_get_path:Byte Ptr(patternPtr:Byte Ptr, patchNum:Int)
+	Function cairo_mesh_pattern_get_control_point:Int(patternPtr:Byte Ptr, patchNum:Int, pointNum:Int, x:Double Ptr, y:Double Ptr)
+	Function cairo_mesh_pattern_get_corner_color_rgba:Int(patternPtr:Byte Ptr, patchNum:Int, cornerNum:Int, red:Double Ptr, green:Double Ptr, blue:Double Ptr, alpha:Double Ptr)
 	'Function cairo_gl_surface_create:Byte Ptr(context:Byte Ptr, content:Int, width:Int, height:Int)
 	'Function bmx_cairo_glcontext_create:Byte Ptr(context:Int)
 	

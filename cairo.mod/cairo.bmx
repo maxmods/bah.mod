@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2011 Bruce A Henderson
+' Copyright (c) 2006-2013 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -31,6 +31,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.25"
 ModuleInfo "History: Cairo update to 1.12.14."
 ModuleInfo "History: Pixman update to 0.28.2."
+ModuleInfo "History: Added TCairoMeshPattern."
 ModuleInfo "History: Removed direct support for png loading and saving. Fixes issue with 3rd party image loaders."
 ModuleInfo "History: 1.24"
 ModuleInfo "History: Cairo update to 1.10.2."
@@ -150,26 +151,162 @@ Const CAIRO_FORMAT_RGB24:Int = 1
 Const CAIRO_FORMAT_A8:Int = 2
 Const CAIRO_FORMAT_A1:Int = 3
 
+Rem
+bbdoc: no error has occurred (Since 1.0)
+End Rem
 Const CAIRO_STATUS_SUCCESS:Int = 0
+Rem
+bbdoc: out of memory (Since 1.0)
+End Rem
 Const CAIRO_STATUS_NO_MEMORY:Int = 1
+Rem
+bbdoc: cairo_restore() called without matching cairo_save() (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_RESTORE:Int = 2
+Rem
+bbdoc: no saved group to pop, i.e. cairo_pop_group() without matching cairo_push_group() (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_POP_GROUP:Int = 3
+Rem
+bbdoc: no current point defined (Since 1.0)
+End Rem
 Const CAIRO_STATUS_NO_CURRENT_POINT:Int = 4
+Rem
+bbdoc: invalid matrix (not invertible) (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_MATRIX:Int = 5
+Rem
+bbdoc: invalid value for an input cairo_status_t (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_STATUS:Int = 6
+Rem
+bbdoc: NULL pointer (Since 1.0)
+End Rem
 Const CAIRO_STATUS_NULL_POINTER:Int = 7
+Rem
+bbdoc: input string not valid UTF-8 (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_STRING:Int = 8
+Rem
+bbdoc: input path data not valid (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_PATH_DATA:Int = 9
+Rem
+bbdoc: error while reading from input stream (Since 1.0)
+End Rem
 Const CAIRO_STATUS_READ_ERROR:Int = 10
+Rem
+bbdoc: error while writing to output stream (Since 1.0)
+End Rem
 Const CAIRO_STATUS_WRITE_ERROR:Int = 11
+Rem
+bbdoc: target surface has been finished (Since 1.0)
+End Rem
 Const CAIRO_STATUS_SURFACE_FINISHED:Int = 12
+Rem
+bbdoc: the surface type is not appropriate for the operation (Since 1.0)
+End Rem
 Const CAIRO_STATUS_SURFACE_TYPE_MISMATCH:Int = 13
+Rem
+bbdoc: the pattern type is not appropriate for the operation (Since 1.0)
+End Rem
 Const CAIRO_STATUS_PATTERN_TYPE_MISMATCH:Int = 14
+Rem
+bbdoc: invalid value for an input cairo_content_t (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_CONTENT:Int = 15
+Rem
+bbdoc: invalid value for an input cairo_format_t (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_FORMAT:Int = 16
+Rem
+bbdoc: invalid value for an input Visual* (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_VISUAL:Int = 17
+Rem
+bbdoc: file not found (Since 1.0)
+End Rem
 Const CAIRO_STATUS_FILE_NOT_FOUND:Int = 18
+Rem
+bbdoc: invalid value for a dash setting (Since 1.0)
+End Rem
 Const CAIRO_STATUS_INVALID_DASH:Int = 19
+Rem
+bbdoc: invalid value for a DSC comment (Since 1.2)
+End Rem
+Const CAIRO_STATUS_INVALID_DSC_COMMENT:Int = 20
+Rem
+bbdoc: invalid index passed to getter (Since 1.4)
+End Rem
+Const CAIRO_STATUS_INVALID_INDEX:Int = 21
+Rem
+bbdoc: clip region not representable in desired format (Since 1.4)
+End Rem
+Const CAIRO_STATUS_CLIP_NOT_REPRESENTABLE:Int = 22
+Rem
+bbdoc: error creating or writing to a temporary file (Since 1.6)
+End Rem
+Const CAIRO_STATUS_TEMP_FILE_ERROR:Int = 23
+Rem
+bbdoc: invalid value for stride (Since 1.6)
+End Rem
+Const CAIRO_STATUS_INVALID_STRIDE:Int = 24
+Rem
+bbdoc: the font type is not appropriate for the operation (Since 1.8)
+End Rem
+Const CAIRO_STATUS_FONT_TYPE_MISMATCH:Int = 25
+Rem
+bbdoc: the user-font is immutable (Since 1.8)
+End Rem
+Const CAIRO_STATUS_USER_FONT_IMMUTABLE:Int = 26
+Rem
+bbdoc: error occurred in a user-font callback function (Since 1.8)
+End Rem
+Const CAIRO_STATUS_USER_FONT_ERROR:Int = 27
+Rem
+bbdoc: negative number used where it is not allowed (Since 1.8)
+End Rem
+Const CAIRO_STATUS_NEGATIVE_COUNT:Int = 28
+Rem
+bbdoc: input clusters do not represent the accompanying text and glyph array (Since 1.8)
+End Rem
+Const CAIRO_STATUS_INVALID_CLUSTERS:Int = 29
+Rem
+bbdoc: invalid value for an input cairo_font_slant_t (Since 1.8)
+End Rem
+Const CAIRO_STATUS_INVALID_SLANT:Int = 30
+Rem
+bbdoc: invalid value for an input cairo_font_weight_t (Since 1.8)
+End Rem
+Const CAIRO_STATUS_INVALID_WEIGHT:Int = 31
+Rem
+bbdoc: invalid value (typically too big) for the size of the input (surface, pattern, etc.) (Since 1.10)
+End Rem
+Const CAIRO_STATUS_INVALID_SIZE:Int = 32
+Rem
+bbdoc: user-font method not implemented (Since 1.10)
+End Rem
+Const CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED:Int = 33
+Rem
+bbdoc: the device type is not appropriate for the operation (Since 1.10)
+End Rem
+Const CAIRO_STATUS_DEVICE_TYPE_MISMATCH:Int = 34
+Rem
+bbdoc: an operation to the device caused an unspecified error (Since 1.10)
+End Rem
+Const CAIRO_STATUS_DEVICE_ERROR:Int = 35
+Rem
+bbdoc: a mesh pattern construction operation was used outside of a cairo_mesh_pattern_begin_patch()/cairo_mesh_pattern_end_patch() pair (Since 1.12)
+End Rem
+Const CAIRO_STATUS_INVALID_MESH_CONSTRUCTION:Int = 36
+Rem
+bbdoc: target device has been finished (Since 1.12)
+End Rem
+Const CAIRO_STATUS_DEVICE_FINISHED:Int = 37
+Rem
+bbdoc: this is a special value indicating the number of status values defined in this enumeration. When using this value, note that the version of cairo at run-time may have additional status values defined than the value of this symbol at compile-time. (Since 1.10)
+End Rem
+Const CAIRO_STATUS_LAST_STATUS:Int = 38
 
 Const CAIRO_ANTIALIAS_DEFAULT:Int = 0
 Const CAIRO_ANTIALIAS_NONE:Int = 1
@@ -188,20 +325,122 @@ Const CAIRO_EXTEND_REPEAT:Int = 1
 Const CAIRO_EXTEND_REFLECT:Int = 2
 Const CAIRO_EXTEND_PAD:Int = 3
 
+Rem
+bbdoc: clear destination layer (bounded) (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_CLEAR:Int = 0
+Rem
+bbdoc: replace destination layer (bounded) (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_SOURCE:Int = 1
+Rem
+bbdoc: draw source layer on top of destination layer (bounded) (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_OVER:Int = 2
+Rem
+bbdoc: draw source where there was destination content (unbounded) (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_IN:Int = 3
+Rem
+bbdoc: draw source where there was no destination content (unbounded) (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_OUT:Int = 4
+Rem
+bbdoc: draw source on top of destination content and only there (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_ATOP:Int = 5
+Rem
+bbdoc: ignore the source (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_DEST:Int = 6
+Rem
+bbdoc: draw destination on top of source (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_DEST_OVER:Int = 7
+Rem
+bbdoc: leave destination only where there was source content (unbounded) (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_DEST_IN:Int = 8
+Rem
+bbdoc: leave destination only where there was no source content (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_DEST_OUT:Int = 9
+Rem
+bbdoc: leave destination on top of source content and only there (unbounded) (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_DEST_ATOP:Int = 10
+Rem
+bbdoc: source and destination are shown where there is only one of them (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_XOR:Int = 11
+Rem
+bbdoc: source and destination layers are accumulated (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_ADD:Int = 12
+Rem
+bbdoc: like over, but assuming source and dest are disjoint geometries (Since 1.0)
+End Rem
 Const CAIRO_OPERATOR_SATURATE:Int = 13
+Rem
+bbdoc: source and destination layers are multiplied. This causes the result to be at least as dark as the darker inputs. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_MULTIPLY:Int = 14
+Rem
+bbdoc: source and destination are complemented and multiplied. This causes the result to be at least as light as the lighter inputs. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_SCREEN:Int = 15
+Rem
+bbdoc: multiplies or screens, depending on the lightness of the destination color. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_OVERLAY:Int = 16
+Rem
+bbdoc: replaces the destination with the source if it is darker, otherwise keeps the source. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_DARKEN:Int = 17
+Rem
+bbdoc: replaces the destination with the source if it is lighter, otherwise keeps the source. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_LIGHTEN:Int = 18
+Rem
+bbdoc: brightens the destination color to reflect the source color. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_COLOR_DODGE:Int = 19
+Rem
+bbdoc: darkens the destination color to reflect the source color. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_COLOR_BURN:Int = 20
+Rem
+bbdoc: Multiplies or screens, dependent on source color. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_HARD_LIGHT:Int = 21
+Rem
+bbdoc: Darkens or lightens, dependent on source color. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_SOFT_LIGHT:Int = 22
+Rem
+bbdoc: Takes the difference of the source and destination color. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_DIFFERENCE:Int = 23
+Rem
+bbdoc: Produces an effect similar to difference, but with lower contrast. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_EXCLUSION:Int = 24
+Rem
+bbdoc: Creates a color with the hue of the source and the saturation and luminosity of the target. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_HSL_HUE:Int = 25
+Rem
+bbdoc: Creates a color with the saturation of the source and the hue and luminosity of the target. Painting with this mode onto a gray area produces no change. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_HSL_SATURATION:Int = 26
+Rem
+bbdoc: Creates a color with the hue and saturation of the source and the luminosity of the target. This preserves the gray levels of the target and is useful for coloring monochrome images or tinting color images. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_HSL_COLOR:Int = 27
+Rem
+bbdoc: Creates a color with the luminosity of the source and the hue and saturation of the target. This produces an inverse effect to CAIRO_OPERATOR_HSL_COLOR. (Since 1.10)
+End Rem
+Const CAIRO_OPERATOR_HSL_LUMINOSITY:Int = 28
 
 Const CAIRO_SUBPIXEL_ORDER_DEFAULT:Int = 0
 Const CAIRO_SUBPIXEL_ORDER_RGB:Int = 1
@@ -236,17 +475,106 @@ Const CAIRO_FONT_TYPE_FT:Int = 1
 Const CAIRO_FONT_TYPE_WIN32:Int = 2
 Const CAIRO_FONT_TYPE_ATSUI:Int = 3
 
+Rem
+bbdoc: The surface is of type image, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_IMAGE:Int = 0
+Rem
+bbdoc: The surface is of type pdf, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_PDF:Int = 1
+Rem
+bbdoc: The surface is of type ps, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_PS:Int = 2
+Rem
+bbdoc: The surface is of type xlib, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_XLIB:Int = 3
+Rem
+bbdoc: The surface is of type xcb, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_XCB:Int = 4
+Rem
+bbdoc: The surface is of type glitz, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_GLITZ:Int = 5
+Rem
+bbdoc: The surface is of type quartz, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_QUARTZ:Int = 6
+Rem
+bbdoc: The surface is of type win32, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_WIN32:Int = 7
+Rem
+bbdoc: The surface is of type beos, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_BEOS:Int = 8
+Rem
+bbdoc: The surface is of type directfb, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_DIRECTFB:Int = 9
+Rem
+bbdoc: The surface is of type svg, since 1.2
+End Rem
 Const CAIRO_SURFACE_TYPE_SVG:Int = 10
+Rem
+bbdoc: The surface is of type os2, since 1.4
+End Rem
+Const CAIRO_SURFACE_TYPE_OS2:Int = 11
+Rem
+bbdoc: The surface is a win32 printing surface, since 1.6
+End Rem
+Const CAIRO_SURFACE_TYPE_WIN32_PRINTING:Int = 12
+Rem
+bbdoc: The surface is of type quartz_image, since 1.6
+End Rem
+Const CAIRO_SURFACE_TYPE_QUARTZ_IMAGE:Int = 13
+Rem
+bbdoc: The surface is of type script, since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_SCRIPT:Int = 14
+Rem
+bbdoc: The surface is of type Qt, since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_QT:Int = 15
+Rem
+bbdoc: The surface is of type recording, since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_RECORDING:Int = 16
+Rem
+bbdoc: The surface is a OpenVG surface, since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_VG:Int = 17
+Rem
+bbdoc: The surface is of type OpenGL, since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_GL:Int = 18
+Rem
+bbdoc: The surface is of type Direct Render Manager, since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_DRM:Int = 19
+Rem
+bbdoc: The surface is of type 'tee' (a multiplexing surface), since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_TEE:Int = 20
+Rem
+bbdoc: The surface is of type XML (for debugging), since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_XML:Int = 21
+Rem
+bbdoc: The surface is of type Skia, since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_SKIA:Int = 22
+Rem
+bbdoc: The surface is a subsurface created with cairo_surface_create_for_rectangle(), since 1.10
+End Rem
+Const CAIRO_SURFACE_TYPE_SUBSURFACE:Int = 23
+Rem
+bbdoc: This surface is of type Cogl, since 1.12
+End Rem
+Const CAIRO_SURFACE_TYPE_COGL:Int = 24
 
 Const CAIRO_FILL_RULE_WINDING:Int = 0
 Const CAIRO_FILL_RULE_EVEN_ODD:Int = 1
@@ -660,8 +988,8 @@ Restore()
 
 	Rem
 	bbdoc: Gets the current compositing operator for the cairo context.
-	about: See #SetOperator for details of returnable values.
 	returns : the current compositing operator.
+	about: See #SetOperator for details of returnable values.
 	End Rem
 	Method GetOperator:Int()
 		NoContextError()
@@ -1374,26 +1702,52 @@ Close_path()
 	
 	Rem
 	bbdoc: Sets the compositing operator to be used for all drawing operations.
-	about: 
+	about: The operators marked as unbounded modify their destination even outside of the mask layer (that is, their effect is not bound by the mask layer).
+	However, their effect can still be limited by way of clipping.
+	<p>
+	To keep things simple, the operator descriptions here document the behavior for when both source and destination are either fully transparent or fully opaque.
+	The actual implementation works for translucent layers too. For a more detailed explanation of the effects of each operator, including the
+	mathematical definitions, see http://cairographics.org/operators/.
+	</p>
 	<p>
 	The following details the semantics of each available compositing operator :
 	</p>
 	<table>
 	<tr><th>Constant</th><th>Meaning</th></tr>
-	<tr><td>CAIRO_OPERATOR_CLEAR</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_SOURCE</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_OVER</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_IN</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_OUT</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_ATOP</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_DEST</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_DEST_OVER</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_DEST_IN</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_DEST_OUT</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_DEST_ATOP</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_XOR</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_ADD</td><td>&nbsp;</td></tr>
-	<tr><td>CAIRO_OPERATOR_SATURATE</td><td>&nbsp;</td></tr>
+	<tr><td>CAIRO_OPERATOR_CLEAR</td><td>clear destination layer (bounded) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_SOURCE</td><td>replace destination layer (bounded) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_OVER</td><td>draw source layer on top of destination layer (bounded) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_IN</td><td>draw source where there was destination content (unbounded) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_OUT</td><td>draw source where there was no destination content (unbounded) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_ATOP</td><td>draw source on top of destination content and only there (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_DEST</td><td>ignore the source (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_DEST_OVER</td><td>draw destination on top of source (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_DEST_IN</td><td>leave destination only where there was source content (unbounded) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_DEST_OUT</td><td>leave destination only where there was no source content (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_DEST_ATOP</td><td>leave destination on top of source content and only there (unbounded) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_XOR</td><td>source and destination are shown where there is only one of them (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_ADD</td><td>source and destination layers are accumulated (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_SATURATE</td><td>like over, but assuming source and dest are disjoint geometries (Since 1.0)</td></tr>
+	<tr><td>CAIRO_OPERATOR_MULTIPLY</td><td>source and destination layers are multiplied. This causes the result to be at least as dark as
+	the darker inputs. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_SCREEN</td><td>source and destination are complemented and multiplied. This causes the result to be at least as
+	light as the lighter inputs. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_OVERLAY</td><td>multiplies or screens, depending on the lightness of the destination color. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_DARKEN</td><td>replaces the destination with the source if it is darker, otherwise keeps the source. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_LIGHTEN</td><td>replaces the destination with the source if it is lighter, otherwise keeps the source. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_COLOR_DODGE</td><td>brightens the destination color to reflect the source color. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_COLOR_BURN</td><td>darkens the destination color to reflect the source color. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_HARD_LIGHT</td><td>Multiplies or screens, dependent on source color. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_SOFT_LIGHT</td><td>Darkens or lightens, dependent on source color. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_DIFFERENCE</td><td>Takes the difference of the source and destination color. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_EXCLUSION</td><td>Produces an effect similar to difference, but with lower contrast. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_HSL_HUE</td><td>Creates a color with the hue of the source and the saturation and luminosity of the target. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_HSL_SATURATION</td><td>Creates a color with the saturation of the source and the hue and luminosity of the target. 
+	Painting with this mode onto a gray area produces no change. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_HSL_COLOR</td><td>Creates a color with the hue and saturation of the source and the luminosity of the target. 
+	This preserves the gray levels of the target and is useful for coloring monochrome images or tinting color images. (Since 1.10)</td></tr>
+	<tr><td>CAIRO_OPERATOR_HSL_LUMINOSITY</td><td>Creates a color with the luminosity of the source and the hue and saturation of the target. 
+	This produces an inverse effect to CAIRO_OPERATOR_HSL_COLOR. (Since 1.10)</td></tr>
 	</table>
 	<p>Parameters:
 	<ul>
@@ -1547,26 +1901,48 @@ Close_path()
 	about:Possible values returned are :<br>
 	<table>
 	<tr><th>Constant</th><th>Meaning</th></tr>
-	<tr><td>CAIRO_STATUS_SUCCESS</td><td>no error has occurred</td></tr>
-	<tr><td>CAIRO_STATUS_NO_MEMORY</td><td>out of memory</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_RESTORE</td><td>#Restore without matching #Save</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_POP_GROUP</td><td>no saved group to pop</td></tr>
-	<tr><td>CAIRO_STATUS_NO_CURRENT_POINT</td><td>no current point defined</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_MATRIX</td><td>invalid matrix (not invertible)</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_STATUS</td><td>invalid value for an input status</td></tr>
-	<tr><td>CAIRO_STATUS_NULL_POINTER</td><td>NULL pointer</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_STRING</td><td>input string not valid UTF-8</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_PATH_DATA</td><td>input path data not valid</td></tr>
-	<tr><td>CAIRO_STATUS_READ_ERROR</td><td>error while reading from input stream</td></tr>
-	<tr><td>CAIRO_STATUS_WRITE_ERROR</td><td>error while writing to output stream</td></tr>
-	<tr><td>CAIRO_STATUS_SURFACE_FINISHED</td><td>target surface has been finished</td></tr>
-	<tr><td>CAIRO_STATUS_SURFACE_TYPE_MISMATCH</td><td>the surface type is not appropriate for the operation</td></tr>
-	<tr><td>CAIRO_STATUS_PATTERN_TYPE_MISMATCH</td><td>the pattern type is not appropriate for the operation</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_CONTENT</td><td>invalid value for an input content</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_FORMAT</td><td>invalid value for an input format</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_VISUAL</td><td>invalid value for an input Visual</td></tr>
-	<tr><td>CAIRO_STATUS_FILE_NOT_FOUND</td><td>file not found</td></tr>
-	<tr><td>CAIRO_STATUS_INVALID_DASH</td><td>invalid value for a dash setting</td></tr>
+	<tr><td>CAIRO_STATUS_SUCCESS</td><td>no error has occurred (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_NO_MEMORY</td><td>out of memory (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_RESTORE</td><td>cairo_restore() called without matching cairo_save() (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_POP_GROUP</td><td>no saved group to pop, i.e. cairo_pop_group() without matching cairo_push_group() (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_NO_CURRENT_POINT</td><td>no current point defined (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_MATRIX</td><td>invalid matrix (not invertible) (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_STATUS</td><td>invalid value for an input cairo_status_t (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_NULL_POINTER</td><td>NULL pointer (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_STRING</td><td>input string not valid UTF-8 (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_PATH_DATA</td><td>input path data not valid (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_READ_ERROR</td><td>error while reading from input stream (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_WRITE_ERROR</td><td>error while writing to output stream (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_SURFACE_FINISHED</td><td>target surface has been finished (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_SURFACE_TYPE_MISMATCH</td><td>the surface type is not appropriate for the operation (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_PATTERN_TYPE_MISMATCH</td><td>the pattern type is not appropriate for the operation (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_CONTENT</td><td>invalid value for an input cairo_content_t (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_FORMAT</td><td>invalid value for an input cairo_format_t (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_VISUAL</td><td>invalid value for an input Visual* (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_FILE_NOT_FOUND</td><td>file not found (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_DASH</td><td>invalid value for a dash setting (Since 1.0)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_DSC_COMMENT</td><td>invalid value for a DSC comment (Since 1.2)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_INDEX</td><td>invalid index passed to getter (Since 1.4)</td></tr>
+	<tr><td>CAIRO_STATUS_CLIP_NOT_REPRESENTABLE</td><td>clip region not representable in desired format (Since 1.4)</td></tr>
+	<tr><td>CAIRO_STATUS_TEMP_FILE_ERROR</td><td>error creating or writing to a temporary file (Since 1.6)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_STRIDE</td><td>invalid value for stride (Since 1.6)</td></tr>
+	<tr><td>CAIRO_STATUS_FONT_TYPE_MISMATCH</td><td>the font type is not appropriate for the operation (Since 1.8)</td></tr>
+	<tr><td>CAIRO_STATUS_USER_FONT_IMMUTABLE</td><td>the user-font is immutable (Since 1.8)</td></tr>
+	<tr><td>CAIRO_STATUS_USER_FONT_ERROR</td><td>error occurred in a user-font callback function (Since 1.8)</td></tr>
+	<tr><td>CAIRO_STATUS_NEGATIVE_COUNT</td><td>negative number used where it is not allowed (Since 1.8)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_CLUSTERS</td><td>input clusters do not represent the accompanying text and glyph array (Since 1.8)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_SLANT</td><td>invalid value for an input cairo_font_slant_t (Since 1.8)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_WEIGHT</td><td>invalid value for an input cairo_font_weight_t (Since 1.8)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_SIZE</td><td>invalid value (typically too big) for the size of the input (surface, pattern, etc.) (Since 1.10)</td></tr>
+	<tr><td>CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED</td><td>user-font method not implemented (Since 1.10)</td></tr>
+	<tr><td>CAIRO_STATUS_DEVICE_TYPE_MISMATCH</td><td>the device type is not appropriate for the operation (Since 1.10)</td></tr>
+	<tr><td>CAIRO_STATUS_DEVICE_ERROR</td><td>an operation to the device caused an unspecified error (Since 1.10)</td></tr>
+	<tr><td>CAIRO_STATUS_INVALID_MESH_CONSTRUCTION</td><td>a mesh pattern construction operation was used outside of a 
+	cairo_mesh_pattern_begin_patch()/cairo_mesh_pattern_end_patch() pair (Since 1.12)</td></tr>
+	<tr><td>CAIRO_STATUS_DEVICE_FINISHED</td><td>target device has been finished (Since 1.12)</td></tr>
+	<tr><td>CAIRO_STATUS_LAST_STATUS</td><td>this is a special value indicating the number of status values defined in this enumeration. 
+	When using this value, note that the version of cairo at run-time may have additional status values defined than the value of this symbol at
+	compile-time. (Since 1.10)</td></tr>
 	</table>
 	End Rem
 	Method Status:Int()
@@ -2446,7 +2822,7 @@ Type TCairoPattern
 		pattern.patternPtr = cairo_pattern_create_rgba(red,green,blue,alpha)
 		Return pattern
 	End Function
-
+	
 	Rem
 	bbdoc: Adds an opaque color stop to a gradient pattern.
 	about: The offset specifies the location along the gradient's control vector. For example, a linear gradient's
@@ -2626,6 +3002,266 @@ Type TCairoPattern
 	End Rem
 	Method Status:Int()
 		Return cairo_pattern_status(patternPtr)
+	End Method
+	
+End Type
+
+Rem
+about: Mesh patterns are tensor-product patch meshes (type 7 shadings in PDF). Mesh patterns may also be used to create other types
+of shadings that are special cases of tensor-product patch meshes such as Coons patch meshes (type 6 shading in PDF) and Gouraud-shaded
+triangle meshes (type 4 and 5 shadings in PDF).
+<p>
+Mesh patterns consist of one or more tensor-product patches, which should be defined before using the mesh pattern. Using a mesh pattern with a partially
+defined patch as source or mask will put the context in an error status with a status of CAIRO_STATUS_INVALID_MESH_CONSTRUCTION.
+</p>
+<p>
+A tensor-product patch is defined by 4 Bézier curves (side 0, 1, 2, 3) and by 4 additional control points (P0, P1, P2, P3) that provide further control over the
+patch and complete the definition of the tensor-product patch. The corner C0 is the first point of the patch.
+</p>
+<p>
+Degenerate sides are permitted so straight lines may be used. A zero length line on one side may be used to create 3 sided patches.
+</p>
+<pre>
+      C1     Side 1       C2
+       +---------------+
+       |               |
+       |  P1       P2  |
+       |               |
+Side 0 |               | Side 2
+       |               |
+       |               |
+       |  P0       P3  |
+       |               |
+       +---------------+
+     C0     Side 3        C3
+</pre>
+<p>
+Each patch is constructed by first calling cairo_mesh_pattern_begin_patch(), then cairo_mesh_pattern_move_to() to specify the first point in the patch (C0). Then the sides are specified with calls to cairo_mesh_pattern_curve_to() and cairo_mesh_pattern_line_to().
+</p>
+<p>
+The four additional control points (P0, P1, P2, P3) in a patch can be specified with cairo_mesh_pattern_set_control_point().
+</p>
+<p>
+At each corner of the patch (C0, C1, C2, C3) a color may be specified with cairo_mesh_pattern_set_corner_color_rgb() or cairo_mesh_pattern_set_corner_color_rgba().
+Any corner whose color is not explicitly specified defaults to transparent black.
+</p>
+<p>
+A Coons patch is a special case of the tensor-product patch where the control points are implicitly defined by the sides of the patch. The default value for any
+control point not specified is the implicit value for a Coons patch, i.e. if no control points are specified the patch is a Coons patch.
+</p>
+<p>
+A triangle is a special case of the tensor-product patch where the control points are implicitly defined by the sides of the patch, all the sides are lines and one
+of them has length 0, i.e. if the patch is specified using just 3 lines, it is a triangle. If the corners connected by the 0-length side have the same color, the patch
+is a Gouraud-shaded triangle.
+</p>
+<p>
+Patches may be oriented differently to the above diagram. For example the first point could be at the top left. The diagram only shows the relationship between the sides,
+corners and control points. Regardless of where the first point is located, when specifying colors, corner 0 will always be the first point, corner 1 the point between side
+0 and side 1 etc.
+</p>
+<p>
+Calling cairo_mesh_pattern_end_patch() completes the current patch. If less than 4 sides have been defined, the first missing side is defined as a line from the current
+point to the first point of the patch (C0) and the other sides are degenerate lines from C0 to C0. The corners between the added sides will all be coincident with C0 of
+the patch and their color will be set to be the same as the color of C0.
+</p>
+<p>
+Additional patches may be added with additional calls to MeshPatternBegin_patch()/cairo_mesh_pattern_end_patch().
+</p>
+End Rem
+Type TCairoMeshPattern Extends TCairoPattern
+
+	Rem
+	bbdoc: Creates a new mesh pattern.
+	End Rem
+	Function CreateMesh:TCairoPattern()
+		Local pattern:TCairoMeshPattern = New TCairoMeshPattern
+		pattern.patternPtr = cairo_pattern_create_mesh()
+		Return pattern
+	End Function
+
+	Rem
+	bbdoc: Begin a patch in a mesh pattern.
+	about: After calling this method, the patch shape should be defined with the TCairoMeshPattern methods MoveTo(), LineTo() and CurveTo().
+	<p>
+	After defining the patch, EndPatch() must be called before using pattern as a source or mask.
+	</p>
+	End Rem
+	Method BeginPatch()
+		cairo_mesh_pattern_begin_patch(patternPtr)
+	End Method
+	
+	Rem
+	bbdoc: Indicates the end of the current patch in a mesh pattern.
+	about: If the current patch has less than 4 sides, it is closed with a straight line from the current point to the first point of the patch as
+	if TCairoMeshPattern LineTo() was used.
+	End Rem
+	Method EndPatch()
+		cairo_mesh_pattern_end_patch(patternPtr)
+	End Method
+
+	Rem
+	bbdoc: Defines the first point of the current patch in a mesh pattern.
+	about: After this call the current point will be (x, y).
+	<p>Parameters:
+	<ul>
+	<li><b>x</b> : the X coordinate of the new position.</li>
+	<li><b>y</b> : the Y coordinate of the new position.</li>
+	</p>
+	End Rem
+	Method MoveTo(x:Double, y:Double)
+		cairo_mesh_pattern_move_to(patternPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Adds a line to the current patch from the current point to position (x, y) in pattern-space coordinates.
+	about: If there is no current point before the call to LineTo() this function will behave as MoveTo(x, y).
+	<p>
+	After this call the current point will be (x, y).
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>x</b> : the X coordinate of the end of the new line.</li>
+	<li><b>y</b> : the Y coordinate of the end of the new line.</li>
+	</p>
+	End Rem
+	Method LineTo(x:Double, y:Double)
+		cairo_mesh_pattern_line_to(patternPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Adds a cubic Bézier spline to the current patch from the current point to position (x3, y3) in pattern-space coordinates, using (x1, y1) and (x2, y2) as the control points.
+	about: If the current patch has no current point before the call to CurveTo(), this function will behave as if preceded by a call to MoveTo(x1, y1).
+	<p>
+	After this call the current point will be (x3, y3).
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>x1</b> : the X coordinate of the first control point.</li>
+	<li><b>y1</b> : the Y coordinate of the first control point.</li>
+	<li><b>x2</b> : the X coordinate of the second control point.</li>
+	<li><b>y2</b> : the Y coordinate of the second control point.</li>
+	<li><b>x3</b> : the X coordinate of the end of the curve.</li>
+	<li><b>y3</b> : the Y coordinate of the end of the curve.</li>
+	</p>
+	End Rem
+	Method CurveTo(x1:Double, y1:Double, x2:Double, y2:Double, x3:Double, y3:Double)
+		cairo_mesh_pattern_curve_to(patternPtr, x1, y1, x2, y2, x3, y3)
+	End Method
+	
+	Rem
+	bbdoc: Sets an internal control point of the current patch.
+	about: Valid values for pointNum are from 0 to 3 and identify the control points as explained in CreateMesh().
+	<p>Parameters:
+	<ul>
+	<li><b>pointNum</b> : the control point to set the position for.</li>
+	<li><b>x</b> : the X coordinate of the control point.</li>
+	<li><b>y</b> : the Y coordinate of the control point.</li>
+	</p>
+	End Rem
+	Method SetControlPoint(pointNum:Int, x:Double, y:Double)
+		cairo_mesh_pattern_set_control_point(patternPtr, pointNum, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Sets the color of a corner of the current patch in a mesh pattern.
+	about: The color is specified in the same way as in SetSourceRgb().
+	<p>
+	Valid values for corner_num are from 0 to 3 and identify the corners as explained in CreateMesh().
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>cornerNum</b> : the corner to set the color for.</li>
+	<li><b>red</b> : red component of color.</li>
+	<li><b>green</b> : green component of color.</li>
+	<li><b>blue</b> : blue component of color.</li>
+	</p>
+	End Rem
+	Method SetCornerColorRgb(cornerNum:Int, red:Double, green:Double, blue:Double)
+		cairo_mesh_pattern_set_corner_color_rgb(patternPtr, cornerNum, red, green, blue)
+	End Method
+	
+	Rem
+	bbdoc: Sets the color of a corner of the current patch in a mesh pattern.
+	about: The color is specified in the same way as in SetSourceRgba().
+	<p>
+	Valid values for corner_num are from 0 to 3 and identify the corners as explained in CreateMesh().
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>cornerNum</b> : the corner to set the color for.</li>
+	<li><b>red</b> : red component of color.</li>
+	<li><b>green</b> : green component of color.</li>
+	<li><b>blue</b> : blue component of color.</li>
+	<li><b>alpha</b> : alpha component of color.</li>
+	</p>
+	End Rem
+	Method SetCornerColorRgba(cornerNum:Int, red:Double, green:Double, blue:Double, alpha:Double)
+		cairo_mesh_pattern_set_corner_color_rgba(patternPtr, cornerNum, red, green, blue, alpha)
+	End Method
+	
+	Rem
+	bbdoc: Gets the number of patches specified in the given mesh pattern.
+	returns: CAIRO_STATUS_SUCCESS, or CAIRO_STATUS_PATTERN_TYPE_MISMATCH if pattern is not a mesh pattern.
+	about: The number only includes patches which have been finished by calling EndPatch(). For example it will be 0 during the definition of the first patch.
+	<p>Parameters:
+	<ul>
+	<li><b>count</b> : return value for the number patches, or 0.</li>
+	</p>
+	End Rem
+	Method GetPatchCount:Int(count:Int Var)
+		Return cairo_mesh_pattern_get_patch_count(patternPtr, Varptr count)
+	End Method
+	
+	Rem
+	bbdoc: Gets path defining the patch patch_num for a mesh pattern.
+	returns: the path defining the patch, or a path with status CAIRO_STATUS_INVALID_INDEX if patch_num or point_num is not valid for pattern. If pattern is not a mesh pattern, a path with status CAIRO_STATUS_PATTERN_TYPE_MISMATCH is returned.
+	about: @patchNum can range 0 to 1 less than the number returned by GetPatchCount().
+	<p>Parameters:
+	<ul>
+	<li><b>patchNum</b> : the patch number to return data for.</li>
+	</p>
+	End Rem
+	Method GetPath:TCairoPath(patchNum:Int)
+		Return TCairoPath._create(cairo_mesh_pattern_get_path(patternPtr, patchNum))
+	End Method
+	
+	Rem
+	bbdoc: Gets the control point point_num of patch patch_num for a mesh pattern.
+	returns: CAIRO_STATUS_SUCCESS, or CAIRO_STATUS_INVALID_INDEX if @patchNum or @pointNum is not valid for pattern. If pattern is not a mesh pattern, CAIRO_STATUS_PATTERN_TYPE_MISMATCH is returned.
+	about: @patchNum can range 0 to 1 less than the number returned by GetPatchCount().
+	<p>
+	Valid values for @pointNum are from 0 to 3 and identify the control points as explained in CreateMesh().
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>patchNum</b> : the patch number to return data for.</li>
+	<li><b>pointNum</b> : the control point number to return data for.</li>
+	<li><b>x</b> : return value for the x coordinate of the control point, or 0.</li>
+	<li><b>y</b> : return value for the y coordinate of the control point, or 0.</li>
+	</p>
+	End Rem
+	Method GetControlPoint:Int(patchNum:Int, pointNum:Int, x:Double Var, y:Double Var)
+		Return cairo_mesh_pattern_get_control_point(patternPtr, patchNum, pointNum, Varptr x, Varptr y)
+	End Method
+	
+	Rem
+	bbdoc: Gets the color information in corner @cornerNum of patch @patchNum for a mesh pattern.
+	about: @patchNum can range 0 to 1 less than the number returned by GetPatchCount().
+	<p>
+	Valid values for corner_num are from 0 to 3 and identify the corners as explained in CreateMesh().
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>patchNum</b> : the patch number to return data for.</li>
+	<li><b>cornerNum</b> : the corner number to return data for.</li>
+	<li><b>red</b> : return value for red component of color, or 0.</li>
+	<li><b>green</b> : return value for green component of color, or 0.</li>
+	<li><b>blue</b> : return value for blue component of color, or 0.</li>
+	<li><b>alpha</b> : return value for alpha component of color, or 0.</li>
+	</p>
+	End Rem
+	Method GetCornerColorRgba:Int(patchNum:Int, cornerNum:Int, red:Double Var, green:Double Var, blue:Double Var, alpha:Double Var)
+		Return cairo_mesh_pattern_get_corner_color_rgba(patternPtr, patchNum, cornerNum, Varptr red, Varptr green, Varptr blue, Varptr alpha)
 	End Method
 	
 End Type
