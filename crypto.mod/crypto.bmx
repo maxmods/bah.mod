@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ Module BaH.Crypto
 
 ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007-2011 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
