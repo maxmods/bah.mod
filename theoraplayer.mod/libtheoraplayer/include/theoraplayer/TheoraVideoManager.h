@@ -11,6 +11,7 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #define _TheoraVideoManager_h
 
 #include <vector>
+#include <list>
 #include <string>
 #include "TheoraExport.h"
 #include "TheoraVideoClip.h"
@@ -36,6 +37,10 @@ protected:
 	ThreadList mWorkerThreads;
 	//! stores pointers to created video clips
 	ClipList mClips;
+	
+	//! stores pointer to clips that were docoded in the past in order to achieve fair scheduling
+	std::list<TheoraVideoClip*> mWorkLog;
+
 	int mDefaultNumPrecachedFrames;
 
 	TheoraMutex* mWorkMutex;
@@ -43,6 +48,8 @@ protected:
 
 	void createWorkerThreads(int n);
 	void destroyWorkerThreads();
+	
+	float calcClipWorkTime(TheoraVideoClip* clip);
 
 	/**
 	 * Called by TheoraWorkerThread to request a TheoraVideoClip instance to work on decoding

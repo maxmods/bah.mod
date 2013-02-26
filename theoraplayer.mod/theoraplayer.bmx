@@ -35,7 +35,7 @@ ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2011-2013 Bruce A Henderson"
 ModuleInfo "Copyright: theoraplayer - 2008-2013 Kresimir Spes"
 
-ModuleInfo "History: 1.00 Initial Release"
+ModuleInfo "History: 1.00 Initial Release (SVN rev 186)"
 
 
 
@@ -72,8 +72,13 @@ Type TTheoraVideoManager
 	bbdoc: Creates a video clip with the specified parameters.
 	about: When you are finished with the clip, it should be freed using the #destroyVideoClip() method.
 	End Rem
-	Method createVideoClip:TTheoraVideoClip(filename:String, outputMode:Int = TH_RGB, numPrecachedOverride:Int = 0, usePower2Stride:Int = 0)
-		Return TTheoraVideoClip._create(bmx_TheoraVideoManager_createVideoClip(managerPtr, filename, outputMode, numPrecachedOverride, usePower2Stride))
+	Method createVideoClip:TTheoraVideoClip(file:Object, outputMode:Int = TH_RGB, numPrecachedOverride:Int = 0, usePower2Stride:Int = 0)
+		'If TTheoraDataSource(file) Then
+		'	Return TTheoraVideoClip._create(bmx_TheoraVideoManager_createVideoClipDataSource(managerPtr, TTheoraDataSource(file).dataSourcePtr, outputMode, numPrecachedOverride, usePower2Stride))
+		'Else
+		 If String(file) Then
+			Return TTheoraVideoClip._create(bmx_TheoraVideoManager_createVideoClip(managerPtr, String(file), outputMode, numPrecachedOverride, usePower2Stride))
+		End If
 	End Method
 	
 	Rem
@@ -88,6 +93,13 @@ Type TTheoraVideoManager
 	End Rem
 	Method update(timeIncrease:Float)
 		bmx_TheoraVideoManager_update(managerPtr, timeIncrease)
+	End Method
+	
+	Rem
+	bbdoc: Searches registered clips by name.
+	End Rem
+	Method getVideoClipByName:TTheoraVideoClip(name:String)
+		Return TTheoraVideoClip._create(bmx_TheoraVideoManager_getVideoClipByName(managerPtr, name))
 	End Method
 	
 	Rem
@@ -128,6 +140,10 @@ Type TTheoraVideoManager
 		bmx_TheoraVideoManager_setNumWorkerThreads(managerPtr, numWorkerThreads)
 	End Method
 	
+	Rem
+	bbdoc: Sets your own log function to recieve theora's log calls.
+	about: Allows the integration of libtheoraplayer's log messages in your own logging system, prefix them, mute them or whatever you want.
+	End Rem
 	Function setLogFunction(func(text:String))
 		logFunction = func
 		bmx_TheoraVideoManager_setLogFunction(logFunction)
@@ -348,6 +364,61 @@ Type TTheoraVideoFrame
 		Return bmx_TheoraVideoFrame_getBuffer(framePtr)
 	End Method
 
+End Type
+
+'Rem
+' FIXME : well, it doesn't seem to work for some reason. Requires threaded + crashes in _read !?
+'bbdoc: A streamable datasource, for playback.
+'End Rem
+Type TTheoraDataSource
+
+	Field dataSourcePtr:Byte Ptr
+
+	Field stream:TStream
+	Field name:String
+
+	'Rem
+	'bbdoc: Creates a TStream-based datasource.
+	'End Rem
+	Function Create:TTheoraDataSource(stream:TStream, name:String = Null)
+		Local this:TTheoraDataSource = New TTheoraDataSource
+		this.dataSourcePtr = bmx_TheoraDataSource_create(this)
+		this.stream = stream
+		this.name = name
+		Return this
+	End Function
+
+	Function _tell:Int(source:TTheoraDataSource)
+		Return source.stream.Pos()
+	End Function
+
+ 	Function _size:Int(source:TTheoraDataSource)
+		Return source.stream.Size()
+	End Function
+
+	Function _seek(source:TTheoraDataSource, pos:Int)
+		source.stream.Seek(pos)
+	End Function
+
+	Function _read:Int(source:TTheoraDataSource, buf:Byte Ptr, count:Int)
+		Return source.stream.Read(buf, count)
+	End Function
+	
+	Function _repr:String(source:TTheoraDataSource)
+		Return source.name
+	End Function
+
+	Method Free()
+		If dataSourcePtr Then
+			bmx_TheoraDataSource_free(dataSourcePtr)
+			dataSourcePtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
 End Type
 
 Type TTheoraAudioInterface

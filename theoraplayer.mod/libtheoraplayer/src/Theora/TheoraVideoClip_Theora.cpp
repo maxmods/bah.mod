@@ -78,7 +78,7 @@ bool TheoraVideoClip_Theora::_readData()
 		char *buffer = ogg_sync_buffer(&mInfo.OggSyncState, 4096);
 		int bytes_read = mStream->read(buffer, 4096);
 		ogg_sync_wrote(&mInfo.OggSyncState, bytes_read);
-		
+
 		if (bytes_read < 4096)
 		{
 			if (bytes_read == 0)

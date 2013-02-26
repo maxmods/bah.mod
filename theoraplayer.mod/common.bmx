@@ -27,6 +27,7 @@ SuperStrict
 
 
 Import BaH.OggVorbis
+Import BRL.Stream
 
 Import "source.bmx"
 
@@ -36,6 +37,7 @@ Extern
 	Function bmx_TheoraVideoManager_new:Byte Ptr(numWorkerThreads:Int)
 	Function bmx_TheoraVideoManager_free(handle:Byte Ptr)
 	Function bmx_TheoraVideoManager_createVideoClip:Byte Ptr(handle:Byte Ptr, filename:String, outputMode:Int, numPrecachedOverride:Int, usePower2Stride:Int)
+	Function bmx_TheoraVideoManager_createVideoClipDataSource:Byte Ptr(handle:Byte Ptr, source:Byte Ptr, outputMode:Int, numPrecachedOverride:Int, usePower2Stride:Int)
 	Function bmx_TheoraVideoManager_update(handle:Byte Ptr, timeIncrease:Float)
 	Function bmx_TheoraVideoManager_setAudioInterfaceFactory(handle:Byte Ptr, factory:Byte Ptr)
 	Function bmx_TheoraVideoManager_getVersion(handle:Byte Ptr, a:Int Ptr, b:Int Ptr, c:Int Ptr)
@@ -43,6 +45,7 @@ Extern
 	Function bmx_TheoraVideoManager_destroyVideoClip(handle:Byte Ptr, clip:Byte Ptr)
 	Function bmx_TheoraVideoManager_getNumWorkerThreads:Int(handle:Byte Ptr)
 	Function bmx_TheoraVideoManager_setNumWorkerThreads(handle:Byte Ptr, numWorkerThreads:Int)
+	Function bmx_TheoraVideoManager_getVideoClipByName:Byte Ptr(handle:Byte Ptr, name:String)
 
 	Function bmx_TheoraVideoClip_getName:String(handle:Byte Ptr)
 	Function bmx_TheoraVideoClip_getWidth:Int(handle:Byte Ptr)
@@ -70,6 +73,9 @@ Extern
 	Function bmx_TheoraVideoFrame_getBuffer:Byte Ptr(handle:Byte Ptr)
 	
 	Function bmx_TheoraVideoManager_setLogFunction(func(text:String))
+
+	Function bmx_TheoraDataSource_create:Byte Ptr(handle:Object)
+	Function bmx_TheoraDataSource_free(handle:Byte Ptr)
 
 End Extern
 

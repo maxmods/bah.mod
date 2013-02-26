@@ -10,10 +10,6 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #ifndef _TheoraVideoClip_h
 #define _TheoraVideoClip_h
 
-#ifdef _WIN32
-#include <string.h> // BaH
-#endif
-
 #include <string>
 #include "TheoraExport.h"
 
@@ -34,6 +30,7 @@ enum TheoraOutputMode
 	// A = full alpha (255), order of letters represents the byte order for a pixel
 	// A means the image is treated as if it contains an alpha channel, while X formats
 	// just mean that RGB frame is transformed to a 4 byte format
+	TH_UNDEFINED = 0,
 	TH_RGB    =  1,
 	TH_RGBA   =  2,
 	TH_RGBX   =  3,
@@ -77,13 +74,16 @@ protected:
 	
 	bool mUseAlpha;
 	
+	bool mWaitingForCache;
+	
 	// benchmark vars
-	int mNumDroppedFrames, mNumDisplayedFrames;
+	int mNumDroppedFrames, mNumDisplayedFrames, mNumPrecachedFrames;
 
-	int mNumPrecachedFrames;
-
+	int mThreadAccessCount; //! counter used by TheoraVideoManager to schedule workload
+	
 	int mSeekFrame; //! stores desired seek position as a frame number. next worker thread will do the seeking and reset this var to -1
 	float mDuration, mFrameDuration, mFPS;
+	float mPriority; //! User assigned priority. Default value is 1
     std::string mName;
 	int mWidth, mHeight, mStride;
 	int mNumFrames;
@@ -94,8 +94,6 @@ protected:
 	bool mAutoRestart;
 	bool mEndOfFile, mRestarted;
 	int mIteration, mLastIteration; //! used to detect when the video restarted
-
-	float mUserPriority; //! TODO implementation
 
 	TheoraMutex* mAudioMutex; //! syncs audio decoding and extraction
 	TheoraMutex* mThreadAccessMutex;
@@ -174,6 +172,9 @@ public:
 	*/
 	float updateToNextFrame();
 
+	
+	TheoraFrameQueue* getFrameQueue();
+	
 	/**
 	    \brief pop the frame from the front of the FrameQueue
 

@@ -38,7 +38,11 @@ TheoraVideoClip::TheoraVideoClip(TheoraDataSource* data_source,
     mRestarted(0),
 	mIteration(0),
 	mLastIteration(0),
-	mStream(0)
+	mStream(0),
+	mThreadAccessCount(0),
+	mPriority(1),
+	mWaitingForCache(false),
+	mOutputMode(TH_UNDEFINED)
 {
 	mAudioMutex = NULL;
 	mThreadAccessMutex = new TheoraMutex();
@@ -148,6 +152,11 @@ float TheoraVideoClip::updateToNextFrame()
 	return time;
 }
 
+TheoraFrameQueue* TheoraVideoClip::getFrameQueue()
+{
+	return mFrameQueue;
+}
+
 void TheoraVideoClip::popFrame()
 {
 	mNumDisplayedFrames++;
@@ -212,6 +221,7 @@ TheoraOutputMode TheoraVideoClip::getOutputMode()
 
 void TheoraVideoClip::setOutputMode(TheoraOutputMode mode)
 {
+	if (mode == TH_UNDEFINED) throw TheoraGenericException("Invalid output mode: TH_UNDEFINED for video: " + mName);
 	if (mOutputMode == mode) return;
 	mRequestedOutputMode = mode;
 	mUseAlpha = (mode == TH_RGBA   ||
@@ -288,6 +298,7 @@ bool TheoraVideoClip::isDone()
 void TheoraVideoClip::stop()
 {
 	pause();
+	mFrameQueue->clear();
 	seek(0);
 }
 
@@ -314,6 +325,7 @@ void TheoraVideoClip::seekToFrame(int frame)
 
 void TheoraVideoClip::waitForCache(float desired_cache_factor, float max_wait_time)
 {
+	mWaitingForCache = true;
 	bool paused = mTimer->isPaused();
 	if (!paused) mTimer->pause();
 	int elapsed = 0;
@@ -325,12 +337,17 @@ void TheoraVideoClip::waitForCache(float desired_cache_factor, float max_wait_ti
 		if (elapsed >= max_wait_time * 1000) break;
 	}
 	if (!paused) mTimer->play();
+	mWaitingForCache = false;
 }
 
 float TheoraVideoClip::getPriority()
 {
-	// TODO
-	return getNumPrecachedFrames()*10.0f;
+	return mPriority;
+}
+
+void TheoraVideoClip::setPriority(float priority)
+{
+	mPriority = priority;
 }
 
 float TheoraVideoClip::getPriorityIndex()

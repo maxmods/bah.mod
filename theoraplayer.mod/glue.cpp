@@ -27,16 +27,26 @@
 
 #include "TheoraPlayer.h"
 #include "TheoraException.h"
+#include "TheoraDataSource.h"
+
+class MaxTheoraDataSource;
 
 extern "C" {
 
 #include "blitz.h"
 
 	BBObject * _bah_theoraplayer_TTheoraGenericException__create(BBString * mErrText, BBString * mFile, BBString * mType);
+	
+	int _bah_theoraplayer_TTheoraDataSource__read(BBObject * handle, void * output, int nBytes);
+	BBString * _bah_theoraplayer_TTheoraDataSource__repr(BBObject * handle);
+	void _bah_theoraplayer_TTheoraDataSource__seek(BBObject * handle, unsigned long byte_index);
+	int _bah_theoraplayer_TTheoraDataSource__size(BBObject * handle);
+	int _bah_theoraplayer_TTheoraDataSource__tell(BBObject * handle);
 
 	TheoraVideoManager * bmx_TheoraVideoManager_new(int numWorkerThreads);
 	void bmx_TheoraVideoManager_free(TheoraVideoManager * manager);
 	TheoraVideoClip * bmx_TheoraVideoManager_createVideoClip(TheoraVideoManager * manager, BBString * filename, int outputMode, int numPrecachedOverride, int usePower2Stride);
+	TheoraVideoClip * bmx_TheoraVideoManager_createVideoClipDataSource(TheoraVideoManager * manager, MaxTheoraDataSource * source, int outputMode, int numPrecachedOverride, int usePower2Stride);
 	void bmx_TheoraVideoManager_update(TheoraVideoManager * manager, float timeIncrease);
 	void bmx_TheoraVideoManager_setAudioInterfaceFactory(TheoraVideoManager * manager, TheoraAudioInterfaceFactory * factory);
 	void bmx_TheoraVideoManager_getVersion(TheoraVideoManager * manager, int * a, int * b, int * c);
@@ -44,6 +54,7 @@ extern "C" {
 	void bmx_TheoraVideoManager_destroyVideoClip(TheoraVideoManager * manager, TheoraVideoClip * clip);
 	int bmx_TheoraVideoManager_getNumWorkerThreads(TheoraVideoManager * manager);
 	void bmx_TheoraVideoManager_setNumWorkerThreads(TheoraVideoManager * manager, int numWorkerThreads);
+	TheoraVideoClip * bmx_TheoraVideoManager_getVideoClipByName(TheoraVideoManager * manager, BBString * name);
 
 	BBString * bmx_TheoraVideoClip_getName(TheoraVideoClip * clip);
 	int bmx_TheoraVideoClip_getWidth(TheoraVideoClip * clip);
@@ -72,7 +83,56 @@ extern "C" {
 
 	void (*bmx_LogFunction)(BBString *)=0;	
 	void bmx_TheoraVideoManager_setLogFunction(void (*fn)(BBString * s));
+	
+	MaxTheoraDataSource * bmx_TheoraDataSource_create(BBObject * handle);
+	void bmx_TheoraDataSource_free(MaxTheoraDataSource * source);
+
 }
+
+
+class MaxTheoraDataSource : public TheoraDataSource
+{
+public:
+
+	MaxTheoraDataSource(BBObject * handle)
+		: maxHandle(handle)
+	{
+	}
+	
+	~MaxTheoraDataSource()
+	{
+	}
+
+	int read(void * output, int nBytes) {
+printf("read - %d - ", nBytes);
+		int ret = _bah_theoraplayer_TTheoraDataSource__read(maxHandle, output, nBytes);
+printf("(%d)\n", ret);fflush(stdout);
+return ret;
+	}
+	
+	std::string repr() {
+		BBString * text = _bah_theoraplayer_TTheoraDataSource__repr(maxHandle);
+		char * r = bbStringToUTF8String(text);
+		std::string s( r );
+		bbMemFree( r );
+		return s;
+	}
+	
+	void seek(unsigned long byte_index) {
+		_bah_theoraplayer_TTheoraDataSource__seek(maxHandle, byte_index);
+	}
+	
+	unsigned long size() {
+		return _bah_theoraplayer_TTheoraDataSource__size(maxHandle);
+	}
+	
+	unsigned long tell() {
+		return _bah_theoraplayer_TTheoraDataSource__tell(maxHandle);
+	}
+
+private:
+	BBObject * maxHandle;
+};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -105,6 +165,18 @@ TheoraVideoClip * bmx_TheoraVideoManager_createVideoClip(TheoraVideoManager * ma
 	}
 	
 	bbMemFree(f);
+	return clip;
+}
+
+TheoraVideoClip * bmx_TheoraVideoManager_createVideoClipDataSource(TheoraVideoManager * manager, MaxTheoraDataSource * source, int outputMode, int numPrecachedOverride, int usePower2Stride) {
+	TheoraVideoClip * clip = 0;
+
+	try {
+		clip = manager->createVideoClip(source, (TheoraOutputMode)outputMode, numPrecachedOverride, usePower2Stride);
+	} catch (_TheoraGenericException & e) {
+		bmx_theoraplayer_throw_exception(e);
+	}
+	
 	return clip;
 }
 
@@ -149,6 +221,14 @@ void bmx_TheoraVideoManager_logFunction(std::string s) {
 void bmx_TheoraVideoManager_setLogFunction(void (*fn)(BBString * s)) {
 	bmx_LogFunction = fn;
 	TheoraVideoManager::getSingleton().setLogFunction(bmx_TheoraVideoManager_logFunction);
+}
+
+TheoraVideoClip * bmx_TheoraVideoManager_getVideoClipByName(TheoraVideoManager * manager, BBString * name) {
+	TheoraVideoClip * clip = 0;
+	char * n = bbStringToUTF8String(name);
+	clip = manager->getVideoClipByName(n);
+	bbMemFree(n);
+	return clip;
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -241,5 +321,15 @@ int bmx_TheoraVideoClip_getAutoRestart(TheoraVideoClip * clip) {
 
 void * bmx_TheoraVideoFrame_getBuffer(TheoraVideoFrame * frame) {
 	return frame->getBuffer();
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+MaxTheoraDataSource * bmx_TheoraDataSource_create(BBObject * handle) {
+	return new MaxTheoraDataSource(handle);
+}
+
+void bmx_TheoraDataSource_free(MaxTheoraDataSource * source) {
+	delete source;
 }
 
