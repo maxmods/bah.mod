@@ -48,6 +48,12 @@ ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC"
 
 Import "common.bmx"
 
+'
+' Code changes :
+' 
+'  TheoraVideoClip.h - added include for Win32 build.
+'  TheoraVideoManager.cpp - added include for Win32 build.
+'
 
 Rem
 bbdoc: Handles all playback/sync operations.
