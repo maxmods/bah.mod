@@ -14,6 +14,9 @@ the terms of the BSD license: http://www.opensource.org/licenses/bsd-license.php
 #include "TheoraUtil.h"
 #include "TheoraDataSource.h"
 #include "TheoraException.h"
+#ifdef _WIN32
+#include <stdlib.h> // BaH
+#endif
 #ifdef __THEORA
 	#include <theora/codec.h>
 	#include <vorbis/codec.h>
