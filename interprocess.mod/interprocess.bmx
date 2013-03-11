@@ -42,6 +42,11 @@ ModuleInfo "History: Initial Release. (Boost 1.45)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 
+?win32
+ModuleInfo "LD_OPTS: -lole32"
+ModuleInfo "LD_OPTS: -loleaut32"
+?
+
 Import "common.bmx"
 
 
