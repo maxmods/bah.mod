@@ -45,6 +45,7 @@ extern "C" {
 	void bmx_gme_mute_voice(MaxMusicEmu * emu, int index, int mute);
 	void bmx_gme_mute_voices(MaxMusicEmu * emu, int mutingMask);
 	BBString * bmx_gme_get_trackinfo(MaxMusicEmu * emu, gme_info_t ** info, int track);
+	void bmx_gme_enable_accuracy(MaxMusicEmu * emu, int enabled);
 
 	BBString * bmx_gme_trackinfo_system(gme_info_t * info);
 	BBString * bmx_gme_trackinfo_game(gme_info_t * info);

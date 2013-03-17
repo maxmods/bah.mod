@@ -49,6 +49,7 @@ Extern
 	Function bmx_gme_mute_voice(handle:Byte Ptr, index:Int, mute:Int)
 	Function bmx_gme_mute_voices(handle:Byte Ptr, mutingMask:Int)
 	Function bmx_gme_get_trackinfo:String(handle:Byte Ptr, info:Byte Ptr Ptr, track:Int)
+	Function bmx_gme_enable_accuracy(handle:Byte Ptr, enabled:Int)
 
 	Function bmx_gme_trackinfo_system:String(handle:Byte Ptr)
 	Function bmx_gme_trackinfo_game:String(handle:Byte Ptr)

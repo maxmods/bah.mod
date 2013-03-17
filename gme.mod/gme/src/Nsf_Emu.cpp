@@ -1,4 +1,4 @@
-// Game_Music_Emu 0.5.5. http://www.slack.net/~ant/
+// Game_Music_Emu 0.6.0. http://www.slack.net/~ant/
 
 #include "Nsf_Emu.h"
 
@@ -31,8 +31,10 @@ int const fme7_flag  = 0x20;
 
 long const clock_divisor = 12;
 
-Nsf_Emu::equalizer_t const Nsf_Emu::nes_eq     = {  -1.0, 80 };
-Nsf_Emu::equalizer_t const Nsf_Emu::famicom_eq = { -15.0, 80 };
+Nsf_Emu::equalizer_t const Nsf_Emu::nes_eq     =
+	Music_Emu::make_equalizer( -1.0, 80 );
+Nsf_Emu::equalizer_t const Nsf_Emu::famicom_eq =
+	Music_Emu::make_equalizer( -15.0, 80 );
 
 int Nsf_Emu::pcm_read( void* emu, nes_addr_t addr )
 {

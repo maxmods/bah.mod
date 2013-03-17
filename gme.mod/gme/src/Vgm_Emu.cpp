@@ -1,4 +1,4 @@
-// Game_Music_Emu 0.5.5. http://www.slack.net/~ant/
+// Game_Music_Emu 0.6.0. http://www.slack.net/~ant/
 
 #include "Vgm_Emu.h"
 
@@ -36,8 +36,7 @@ Vgm_Emu::Vgm_Emu()
 	
 	set_silence_lookahead( 1 ); // tracks should already be trimmed
 	
-	static equalizer_t const eq = { -14.0, 80 };
-	set_equalizer( eq );
+	set_equalizer( make_equalizer( -14.0, 80 ) );
 }
 
 Vgm_Emu::~Vgm_Emu() { }

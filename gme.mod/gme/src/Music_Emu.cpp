@@ -1,4 +1,4 @@
-// Game_Music_Emu 0.5.5. http://www.slack.net/~ant/
+// Game_Music_Emu 0.6.0. http://www.slack.net/~ant/
 
 #include "Music_Emu.h"
 
@@ -24,7 +24,8 @@ int const silence_threshold = 0x10;
 long const fade_block_size = 512;
 int const fade_shift = 8; // fade ends with gain at 1.0 / (1 << fade_shift)
 
-Music_Emu::equalizer_t const Music_Emu::tv_eq = { -8.0, 180 };
+Music_Emu::equalizer_t const Music_Emu::tv_eq =
+	Music_Emu::make_equalizer( -8.0, 180 );
 
 void Music_Emu::clear_track_vars()
 {

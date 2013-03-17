@@ -33,7 +33,7 @@ ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
 ModuleInfo "Copyright: GME - Shay Green, http://www.fly.net/~~ant/libs/audio.html"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Update to GME 0.5.5"
+ModuleInfo "History: Update to GME 0.6.0"
 ModuleInfo "History: Added GetTrackInfo() method for track information."
 ModuleInfo "History: Removed creation of extra Emu object for incbin'd tracks."
 ModuleInfo "History: 1.00 Initial Release"
@@ -215,6 +215,13 @@ Type TMusicEmu
 	End Rem
 	Method MuteVoices(mutingMask:Int)
 		bmx_gme_mute_voices(emuPtr, mutingMask)
+	End Method
+	
+	Rem
+	bbdoc: Enables/disables most accurate sound emulation options
+	End Rem
+	Method EnableAccuracy(enabled:Int)
+		bmx_gme_enable_accuracy(emuPtr, enabled)
 	End Method
 
 	Rem
@@ -409,7 +416,14 @@ Type TGMEPlayer
 	Method GetTrackInfo:TGMETrackInfo(track:Int)
 		Return emu.GetTrackInfo(track)
 	End Method
-	
+
+	Rem
+	bbdoc: Enables/disables most accurate sound emulation options
+	End Rem
+	Method EnableAccuracy(enabled:Int)
+		emu.EnableAccuracy(enabled)
+	End Method
+
 End Type
 
 Rem

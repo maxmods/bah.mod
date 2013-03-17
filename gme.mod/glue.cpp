@@ -106,6 +106,10 @@ void bmx_gme_mute_voices(MaxMusicEmu * emu, int mutingMask) {
 	gme_mute_voices(emu->emu, mutingMask);
 }
 
+void bmx_gme_enable_accuracy(MaxMusicEmu * emu, int enabled) {
+	gme_enable_accuracy(emu->emu, enabled);
+}
+
 BBString * bmx_gme_get_trackinfo(MaxMusicEmu * emu, gme_info_t ** info, int track) {
 	return bbStringFromCString(gme_track_info(emu->emu, info, track));
 }
