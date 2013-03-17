@@ -25,7 +25,7 @@ clean:
 
 $(TARGET): $(OBJECTS) 
 	g++  $(OBJECTS)  $(LDFLAGS) -o $@
-	dlltool -z $(DEF) --export-all-symbols $(TARGET)
+	dlltool -z $(DEF) gme.o
 	dlltool -k -d $(DEF) -D libgme.dll -l $(TARGETPATH)$(ARCHIVE)
 	copy $(TARGET) $(TARGETPATH)$(TARGET)
 

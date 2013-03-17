@@ -1,55 +1,40 @@
-; dlltool -z libgme.def --export-all-symbols libgme.dll
+; dlltool -z libgme.def gme.o
 EXPORTS
-	gme_ay_type @ 1220 DATA
-	gme_clear_playlist @ 1221
-	gme_delete @ 1222
-	gme_enable_accuracy @ 1223
-	gme_equalizer @ 1224
-	gme_free_info @ 1225
-	gme_gbs_type @ 1226 DATA
-	gme_gym_type @ 1227 DATA
-	gme_hes_type @ 1228 DATA
-	gme_identify_extension @ 1229
-	gme_identify_file @ 1230
-	gme_identify_header @ 1231
-	gme_ignore_silence @ 1232
-	gme_kss_type @ 1233 DATA
-	gme_load_custom @ 1234
-	gme_load_data @ 1235
-	gme_load_file @ 1236
-	gme_load_m3u @ 1237
-	gme_load_m3u_data @ 1238
-	gme_mute_voice @ 1239
-	gme_mute_voices @ 1240
-	gme_new_emu @ 1241
-	gme_nsf_type @ 1242 DATA
-	gme_nsfe_type @ 1243 DATA
-	gme_open_data @ 1244
-	gme_open_file @ 1245
-	gme_play @ 1246
-	gme_sap_type @ 1247 DATA
-	gme_seek @ 1248
-	gme_set_equalizer @ 1249
-	gme_set_fade @ 1250
-	gme_set_stereo_depth @ 1251
-	gme_set_tempo @ 1252
-	gme_set_user_cleanup @ 1253
-	gme_set_user_data @ 1254
-	gme_spc_type @ 1255 DATA
-	gme_start_track @ 1256
-	gme_tell @ 1257
-	gme_track_count @ 1258
-	gme_track_ended @ 1259
-	gme_track_info @ 1260
-	gme_type @ 1261
-	gme_type_list @ 1262
-	gme_type_multitrack @ 1263
-	gme_type_system @ 1264
-	gme_user_data @ 1265
-	gme_vgm_type @ 1266 DATA
-	gme_vgz_type @ 1267 DATA
-	gme_voice_count @ 1268
-	gme_voice_name @ 1269
-	gme_warning @ 1270
-	gme_wrong_file_type @ 1271 DATA
-
+	gme_clear_playlist @ 1
+	gme_delete @ 2
+	gme_enable_accuracy @ 3
+	gme_equalizer @ 4
+	gme_free_info @ 5
+	gme_identify_extension @ 6
+	gme_identify_file @ 7
+	gme_identify_header @ 8
+	gme_ignore_silence @ 9
+	gme_load_custom @ 10
+	gme_load_data @ 11
+	gme_load_file @ 12
+	gme_mute_voice @ 13
+	gme_mute_voices @ 14
+	gme_new_emu @ 15
+	gme_open_data @ 16
+	gme_open_file @ 17
+	gme_play @ 18
+	gme_seek @ 19
+	gme_set_equalizer @ 20
+	gme_set_fade @ 21
+	gme_set_stereo_depth @ 22
+	gme_set_tempo @ 23
+	gme_set_user_cleanup @ 24
+	gme_set_user_data @ 25
+	gme_start_track @ 26
+	gme_tell @ 27
+	gme_track_count @ 28
+	gme_track_ended @ 29
+	gme_track_info @ 30
+	gme_type @ 31
+	gme_type_list @ 32
+	gme_type_multitrack @ 33
+	gme_type_system @ 34
+	gme_user_data @ 35
+	gme_voice_count @ 36
+	gme_voice_name @ 37
+	gme_warning @ 38
