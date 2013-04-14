@@ -159,11 +159,13 @@
 /* Define to 1 if getopt.h declares extern int optreset. */
 #define HAVE_OPTRESET 1
 
+#ifndef WIN32
 /* Define if you have POSIX threads libraries and header files. */
 #define HAVE_PTHREAD 1
 
 /* Have PTHREAD_PRIO_INHERIT. */
 #define HAVE_PTHREAD_PRIO_INHERIT 1
+#endif
 
 /* Define to 1 if optimizing for size. */
 /* #undef HAVE_SMALL */
