@@ -7,8 +7,10 @@
 /* MD5 via ARCHIVE_CRYPTO_MD5_LIBMD supported. */
 /* #undef ARCHIVE_CRYPTO_MD5_LIBMD */
 
+#ifndef WIN32
 /* MD5 via ARCHIVE_CRYPTO_MD5_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_MD5_LIBSYSTEM 1
+#endif
 
 /* MD5 via ARCHIVE_CRYPTO_MD5_NETTLE supported. */
 /* #undef ARCHIVE_CRYPTO_MD5_NETTLE */
@@ -37,8 +39,10 @@
 /* SHA1 via ARCHIVE_CRYPTO_SHA1_LIBMD supported. */
 /* #undef ARCHIVE_CRYPTO_SHA1_LIBMD */
 
+#ifndef WIN32
 /* SHA1 via ARCHIVE_CRYPTO_SHA1_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_SHA1_LIBSYSTEM 1
+#endif
 
 /* SHA1 via ARCHIVE_CRYPTO_SHA1_NETTLE supported. */
 /* #undef ARCHIVE_CRYPTO_SHA1_NETTLE */
@@ -62,7 +66,9 @@
 /* #undef ARCHIVE_CRYPTO_SHA256_LIBMD */
 
 /* SHA256 via ARCHIVE_CRYPTO_SHA256_LIBSYSTEM supported. */
+#ifndef WIN32
 #define ARCHIVE_CRYPTO_SHA256_LIBSYSTEM 1
+#endif
 
 /* SHA256 via ARCHIVE_CRYPTO_SHA256_NETTLE supported. */
 /* #undef ARCHIVE_CRYPTO_SHA256_NETTLE */
@@ -82,8 +88,10 @@
 /* SHA384 via ARCHIVE_CRYPTO_SHA384_LIBC3 supported. */
 /* #undef ARCHIVE_CRYPTO_SHA384_LIBC3 */
 
+#ifndef WIN32
 /* SHA384 via ARCHIVE_CRYPTO_SHA384_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_SHA384_LIBSYSTEM 1
+#endif
 
 /* SHA384 via ARCHIVE_CRYPTO_SHA384_NETTLE supported. */
 /* #undef ARCHIVE_CRYPTO_SHA384_NETTLE */
@@ -106,8 +114,10 @@
 /* SHA512 via ARCHIVE_CRYPTO_SHA512_LIBMD supported. */
 /* #undef ARCHIVE_CRYPTO_SHA512_LIBMD */
 
+#ifndef WIN32
 /* SHA512 via ARCHIVE_CRYPTO_SHA512_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_SHA512_LIBSYSTEM 1
+#endif
 
 /* SHA512 via ARCHIVE_CRYPTO_SHA512_NETTLE supported. */
 /* #undef ARCHIVE_CRYPTO_SHA512_NETTLE */
@@ -235,8 +245,10 @@
 /* Define to 1 if nl_langinfo supports D_MD_ORDER */
 #define HAVE_D_MD_ORDER 1
 
+#ifndef WIN32
 /* A possible errno value for invalid file format errors */
 #define HAVE_EFTYPE 1
+#endif
 
 /* A possible errno value for invalid file format errors */
 #define HAVE_EILSEQ 1
@@ -268,8 +280,10 @@
 /* Define to 1 if you have the `fchflags' function. */
 #define HAVE_FCHFLAGS 1
 
+#ifndef WIN32
 /* Define to 1 if you have the `fchmod' function. */
 #define HAVE_FCHMOD 1
+#endif
 
 /* Define to 1 if you have the `fchown' function. */
 #define HAVE_FCHOWN 1
@@ -361,8 +375,10 @@
 /* Define to 1 if you have the `gmtime_r' function. */
 #define HAVE_GMTIME_R 1
 
+#ifndef WIN32
 /* Define to 1 if you have the <grp.h> header file. */
 #define HAVE_GRP_H 1
+#endif
 
 /* Define if you have the iconv() function and it works. */
 #define HAVE_ICONV 1
@@ -379,8 +395,10 @@
 /* Define to 1 if you have the <io.h> header file. */
 /* #undef HAVE_IO_H */
 
+#ifndef WIN32
 /* Define to 1 if you have the <langinfo.h> header file. */
 #define HAVE_LANGINFO_H 1
+#endif
 
 /* Define to 1 if you have the `lchflags' function. */
 #define HAVE_LCHFLAGS 1
@@ -487,8 +505,10 @@
 /* Define to 1 if you have the `llistxattr' function. */
 /* #undef HAVE_LLISTXATTR */
 
+#ifndef WIN32
 /* Define to 1 if you have the <localcharset.h> header file. */
 #define HAVE_LOCALCHARSET_H 1
+#endif
 
 /* Define to 1 if you have the `locale_charset' function. */
 #define HAVE_LOCALE_CHARSET 1
@@ -569,8 +589,10 @@
 /* Define to 1 if you have the <nettle/sha.h> header file. */
 /* #undef HAVE_NETTLE_SHA_H */
 
+#ifndef WIN32
 /* Define to 1 if you have the `nl_langinfo' function. */
 #define HAVE_NL_LANGINFO 1
+#endif
 
 /* Define to 1 if you have the `openat' function. */
 /* #undef HAVE_OPENAT */
@@ -590,14 +612,18 @@
 /* Define to 1 if you have the `poll' function. */
 #define HAVE_POLL 1
 
+#ifndef WIN32
 /* Define to 1 if you have the <poll.h> header file. */
 #define HAVE_POLL_H 1
+#endif
 
 /* Define to 1 if you have the `posix_spawnp' function. */
 #define HAVE_POSIX_SPAWNP 1
 
+#ifndef WIN32
 /* Define to 1 if you have the <pwd.h> header file. */
 #define HAVE_PWD_H 1
+#endif
 
 /* Define to 1 if you have a POSIX compatible readdir_r */
 #define HAVE_READDIR_R 1
@@ -693,11 +719,13 @@
 /* Define to 1 if `f_iosize' is a member of `struct statvfs'. */
 /* #undef HAVE_STRUCT_STATVFS_F_IOSIZE */
 
+#ifndef WIN32
 /* Define to 1 if `st_birthtime' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_BIRTHTIME 1
 
 /* Define to 1 if `st_birthtimespec.tv_nsec' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC 1
+#endif
 
 /* Define to 1 if `st_blksize' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_BLKSIZE 1
@@ -705,8 +733,10 @@
 /* Define to 1 if `st_flags' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_FLAGS 1
 
+#ifndef WIN32
 /* Define to 1 if `st_mtimespec.tv_nsec' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
+#endif
 
 /* Define to 1 if `st_mtime_n' is a member of `struct stat'. */
 /* #undef HAVE_STRUCT_STAT_ST_MTIME_N */
@@ -720,8 +750,10 @@
 /* Define to 1 if `st_umtime' is a member of `struct stat'. */
 /* #undef HAVE_STRUCT_STAT_ST_UMTIME */
 
+#ifndef WIN32
 /* Define to 1 if `tm_gmtoff' is a member of `struct tm'. */
 #define HAVE_STRUCT_TM_TM_GMTOFF 1
+#endif
 
 /* Define to 1 if `__tm_gmtoff' is a member of `struct tm'. */
 /* #undef HAVE_STRUCT_TM___TM_GMTOFF */
@@ -729,11 +761,13 @@
 /* Define to 1 if you have the `symlink' function. */
 #define HAVE_SYMLINK 1
 
+#ifndef WIN32
 /* Define to 1 if you have the <sys/acl.h> header file. */
 #define HAVE_SYS_ACL_H 1
 
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #define HAVE_SYS_CDEFS_H 1
+#endif
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
@@ -745,8 +779,10 @@
 /* Define to 1 if you have the <sys/extattr.h> header file. */
 /* #undef HAVE_SYS_EXTATTR_H */
 
+#ifndef WIN32
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #define HAVE_SYS_IOCTL_H 1
+#endif
 
 /* Define to 1 if you have the <sys/mkdev.h> header file. */
 /* #undef HAVE_SYS_MKDEV_H */
@@ -785,20 +821,26 @@
 /* Define to 1 if you have the <sys/utime.h> header file. */
 /* #undef HAVE_SYS_UTIME_H */
 
+#ifndef WIN32
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #define HAVE_SYS_UTSNAME_H 1
+#endif
 
 /* Define to 1 if you have the <sys/vfs.h> header file. */
 /* #undef HAVE_SYS_VFS_H */
 
+#ifndef WIN32
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #define HAVE_SYS_WAIT_H 1
+#endif
 
 /* Define to 1 if you have the <sys/xattr.h> header file. */
 #define HAVE_SYS_XATTR_H 1
 
+#ifndef WIN32
 /* Define to 1 if you have the `timegm' function. */
 #define HAVE_TIMEGM 1
+#endif
 
 /* Define to 1 if you have the <time.h> header file. */
 #define HAVE_TIME_H 1
@@ -863,8 +905,10 @@
 /* Define to 1 if you have the <wctype.h> header file. */
 #define HAVE_WCTYPE_H 1
 
+#ifdef WIN32
 /* Define to 1 if you have the <wincrypt.h> header file. */
-/* #undef HAVE_WINCRYPT_H */
+#define HAVE_WINCRYPT_H 1
+#endif
 
 /* Define to 1 if you have the <windows.h> header file. */
 /* #undef HAVE_WINDOWS_H */
@@ -1036,12 +1080,14 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
 
+#ifdef WIN32
 /* Define to match typeof st_gid field of struct stat if <sys/types.h> doesn't
    define. */
-/* #undef gid_t */
+#define gid_t short
 
 /* Define to `unsigned long' if <sys/types.h> does not define. */
-/* #undef id_t */
+#define id_t unsigned long
+#endif
 
 /* Define to the type of a signed integer type of width exactly 16 bits if
    such a type exists and the standard includes do not define it. */
@@ -1068,9 +1114,11 @@
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 /* #undef size_t */
 
+#if WIN32
 /* Define to match typeof st_uid field of struct stat if <sys/types.h> doesn't
    define. */
-/* #undef uid_t */
+#define uid_t short
+#endif
 
 /* Define to the type of an unsigned integer type of width exactly 16 bits if
    such a type exists and the standard includes do not define it. */

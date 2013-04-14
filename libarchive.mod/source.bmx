@@ -29,6 +29,9 @@ Import BRL.Blitz
 
 Import "../libxml.mod/src/*.h"
 Import "../xz.mod/src/liblzma/api/*.h"
+?win32
+Import "../libiconv.mod/include/*.h"
+?
 
 Import "bzip2/*.h"
 Import "libarchive/*.h"
@@ -132,8 +135,9 @@ Import "libarchive/archive_write_set_format_zip.c"
 Import "libarchive/archive_write_set_format.c"
 Import "libarchive/archive_write_set_options.c"
 Import "libarchive/archive_write.c"
+?Not win32
 Import "libarchive/filter_fork_posix.c"
-
+?
 ?win32
 Import "libarchive/archive_entry_copy_bhfi.c"
 Import "libarchive/archive_read_disk_windows.c"
