@@ -1,0 +1,442 @@
+' Copyright (c) 2013 Bruce A Henderson
+' All rights reserved.
+'
+' Redistribution and use in source and binary forms, with or without
+' modification, are permitted provided that the following conditions are met:
+'     * Redistributions of source code must retain the above copyright
+'       notice, this list of conditions and the following disclaimer.
+'     * Redistributions in binary form must reproduce the above copyright
+'       notice, this list of conditions and the following disclaimer in the
+'       documentation and/or other materials provided with the distribution.
+'     * Neither the name of Bruce A Henderson nor the
+'       names of its contributors may be used to endorse or promote products
+'       derived from this software without specific prior written permission.
+'
+' THIS SOFTWARE IS PROVIDED BY Bruce A Henderson ``AS IS'' AND ANY
+' EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+' WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+' DISCLAIMED. IN NO EVENT SHALL Bruce A Henderson BE LIABLE FOR ANY
+' DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+' (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+' LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+' ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+' (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+' SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+'
+SuperStrict
+
+Rem
+bbdoc: Streaming Archive Library
+End Rem
+Module BaH.LibArchive
+
+
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -D_FILE_OFFSET_BITS=64"
+?win32
+ModuleInfo "CC_OPTS: -DLIBARCHIVE_STATIC"
+?
+
+Import "common.bmx"
+
+
+
+Rem
+bbdoc: 
+End Rem
+Type TArchive
+
+	Field archivePtr:Byte Ptr
+
+	Rem
+	bbdoc: Clears any error information left over from a previous call.
+	about: Not generally used in client code.
+	End Rem
+	Method ClearError()
+		bmx_libarchive_archive_clear_error(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a numeric error code indicating the reason for the most recent error return.
+	about: Note that this can not be reliably used to detect whether an error has occurred.
+	It should be used only after another libarchive function has returned an error status.
+	End Rem
+	Method Errno:Int()
+		Return bmx_libarchive_archive_errno(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a textual error message suitable for display.
+	about: The error message here is usually more specific than that obtained from passing the result of archive_errno() to strerror(3).
+	End Rem
+	Method ErrorString:String()
+		Return bmx_libarchive_archive_error_string(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a count of the number of files processed by this archive object.
+	about: The count is incremented by calls to WriteHeader or ReadNextHeader.
+	End Rem
+	Method FileCount:Int()
+		Return bmx_libarchive_archive_file_count(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a numeric code identifying the indicated filter.
+	about: See FilterCount() for details of the numbering.
+	End Rem
+	Method FilterCode:Int(filter:Int)
+		Return bmx_libarchive_archive_filter_code(archivePtr, filter)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of filters in the current pipeline.
+	about: For read archive handles, these filters are added automatically by the automatic format detection.
+	For write archive handles, these filters are added by calls to the various AddFilterXXX() methods. Filters in the
+	resulting pipeline are numbered so that filter 0 is the filter closest to the format handler. As a convenience,
+	methods that expect a filter number will accept -1 as a synonym for the highest-numbered filter.
+	<p>
+	For example, when reading a uuencoded gzipped tar archive, there are three filters: filter 0 is the gunzip filter, filter 1 is the uudecode
+	filter, and filter 2 is the pseudo-filter that wraps the archive read methods. In this case, requesting Position(-1) would be a synonym
+	for Position(2) which would return the number of bytes currently read from the archive, while Position(1) would return the number of
+	bytes after uudecoding, and Position(0) would return the number of bytes after decompression.
+	</p>
+	End Rem
+	Method FilterCount:Int()
+		Return bmx_libarchive_archive_filter_count(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a textual name identifying the indicated filter.
+	about: See FilterCount() for details of the numbering.
+	End Rem
+	Method FilterName:String(filter:Int)
+		Return bmx_libarchive_archive_filter_name(archivePtr, filter)
+	End Method
+	
+	Rem
+	bbdoc: Returns a numeric code indicating the format of the current archive entry.
+	about: This value is set by a successful call to ReadNextHeader(). Note that it is common for this value to
+	change from entry to entry. For example, a tar archive might have several entries that utilize GNU
+	tar extensions and several entries that do not. These entries will have different format codes.
+	End Rem
+	Method Format:Int()
+		Return bmx_libarchive_archive_format(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: A textual description of the format of the current entry.
+	End Rem
+	Method FormatName:String()
+		Return bmx_libarchive_archive_format_name(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of bytes read from or written to the indicated filter.
+	about: In particular, Position(0) returns the number of bytes read or written by the format handler,
+	while Position(-1) returns the number of bytes read or written to the archive. See FilterCount() for details of the numbering here.
+	End Rem
+	Method Position:Long(filter:Int)
+		Local v:Long
+		bmx_libarchive_archive_position(archivePtr, filter, Varptr v)
+		Return v
+	End Method
+
+
+	Method Free() Abstract
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TReadArchive Extends TArchive
+
+	Function CreateArchive:TReadArchive()
+		Return New TReadArchive.Create()
+	End Function
+	
+	Method Create:TReadArchive()
+		archivePtr = bmx_libarchive_read_archive_new()
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Enables all available decompression filters.
+	End Rem
+	Method SupportFilterAll:Int()
+		Return bmx_libarchive_archive_read_support_filter_all(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for BZip2.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterBzip2:Int()
+		Return bmx_libarchive_archive_read_support_filter_bzip2(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for Compress.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterCompress:Int()
+		Return bmx_libarchive_archive_read_support_filter_compress(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for GZip.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterGzip:Int()
+		Return bmx_libarchive_archive_read_support_filter_gzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for GRZip.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterGrzip:Int()
+		Return bmx_libarchive_archive_read_support_filter_grzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for LRZip.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterLrzip:Int()
+		Return bmx_libarchive_archive_read_support_filter_lrzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for LZip.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterLzip:Int()
+		Return bmx_libarchive_archive_read_support_filter_lzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for LZMA.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterLzma:Int()
+		Return bmx_libarchive_archive_read_support_filter_lzma(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for LZop.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterLzop:Int()
+		Return bmx_libarchive_archive_read_support_filter_lzop(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SupportFilterNone:Int()
+		Return bmx_libarchive_archive_read_support_filter_none(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for RPM.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterRpm:Int()
+		Return bmx_libarchive_archive_read_support_filter_rpm(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for UUencode.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterUu:Int()
+		Return bmx_libarchive_archive_read_support_filter_uu(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for Xz.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterXz:Int()
+		Return bmx_libarchive_archive_read_support_filter_xz(archivePtr)
+	End Method
+
+
+	Method SupportFormatAll:Int()
+		Return bmx_libarchive_archive_read_support_format_all(archivePtr)
+	End Method
+
+	Method SupportFormat7zip:Int()
+		Return bmx_libarchive_archive_read_support_format_7zip(archivePtr)
+	End Method
+
+	Method SupportFormatAr:Int()
+		Return bmx_libarchive_archive_read_support_format_ar(archivePtr)
+	End Method
+
+	Method SupportFormatByCode:Int(code:Int)
+		Return bmx_libarchive_archive_read_support_format_by_code(archivePtr, code)
+	End Method
+
+	Method SupportFormatCab:Int()
+		Return bmx_libarchive_archive_read_support_format_cab(archivePtr)
+	End Method
+
+	Method SupportFormatCpio:Int()
+		Return bmx_libarchive_archive_read_support_format_cpio(archivePtr)
+	End Method
+
+	Method SupportFormatEmpty:Int()
+		Return bmx_libarchive_archive_read_support_format_empty(archivePtr)
+	End Method
+
+	Method SupportFormatGnutar:Int()
+		Return bmx_libarchive_archive_read_support_format_gnutar(archivePtr)
+	End Method
+
+	Method SupportFormatIso9660:Int()
+		Return bmx_libarchive_archive_read_support_format_iso9660(archivePtr)
+	End Method
+
+	Method SupportFormatLha:Int()
+		Return bmx_libarchive_archive_read_support_format_lha(archivePtr)
+	End Method
+
+	Method SupportFormatMtree:Int()
+		Return bmx_libarchive_archive_read_support_format_mtree(archivePtr)
+	End Method
+
+	Method SupportFormatRar:Int()
+		Return bmx_libarchive_archive_read_support_format_rar(archivePtr)
+	End Method
+
+	Method SupportFormatRaw:Int()
+		Return bmx_libarchive_archive_read_support_format_raw(archivePtr)
+	End Method
+
+	Method SupportFormatTar:Int()
+		Return bmx_libarchive_archive_read_support_format_tar(archivePtr)
+	End Method
+
+	Method SupportFormatXar:Int()
+		Return bmx_libarchive_archive_read_support_format_xar(archivePtr)
+	End Method
+
+	Method SupportFormatZip:Int()
+		Return bmx_libarchive_archive_read_support_format_zip(archivePtr)
+	End Method
+
+
+	Method OpenFilename:Int(filename:String, blockSize:Int = 10240)
+		Return bmx_libarchive_archive_read_open_filename(archivePtr, filename, blockSize)
+	End Method
+	
+	Method OpenMemory:Int(buf:Byte Ptr, size:Int)
+		Return bmx_libarchive_archive_read_open_memory(archivePtr, buf, size)
+	End Method
+	
+	Method ReadNextHeader:Int(entry:TArchiveEntry)
+		Return bmx_libarchive_archive_read_next_header(archivePtr, entry.entryPtr)
+	End Method
+
+
+	Method DataSkip:Int()
+		Return bmx_libarchive_archive_read_data_skip(archivePtr)
+	End Method
+	
+	Method Free()
+		If archivePtr Then
+			bmx_libarchive_archive_read_free(archivePtr)
+			archivePtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TWriteArchive Extends TArchive
+
+	Function CreateArchive:TWriteArchive()
+		Return New TWriteArchive.Create()
+	End Function
+	
+	Method Create:TWriteArchive()
+		archivePtr = bmx_libarchive_write_archive_new()
+		Return Self
+	End Method
+
+
+
+	Method Free()
+		If archivePtr Then
+			bmx_libarchive_archive_write_free(archivePtr)
+			archivePtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TArchiveEntry
+
+	Field entryPtr:Byte Ptr
+
+	Function CreateEntry:TArchiveEntry()
+		Return New TArchiveEntry.Create()
+	End Function
+	
+	Method Create:TArchiveEntry()
+		entryPtr = bmx_libarchive_archive_entry_new()
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Clear()
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Pathname:String()
+		Return bmx_libarchive_archive_entry_pathname(entryPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If entryPtr Then
+			bmx_libarchive_archive_entry_free(entryPtr)
+			entryPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
+
+
