@@ -32,6 +32,9 @@ extern "C" {
 
 #include "blitz.h"
 
+	void * _bah_libarchive_TArchiveCallbackData__read(BBObject * data, int * count);
+	void _bah_libarchive_TArchiveCallbackData__seek(BBObject * data, BBInt64 offset, int whence, BBInt64 * count);
+
 	struct archive * bmx_libarchive_read_archive_new();
 
 	int bmx_libarchive_archive_read_support_filter_all(struct archive * arc);
@@ -71,6 +74,10 @@ extern "C" {
 	int bmx_libarchive_archive_read_next_header(struct archive * arc, struct archive_entry * entry);
 	int bmx_libarchive_archive_read_data_skip(struct archive * arc);
 	int bmx_libarchive_archive_read_extract(struct archive * arc, struct archive_entry * entry, int flags);
+	int bmx_libarchive_archive_read_open1(struct archive * arc);
+	int bmx_libarchive_archive_read_set_read_callback(struct archive * arc);
+	int bmx_libarchive_archive_read_set_seek_callback(struct archive * arc);
+	int bmx_libarchive_archive_read_set_callback_data(struct archive * arc, BBObject * callbackData);
 
 	int bmx_libarchive_archive_read_free(struct archive * arc);
 
@@ -97,10 +104,27 @@ extern "C" {
 	struct archive_entry * bmx_libarchive_archive_entry_clone(struct archive_entry * entry);
 	BBString * bmx_libarchive_archive_entry_pathname(struct archive_entry * entry);
 
-
+	__LA_SSIZE_T bmx_read_cb(struct archive *, void *_client_data, const void **_buffer);
+	__LA_INT64_T bmx_seek_cb(struct archive *, void *_client_data, __LA_INT64_T offset, int whence);
 }
 
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
+__LA_SSIZE_T bmx_libarchive_read_cb(struct archive *, void *data, const void **_buffer) {
+	int count;
+	*_buffer = _bah_libarchive_TArchiveCallbackData__read((BBObject*)data, &count);
+	return count;
+}
+
+__LA_INT64_T bmx_libarchive_seek_cb(struct archive *, void *data, __LA_INT64_T offset, int whence) {
+	__LA_INT64_T ret;
+	_bah_libarchive_TArchiveCallbackData__seek((BBObject*)data, offset, whence, &ret);
+	return ret;
+}
+
+
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
 
 struct archive * bmx_libarchive_read_archive_new() {
 	return archive_read_new();
@@ -247,6 +271,22 @@ int bmx_libarchive_archive_read_data_skip(struct archive * arc) {
 
 int bmx_libarchive_archive_read_extract(struct archive * arc, struct archive_entry * entry, int flags) {
 	return archive_read_extract(arc, entry, flags);
+}
+
+int bmx_libarchive_archive_read_open1(struct archive * arc) {
+	return archive_read_open1(arc);
+}
+
+int bmx_libarchive_archive_read_set_read_callback(struct archive * arc) {
+	return archive_read_set_read_callback(arc, bmx_libarchive_read_cb);
+}
+
+int bmx_libarchive_archive_read_set_seek_callback(struct archive * arc) {
+	return archive_read_set_seek_callback(arc, bmx_libarchive_seek_cb);
+}
+
+int bmx_libarchive_archive_read_set_callback_data(struct archive * arc, BBObject * callbackData) {
+	return archive_read_set_callback_data(arc, callbackData);
 }
 
 int bmx_libarchive_archive_read_free(struct archive * arc) {

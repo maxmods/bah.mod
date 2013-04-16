@@ -75,6 +75,12 @@ Extern
 	Function bmx_libarchive_archive_read_next_header:Int(handle:Byte Ptr, entry:Byte Ptr)
 	Function bmx_libarchive_archive_read_data_skip:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_extract:Int(handle:Byte Ptr, entry:Byte Ptr, flags:Int)
+	Function bmx_libarchive_archive_read_open1:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_set_read_callback:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_set_seek_callback:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_set_callback_data:Int(handle:Byte Ptr, callbackData:Object)
+	
+	Function archive_read_set_read_callback:Int(handle:Byte Ptr, cb:Int(arc:Byte Ptr, cbData:Object, block:Byte Ptr Ptr))
 
 	Function bmx_libarchive_archive_read_free:Int(handle:Byte Ptr)
 

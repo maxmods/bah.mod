@@ -155,6 +155,8 @@ bbdoc:
 End Rem
 Type TReadArchive Extends TArchive
 
+	Field callbackData:TArchiveCallbackData
+
 	Function CreateArchive:TReadArchive()
 		Return New TReadArchive.Create()
 	End Function
@@ -361,7 +363,18 @@ Type TReadArchive Extends TArchive
 	bbdoc: 
 	End Rem
 	Method OpenStream:Int(stream:TSStream, blockSize:Int = 10240)
+		If Not callbackData Then
+			callbackData = TArchiveCallbackData.Create(stream, blockSize)
+		Else
+			callbackData.stream = stream
+			callbackData.size = blockSize
+		End If
 		
+		bmx_libarchive_archive_read_set_read_callback(archivePtr)
+		bmx_libarchive_archive_read_set_seek_callback(archivePtr)
+		bmx_libarchive_archive_read_set_callback_data(archivePtr, callbackData)
+		
+		Return bmx_libarchive_archive_read_open1(archivePtr)
 	End Method
 	
 	Rem
@@ -409,11 +422,11 @@ Type TArchiveCallbackData
 		Return this
 	End Function
 	
-	Function _read:Int(arc:Byte Ptr, data:TArchiveCallbackData, block:Byte Ptr Ptr)
-		block = Varptr data.data
+	Function _read:Byte Ptr(cbData:Object, count:Int Var)
+		Local data:TArchiveCallbackData = TArchiveCallbackData(cbData)
 		
 		Local buf:Byte Ptr = data.data
-		Local count:Int = data.size
+		count = data.size
 		While count
 			Local n:Long = data.stream.Read(buf, count)
 			If Not n Then
@@ -422,8 +435,22 @@ Type TArchiveCallbackData
 			count:-n
 			buf:+n
 		Wend
-		
-		Return data.size - count
+
+		count = data.size - count		
+		Return data.data
+	End Function
+	
+	
+	Function _seek(cbData:Object, offset:Long, whence:Int, count:Long Var)
+		Local data:TArchiveCallbackData = TArchiveCallbackData(cbData)
+
+		Select whence
+			Case SEEK_SET_
+				count = data.stream.seek(offset)
+			Case SEEK_CUR_
+				count = data.stream.seek(offset + data.stream.pos())
+			Case SEEK_END_
+		End Select
 	End Function
 	
 
