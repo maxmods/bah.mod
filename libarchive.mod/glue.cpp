@@ -70,6 +70,7 @@ extern "C" {
 
 	int bmx_libarchive_archive_read_next_header(struct archive * arc, struct archive_entry * entry);
 	int bmx_libarchive_archive_read_data_skip(struct archive * arc);
+	int bmx_libarchive_archive_read_extract(struct archive * arc, struct archive_entry * entry, int flags);
 
 	int bmx_libarchive_archive_read_free(struct archive * arc);
 
@@ -242,6 +243,10 @@ int bmx_libarchive_archive_read_next_header(struct archive * arc, struct archive
 
 int bmx_libarchive_archive_read_data_skip(struct archive * arc) {
 	return archive_read_data_skip(arc);
+}
+
+int bmx_libarchive_archive_read_extract(struct archive * arc, struct archive_entry * entry, int flags) {
+	return archive_read_extract(arc, entry, flags);
 }
 
 int bmx_libarchive_archive_read_free(struct archive * arc) {

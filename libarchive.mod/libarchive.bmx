@@ -343,12 +343,25 @@ Type TReadArchive Extends TArchive
 	End Method
 
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method OpenFilename:Int(filename:String, blockSize:Int = 10240)
 		Return bmx_libarchive_archive_read_open_filename(archivePtr, filename, blockSize)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method OpenMemory:Int(buf:Byte Ptr, size:Int)
 		Return bmx_libarchive_archive_read_open_memory(archivePtr, buf, size)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OpenStream:Int(stream:TSStream, blockSize:Int = 10240)
+		
 	End Method
 	
 	Rem
@@ -364,6 +377,15 @@ Type TReadArchive Extends TArchive
 		Return bmx_libarchive_archive_read_data_skip(archivePtr)
 	End Method
 	
+	Rem
+	bbdoc: A convenience method that wraps the corresponding TWriteDiskArchive interfaces.
+	about: The first call to Extract() creates a restore object using SetStandardLookup, then transparently invokes SetOptions, TWriteArchive.Header, TWriteArchive.Data, and TWriteArchive.FinishEntry to create the entry on disk and copy data into it.
+	about: The flags argument is passed unmodified to SetOptions.
+	End Rem
+	Method Extract:Int(entry:TArchiveEntry, flags:Int)
+		Return bmx_libarchive_archive_read_extract(archivePtr, entry.entryPtr, flags)
+	End Method
+	
 	Method Free()
 		If archivePtr Then
 			bmx_libarchive_archive_read_free(archivePtr)
@@ -371,6 +393,44 @@ Type TReadArchive Extends TArchive
 		End If
 	End Method
 
+End Type
+
+Type TArchiveCallbackData
+
+	Field data:Byte Ptr
+	Field stream:TSStream
+	Field size:Int
+
+	Function Create:TArchiveCallbackData(stream:TSStream, size:Int)
+		Local this:TArchiveCallbackData = New TArchiveCallbackData
+		this.data = MemAlloc(size)
+		this.stream = stream
+		this.size = size
+		Return this
+	End Function
+	
+	Function _read:Int(arc:Byte Ptr, data:TArchiveCallbackData, block:Byte Ptr Ptr)
+		block = Varptr data.data
+		
+		Local buf:Byte Ptr = data.data
+		Local count:Int = data.size
+		While count
+			Local n:Long = data.stream.Read(buf, count)
+			If Not n Then
+				Exit
+			End If
+			count:-n
+			buf:+n
+		Wend
+		
+		Return data.size - count
+	End Function
+	
+
+	Method Delete()
+		MemFree(data)
+		data = Null
+	End Method
 End Type
 
 Rem
@@ -396,6 +456,31 @@ Type TWriteArchive Extends TArchive
 		End If
 	End Method
 
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TReadDiskArchive Extends TArchive
+
+	Method SetSymlinkLogical:Int()
+	End Method
+
+	Method SetSymlinkPhysical:Int()
+	End Method
+
+	Method SetSymlinkhybrid:Int()
+	End Method
+	
+	Method GName:String(gid:Long)
+	End Method
+	
+	Method UName:String(uid:Long)
+	End Method
+	
+	Method SetStandardLookup:Int()
+	End Method
+	
 End Type
 
 Rem
@@ -439,10 +524,50 @@ Type TArchiveEntry
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Destination of the hardlink.
+	End Rem
+	Method Hardlink:String()
+	End Method
+
+	Rem
+	bbdoc: Path in the archive.
 	End Rem
 	Method Pathname:String()
 		Return bmx_libarchive_archive_entry_pathname(entryPtr)
+	End Method
+	
+	Rem
+	bbdoc: Path on the disk for use by TReadArchive.Disk()
+	End Rem
+	Method SourcePath:String()
+	End Method
+	
+	Rem
+	bbdoc: Destination of the symbolic link.
+	End Rem
+	Method Symlink:String()
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SeHardlink(path:String)
+	End Method
+	
+	Rem
+	bbdoc: For a symlink, update the destination, otherwise, make the entry a hardlink and alter the destination for that.
+	about: Update only. 
+	End Rem
+	Method SetLink(path:String)
+	End Method
+	
+	Method SetPathname(path:String)
+	End Method
+	
+	Method SetSourcePath(path:String)
+	End Method
+	
+	Method SetSymlink(path:String)
 	End Method
 
 	Rem

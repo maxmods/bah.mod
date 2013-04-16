@@ -26,6 +26,7 @@
 SuperStrict
 
 
+Import BaH.SStream
 Import BaH.LibXML
 Import BaH.Libiconv
 Import BaH.xz
@@ -73,6 +74,7 @@ Extern
 
 	Function bmx_libarchive_archive_read_next_header:Int(handle:Byte Ptr, entry:Byte Ptr)
 	Function bmx_libarchive_archive_read_data_skip:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_extract:Int(handle:Byte Ptr, entry:Byte Ptr, flags:Int)
 
 	Function bmx_libarchive_archive_read_free:Int(handle:Byte Ptr)
 
