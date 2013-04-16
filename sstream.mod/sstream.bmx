@@ -570,7 +570,7 @@ Rem
 bbdoc: Standard C file stream type
 about:
 End Rem
-Type TCStream Extends TSStream
+Type TCSStream Extends TSStream
 
 	Const MODE_READ:Int=1
 	Const MODE_WRITE:Int=2
@@ -627,9 +627,9 @@ Type TCStream Extends TSStream
 	End Method
 
 	Rem
-	bbdoc: Create a TCStream from a 'C' filename
+	bbdoc: Create a TCSStream from a 'C' filename
 	End Rem
-	Function OpenFile:TCStream( path$,readable:Int,writeable:Int )
+	Function OpenFile:TCSStream( path$,readable:Int,writeable:Int )
 		Local Mode$,_mode:Int
 		If readable And writeable
 			Mode="r+b"
@@ -655,8 +655,8 @@ Type TCStream Extends TSStream
 	Rem
 	bbdoc: Create a TCStream from a 'C' stream handle
 	end rem
-	Function CreateWithCStream:TCStream( cstream:Int,Mode:Int )
-		Local stream:TCStream=New TCStream
+	Function CreateWithCStream:TCSStream( cstream:Int,Mode:Int )
+		Local stream:TCSStream=New TCSStream
 		stream._cstream=cstream
 		ftell64_( cstream, Varptr stream._pos )
 		fseek64_ cstream,0,SEEK_END_
@@ -730,7 +730,7 @@ Function OpenStream:TSStream( url:Object,readable:Int=True,writeable:Int=True )
 	Local str$=String( url ),proto$,path$
 	If str
 		Local i:Int=str.Find( "::",0 )
-		If i=-1 Return TCStream.OpenFile( str,readable,writeable )
+		If i=-1 Return TCSStream.OpenFile( str,readable,writeable )
 		proto$=str[..i].ToLower()
 		path$=str[i+2..]
 	EndIf
@@ -1140,8 +1140,11 @@ Function fflush64_:Int( c_stream:Int )="fflush"
 ?win32
 Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="_fseeki64"
 Function ftell64_( c_stream:Int, pos:Long Ptr )
-?Not win32
+?linux
 Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="fseeko64"
+?macos
+Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="fseeko"
+?Not win32
 Function ftell64_( c_stream:Int, pos:Long Ptr )
 ?
 Function feof64_:Int( c_stream:Int )="feof"
