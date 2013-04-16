@@ -94,6 +94,9 @@ Extern
 
 	Function bmx_libarchive_archive_entry_new:Byte Ptr()
 	Function bmx_libarchive_archive_entry_free(handle:Byte Ptr)
+	Function bmx_libarchive_archive_entry_clear:Byte Ptr(handle:Byte Ptr)
+	Function bmx_libarchive_archive_entry_clone:Byte Ptr(handle:Byte Ptr)
+	
 	Function bmx_libarchive_archive_entry_pathname:String(handle:Byte Ptr)
 
 End Extern

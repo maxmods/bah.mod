@@ -92,6 +92,8 @@ extern "C" {
 
 	struct archive_entry * bmx_libarchive_archive_entry_new();
 	void bmx_libarchive_archive_entry_free(struct archive_entry * entry);
+	struct archive_entry * bmx_libarchive_archive_entry_clear(struct archive_entry * entry);
+	struct archive_entry * bmx_libarchive_archive_entry_clone(struct archive_entry * entry);
 	BBString * bmx_libarchive_archive_entry_pathname(struct archive_entry * entry);
 
 
@@ -309,6 +311,14 @@ struct archive_entry * bmx_libarchive_archive_entry_new() {
 
 void bmx_libarchive_archive_entry_free(struct archive_entry * entry) {
 	archive_entry_free(entry);
+}
+
+struct archive_entry * bmx_libarchive_archive_entry_clear(struct archive_entry * entry) {
+	return archive_entry_clear(entry);
+}
+
+struct archive_entry * bmx_libarchive_archive_entry_clone(struct archive_entry * entry) {
+	return archive_entry_clone(entry);
 }
 
 BBString * bmx_libarchive_archive_entry_pathname(struct archive_entry * entry) {

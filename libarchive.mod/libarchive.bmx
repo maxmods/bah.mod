@@ -351,6 +351,10 @@ Type TReadArchive Extends TArchive
 		Return bmx_libarchive_archive_read_open_memory(archivePtr, buf, size)
 	End Method
 	
+	Rem
+	bbdoc: Read the header for the next entry and populate the provided entry
+	returns: ARCHIVE_OK (the operation succeeded), ARCHIVE_WARN (the operation succeeded but a non-critical error was encountered), ARCHIVE_EOF (end-of-archive was encountered), ARCHIVE_RETRY (the operation failed but can be retried), and ARCHIVE_FATAL (there was a fatal error; the archive should be closed immediately).
+	End Rem
 	Method ReadNextHeader:Int(entry:TArchiveEntry)
 		Return bmx_libarchive_archive_read_next_header(archivePtr, entry.entryPtr)
 	End Method
@@ -400,6 +404,15 @@ End Rem
 Type TArchiveEntry
 
 	Field entryPtr:Byte Ptr
+	
+	Function _create:TArchiveEntry(entryPtr:Byte Ptr)
+		If entryPtr Then
+			Local this:TArchiveEntry = New TArchiveEntry
+			this.entryPtr = entryPtr
+			Return this
+		End If
+		Return Null
+	End Function
 
 	Function CreateEntry:TArchiveEntry()
 		Return New TArchiveEntry.Create()
@@ -411,9 +424,18 @@ Type TArchiveEntry
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Erases the object, resetting all internal fields to the same state as a newly-created object.
+	about: This is provided to allow you to quickly recycle objects.
 	End Rem
 	Method Clear()
+		entryPtr = bmx_libarchive_archive_entry_clear(entryPtr)
+	End Method
+	
+	Rem
+	bbdoc: A deep copy operation; all text fields are duplicated.
+	End Rem
+	Method Clone:TArchiveEntry()
+		Return TArchiveEntry._create(bmx_libarchive_archive_entry_clone(entryPtr))
 	End Method
 
 	Rem
@@ -424,7 +446,7 @@ Type TArchiveEntry
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Releases the archive entry object.
 	End Rem
 	Method Free()
 		If entryPtr Then
