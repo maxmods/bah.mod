@@ -17,10 +17,6 @@ ModuleInfo "History: Initial port from BRL.Stream 1.09"
 
 ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
 
-?win32
-Import "-lmsvcr80"
-?
-
 Import "glue.c"
 
 Import Pub.StdC
@@ -1138,7 +1134,7 @@ Function fread64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Int )="fread"
 Function fwrite64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Int )="fwrite"
 Function fflush64_:Int( c_stream:Int )="fflush"
 ?win32
-Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="_fseeki64"
+Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="fseeko64"
 Function ftell64_( c_stream:Int, pos:Long Ptr )
 ?linux
 Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="fseeko64"

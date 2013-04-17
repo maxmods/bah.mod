@@ -14,7 +14,7 @@ int fopen64_( BBString *file,BBString *mode ){
 }
 
 void ftell64_( FILE *stream, BBInt64 * pos) {
-	*pos = _ftelli64(stream);
+	*pos = ftello64(stream);
 }
 #else
 
