@@ -403,8 +403,10 @@
 /* Define to 1 if you have the `lchflags' function. */
 #define HAVE_LCHFLAGS 1
 
+#ifndef WIN32
 /* Define to 1 if you have the `lchmod' function. */
 #define HAVE_LCHMOD 1
+#endif
 
 /* Define to 1 if you have the `lchown' function. */
 #define HAVE_LCHOWN 1
@@ -758,10 +760,10 @@
 /* Define to 1 if `__tm_gmtoff' is a member of `struct tm'. */
 /* #undef HAVE_STRUCT_TM___TM_GMTOFF */
 
+#ifndef WIN32
 /* Define to 1 if you have the `symlink' function. */
 #define HAVE_SYMLINK 1
 
-#ifndef WIN32
 /* Define to 1 if you have the <sys/acl.h> header file. */
 #define HAVE_SYS_ACL_H 1
 
