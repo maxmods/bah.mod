@@ -31,6 +31,12 @@ End Rem
 Module BaH.LibArchive
 
 
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: BSD"
+ModuleInfo "Copyright: libarchive - 2003-2010 Tim Kientzle"
+ModuleInfo "Copyright: Wrapper - 2013 Bruce A Henderson"
+
+
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -D_FILE_OFFSET_BITS=64"
 ?win32
 ModuleInfo "CC_OPTS: -DLIBARCHIVE_STATIC"
@@ -399,11 +405,62 @@ Type TReadArchive Extends TArchive
 		Return bmx_libarchive_archive_read_extract(archivePtr, entry.entryPtr, flags)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Data:Int(buf:Byte Ptr, size:Int)
+		Return bmx_libarchive_archive_read_data(archivePtr, buf, size)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method DataStream:TSStream()
+		Return TArchiveStream.Create(Self)
+	End Method
+	
 	Method Free()
 		If archivePtr Then
 			bmx_libarchive_archive_read_free(archivePtr)
 			archivePtr = Null
 		End If
+	End Method
+
+End Type
+
+Type TArchiveStream Extends TSStream
+
+	Field archive:TReadArchive
+	
+	Field _eof:Int
+	
+	Function Create:TArchiveStream(archive:TReadArchive)
+		Local this:TArchiveStream = New TArchiveStream
+		this.archive = archive
+		Return this
+	End Function
+
+	Method Read:Long( buf:Byte Ptr,count:Long )
+		Local size:Long = archive.Data(buf, count)
+		If Not size Then
+			_eof = True
+		End If
+		Return size
+	End Method
+
+	Method ReadBytes:Long( buf:Byte Ptr,count:Long )
+		Local t:Long=count
+		While count>0
+			Local n:Long=Read( buf,count )
+			If Not n Exit
+			count:-n
+			buf:+n
+		Wend
+		Return t
+	End Method
+
+	Method Eof:Int()
+		Return _eof
 	End Method
 
 End Type
@@ -427,16 +484,18 @@ Type TArchiveCallbackData
 		
 		Local buf:Byte Ptr = data.data
 		count = data.size
+		Local ncount:Long
 		While count
 			Local n:Long = data.stream.Read(buf, count)
 			If Not n Then
 				Exit
 			End If
 			count:-n
+			ncount:+ n
 			buf:+n
 		Wend
 
-		count = data.size - count		
+		count = ncount
 		Return data.data
 	End Function
 	
@@ -450,6 +509,7 @@ Type TArchiveCallbackData
 			Case SEEK_CUR_
 				count = data.stream.seek(offset + data.stream.pos())
 			Case SEEK_END_
+				count = data.stream.seek(data.stream.size())
 		End Select
 	End Function
 	

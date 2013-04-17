@@ -78,6 +78,7 @@ extern "C" {
 	int bmx_libarchive_archive_read_set_read_callback(struct archive * arc);
 	int bmx_libarchive_archive_read_set_seek_callback(struct archive * arc);
 	int bmx_libarchive_archive_read_set_callback_data(struct archive * arc, BBObject * callbackData);
+	int bmx_libarchive_archive_read_data(struct archive * arc, void * buf, int size);
 
 	int bmx_libarchive_archive_read_free(struct archive * arc);
 
@@ -287,6 +288,10 @@ int bmx_libarchive_archive_read_set_seek_callback(struct archive * arc) {
 
 int bmx_libarchive_archive_read_set_callback_data(struct archive * arc, BBObject * callbackData) {
 	return archive_read_set_callback_data(arc, callbackData);
+}
+
+int bmx_libarchive_archive_read_data(struct archive * arc, void * buf, int size) {
+	return archive_read_data(arc, buf, size);
 }
 
 int bmx_libarchive_archive_read_free(struct archive * arc) {

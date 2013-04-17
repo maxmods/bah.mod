@@ -79,6 +79,7 @@ Extern
 	Function bmx_libarchive_archive_read_set_read_callback:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_set_seek_callback:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_set_callback_data:Int(handle:Byte Ptr, callbackData:Object)
+	Function bmx_libarchive_archive_read_data:Int(handle:Byte Ptr, buf:Byte Ptr, size:Int)
 	
 	Function archive_read_set_read_callback:Int(handle:Byte Ptr, cb:Int(arc:Byte Ptr, cbData:Object, block:Byte Ptr Ptr))
 
