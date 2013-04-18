@@ -449,12 +449,13 @@ Type TArchiveStream Extends TSStream
 	End Method
 
 	Method ReadBytes:Long( buf:Byte Ptr,count:Long )
-		Local t:Long=count
+		Local t:Long=0
 		While count>0
 			Local n:Long=Read( buf,count )
 			If Not n Exit
 			count:-n
 			buf:+n
+			t:+ n
 		Wend
 		Return t
 	End Method
