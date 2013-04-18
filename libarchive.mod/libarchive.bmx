@@ -535,7 +535,103 @@ Type TWriteArchive Extends TArchive
 		Return Self
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilter:Int(filterCode:Int)
+		Return bmx_libarchive_archive_write_add_filter(archivePtr, filterCode)
+	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterByName:Int(name:String)
+		Return bmx_libarchive_archive_write_add_filter_by_name(archivePtr, name)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterB64encode:Int()
+		Return bmx_libarchive_archive_write_add_filter_b64encode(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterBzip2:Int()
+		Return bmx_libarchive_archive_write_add_filter_bzip2(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterCompress:Int()
+		Return bmx_libarchive_archive_write_add_filter_compress(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterGrzip:Int()
+		Return bmx_libarchive_archive_write_add_filter_grzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterGzip:Int()
+		Return bmx_libarchive_archive_write_add_filter_gzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterLrzip:Int()
+		Return bmx_libarchive_archive_write_add_filter_lrzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterLzip:Int()
+		Return bmx_libarchive_archive_write_add_filter_lzip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterLzma:Int()
+		Return bmx_libarchive_archive_write_add_filter_lzma(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterLzop:Int()
+		Return bmx_libarchive_archive_write_add_filter_lzop(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterNone:Int()
+		Return bmx_libarchive_archive_write_add_filter_none(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterUuencode:Int()
+		Return bmx_libarchive_archive_write_add_filter_uuencode(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddFilterXz:Int()
+		Return bmx_libarchive_archive_write_add_filter_xz(archivePtr)
+	End Method
 
 	Method Free()
 		If archivePtr Then

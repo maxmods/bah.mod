@@ -84,9 +84,24 @@ Extern
 	Function archive_read_set_read_callback:Int(handle:Byte Ptr, cb:Int(arc:Byte Ptr, cbData:Object, block:Byte Ptr Ptr))
 
 	Function bmx_libarchive_archive_read_free:Int(handle:Byte Ptr)
-
+	
 	Function bmx_libarchive_write_archive_new:Byte Ptr()
 	Function bmx_libarchive_archive_write_free:Int(handle:Byte Ptr)
+
+	Function bmx_libarchive_archive_write_add_filter:Int(handle:Byte Ptr, filterCode:Int)
+	Function bmx_libarchive_archive_write_add_filter_by_name:Int(handle:Byte Ptr, name:String)
+	Function bmx_libarchive_archive_write_add_filter_b64encode:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_bzip2:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_compress:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_grzip:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_gzip:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_lrzip:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_lzip:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_lzma:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_lzop:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_none:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_uuencode:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_xz:Int(handle:Byte Ptr)
 
 
 	Function bmx_libarchive_archive_clear_error(handle:Byte Ptr)

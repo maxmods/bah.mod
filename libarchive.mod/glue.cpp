@@ -85,6 +85,21 @@ extern "C" {
 
 	struct archive * bmx_libarchive_write_archive_new();
 
+	int bmx_libarchive_archive_write_add_filter(struct archive * arc, int filterCode);
+	int bmx_libarchive_archive_write_add_filter_by_name(struct archive * arc, BBString * name);
+	int bmx_libarchive_archive_write_add_filter_b64encode(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_bzip2(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_compress(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_grzip(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_gzip(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_lrzip(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_lzip(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_lzma(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_lzop(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_none(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_uuencode(struct archive * arc);
+	int bmx_libarchive_archive_write_add_filter_xz(struct archive * arc);
+
 	int bmx_libarchive_archive_write_free(struct archive * arc);
 
 
@@ -303,6 +318,65 @@ int bmx_libarchive_archive_read_free(struct archive * arc) {
 
 struct archive * bmx_libarchive_write_archive_new() {
 	return archive_write_new();
+}
+
+int bmx_libarchive_archive_write_add_filter(struct archive * arc, int filterCode) {
+	return archive_write_add_filter(arc, filterCode);
+}
+
+int bmx_libarchive_archive_write_add_filter_by_name(struct archive * arc, BBString * name) {
+	char * n = bbStringToUTF8String(name);
+	int ret = archive_write_add_filter_by_name(arc, n);
+	bbMemFree(n);
+	return ret;
+}
+
+int bmx_libarchive_archive_write_add_filter_b64encode(struct archive * arc) {
+	return archive_write_add_filter_b64encode(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_bzip2(struct archive * arc) {
+	return archive_write_add_filter_bzip2(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_compress(struct archive * arc) {
+	return archive_write_add_filter_compress(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_grzip(struct archive * arc) {
+	return archive_write_add_filter_grzip(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_gzip(struct archive * arc) {
+	return archive_write_add_filter_gzip(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_lrzip(struct archive * arc) {
+	return archive_write_add_filter_lrzip(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_lzip(struct archive * arc) {
+	return archive_write_add_filter_lzip(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_lzma(struct archive * arc) {
+	return archive_write_add_filter_lzma(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_lzop(struct archive * arc) {
+	return archive_write_add_filter_lzop(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_none(struct archive * arc) {
+	return archive_write_add_filter_none(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_uuencode(struct archive * arc) {
+	return archive_write_add_filter_uuencode(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_xz(struct archive * arc) {
+	return archive_write_add_filter_xz(arc);
 }
 
 int bmx_libarchive_archive_write_free(struct archive * arc) {
