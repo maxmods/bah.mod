@@ -722,11 +722,13 @@
 /* #undef HAVE_STRUCT_STATVFS_F_IOSIZE */
 
 #ifndef WIN32
+#ifndef __APPLE__
 /* Define to 1 if `st_birthtime' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_BIRTHTIME 1
 
 /* Define to 1 if `st_birthtimespec.tv_nsec' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC 1
+#endif
 #endif
 
 /* Define to 1 if `st_blksize' is a member of `struct stat'. */
@@ -910,10 +912,10 @@
 #ifdef WIN32
 /* Define to 1 if you have the <wincrypt.h> header file. */
 #define HAVE_WINCRYPT_H 1
-#endif
 
 /* Define to 1 if you have the <windows.h> header file. */
-/* #undef HAVE_WINDOWS_H */
+#define HAVE_WINDOWS_H 1
+#endif
 
 /* Define to 1 if you have the <winioctl.h> header file. */
 /* #undef HAVE_WINIOCTL_H */
@@ -1039,7 +1041,8 @@
 
 /* Enable large inode numbers on Mac OS X 10.5.  */
 #ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
+/* BaH - Not with BlitzMax...  pub.stdc causes problems linking the correct binaries
+/*# define _DARWIN_USE_64_BIT_INODE 1*/
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
@@ -1116,7 +1119,7 @@
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 /* #undef size_t */
 
-#if WIN32
+#ifdef WIN32
 /* Define to match typeof st_uid field of struct stat if <sys/types.h> doesn't
    define. */
 #define uid_t short

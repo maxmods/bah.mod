@@ -87,6 +87,11 @@ Extern
 	
 	Function bmx_libarchive_write_archive_new:Byte Ptr()
 	Function bmx_libarchive_archive_write_free:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_open_filename:Int(handle:Byte Ptr, filename:String)
+	Function bmx_libarchive_archive_write_open_memory:Int(handle:Byte Ptr, buf:Byte Ptr, size:Int, used:Int Ptr)
+	Function bmx_libarchive_archive_write_data:Int(handle:Byte Ptr, data:Byte Ptr, size:Int)
+	Function bmx_libarchive_archive_write_header:Int(handle:Byte Ptr, entry:Byte Ptr)
+	Function bmx_libarchive_archive_write_close:Int(handle:Byte Ptr)
 
 	Function bmx_libarchive_archive_write_add_filter:Int(handle:Byte Ptr, filterCode:Int)
 	Function bmx_libarchive_archive_write_add_filter_by_name:Int(handle:Byte Ptr, name:String)
@@ -103,6 +108,27 @@ Extern
 	Function bmx_libarchive_archive_write_add_filter_uuencode:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_add_filter_xz:Int(handle:Byte Ptr)
 
+	Function bmx_libarchive_archive_write_set_format:Int(handle:Byte Ptr, formatCode:Int)
+	Function bmx_libarchive_archive_write_set_format_by_name:Int(handle:Byte Ptr, name:String)
+	Function bmx_libarchive_archive_write_set_format_7zip:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_ar_bsd:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_ar_svr4:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_cpio:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_cpio_newc:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_gnutar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_iso9660:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_mtree:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_mtree_classic:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_pax:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_pax_restricted:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_shar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_shar_dump:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_ustar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_v7tar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_xar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_zip:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_zip_set_compression_deflate:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_zip_set_compression_store:Int(handle:Byte Ptr)
 
 	Function bmx_libarchive_archive_clear_error(handle:Byte Ptr)
 	Function bmx_libarchive_archive_errno:Int(handle:Byte Ptr)
@@ -122,6 +148,14 @@ Extern
 	Function bmx_libarchive_archive_entry_clone:Byte Ptr(handle:Byte Ptr)
 	
 	Function bmx_libarchive_archive_entry_pathname:String(handle:Byte Ptr)
+	Function bmx_libarchive_archive_entry_set_link(handle:Byte Ptr, path:String)
+	Function bmx_libarchive_archive_entry_set_pathname(handle:Byte Ptr, path:String)
+	Function bmx_libarchive_archive_entry_set_sourcepath(handle:Byte Ptr, path:String)
+	Function bmx_libarchive_archive_entry_set_symlink(handle:Byte Ptr, path:String)
+
+	Function bmx_libarchive_archive_read_disk_new:Byte Ptr()
+	Function bmx_libarchive_archive_read_disk_entry_from_file:Int(handle:Byte Ptr, entry:Byte Ptr)
+	Function bmx_libarchive_archive_read_disk_set_standard_lookup:Int(handle:Byte Ptr)
 
 End Extern
 

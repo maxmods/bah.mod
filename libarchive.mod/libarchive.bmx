@@ -40,6 +40,8 @@ ModuleInfo "Copyright: Wrapper - 2013 Bruce A Henderson"
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -D_FILE_OFFSET_BITS=64"
 ?win32
 ModuleInfo "CC_OPTS: -DLIBARCHIVE_STATIC"
+?macos
+'ModuleInfo "CC_OPTS: -D_DARWIN_USE_64_BIT_INODE=1"
 ?
 
 Import "common.bmx"
@@ -633,6 +635,195 @@ Type TWriteArchive Extends TArchive
 		Return bmx_libarchive_archive_write_add_filter_xz(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormat:Int(formatCode:Int)
+		Return bmx_libarchive_archive_write_set_format(archivePtr, formatCode)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatByName:Int(name:String)
+		Return bmx_libarchive_archive_write_set_format_by_name(archivePtr, name)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormat7zip:Int()
+		Return bmx_libarchive_archive_write_set_format_7zip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatArBsd:Int()
+		Return bmx_libarchive_archive_write_set_format_ar_bsd(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormat_ArSvr4:Int()
+		Return bmx_libarchive_archive_write_set_format_ar_svr4(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatCpio:Int()
+		Return bmx_libarchive_archive_write_set_format_cpio(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatCpioNewc:Int()
+		Return bmx_libarchive_archive_write_set_format_cpio_newc(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatGnutar:Int()
+		Return bmx_libarchive_archive_write_set_format_gnutar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatIso9660:Int()
+		Return bmx_libarchive_archive_write_set_format_iso9660(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatMtree:Int()
+		Return bmx_libarchive_archive_write_set_format_mtree(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatMtreeClassic:Int()
+		Return bmx_libarchive_archive_write_set_format_mtree_classic(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatPax:Int()
+		Return bmx_libarchive_archive_write_set_format_pax(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatPaxRestricted:Int()
+		Return bmx_libarchive_archive_write_set_format_pax_restricted(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatShar:Int()
+		Return bmx_libarchive_archive_write_set_format_shar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatSharDump:Int()
+		Return bmx_libarchive_archive_write_set_format_shar_dump(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatUstar:Int()
+		Return bmx_libarchive_archive_write_set_format_ustar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatV7tar:Int()
+		Return bmx_libarchive_archive_write_set_format_v7tar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatXar:Int()
+		Return bmx_libarchive_archive_write_set_format_xar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatZip:Int()
+		Return bmx_libarchive_archive_write_set_format_zip(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetZipCompressionDeflate:Int()
+		Return bmx_libarchive_archive_write_zip_set_compression_deflate(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetZipCompressionStore:Int()
+		Return bmx_libarchive_archive_write_zip_set_compression_store(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method OpenFilename:Int(filename:String)
+		Return bmx_libarchive_archive_write_open_filename(archivePtr, filename)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OpenMemory:Int(buf:Byte Ptr, size:Int, used:Int Var)
+		Return bmx_libarchive_archive_write_open_memory(archivePtr, buf, size, Varptr used)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OpenStream:Int(stream:TSStream, blockSize:Int = 10240)
+	End Method
+	
+	Rem
+	bbdoc: Build and write a header using the data in the provided in the TArchiveEntry object.
+	about: See TArchiveEntry for information on creating and populating such objects.
+	End Rem
+	Method WriteHeader:Int(entry:TArchiveEntry)
+		Return bmx_libarchive_archive_write_header(archivePtr, entry.entryPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Close:Int()
+		Return bmx_libarchive_archive_write_close(archivePtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteData:Int(data:Byte Ptr, size:Int)
+		Return bmx_libarchive_archive_write_data(archivePtr, data, size)
+	End Method
+
 	Method Free()
 		If archivePtr Then
 			bmx_libarchive_archive_write_free(archivePtr)
@@ -646,6 +837,15 @@ Rem
 bbdoc: 
 End Rem
 Type TReadDiskArchive Extends TArchive
+
+	Method Create:TReadDiskArchive()
+		archivePtr = bmx_libarchive_archive_read_disk_new()
+		Return Self
+	End Method
+	
+	Method EntryFromFile:Int(entry:TArchiveEntry)
+		Return bmx_libarchive_archive_read_disk_entry_from_file(archivePtr, entry.entryPtr)
+	End Method
 
 	Method SetSymlinkLogical:Int()
 	End Method
@@ -663,12 +863,23 @@ Type TReadDiskArchive Extends TArchive
 	End Method
 	
 	Method SetStandardLookup:Int()
+		Return bmx_libarchive_archive_read_disk_set_standard_lookup(archivePtr)
 	End Method
 	
+	Method Free()
+		If archivePtr Then
+			bmx_libarchive_archive_read_free(archivePtr)
+			archivePtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Represents entries within an archive.
+about: You can think of a TArchiveEntry as a heavy-duty version of the c struct stat: it includes everything from struct stat plus
+associated pathname, textual group and user names, etc. These objects are used by libarchive to represent the metadata associated
+with a particular entry in an archive.
 End Rem
 Type TArchiveEntry
 
@@ -743,15 +954,19 @@ Type TArchiveEntry
 	about: Update only. 
 	End Rem
 	Method SetLink(path:String)
+		bmx_libarchive_archive_entry_set_link(entryPtr, path)
 	End Method
 	
 	Method SetPathname(path:String)
+		bmx_libarchive_archive_entry_set_pathname(entryPtr, path)
 	End Method
 	
 	Method SetSourcePath(path:String)
+		bmx_libarchive_archive_entry_set_sourcepath(entryPtr, path)
 	End Method
 	
 	Method SetSymlink(path:String)
+		bmx_libarchive_archive_entry_set_symlink(entryPtr, path)
 	End Method
 
 	Rem
