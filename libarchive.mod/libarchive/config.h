@@ -188,8 +188,10 @@
 /* Define to 1 if you have the <copyfile.h> header file. */
 #define HAVE_COPYFILE_H 1
 
+#ifndef WIN32
 /* Define to 1 if you have the `ctime_r' function. */
 #define HAVE_CTIME_R 1
+#endif
 
 /* Define to 1 if you have the <ctype.h> header file. */
 #define HAVE_CTYPE_H 1
@@ -518,8 +520,10 @@
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
 
+#ifndef WIN32
 /* Define to 1 if you have the `localtime_r' function. */
 #define HAVE_LOCALTIME_R 1
+#endif
 
 /* Define to 1 if the system has the type `long long int'. */
 #define HAVE_LONG_LONG_INT 1
@@ -1079,13 +1083,13 @@
    #define below would cause a syntax error. */
 /* #undef _UINT8_T */
 
+#ifdef WIN32
 /* Define to '0x0500' for Windows 2000 APIs. */
-/* #undef _WIN32_WINNT */
+#define _WIN32_WINNT 0x0500
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
 
-#ifdef WIN32
 /* Define to match typeof st_gid field of struct stat if <sys/types.h> doesn't
    define. */
 #define gid_t short
