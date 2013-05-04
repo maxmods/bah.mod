@@ -25,17 +25,22 @@ bbdoc: Mathematical expressions parser.
 End Rem
 Module BaH.muParser
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
 ModuleInfo "Copyright: muParser - 2004-2012 Ingo Berg"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Added -fpermissive for Mac build."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated to muParser 2.2.3."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release (muparser 1.30 svn 20081110)"
 
 ModuleInfo "CC_OPTS: -fexceptions"' -D_UNICODE"
+?macos
+ModuleInfo "CC_OPTS: -fpermissive"
+?
 
 Import "common.bmx"
 
