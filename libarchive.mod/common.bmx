@@ -147,6 +147,9 @@ Extern
 	Function bmx_libarchive_archive_entry_clear:Byte Ptr(handle:Byte Ptr)
 	Function bmx_libarchive_archive_entry_clone:Byte Ptr(handle:Byte Ptr)
 	
+	Function bmx_libarchive_archive_entry_hardlink:String(handle:Byte Ptr)
+	Function bmx_libarchive_archive_entry_sourcepath:String(handle:Byte Ptr)
+	Function bmx_libarchive_archive_entry_symlink:String(handle:Byte Ptr)
 	Function bmx_libarchive_archive_entry_pathname:String(handle:Byte Ptr)
 	Function bmx_libarchive_archive_entry_set_link(handle:Byte Ptr, path:String)
 	Function bmx_libarchive_archive_entry_set_pathname(handle:Byte Ptr, path:String)

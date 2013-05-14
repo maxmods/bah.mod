@@ -145,6 +145,9 @@ extern "C" {
 	void bmx_libarchive_archive_entry_free(struct archive_entry * entry);
 	struct archive_entry * bmx_libarchive_archive_entry_clear(struct archive_entry * entry);
 	struct archive_entry * bmx_libarchive_archive_entry_clone(struct archive_entry * entry);
+	BBString * bmx_libarchive_archive_entry_hardlink(struct archive_entry * entry);
+	BBString * bmx_libarchive_archive_entry_sourcepath(struct archive_entry * entry);
+	BBString * bmx_libarchive_archive_entry_symlink(struct archive_entry * entry);
 	BBString * bmx_libarchive_archive_entry_pathname(struct archive_entry * entry);
 	void bmx_libarchive_archive_entry_set_link(struct archive_entry * entry, BBString * path);
 	void bmx_libarchive_archive_entry_set_pathname(struct archive_entry * entry, BBString * path);
@@ -589,6 +592,18 @@ struct archive_entry * bmx_libarchive_archive_entry_clear(struct archive_entry *
 
 struct archive_entry * bmx_libarchive_archive_entry_clone(struct archive_entry * entry) {
 	return archive_entry_clone(entry);
+}
+
+BBString * bmx_libarchive_archive_entry_hardlink(struct archive_entry * entry) {
+	return bbStringFromUTF8String(archive_entry_hardlink(entry));
+}
+
+BBString * bmx_libarchive_archive_entry_sourcepath(struct archive_entry * entry) {
+	return bbStringFromUTF8String(archive_entry_sourcepath(entry));
+}
+
+BBString * bmx_libarchive_archive_entry_symlink(struct archive_entry * entry) {
+	return bbStringFromUTF8String(archive_entry_symlink(entry));
 }
 
 BBString * bmx_libarchive_archive_entry_pathname(struct archive_entry * entry) {

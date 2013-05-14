@@ -40,9 +40,6 @@ ModuleInfo "Copyright: Wrapper - 2013 Bruce A Henderson"
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -D_FILE_OFFSET_BITS=64"
 ?win32
 ModuleInfo "CC_OPTS: -DLIBARCHIVE_STATIC"
-?macos
-'ModuleInfo "CC_OPTS: -D_DARWIN_USE_64_BIT_INODE=1"
-?
 
 Import "common.bmx"
 
@@ -332,6 +329,11 @@ Type TReadArchive Extends TArchive
 		Return bmx_libarchive_archive_read_support_format_mtree(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Libarchive has limited support for reading RAR format archives.
+	about: Currently, libarchive can read RARv3 format archives which have been either created uncompressed, or
+	compressed using any of the compression methods supported by the RARv3 format. Libarchive can also read self-extracting RAR archives.
+	End Rem
 	Method SupportFormatRar:Int()
 		Return bmx_libarchive_archive_read_support_format_rar(archivePtr)
 	End Method
@@ -393,7 +395,9 @@ Type TReadArchive Extends TArchive
 		Return bmx_libarchive_archive_read_next_header(archivePtr, entry.entryPtr)
 	End Method
 
-
+	Rem
+	bbdoc: A convenience method that repeatedly skips all of the data for this archive entry. 
+	End Rem
 	Method DataSkip:Int()
 		Return bmx_libarchive_archive_read_data_skip(archivePtr)
 	End Method
@@ -408,7 +412,8 @@ Type TReadArchive Extends TArchive
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Read data associated with the header just read.
+	returns: A count of bytes actually read or zero at the end of the entry. On error, a value of ARCHIVE_FATAL, ARCHIVE_WARN, or ARCHIVE_RETRY is returned.
 	End Rem
 	Method Data:Int(buf:Byte Ptr, size:Int)
 		Return bmx_libarchive_archive_read_data(archivePtr, buf, size)
@@ -430,6 +435,9 @@ Type TReadArchive Extends TArchive
 
 End Type
 
+Rem
+bbdoc: Data from a TReadArchive entry as a stream.
+End Rem
 Type TArchiveStream Extends TSStream
 
 	Field archive:TReadArchive
@@ -666,7 +674,7 @@ Type TWriteArchive Extends TArchive
 	Rem
 	bbdoc: 
 	End Rem
-	Method SetFormat_ArSvr4:Int()
+	Method SetFormatArSvr4:Int()
 		Return bmx_libarchive_archive_write_set_format_ar_svr4(archivePtr)
 	End Method
 
@@ -894,10 +902,16 @@ Type TArchiveEntry
 		Return Null
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
 	Function CreateEntry:TArchiveEntry()
 		Return New TArchiveEntry.Create()
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:TArchiveEntry()
 		entryPtr = bmx_libarchive_archive_entry_new()
 		Return Self
@@ -922,6 +936,7 @@ Type TArchiveEntry
 	bbdoc: Destination of the hardlink.
 	End Rem
 	Method Hardlink:String()
+		Return bmx_libarchive_archive_entry_hardlink(entryPtr)
 	End Method
 
 	Rem
@@ -935,18 +950,20 @@ Type TArchiveEntry
 	bbdoc: Path on the disk for use by TReadArchive.Disk()
 	End Rem
 	Method SourcePath:String()
+		Return bmx_libarchive_archive_entry_sourcepath(entryPtr)
 	End Method
 	
 	Rem
 	bbdoc: Destination of the symbolic link.
 	End Rem
 	Method Symlink:String()
+		Return bmx_libarchive_archive_entry_symlink(entryPtr)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method SeHardlink(path:String)
+	Method SetHardlink(path:String)
 	End Method
 	
 	Rem
@@ -957,14 +974,23 @@ Type TArchiveEntry
 		bmx_libarchive_archive_entry_set_link(entryPtr, path)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetPathname(path:String)
 		bmx_libarchive_archive_entry_set_pathname(entryPtr, path)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetSourcePath(path:String)
 		bmx_libarchive_archive_entry_set_sourcepath(entryPtr, path)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetSymlink(path:String)
 		bmx_libarchive_archive_entry_set_symlink(entryPtr, path)
 	End Method

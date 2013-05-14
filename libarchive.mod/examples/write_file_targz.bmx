@@ -47,12 +47,13 @@ For Local file:String = EachIn filelist
 		End
 	End If
 	
-	' load the data into the archive
+	' load the data for the archive
 	Local stream:TSStream = BaH.SStream.ReadStream(path)
 
 	bytesRead = stream.Read(buf, 8192)
 	
 	While bytesRead
+		' write into the archive
 		archive.WriteData(buf, bytesRead)
 		
 		bytesRead = stream.Read(buf, 8192)
@@ -62,6 +63,7 @@ For Local file:String = EachIn filelist
 	
 Next
 
+' finally, close the archive
 archive.Close()
 
 
