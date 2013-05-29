@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2011 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -168,28 +168,123 @@ Extern
 End Extern
 
 
-
+Rem
+bbdoc: Autodetects the best sound driver for the system.
+End Rem
 Const ESOD_AUTO_DETECT:Int = 0
+Rem
+bbdoc: DirectSound8 sound output driver, windows only.
+about: In contrast to ESOD_DIRECT_SOUND, this supports sophisticated sound effects
+but may not be available on old windows versions. It behaves very similar 
+to ESOD_DIRECT_SOUND but also supports DX8 sound effects.
+End Rem
 Const ESOD_DIRECT_SOUND_8:Int = 1
+Rem
+bbdoc: DirectSound sound output driver, windows only.
+about: This uses DirectSound 3 or above, if available. If DX8 sound effects are needed,
+use ESOD_DIRECT_SOUND_8 instead. The ESOD_DIRECT_SOUND driver may be available on more and older windows 
+versions than ESOD_DIRECT_SOUND_8.
+End Rem
 Const ESOD_DIRECT_SOUND:Int = 2
+Rem
+bbdoc: WinMM sound output driver, windows only.
+about: Supports the ISoundMixedOutputReceiver interface using setMixedDataOutputReceiver.
+End Rem
 Const ESOD_WIN_MM:Int = 3
+Rem
+bbdoc: ALSA sound output driver, linux only.
+about: When using ESOD_ALSA in createIrrKlangDevice(), it is possible to set the third parameter,
+'deviceID' to the name of specific ALSA pcm device, to the irrKlang force to use this one.
+Set it to 'default', or 'plug:hw' or whatever you need it to be. 
+Supports the ISoundMixedOutputReceiver interface using setMixedDataOutputReceiver.
+End Rem
 Const ESOD_ALSA:Int = 4
+Rem
+bbdoc: Core Audio sound output driver, mac os only.
+about: Supports the ISoundMixedOutputReceiver interface using setMixedDataOutputReceiver.
+End Rem
 Const ESOD_CORE_AUDIO:Int = 5
+Rem
+bbdoc: Null driver, creating no sound output.
+End Rem
 Const ESOD_NULL:Int = 6
 
+Rem
+bbdoc: If specified (default), it will make irrKlang run in a separate thread.
+about: Using this flag, irrKlang will update all streams, sounds, 3d positions and whatever automaticly.
+You also don't need to call ISoundEngine.update() if irrKlang is running multithreaded. However, if you
+want to run irrKlang in the same thread as your application (for easier debugging for example),
+don't set this. But you need to call ISoundEngine::update()	as often as you can (at least about 2-3
+times per second) to make irrKlang update everything correctly then.
+End Rem
 Const ESEO_MULTI_THREADED:Int = $01
+Rem
+bbdoc: If the window of the application doesn't have the focus, irrKlang will be silent if this has been set.
+about: This will only work when irrKlang is using the DirectSound output driver.
+End Rem
 Const ESEO_MUTE_IF_NOT_FOCUSED:Int = $02
+Rem
+bbdoc: Automaticly loads external plugins when starting up.
+about: Plugins usually are .dll, .so or .dylib files named for example ikpMP3.dll
+(= short for irrKlangPluginMP3) which are executed after the startup of the sound engine and modify
+it for example to make it possible to play back mp3 files. Plugins are being loaded from
+the current working directory as well as from the position where the .exe using the irrKlang
+library resides.  It is also possible to load the plugins after the engine has started up using 
+ISoundEngine::loadPlugins().
+End Rem
 Const ESEO_LOAD_PLUGINS:Int = $04
+Rem
+bbdoc: Uses 3D sound buffers instead of emulating them when playing 3d sounds (default).
+about: If this flag is not specified, all buffers will by created in 2D only and 3D positioning
+will be emulated in software, making the engine run faster if hardware 3d audio is slow on the system.
+End Rem
 Const ESEO_USE_3D_BUFFERS:Int = $08
+Rem
+bbdoc: Prints debug messages to the debugger window.
+about: irrKlang will print debug info and status messages to any windows debugger supporting OutputDebugString() (like VisualStudio).
+This is useful if your application does not capture any console output (see ESEO_PRINT_DEBUG_INFO_TO_STDOUT).
+End Rem
 Const ESEO_PRINT_DEBUG_INFO_TO_DEBUGGER:Int = $10
+Rem
+bbdoc: Prints debug messages to stdout (the ConsoleWindow).
+about: irrKlang will print debug info and status messages stdout, the console window in Windows.
+End Rem
 Const ESEO_PRINT_DEBUG_INFO_TO_STDOUT:Int = $20
+Rem
+bbdoc: Uses linear rolloff for 3D sound.
+about: If specified, instead of the default logarithmic one, irrKlang will 
+use a linear rolloff model which influences the attenuation of the sounds over distance. The volume
+is interpolated linearly between the MinDistance and MaxDistance, making it possible to adjust sounds
+more easily although this is not physically correct.
+Note that this option may not work when used together with the ESEO_USE_3D_BUFFERS
+option when using Direct3D for example, irrKlang will then turn off ESEO_USE_3D_BUFFERS
+automaticly to be able to use this option and write out a warning.
+End Rem
 Const ESEO_LINEAR_ROLLOFF:Int = $40
+Rem
+bbdoc: Default parameters when starting up the engine.
+End Rem
 Const ESEO_DEFAULT_OPTIONS:Int = ESEO_MULTI_THREADED | ESEO_LOAD_PLUGINS | ESEO_USE_3D_BUFFERS | ..
 	ESEO_PRINT_DEBUG_INFO_TO_DEBUGGER | ESEO_PRINT_DEBUG_INFO_TO_STDOUT
 
+Rem
+bbdoc: Autodetects the best stream mode for a specified audio data.
+End Rem
 Const ESM_AUTO_DETECT:Int = 0
+Rem
+bbdoc: Streams the audio data when needed.
+End Rem
 Const ESM_STREAMING:Int = 1
+Rem
+bbdoc: Loads the whole audio data into the memory.
+End Rem
 Const ESM_NO_STREAMING:Int = 2
 
+Rem
+bbdoc: 
+End Rem
 Const ESF_U8:Int = 0
+Rem
+bbdoc: 
+End Rem
 Const ESF_S16:Int = 1

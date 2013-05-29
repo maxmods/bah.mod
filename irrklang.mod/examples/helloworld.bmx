@@ -20,7 +20,8 @@ If Not _engine Then
 End If
 
 ' To play a sound, we only need to call Play2D(). The second parameter tells the engine to play it looped.
-_engine.Play2D("media/getout.ogg", True)
+Local s:TISound = _engine.Play2D("media/getout.ogg", True, True)
+'DebugStop
 
 Graphics 640,480,0
 

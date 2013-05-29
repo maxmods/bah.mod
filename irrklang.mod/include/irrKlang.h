@@ -34,9 +34,9 @@
 #include "ik_ISoundMixedOutputReceiver.h"
 
 //! irrKlang Version
-#define IRR_KLANG_VERSION "1.3.0"
+#define IRR_KLANG_VERSION "1.4.0"
 
-/*! \mainpage irrKlang 1.3.0 API documentation
+/*! \mainpage irrKlang 1.4.0 API documentation
  *
  * <div align="center"><img src="logobig.png" ></div>
 

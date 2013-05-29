@@ -38,7 +38,8 @@ namespace irrklang
 
 		//! Will stop the sound and free its resources.
 		/** If you just want to pause the sound, use setIsPaused().
-		After calling stop(), isFinished() will usually return true. */
+		After calling stop(), isFinished() will usually return true. 
+		Be sure to also call ->drop() once you are done.*/
 		virtual void stop() = 0;
 
 		//! returns volume of the sound, a value between 0 (mute) and 1 (full volume).

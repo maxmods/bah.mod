@@ -204,9 +204,11 @@ namespace irrklang
 		savely. If set to false, the memory is not copied and the user takes the responsibility that 
 		the memory block pointed to remains there as long as the sound engine or at least this sound
 		source exists.
-		\return Returns the pointer to the added sound source or 0 if not sucessful because for
-		example a sound already existed with that name. If not successful, the reason will be printed
-		into the log. */
+		\return Returns the pointer to the added sound source or 0 if not sucessful because for example a sound already
+		existed with that name. If not successful, the reason will be printed into the log. 
+		Note: Don't call drop() to this pointer, it will be managed by irrKlang and exist as long as you don't 
+		delete irrKlang or call removeSoundSource(). However, you are free to call grab() if you
+		want and drop() it then later of course. */
 		virtual ISoundSource* addSoundSourceFromMemory(void* memory, ik_s32 sizeInBytes, const ik_c8* soundName,
 											               bool copyMemory=true) = 0;
 

@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2011 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,11 @@ Module BaH.irrKlang
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: irrKlang - See http://www.ambiera.com/irrklang/license.html"
-ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
 ModuleInfo "Copyright: irrKlang - Nikolaus Gebhardt / Ambiera 2002-2009"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Updated to irrKlang 1.3.0"
+ModuleInfo "History: Updated to irrKlang 1.4.0"
 ModuleInfo "History: Loading the same sound twice now returns a valid object."
 ModuleInfo "History: Added TISoundEngine LoadPlugins() method."
 ModuleInfo "History: Strings now converted to UTF8 and back."
