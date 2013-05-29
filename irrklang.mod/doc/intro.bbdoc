@@ -12,14 +12,14 @@ The ikpMP3.dll is only required if you wish to handle .mp3 audio.
 </p>
 <h3>MacOS</h3>
 <p>
-The libirrklang.dylib shared library should be copied into your application bundle, in Contents/MacOS.
+The libirrKlang.dylib shared library should be copied into your application bundle, in Contents/MacOS.
 </p>
 <p>
 For .mp3 audio support, you should copy ipkMP3.dylib into the same location.
 </p>
 <p>
 Please note, that the dylib shipped with this module has been modified to work from the application bundle. By default it is set to work from the current directory. This won't work for an app with an Application Bundle. If you want to configure a new dylib in the same way, you can run the following command from the Terminal :<br>
-<pre>install_name_tool -id @@executable_path/libirrklang.dylib libirrklang.dylib</pre>
+<pre>install_name_tool -id @executable_path/libirrKlang.dylib libirrKlang.dylib</pre>
 </p>
 <h3>Linux</h3>
 <p>
