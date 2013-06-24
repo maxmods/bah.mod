@@ -585,6 +585,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\FreeImage\PluginWebP.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\FreeImage\PluginXBM.cpp"
 					>
 				</File>
@@ -688,6 +692,10 @@
 			</File>
 			<File
 				RelativePath="..\Metadata\FreeImageTag.h"
+				>
+			</File>
+			<File
+				RelativePath="..\FreeImage\J2KHelper.h"
 				>
 			</File>
 			<File

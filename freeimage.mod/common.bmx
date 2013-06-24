@@ -241,7 +241,7 @@ Const FIF_JP2:Int = 31
 Const FIF_PFM:Int = 32
 Const FIF_PICT:Int = 33
 Const FIF_RAW:Int = 34
-
+Const FIF_WEBP:Int = 35
 
 Const FILTER_BOX:Int = 0	' Box, pulse, Fourier window, 1st order (constant) b-spline
 Const FILTER_BICUBIC:Int = 1	' Mitchell & Netravali's two-param cubic filter
@@ -612,6 +612,14 @@ Rem
 bbdoc: 
 End Rem
 Const XPM_DEFAULT:Int = 0
+Rem
+bbdoc: save with good quality (75:1)
+End Rem
+Const WEBP_DEFAULT:Int = 0
+Rem
+bbdoc: save in lossless mode
+End Rem
+Const WEBP_LOSSLESS:Int = $100
 
 Const FID_FS:Int = 0
 Const FID_BAYER4x4	:Int = 1

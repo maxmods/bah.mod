@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  * File: libraw_types.h
- * Copyright 2008-2010 LibRaw LLC (info@libraw.org)
+ * Copyright 2008-2013 LibRaw LLC (info@libraw.org)
  * Created: Sat Mar  8 , 2008
  *
  * LibRaw C data structures
@@ -69,16 +69,13 @@ extern "C" {
 #include "libraw_const.h"
 #include "libraw_version.h"
 
-#ifndef _MSC_VER
-// define portable types for 32-bit / 64-bit OS
-#include <inttypes.h>
-typedef int64_t INT64;
-typedef uint64_t UINT64;
-#else
-// MS is not C99 ISO compliant
-typedef signed __int64 INT64;
+#ifdef WIN32
+typedef __int64 INT64;
 typedef unsigned __int64 UINT64;
-#endif // _MSC_VER
+#else
+typedef long long INT64;
+typedef unsigned long long UINT64;
+#endif
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
@@ -110,7 +107,6 @@ typedef struct
     unsigned    zero_is_bad;
     ushort      shrink;
     ushort      fuji_width;
-    ushort      fwidth,fheight;
 } libraw_internal_output_params_t;
 
 
@@ -167,15 +163,17 @@ typedef struct
 typedef struct
 {
     ushort      raw_height, 
-                raw_width, 
+                raw_width,
                 height, 
                 width, 
                 top_margin, 
                 left_margin;
     ushort      iheight,
                 iwidth;
+    unsigned    raw_pitch;
     double      pixel_aspect;
     int         flip;
+    int         mask[8][4];
 
 } libraw_image_sizes_t;
 
@@ -185,38 +183,25 @@ struct ph1_t
     float tag_210;
 };
 
-
 typedef struct
 {
-    unsigned curve_state        : 3;
-    unsigned rgb_cam_state      : 3;
-    unsigned cmatrix_state      : 3;
-    unsigned pre_mul_state      : 3;
-    unsigned cam_mul_state      : 3;
-    unsigned filler             : 17;
-} color_data_state_t;
-
-typedef struct
-{
-    color_data_state_t   color_flags;
-    ushort      white[8][8];  
-    float       cam_mul[4]; 
-    float       pre_mul[4]; 
-    float       cmatrix[3][4]; 
-    float       rgb_cam[3][4]; 
-    float       cam_xyz[4][3]; 
-    ushort      curve[0x10000]; 
-    unsigned    black;
-    unsigned    cblack[8];
-    unsigned    maximum;
-    unsigned    channel_maximum[4];
-    struct ph1_t       phase_one_data;
-    float       flash_used; 
-    float       canon_ev; 
-    char        model2[64];
-    void        *profile;
-    unsigned    profile_length;
-    short  (*ph1_black)[2];
+  ushort      curve[0x10000]; 
+  unsigned    cblack[4];
+  unsigned    black;
+  unsigned    data_maximum;
+  unsigned    maximum;
+  ushort      white[8][8];  
+  float       cam_mul[4]; 
+  float       pre_mul[4]; 
+  float       cmatrix[3][4]; 
+  float       rgb_cam[3][4]; 
+  float       cam_xyz[4][3]; 
+  struct ph1_t       phase_one_data;
+  float       flash_used; 
+  float       canon_ev; 
+  char        model2[64];
+  void        *profile;
+  unsigned    profile_length;
 }libraw_colordata_t;
 
 typedef struct
@@ -255,7 +240,6 @@ typedef struct
     float       threshold;      /*  -n */
     int         half_size;      /* -h */
     int         four_color_rgb; /* -f */
-    int         document_mode;  /* -d/-D */
     int         highlight;      /* -H */
     int         use_auto_wb;    /* -a */
     int         use_camera_wb;  /* -w */
@@ -270,6 +254,8 @@ typedef struct
     int         user_flip;      /* -t */
     int         user_qual;      /* -q */
     int         user_black;     /* -k */
+    int		user_cblack[4];
+    int		sony_arw2_hack;
     int         user_sat;       /* -S */
 
     int         med_passes;     /* -m */
@@ -307,6 +293,11 @@ typedef struct
     int exp_correc;
     float exp_shift;
     float exp_preser;
+   /* WF debanding */
+    int   wf_debanding;
+    float wf_deband_treshold[4];
+	/* Raw speed */
+	int use_rawspeed;
 }libraw_output_params_t;
 
 typedef struct
@@ -314,13 +305,14 @@ typedef struct
     /* really allocated bitmap */
     void        *raw_alloc;
     /* alias to single_channel variant */
-    ushort                      *raw_image;
+    ushort      *raw_image;
     /* alias to 4-channel variant */
-    ushort                      (*color_image)[4] ;
+    ushort      (*color4_image)[4] ;
+	/* alias to 3-color variand decoded by RawSpeed */
+	ushort		(*color3_image)[3];
     
     /* Phase One black level data; */
     short  (*ph1_black)[2];
-    int         use_ph1_correct;
     /* save color and sizes here, too.... */
     libraw_iparams_t  iparams;
     libraw_image_sizes_t sizes;
@@ -331,16 +323,16 @@ typedef struct
 
 typedef struct
 {
+	ushort                      (*image)[4] ;
+	libraw_image_sizes_t        sizes;
+	libraw_iparams_t            idata;
+	libraw_output_params_t		params;
     unsigned int                progress_flags;
     unsigned int                process_warnings;
-    libraw_iparams_t            idata;
-    libraw_image_sizes_t        sizes;
     libraw_colordata_t          color;
     libraw_imgother_t           other;
     libraw_thumbnail_t          thumbnail;
     libraw_rawdata_t            rawdata;
-    ushort                      (*image)[4] ;
-    libraw_output_params_t     params;
     void                *parent_class;      
 } libraw_data_t;
 

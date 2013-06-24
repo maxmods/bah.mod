@@ -1,13 +1,13 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995-2012 Jean-loup Gailly.
+ * Copyright (C) 1995-2013 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id: zconf.h,v 1.9 2012/05/13 12:18:39 drolon Exp $ */
+/* @(#) $Id: zconf.h,v 1.10 2013/05/10 17:22:52 drolon Exp $ */
 
 #ifndef ZCONF_H
 #define ZCONF_H
-
+/* BaH - changed prefix to fi_ */
 /*
  * If you *really* need a unique prefix for all types and library functions,
  * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.
@@ -18,134 +18,137 @@
 #  define Z_PREFIX_SET
 
 /* all linked symbols */
-#  define _dist_code            z__dist_code
-#  define _length_code          z__length_code
-#  define _tr_align             z__tr_align
-#  define _tr_flush_block       z__tr_flush_block
-#  define _tr_init              z__tr_init
-#  define _tr_stored_block      z__tr_stored_block
-#  define _tr_tally             z__tr_tally
-#  define adler32               z_adler32
-#  define adler32_combine       z_adler32_combine
-#  define adler32_combine64     z_adler32_combine64
+#  define _dist_code            fi__dist_code
+#  define _length_code          fi__length_code
+#  define _tr_align             fi__tr_align
+#  define _tr_flush_bits        fi__tr_flush_bits
+#  define _tr_flush_block       fi__tr_flush_block
+#  define _tr_init              fi__tr_init
+#  define _tr_stored_block      fi__tr_stored_block
+#  define _tr_tally             fi__tr_tally
+#  define adler32               fi_adler32
+#  define adler32_combine       fi_adler32_combine
+#  define adler32_combine64     fi_adler32_combine64
 #  ifndef Z_SOLO
-#    define compress              z_compress
-#    define compress2             z_compress2
-#    define compressBound         z_compressBound
+#    define compress              fi_compress
+#    define compress2             fi_compress2
+#    define compressBound         fi_compressBound
 #  endif
-#  define crc32                 z_crc32
-#  define crc32_combine         z_crc32_combine
-#  define crc32_combine64       z_crc32_combine64
-#  define deflate               z_deflate
-#  define deflateBound          z_deflateBound
-#  define deflateCopy           z_deflateCopy
-#  define deflateEnd            z_deflateEnd
-#  define deflateInit2_         z_deflateInit2_
-#  define deflateInit_          z_deflateInit_
-#  define deflateParams         z_deflateParams
-#  define deflatePending        z_deflatePending
-#  define deflatePrime          z_deflatePrime
-#  define deflateReset          z_deflateReset
-#  define deflateResetKeep      z_deflateResetKeep
-#  define deflateSetDictionary  z_deflateSetDictionary
-#  define deflateSetHeader      z_deflateSetHeader
-#  define deflateTune           z_deflateTune
-#  define deflate_copyright     z_deflate_copyright
-#  define get_crc_table         z_get_crc_table
+#  define crc32                 fi_crc32
+#  define crc32_combine         fi_crc32_combine
+#  define crc32_combine64       fi_crc32_combine64
+#  define deflate               fi_deflate
+#  define deflateBound          fi_deflateBound
+#  define deflateCopy           fi_deflateCopy
+#  define deflateEnd            fi_deflateEnd
+#  define deflateInit2_         fi_deflateInit2_
+#  define deflateInit_          fi_deflateInit_
+#  define deflateParams         fi_deflateParams
+#  define deflatePending        fi_deflatePending
+#  define deflatePrime          fi_deflatePrime
+#  define deflateReset          fi_deflateReset
+#  define deflateResetKeep      fi_deflateResetKeep
+#  define deflateSetDictionary  fi_deflateSetDictionary
+#  define deflateSetHeader      fi_deflateSetHeader
+#  define deflateTune           fi_deflateTune
+#  define deflate_copyright     fi_deflate_copyright
+#  define get_crc_table         fi_get_crc_table
 #  ifndef Z_SOLO
-#    define gz_error              z_gz_error
-#    define gz_intmax             z_gz_intmax
-#    define gz_strwinerror        z_gz_strwinerror
-#    define gzbuffer              z_gzbuffer
-#    define gzclearerr            z_gzclearerr
-#    define gzclose               z_gzclose
-#    define gzclose_r             z_gzclose_r
-#    define gzclose_w             z_gzclose_w
-#    define gzdirect              z_gzdirect
-#    define gzdopen               z_gzdopen
-#    define gzeof                 z_gzeof
-#    define gzerror               z_gzerror
-#    define gzflush               z_gzflush
-#    define gzgetc                z_gzgetc
-#    define gzgetc_               z_gzgetc_
-#    define gzgets                z_gzgets
-#    define gzoffset              z_gzoffset
-#    define gzoffset64            z_gzoffset64
-#    define gzopen                z_gzopen
-#    define gzopen64              z_gzopen64
+#    define gz_error              fi_gz_error
+#    define gz_intmax             fi_gz_intmax
+#    define gz_strwinerror        fi_gz_strwinerror
+#    define gzbuffer              fi_gzbuffer
+#    define gzclearerr            fi_gzclearerr
+#    define gzclose               fi_gzclose
+#    define gzclose_r             fi_gzclose_r
+#    define gzclose_w             fi_gzclose_w
+#    define gzdirect              fi_gzdirect
+#    define gzdopen               fi_gzdopen
+#    define gzeof                 fi_gzeof
+#    define gzerror               fi_gzerror
+#    define gzflush               fi_gzflush
+#    define gzgetc                fi_gzgetc
+#    define gzgetc_               fi_gzgetc_
+#    define gzgets                fi_gzgets
+#    define gzoffset              fi_gzoffset
+#    define gzoffset64            fi_gzoffset64
+#    define gzopen                fi_gzopen
+#    define gzopen64              fi_gzopen64
 #    ifdef _WIN32
-#      define gzopen_w              z_gzopen_w
+#      define gzopen_w              fi_gzopen_w
 #    endif
-#    define gzprintf              z_gzprintf
-#    define gzputc                z_gzputc
-#    define gzputs                z_gzputs
-#    define gzread                z_gzread
-#    define gzrewind              z_gzrewind
-#    define gzseek                z_gzseek
-#    define gzseek64              z_gzseek64
-#    define gzsetparams           z_gzsetparams
-#    define gztell                z_gztell
-#    define gztell64              z_gztell64
-#    define gzungetc              z_gzungetc
-#    define gzwrite               z_gzwrite
+#    define gzprintf              fi_gzprintf
+#    define gzvprintf             fi_gzvprintf
+#    define gzputc                fi_gzputc
+#    define gzputs                fi_gzputs
+#    define gzread                fi_gzread
+#    define gzrewind              fi_gzrewind
+#    define gzseek                fi_gzseek
+#    define gzseek64              fi_gzseek64
+#    define gzsetparams           fi_gzsetparams
+#    define gztell                fi_gztell
+#    define gztell64              fi_gztell64
+#    define gzungetc              fi_gzungetc
+#    define gzwrite               fi_gzwrite
 #  endif
-#  define inflate               z_inflate
-#  define inflateBack           z_inflateBack
-#  define inflateBackEnd        z_inflateBackEnd
-#  define inflateBackInit_      z_inflateBackInit_
-#  define inflateCopy           z_inflateCopy
-#  define inflateEnd            z_inflateEnd
-#  define inflateGetHeader      z_inflateGetHeader
-#  define inflateInit2_         z_inflateInit2_
-#  define inflateInit_          z_inflateInit_
-#  define inflateMark           z_inflateMark
-#  define inflatePrime          z_inflatePrime
-#  define inflateReset          z_inflateReset
-#  define inflateReset2         z_inflateReset2
-#  define inflateSetDictionary  z_inflateSetDictionary
-#  define inflateSync           z_inflateSync
-#  define inflateSyncPoint      z_inflateSyncPoint
-#  define inflateUndermine      z_inflateUndermine
-#  define inflateResetKeep      z_inflateResetKeep
-#  define inflate_copyright     z_inflate_copyright
-#  define inflate_fast          z_inflate_fast
-#  define inflate_table         z_inflate_table
+#  define inflate               fi_inflate
+#  define inflateBack           fi_inflateBack
+#  define inflateBackEnd        fi_inflateBackEnd
+#  define inflateBackInit_      fi_inflateBackInit_
+#  define inflateCopy           fi_inflateCopy
+#  define inflateEnd            fi_inflateEnd
+#  define inflateGetHeader      fi_inflateGetHeader
+#  define inflateInit2_         fi_inflateInit2_
+#  define inflateInit_          fi_inflateInit_
+#  define inflateMark           fi_inflateMark
+#  define inflatePrime          fi_inflatePrime
+#  define inflateReset          fi_inflateReset
+#  define inflateReset2         fi_inflateReset2
+#  define inflateSetDictionary  fi_inflateSetDictionary
+#  define inflateGetDictionary  fi_inflateGetDictionary
+#  define inflateSync           fi_inflateSync
+#  define inflateSyncPoint      fi_inflateSyncPoint
+#  define inflateUndermine      fi_inflateUndermine
+#  define inflateResetKeep      fi_inflateResetKeep
+#  define inflate_copyright     fi_inflate_copyright
+#  define inflate_fast          fi_inflate_fast
+#  define inflate_table         fi_inflate_table
 #  ifndef Z_SOLO
-#    define uncompress            z_uncompress
+#    define uncompress            fi_uncompress
 #  endif
-#  define zError                z_zError
+#  define zError                fi_zError
 #  ifndef Z_SOLO
-#    define zcalloc               z_zcalloc
-#    define zcfree                z_zcfree
+#    define zcalloc               fi_zcalloc
+#    define zcfree                fi_zcfree
 #  endif
-#  define zlibCompileFlags      z_zlibCompileFlags
-#  define zlibVersion           z_zlibVersion
+#  define zlibCompileFlags      fi_zlibCompileFlags
+#  define zlibVersion           fi_zlibVersion
 
 /* all zlib typedefs in zlib.h and zconf.h */
-#  define Byte                  z_Byte
-#  define Bytef                 z_Bytef
-#  define alloc_func            z_alloc_func
-#  define charf                 z_charf
-#  define free_func             z_free_func
+#  define Byte                  fi_Byte
+#  define Bytef                 fi_Bytef
+#  define alloc_func            fi_alloc_func
+#  define charf                 fi_charf
+#  define free_func             fi_free_func
 #  ifndef Z_SOLO
-#    define gzFile                z_gzFile
+#    define gzFile                fi_gzFile
 #  endif
-#  define gz_header             z_gz_header
-#  define gz_headerp            z_gz_headerp
-#  define in_func               z_in_func
-#  define intf                  z_intf
-#  define out_func              z_out_func
-#  define uInt                  z_uInt
-#  define uIntf                 z_uIntf
-#  define uLong                 z_uLong
-#  define uLongf                z_uLongf
-#  define voidp                 z_voidp
-#  define voidpc                z_voidpc
-#  define voidpf                z_voidpf
+#  define gz_header             fi_gz_header
+#  define gz_headerp            fi_gz_headerp
+#  define in_func               fi_in_func
+#  define intf                  fi_intf
+#  define out_func              fi_out_func
+#  define uInt                  fi_uInt
+#  define uIntf                 fi_uIntf
+#  define uLong                 fi_uLong
+#  define uLongf                fi_uLongf
+#  define voidp                 fi_voidp
+#  define voidpc                fi_voidpc
+#  define voidpf                fi_voidpf
 
 /* all zlib structs in zlib.h and zconf.h */
-#  define gz_header_s           z_gz_header_s
-#  define internal_state        z_internal_state
+#  define gz_header_s           fi_gz_header_s
+#  define internal_state        fi_internal_state
 
 #endif
 
@@ -388,20 +391,14 @@ typedef uLong FAR uLongf;
    typedef Byte       *voidp;
 #endif
 
-/* ./configure may #define Z_U4 here */
-
 #if !defined(Z_U4) && !defined(Z_SOLO) && defined(STDC)
 #  include <limits.h>
 #  if (UINT_MAX == 0xffffffffUL)
 #    define Z_U4 unsigned
-#  else
-#    if (ULONG_MAX == 0xffffffffUL)
-#      define Z_U4 unsigned long
-#    else
-#      if (USHRT_MAX == 0xffffffffUL)
-#        define Z_U4 unsigned short
-#      endif
-#    endif
+#  elif (ULONG_MAX == 0xffffffffUL)
+#    define Z_U4 unsigned long
+#  elif (USHRT_MAX == 0xffffffffUL)
+#    define Z_U4 unsigned short
 #  endif
 #endif
 
@@ -425,8 +422,16 @@ typedef uLong FAR uLongf;
 #  endif
 #endif
 
+#if defined(STDC) || defined(Z_HAVE_STDARG_H)
+#  ifndef Z_SOLO
+#    include <stdarg.h>         /* for va_list */
+#  endif
+#endif
+
 #ifdef _WIN32
-#  include <stddef.h>           /* for wchar_t */
+#  ifndef Z_SOLO
+#    include <stddef.h>         /* for wchar_t */
+#  endif
 #endif
 
 /* a little trick to accommodate both "#define _LARGEFILE64_SOURCE" and
@@ -435,7 +440,7 @@ typedef uLong FAR uLongf;
  * both "#undef _LARGEFILE64_SOURCE" and "#define _LARGEFILE64_SOURCE 0" as
  * equivalently requesting no 64-bit operations
  */
-#if defined(LARGEFILE64_SOURCE) && -_LARGEFILE64_SOURCE - -1 == 1
+#if defined(_LARGEFILE64_SOURCE) && -_LARGEFILE64_SOURCE - -1 == 1
 #  undef _LARGEFILE64_SOURCE
 #endif
 
@@ -443,7 +448,7 @@ typedef uLong FAR uLongf;
 #  define Z_HAVE_UNISTD_H
 #endif
 #ifndef Z_SOLO
-#  if defined(Z_HAVE_UNISTD_H) || defined(LARGEFILE64_SOURCE)
+#  if defined(Z_HAVE_UNISTD_H) || defined(_LARGEFILE64_SOURCE)
 #    include <unistd.h>         /* for SEEK_*, off_t, and _LFS64_LARGEFILE */
 #    ifdef VMS
 #      include <unixio.h>       /* for off_t */

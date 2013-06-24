@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  * File: var_defines.h
- * Copyright 2008-2009 LibRaw LLC (info@libraw.org)
+ * Copyright 2008-2013 LibRaw LLC (info@libraw.org)
  * Created: Sat Mar  8, 2008
  *
  * LibRaw redefinitions of dcraw internal variables
@@ -39,6 +39,7 @@ it under the terms of the one of three licenses as you choose:
 // imgdata.sizes
 #define raw_height      (imgdata.sizes.raw_height)
 #define raw_width       (imgdata.sizes.raw_width)
+#define raw_pitch       (imgdata.sizes.raw_pitch)
 #define height          (imgdata.sizes.height)
 #define width           (imgdata.sizes.width)
 #define top_margin      (imgdata.sizes.top_margin)
@@ -49,6 +50,7 @@ it under the terms of the one of three licenses as you choose:
 #define iwidth          (imgdata.sizes.iwidth)
 #define pixel_aspect    (imgdata.sizes.pixel_aspect)
 #define flip            (imgdata.sizes.flip)
+#define mask            (imgdata.sizes.mask)
 
 //imgdata.color
 #define white           (imgdata.color.white)
@@ -101,7 +103,6 @@ it under the terms of the one of three licenses as you choose:
 #define threshold       (imgdata.params.threshold)
 #define half_size       (imgdata.params.half_size)
 #define four_color_rgb  (imgdata.params.four_color_rgb)
-#define document_mode   (imgdata.params.document_mode)
 #define highlight       (imgdata.params.highlight)
 //#define verbose         (imgdata.params.verbose)
 #define use_auto_wb     (imgdata.params.use_auto_wb)

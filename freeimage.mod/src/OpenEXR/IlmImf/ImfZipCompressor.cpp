@@ -46,6 +46,12 @@
 #include "Iex.h"
 #include <zlib.h>
 
+// BaH - mods for zlib fi_ prefix
+#ifdef compress
+	#undef compress
+	#undef uncompress
+#endif
+
 namespace Imf {
 
 
@@ -153,7 +159,7 @@ ZipCompressor::compress (const char *inPtr,
 
     uLongf outSize = int(ceil(inSize * 1.01)) + 100;
 
-    if (Z_OK != ::compress ((Bytef *)_outBuffer, &outSize,
+    if (Z_OK != ::fi_compress ((Bytef *)_outBuffer, &outSize,
 			    (const Bytef *) _tmpBuffer, inSize))
     {
 	throw Iex::BaseExc ("Data compression (zlib) failed.");
@@ -186,7 +192,7 @@ ZipCompressor::uncompress (const char *inPtr,
 
     uLongf outSize = _maxScanLineSize * _numScanLines;
 
-    if (Z_OK != ::uncompress ((Bytef *)_tmpBuffer, &outSize,
+    if (Z_OK != ::fi_uncompress ((Bytef *)_tmpBuffer, &outSize,
 			      (const Bytef *) inPtr, inSize))
     {
 	throw Iex::InputExc ("Data decompression (zlib) failed.");

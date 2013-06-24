@@ -76,6 +76,12 @@
 #include <assert.h>
 #include <algorithm>
 
+// BaH - mods for zlib fi_ prefix
+#ifdef compress
+	#undef compress
+	#undef uncompress
+#endif
+
 using namespace std;
 using namespace Imath;
 
@@ -396,7 +402,7 @@ Pxr24Compressor::compress (const char *inPtr,
 
     uLongf outSize = int (ceil ((tmpBufferEnd - _tmpBuffer) * 1.01)) + 100;
 
-    if (Z_OK != ::compress ((Bytef *) _outBuffer,
+    if (Z_OK != ::fi_compress ((Bytef *) _outBuffer,
 			    &outSize,
 			    (const Bytef *) _tmpBuffer,
 			    tmpBufferEnd - _tmpBuffer))
@@ -423,7 +429,7 @@ Pxr24Compressor::uncompress (const char *inPtr,
 
     uLongf tmpSize = _maxScanLineSize * _numScanLines;
 
-    if (Z_OK != ::uncompress ((Bytef *)_tmpBuffer,
+    if (Z_OK != ::fi_uncompress ((Bytef *)_tmpBuffer,
 			      &tmpSize,
 			      (const Bytef *) inPtr,
 			      inSize))

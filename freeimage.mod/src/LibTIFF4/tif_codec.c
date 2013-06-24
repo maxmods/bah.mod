@@ -1,4 +1,4 @@
-/* $Id: tif_codec.c,v 1.4 2012/10/07 15:54:03 drolon Exp $ */
+/* $Id: tif_codec.c,v 1.6 2013/05/10 17:00:04 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -108,7 +108,8 @@ _notConfigured(TIFF* tif)
 	const TIFFCodec* c = TIFFFindCODEC(tif->tif_dir.td_compression);
         char compression_code[20];
         
-        sprintf( compression_code, "%d", tif->tif_dir.td_compression );
+        snprintf(compression_code, sizeof(compression_code), "%d",
+		 tif->tif_dir.td_compression );
 	TIFFErrorExt(tif->tif_clientdata, tif->tif_name,
                      "%s compression support is not configured", 
                      c ? c->name : compression_code );
