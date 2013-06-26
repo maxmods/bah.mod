@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,32 @@ SuperStrict
 
 Import "src/*.h"
 
-Import "src/pcre_chartables.c"
-Import "src/pcre_compile.c"
-Import "src/pcre_config.c"
-Import "src/pcre_dfa_exec.c"
-Import "src/pcre_exec.c"
-Import "src/pcre_fullinfo.c"
-Import "src/pcre_get.c"
-Import "src/pcre_globals.c"
-Import "src/pcre_info.c"
-Import "src/pcre_maketables.c"
-Import "src/pcre_newline.c"
-Import "src/pcre_ord2utf8.c"
-Import "src/pcre_refcount.c"
-Import "src/pcre_study.c"
-Import "src/pcre_tables.c"
-Import "src/pcre_try_flipped.c"
+Import "src/pcre16_byte_order.c"
+Import "src/pcre16_chartables.c"
+Import "src/pcre16_compile.c"
+Import "src/pcre16_config.c"
+Import "src/pcre16_dfa_exec.c"
+Import "src/pcre16_exec.c"
+Import "src/pcre16_fullinfo.c"
+Import "src/pcre16_get.c"
+Import "src/pcre16_globals.c"
+Import "src/pcre16_jit_compile.c"
+Import "src/pcre16_maketables.c"
+Import "src/pcre16_newline.c"
+Import "src/pcre16_ord2utf16.c"
+Import "src/pcre16_printint.c"
+Import "src/pcre16_refcount.c"
+Import "src/pcre16_string_utils.c"
+Import "src/pcre16_study.c"
+Import "src/pcre16_tables.c"
+'Import "src/pcre_try_flipped.c"
 'Import "src/pcre_ucp_searchfuncs.c"
-Import "src/pcre_valid_utf8.c"
-Import "src/pcre_version.c"
-Import "src/pcre_xclass.c"
-Import "src/pcre_ucd.c"
+Import "src/pcre16_ucd.c"
+Import "src/pcre16_utf16_utils.c"
+Import "src/pcre16_valid_utf16.c"
+Import "src/pcre16_version.c"
+Import "src/pcre16_xclass.c"
+
 
 
 ' Request types for pcre_config().
@@ -59,6 +64,11 @@ Const PCRE_CONFIG_MATCH_LIMIT:Int =             4
 Const PCRE_CONFIG_STACKRECURSE:Int =            5
 Const PCRE_CONFIG_UNICODE_PROPERTIES:Int =      6
 Const PCRE_CONFIG_MATCH_LIMIT_RECURSION:Int =   7
+Const PCRE_CONFIG_BSR:Int =                     8
+Const PCRE_CONFIG_JIT:Int =                     9
+Const PCRE_CONFIG_UTF16:Int =                  10
+Const PCRE_CONFIG_JITTARGET:Int =              11
+Const PCRE_CONFIG_UTF32:Int =                  12
 
 ' Exec-time and get/set-time error codes
 Const PCRE_ERROR_NOMATCH:Int =         -1
@@ -72,8 +82,11 @@ Const PCRE_ERROR_NOMEMORY:Int =        -6
 Const PCRE_ERROR_NOSUBSTRING:Int =     -7
 Const PCRE_ERROR_MATCHLIMIT:Int =      -8
 Const PCRE_ERROR_CALLOUT:Int =         -9  ' Never used by PCRE itself
-Const PCRE_ERROR_BADUTF8:Int =        -10
-Const PCRE_ERROR_BADUTF8_OFFSET:Int = -11
+Const PCRE_ERROR_BADUTF8:Int =        -10  ' Same For 8/16/32
+Const PCRE_ERROR_BADUTF16:Int =       -10  ' Same For 8/16/32
+Const PCRE_ERROR_BADUTF32:Int =       -10  ' Same For 8/16/32
+Const PCRE_ERROR_BADUTF8_OFFSET:Int = -11  ' Same For 8/16
+Const PCRE_ERROR_BADUTF16_OFFSET:Int =-11  ' Same For 8/16
 Const PCRE_ERROR_PARTIAL:Int =        -12
 Const PCRE_ERROR_BADPARTIAL:Int =     -13
 Const PCRE_ERROR_INTERNAL:Int =       -14
@@ -86,6 +99,17 @@ Const PCRE_ERROR_DFA_RECURSE:Int =    -20
 Const PCRE_ERROR_RECURSIONLIMIT:Int = -21
 Const PCRE_ERROR_NULLWSLIMIT:Int =    -22
 Const PCRE_ERROR_BADNEWLINE:Int =     -23
+Const PCRE_ERROR_BADOFFSET:Int =      -24
+Const PCRE_ERROR_SHORTUTF8:Int =      -25
+Const PCRE_ERROR_SHORTUTF16:Int =     -25  ' Same For 8/16
+Const PCRE_ERROR_RECURSELOOP:Int =    -26
+Const PCRE_ERROR_JIT_STACKLIMIT:Int = -27
+Const PCRE_ERROR_BADMODE:Int =        -28
+Const PCRE_ERROR_BADENDIANNESS:Int =  -29
+Const PCRE_ERROR_DFA_BADRESTART:Int = -30
+Const PCRE_ERROR_JIT_BADOPTION:Int =  -31
+Const PCRE_ERROR_BADLENGTH:Int =      -32
+Const PCRE_ERROR_UNSET:Int =          -33
 
 ' Options
 Const PCRE_CASELESS:Int =           $00000001
@@ -120,6 +144,8 @@ Const PCRE_NO_START_OPTIMIZE:Int =  $04000000
 Const PCRE_PARTIAL_HARD:Int =       $08000000
 Const PCRE_NOTEMPTY_ATSTART:Int =   $10000000
 
+' Request types for pcre_fullinfo()
+
 Const PCRE_INFO_OPTIONS:Int =            0
 Const PCRE_INFO_SIZE:Int =               1
 Const PCRE_INFO_CAPTURECOUNT:Int =       2
@@ -137,142 +163,72 @@ Const PCRE_INFO_OKPARTIAL:Int =         12
 Const PCRE_INFO_JCHANGED:Int =          13
 Const PCRE_INFO_HASCRORLF:Int =         14
 Const PCRE_INFO_MINLENGTH:Int =         15
+Const PCRE_INFO_JIT:Int =               16
+Const PCRE_INFO_JITSIZE:Int =           17
+Const PCRE_INFO_MAXLOOKBEHIND:Int =     18
+Const PCRE_INFO_FIRSTCHARACTER:Int =    19
+Const PCRE_INFO_FIRSTCHARACTERFLAGS:Int=20
+Const PCRE_INFO_REQUIREDCHAR:Int =      21
+Const PCRE_INFO_REQUIREDCHARFLAGS:Int = 22
+Const PCRE_INFO_MATCHLIMIT:Int =        23
+Const PCRE_INFO_RECURSIONLIMIT:Int =    24
 
+' Specific error codes for UTF-8 validity checks
+
+Const PCRE_UTF8_ERR0:Int =               0
+Const PCRE_UTF8_ERR1:Int =               1
+Const PCRE_UTF8_ERR2:Int =               2
+Const PCRE_UTF8_ERR3:Int =               3
+Const PCRE_UTF8_ERR4:Int =               4
+Const PCRE_UTF8_ERR5:Int =               5
+Const PCRE_UTF8_ERR6:Int =               6
+Const PCRE_UTF8_ERR7:Int =               7
+Const PCRE_UTF8_ERR8:Int =               8
+Const PCRE_UTF8_ERR9:Int =               9
+Const PCRE_UTF8_ERR10:Int =             10
+Const PCRE_UTF8_ERR11:Int =             11
+Const PCRE_UTF8_ERR12:Int =             12
+Const PCRE_UTF8_ERR13:Int =             13
+Const PCRE_UTF8_ERR14:Int =             14
+Const PCRE_UTF8_ERR15:Int =             15
+Const PCRE_UTF8_ERR16:Int =             16
+Const PCRE_UTF8_ERR17:Int =             17
+Const PCRE_UTF8_ERR18:Int =             18
+Const PCRE_UTF8_ERR19:Int =             19
+Const PCRE_UTF8_ERR20:Int =             20
+Const PCRE_UTF8_ERR21:Int =             21
+Const PCRE_UTF8_ERR22:Int =             22  ' Unused (was non-character)
+
+' Specific error codes for UTF-16 validity checks
+
+Const PCRE_UTF16_ERR0:Int =              0
+Const PCRE_UTF16_ERR1:Int =              1
+Const PCRE_UTF16_ERR2:Int =              2
+Const PCRE_UTF16_ERR3:Int =              3
+Const PCRE_UTF16_ERR4:Int =              4  ' Unused (was non-character)
+
+' Specific error codes for UTF-32 validity checks 
+
+Const PCRE_UTF32_ERR0:Int =              0
+Const PCRE_UTF32_ERR1:Int =              1
+Const PCRE_UTF32_ERR2:Int =              2  ' Unused (was non-character)
+Const PCRE_UTF32_ERR3:Int =              3
 
 Extern
 	Function _strlen:Int(s:Byte Ptr) = "strlen"
 
-	Function pcre_config:Int(what:Int, where:Int Ptr)
+	Function pcre16_config:Int(what:Int, where:Int Ptr)
 	
-	Function pcre_compile2:Byte Ptr(pattern:Byte Ptr, options:Int, errorcodeptr:Int Ptr, ..
+	Function pcre16_compile2:Byte Ptr(pattern:Byte Ptr, options:Int, errorcodeptr:Int Ptr, ..
 		errptr:Byte Ptr, erroffset:Int Ptr, tableptr:Byte Ptr)
 	
-	Function pcre_exec:Int(pcre:Byte Ptr, extra:Byte Ptr, subject:Byte Ptr, ..
+	Function pcre16_exec:Int(pcre:Byte Ptr, extra:Byte Ptr, subject:Byte Ptr, ..
 		length:Int, startoffset:Int, options:Int, ovector:Byte Ptr, ovecsize:Int)
 	
-	Function pcre_get_substring:Int(subject:Byte Ptr, ovector:Byte Ptr, stringcount:Int, ..
-		stringnumber:Int, stringptr:Byte Ptr)
+	Function pcre16_get_substring:Int(subject:Byte Ptr, ovector:Byte Ptr, stringcount:Int, ..
+		stringnumber:Int, stringptr:Short Ptr Ptr)
 	
-	Function pcre_free_substring(strinptr:Byte Ptr)
+	Function pcre16_free_substring(strinptr:Short Ptr)
 	
-	Function pcre_fullinfo:Int(pcre:Byte Ptr, extra:Byte Ptr, what:Int, where:Int Ptr)
+	Function pcre16_fullinfo:Int(pcre:Byte Ptr, extra:Byte Ptr, what:Int, where:Int Ptr)
 End Extern
-
-' Convert from Max to UTF8
-Function convertISO8859toUTF8:String(text:String)
-	If Not text Then
-		Return ""
-	End If
-	
-	Local l:Int = text.length
-	If l = 0 Then
-		Return ""
-	End If
-	
-	Local count:Int = 0
-	Local s:Byte[] = New Byte[l * 3]
-	
-	For Local i:Int = 0 Until l
-		Local char:Int = text[i]
-
-		If char < 128 Then
-			s[count] = char
-			count:+ 1
-			Continue
-		Else If char<2048
-			s[count] = char/64 | 192
-			count:+ 1
-			s[count] = char Mod 64 | 128
-			count:+ 1
-			Continue
-		Else
-			s[count] =  char/4096 | 224
-			count:+ 1
-			s[count] = char/64 Mod 64 | 128
-			count:+ 1
-			s[count] = char Mod 64 | 128
-			count:+ 1
-			Continue
-		EndIf
-		
-	Next
-
-	Return String.fromBytes(s, count)
-End Function
-
-' Convert from UTF8 to Max
-Function convertUTF8toISO8859:String(s:Byte Ptr)
-
-	Local l:Int = _strlen(s)
-
-	Local b:Short[] = New Short[l]
-	Local bc:Int = -1
-	Local c:Int
-	Local d:Int
-	Local e:Int
-	For Local i:Int = 0 Until l
-
-		bc:+1
-		c = s[i]
-		If c<128 
-			b[bc] = c
-			Continue
-		End If
-		i:+1
-		d=s[i]
-		If c<224 
-			b[bc] = (c-192)*64+(d-128)
-			Continue
-		End If
-		i:+1
-		e = s[i]
-		If c < 240 
-			b[bc] = (c-224)*4096+(d-128)*64+(e-128)
-			If b[bc] = 8233 Then
-				b[bc] = 10
-			End If
-			Continue
-		End If
-	Next
-
-	Return String.fromshorts(b, bc + 1)
-End Function
-
-Function sizedUTF8toISO8859:String(s:Byte Ptr, size:Int)
-
-	Local l:Int = size
-	Local b:Short[] = New Short[l]
-	Local bc:Int = -1
-	Local c:Int
-	Local d:Int
-	Local e:Int
-	For Local i:Int = 0 Until l
-
-		c = s[i]
-		If c = 0 Continue
-
-		bc:+1
-		If c<128
-			b[bc] = c
-			Continue
-		End If
-		i:+1
-		d=s[i]
-		If c<224 
-			b[bc] = (c-192)*64+(d-128)
-			Continue
-		End If
-		i:+1
-		e = s[i]
-		If c < 240 
-			b[bc] = (c-224)*4096+(d-128)*64+(e-128)
-			If b[bc] = 8233 Then
-				b[bc] = 10
-			End If
-			Continue
-		End If
-	Next
-
-	Return String.fromshorts(b, bc + 1)
-End Function
-

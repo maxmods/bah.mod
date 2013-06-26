@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,16 @@ bbdoc: Regular Expressions
 End Rem
 Module BaH.RegEx
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: PCRE - 1997-2009 University of Cambridge"
-ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
+ModuleInfo "Copyright: PCRE - 1997-2013 University of Cambridge"
+ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Updated to PCRE 8.33"
+ModuleInfo "History: Changed to use pcre16 functions, which is BlitzMax's native character size. (no more utf8 conversions)"
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Updated to PCRE 8.0"
 ModuleInfo "History: Fixed offset problems when working with non-ascii text."
@@ -72,8 +75,8 @@ Type TRegEx
 	Field lastPattern:String
 	Field lastTarget:String
 	
-	' pointer to the target string (as a CString)
-	Field targ:Byte Ptr
+	' pointer to the target string (as a WString)
+	Field TArg:Byte Ptr
 	' the length of the target string
 	Field targLength:Int
 	
@@ -94,8 +97,8 @@ Type TRegEx
 			MemFree(offsets)
 		End If
 		
-		If targ Then
-			MemFree(targ)
+		If TArg Then
+			MemFree(TArg)
 		End If
 	End Method
 	
@@ -172,38 +175,34 @@ Type TRegEx
 		If target <> lastTarget Then
 			lastTarget = target
 			
-			If targ Then
-				MemFree(targ)
+			If TArg Then
+				MemFree(TArg)
 			End If
 		
-			Local tg:String = convertISO8859toUTF8(target)
-			targ = tg.toCString()
-			targLength = tg.length
+			TArg = target.toWString()
+			targLength = target.length
 		End If
 
 		' initial search...
-		Local result:Int = pcre_exec(pcre, Null, targ, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
-
-		' process string as UTF-8. This should keep offsets correct when processing non-ascii text.
-		Local lastTargetutf8:String = convertISO8859toUTF8(lastTarget)
+		Local result:Int = pcre16_exec(pcre, Null, TArg, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
 
 		' if there wasn't an error... process the match (even for no-match)
 		While result >= 0 Or result = REGEX_NOMATCH
 
-			Local replaceStr:String = convertISO8859toUTF8(replaceWith) ' converted to UTF-8
+			Local replaceStr:String = replaceWith 
 			Local ofs:Int Ptr = Int Ptr(offsets)
 			For Local i:Int = 0 Until result
 				Local idx:Int = i * 2
-				replaceStr = replaceStr.Replace( "\" + i, lastTargetutf8[ofs[idx]..ofs[idx+1]])
+				replaceStr = replaceStr.Replace( "\" + i, lastTarget[ofs[idx]..ofs[idx+1]])
 			Next
 
 			If result > 0 Then
 				' add text so far, and the replacement
-				retString:+ lastTargetutf8[startPos..Int Ptr(offsets)[0]] + replaceStr
+				retString:+ lastTarget[startPos..Int Ptr(offsets)[0]] + replaceStr
 			
 			Else
 				' search finished. Fill to the end
-				retString:+ lastTargetutf8[startPos..targLength]
+				retString:+ lastTarget[startPos..targLength]
 
 				Exit
 			End If
@@ -215,17 +214,17 @@ Type TRegEx
 			If Not globalReplace Then
 				
 				' all done. Fill to the end
-				retString:+ lastTargetutf8[startPos..targLength]
+				retString:+ lastTarget[startPos..targLength]
 
 				Exit
 			End If
 			
 			' find the next match
-			result:Int = pcre_exec(pcre, Null, targ, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
+			result = pcre16_exec(pcre, Null, TArg, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
 
 		Wend	
 		
-		Return convertUTF8toISO8859(retString) ' convert back to max string
+		Return retString ' convert back to max string
 	End Method
 	
 	Rem
@@ -269,13 +268,13 @@ Type TRegEx
 			If target <> lastTarget Then
 				lastTarget = target
 				
-				If targ Then
-					MemFree(targ)
+				If TArg Then
+					MemFree(TArg)
 				End If
 			
-				Local tg:String = convertISO8859toUTF8(target)
-				targ = tg.toCString()
-				targLength = tg.length
+				'Local tg:String = convertISO8859toUTF8(target)
+				TArg = target.toWString()
+				targLength = target.length
 			End If
 		End If
 		
@@ -284,7 +283,7 @@ Type TRegEx
 			startPos = 0
 		End If
 		
-		Local result:Int = pcre_exec(pcre, Null, targ, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
+		Local result:Int = pcre16_exec(pcre, Null, TArg, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
 		
 		If result >= 0 Then
 
@@ -296,17 +295,17 @@ Type TRegEx
 
 			For Local i:Int = 0 Until result
 
-				Local sPtr:Byte Ptr
-				Local size:Int = pcre_get_substring(targ, offsets, result, i, Varptr sPtr)
+				Local sPtr:Short Ptr
+				Local size:Int = pcre16_get_substring(TArg, offsets, result, i, Varptr sPtr)
 
-				match._subExp[i] = sizedUTF8toISO8859(sPtr, size)
+				match._subExp[i] = String.FromShorts(sPtr, size)
 				match._subStart[i] = Int Ptr(offsets)[i * 2]
 
 				lastEndPos = Int Ptr(offsets)[i * 2 + 1]
 
 				match._subEnd[i] = lastEndPos
 				
-				pcre_free_substring(sPtr)
+				pcre16_free_substring(sPtr)
 
 			Next
 			
@@ -327,14 +326,16 @@ Type TRegEx
 	Method init()
 		lastPattern = searchPattern
 		
-		Local pat:String = convertISO8859toUTF8(lastPattern)
+		Local pat:Byte Ptr = lastPattern.ToWString()
 		Local errorcodeptr:Int
 		Local buffer:Byte[256]
 		Local erroffset:Int
 		
-		Local bptr:Byte Ptr = pcre_compile2(pat, getCompileOpt(), Varptr errorcodeptr, ..
+		Local bptr:Byte Ptr = pcre16_compile2(pat, getCompileOpt(), Varptr errorcodeptr, ..
  				Varptr buffer, Varptr erroffset, Null)
-			
+		
+		MemFree(pat)
+		
 		If bptr Then
 			pcre = bptr
 		Else
@@ -345,7 +346,7 @@ Type TRegEx
 			MemFree(offsets)
 		End If
 
-		Local result:Int = pcre_fullinfo(pcre, Null, PCRE_INFO_CAPTURECOUNT, Varptr sizeOffsets)
+		Local result:Int = pcre16_fullinfo(pcre, Null, PCRE_INFO_CAPTURECOUNT, Varptr sizeOffsets)
 		sizeOffsets:+ 1 ' make sure there's enough space...
 		sizeOffsets:* 3 ' multiple of 3
 		offsets = MemAlloc((sizeOffsets * SizeOf(sizeOffsets)))
@@ -641,6 +642,28 @@ Type TRegExException
 				Return "PCRE_ERROR_NULLWSLIMIT"
 			Case -23
 				Return "PCRE_ERROR_BADNEWLINE"
+			Case -24
+				Return "PCRE_ERROR_BADOFFSET"
+			Case -25
+				Return "PCRE_ERROR_SHORTUTF8"
+			Case -25
+				Return "PCRE_ERROR_SHORTUTF16"
+			Case -26
+				Return "PCRE_ERROR_RECURSELOOP"
+			Case -27
+				Return "PCRE_ERROR_JIT_STACKLIMIT"
+			Case -28
+				Return "PCRE_ERROR_BADMODE"
+			Case -29
+				Return "PCRE_ERROR_BADENDIANNESS"
+			Case -30
+				Return "PCRE_ERROR_DFA_BADRESTART"
+			Case -31
+				Return "PCRE_ERROR_JIT_BADOPTION"
+			Case -32
+				Return "PCRE_ERROR_BADLENGTH"
+			Case -33
+				Return "PCRE_ERROR_UNSET"
 		End Select
 	End Method
 	

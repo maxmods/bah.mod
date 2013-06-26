@@ -98,10 +98,16 @@ them both to 0; an emulation function will be used. */
 /* Define to 1 if the system has the type `unsigned long long'. */
 #define HAVE_UNSIGNED_LONG_LONG 1
 
+/* Define to 1 if the compiler supports simple visibility declarations. */
+/* #undef HAVE_VISIBILITY */
+
 /* Define to 1 if you have the <windows.h> header file. */
 #ifdef WIN32
 #define HAVE_WINDOWS_H
 #endif
+
+/* Define to 1 if you have the <zlib.h> header file. */
+/* #undef HAVE_ZLIB_H */
 
 /* Define to 1 if you have the `_strtoi64' function. */
 /* #undef HAVE__STRTOI64 */
@@ -110,18 +116,27 @@ them both to 0; an emulation function will be used. */
    as offsets within the compiled regex. The default is 2, which allows for
    compiled patterns up to 64K long. This covers the vast majority of cases.
    However, PCRE can also be compiled to use 3 or 4 bytes instead. This allows
-   for longer patterns in extreme cases. On systems that support it,
-   "configure" can be used to override this default. */
+   for longer patterns in extreme cases. */
+#ifndef LINK_SIZE
 #define LINK_SIZE 2
+#endif
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+/* This is ignored unless you are using libtool. */
+#ifndef LT_OBJDIR
+#define LT_OBJDIR ".libs/"
+#endif
 
 /* The value of MATCH_LIMIT determines the default number of times the
    internal match() function can be called during a single execution of
    pcre_exec(). There is a runtime interface for setting a different limit.
    The limit exists in order to catch runaway regular expressions that take
    for ever to determine that they do not match. The default is set very large
-   so that it does not accidentally catch legitimate cases. On systems that
-   support it, "configure" can be used to override this default default. */
+   so that it does not accidentally catch legitimate cases. */
+#ifndef MATCH_LIMIT
 #define MATCH_LIMIT 10000000
+#endif
 
 /* The above limit applies to all calls of match(), whether or not they
    increase the recursion depth. In some environments it is desirable to limit
@@ -130,25 +145,36 @@ them both to 0; an emulation function will be used. */
    used. The value of MATCH_LIMIT_RECURSION applies only to recursive calls of
    match(). To have any useful effect, it must be less than the value of
    MATCH_LIMIT. The default is to use the same value as MATCH_LIMIT. There is
-   a runtime method for setting a different limit. On systems that support it,
-   "configure" can be used to override the default. */
+   a runtime method for setting a different limit. */
+#ifndef MATCH_LIMIT_RECURSION
 #define MATCH_LIMIT_RECURSION MATCH_LIMIT
+#endif
 
 /* This limit is parameterized just in case anybody ever wants to change it.
    Care must be taken if it is increased, because it guards against integer
    overflow caused by enormously large patterns. */
+#ifndef MAX_NAME_COUNT
 #define MAX_NAME_COUNT 10000
+#endif
 
 /* This limit is parameterized just in case anybody ever wants to change it.
    Care must be taken if it is increased, because it guards against integer
    overflow caused by enormously large patterns. */
+#ifndef MAX_NAME_SIZE
 #define MAX_NAME_SIZE 32
+#endif
 
-/* The value of NEWLINE determines the newline character sequence. On systems
-   that support it, "configure" can be used to override the default, which is
-   10. The possible values are 10 (LF), 13 (CR), 3338 (CRLF), -1 (ANY), or -2
-   (ANYCRLF). */
+/* The value of NEWLINE determines the default newline character sequence.
+   PCRE client programs can override this by selecting other values at run
+   time. In ASCII environments, the value can be 10 (LF), 13 (CR), or 3338
+   (CRLF); in EBCDIC environments the value can be 21 or 37 (LF), 13 (CR), or
+   3349 or 3365 (CRLF) because there are two alternative codepoints (0x15 and
+   0x25) that are used as the NL line terminator that is equivalent to ASCII
+   LF. In both ASCII and EBCDIC environments the value can also be -1 (ANY),
+   or -2 (ANYCRLF). */
+#ifndef NEWLINE
 #define NEWLINE 10
+#endif
 
 /* PCRE uses recursive function calls to handle backtracking while matching.
    This can sometimes be a problem on systems that have stacks of limited
@@ -170,14 +196,25 @@ them both to 0; an emulation function will be used. */
 #define PACKAGE_NAME "PCRE"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PCRE 8.0"
+#define PACKAGE_STRING "PCRE 8.33"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "pcre"
 
-/* Define to the version of this package. */
-#define PACKAGE_VERSION "8.0"
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
 
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "8.33"
+
+/* The value of PCREGREP_BUFSIZE determines the size of buffer used by
+   pcregrep to hold parts of the file it is searching. This is also the
+   minimum value. The actual amount of memory used by pcregrep is three times
+   this number, because it allows for the buffering of "before" and "after"
+   lines. */
+#ifndef PCREGREP_BUFSIZE
+#define PCREGREP_BUFSIZE 20480
+#endif
 
 /* If you are compiling for a system other than a Unix-like system or
    Win32, and it needs some magic to be inserted before the definition
@@ -199,21 +236,62 @@ them both to 0; an emulation function will be used. */
    only two. If the number of expected substrings is small, the wrapper
    function uses space on the stack, because this is faster than using
    malloc() for each call. The threshold above which the stack is no longer
-   used is defined by POSIX_MALLOC_THRESHOLD. On systems that support it,
-   "configure" can be used to override this default. */
+   used is defined by POSIX_MALLOC_THRESHOLD. */
+#ifndef POSIX_MALLOC_THRESHOLD
 #define POSIX_MALLOC_THRESHOLD 10
+#endif
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+/* #undef PTHREAD_CREATE_JOINABLE */
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
+/* Define to allow pcretest and pcregrep to be linked with gcov, so that they
+   are able to generate code coverage reports. */
+/* #undef SUPPORT_GCOV */
+
+/* Define to any value to enable support for Just-In-Time compiling. */
+#define SUPPORT_JIT 1
+
+/* Define to any value to allow pcregrep to be linked with libbz2, so that it
+   is able to handle .bz2 files. */
+/* #undef SUPPORT_LIBBZ2 */
+
+/* Define to any value to allow pcretest to be linked with libedit. */
+/* #undef SUPPORT_LIBEDIT */
+
+/* Define to any value to allow pcretest to be linked with libreadline. */
+/* #undef SUPPORT_LIBREADLINE */
+
+/* Define to any value to allow pcregrep to be linked with libz, so that it is
+   able to handle .gz files. */
+/* #undef SUPPORT_LIBZ */
+
+/* Define to any value to enable the 16 bit PCRE library. */
+#define SUPPORT_PCRE16 1
+
+/* Define to any value to enable the 32 bit PCRE library. */
+/* #undef SUPPORT_PCRE32 */
+
+/* Define to any value to enable the 8 bit PCRE library. */
+/* #undef SUPPORT_PCRE8 */
+
+/* Define to any value to enable JIT support in pcregrep. */
+#define SUPPORT_PCREGREP_JIT 1
+
 /* Define to enable support for Unicode properties */
 #define SUPPORT_UCP
 
-/* Define to enable support for the UTF-8 Unicode encoding. */
-#define SUPPORT_UTF8
+/* Define to any value to enable support for the UTF-8/16/32 Unicode encoding.
+   This will work even in an EBCDIC environment, but it is incompatible with
+   the EBCDIC macro. That is, PCRE can support *either* EBCDIC code *or*
+   ASCII/UTF-8/16/32, but not both at once. */
+#define SUPPORT_UTF 1
 
 /* Version number of package */
-#define VERSION "8.0"
+#define VERSION "8.33"
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
