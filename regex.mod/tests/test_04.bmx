@@ -9,7 +9,7 @@ Local change:String = "yabba dabba doo"
 Local regex:TRegEx = TRegEx.Create("bb")
 
 Try
-DebugStop
+
 	Local s:String = regex.Replace(change, "d")
 		
 	Print "before = " + change
