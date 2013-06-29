@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2012 GraphicsMagick Group
 % Copyright (c) 2000 Markus Friedl.  All rights reserved.
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
@@ -53,6 +53,10 @@
 #if defined(HAVE_MACH_O_DYLD_H)
 /* Needed for _NSGetExecutablePath */
 # include <mach-o/dyld.h>
+#endif
+
+#if defined(HAVE_SPAWNVP) && defined(HAVE_PROCESS_H)
+#  include <process.h>
 #endif
 
 /*
@@ -1035,7 +1039,9 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
       ExpandFilename(path);
 
       if ('\0' == current_directory[0])
-	(void) getcwd(current_directory,MaxTextExtent-1);
+	if (getcwd(current_directory,MaxTextExtent-1) == NULL)
+          MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                           NULL);
 
       /* Get the list of matching file names. */
       filelist=ListFiles(*path=='\0' ? current_directory : path,
@@ -1047,7 +1053,14 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
 	    break;
 
       /* ListFiles() changes current directory without restoring. */
-      (void) chdir(current_directory);
+      if (chdir(current_directory) != 0)
+        {
+          for (j=0; j < number_files; j++)
+	    MagickFreeMemory(filelist[j]);
+          MagickFreeMemory(filelist);
+          MagickFatalError(ConfigureFatalError,UnableToRestoreCurrentDirectory,
+                           NULL);
+        }
 
       if (filelist == 0)
 	continue;
@@ -1103,16 +1116,16 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
 		formatted_buffer[MaxTextExtent];
 
 	      *formatted_buffer='\0';
-	      if (strlcat(formatted_buffer,magick,sizeof(filename_buffer))
-		  >= sizeof(filename_buffer))
+	      if (strlcat(formatted_buffer,magick,sizeof(formatted_buffer))
+		  >= sizeof(formatted_buffer))
 		MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
 				  formatted_buffer);
-	      if (strlcat(formatted_buffer,filename_buffer,sizeof(filename_buffer))
-		  >= sizeof(filename_buffer))
+	      if (strlcat(formatted_buffer,filename_buffer,sizeof(formatted_buffer))
+		  >= sizeof(formatted_buffer))
 		MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
 				  formatted_buffer);
-	      if (strlcat(formatted_buffer,subimage,sizeof(filename_buffer))
-		  >= sizeof(filename_buffer))
+	      if (strlcat(formatted_buffer,subimage,sizeof(formatted_buffer))
+		  >= sizeof(formatted_buffer))
 		MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
 				  formatted_buffer);
 	      if (first)
@@ -1283,7 +1296,9 @@ MagickExport MagickPassFail GetExecutionPath(char *path)
       {
         if (*execution_path != *DirectorySeparator)
           {
-            (void) getcwd(path,MaxTextExtent-1);
+            if (getcwd(path,MaxTextExtent-1) == NULL)
+              MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                               NULL);
             (void) strlcat(path,"/",MaxTextExtent);
           }
         (void) strlcat(path,execution_path,MaxTextExtent);
@@ -1402,9 +1417,8 @@ MagickExport MagickPassFail GetExecutionPathUsingName(char *path)
     Save original working directory so it can be restored later.
   */
   if (getcwd(original_cwd,sizeof(original_cwd)-1) == NULL)
-    {
-      return(MagickFail);
-    }
+              MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                               NULL);
 
   /*
     Check to see if path is a valid relative path from current
@@ -1419,7 +1433,9 @@ MagickExport MagickPassFail GetExecutionPathUsingName(char *path)
       */
       if (chdir(path) == 0)
         {
-          (void) getcwd(execution_path,sizeof(execution_path)-2);
+          if (getcwd(execution_path,sizeof(execution_path)-2) == NULL)
+            MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                             NULL);
         }
       else
         {
@@ -1429,7 +1445,9 @@ MagickExport MagickPassFail GetExecutionPathUsingName(char *path)
             *p='\0';
           if (chdir(temporary_path) == 0)
             {
-              (void) getcwd(execution_path,sizeof(execution_path)-2);
+              if (getcwd(execution_path,sizeof(execution_path)-2) == NULL)
+                MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                                 NULL);
             }
         }
     }
@@ -1473,7 +1491,9 @@ MagickExport MagickPassFail GetExecutionPathUsingName(char *path)
                 (void) strlcat(temporary_path,path,sizeof(temporary_path));
                 if (IsAccessibleNoLogging(temporary_path))
                   {
-                    (void) getcwd(execution_path,sizeof(execution_path)-2);
+                    if (getcwd(execution_path,sizeof(execution_path)-2) == NULL)
+                      MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                                       NULL);
                     break;
                   }
               }
@@ -1485,7 +1505,8 @@ MagickExport MagickPassFail GetExecutionPathUsingName(char *path)
   /*
     Restore original working directory.
   */
-  (void) chdir(original_cwd);
+  if (chdir(original_cwd) != 0)
+    return(MagickFail);
 
   if (execution_path[0] != '\0')
     {
@@ -2256,7 +2277,11 @@ static inline unsigned int IsFrame(const char *point)
   char
     *p;
 
-  (void) strtol(point,&p,10);
+  long
+    long_val;
+
+  long_val = strtol(point,&p,10);
+  (void) long_val;
   return(p != point);
 }
 
@@ -2450,7 +2475,7 @@ MagickExport void GetPathComponent(const char *path,PathType type,
 %
 %    o start: the start of the token sequence.
 %
-%    o end: point to the end of the token sequence.
+%    o end: point to the end of the token sequence (may be NULL).
 %
 %    o token: copy the token to this buffer.
 %
@@ -2463,6 +2488,12 @@ MagickExport void GetToken(const char *start,char **end,char *token)
 
   register long
     i;
+
+  double
+    double_val;
+
+  assert(start != (const char *) NULL);
+  assert(token != (char *) NULL);
 
   i=0;
   p=(char *) start;
@@ -2502,7 +2533,8 @@ MagickExport void GetToken(const char *start,char **end,char *token)
         char
           *q;
 
-        (void) strtod(p,&q);
+        double_val=strtod(p,&q);
+        (void) double_val;
         if (p != q)
           {
             for ( ; p < q; p++)
@@ -2511,8 +2543,8 @@ MagickExport void GetToken(const char *start,char **end,char *token)
               token[i++]=(*p++);
             break;
           }
-        if (!isalpha((int) *p) && (*p != *DirectorySeparator) && (*p != '#') &&
-            (*p != '<'))
+        if ((*p != '\0') && !isalpha((int) *p) && (*p != *DirectorySeparator) &&
+	    (*p != '#') && (*p != '<'))
           {
             token[i++]=(*p++);
             break;
@@ -2599,7 +2631,7 @@ MagickExport int GlobExpression(const char *expression,const char *pattern)
       image_info=CloneImageInfo((ImageInfo *) NULL);
       (void) strlcpy(image_info->filename,pattern,MaxTextExtent);
       GetExceptionInfo(&exception);
-      (void) SetImageInfo(image_info,True,&exception);
+      (void) SetImageInfo(image_info,SETMAGICK_READ,&exception);
       DestroyExceptionInfo(&exception);
       exempt=(LocaleCompare(image_info->magick,"VID") == 0) ||
         (image_info->subimage &&
@@ -3181,11 +3213,17 @@ MagickExport char **ListFiles(const char *directory,const char *pattern,
   status=chdir(directory);
   if (status != 0)
     return((char **) NULL);
-  (void) getcwd(filename,MaxTextExtent-1);
+  if (getcwd(filename,MaxTextExtent-1) == NULL)
+    MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                     NULL);
   current_directory=opendir(filename);
   if (current_directory == (DIR *) NULL)
     return((char **) NULL);
-  (void) chdir(filename);
+  if (chdir(filename) != 0)
+    {
+      (void) closedir(current_directory);
+      return((char **) NULL);
+    }
   /*
     Allocate filelist.
   */
@@ -3308,8 +3346,8 @@ MagickExport int LocaleCompare(const char *p,const char *q)
       i=0;
       while (1)
 	{
-	  c=(unsigned int) p[i];
-	  d=(unsigned int) q[i];
+	  c=(unsigned int) ((unsigned char *) p)[i];
+	  d=(unsigned int) ((unsigned char *) q)[i];
 	  if ((c == 0U) || (AsciiMap[c] != AsciiMap[d]))
 	    break;
 	  i++;
@@ -3394,7 +3432,7 @@ MagickExport int LocaleNCompare(const char *p,const char *q,const size_t length)
   register size_t
     n;
 
-  register unsigned char
+  register unsigned int
     c,
     d;
 
@@ -3404,11 +3442,11 @@ MagickExport int LocaleNCompare(const char *p,const char *q,const size_t length)
     return(1);
   for (n=length; n != 0; n--)
   {
-    c=(unsigned char) *p;
-    d=(unsigned char) *q;
+    c=*((unsigned char *) p);
+    d=*((unsigned char *) q);
     if (AsciiMap[c] != AsciiMap[d])
       return(AsciiMap[c]-AsciiMap[d]);
-    if (c == '\0')
+    if (c == 0U)
       return(0);
     p++;
     q++;
@@ -3613,6 +3651,161 @@ MagickExport magick_int64_t MagickSizeStrToInt64(const char *str,
     }
 
   return result;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   M a g i c k S p a w n V P                                                 %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  MagickSpawnVP() executes an external command with arguments provided by
+%  an argument vector.  The return status of the executed command is returned
+%  if it is executed, or -1 is returned if the command could not be executed.
+%  Executed commands will normally return zero if they execute without error.
+%
+%  The format of the MagickSpawnVP method is:
+%
+%      int MagickSpawnVP(const char *file, char *const argv[])
+%
+%  A description of each parameter follows:
+%
+%    o file:  Name of the command to execute.
+%
+%    o argv:  Argument vector. First argument in the vector should be
+%             the name of the command.  The argument vector is terminated
+%             via a NULL pointer.
+%
+*/
+MagickExport int
+MagickSpawnVP(const unsigned int verbose,const char *file, char *const argv[])
+{
+  int
+    status;
+
+  char
+    message[MaxTextExtent];
+
+
+  status = -1;
+  message[0]='\0';
+  errno=0;
+
+  {
+    /*
+      Verify that we are allowed to run this program.
+    */
+    ExceptionInfo
+      exception;
+    
+    GetExceptionInfo(&exception);
+    if (MagickConfirmAccess(FileExecuteConfirmAccessMode,argv[0],&exception)
+	== MagickFail)
+      {
+	errno=EPERM;
+	DestroyExceptionInfo(&exception);
+	return -1;
+      }
+  }
+
+#if defined(HAVE_SPAWNVP)
+  {
+    /* int spawnvp(int mode, const char *path, const char * const *argv); */
+    status = spawnvp(_P_WAIT, file, (const char * const *) argv);
+  }
+#else
+  {
+    pid_t
+      child_pid;
+
+    child_pid = fork( );
+    if ( (pid_t)-1 == child_pid)
+      {
+	/* Failed to fork, errno contains reason */
+	status = -1;
+	FormatString(message,"fork failed: %.1024s", strerror(errno));
+      }
+    else if ( 0 == child_pid )
+      {
+	/* We are the child process, exec program with arguments. */
+	status = execvp(file, argv);
+
+	/* If we get here, then execvp must have failed. */
+	(void) fprintf(stderr, "execvp failed, errno = %d (%s)\n",errno,strerror(errno));
+
+	/* If there is an execvp error, then call _exit() */
+	_exit(1);
+      }
+    else
+      {
+	/* We are the parent process, wait for child. */
+	pid_t waitpid_status;
+	int child_status = 0;
+	waitpid_status = waitpid(child_pid, &child_status, 0);
+	if ( (pid_t)-1 == waitpid_status )
+	  {
+	    /* Waitpid error */
+	    status = -1;
+	    FormatString(message, "waitpid failed: %.1024s", strerror(errno));
+	  }
+	else if ( waitpid_status == child_pid )
+	  {
+	    /* Status is available for child process */
+	    if ( WIFEXITED( child_status ) )
+	      {
+		status =  WEXITSTATUS( child_status );
+	      }
+	    else if ( WIFSIGNALED( child_status ) )
+	      {
+		int sig_num = WTERMSIG( child_status );
+		status = -1;
+		FormatString(message, "child process quit due to signal %d", sig_num);
+	      }
+	  }
+      }
+  }
+#endif
+
+  /*
+    Provide a verbose/dignostic message in a form which is easy for
+    the user to understand.
+  */
+  if (verbose || (status != 0))
+    {
+      const char
+	*message_p = (const char *) NULL;
+
+      char
+	*command;
+
+      unsigned int
+	i;
+
+      command = AllocateString((const char*) NULL);
+      for (i = 0; argv[i] != (const char*) NULL; i++)
+	{
+	  char
+	    buffer[MaxTextExtent];
+
+	  FormatString(buffer,"\"%.1024s\"", argv[i]);
+
+	  if (0 != i)
+	    (void) ConcatenateString(&command," ");
+
+	  (void) ConcatenateString(&command,buffer);
+	}
+      if (message[0] != '\0')
+	message_p = message;
+      MagickError2(DelegateError,command,message_p);
+      MagickFreeMemory(command);
+    }
+
+  return status;
 }
 
 /*
@@ -3867,10 +4060,11 @@ MagickExport MagickBool MagickSceneFileName(char *filename,
 %
 %  Method MagickStrlCat appends the NULL-terminated string src to the end
 %  of dst.  It will append at most size - strlen(dst) - 1 bytes, NULL-
-%  terminating the result. The total length of the string which would have
-%  been created given sufficient buffer size (may be longer than size) is
-%  returned.  This function substitutes for strlcat() which is available
-%  under FreeBSD and Solaris 9.
+%  terminating the result. If size is zero, then the result is not NULL
+%  terminated. The total length of the string which would have been created
+%  given sufficient buffer size (may be longer than size) is returned.  This
+%  function substitutes for strlcat() which is available under FreeBSD,
+%  Apple's OS-X, and Solaris 8.
 %
 %  Buffer overflow can be checked as  follows:
 %
@@ -3895,9 +4089,6 @@ MagickExport size_t MagickStrlCat(char *dst, const char *src, const size_t size)
   size_t
     length;
 
-  char
-    *p;
-
   const char
     *q;
 
@@ -3911,12 +4102,19 @@ MagickExport size_t MagickStrlCat(char *dst, const char *src, const size_t size)
     Copy remaining characters from src while constraining length to
     size - 1.
   */
-  for ( p = dst + length, q = src;
-        (*q != 0) && (length < size - 1) ;
-        length++, p++, q++ )
-    *p = *q;
+  q = src;
+  if (size >= 1)
+    {
+      char
+	*p;
 
-  dst[length]='\0';
+      for ( p = dst + length ;
+	    (*q != 0) && (length < size - 1) ;
+	    length++, p++, q++ )
+	*p = *q;
+      
+      dst[length]='\0';
+    }
 
   /*
     Add remaining length of src to length.
@@ -3939,10 +4137,11 @@ MagickExport size_t MagickStrlCat(char *dst, const char *src, const size_t size)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Method MagickStrlCpy copies up to size - 1 characters from the NULL-
-%  terminated string src to dst, NULL-terminating the result. The total
-%  length of the string which would have been created given sufficient
-%  buffer size (may be longer than size) is returned. This function
-%  substitutes for strlcpy() which is available under FreeBSD and Solaris 9.
+%  terminated string src to dst, NULL-terminating the result. If size is
+%  zero, then the result is not NULL terminated.  The total length of the
+%  string which would have been created given sufficient buffer size (may
+%  be longer than size) is returned. This function substitutes for strlcpy()
+%  which is available under FreeBSD, Apple's OS-X, and Solaris 8.
 %
 %  Buffer overflow can be checked as  follows:
 %
@@ -3965,10 +4164,7 @@ MagickExport size_t MagickStrlCat(char *dst, const char *src, const size_t size)
 MagickExport size_t MagickStrlCpy(char *dst, const char *src, const size_t size)
 {
   size_t
-    length=0;
-
-  char
-    *p;
+    length;
 
   const char
     *q;
@@ -3980,12 +4176,20 @@ MagickExport size_t MagickStrlCpy(char *dst, const char *src, const size_t size)
   /*
     Copy src to dst within bounds of size-1.
   */
-  for ( p=dst, q=src, length=0 ;
-        (*q != 0) && (length < size-1) ;
-        length++, p++, q++ )
-    *p = *q;
+  length=0;
+  q=src;
+  if (size >= 1)
+    {
+      char
+	*p;
 
-  dst[length]='\0';
+      for ( p=dst ;
+	    (*q != 0) && (length < size-1) ;
+	    length++, p++, q++ )
+	*p = *q;
+      
+      dst[length]='\0';
+    }
 
   /*
     Add remaining length of src to length.
@@ -4008,10 +4212,11 @@ MagickExport size_t MagickStrlCpy(char *dst, const char *src, const size_t size)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Method MagickStrlCpyTrunc copies up to size - 1 characters from the NULL-
-%  terminated string src to dst, NULL-terminating the result.  The number of
-%  bytes copied (not including the terminating NULL) is returned.  This
-%  function is a useful alternative to using MagickStrlCpy() when the
-%  actual size copied is more useful than knowledge that truncation occured.
+%  terminated string src to dst, NULL-terminating the result.  If size is
+%  zero, then the result is not NULL terminated.  The number of bytes copied
+%  (not including the terminating NULL) is returned.  This function is a
+%  useful alternative to using MagickStrlCpy() when the actual size copied
+%  is more useful than knowledge that truncation occured.
 %
 %  The format of the MagickStrlCat method is:
 %
@@ -4029,10 +4234,7 @@ MagickExport size_t MagickStrlCpy(char *dst, const char *src, const size_t size)
 MagickExport size_t MagickStrlCpyTrunc(char *dst, const char *src, const size_t size)
 {
   size_t
-    length=0;
-
-  char
-    *p;
+    length;
 
   const char
     *q;
@@ -4044,12 +4246,19 @@ MagickExport size_t MagickStrlCpyTrunc(char *dst, const char *src, const size_t 
   /*
     Copy src to dst within bounds of size-1.
   */
-  for ( p=dst, q=src, length=0 ;
-        (*q != 0) && (length < size-1) ;
-        length++, p++, q++ )
-    *p = *q;
+  length=0;
+  if (size >= 1)
+    {
+      char
+	*p;
 
-  dst[length]='\0';
+      for ( p=dst, q=src;
+	    (*q != 0) && (length < size-1) ;
+	    length++, p++, q++ )
+	*p = *q;
+      
+      dst[length]='\0';
+    }
 
   return length;
 }
@@ -4501,7 +4710,13 @@ MagickExport char **StringToList(const char *text)
         if (textlist[i] == (char *) NULL)
           MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
             UnableToConvertText);
-        (void) strlcpy(textlist[i],p,q-p+1);
+	/*
+	  Don't use strlcpy here because it spends too much time
+	  looking for the trailing null in order to report the
+	  characters not copied.
+	*/
+	(void) strncpy(textlist[i],p,q-p);
+        textlist[i][q-p]='\0';
         if (*q == '\r')
           q++;
         p=q+1;
@@ -4980,12 +5195,12 @@ static void StoreToken(TokenInfo *token_info,char *string,
   {
     case 1:
     {
-      string[i]=toupper(c);
+      string[i]=toupper((int) c);
       break;
     }
     case 2:
     {
-      string[i]=tolower(c);
+      string[i]=tolower((int) c);
       break;
     }
     default:

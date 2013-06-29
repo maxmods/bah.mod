@@ -22,6 +22,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
+%                                                                             %
 %     H a l d C l u t I m a g e                                               %
 %                                                                             %
 %                                                                             %
@@ -47,8 +48,8 @@
 %
 %  The Hald CLUT algorithm has been developed by Eskil Steenberg as described
 %  at http://www.quelsolaar.com/technology/clut.html, and was adapted for
-%  GraphicsMagick by Clément Follet with some support from Cédric Lejeune
-%  of workflowers.net.
+%  GraphicsMagick by Clément Follet with support from Cédric Lejeune of
+%  Workflowers.
 %
 %  The format of the HaldClutImage method is:
 %
@@ -104,9 +105,6 @@ HaldClutImagePixels(void *mutable_data,         /* User provided mutable data */
     i,
     k;
 
-  long
-    clut_pixels;
-
   double
     sums[9],
     r,
@@ -120,7 +118,6 @@ HaldClutImagePixels(void *mutable_data,         /* User provided mutable data */
   ARG_NOT_USED(exception);
 
   level *= level;
-  clut_pixels = (level*level*level);
 	
   for(k = 0; k < npixels ; k++)
     {

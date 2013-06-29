@@ -867,13 +867,17 @@ MagickXBestFont(Display *display,
       "-*-arial-medium-r-normal--12-*-*-*-*-*-iso8859-1",
       "-*-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-15",
       "-*-arial-medium-r-normal--12-*-*-*-*-*-iso8859-15",
+      "-*-helvetica-medium-r-normal--12-*-*-*-*-*-*-*",
+      "-*-arial-medium-r-normal--12-*-*-*-*-*-*-*",
       "variable",
+      "fixed",
       (char *) NULL
     },
     *TextFonts[]=
     {
-      "-*-fixed-medium-r-normal-*-12-*-*-*-*-*-iso8859-1",
-      "-*-fixed-medium-r-normal-*-12-*-*-*-*-*-iso8859-15",
+      "-*-courier-medium-r-normal-*-12-*-*-*-*-*-iso8859-1",
+      "-*-courier-medium-r-normal-*-12-*-*-*-*-*-iso8859-15",
+      "-*-fixed-medium-r-normal-*-12-*-*-*-*-*-*-*",
       "fixed",
       (char *) NULL
     };
@@ -3507,7 +3511,7 @@ MagickXGetResourceInfo(XrmDatabase database,const char *client_name,
     (char *) "borderColor",BorderColor);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "borderWidth",
     (char *) "2");
-  resource_info->border_width=atoi(resource_value);
+  resource_info->border_width=MagickAtoI(resource_value);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "colormap",
     (char *) "shared");
   resource_info->colormap=UndefinedColormap;
@@ -3525,7 +3529,7 @@ MagickXGetResourceInfo(XrmDatabase database,const char *client_name,
   resource_info->confirm_exit=MagickIsTrue(resource_value);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "delay",
     (char *) "1");
-  resource_info->delay=atoi(resource_value);
+  resource_info->delay=MagickAtoI(resource_value);
   resource_info->display_gamma=MagickXGetResourceClass(database,client_name,
     (char *) "displayGamma",(char *) "2.2");
   resource_value=MagickXGetResourceClass(database,client_name,
@@ -3594,7 +3598,9 @@ MagickXGetResourceInfo(XrmDatabase database,const char *client_name,
       MagickError(OptionError,UnrecognizedGravityType,resource_value);
       resource_info->gravity=CenterGravity;
     }
-  (void) getcwd(resource_info->home_directory,MaxTextExtent-1);
+  if (getcwd(resource_info->home_directory,MaxTextExtent-1) == NULL)
+    MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                     NULL);
   resource_info->icon_geometry=MagickXGetResourceClass(database,client_name,
     (char *) "iconGeometry",(char *) NULL);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "iconic",
@@ -3606,7 +3612,7 @@ MagickXGetResourceInfo(XrmDatabase database,const char *client_name,
   resource_info->immutable=MagickIsTrue(resource_value);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "magnify",
     (char *) "3");
-  resource_info->magnify=atoi(resource_value);
+  resource_info->magnify=MagickAtoI(resource_value);
   resource_info->map_type=MagickXGetResourceClass(database,client_name,(char *) "map",
     (char *) NULL);
   resource_info->matte_color=MagickXGetResourceInstance(database,client_name,
@@ -3637,10 +3643,10 @@ MagickXGetResourceInfo(XrmDatabase database,const char *client_name,
     (char *) "pen0",(char *) "gray");
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "pause",
     (char *) "0");
-  resource_info->pause=atoi(resource_value);
+  resource_info->pause=MagickAtoI(resource_value);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "quantum",
     (char *) "1");
-  resource_info->quantum=atoi(resource_value);
+  resource_info->quantum=MagickAtoI(resource_value);
   resource_info->text_font=MagickXGetResourceClass(database,client_name,(char *)
     "font",(char *) "-*-fixed-medium-r-normal-*-12-*-*-*-*-*-iso8859-1");
   resource_info->text_font=MagickXGetResourceClass(database,client_name,
@@ -3649,7 +3655,7 @@ MagickXGetResourceInfo(XrmDatabase database,const char *client_name,
     (char *) NULL);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "undoCache",
     (char *) "16");
-  resource_info->undo_cache=atol(resource_value);
+  resource_info->undo_cache=MagickAtoL(resource_value);
   resource_value=MagickXGetResourceClass(database,client_name,(char *) "update",
     (char *) "False");
   resource_info->update=MagickIsTrue(resource_value);

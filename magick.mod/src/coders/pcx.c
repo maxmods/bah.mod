@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -824,11 +824,16 @@ static unsigned int WritePCXImage(const ImageInfo *image_info,Image *image)
     *pcx_colormap,
     *pcx_pixels;
 
+  MagickBool
+    adjoin,
+    logging,
+    write_dcx;
+
   unsigned int
     status;
 
   ExtendedSignedIntegralType
-    *page_table;
+    *page_table=(ExtendedSignedIntegralType *) NULL;
 
   unsigned long
     scene;
@@ -843,29 +848,19 @@ static unsigned int WritePCXImage(const ImageInfo *image_info,Image *image)
   assert(image_info->signature == MagickSignature);
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
+
+  logging=image->logging;
   status=OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception);
   if (status == False)
     ThrowWriterException(FileOpenError,UnableToOpenFile,image);
-  /*
-    Ensure that image is in RGB space.
-  */
-  (void) TransformColorspace(image,RGBColorspace);
-  /*
-    Analyze image to be written.
-  */
-  if (!GetImageCharacteristics(image,&characteristics,
-                               (OptimizeType == image_info->type),
-                               &image->exception))
-    {
-      CloseBlob(image);
-      return MagickFail;
-    }
-  page_table=(ExtendedSignedIntegralType *) NULL;
-  if (image_info->adjoin)
+
+  write_dcx=MagickFalse;
+  if (LocaleCompare(image_info->magick,"DCX") == 0)
     {
       /*
         Write the DCX page table.
       */
+      write_dcx=MagickTrue;
       (void) WriteBlobLSBLong(image,0x3ADE68B1L);
       page_table=MagickAllocateMemory(ExtendedSignedIntegralType *,
         1024*sizeof(ExtendedSignedIntegralType));
@@ -874,9 +869,27 @@ static unsigned int WritePCXImage(const ImageInfo *image_info,Image *image)
       for (scene=0; scene < 1024; scene++)
         (void) WriteBlobLSBLong(image,0x00000000L);
     }
+  adjoin=(image_info->adjoin) && (image->next != (const Image *) NULL) && (write_dcx);
   scene=0;
   do
   {
+    if (logging && write_dcx)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			    "Writing DCX frame %lu...",scene);
+    /*
+      Ensure that image is in RGB space.
+    */
+    (void) TransformColorspace(image,RGBColorspace);
+    /*
+      Analyze image to be written.
+    */
+    if (!GetImageCharacteristics(image,&characteristics,
+				 (OptimizeType == image_info->type),
+				 &image->exception))
+      {
+	CloseBlob(image);
+	return MagickFail;
+      }
     if (page_table != (ExtendedSignedIntegralType *) NULL)
       page_table[scene]=TellBlob(image);
     /*
@@ -1120,8 +1133,8 @@ static unsigned int WritePCXImage(const ImageInfo *image_info,Image *image)
       break;
     if (scene >= 1023)
       break;
-  } while (image_info->adjoin);
-  if (image_info->adjoin)
+  } while (adjoin);
+  if (adjoin)
     while (image->previous != (Image *) NULL)
       image=image->previous;
   if (page_table != (ExtendedSignedIntegralType *) NULL)

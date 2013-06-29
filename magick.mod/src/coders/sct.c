@@ -176,9 +176,9 @@ static Image *ReadSCTImage(const ImageInfo *image_info,ExceptionInfo *exception)
   */
   (void) ReadBlob(image,32,(char *) buffer);
   (void) ReadBlob(image,14,(char *) buffer);
-  image->rows=atol(buffer);
+  image->rows=MagickAtoL(buffer);
   (void) ReadBlob(image,14,(char *) buffer);
-  image->columns=atol(buffer);
+  image->columns=MagickAtoL(buffer);
   (void) ReadBlob(image,196,(char *) buffer);
   (void) ReadBlob(image,768,(char *) buffer);
   image->colorspace=CMYKColorspace;

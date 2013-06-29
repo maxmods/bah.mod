@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2008 - 2009 GraphicsMagick Group
+% Copyright (C) 2008 - 2012 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -40,6 +40,7 @@ extern "C" {
   extern MagickExport ImageType StringToImageType(const char *option);
   extern MagickExport InterlaceType StringToInterlaceType(const char *option);
   extern MagickExport MetricType StringToMetricType(const char *option);
+  extern MagickExport NoiseType StringToNoiseType(const char *option);
   extern MagickExport PreviewType StringToPreviewType(const char *option);
   extern MagickExport QuantumOperator StringToQuantumOperator(const char *option);
   extern MagickExport ResourceType StringToResourceType(const char *option);
@@ -56,6 +57,7 @@ extern "C" {
   extern MagickExport const char *InterlaceTypeToString(const InterlaceType interlace_type);
   extern MagickExport const char *MapModeToString(MapMode map_mode);
   extern MagickExport const char *MetricTypeToString(MetricType metric);
+  extern MagickExport const char *NoiseTypeToString(NoiseType noise_type);
   extern MagickExport const char *OrientationTypeToString(const OrientationType orientation_type);
   extern MagickExport const char *QuantumOperatorToString(const QuantumOperator quantum_operator);
   extern MagickExport const char *QuantumSampleTypeToString(const QuantumSampleType sample_type);
@@ -70,3 +72,11 @@ extern "C" {
 #endif
 
 #endif /* _ENUM_STRINGS_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

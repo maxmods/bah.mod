@@ -254,3 +254,11 @@ extern "C" {
 #endif
 
 #endif /* _PIXEL_ROW_ITERATOR_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

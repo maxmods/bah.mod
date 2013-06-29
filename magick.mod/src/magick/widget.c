@@ -4176,7 +4176,12 @@ MagickExport void MagickXFileBrowserWidget(Display *display,MagickXWindows *wind
   assert(reply != (char *) NULL);
   MagickXSetCursorState(display,windows,True);
   MagickXCheckRefreshWindows(display,windows);
-  (void) getcwd(home_directory,MaxTextExtent-1);
+  if (getcwd(home_directory,MaxTextExtent-1) == NULL)
+    {
+      MagickXNoticeWidget(display,windows,"Unable to get current directory:",
+                          home_directory);
+      return;
+    }
   (void) strlcpy(working_directory,home_directory,MaxTextExtent);
   filelist=ListFiles(working_directory,glob_pattern,&files);
   if (filelist == (char **) NULL)

@@ -948,7 +948,7 @@ static MagickPassFail ReadLogConfigureFile(const char *basename,
       {
         if (LocaleCompare((char *) keyword,"generations") == 0)
           {
-            log_info->generations=atol(token);
+            log_info->generations=MagickAtoL(token);
             break;
           }
         break;
@@ -958,7 +958,7 @@ static MagickPassFail ReadLogConfigureFile(const char *basename,
       {
         if (LocaleCompare((char *) keyword,"limit") == 0)
           {
-            log_info->limit=atol(token);
+            log_info->limit=MagickAtoL(token);
             break;
           }
         break;

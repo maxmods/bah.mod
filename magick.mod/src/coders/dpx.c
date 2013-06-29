@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2005-2009 GraphicsMagick Group
+% Copyright (C) 2005-2012 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -1668,6 +1668,12 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
 #else
   endian_type = (swap_endian ? MSBEndian : LSBEndian);
 #endif
+
+  /*
+    Save original endian to image so that image write will preserve
+    original endianness.
+  */
+  image->endian = endian_type;
   
   if (image->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
@@ -2103,9 +2109,6 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
           (dpx_image_info.element_info[element].data_offset != 0U))
         {
           pixels_offset=dpx_image_info.element_info[element].data_offset;
-#if 0
-          offset=SeekBlob(image,(magick_off_t) pixels_offset,SEEK_SET);
-#else
           if (pixels_offset >= offset)
             {
               /* Data is at, or ahead of current position.  Good! */
@@ -2121,7 +2124,6 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
           /* Verify that we reached our offset objective */
           if ( pixels_offset != offset)
             ThrowReaderException(BlobError,UnableToSeekToOffset,image);
-#endif
         }
       bits_per_sample=dpx_image_info.element_info[element].bits_per_sample;
       element_descriptor=(DPXImageElementDescriptor)
@@ -2166,13 +2168,15 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
         10-bit "filled" format.  Note 3 refers to Note 2 so presumably
         the same applies for ABGR.  The majority of YCbCr 4:2:2 files
         received have been swapped (but not YCbCr 4:4:4 for some
-        reason) so swap the samples for YCbCr 4:2:2 as well.
+        reason) so swap the samples for YCbCr as well.
       */
       if ((element_descriptor == ImageElementRGB) ||
           (element_descriptor == ImageElementRGBA) ||
           (element_descriptor == ImageElementABGR) ||
           (element_descriptor == ImageElementCbYCrY422) ||
-          (element_descriptor == ImageElementCbYACrYA4224))
+          (element_descriptor == ImageElementCbYACrYA4224) ||
+	  (element_descriptor == ImageElementCbYCr444) ||
+	  (element_descriptor == ImageElementCbYCrA4444))
         {
           if ((bits_per_sample == 10) && (packing_method != PackingMethodPacked))
             swap_word_datums = MagickTrue;
@@ -2279,7 +2283,11 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
             Read element data.
           */
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(static,1)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime)
+#  else
+#    pragma omp parallel for schedule(static,1)
+#  endif
 #endif
           for (y=0; y < (long) image->rows; y++)
             {
@@ -2307,6 +2315,9 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
               unsigned long
                 thread_row_count;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_ReadDPXImage)
+#endif
               thread_status=status;
               if (thread_status == MagickFail)
                 continue;
@@ -2585,9 +2596,9 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   magick_off_t reported_file_offset = TellBlob(image);
                   if (EOFBlob(image))
                     {
-                      (void) fprintf(stderr,"### File length %u, TellBlob says %ld\n",
+                      (void) fprintf(stderr,"### File length %u, TellBlob says %" MAGICK_OFF_F "d\n",
                                      dpx_file_info.file_size,
-                                     (long) reported_file_offset);
+                                     reported_file_offset);
                       break;
                     }
                 }
@@ -3332,9 +3343,6 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   EndianType
     endian_type;
 
-  MagickBool
-    is_grayscale;
-
   /*
     Open output image file.
   */
@@ -3345,7 +3353,6 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   status=OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception);
   if (status == False)
     ThrowWriterException(FileOpenError,UnableToOpenFile,image);
-  is_grayscale=image->is_grayscale;
 
   /*
     Support user-selection of big/little endian output.
@@ -3366,6 +3373,11 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
       endian_type=LSBEndian;
     }
 #endif
+
+  if (image->logging)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                          "%s endian DPX format",
+                          (endian_type == MSBEndian ? "Big" : "Little"));
 
   /*
     Adjust image colorspace if necessary.
@@ -3401,7 +3413,7 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
     Compute desired/necessary number of bits per sample.
   */
   if ((definition_value=AccessDefinition(image_info,"dpx","bits-per-sample")))
-    bits_per_sample=atoi(definition_value);
+    bits_per_sample=MagickAtoI(definition_value);
 
   if (bits_per_sample == 0)
     {
@@ -3814,8 +3826,12 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
                  sizeof(dpx_file_info.image_filename));
   GenerateDPXTimeStamp(dpx_file_info.creation_datetime,
                        sizeof(dpx_file_info.creation_datetime));
-  (void) strlcpy(dpx_file_info.creator,GetMagickVersion((unsigned long *) NULL),
-                 sizeof(dpx_file_info.creator));
+#if 0 /* To enable use of original file creator. */
+  AttributeToString(image_info,image,"DPX:file.creator",dpx_file_info.creator);
+  if (dpx_file_info.creator[0] == '\0')
+#endif
+    (void) strlcpy(dpx_file_info.creator,GetMagickVersion((unsigned long *) NULL),
+		   sizeof(dpx_file_info.creator));
   AttributeToString(image_info,image,"DPX:file.project.name",dpx_file_info.project_name);
   AttributeToString(image_info,image,"DPX:file.copyright",dpx_file_info.copyright);
   AttributeToU32(image_info,image,"DPX:file.encryption.key",dpx_file_info.encryption_key);
@@ -4019,17 +4035,22 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
         swap_word_datums = MagickFalse;
 
 
-      if (BlobIsSeekable(image))
-        {
-          magick_off_t reported_file_offset = TellBlob(image);
-          if ((magick_off_t) dpx_image_info.element_info[element].data_offset !=
-              reported_file_offset)
-            {
-              (void) fprintf(stderr,"### Descriptor %u offset %u, TellBlob says %ld\n",
-                             element+1, dpx_image_info.element_info[element].data_offset,
-                             (long) reported_file_offset);
-            }
-        }
+      /*
+	Validate that what we are writing matches the header offsets.
+      */
+      {
+	magick_off_t
+	  reported_file_offset;
+	  
+	if (((reported_file_offset = TellBlob(image)) != -1) &&
+	    ((magick_off_t) dpx_image_info.element_info[element].data_offset !=
+	     reported_file_offset))
+	  {
+	    (void) fprintf(stderr,"### Descriptor %u offset %u, TellBlob says %" MAGICK_OFF_F "d\n",
+			   element+1, dpx_image_info.element_info[element].data_offset,
+			   reported_file_offset);
+	  }
+      }
       DescribeDPXImageElement(&dpx_image_info.element_info[element],element+1);
 
       bits_per_sample=dpx_image_info.element_info[element].bits_per_sample;
@@ -4091,13 +4112,15 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
         10-bit "filled" format.  Note 3 refers to Note 2 so presumably
         the same applies for ABGR.  The majority of YCbCr 4:2:2 files
         received have been swapped (but not YCbCr 4:4:4 for some
-        reason) so swap the samples for YCbCr 4:2:2 as well.
+        reason) so swap the samples for YCbCr as well.
       */
       if ((element_descriptor == ImageElementRGB) ||
           (element_descriptor == ImageElementRGBA) ||
           (element_descriptor == ImageElementABGR) ||
           (element_descriptor == ImageElementCbYCrY422) ||
-          (element_descriptor == ImageElementCbYACrYA4224))
+          (element_descriptor == ImageElementCbYACrYA4224) ||
+	  (element_descriptor == ImageElementCbYCr444) ||
+	  (element_descriptor == ImageElementCbYCrA4444))
         {
           if ((bits_per_sample == 10) && (packing_method != PackingMethodPacked))
             swap_word_datums = MagickTrue;
@@ -4336,16 +4359,22 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
         }
     }
   
-  if (BlobIsSeekable(image))
-    {
-      magick_off_t reported_file_offset = TellBlob(image);
-      if ((magick_off_t) dpx_file_info.file_size != reported_file_offset)
-        {
-          (void) fprintf(stderr,"### File length %u, TellBlob says %ld\n",
-                         dpx_file_info.file_size,
-                         (long) reported_file_offset);
-        }
-    }
+  /*
+    Validate that what we are writing matches the header offsets.
+  */
+  {
+    magick_off_t
+      reported_file_offset;
+
+    reported_file_offset = TellBlob(image);
+    if ((reported_file_offset != -1) &&
+	((magick_off_t) dpx_file_info.file_size != reported_file_offset))
+      {
+	(void) fprintf(stderr,"### File length %u, TellBlob says %" MAGICK_OFF_F "d\n",
+		       dpx_file_info.file_size,
+		       reported_file_offset);
+      }
+  }
   
   MagickFreeMemory(map_CbCr);
   MagickFreeMemory(map_Y);

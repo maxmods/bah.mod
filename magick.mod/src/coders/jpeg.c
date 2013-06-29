@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003-2009 GraphicsMagick Group
+% Copyright (C) 2003-2011 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -138,8 +138,12 @@ typedef struct _ErrorManager
   Image
     *image;
 
+  MagickBool
+    completed;
+
   jmp_buf
     error_recovery;
+
 } ErrorManager;
 
 typedef struct _SourceManager
@@ -190,10 +194,18 @@ typedef struct _SourceManager
 %
 */
 
-static unsigned int EmitMessage(j_common_ptr jpeg_info,int level)
+/*
+  Format a libjpeg warning or trace event.  Warnings are converted to
+  GraphicsMagick warning exceptions while traces are optionally
+  logged.
+*/
+static unsigned int JPEGMessageHandler(j_common_ptr jpeg_info,int msg_level)
 {
   char
     message[JMSG_LENGTH_MAX];
+
+  struct jpeg_error_mgr
+    *err;
 
   ErrorManager
     *error_manager;
@@ -201,20 +213,43 @@ static unsigned int EmitMessage(j_common_ptr jpeg_info,int level)
   Image
     *image;
 
-  (jpeg_info->err->format_message)(jpeg_info,message);
+  message[0]='\0';
+  err=jpeg_info->err;
   error_manager=(ErrorManager *) jpeg_info->client_data;
   image=error_manager->image;
-  if (level < 0)
+  /* msg_level is -1 for warnings, 0 and up for trace messages. */
+  if (msg_level < 0)
     {
-      if ((jpeg_info->err->num_warnings == 0) ||
-          (jpeg_info->err->trace_level >= 3))
-        ThrowBinaryException2(CorruptImageWarning,(char *) message,
-          image->filename);
-      jpeg_info->err->num_warnings++;
+      /* A warning */
+      (err->format_message)(jpeg_info,message);
+
+      if (image->logging)
+	{
+	  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"[%s] JPEG Warning: \"%s\" (code=%d, parms=0x%02x,0x%02x,"
+				"0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x)",
+				image->filename,message,err->msg_code,
+				err->msg_parm.i[0], err->msg_parm.i[1],
+				err->msg_parm.i[2], err->msg_parm.i[3],
+				err->msg_parm.i[4], err->msg_parm.i[5],
+				err->msg_parm.i[6], err->msg_parm.i[7]);
+	}
+      if ((err->num_warnings == 0) ||
+          (err->trace_level >= 3))
+	ThrowBinaryException2(CorruptImageWarning,(char *) message,
+			      image->filename);
+      err->num_warnings++;
     }
   else
-    if (jpeg_info->err->trace_level >= level)
-      ThrowBinaryException2(CoderError,(char *) message,image->filename);
+    {
+      /* A trace message */
+      if ((image->logging) && (msg_level >= err->trace_level))
+	{
+	  (err->format_message)(jpeg_info,message);
+	  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"[%s] JPEG Trace: \"%s\"",image->filename,message);
+	}
+    }
   return(True);
 }
 
@@ -257,15 +292,47 @@ static void InitializeSource(j_decompress_ptr cinfo)
   source->start_of_blob=TRUE;
 }
 
+/*
+  Format and report a libjpeg error event.  Errors are reported via a
+  GraphicsMagick error exception. The function terminates with
+  longjmp() so it never returns to the caller.
+*/
 static void JPEGErrorHandler(j_common_ptr jpeg_info) MAGICK_FUNC_NORETURN;
 
 static void JPEGErrorHandler(j_common_ptr jpeg_info)
 {
+  char
+    message[JMSG_LENGTH_MAX];
+
+  struct jpeg_error_mgr
+    *err;
+
   ErrorManager
     *error_manager;
 
-  (void) EmitMessage(jpeg_info,0);
-  error_manager=( ErrorManager *) jpeg_info->client_data;
+  Image
+    *image;
+
+  message[0]='\0';
+  err=jpeg_info->err;
+  error_manager=(ErrorManager *) jpeg_info->client_data;
+  image=error_manager->image;
+  (err->format_message)(jpeg_info,message);
+  if (image->logging)
+    {
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			    "[%s] JPEG Error: \"%s\" (code=%d, parms=0x%02x,0x%02x,"
+			    "0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x)",
+			    image->filename,message,err->msg_code,
+			    err->msg_parm.i[0], err->msg_parm.i[1],
+			    err->msg_parm.i[2], err->msg_parm.i[3],
+			    err->msg_parm.i[4], err->msg_parm.i[5],
+			    err->msg_parm.i[6], err->msg_parm.i[7]);
+    }
+  if (error_manager->completed)
+    ThrowException2(&image->exception,CoderWarning,(char *) message,image->filename);
+  else
+    ThrowException2(&image->exception,CoderError,(char *) message,image->filename);
   longjmp(error_manager->error_recovery,1);
 }
 
@@ -508,47 +575,44 @@ static boolean ReadIPTCProfile(j_decompress_ptr jpeg_info)
 #endif
   error_manager=(ErrorManager *) jpeg_info->client_data;
   image=error_manager->image;
-  if (GetImageProfile(image,"IPTC",(size_t *) NULL) == 0)
-    {
 #ifdef GET_ONLY_IPTC_DATA
-      /*
-        Find the beginning of the IPTC portion of the binary data.
-      */
-      for (*tag='\0'; length > 0; )
-      {
-        *tag=GetCharacter(jpeg_info);
-        *(tag+1)=GetCharacter(jpeg_info);
-        length-=2;
-        if ((*tag == 0x1c) && (*(tag+1) == 0x02))
-          break;
-      }
-      tag_length=2;
-#else
-      /*
-        Validate that this was written as a Photoshop resource format slug.
-      */
-      for (i=0; i < 10; i++)
-        magick[i]=GetCharacter(jpeg_info);
-      magick[10]='\0';
-      length-=10;
-      if (LocaleCompare(magick,"Photoshop ") != 0)
-        {
-          /*
-            Not a ICC profile, return.
-          */
-          for (i=0; i < length; i++)
-            (void) GetCharacter(jpeg_info);
-          return(True);
-        }
-      /*
-        Remove the version number.
-      */
-      for (i=0; i < 4; i++)
-        (void) GetCharacter(jpeg_info);
-      length-=4;
-      tag_length=0;
-#endif
+  /*
+    Find the beginning of the IPTC portion of the binary data.
+  */
+  for (*tag='\0'; length > 0; )
+    {
+      *tag=GetCharacter(jpeg_info);
+      *(tag+1)=GetCharacter(jpeg_info);
+      length-=2;
+      if ((*tag == 0x1c) && (*(tag+1) == 0x02))
+	break;
     }
+  tag_length=2;
+#else
+  /*
+    Validate that this was written as a Photoshop resource format slug.
+  */
+  for (i=0; i < 10; i++)
+    magick[i]=GetCharacter(jpeg_info);
+  magick[10]='\0';
+  length-=10;
+  if (LocaleCompare(magick,"Photoshop ") != 0)
+    {
+      /*
+	Not a ICC profile, return.
+      */
+      for (i=0; i < length; i++)
+	(void) GetCharacter(jpeg_info);
+      return(True);
+    }
+  /*
+    Remove the version number.
+  */
+  for (i=0; i < 4; i++)
+    (void) GetCharacter(jpeg_info);
+  length-=4;
+  tag_length=0;
+#endif
   if (length <= 0)
     return(True);
 
@@ -591,7 +655,7 @@ static void SkipInputData(j_decompress_ptr cinfo,long number_bytes)
 
 static void TerminateSource(j_decompress_ptr cinfo)
 {
-  cinfo=cinfo;
+  (void) cinfo;
 }
 
 static void JPEGSourceManager(j_decompress_ptr cinfo,Image *image)
@@ -946,18 +1010,18 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
   assert(exception->signature == MagickSignature);
   image=AllocateImage(image_info);
   if (image == (Image *) NULL)
-    {
-      ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
-			   image);
-    }
+    ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
   status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
   if (status == MagickFail)
     ThrowReaderException(FileOpenError,UnableToOpenFile,image);
   /*
-    Initialize image structure.
+    Initialize structures.
   */
+  (void) memset(&error_manager,0,sizeof(error_manager));
+  (void) memset(&jpeg_info,0,sizeof(jpeg_info));
+  (void) memset(&jpeg_error,0,sizeof(jpeg_error));
   jpeg_info.err=jpeg_std_error(&jpeg_error);
-  jpeg_info.err->emit_message=(void (*)(j_common_ptr,int)) EmitMessage;
+  jpeg_info.err->emit_message=(void (*)(j_common_ptr,int)) JPEGMessageHandler;
   jpeg_info.err->error_exit=(void (*)(j_common_ptr)) JPEGErrorHandler;
   jpeg_pixels=(JSAMPLE *) NULL;
   error_manager.image=image;
@@ -976,6 +1040,7 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
       return((Image *) NULL);
     }
   jpeg_info.client_data=(void *) &error_manager;
+
   jpeg_create_decompress(&jpeg_info);
   JPEGSourceManager(&jpeg_info,image);
   jpeg_set_marker_processor(&jpeg_info,JPEG_COM,ReadComment);
@@ -1240,9 +1305,11 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 	}
       indexes=AccessMutableIndexes(image);
 
-      /* FIXME .... */
       if (jpeg_read_scanlines(&jpeg_info,scanline,1) != 1)
-	ThrowReaderException(CorruptImageError,CorruptImage,image);
+	{
+	  status=MagickFail;
+	  break;
+	}
 
       p=jpeg_pixels;
 
@@ -1313,6 +1380,7 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 				    image->columns,image->rows))
 	  {
 	    status=MagickFail;
+	    jpeg_abort_decompress(&jpeg_info);
 	    break;
 	  }
     }
@@ -1320,7 +1388,20 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
     Free jpeg resources.
   */
   if (status == MagickPass)
-    (void) jpeg_finish_decompress(&jpeg_info);
+    {
+      /*
+	jpeg_finish_decompress() may throw an exception while it is
+	finishing the remainder of the JPEG file.  At this point we
+	have already decoded the image so we handle exceptions from
+	jpeg_finish_decompress() specially, mapping reported
+	exceptions as warnings rather than errors.  We try using
+	jpeg_finish_decompress() and if it results in a longjmp(),
+	then we skip over it again.
+      */
+      error_manager.completed=MagickTrue;
+      if (!setjmp(error_manager.error_recovery))
+	(void) jpeg_finish_decompress(&jpeg_info);
+    }
   jpeg_destroy_decompress(&jpeg_info);
   MagickFreeMemory(jpeg_pixels);
   CloseBlob(image);
@@ -1344,7 +1425,7 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 	  int
 	    orientation;
 
-	  orientation=atoi(attribute->value);
+	  orientation=MagickAtoI(attribute->value);
 	  if ((orientation > UndefinedOrientation) &&
 	      (orientation <= LeftBottomOrientation))
 	    image->orientation=(OrientationType) orientation;
@@ -1510,29 +1591,6 @@ static void InitializeDestination(j_compress_ptr cinfo)
   destination->manager.free_in_buffer=MaxBufferExtent;
 }
 
-static unsigned int JPEGWarningHandler(j_common_ptr jpeg_info,int level)
-{
-  char
-    message[JMSG_LENGTH_MAX];
-
-  Image
-    *image;
-
-  (jpeg_info->err->format_message)(jpeg_info,message);
-  image=(Image *) jpeg_info->client_data;
-  if (level < 0)
-    {
-      if ((jpeg_info->err->num_warnings == 0) ||
-          (jpeg_info->err->trace_level >= 3))
-        ThrowBinaryException2(CoderError,(char *) message,image->filename);
-      jpeg_info->err->num_warnings++;
-    }
-  else
-    if (jpeg_info->err->trace_level >= level)
-      ThrowBinaryException2(CoderError,(char *) message,image->filename);
-  return(True);
-}
-
 static void TerminateDestination(j_compress_ptr cinfo)
 {
   DestinationManager
@@ -1594,8 +1652,9 @@ static void WriteICCProfile(j_compress_ptr jpeg_info,Image *image)
     jpeg_write_marker(jpeg_info,ICC_MARKER,profile,(unsigned int) length+14);
     MagickFreeMemory(profile);
   }
-  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                        "ICC profile: %ld bytes",(long) profile_length);
+  if (image->logging)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			  "ICC profile: %ld bytes",(long) profile_length);
 }
 
 static void WriteIPTCProfile(j_compress_ptr jpeg_info,Image *image)
@@ -1658,8 +1717,9 @@ static void WriteIPTCProfile(j_compress_ptr jpeg_info,Image *image)
     MagickFreeMemory(profile);
   }
 
-  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                        "IPTC profile: %ld bytes",(long) profile_length);
+  if (image->logging)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			  "IPTC profile: %ld bytes",(long) profile_length);
 }
 
 static void JPEGDestinationManager(j_compress_ptr cinfo,Image * image)
@@ -1678,6 +1738,9 @@ static void JPEGDestinationManager(j_compress_ptr cinfo,Image * image)
 
 static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
 {
+  ErrorManager
+    error_manager;
+
   const ImageAttribute
     *attribute;
 
@@ -1735,6 +1798,28 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
   status=OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception);
   if (status == False)
     ThrowWriterException(FileOpenError,UnableToOpenFile,image);
+
+  (void) memset(&error_manager,0,sizeof(error_manager));
+  (void) memset(&jpeg_info,0,sizeof(jpeg_info));
+  (void) memset(&jpeg_error,0,sizeof(jpeg_error));
+
+  /*
+    Transform image to user-requested colorspace.
+  */
+  if (UndefinedColorspace != image_info->colorspace)
+    {
+      (void) TransformColorspace(image,image_info->colorspace);
+    }
+  /*
+    Convert RGB-compatible colorspaces (e.g. CineonLog) to RGB by
+    default.  User can still override it by explicitly specifying the
+    desired colorspace.
+  */
+  else if (IsRGBCompatibleColorspace(image->colorspace) &&
+	   !IsRGBColorspace(image->colorspace))
+    {
+      (void) TransformColorspace(image,RGBColorspace);
+    }
   
   /*
     Analyze image to be written.
@@ -1748,58 +1833,78 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
     }
 
   /*
-    Initialize JPEG parameters.
+    Set initial longjmp based error handler.
   */
-  (void) memset(&jpeg_info,0,sizeof(jpeg_info));
-  (void) memset(&jpeg_error,0,sizeof(jpeg_error));
   jpeg_info.client_data=(void *) image;
   jpeg_info.err=jpeg_std_error(&jpeg_error);
-  jpeg_info.err->emit_message=(void (*)(j_common_ptr,int)) JPEGWarningHandler;
+  jpeg_info.err->emit_message=(void (*)(j_common_ptr,int)) JPEGMessageHandler;
+  jpeg_info.err->error_exit=(void (*)(j_common_ptr)) JPEGErrorHandler;
+  error_manager.image=image;
+  if (setjmp(error_manager.error_recovery))
+    {
+      jpeg_destroy_compress(&jpeg_info);
+      CloseBlob(image);
+      return MagickFail ;
+    }
+  jpeg_info.client_data=(void *) &error_manager;
+
   jpeg_create_compress(&jpeg_info);
   JPEGDestinationManager(&jpeg_info,image);
   jpeg_info.image_width=(unsigned int) image->columns;
   jpeg_info.image_height=(unsigned int) image->rows;
   jpeg_info.input_components=3;
   jpeg_info.in_color_space=JCS_RGB;
-  switch (image_info->colorspace)
+
+  /*
+    Set JPEG colorspace as per user request.
+  */
   {
-    case CMYKColorspace:
-    {
-      jpeg_info.input_components=4;
-      jpeg_info.in_color_space=JCS_CMYK;
-      (void) TransformColorspace(image,CMYKColorspace);
-      break;
-    }
-    case YCbCrColorspace:
-    {
-      jpeg_info.in_color_space=JCS_YCbCr;
-      (void) TransformColorspace(image,YCbCrColorspace);
-      break;
-    }
-    case GRAYColorspace:
-    case Rec601LumaColorspace:
-    case Rec709LumaColorspace:
-    {
-      jpeg_info.in_color_space=JCS_GRAYSCALE;
-      (void) TransformColorspace(image,image_info->colorspace);
-      break;
-    }
-    default:
-    {
-      if (image->colorspace == CMYKColorspace)
-        {
-          jpeg_info.input_components=4;
-          jpeg_info.in_color_space=JCS_CMYK;
-          break;
-        }
-      if (image->colorspace == YCbCrColorspace)
-        {
-          jpeg_info.in_color_space=JCS_YCbCr;
-          break;
-        }
-      (void) TransformColorspace(image,RGBColorspace);
-      break;
-    }
+    MagickBool
+      colorspace_set=MagickFalse;
+    
+    if (IsCMYKColorspace(image_info->colorspace))
+      {
+	jpeg_info.input_components=4;
+	jpeg_info.in_color_space=JCS_CMYK;
+	colorspace_set=MagickTrue;
+      }
+    else if (IsYCbCrColorspace(image_info->colorspace))
+      {
+	jpeg_info.input_components=3;
+	jpeg_info.in_color_space=JCS_YCbCr;
+	colorspace_set=MagickTrue;
+      }
+    else if (IsGrayColorspace(image_info->colorspace))
+      {
+	jpeg_info.input_components=1;
+	jpeg_info.in_color_space=JCS_GRAYSCALE;
+	colorspace_set=MagickTrue;
+      }
+
+    if (!colorspace_set)
+      {
+	if (IsCMYKColorspace(image->colorspace))
+	  {
+	    jpeg_info.input_components=4;
+	    jpeg_info.in_color_space=JCS_CMYK;
+	  }
+	else if (IsYCbCrColorspace(image->colorspace))
+	  {
+	    jpeg_info.input_components=3;
+	    jpeg_info.in_color_space=JCS_YCbCr;
+	  }
+	else if ((IsGrayColorspace(image->colorspace) ||
+		  (characteristics.grayscale)))
+	  {
+	    jpeg_info.input_components=1;
+	    jpeg_info.in_color_space=JCS_GRAYSCALE;
+	  }
+	else
+	  {
+	    jpeg_info.input_components=3;
+	    jpeg_info.in_color_space=JCS_RGB;
+	  }
+      }
   }
 
   input_colorspace=UndefinedColorspace;
@@ -1864,17 +1969,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
         }
     }
 
-  if ((image_info->type != TrueColorType) &&
-      (image_info->type != TrueColorMatteType) &&
-      (image_info->type != ColorSeparationType) &&
-      (image_info->type != ColorSeparationMatteType) &&
-      (image->colorspace != CMYKColorspace) &&
-      (characteristics.grayscale))
-    {
-      jpeg_info.input_components=1;
-      jpeg_info.in_color_space=JCS_GRAYSCALE;
-    }
   jpeg_set_defaults(&jpeg_info);
+
   /*
     Determine bit depth.
   */
@@ -2076,7 +2172,9 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
           jpeg_info.comp_info[i].v_samp_factor=1;
         }
     }
-  (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Starting JPEG compression");
+
+  if (image->logging)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Starting JPEG compression");
   jpeg_start_compress(&jpeg_info,True);
   if (image->logging)
     {
@@ -2096,98 +2194,87 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
           "Number of colors: unspecified");
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
         "JPEG data precision: %d",(int) jpeg_info.data_precision);
-      switch (image_info->colorspace)
-      {
-        case CMYKColorspace:
-        {
+      if (IsCMYKColorspace(image_info->colorspace))
+	{
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Storage class: DirectClass");
+				"Storage class: DirectClass");
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Colorspace: CMYK");
-          break;
-        }
-        case YCbCrColorspace:
-        {
+				"Colorspace: CMYK");
+	}
+      else if (IsYCbCrColorspace(image_info->colorspace))
+	{
+	  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"Colorspace: YCbCr");
+	}
+      if (IsCMYKColorspace(image->colorspace))
+	{
+	  /* A CMYK space */
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Colorspace: YCbCr");
-          break;
-        }
-          default:
-          break;
-      }
-      switch (image->colorspace)
-      {
-        case CMYKColorspace:
-        {
+				"Colorspace: CMYK");
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Colorspace: CMYK");
+				"Sampling factors: %dx%d,%dx%d,%dx%d,%dx%d",
+				jpeg_info.comp_info[0].h_samp_factor,
+				jpeg_info.comp_info[0].v_samp_factor,
+				jpeg_info.comp_info[1].h_samp_factor,
+				jpeg_info.comp_info[1].v_samp_factor,
+				jpeg_info.comp_info[2].h_samp_factor,
+				jpeg_info.comp_info[2].v_samp_factor,
+				jpeg_info.comp_info[3].h_samp_factor,
+				jpeg_info.comp_info[3].v_samp_factor);
+	}
+      else if (IsGrayColorspace(image->colorspace))
+	{
+	  /* A gray space */
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Sampling factors: %dx%d,%dx%d,%dx%d,%dx%d",
-            jpeg_info.comp_info[0].h_samp_factor,
-            jpeg_info.comp_info[0].v_samp_factor,
-            jpeg_info.comp_info[1].h_samp_factor,
-            jpeg_info.comp_info[1].v_samp_factor,
-            jpeg_info.comp_info[2].h_samp_factor,
-            jpeg_info.comp_info[2].v_samp_factor,
-            jpeg_info.comp_info[3].h_samp_factor,
-            jpeg_info.comp_info[3].v_samp_factor);
-          break;
-        }
-        case Rec601LumaColorspace:
-        case Rec709LumaColorspace:
-        {
+				"Colorspace: GRAY");
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Colorspace: GRAY");
+				"Sampling factors: %dx%d",jpeg_info.comp_info[0].h_samp_factor,
+				jpeg_info.comp_info[0].v_samp_factor);
+	}
+      else if (IsRGBCompatibleColorspace(image->colorspace))
+	{
+	  /* An RGB space */
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Sampling factors: %dx%d",jpeg_info.comp_info[0].h_samp_factor,
-            jpeg_info.comp_info[0].v_samp_factor);
-          break;
-        }
-        case RGBColorspace:
-        {
+				" Image colorspace is RGB");
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            " Image colorspace is RGB");
+				"Sampling factors: %dx%d,%dx%d,%dx%d",
+				jpeg_info.comp_info[0].h_samp_factor,
+				jpeg_info.comp_info[0].v_samp_factor,
+				jpeg_info.comp_info[1].h_samp_factor,
+				jpeg_info.comp_info[1].v_samp_factor,
+				jpeg_info.comp_info[2].h_samp_factor,
+				jpeg_info.comp_info[2].v_samp_factor);
+	}
+      else if (IsYCbCrColorspace(image->colorspace))
+	{
+	  /* A YCbCr space */
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Sampling factors: %dx%d,%dx%d,%dx%d",
-            jpeg_info.comp_info[0].h_samp_factor,
-            jpeg_info.comp_info[0].v_samp_factor,
-            jpeg_info.comp_info[1].h_samp_factor,
-            jpeg_info.comp_info[1].v_samp_factor,
-            jpeg_info.comp_info[2].h_samp_factor,
-            jpeg_info.comp_info[2].v_samp_factor);
-          break;
-        }
-        case YCbCrColorspace:
-        {
+				"Colorspace: YCbCr");
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Colorspace: YCbCr");
-          (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Sampling factors: %dx%d,%dx%d,%dx%d",
-            jpeg_info.comp_info[0].h_samp_factor,
-            jpeg_info.comp_info[0].v_samp_factor,
-            jpeg_info.comp_info[1].h_samp_factor,
-            jpeg_info.comp_info[1].v_samp_factor,
-            jpeg_info.comp_info[2].h_samp_factor,
-            jpeg_info.comp_info[2].v_samp_factor);
-          break;
-        }
-        default:
-        {
+				"Sampling factors: %dx%d,%dx%d,%dx%d",
+				jpeg_info.comp_info[0].h_samp_factor,
+				jpeg_info.comp_info[0].v_samp_factor,
+				jpeg_info.comp_info[1].h_samp_factor,
+				jpeg_info.comp_info[1].v_samp_factor,
+				jpeg_info.comp_info[2].h_samp_factor,
+				jpeg_info.comp_info[2].v_samp_factor);
+	}
+      else
+	{
+	  /* Some other color space */
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Colorspace: %d",
-            image->colorspace);
+				image->colorspace);
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-            "Sampling factors: %dx%d,%dx%d,%dx%d,%dx%d",
-            jpeg_info.comp_info[0].h_samp_factor,
-            jpeg_info.comp_info[0].v_samp_factor,
-            jpeg_info.comp_info[1].h_samp_factor,
-            jpeg_info.comp_info[1].v_samp_factor,
-            jpeg_info.comp_info[2].h_samp_factor,
-            jpeg_info.comp_info[2].v_samp_factor,
-            jpeg_info.comp_info[3].h_samp_factor,
-            jpeg_info.comp_info[3].v_samp_factor);
-          break;
-        }
-      }
+				"Sampling factors: %dx%d,%dx%d,%dx%d,%dx%d",
+				jpeg_info.comp_info[0].h_samp_factor,
+				jpeg_info.comp_info[0].v_samp_factor,
+				jpeg_info.comp_info[1].h_samp_factor,
+				jpeg_info.comp_info[1].v_samp_factor,
+				jpeg_info.comp_info[2].h_samp_factor,
+				jpeg_info.comp_info[2].v_samp_factor,
+				jpeg_info.comp_info[3].h_samp_factor,
+				jpeg_info.comp_info[3].v_samp_factor);
+	}
     }
   /*
     Write JPEG profiles.
@@ -2220,9 +2307,12 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
         register long
           j;
 
-        if (LocaleNCompare(profile_name,"APP",3) != 0)
+        if (LocaleNCompare(profile_name,"APP",3) != 0 &&
+            LocaleNCompare(profile_name,"Exif",4) != 0)
           continue;
-        x=atol(profile_name+3);
+        x=1;
+        if (LocaleNCompare(profile_name,"APP",3) == 0)
+          x=MagickAtoL(profile_name+3);
         if (image->logging)
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                                 "Profile: %s, %lu bytes",profile_name,
@@ -2250,9 +2340,10 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
     {
       if (jpeg_info.in_color_space == JCS_GRAYSCALE)
         {
-          (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                "Writing %d bit JCS_GRAYSCALE samples",
-                                jpeg_info.data_precision);
+	  if (image->logging)
+	    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				  "Writing %d bit JCS_GRAYSCALE samples",
+				  jpeg_info.data_precision);
           for (y=0; y < (long) image->rows; y++)
             {
               p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -2287,9 +2378,10 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
         if ((jpeg_info.in_color_space == JCS_RGB) ||
             (jpeg_info.in_color_space == JCS_YCbCr))
           {
-            (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Writing %d bit JCS_RGB or JCS_YCbCr samples",
-                                  jpeg_info.data_precision);
+	    if (image->logging)
+	      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				    "Writing %d bit JCS_RGB or JCS_YCbCr samples",
+				    jpeg_info.data_precision);
             for (y=0; y < (long) image->rows; y++)
               {
                 p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -2313,9 +2405,10 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
           }
         else
           {
-            (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Writing %d bit JCS_CMYK samples",
-                                  jpeg_info.data_precision);
+	    if (image->logging)
+	      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				    "Writing %d bit JCS_CMYK samples",
+				    jpeg_info.data_precision);
             for (y=0; y < (long) image->rows; y++)
               {
                 p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -2345,9 +2438,10 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
   else
     if (jpeg_info.in_color_space == JCS_GRAYSCALE)
       {
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                              "Writing %d bit JCS_GRAYSCALE samples",
-                              jpeg_info.data_precision);
+	if (image->logging)
+	  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"Writing %d bit JCS_GRAYSCALE samples",
+				jpeg_info.data_precision);
         for (y=0; y < (long) image->rows; y++)
           {
             p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -2382,9 +2476,10 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
       if ((jpeg_info.in_color_space == JCS_RGB) ||
           (jpeg_info.in_color_space == JCS_YCbCr))
         {
-          (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                "Writing %d bit JCS_RGB or JCS_YCbCr samples",
-                                jpeg_info.data_precision);
+	  if (image->logging)
+	    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				  "Writing %d bit JCS_RGB or JCS_YCbCr samples",
+				  jpeg_info.data_precision);
           for (y=0; y < (long) image->rows; y++)
             {
               p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -2408,9 +2503,10 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
         }
       else
         {
-          (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                "Writing %d bit JCS_CMYK samples",
-                                jpeg_info.data_precision);
+	  if (image->logging)
+	    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				  "Writing %d bit JCS_CMYK samples",
+				  jpeg_info.data_precision);
           for (y=0; y < (long) image->rows; y++)
             {
               p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -2436,7 +2532,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
                   break;
             }
         }
-  (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Finishing JPEG compression");
+  if (image->logging)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Finishing JPEG compression");
   jpeg_finish_compress(&jpeg_info);
   /*
     Free memory.

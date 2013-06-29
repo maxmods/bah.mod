@@ -155,7 +155,7 @@ static unsigned int
 */
 
 #if defined(__cplusplus) || defined(c_plusplus)
-//extern "C" {
+/* extern "C" { */
 #endif
 
 static int
@@ -632,7 +632,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword, "radius") == 0)
                             {
-                              radius = atof( value );
+                              radius = MagickAtoF( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -644,7 +644,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"sigma") == 0)
                             {
-                              sigma = atoi( value );
+                              sigma = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -737,7 +737,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"height") == 0)
                             {
-                              height = atoi( value );
+                              height = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -749,7 +749,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"width") == 0)
                             {
-                              width = atoi( value );
+                              width = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -827,7 +827,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword, "radius") == 0)
                             {
-                              radius = atof( value );
+                              radius = MagickAtoF( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -839,7 +839,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"sigma") == 0)
                             {
-                              sigma = atoi( value );
+                              sigma = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -917,7 +917,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"height") == 0)
                         {
-                          height = atoi( value );
+                          height = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -929,7 +929,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"width") == 0)
                         {
-                          width = atoi( value );
+                          width = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -941,7 +941,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"x") == 0)
                         {
-                          x = atoi( value );
+                          x = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -953,7 +953,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"y") == 0)
                         {
-                          y = atoi( value );
+                          y = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -1084,7 +1084,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"x") == 0)
                         {
-                          x = atoi( value );
+                          x = MagickAtoI( value );
                           gravity=ForgetGravity;
                           break;
                         }
@@ -1097,7 +1097,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"y") == 0)
                         {
-                          y = atoi( value );
+                          y = MagickAtoI( value );
                           gravity=ForgetGravity;
                           break;
                         }
@@ -1249,7 +1249,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"height") == 0)
                         {
-                          height = atoi( value );
+                          height = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -1261,7 +1261,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"width") == 0)
                         {
-                          width = atoi( value );
+                          width = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -1273,7 +1273,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"x") == 0)
                         {
-                          x = atoi( value );
+                          x = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -1285,7 +1285,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"y") == 0)
                         {
-                          y = atoi( value );
+                          y = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -1392,7 +1392,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword, "radius") == 0)
                             {
-                              radius = atof( value );
+                              radius = MagickAtoF( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1456,7 +1456,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword, "radius") == 0)
                             {
-                              radius = atof( value );
+                              radius = MagickAtoF( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1468,7 +1468,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"sigma") == 0)
                             {
-                              sigma = atoi( value );
+                              sigma = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1685,7 +1685,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"height") == 0)
                             {
-                              height = atoi( value );
+                              height = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1697,7 +1697,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"inner") == 0)
                             {
-                              y = atoi( value );
+                              y = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1709,7 +1709,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"outer") == 0)
                             {
-                              x = atoi( value );
+                              x = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1721,7 +1721,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"width") == 0)
                             {
-                              width = atoi( value );
+                              width = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1733,7 +1733,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"x") == 0)
                             {
-                              x = atoi( value );
+                              x = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1745,7 +1745,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"y") == 0)
                             {
-                              y = atoi( value );
+                              y = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -1822,7 +1822,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"blue") == 0)
                         {
-                          gammaBlue = atof( value );
+                          gammaBlue = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -1834,7 +1834,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"green") == 0)
                         {
-                          gammaGreen = atof( value );
+                          gammaGreen = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -1846,7 +1846,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"red") == 0)
                         {
-                          gammaRed = atof( value );
+                          gammaRed = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2090,7 +2090,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"amount") == 0)
                         {
-                          amount = atof( value );
+                          amount = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2184,7 +2184,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"radius") == 0)
                         {
-                          radius = atoi( value );
+                          radius = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2310,7 +2310,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"radius") == 0)
                         {
-                          radius = atoi( value );
+                          radius = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2613,7 +2613,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"radius") == 0)
                         {
-                          radius = atoi( value );
+                          radius = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2679,7 +2679,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"blur") == 0)
                         {
-                          msl_info->image[n]->blur = atof( value );
+                          msl_info->image[n]->blur = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2719,7 +2719,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"height") == 0)
                         {
-                          height = atoi( value );
+                          height = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2731,7 +2731,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"width") == 0)
                         {
-                          width = atoi( value );
+                          width = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2812,7 +2812,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"x") == 0)
                         {
-                          x = atoi( value );
+                          x = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2824,7 +2824,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"y") == 0)
                         {
-                          y = atoi( value );
+                          y = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2888,7 +2888,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"degrees") == 0)
                         {
-                          degrees = atof( value );
+                          degrees = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2972,7 +2972,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"height") == 0)
                         {
-                          height = atoi( value );
+                          height = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -2984,7 +2984,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"width") == 0)
                         {
-                          width = atoi( value );
+                          width = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3062,7 +3062,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"height") == 0)
                         {
-                          height = atoi( value );
+                          height = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3074,7 +3074,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"width") == 0)
                         {
-                          width = atoi( value );
+                          width = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3253,10 +3253,10 @@ MSLStartElement(void *context,const xmlChar *name,
                           if (value[len-1] == '%') {
                             char  tmp[100];
                             (void) strncpy(tmp, value, (size_t) (len-1));
-                            opac = atoi( tmp );
+                            opac = MagickAtoI( tmp );
                             opac = (int)(MaxRGB * ((float)opac/100));
                           } else
-                            opac = atoi( value );
+                            opac = MagickAtoI( value );
                           SetImageOpacity( msl_info->image[n], opac );
                           break;
                         }
@@ -3306,7 +3306,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword, "radius") == 0)
                             {
-                              radius = atof( value );
+                              radius = MagickAtoF( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -3318,7 +3318,7 @@ MSLStartElement(void *context,const xmlChar *name,
                         {
                           if (LocaleCompare(keyword,"sigma") == 0)
                             {
-                              sigma = atoi( value );
+                              sigma = MagickAtoI( value );
                               break;
                             }
                           ThrowException(msl_info->exception,OptionError,
@@ -3395,7 +3395,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"height") == 0)
                         {
-                          height = atoi( value );
+                          height = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3407,7 +3407,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"width") == 0)
                         {
-                          width = atoi( value );
+                          width = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3481,7 +3481,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"x") == 0)
                         {
-                          x = atoi( value );
+                          x = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3493,7 +3493,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"y") == 0)
                         {
-                          y = atoi( value );
+                          y = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3557,7 +3557,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"threshold") == 0)
                         {
-                          threshold = atof( value );
+                          threshold = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3612,7 +3612,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"radius") == 0)
                         {
-                          radius = atoi( value );
+                          radius = MagickAtoI( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3829,7 +3829,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"degrees") == 0)
                         {
-                          degrees = atof( value );
+                          degrees = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -3993,7 +3993,7 @@ MSLStartElement(void *context,const xmlChar *name,
                     {
                       if (LocaleCompare(keyword,"threshold") == 0)
                         {
-                          threshold = atof( value );
+                          threshold = MagickAtoF( value );
                           break;
                         }
                       ThrowException(msl_info->exception,OptionError,
@@ -4489,7 +4489,7 @@ MSLExternalSubset(void *context,const xmlChar *name,
 }
 
 #if defined(__cplusplus) || defined(c_plusplus)
-//}
+/* } */
 #endif
 
 static unsigned int

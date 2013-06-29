@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003-2009 GraphicsMagick Group
+% Copyright (C) 2003-2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -144,7 +144,7 @@ MagickExport double ExpandAffine(const AffineMatrix *affine)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Method GenerateDifferentialNoise generates a differential floating-point
-%  noise value which will produce in the final result when added to the
+%  noise value which will produce the final result when added to the
 %  original pixel.  The floating point differential value is useful since
 %  it allows scaling without loss of precision and avoids clipping.
 %
@@ -267,7 +267,14 @@ MagickExport double GenerateDifferentialNoise(const Quantum quantum_pixel,
       value=pixel-((double) i/SigmaPoisson);
       break;
     }
+    case RandomNoise:
+    {
+      /* Range is approximately -MaxRGB/2.0 to +MaxRGB/2.0 */
+      value=257.0*(0.5-MagickRandomRealInlined(kernel));
+      break;
+    }
   }
+  /* printf("value = %g\n",value); */
 
 #if QuantumDepth > 8
   value *= (MaxRGBFloat/255.0);
@@ -632,18 +639,21 @@ MagickExport void HWBTransform(const double hue,const double whiteness,
 %
 %
 */
+
 MagickExport void Hull(const long x_offset,const long y_offset,
-  const unsigned long columns,const unsigned long rows,Quantum *f,Quantum *g,
-  const int polarity)
+		       const unsigned long columns,const unsigned long rows,Quantum *f,Quantum *g,
+		       const int polarity)
 {
-  double
-    v,
+#if QuantumDepth > 16
+  typedef double SignedQuantum;
+#else
+  typedef int SignedQuantum;
+#endif
+
+  long
     y;
 
-  register long
-    x;
-
-  register Quantum
+  Quantum
     *p,
     *q,
     *r,
@@ -654,76 +664,102 @@ MagickExport void Hull(const long x_offset,const long y_offset,
   p=f+(columns+2);
   q=g+(columns+2);
   r=p+(y_offset*((long) columns+2)+x_offset);
+#if defined(HAVE_OPENMP)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime)
+#  else
+#    if defined(USE_STATIC_SCHEDULING_ONLY)
+#      pragma omp parallel for schedule(static)
+#    else
+#      pragma omp parallel for schedule(guided)
+#    endif
+#  endif
+#endif
   for (y=0; y < (long) rows; y++)
-  {
-    p++;
-    q++;
-    r++;
-    if (polarity > 0)
-      for (x=(long) columns; x > 0; x--)
-      {
-        v=(*p);
-        if (*r >= (v+ScaleCharToQuantum(2)))
-          v+=ScaleCharToQuantum(1);
-        *q=(Quantum) v;
-        p++;
-        q++;
-        r++;
-      }
-    else
-      for (x=(long) columns; x > 0; x--)
-      {
-        v=(*p);
-        if (*r <= (v-(long) ScaleCharToQuantum(2)))
-          v-=(long) ScaleCharToQuantum(1);
-        *q=(Quantum) v;
-        p++;
-        q++;
-        r++;
-      }
-    p++;
-    q++;
-    r++;
-  }
+    {
+      SignedQuantum
+	v;
+
+      unsigned long
+	x;
+
+      unsigned int
+	index;
+
+      index=(2*y+1)+y*columns;
+      if (polarity > 0)
+	{
+	  for (x=columns ; x != 0; x--)
+	    {
+	      v=(p[index]);
+	      if (r[index] >= (v+ScaleCharToQuantum(2)))
+		v+=ScaleCharToQuantum(1);
+	      q[index]=(Quantum) v;
+	      index++;
+	    }
+	}
+      else
+	{
+	  for (x=columns ; x != 0; x--)
+	    {
+	      v=(p[index]);
+	      if (r[index] <= (v-(long) ScaleCharToQuantum(2)))
+		v-=(long) ScaleCharToQuantum(1);
+	      q[index]=(Quantum) v;
+	      index++;
+	    }
+	}
+    }
   p=f+(columns+2);
   q=g+(columns+2);
   r=q+(y_offset*((long) columns+2)+x_offset);
   s=q-(y_offset*((long) columns+2)+x_offset);
+#if defined(HAVE_OPENMP)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime)
+#  else
+#    if defined(USE_STATIC_SCHEDULING_ONLY)
+#      pragma omp parallel for schedule(static)
+#    else
+#      pragma omp parallel for schedule(guided)
+#    endif
+#  endif
+#endif
   for (y=0; y < (long) rows; y++)
-  {
-    p++;
-    q++;
-    r++;
-    s++;
-    if (polarity > 0)
-      for (x=(long) columns; x > 0; x--)
-      {
-        v=(*q);
-        if ((*s >= (v+ScaleCharToQuantum(2))) && (*r > v))
-          v+=ScaleCharToQuantum(1);
-        *p=(Quantum) v;
-        p++;
-        q++;
-        r++;
-        s++;
-      }
-    else
-      for (x=(long) columns; x > 0; x--)
-      {
-        v=(*q);
-        if ((*s <= (v-(long) ScaleCharToQuantum(2))) && (*r < v))
-          v-=(long) ScaleCharToQuantum(1);
-        *p=(Quantum) v;
-        p++;
-        q++;
-        r++;
-        s++;
-      }
-    p++;
-    q++;
-    r++;
-    s++;
-  }
+    {
+      SignedQuantum
+	v;
+
+      unsigned long
+	x;
+
+      unsigned int
+	index;
+
+      index=(2*y+1)+y*columns;
+      if (polarity > 0)
+	{
+	  for (x=columns ; x != 0; x--)
+	    {
+	      v=(q[index]);
+	      if ((s[index] >= (v+ScaleCharToQuantum(2))) && (r[index] > v))
+		v+=ScaleCharToQuantum(1);
+	      p[index]=(Quantum) v;
+	      index++;
+	    }
+	}
+      else
+	{
+	  for (x=columns ; x != 0; x--)
+	    {
+	      v=(q[index]);
+	      if ((s[index] <= (v-(long) ScaleCharToQuantum(2))) && (r[index] < v))
+		v-=(long) ScaleCharToQuantum(1);
+	      p[index]=(Quantum) v;
+	      index++;
+	    }
+	}
+    }
 }
 
 /*

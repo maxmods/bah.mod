@@ -38,3 +38,11 @@ extern MagickExport void
 #endif
 
 #endif /* _MAGICK_MAGIC_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

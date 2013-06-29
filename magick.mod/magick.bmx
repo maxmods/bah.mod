@@ -1,4 +1,4 @@
-' Copyright (c) 2008,2009 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ Module BaH.Magick
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: GraphicsMagick - 2002-2009 GraphicsMagick Group"
-ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
+ModuleInfo "Copyright: GraphicsMagick - 2002-2012 GraphicsMagick Group"
+ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."

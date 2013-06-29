@@ -1,6 +1,6 @@
 // This may look like C code, but it is really -*- C++ -*-
 //
-// Copyright Bob Friesenhahn, 1999, 2000, 2001, 2002, 2008
+// Copyright Bob Friesenhahn, 1999 - 2012
 //
 // Inclusion of GraphicsMagick headers (with namespace magic)
 
@@ -49,7 +49,7 @@ namespace MagickLib
 // Provide appropriate DLL imports/exports for Visual C++,
 // Borland C++Builder and MinGW builds.
 //
-#if defined(WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+#if defined(WIN32) && !defined(__CYGWIN__) //&& !defined(__MINGW32__)
 # define MagickCplusPlusDLLSupported
 #endif
 #if defined(MagickCplusPlusDLLSupported)
@@ -66,8 +66,8 @@ namespace MagickLib
 // using code is dynamic, STATIC_MAGICK may be defined in the project to
 // override triggering dynamic library behavior.
 //
-#    define MagickDLLBuild
 #    if defined(_VISUALC_)
+#      define MagickDLLExplicitTemplate     /* Explicit template instantiation in DLLs */
 #      pragma warning( disable: 4273 )      /* Disable the stupid dll linkage warnings */
 #      pragma warning( disable: 4251 )
 #    endif
@@ -78,10 +78,12 @@ namespace MagickLib
 #        pragma message( "Magick++ lib DLL import" )
 #      endif
 #    else
-#      if defined(__BORLANDC__)
+#      if defined(__BORLANDC__) || defined(__MINGW32__)
 #        define MagickDLLDecl __declspec(dllexport)
 #        define MagickDLLDeclExtern __declspec(dllexport)
-#        pragma message( "BCBMagick++ lib DLL export" )
+#        if defined(__BORLANDC__)
+#          pragma message( "BCBMagick++ lib DLL export" )
+#        endif
 #      else
 #        define MagickDLLDecl __declspec(dllexport)
 #        define MagickDLLDeclExtern extern __declspec(dllexport)
@@ -212,11 +214,16 @@ namespace Magick
   using MagickLib::NoCompression;
   using MagickLib::BZipCompression;
   using MagickLib::FaxCompression;
+  using MagickLib::Group3Compression;
   using MagickLib::Group4Compression;
   using MagickLib::JPEGCompression;
   using MagickLib::LZWCompression;
   using MagickLib::RLECompression;
   using MagickLib::ZipCompression;
+  using MagickLib::LZMACompression;
+  using MagickLib::JPEG2000Compression;
+  using MagickLib::JBIG1Compression;
+  using MagickLib::JBIG2Compression;
 
   using MagickLib::DisposeType;
   using MagickLib::UndefinedDispose;
@@ -314,6 +321,7 @@ namespace Magick
   using MagickLib::ImpulseNoise;
   using MagickLib::LaplacianNoise;
   using MagickLib::PoissonNoise;
+  using MagickLib::RandomNoise;
 
   // Orientation types
   using MagickLib::OrientationType;
@@ -483,10 +491,12 @@ namespace Magick
 
   // Resource types
   using MagickLib::ResourceType;
-  using MagickLib::FileResource;
-  using MagickLib::MemoryResource;
-  using MagickLib::MapResource;
   using MagickLib::DiskResource;
+  using MagickLib::FileResource;
+  using MagickLib::MapResource;
+  using MagickLib::MemoryResource;
+  using MagickLib::PixelsResource;
+  using MagickLib::ThreadsResource;
 
 #if defined(MAGICK_IMPLEMENTATION)
   //
@@ -498,6 +508,7 @@ namespace Magick
   using MagickLib::AcquireCacheViewPixels;
   using MagickLib::AcquireImagePixels;
   using MagickLib::AdaptiveThresholdImage;
+  using MagickLib::AddDefinition;
   using MagickLib::AddDefinitions;
   using MagickLib::AddNoiseImage;
   using MagickLib::AddNoiseImageChannel;

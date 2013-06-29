@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -114,23 +114,23 @@ static unsigned int IsSFW(const unsigned char *magick,const size_t length)
 */
 
 static unsigned char *SFWScan(const unsigned char *p,const unsigned char *q,
-  const unsigned char *target,const int length)
+			      const unsigned char *target,const size_t length)
 {
-  register long
+  register size_t
     i;
 
-  for ( ; p < q; p++)
-  {
-    if (*p != *target)
-      continue;
-    if (length == 1)
-      return((unsigned char *) p);
-    for (i=1; i < length; i++)
-      if (*(p+i) != *(target+i))
-        break;
-    if (i == length)
-      return((unsigned char *) p);
-  }
+  if (p+length < q)
+    {
+      while( p < q )
+	{
+	  for (i=0; i < length; i++)
+	    if (p[i] != target[i])
+	      break;
+	  if (i == length)
+	    return((unsigned char *) p);
+	  p++;
+	}
+    }
   return((unsigned char *) NULL);
 }
 
@@ -209,12 +209,20 @@ static Image *ReadSFWImage(const ImageInfo *image_info,ExceptionInfo *exception)
     *header,
     *data;
 
+  char
+    original_filename[MaxTextExtent],
+    original_magick[MaxTextExtent];
+
   size_t
     count;
 
   unsigned char
     *buffer,
+    *buffer_end,
     *offset;
+
+  size_t
+    buffer_size;
 
   unsigned int
     status;
@@ -233,41 +241,64 @@ static Image *ReadSFWImage(const ImageInfo *image_info,ExceptionInfo *exception)
   /*
     Read image into a buffer.
   */
-  buffer=MagickAllocateMemory(unsigned char *,(size_t) GetBlobSize(image));
+  {
+    magick_off_t
+      blob_size;
+
+    blob_size=GetBlobSize(image);
+    buffer_size=(size_t)blob_size;
+    if ((magick_off_t) buffer_size != blob_size)
+      buffer_size=0;
+  }
+  if (buffer_size < 7)
+    {
+      ThrowReaderException(CorruptImageError,ImproperImageHeader,image);
+    }
+  buffer=MagickAllocateMemory(unsigned char *,buffer_size);
   if (buffer == (unsigned char *) NULL)
     ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
-  count=ReadBlob(image,(size_t) GetBlobSize(image),(char *) buffer);
-  if ((count == 0) || (LocaleNCompare((char *) buffer,"SFW",3) != 0))
-    ThrowReaderException(CorruptImageError,ImproperImageHeader,image);
-  CloseBlob(image);
-  DestroyImage(image);
+  buffer_end=buffer+buffer_size-1;
+  count=ReadBlob(image,buffer_size,(char *) buffer);
+  if ((count != buffer_size) || (LocaleNCompare((char *) buffer,"SFW",3) != 0))
+    {
+      MagickFreeMemory(buffer);
+      ThrowReaderException(CorruptImageError,ImproperImageHeader,image);
+    }
   /*
     Find the start of the JFIF data
   */
-  header=SFWScan(buffer,buffer+GetBlobSize(image)-1,(unsigned char *)
-    "\377\310\377\320",4);
+  header=SFWScan(buffer,buffer_end,
+		 (unsigned char *)"\377\310\377\320",4);
   if (header == (unsigned char *) NULL)
     {
       MagickFreeMemory(buffer);
       ThrowReaderException(CorruptImageError,ImproperImageHeader,image)
     }
-  TranslateSFWMarker(header);  /* translate soi and app tags */
+    /*
+      Translate soi and app tags.  Accesses one beyond provided pointer.
+    */
+  TranslateSFWMarker(header);
   TranslateSFWMarker(header+2);
   (void) memcpy(header+6,"JFIF\0\001\0",7);  /* JFIF magic */
   /*
     Translate remaining markers.
   */
   offset=header+2;
-  offset+=(offset[2] << 8)+offset[3]+2;
+  offset+=((unsigned int) offset[2] << 8)+offset[3]+2;
   for ( ; ; )
   {
+    if (offset+4 > buffer_end)
+      {
+	MagickFreeMemory(buffer);
+	ThrowReaderException(CorruptImageError,ImproperImageHeader,image)
+      }
     TranslateSFWMarker(offset);
     if (offset[1] == 0xda)
       break;
-    offset+=(offset[2] << 8)+offset[3]+2;
+    offset+=((unsigned int) offset[2] << 8)+offset[3]+2;
   }
   offset--;
-  data=SFWScan(offset,buffer+GetBlobSize(image)-1,
+  data=SFWScan(offset,buffer_end,
     (unsigned char *) "\377\311",2);
   if (data == (unsigned char *) NULL)
     {
@@ -304,6 +335,10 @@ static Image *ReadSFWImage(const ImageInfo *image_info,ExceptionInfo *exception)
       DestroyImageInfo(clone_info);
       ThrowReaderException(FileOpenError,UnableToWriteFile,image)
     }
+  CloseBlob(image);
+  strlcpy(original_filename,image->filename,sizeof(original_filename));
+  strlcpy(original_magick,image->magick,sizeof(original_magick));
+  DestroyImage(image);
   /*
     Read JPEG image.
   */
@@ -312,6 +347,11 @@ static Image *ReadSFWImage(const ImageInfo *image_info,ExceptionInfo *exception)
   DestroyImageInfo(clone_info);
   if (image == (Image *) NULL)
     return(image);
+  /*
+    Restore the input filename and magick
+  */
+  (void) strlcpy(image->filename,original_filename,sizeof(image->filename));
+  (void) strlcpy(image->magick,original_magick,sizeof(image->magick));
   /*
     Correct image orientation.
   */

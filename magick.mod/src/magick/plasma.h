@@ -30,3 +30,11 @@ PlasmaImage(Image *image,const SegmentInfo *segment,
 #endif
 
 #endif /* _MAGICK_PLASMA_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

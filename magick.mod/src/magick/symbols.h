@@ -576,11 +576,13 @@
 #define RegisterHTMLImage GmRegisterHTMLImage
 #define RegisterICONImage GmRegisterICONImage
 #define RegisterJBIGImage GmRegisterJBIGImage
+#define RegisterJNXImage GmRegisterJNXImage
 #define RegisterJP2Image GmRegisterJP2Image
 #define RegisterJPEGImage GmRegisterJPEGImage
 #define RegisterLABELImage GmRegisterLABELImage
 #define RegisterLOCALEImage GmRegisterLOCALEImage
 #define RegisterLOGOImage GmRegisterLOGOImage
+#define RegisterMACImage GmRegisterMACImage
 #define RegisterMAPImage GmRegisterMAPImage
 #define RegisterMATImage GmRegisterMATImage
 #define RegisterMATTEImage GmRegisterMATTEImage
@@ -763,11 +765,13 @@
 #define UnregisterHTMLImage GmUnregisterHTMLImage
 #define UnregisterICONImage GmUnregisterICONImage
 #define UnregisterJBIGImage GmUnregisterJBIGImage
+#define UnregisterJNXImage GmUnregisterJNXImage
 #define UnregisterJP2Image GmUnregisterJP2Image
 #define UnregisterJPEGImage GmUnregisterJPEGImage
 #define UnregisterLABELImage GmUnregisterLABELImage
 #define UnregisterLOCALEImage GmUnregisterLOCALEImage
 #define UnregisterLOGOImage GmUnregisterLOGOImage
+#define UnregisterMACImage GmUnregisterMATImage
 #define UnregisterMAPImage GmUnregisterMAPImage
 #define UnregisterMATImage GmUnregisterMATImage
 #define UnregisterMATTEImage GmUnregisterMATTEImage
@@ -859,3 +863,11 @@
 
 #endif /* defined(PREFIX_MAGICK_SYMBOLS) */
 #endif /* defined(_MAGICK_SYMBOLS_H) */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

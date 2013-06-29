@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004, 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2011 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -380,7 +380,7 @@ MagickExport int AcquireTemporaryFileDescriptor(char *filename)
 %
 %  The format of the AcquireTemporaryFile method is:
 %
-%      FILE *AcquireTemporaryFileStream(char *filename,FileIOMode text_mode)
+%      FILE *AcquireTemporaryFileStream(char *filename,FileIOMode mode)
 %
 %  A description of each parameter follows.
 %
@@ -422,31 +422,16 @@ MagickExport FILE *AcquireTemporaryFileStream(char *filename,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  DestroyTemporaryFiles reclaims all currently allocated temporary files,
-%  removing the files from the filesystem if they still exist.
+%  removing the files from the filesystem if they still exist.  Also destroys
+%  the associated semaphore so that temporary file system can not be used
+%  again without invoking InitializeTemporaryFiles() to re-initialize it.
 %
-%      void LiberateTemporaryFile(void)
+%      void DestroyTemporaryFiles(void)
 %
 */
 MagickExport void DestroyTemporaryFiles(void)
 {
-  TempfileInfo
-    *member,
-    *liberate;
-
-  member=templist;
-  templist=0;
-  while(member)
-    {
-      liberate=member;
-      member=member->next;
-      (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
-        "Removing leaked temporary file \"%s\"",liberate->filename);
-      if ((remove(liberate->filename)) != 0)
-        (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
-          "Temporary file removal failed \"%s\"",liberate->filename);
-      liberate->next=0;
-      MagickFreeMemory(liberate);
-    }
+  PurgeTemporaryFiles();
   DestroySemaphoreInfo(&templist_semaphore);
 }
 
@@ -522,4 +507,44 @@ MagickExport MagickPassFail LiberateTemporaryFile(char *filename)
     (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
       "Temporary file \"%s\" to be removed not allocated!",filename);
   return (status);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   P u r g e T e m p o r a r y F i l e s                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  PurgeTemporaryFiles reclaims all currently allocated temporary files,
+%  removing the files from the filesystem if they still exist.  The temporary
+%  file allocation system remains usable after this function is called.
+%
+%      void PurgeTemporaryFiles(void)
+%
+*/
+MagickExport void PurgeTemporaryFiles(void)
+{
+  TempfileInfo
+    *member,
+    *liberate;
+
+  member=templist;
+  templist=0;
+  while(member)
+    {
+      liberate=member;
+      member=member->next;
+      (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
+        "Removing leaked temporary file \"%s\"",liberate->filename);
+      if ((remove(liberate->filename)) != 0)
+        (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
+          "Temporary file removal failed \"%s\"",liberate->filename);
+      liberate->next=0;
+      MagickFreeMemory(liberate);
+    }
 }

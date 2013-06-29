@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003 - 2012 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -16,6 +16,7 @@ extern "C" {
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
 #define DefaultResizeFilter LanczosFilter
+#define DefaultThumbnailFilter BoxFilter
 
 extern MagickExport Image
   *MagnifyImage(const Image *,ExceptionInfo *),
@@ -36,3 +37,11 @@ extern MagickExport Image
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
 #endif /* _MAGICK_RESIZE_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

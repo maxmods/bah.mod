@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2004, 2008 GraphicsMagick Group
+% Copyright (C) 2004 - 2012 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -48,7 +48,9 @@ typedef enum
   LogQuantumOp,                   /* log(quantum*value+1)/log(value+1) */
   MaxQuantumOp,                   /* Assign value if > quantum */
   MinQuantumOp,                   /* Assign value if < quantum */
-  PowQuantumOp                    /* Power function: pow(quantum,value) */
+  PowQuantumOp,                   /* Power function: pow(quantum,value) */
+  /* Below added on 2012-03-17 */
+  NoiseRandomQuantumOp            /* Random noise */
  } QuantumOperator;
 
 extern MagickExport MagickPassFail
@@ -68,3 +70,11 @@ extern MagickExport MagickPassFail
 #endif
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

@@ -26,7 +26,7 @@
 #include "Magick++/Color.h"
 #include "Magick++/Geometry.h"
 
-#if defined(MagickDLLBuild)
+#if defined(MagickDLLExplicitTemplate)
 #  if defined(MAGICK_PLUSPLUS_IMPLEMENTATION)
 #    define MagickDrawableExtern
 #  else
@@ -35,7 +35,7 @@
 #  endif // MAGICK_PLUSPLUS_IMPLEMENTATION
 #else
 #  define MagickDrawableExtern
-#endif // MagickDLLBuild
+#endif // MagickDLLExplicitTemplate
 
 namespace Magick
 {
@@ -46,17 +46,24 @@ namespace Magick
   class MagickDLLDecl Coordinate
   {
   public:
+
+    // Default Constructor
     Coordinate ( void )
       : _x(0),
         _y(0)
       { }
+
+    // Constructor, setting first & second
     Coordinate ( double x_, double y_ )
       : _x(x_),
         _y(y_)
       { }
+
+    // Destructor
     virtual ~Coordinate ()
       { }
 
+    // x coordinate member
     void   x ( double x_ )
       {
         _x = x_;
@@ -66,6 +73,7 @@ namespace Magick
         return _x;
       }
 
+    // y coordinate member
     void   y ( double y_ )
       {
         _y = y_;
@@ -82,7 +90,7 @@ namespace Magick
 
   typedef std::list<Magick::Coordinate> CoordinateList;
 
-#if defined(MagickDLLBuild)
+#if defined(MagickDLLExplicitTemplate)
 
   MagickDrawableExtern template class MagickDLLDecl
   std::allocator<Magick::Coordinate>;
@@ -90,7 +98,7 @@ namespace Magick
 //   MagickDrawableExtern template class MagickDLLDecl
 //   std::list<Magick::Coordinate, std::allocator<Magick::Coordinate> >;
 
-#endif // MagickDLLBuild
+#endif // MagickDLLExplicitTemplate
 
   // Compare two Coordinate objects regardless of LHS/RHS
   MagickDLLDeclExtern int operator == ( const Coordinate& left_,
@@ -176,7 +184,7 @@ namespace Magick
 
   typedef std::list<Magick::Drawable> DrawableList;
 
-#if defined(MagickDLLBuild)
+#if defined(MagickDLLExplicitTemplate)
 
   MagickDrawableExtern template class MagickDLLDecl
   std::allocator<Magick::Drawable>;
@@ -184,7 +192,7 @@ namespace Magick
 //   MagickDrawableExtern template class MagickDLLDecl
 //   std::list<Magick::Drawable, std::allocator<Magick::Drawable> >;
 
-#endif // MagickDLLBuild
+#endif // MagickDLLExplicitTemplate
 
 //
 // Base class for all drawable path elements for use with
@@ -256,7 +264,7 @@ MagickDLLDeclExtern int operator <= ( const VPath& left_,
 
 typedef std::list<Magick::VPath> VPathList;
 
-#if defined(MagickDLLBuild)
+#if defined(MagickDLLExplicitTemplate)
 
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::VPath>;
@@ -264,7 +272,7 @@ std::allocator<Magick::VPath>;
 // MagickDrawableExtern template class MagickDLLDecl
 // std::list<Magick::VPath, std::allocator<Magick::VPath> >;
 
-#endif // MagickDLLBuild
+#endif // MagickDLLExplicitTemplate
 
 //
 // Drawable Objects
@@ -2120,8 +2128,10 @@ private:
 class MagickDLLDecl PathArcArgs
 {
 public:
+  // Default constructor
   PathArcArgs( void );
 
+  // Path arc argument
   PathArcArgs( double radiusX_, double radiusY_,
                double xAxisRotation_, bool largeArcFlag_,
                bool sweepFlag_, double x_, double y_ );
@@ -2219,7 +2229,7 @@ MagickDLLDeclExtern int operator <= ( const PathArcArgs& left_,
 
 typedef std::list<Magick::PathArcArgs> PathArcArgsList;
 
-#if defined(MagickDLLBuild)
+#if defined(MagickDLLExplicitTemplate)
 
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::PathArcArgs>;
@@ -2227,7 +2237,7 @@ std::allocator<Magick::PathArcArgs>;
 // MagickDrawableExtern template class MagickDLLDecl
 // std::list<Magick::PathArcArgs, std::allocator<Magick::PathArcArgs> >;
 
-#endif // MagickDLLBuild
+#endif // MagickDLLExplicitTemplate
 
 // Path Arc (Elliptical Arc)
 class MagickDLLDecl PathArcAbs : public VPathBase
@@ -2393,7 +2403,7 @@ MagickDLLDeclExtern int operator <= ( const PathCurvetoArgs& left_,
 
 typedef std::list<Magick::PathCurvetoArgs> PathCurveToArgsList;
 
-#if defined(MagickDLLBuild)
+#if defined(MagickDLLExplicitTemplate)
 
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::PathCurvetoArgs>;
@@ -2401,7 +2411,7 @@ std::allocator<Magick::PathCurvetoArgs>;
 // MagickDrawableExtern template class MagickDLLDecl
 // std::list<Magick::PathCurvetoArgs, std::allocator<Magick::PathCurvetoArgs> >;
 
-#endif // MagickDLLBuild
+#endif // MagickDLLExplicitTemplate
 
 class MagickDLLDecl PathCurvetoAbs : public VPathBase
 {
@@ -2506,11 +2516,14 @@ private:
 class MagickDLLDecl PathQuadraticCurvetoArgs
 {
 public:
+  // Default constructor
   PathQuadraticCurvetoArgs( void );
 
+  // Parameterized constructor
   PathQuadraticCurvetoArgs( double x1_, double y1_,
                             double x_, double y_ );
 
+  // Copy constructor
   PathQuadraticCurvetoArgs( const PathQuadraticCurvetoArgs &original_ );
 
   ~PathQuadraticCurvetoArgs ( void );
@@ -2574,7 +2587,7 @@ MagickDLLDeclExtern int operator <= ( const PathQuadraticCurvetoArgs& left_,
 
 typedef std::list<Magick::PathQuadraticCurvetoArgs> PathQuadraticCurvetoArgsList;
 
-#if defined(MagickDLLBuild)
+#if defined(MagickDLLExplicitTemplate)
 
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::PathQuadraticCurvetoArgs>;
@@ -2582,7 +2595,7 @@ std::allocator<Magick::PathQuadraticCurvetoArgs>;
 // MagickDrawableExtern template class MagickDLLDecl
 // std::list<Magick::PathQuadraticCurvetoArgs, std::allocator<Magick::PathQuadraticCurvetoArgs> >;
 
-#endif // MagickDLLBuild
+#endif // MagickDLLExplicitTemplate
 
 class MagickDLLDecl PathQuadraticCurvetoAbs : public VPathBase
 {

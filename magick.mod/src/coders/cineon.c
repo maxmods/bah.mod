@@ -643,11 +643,7 @@ static Image *ReadCINEONImage(const ImageInfo *image_info,
       scandata_bytes;
 
     unsigned int
-      bits_per_sample,
       scale_to_short=0;
-
-    /* Assume that all channels are the same depth */
-    bits_per_sample = max_bits_per_sample;
 
     switch (number_of_channels)
       {
@@ -815,6 +811,7 @@ ModuleExport void RegisterCINEONImage(void)
   entry->magick=(MagickHandler) IsCINEON;
   entry->description="Cineon Image File";
   entry->module="CINEON";
+  entry->adjoin=MagickFalse;
   (void) RegisterMagickInfo(entry);
 }
 

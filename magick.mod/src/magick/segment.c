@@ -601,7 +601,11 @@ Classify(Image *image,short **extrema,
   */
   row_count=0;
 #if defined(HAVE_OPENMP)
-#  pragma omp parallel for schedule(dynamic,8) shared(row_count, status) private(count,indexes,p,q,x)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status) private(count,indexes,p,q,x)
+#  else
+#    pragma omp parallel for schedule(static,8) shared(row_count, status) private(count,indexes,p,q,x)
+#  endif
 #endif
   for (y=0; y < (long) image->rows; y++)
     {
@@ -611,6 +615,9 @@ Classify(Image *image,short **extrema,
       int
 	num_threads;
 
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_Classify)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -1654,7 +1661,7 @@ ZeroCrossHistogram(double *second_derivative,const double smoothing_threshold,
 %
 %  The format of the SegmentImage method is:
 %
-%      unsigned int SegmentImage(Image *image,const ColorspaceType colorspace,
+%      MagickPassFail SegmentImage(Image *image,const ColorspaceType colorspace,
 %        const unsigned int verbose,const double cluster_threshold,
 %        const double smoothing_threshold)
 %

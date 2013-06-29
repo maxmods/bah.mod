@@ -304,7 +304,7 @@ ReadExtension:
           fits_info.extensions_exist = (*value== 'T') || (*value=='t');
         if (LocaleCompare(keyword,"BITPIX") == 0)
         {
-          fits_info.bits_per_pixel=atoi(value);
+          fits_info.bits_per_pixel=MagickAtoI(value);
 	  if(fits_info.bits_per_pixel>0)
             import_options.sample_type = UnsignedQuantumSampleType;
 	  if(fits_info.bits_per_pixel<0)          
@@ -315,13 +315,13 @@ ReadExtension:
           if (keyword[5] == 0) ax_number=-1;          
           else
 	  {
-            if(isdigit(keyword[5]))
-              ax_number = atoi(keyword+5);
+            if(isdigit((int) keyword[5]))
+              ax_number = MagickAtoI(keyword+5);
             else ax_number=-2;			/*unsupported fits keyword*/
           }
 	  y=0;
           if(ax_number>=-1)
-	    y = atoi(value);
+	    y = MagickAtoI(value);
           switch(ax_number)
           {
             case -1:fits_info.number_axes = y; break;
@@ -339,13 +339,13 @@ ReadExtension:
         }
 
         if (LocaleCompare(keyword,"DATAMAX") == 0)
-          fits_info.max_data=atof(value);
+          fits_info.max_data=MagickAtoF(value);
         if (LocaleCompare(keyword,"DATAMIN") == 0)
-          fits_info.min_data=atof(value);
+          fits_info.min_data=MagickAtoF(value);
         if (LocaleCompare(keyword,"BZERO") == 0)
-          fits_info.zero=atof(value);
+          fits_info.zero=MagickAtoF(value);
         if (LocaleCompare(keyword,"BSCALE") == 0)
-          fits_info.scale=atof(value);
+          fits_info.scale=MagickAtoF(value);
         if (LocaleCompare(keyword,"XENDIAN") == 0)
         {
 	  if (LocaleCompare(keyword,"BIG") == 0)
@@ -576,6 +576,7 @@ ModuleExport void RegisterFITSImage(void)
   entry->encoder=(EncoderHandler) WriteFITSImage;
   entry->magick=(MagickHandler) IsFITS;
   entry->adjoin=False;
+  entry->seekable_stream=True;
   entry->description="Flexible Image Transport System";
   entry->module="FITS";
   (void) RegisterMagickInfo(entry);

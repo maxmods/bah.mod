@@ -22,7 +22,7 @@
 
 namespace Magick
 {
-  class MagickDLLDecl Image;
+  class /*MagickDLLDecl*/ Image;
 
   class Options
   {

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2009 GraphicsMagick Group
+% Copyright (C) 2009-2012 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -51,9 +51,9 @@ MagickExport MagickRandomKernel* AcquireMagickRandomKernel()
   kernel=(MagickRandomKernel *) MagickTsdGetSpecific(kernel_key);
   if (kernel == (MagickRandomKernel *) NULL)
     {
-      kernel=MagickAllocateMemory(MagickRandomKernel *,
-				  Max(sizeof(MagickRandomKernel),
-				      MAGICK_CACHE_LINE_SIZE));
+      kernel=MagickAllocateAlignedMemory(MagickRandomKernel *,
+					 MAGICK_CACHE_LINE_SIZE,
+					 sizeof(MagickRandomKernel));
       if (kernel == (MagickRandomKernel *) NULL)
 	MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
 			  UnableToAllocateRandomKernel);
@@ -91,7 +91,7 @@ void DestroyMagickRandomGenerator()
 
       /* This only frees memory associated with one thread */
       kernel=(MagickRandomKernel *) MagickTsdGetSpecific(kernel_key);
-      MagickFreeMemory(kernel);
+      MagickFreeAlignedMemory(kernel);
       (void) MagickTsdSetSpecific(kernel_key,kernel);
       MagickTsdKeyDelete(kernel_key);
     }

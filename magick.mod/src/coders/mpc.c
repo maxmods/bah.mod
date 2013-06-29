@@ -326,7 +326,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   }
                 if (LocaleCompare(keyword,"colors") == 0)
                   {
-                    image->colors=atol(values);
+                    image->colors=MagickAtoL(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"colorspace") == 0)
@@ -368,7 +368,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   }
                 if (LocaleCompare(keyword,"columns") == 0)
                   {
-                    image->columns= atol(values);
+                    image->columns= MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -380,17 +380,17 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 if (LocaleCompare(keyword,"delay") == 0)
                   {
-                    image->delay=atol(values);
+                    image->delay=MagickAtoL(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"depth") == 0)
                   {
-                    image->depth=atol(values);
+                    image->depth=MagickAtoL(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"dispose") == 0)
                   {
-                    image->dispose=(DisposeType) atol(values);
+                    image->dispose=(DisposeType) MagickAtoL(values);
                     if (LocaleCompare(values,"Background") == 0)
                       image->dispose=BackgroundDispose;
                     else
@@ -410,7 +410,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 if (LocaleCompare(keyword,"error") == 0)
                   {
-                    image->error.mean_error_per_pixel=atof(values);
+                    image->error.mean_error_per_pixel=MagickAtoF(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -422,7 +422,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 if (LocaleCompare(keyword,"gamma") == 0)
                   {
-                    image->gamma=atof(values);
+                    image->gamma=MagickAtoF(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"grayscale") == 0)
@@ -452,7 +452,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   }
                 if (LocaleCompare(keyword,"iterations") == 0)
                   {
-                    image->iterations=atol(values);
+                    image->iterations=MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -476,12 +476,12 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   }
                 if (LocaleCompare(keyword,"maximum-error") == 0)
                   {
-                    image->error.normalized_maximum_error=atof(values);
+                    image->error.normalized_maximum_error=MagickAtoF(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"mean-error") == 0)
                   {
-                    image->error.normalized_mean_error=atof(values);
+                    image->error.normalized_mean_error=MagickAtoF(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"monochrome") == 0)
@@ -520,7 +520,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
                     if (profiles == (ProfileInfo *) NULL)
                       ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
                     profiles[i].name=AllocateString(keyword+8);
-                    profiles[i].length=atol(values);
+                    profiles[i].length=MagickAtoL(values);
                     profiles[i].info=(unsigned char *) NULL;
                     number_of_profiles++;
                     break;
@@ -547,7 +547,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 if (LocaleCompare(keyword,"quantum-depth") == 0)
                   {
-                    quantum_depth=atol(values);
+                    quantum_depth=MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -588,7 +588,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   }
                 if (LocaleCompare(keyword,"rows") == 0)
                   {
-                    image->rows=atol(values);
+                    image->rows=MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -600,7 +600,7 @@ static Image *ReadMPCImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 if (LocaleCompare(keyword,"scene") == 0)
                   {
-                    image->scene=atol(values);
+                    image->scene=MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,

@@ -36,3 +36,11 @@ typedef void *ViewInfo;
 #endif
 
 #endif /* _MAGICK_FORWARD_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

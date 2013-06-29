@@ -74,7 +74,11 @@ MagickExport Image *ConstituteTextureImage(const unsigned long columns,
   if (canvas_image == (Image *) NULL)
     return canvas_image;
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for schedule(static,16) shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) canvas_image->rows; y++)
     {
@@ -90,6 +94,9 @@ MagickExport Image *ConstituteTextureImage(const unsigned long columns,
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_ConstituteTextureImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -227,7 +234,11 @@ MagickExport MagickPassFail TextureImage(Image *image,const Image *texture)
   is_grayscale=image->is_grayscale;
   image->storage_class=DirectClass;
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for schedule(static,4) shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) image->rows; y++)
     {
@@ -252,6 +263,9 @@ MagickExport MagickPassFail TextureImage(Image *image,const Image *texture)
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_TextureImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -367,6 +367,14 @@ MagickExport const DelegateInfo *GetPostscriptDelegateInfo(const ImageInfo *imag
     {
       (void) strlcpy(delegate,"gs-color+alpha",sizeof(delegate));
     }
+  else if (ColorSeparationType == image_info->type)
+    {
+      (void) strlcpy(delegate,"gs-cmyk",sizeof(delegate));
+    }
+  else if (ColorSeparationMatteType == image_info->type)
+    {
+      (void) strlcpy(delegate,"gs-cmyka",sizeof(delegate));
+    }
   return GetDelegateInfo(delegate,(char *) NULL,exception);
 }
 
@@ -472,6 +480,58 @@ UnixShellTextEscape(char *dst, const char *src, const size_t size)
   return length;
 }
 #endif /* POSIX */
+
+#if defined(MSWINDOWS)
+static size_t
+WindowsShellTextEscape(char *dst, const char *src, const size_t size)
+{
+  size_t
+    length=0;
+
+  char
+    *p;
+
+  const char
+    *q;
+
+  assert(dst != NULL);
+  assert(src != (const char *) NULL);
+  assert(size >= 1);
+
+
+  /*
+    Copy src to dst within bounds of size-1, while escaping special
+    characters.
+  */
+  for ( p=dst, q=src, length=0 ;
+        (*q != 0) && (length < size-1) ;
+        length++, p++, q++ )
+    {
+      register const char c = *q;
+#if 0
+      /*
+	FIXME: Currently the correct implementation is not known so we
+	don't alter arguments at the moment.
+      */
+      if ((c == '\\') ||
+          (c == '"') ||
+          (c == '%%'))
+        {
+          if (length+1 >= size-1)
+            break;
+          *p = '\\';
+          p++;
+          length++;
+        }
+#endif
+      *p = c;
+    }
+
+  dst[length]='\0';
+
+  return length;
+}
+#endif /* MSWINDOWS */
 
 MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
   const char *decode,const char *encode,ExceptionInfo *exception)
@@ -589,7 +649,7 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
         MagickFreeMemory(magick);
         (void) strlcpy(decode_filename,image->filename,MaxTextExtent);
         FormatString(clone_info->filename,"%.1024s:",delegate_info->decode);
-        (void) SetImageInfo(clone_info,True,exception);
+        (void) SetImageInfo(clone_info,SETMAGICK_WRITE,exception);
         (void) strlcpy(clone_info->filename,image_info->filename,
           MaxTextExtent);
         for (p=image; p != (Image *) NULL; p=p->next)
@@ -647,7 +707,6 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
       status=False;
       goto error_exit;
     }
-#if defined(POSIX)
     {
       MagickBool
         needs_shell;
@@ -717,7 +776,14 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
             Expand sprintf-style codes in delegate command to command
             string, escaping replacement text appropriately
           */
-          command=TranslateTextEx(image_info,image,commands[i],UnixShellTextEscape);
+          command=TranslateTextEx(image_info,image,commands[i],
+#if defined(POSIX)
+				  UnixShellTextEscape
+#endif /* POSIX */
+#if defined(MSWINDOWS)
+				  WindowsShellTextEscape
+#endif /* MSWINDOWS */
+				  );
           if (command == (char *) NULL)
             break;
           /*
@@ -726,20 +792,6 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
           status=SystemCommand(image_info->verbose,command);
         }
     }
-#else
-    {
-      /*
-        Expand sprintf-style codes in delegate command to command string
-      */
-      command=TranslateText(image_info,image,commands[i]);
-      if (command == (char *) NULL)
-        break;
-      /*
-        Execute delegate using command shell.
-      */
-      status=SystemCommand(image_info->verbose,command);
-    }
-#endif
     MagickFreeMemory(command);
     /* Liberate convenience temporary files */
     (void) LiberateTemporaryFile(image_info->unique);
@@ -914,7 +966,6 @@ InvokePostscriptDelegate(const unsigned int verbose,
 #endif /* defined(HasGS) || defined(MSWINDOWS) */
 
   status=MagickFail;
-#if defined(POSIX)
   {
     argv = StringToArgv(command,&argc);
     if (argv == (char **) NULL)
@@ -932,10 +983,7 @@ InvokePostscriptDelegate(const unsigned int verbose,
 	MagickFreeMemory(argv);
       }
   }
-#else
-  if (SystemCommand(verbose,command) == 0)
-    status=MagickPass;
-#endif
+
   return status;
 }
 
@@ -1018,7 +1066,7 @@ MagickExport unsigned int ListDelegateInfo(FILE *file,ExceptionInfo *exception)
       /* Format output so that command spans multiple lines if
          necessary */
       if (getenv("COLUMNS"))
-        screen_width=atoi(getenv("COLUMNS"))-1;
+        screen_width=MagickAtoI(getenv("COLUMNS"))-1;
       command_length=strlen(commands[0]);
       command_start_column=fprintf(file,"%8s%c=%c%s  ",p->decode ? p->decode : "",
         p->mode <= 0 ? '<' : ' ',p->mode >= 0 ? '>' : ' ',delegate);

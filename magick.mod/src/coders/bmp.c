@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -57,20 +57,33 @@
 #undef BI_PNG
 #define BI_PNG  5
 #if !defined(MSWINDOWS) || defined(__MINGW32__)
+#undef BI_RGB
 #define BI_RGB  0
+#undef BI_RLE8
 #define BI_RLE8  1
+#undef BI_RLE4
 #define BI_RLE4  2
+#undef BI_BITFIELDS
 #define BI_BITFIELDS  3
 
+#undef LCS_CALIBRATED_RBG
 #define LCS_CALIBRATED_RBG  0
+#undef LCS_sRGB
 #define LCS_sRGB  1
+#undef LCS_WINDOWS_COLOR_SPACE
 #define LCS_WINDOWS_COLOR_SPACE  2
+#undef PROFILE_LINKED
 #define PROFILE_LINKED  3
+#undef PROFILE_EMBEDDED
 #define PROFILE_EMBEDDED  4
 
+#undef LCS_GM_BUSINESS
 #define LCS_GM_BUSINESS  1  /* Saturation */
+#undef LCS_GM_GRAPHICS
 #define LCS_GM_GRAPHICS  2  /* Relative */
+#undef LCS_GM_IMAGES
 #define LCS_GM_IMAGES  4  /* Perceptual */
+#undef LCS_GM_ABS_COLORIMETRIC
 #define LCS_GM_ABS_COLORIMETRIC  8  /* Absolute */
 #endif
 
@@ -584,6 +597,8 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
               "  Geometry: %ldx%ld",bmp_info.width,bmp_info.height);
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+              "  Planes: %d",bmp_info.planes);
+            (void) LogMagickEvent(CoderEvent,GetMagickModule(),
               "  Bits per pixel: %d",bmp_info.bits_per_pixel);
           }
       }
@@ -619,27 +634,32 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
         if (logging)
           {
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-              "  Format: MS Windows bitmap");
+              "  Format: MS Windows bitmap 3.X");
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
               "  Geometry: %ldx%ld",bmp_info.width,bmp_info.height);
+            (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+              "  Planes: %d",bmp_info.planes);
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
               "  Bits per pixel: %d",bmp_info.bits_per_pixel);
             switch ((int) bmp_info.compression)
             {
               case BI_RGB:
               {
+                /* uncompressed */
                 (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                   "  Compression: BI_RGB");
                 break;
               }
               case BI_RLE4:
               {
+                /* 4 bit RLE */
                 (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                   "  Compression: BI_RLE4");
                 break;
               }
               case BI_RLE8:
               {
+                /* 8 bit RLE */
                 (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                   "  Compression: BI_RLE8");
                 break;
@@ -764,17 +784,20 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
               }
             }
             profile_data=ReadBlobLSBLong(image);
-            profile_data=profile_data;
             profile_size=ReadBlobLSBLong(image);
-            profile_size=profile_size;
+	    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				  "  Profile: size %lu data %lu",
+				  profile_size,profile_data);
             (void) ReadBlobLSBLong(image);  /* Reserved byte */
           }
       }
 
-    if ((bmp_info.compression != BI_RGB) &&
-        ((magick_off_t) bmp_info.file_size != GetBlobSize(image)))
+    if ((magick_off_t) bmp_info.file_size > GetBlobSize(image))
       ThrowReaderException(CorruptImageError,LengthAndFilesizeDoNotMatch,
         image);
+    if (logging && (magick_off_t) bmp_info.file_size < GetBlobSize(image))
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+         "Discarding all data beyond bmp_info.file_size");
     if (bmp_info.width <= 0)
       ThrowReaderException(CorruptImageWarning,NegativeOrZeroImageSize,image);
     if (bmp_info.height == 0)
@@ -820,7 +843,13 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
     image->columns=bmp_info.width;
     image->rows=AbsoluteValue(bmp_info.height);
     image->depth=8;
-    image->matte=bmp_info.alpha_mask != 0;
+    /*
+      Image has alpha channel if alpha mask is specified, or is
+      uncompressed and 32-bits per pixel
+    */
+    image->matte=((bmp_info.alpha_mask != 0)
+                  || ((bmp_info.compression == BI_RGB)
+                      && (bmp_info.bits_per_pixel == 32)));
     if ((bmp_info.number_colors != 0) || (bmp_info.bits_per_pixel < 16))
       {
         image->storage_class=PseudoClass;
@@ -912,7 +941,7 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
     */
     if (bmp_info.compression == BI_RGB)
       {
-        bmp_info.alpha_mask=0;
+        bmp_info.alpha_mask=(image->matte ? 0xff000000L : 0);
         bmp_info.red_mask=0x00ff0000L;
         bmp_info.green_mask=0x0000ff00L;
         bmp_info.blue_mask=0x000000ffL;
@@ -1428,8 +1457,8 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
     scene,
     type;
 
-  const unsigned char
-    *color_profile=0;
+/*   const unsigned char */
+/*     *color_profile=0; */
 
   size_t
     color_profile_length=0;
@@ -1455,8 +1484,9 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
 
   /*
     Retrieve color profile from Image (if any)
+    FIXME: is color profile support writing not properly implemented?
   */
-  color_profile=GetImageProfile(image,"ICM",&color_profile_length);
+  /* color_profile= */ (void) GetImageProfile(image,"ICM",&color_profile_length);
 
   do
   {
@@ -1539,8 +1569,26 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
           bmp_info.file_size+=extra_size;
           bmp_info.offset_bits+=extra_size;
         }
-    bmp_info.width=(long) image->columns;
-    bmp_info.height=(long) image->rows;
+    /*
+      Verify and enforce that image dimensions do not exceed limit
+      imposed by file format.
+    */
+    if (type == 2)
+      {
+	bmp_info.width=(magick_int16_t) image->columns;
+	bmp_info.height=(magick_int16_t) image->rows;
+      }
+    else
+      {
+	bmp_info.width=(magick_int32_t) image->columns;
+	bmp_info.height=(magick_int32_t) image->rows;
+      }
+    if (((unsigned long) bmp_info.width != image->columns) ||
+	((unsigned long) bmp_info.height != image->rows))
+      {
+	ThrowWriterException(CoderError,ImageColumnOrRowSizeIsNotSupported,image);
+      }
+
     bmp_info.planes=1;
     bmp_info.image_size=bytes_per_line*image->rows;
     bmp_info.file_size+=bmp_info.image_size;
@@ -1742,6 +1790,8 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
             "   Matte=False");
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
           "   BMP bits_per_pixel=%d",bmp_info.bits_per_pixel);
+       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+          "   BMP file_size=%lu bytes",bmp_info.file_size);
         switch ((int) bmp_info.compression)
         {
            case BI_RGB:

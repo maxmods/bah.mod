@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003 - 2012 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
   Copyright 1991-1999 E. I. du Pont de Nemours and Company
  
@@ -38,10 +38,18 @@ extern "C" {
   MagickMonitorFormatted(const magick_int64_t quantum,
                          const magick_uint64_t span,
                          ExceptionInfo *exception,
-                         const char *format,...) __attribute__((format (printf,4,5)));
+                         const char *format,...) __attribute__((__format__ (__printf__,4,5)));
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

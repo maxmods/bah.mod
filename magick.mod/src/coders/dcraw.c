@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2008 GraphicsMagick Group
+% Copyright (C) 2008 - 2012 GraphicsMagick Group
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
@@ -87,6 +87,7 @@ static Image *ReadDCRAWImage(const ImageInfo *image_info,
   (void) strlcpy(clone_info->magick,"DCRAW",MaxTextExtent);
 
   image=ReadImage(clone_info,exception);
+  DestroyImageInfo(clone_info);
 
   return(image);
 }
@@ -132,7 +133,8 @@ static const struct
     { "ERF", "Epson RAW Format" }, /* Epson RD1 */
     { "K25", "Kodak Photo RAW" }, /* Kodak DC25 */
     { "KDC", "Kodak Photo RAW" }, /* Kodak DC40/50/120, P850 */
-    { "MRW", "Minolta Photo Raw" }, /* Minolta DiMAGE*, Dynax *, Maxxum * */
+    { "MEF", "Mamiya Photo RAW"}, /* Mamiya camera */
+    { "MRW", "Minolta Photo RAW" }, /* Minolta DiMAGE*, Dynax *, Maxxum * */
     { "NEF", "Nikon Electronic Format" }, /* Nikon D1, etc. */
     { "ORF", "Olympus Photo RAW" }, /* Olympus C5050Z, etc. */
     { "PEF", "Pentax Electronic File" }, /* Pentax istDS, etc. */

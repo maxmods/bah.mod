@@ -40,6 +40,8 @@ extern "C" {
 #define HAVE_VSNPRINTF 1
 #define HAVE_TEMPNAM 1
 #define HAVE_RAISE 1
+#define HAVE_SPAWNVP 1
+#define HAVE_PROCESS_H 1
 
 /*
   libtiff features.
@@ -105,10 +107,14 @@ extern "C" {
 */
 #define HAVE_POPEN 1
 #define HAVE__POPEN 1
-#define popen(command,mode)  _popen(command,mode)
+#if !defined(popen)
+#  define popen(command,mode)  _popen(command,mode)
+#endif /* !defined(popen) */
 #define HAVE_PCLOSE 1
 #define HAVE__PCLOSE 1
-#define pclose(stream)  _pclose(stream)
+#if !defined(pclose)
+#  define pclose(stream)  _pclose(stream)
+#endif /* !defined(pclose) */
 
 /*
   Visual C++ 7.0 supports GlobalMemoryStatusEx but MinGW headers and
@@ -122,8 +128,12 @@ extern "C" {
     1400 Visual C++ 2005
     1500 Visual C++ 2008
 */
-#if defined(_VISUALC_) && (_MSC_VER >= 1300)
+#if defined(_VISUALC_) && (_MSC_VER >= 1310)
 #  define HAVE_GLOBALMEMORYSTATUSEX 1
+#endif
+
+#if defined(_VISUALC_) && (_MSC_VER >= 1300)
+#  define HAVE__ALIGNED_MALLOC 1
 #endif
 
 /*
@@ -284,11 +294,11 @@ extern MagickExport int
   NTmsync(void *addr, size_t len, int flags),
   NTmunmap(void *addr, size_t len);
 
-#define mmap(address,length,protection,access,file,offset) \
+#define MagickMmap(address,length,protection,access,file,offset) \
   NTmmap(address,length,protection,access,file,offset)
-#define msync(addr,len,flags) NTmsync(addr,len,flags)
-#define munmap(addr,len) NTmunmap(addr,len)
-#define ftruncate(filedes,length) NTftruncate(filedes,length)
+#define MagickMsync(addr,len,flags) NTmsync(addr,len,flags)
+#define MagickMunmap(addr,len) NTmunmap(addr,len)
+#define MagickFtruncate(filedes,length) NTftruncate(filedes,length)
 
 /*
   libltdl-like module loader wrappers
@@ -340,3 +350,11 @@ extern MagickExport long
 #endif /* !C++ */
 
 #endif /* !_MAGICK_NTBASE_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

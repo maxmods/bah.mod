@@ -66,3 +66,11 @@ extern "C" {
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
 #endif /* _MAGICK_OMP_DATA_VIEW */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

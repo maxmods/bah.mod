@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003-2010 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -59,14 +59,17 @@ extern ModuleExport void
   RegisterICBImage(void),
   RegisterICONImage(void),
   RegisterIDENTITYImage(void),
+  RegisterINFOImage(void),
   RegisterJBGImage(void),
   RegisterJBIGImage(void),
+  RegisterJNXImage(void),
   RegisterJPGImage(void),
   RegisterJPEGImage(void),
   RegisterJP2Image(void),
   RegisterLABELImage(void),
   RegisterLOCALEImage(void),
   RegisterLOGOImage(void),
+  RegisterMACImage(void),
   RegisterMAPImage(void),
   RegisterMATImage(void),
   RegisterMATTEImage(void),
@@ -194,14 +197,17 @@ extern ModuleExport void
   UnregisterICBImage(void),
   UnregisterICONImage(void),
   UnregisterIDENTITYImage(void),
+  UnregisterINFOImage(void),
   UnregisterJBGImage(void),
   UnregisterJBIGImage(void),
+  UnregisterJNXImage(void),
   UnregisterJPGImage(void),
   UnregisterJPEGImage(void),
   UnregisterJP2Image(void),
   UnregisterLABELImage(void),
   UnregisterLOCALEImage(void),
   UnregisterLOGOImage(void),
+  UnregisterMACImage(void),
   UnregisterMAPImage(void),
   UnregisterMATImage(void),
   UnregisterMATTEImage(void),
@@ -298,3 +304,11 @@ extern unsigned int
 #endif
 
 #endif /* _MAGICK_STATIC_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

@@ -1,6 +1,6 @@
 // This may look like C code, but it is really -*- C++ -*-
 //
-// Copyright Bob Friesenhahn, 1999, 2000, 2001, 2002, 2003, 2009
+// Copyright Bob Friesenhahn, 1999-2010
 //
 // Implementation of Image
 //
@@ -1180,7 +1180,7 @@ void Magick::Image::map ( const Image &mapImage_ , const bool dither_ )
   modifyImage();
   MapImage ( image(),
              mapImage_.constImage(),
-             dither_ == true ? 1 : 0 );
+             (dither_ == true ? 1 : 0) );
   throwImageException();
 }
 // Floodfill designated area with replacement opacity value
@@ -1256,7 +1256,7 @@ void            Magick::Image::motionBlur ( const double radius_,
 void Magick::Image::negate ( const bool grayscale_ )
 {
   modifyImage();
-  NegateImage ( image(), grayscale_ == true ? 1 : 0 );
+  NegateImage ( image(), (grayscale_ == true ? 1 : 0) );
   throwImageException();
 }
 
@@ -1430,7 +1430,7 @@ void Magick::Image::raise ( const Geometry &geometry_ ,
 {
   RectangleInfo raiseInfo = geometry_;
   modifyImage();
-  RaiseImage ( image(), &raiseInfo, raisedFlag_ == true ? 1 : 0 );
+  RaiseImage ( image(), &raiseInfo, (raisedFlag_ == true ? 1 : 0) );
   throwImageException();
 }
 
@@ -1698,7 +1698,7 @@ void Magick::Image::shade ( const double azimuth_,
   GetExceptionInfo( &exceptionInfo );
   MagickLib::Image* newImage =
     ShadeImage( image(),
-		colorShading_ == true ? 1 : 0,
+		(colorShading_ == true ? 1 : 0),
 		azimuth_,
 		elevation_,
 		&exceptionInfo);
@@ -1809,6 +1809,13 @@ void Magick::Image::stereo ( const Image &rightImage_ )
 		 &exceptionInfo);
   replaceImage( newImage );
   throwException( exceptionInfo );
+}
+
+// Remove all profiles and text attributes from the image.
+void Magick::Image::strip ( void )
+{
+  modifyImage();
+  MagickLib::StripImage(image());
 }
 
 // Swirl image
@@ -2117,24 +2124,20 @@ std::string Magick::Image::attribute ( const std::string name_ )
 }
 
 // Background color
-void Magick::Image::backgroundColor ( const Color &color_ )
+void Magick::Image::backgroundColor ( const Color &backgroundColor_ )
 {
   modifyImage();
 
-  if ( color_.isValid() )
+  if ( backgroundColor_.isValid() )
     {
-      image()->background_color.red   = color_.redQuantum();
-      image()->background_color.green = color_.greenQuantum();
-      image()->background_color.blue  = color_.blueQuantum();
+      image()->background_color = backgroundColor_;
     }
   else
     {
-      image()->background_color.red   = 0;
-      image()->background_color.green = 0;
-      image()->background_color.blue  = 0;
+      image()->background_color = Color();
     }
 
-  options()->backgroundColor( color_ );
+  options()->backgroundColor( backgroundColor_ );
 }
 Magick::Color Magick::Image::backgroundColor ( void ) const
 {
@@ -2171,24 +2174,20 @@ unsigned int Magick::Image::baseRows ( void ) const
 }
 
 // Border color
-void Magick::Image::borderColor ( const Color &color_ )
+void Magick::Image::borderColor ( const Color &borderColor_ )
 {
   modifyImage();
 
-  if ( color_.isValid() )
+  if ( borderColor_.isValid() )
     {
-      image()->border_color.red   = color_.redQuantum();
-      image()->border_color.green = color_.greenQuantum();
-      image()->border_color.blue  = color_.blueQuantum();
+      image()->border_color = borderColor_;
     }
   else
     {
-      image()->border_color.red   = 0;
-      image()->border_color.green = 0;
-      image()->border_color.blue  = 0;
+      image()->border_color = Color();
     }
 
-  options()->borderColor( color_ );
+  options()->borderColor( borderColor_ );
 }
 Magick::Color Magick::Image::borderColor ( void ) const
 {
@@ -2527,8 +2526,7 @@ void Magick::Image::defineValue ( const std::string &magick_,
   modifyImage();
   ExceptionInfo exceptionInfo;
   GetExceptionInfo( &exceptionInfo );
-  std::string definition = magick_ + ":" + key_ + "=" + value_;
-  AddDefinitions ( imageInfo(), definition.c_str(), &exceptionInfo );
+  AddDefinition ( imageInfo(), magick_.c_str(), key_.c_str(), value_.c_str(), &exceptionInfo );
   throwException( exceptionInfo );
 }
 std::string Magick::Image::defineValue ( const std::string &magick_,
@@ -2955,20 +2953,14 @@ void Magick::Image::matteColor ( const Color &matteColor_ )
   
   if ( matteColor_.isValid() )
     {
-      image()->matte_color.red   = matteColor_.redQuantum();
-      image()->matte_color.green = matteColor_.greenQuantum();
-      image()->matte_color.blue  = matteColor_.blueQuantum();
-
+      image()->matte_color = matteColor_;
       options()->matteColor( matteColor_ ); 
     }
   else
     {
       // Set to default matte color
       Color tmpColor( "#BDBDBD" );
-      image()->matte_color.red   = tmpColor.redQuantum();
-      image()->matte_color.green = tmpColor.greenQuantum();
-      image()->matte_color.blue  = tmpColor.blueQuantum();
-
+      image()->matte_color = tmpColor;
       options()->matteColor( tmpColor );
     }
 }
@@ -3275,7 +3267,7 @@ std::string Magick::Image::signature ( const bool force_ ) const
   Lock( &_imgRef->_mutexLock );
 
   // Re-calculate image signature if necessary
-  if ( force_ ||
+  if ( (force_) ||
        !GetImageAttribute(constImage(), "Signature") ||
        constImage()->taint )
     {
@@ -3943,7 +3935,7 @@ void MagickDLLDecl Magick::InitializeMagick(const char *path_)
   if (!magick_initialized)
     {
       magick_initialized=true;
-      atexit(MagickPlusPlusDestroyMagick);
+//       atexit(MagickPlusPlusDestroyMagick);
     }
 }
 

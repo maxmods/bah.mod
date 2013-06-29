@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2011 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -72,7 +72,9 @@
 /*
   Set to 1 in order to log low-level BLOB I/O at "coder" level.
 */
-#define LOG_BLOB_IO 0
+#if !defined(LOG_TIFF_BLOB_IO)
+#  define LOG_TIFF_BLOB_IO 0
+#endif /* !defined(LOG_TIFF_BLOB_IO) */
 
 #if !defined(PREDICTOR_NONE)
 #define     PREDICTOR_NONE              1
@@ -88,6 +90,13 @@
 #endif
 #if !defined(SAMPLEFORMAT_COMPLEXIEEEFP)
 #define     SAMPLEFORMAT_COMPLEXIEEEFP  6
+#endif
+
+#if !defined(TIFFTAG_COPYRIGHT)
+#define     TIFFTAG_COPYRIGHT 33432
+#endif
+#if !defined(TIFFTAG_OPIIMAGEID)
+#define     TIFFTAG_OPIIMAGEID 32781
 #endif
 
 /*
@@ -324,6 +333,20 @@ CompressionSupported(const CompressionType compression,
 #endif
         break;
       }
+    case JBIG1Compression:
+      {
+	strlcpy(compression_name,"JBIG",MaxTextExtent);
+#if defined(COMPRESSION_JBIG)
+        compress_tag=COMPRESSION_JBIG;
+        status=MagickTrue;
+#endif
+	break;
+      }
+    case JBIG2Compression:
+      {
+	strlcpy(compression_name,"JBIG2",MaxTextExtent);
+	break;
+      }
     case JPEGCompression:
       {
         strlcpy(compression_name,"JPEG",MaxTextExtent);
@@ -333,9 +356,23 @@ CompressionSupported(const CompressionType compression,
 #endif
         break;
       }
+    case JPEG2000Compression:
+      {
+        strlcpy(compression_name,"JPEG2000",MaxTextExtent);
+        break;
+      }
     case LosslessJPEGCompression:
       {
         strlcpy(compression_name,"Lossless JPEG",MaxTextExtent);
+        break;
+      }
+    case LZMACompression:
+      {
+        strlcpy(compression_name,"LZMA",MaxTextExtent);
+#if defined(COMPRESSION_LZMA)
+        compress_tag=COMPRESSION_LZMA;
+        status=MagickTrue;
+#endif
         break;
       }
     case LZWCompression:
@@ -373,27 +410,32 @@ CompressionSupported(const CompressionType compression,
       if (compress_tag != COMPRESSION_NONE)
         {
           if (TIFFIsCODECConfigured(compress_tag))
-            status = MagickTrue;
+	    status = MagickTrue;
+	  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"TIFFIsCODECConfigured says support for %s "
+				"compression %s configured.",
+				compression_name,
+				(status == MagickTrue ? "is" : "is not"));
         }
 #else
       switch (compress_tag)
         {
-#if defined(CCITT_SUPPORT)
+#  if defined(CCITT_SUPPORT)
         case COMPRESSION_CCITTFAX3:
         case COMPRESSION_CCITTFAX4:
-#endif
-#if defined(YCBCR_SUPPORT) && defined(JPEG_SUPPORT)
+#  endif
+#  if defined(YCBCR_SUPPORT) && defined(JPEG_SUPPORT)
         case COMPRESSION_JPEG:
-#endif
-#if defined(LZW_SUPPORT)
+#  endif
+#  if defined(LZW_SUPPORT)
         case COMPRESSION_LZW:
-#endif
-#if defined(PACKBITS_SUPPORT)
+#  endif
+#  if defined(PACKBITS_SUPPORT)
         case COMPRESSION_PACKBITS:
-#endif
-#if defined(ZIP_SUPPORT)
+#  endif
+#  if defined(ZIP_SUPPORT)
         case COMPRESSION_ADOBE_DEFLATE:
-#endif
+#  endif
         case COMPRESSION_NONE:
           {
             status = MagickTrue;
@@ -581,10 +623,10 @@ TIFFCloseBlob(thandle_t image_handle)
 {
   Image
     *image = (Image *) image_handle;
-#if LOG_BLOB_IO
+#if LOG_TIFF_BLOB_IO
   if (image->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),"TIFF close blob");
-#endif /* LOG_BLOB_IO */
+#endif /* LOG_TIFF_BLOB_IO */
   while (image->previous != (Image *) NULL)
     image=image->previous;
   CloseBlob(image);
@@ -621,7 +663,7 @@ TIFFMapBlob(thandle_t image,tdata_t *base,toff_t *size)
 
   if (*base)
     {
-#if LOG_BLOB_IO
+#if LOG_TIFF_BLOB_IO
       if (((Image *) image)->logging)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
 			      "TIFF mapped blob: base=0x%p size=%" MAGICK_OFF_F
@@ -641,13 +683,13 @@ TIFFReadBlob(thandle_t image,tdata_t data,tsize_t size)
 
   result=(tsize_t) ReadBlob((Image *) image,(size_t) size,data);
 
-#if LOG_BLOB_IO
+#if LOG_TIFF_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                           "TIFF read blob: data=0x%p size=%ld, returns %"
 			  MAGICK_OFF_F "d",
 			  data, (long) size, (magick_off_t) result);
-#endif /* LOG_BLOB_IO */
+#endif /* LOG_TIFF_BLOB_IO */
 
   return result;
 }
@@ -660,7 +702,7 @@ TIFFSeekBlob(thandle_t image,toff_t offset,int whence)
     result;
 
   result=SeekBlob((Image *) image,offset,whence);
-#if LOG_BLOB_IO
+#if LOG_TIFF_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                           "TIFF seek blob: offset=%" MAGICK_OFF_F
@@ -671,7 +713,7 @@ TIFFSeekBlob(thandle_t image,toff_t offset,int whence)
                            (whence == SEEK_CUR ? "CUR" :
                             (whence == SEEK_END ? "END" : "unknown"))),
 			  (magick_off_t) result);
-#endif  /* LOG_BLOB_IO */
+#endif  /* LOG_TIFF_BLOB_IO */
   return result;
 }
 
@@ -684,12 +726,12 @@ TIFFGetBlobSize(thandle_t image)
 
   result=(toff_t) GetBlobSize((Image *) image);
 
-#if LOG_BLOB_IO
+#if LOG_TIFF_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
 			  "TIFF get blob size returns %" MAGICK_OFF_F "d",
 			  (magick_off_t) result);
-#endif /* LOG_BLOB_IO */
+#endif /* LOG_TIFF_BLOB_IO */
 
   return result;
 }
@@ -700,12 +742,12 @@ TIFFUnmapBlob(thandle_t ARGUNUSED(image),
                           tdata_t ARGUNUSED(base),
                           toff_t ARGUNUSED(size))
 {
-#if LOG_BLOB_IO
+#if LOG_TIFF_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
 			  "TIFF unmap blob: base=%p size=%" MAGICK_OFF_F "d",
 			  base,(magick_off_t) size);
-#endif  /* LOG_BLOB_IO */
+#endif  /* LOG_TIFF_BLOB_IO */
 }
 
 /* Report warnings. */
@@ -739,14 +781,14 @@ TIFFWriteBlob(thandle_t image,tdata_t data,tsize_t size)
 
   result=(tsize_t) WriteBlob((Image *) image,(size_t) size,data);
 
-#if LOG_BLOB_IO
+#if LOG_TIFF_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
 			  "TIFF write blob: data=%p size=%" MAGICK_OFF_F
 			  "u, returns %" MAGICK_OFF_F "d",
 			  data, (magick_off_t) size,
 			  (magick_off_t) result);
-#endif  /* LOG_BLOB_IO */
+#endif  /* LOG_TIFF_BLOB_IO */
 
   return result;
 }
@@ -1534,6 +1576,9 @@ ReadTIFFImage(const ImageInfo *image_info,ExceptionInfo *exception)
         case COMPRESSION_JPEG: image->compression=JPEGCompression; break;
         case COMPRESSION_OJPEG: image->compression=JPEGCompression; break;
         case COMPRESSION_LZW: image->compression=LZWCompression; break;
+#if defined(COMPRESSION_LZMA)
+	case COMPRESSION_LZMA: image->compression=LZMACompression; break;
+#endif /* defined(COMPRESSION_LZMA) */
         case COMPRESSION_DEFLATE: image->compression=ZipCompression; break;
         case COMPRESSION_ADOBE_DEFLATE: image->compression=ZipCompression; break;
         default: image->compression=RLECompression; break;
@@ -1643,7 +1688,7 @@ ReadTIFFImage(const ImageInfo *image_info,ExceptionInfo *exception)
       if (TIFFGetField(tiff,TIFFTAG_ARTIST,&text) == 1)
         (void) SetImageAttribute(image,"artist",text);
 
-      if (TIFFGetField(tiff,33432,&text) == 1) /* TIFFTAG_COPYRIGHT */
+      if (TIFFGetField(tiff,TIFFTAG_COPYRIGHT,&text) == 1) /* TIFFTAG_COPYRIGHT */
         (void) SetImageAttribute(image,"copyright",text);
 
       if (TIFFGetField(tiff,TIFFTAG_DATETIME,&text) == 1)
@@ -1658,9 +1703,6 @@ ReadTIFFImage(const ImageInfo *image_info,ExceptionInfo *exception)
       if (TIFFGetField(tiff,TIFFTAG_IMAGEDESCRIPTION,&text) == 1)
         (void) SetImageAttribute(image,"comment",text);
 
-      if (TIFFGetField(tiff,32781,&text) == 1) /* TIFFTAG_OPIIMAGEID */
-        (void) SetImageAttribute(image,"imageid",text);
-
       if (TIFFGetField(tiff,TIFFTAG_MAKE,&text) == 1)
         (void) SetImageAttribute(image,"make",text);
 
@@ -1673,13 +1715,34 @@ ReadTIFFImage(const ImageInfo *image_info,ExceptionInfo *exception)
       if (TIFFGetField(tiff,TIFFTAG_SOFTWARE,&text) == 1)
         (void) SetImageAttribute(image,"software",text);
 
-#if 0
-      if (TIFFGetField(tiff,33423,&text) == 1)
-        (void) SetImageAttribute(image,"kodak-33423",text);
+      {
+	/*
+	  "Unsupported" tags return two arguments.
+	*/
 
-      if (TIFFGetField(tiff,36867,&text) == 1)
-        (void) SetImageAttribute(image,"kodak-36867",text);
-#endif
+	uint32
+	  count;
+
+	char attribute[MaxTextExtent];
+
+	if (TIFFGetField(tiff,TIFFTAG_OPIIMAGEID,&count,&text) == 1)
+	  {
+	    (void) strlcpy(attribute,text,Min(sizeof(attribute),(count+1)));
+	    (void) SetImageAttribute(image,"imageid",attribute);
+	  }
+	
+	if (TIFFGetField(tiff,33423,&count,&text) == 1)
+	  {
+	    (void) strlcpy(attribute,text,Min(sizeof(attribute),(count+1)));
+	    (void) SetImageAttribute(image,"kodak-33423",attribute);
+	  }
+	
+	if (TIFFGetField(tiff,36867,&count,&text) == 1)
+	  {
+	    (void) strlcpy(attribute,text,Min(sizeof(attribute),(count+1)));
+	    (void) SetImageAttribute(image,"kodak-36867",attribute);
+	  }
+      }
 
       if ((photometric == PHOTOMETRIC_PALETTE) ||
           ((photometric == PHOTOMETRIC_MINISWHITE ||
@@ -1945,7 +2008,7 @@ ReadTIFFImage(const ImageInfo *image_info,ExceptionInfo *exception)
               *strip;
 
             long
-              pixels_per_strip,
+              /* pixels_per_strip, */
               stride,
               rows_remaining;
 
@@ -1968,7 +2031,7 @@ ReadTIFFImage(const ImageInfo *image_info,ExceptionInfo *exception)
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                                     "Using stripped read method with %u bits per sample",
                                     bits_per_sample);
-            pixels_per_strip=rows_per_strip*image->columns;
+            /* pixels_per_strip=rows_per_strip*image->columns; */
             p=0;
             strip_size=0;
             strip_id=0;
@@ -3141,7 +3204,7 @@ WritePTIFImage(const ImageInfo *image_info,Image *image)
   do
     {
       pyramid_image->next=ResizeImage(image,pyramid_image->columns/2,
-                                      pyramid_image->rows/2,TriangleFilter,
+                                      pyramid_image->rows/2,filter,
                                       1.0,&image->exception);
       if (pyramid_image->next == (Image *) NULL)
         ThrowWriterException2(FileOpenError,image->exception.reason,image);
@@ -3498,6 +3561,14 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
             fill_order=FILLORDER_LSB2MSB;
             break;
           }
+#if defined(COMPRESSION_JBIG)
+        case JBIG1Compression:
+          {
+            compress_tag=COMPRESSION_JBIG;
+	    fill_order=FILLORDER_LSB2MSB;
+            break;
+          }
+#endif /* defined(COMPRESSION_JBIG) */
         case JPEGCompression:
           {
             compress_tag=COMPRESSION_JPEG;
@@ -3508,6 +3579,13 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
             compress_tag=COMPRESSION_LZW;
             break;
           }
+#if defined(COMPRESSION_LZMA)
+        case LZMACompression:
+          {
+            compress_tag=COMPRESSION_LZMA;
+            break;
+          }
+#endif /* defined(COMPRESSION_LZMA) */
         case RLECompression:
           {
             compress_tag=COMPRESSION_PACKBITS;
@@ -3609,6 +3687,16 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
                                   "Using MINISWHITE photometric due to request"
 				  " for Group4 FAX compression.");
         }
+#if defined(COMPRESSION_JBIG)
+      else if (compress_tag == COMPRESSION_JBIG)
+        {
+          photometric=PHOTOMETRIC_MINISWHITE;
+          if (logging)
+            (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                                  "Using MINISWHITE photometric due to request"
+				  " for JBIG compression.");
+        }
+#endif /* defined(COMPRESSION_JBIG) */
 
       /*
         Allow user to override the photometric.
@@ -3712,6 +3800,18 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
                                   "Ignoring request for Group4 FAX compression"
 				  " due to incompatible photometric.");
         }
+#if defined(COMPRESSION_JBIG)
+      else if ((compress_tag == COMPRESSION_JBIG) &&
+               (photometric != PHOTOMETRIC_MINISWHITE))
+        {
+          compress_tag=COMPRESSION_NONE;
+          fill_order=FILLORDER_MSB2LSB;
+          if (logging)
+            (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                                  "Ignoring request for JBIG compression"
+				  " due to incompatible photometric.");
+        }
+#endif /* defined(COMPRESSION_JBIG) */
 
       /*
         Bilevel presents a bit of a quandary since the user is free to
@@ -3885,7 +3985,7 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
         if (value)
           {
             old_value=bits_per_sample;
-            bits_per_sample=atoi(value);
+            bits_per_sample=MagickAtoI(value);
             if (sample_format == SAMPLEFORMAT_IEEEFP)
               {
                 /*
@@ -3919,7 +4019,7 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
         if (value)
           {
             old_value=samples_per_pixel;
-            samples_per_pixel=atoi(value);
+            samples_per_pixel=MagickAtoI(value);
             if (logging)
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                                     "User override (samples-per-pixel): %u "
@@ -4073,7 +4173,17 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
               bit 2 = 1 for byte-aligned EOLs
 
             */
-            (void) TIFFSetField(tiff,TIFFTAG_GROUP3OPTIONS,4);
+	    uint32
+	      group_three_options = 4;
+
+	    const char *
+	      value;
+	
+	    if ((value=AccessDefinition(image_info,"tiff","group-three-options")))
+	      {
+		group_three_options=(uint32) strtol(value,(char **)NULL, 10);
+	      }
+	    (void) TIFFSetField(tiff,TIFFTAG_GROUP3OPTIONS,group_three_options);
 
             /*
               It is recommended (but not required) to output FAX as
@@ -4101,6 +4211,98 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
               rows_per_strip=(uint32) image->rows;
             break;
           }
+#if defined(COMPRESSION_LZMA)
+        case COMPRESSION_LZMA:
+          {
+	    unsigned int
+	      lzma_preset;
+
+	    const char *
+	      lzma_preset_str;
+
+	    /*
+	      Lzma preset has a useful range of 1-9.
+
+	      We default to 1 since testing does not show much benefit
+	      from use of larger values.  However, we allow the
+	      power-user who wants to experiment to change the preset
+	      value via syntax like '-define tiff:lzmapreset=7'.  This
+	      ability is intentionally not documented other than here.
+	    */
+
+	    lzma_preset=1;
+	    if ((lzma_preset_str=AccessDefinition(image_info,"tiff","lzmapreset")))
+	      lzma_preset=(unsigned short) MagickAtoI(lzma_preset_str);
+
+	    if (lzma_preset < 1)
+	      lzma_preset=1;
+	    if (lzma_preset > 9)
+	      lzma_preset=9;
+	    (void) TIFFSetField(tiff,TIFFTAG_LZMAPRESET,lzma_preset);
+	    if (logging)
+	      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				    "LZMA PRESET set to %u", lzma_preset);
+
+	    {
+	      /*
+		Provide a default rows-per-strip which is suitably
+		tailored for the compression level.
+	      */
+	      
+	      /*
+		Strip memory target for various compression preset levels.
+		Values are arbitrary.  LZMA is a memory and CPU pig.
+	      */
+	      static const long
+		lzma_memory_mb[] =
+		{      /* Level  Compress  Decompress */
+		  1,   /*   1       2 MB      1 MB    */
+		  4 ,  /*   2      12 MB      2 MB    */
+		  4,   /*   3      12 MB      1 MB    */
+		  4,   /*   4      16 MB      2 MB    */
+		  6,   /*   5      26 MB      3 MB    */
+		  10,  /*   6      45 MB      5 MB    */
+		  18,  /*   7      83 MB      9 MB    */
+		  34,  /*   8     159 MB     17 MB    */
+		  66   /*   9     311 MB     33 MB    */
+		};
+	      
+	      rows_per_strip = (uint32) ((lzma_memory_mb[lzma_preset-1]*1024*1024))/
+		(((bits_per_sample*samples_per_pixel)/8)*image->rows);
+	      if (rows_per_strip < 1)
+		rows_per_strip=1;
+	      if (rows_per_strip > image->rows)
+		rows_per_strip=image->rows;
+	    }
+
+            /*
+              Use horizontal differencing (type 2) for images which are
+              likely to be continuous tone.  The TIFF spec says that this
+              usually leads to better compression.
+            */
+            if (((photometric == PHOTOMETRIC_RGB) ||
+                 (photometric == PHOTOMETRIC_MINISBLACK)) &&
+                ((bits_per_sample == 8) || (bits_per_sample == 16)))
+	      predictor=PREDICTOR_HORIZONTAL;
+            break;
+          }
+#endif /* COMPRESSION_LZMA */
+#if defined(COMPRESSION_JBIG)
+	case COMPRESSION_JBIG:
+	  {
+            /*
+              It is recommended (but not required) to output FAX as
+              one strip. We will limit strip size to 16 megapixels by
+              default.
+            */
+            rows_per_strip=16000000UL/image->columns;
+            if (rows_per_strip < 1)
+              rows_per_strip=1;
+            if (rows_per_strip > image->rows)
+              rows_per_strip=(uint32) image->rows;
+	    break;
+	  }
+#endif /* COMPRESSION_JBIG */
         case COMPRESSION_LZW:
           {
             /*
@@ -4128,7 +4330,7 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
             value;
 	
 	if ((value=AccessDefinition(image_info,"tiff","predictor")))
-	  predictor=(unsigned short) atoi(value);
+	  predictor=(unsigned short) MagickAtoI(value);
       }
 
       if (predictor != 0)
@@ -4154,7 +4356,7 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
                 old_value;
               
               old_value=rows_per_strip;
-              rows_per_strip=atoi(value);
+              rows_per_strip=MagickAtoI(value);
               if (logging)
                 (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                                       "User override (rows_per_strip): %u rows"
@@ -4354,10 +4556,6 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
       attribute=GetImageAttribute(image,"comment");
       if (attribute != (const ImageAttribute *) NULL)
         (void) TIFFSetField(tiff,TIFFTAG_IMAGEDESCRIPTION,attribute->value);
-      
-      attribute=GetImageAttribute(image,"imageid");
-      if (attribute != (const ImageAttribute *) NULL)
-        (void) TIFFSetField(tiff,32781,attribute->value); /* TIFFTAG_OPIIMAGEID */
 
       attribute=GetImageAttribute(image,"make");
       if (attribute != (const ImageAttribute *) NULL)
@@ -4373,6 +4571,16 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
 
       (void) TIFFSetField(tiff,TIFFTAG_SOFTWARE,
                           GetMagickVersion((unsigned long *) NULL));
+
+#if 0
+      /*
+	This tag is not supported by libtiff so the tag extension
+	mechanism would need to be used to add support for it.
+      */
+      attribute=GetImageAttribute(image,"imageid");
+      if (attribute != (const ImageAttribute *) NULL)
+        (void) TIFFSetField(tiff,TIFFTAG_OPIIMAGEID,attribute->value);
+#endif
 
       if (photometric == PHOTOMETRIC_PALETTE)
         {
@@ -4640,11 +4848,11 @@ WriteTIFFImage(const ImageInfo *image_info,Image *image)
                 }
               if ((value=AccessDefinition(image_info,"tiff","tile-width")))
                 {
-                  tile_columns=atol(value);
+                  tile_columns=MagickAtoL(value);
                 }
               if ((value=AccessDefinition(image_info,"tiff","tile-height")))
                 {
-                  tile_rows=atol(value);
+                  tile_rows=MagickAtoL(value);
                 }
               
               TIFFDefaultTileSize(tiff,&tile_columns,&tile_rows);

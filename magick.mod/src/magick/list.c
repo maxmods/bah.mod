@@ -55,7 +55,7 @@
 %
 %  The format of the AppendImageToList method is:
 %
-%      AppendImageToList(Image *images,Image *image)
+%      AppendImageToList(Image **images,Image *image)
 %
 %  A description of each parameter follows:
 %

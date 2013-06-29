@@ -85,3 +85,11 @@ static pthread_mutex_t
 
 #endif /* MSWINDOWS */
 #endif /* _SPINLOCKS_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

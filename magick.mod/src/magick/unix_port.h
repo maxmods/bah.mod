@@ -15,9 +15,6 @@
 extern "C" {
 #endif
 
-extern MagickExport int
-  MagickSpawnVP(const unsigned int verbose, const char *file, char *const argv[]);
-
 extern MagickExport long
   MagickGetMMUPageSize(void);
 
@@ -26,3 +23,11 @@ extern MagickExport long
 #endif
 
 #endif /* _UNIX_PORT_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

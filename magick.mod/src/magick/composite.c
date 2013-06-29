@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -1801,6 +1801,8 @@ DivideCompositePixels(void *mutable_data,                /* User provided mutabl
 */
 static PixelIteratorDualModifyCallback
 GetCompositionPixelIteratorCallback(const CompositeOperator compose,
+				    const MagickBool canvas_matte,
+				    const MagickBool change_matte,
                                     MagickBool *clear)
 {
   PixelIteratorDualModifyCallback
@@ -1817,7 +1819,10 @@ GetCompositionPixelIteratorCallback(const CompositeOperator compose,
       /* Does nothing */
       break;
     case OverCompositeOp:
-      call_back=OverCompositePixels;
+      if (canvas_matte || change_matte)
+	call_back=OverCompositePixels;
+      else
+	call_back=CopyCompositePixels;
       break;
     case InCompositeOp:
       call_back=InCompositePixels;
@@ -1826,7 +1831,10 @@ GetCompositionPixelIteratorCallback(const CompositeOperator compose,
       call_back=OutCompositePixels;
       break;
     case AtopCompositeOp:
-      call_back=AtopCompositePixels;
+      if (canvas_matte || change_matte)
+	call_back=AtopCompositePixels;
+      else
+	call_back=CopyCompositePixels;
       break;
     case XorCompositeOp:
       call_back=XorCompositePixels;
@@ -1854,7 +1862,6 @@ GetCompositionPixelIteratorCallback(const CompositeOperator compose,
       break;
     case CopyCompositeOp:
       call_back=CopyCompositePixels;
-      clear_flag=MagickTrue;
       break;
     case CopyRedCompositeOp:
       call_back=CopyRedCompositePixels;
@@ -1870,7 +1877,6 @@ GetCompositionPixelIteratorCallback(const CompositeOperator compose,
       break;
     case ClearCompositeOp:
       call_back=ClearCompositePixels;
-      clear_flag=MagickTrue;
       break;
     case DissolveCompositeOp:
       call_back=DissolveCompositePixels;
@@ -1930,6 +1936,10 @@ GetCompositionPixelIteratorCallback(const CompositeOperator compose,
         break;
       }
     }
+
+  if ((CopyCompositePixels == call_back) ||
+      (ClearCompositePixels == call_back))
+    clear_flag=MagickTrue;
 
   *clear=clear_flag;
   return call_back;
@@ -2223,11 +2233,17 @@ CompositeImage(Image *canvas_image,
 	rows = Min(canvas_image->rows - canvas_y,
 		   change_image->rows - composite_y);
 
-        call_back=GetCompositionPixelIteratorCallback(compose,&clear_pixels);
+        call_back=GetCompositionPixelIteratorCallback(compose,
+						      canvas_image->matte,
+						      change_image->matte,
+						      &clear_pixels);
         if (call_back != (PixelIteratorDualModifyCallback) NULL)
           {
-            const char
-              *description = "[%s] Composite image pixels ...";
+            char
+              description[MaxTextExtent];
+
+	    FormatString(description,"[%%s] Composite %s image pixels ...",
+			 CompositeOperatorToString(compose));
 
             if (clear_pixels)
               {
@@ -2386,7 +2402,10 @@ CompositeImageRegion(const CompositeOperator compose,
 
   canvas_image->storage_class=DirectClass;
 
-  call_back=GetCompositionPixelIteratorCallback(compose,&clear_pixels);
+  call_back=GetCompositionPixelIteratorCallback(compose,
+						canvas_image->matte,
+						update_image->matte,
+						&clear_pixels);
   if (call_back != (PixelIteratorDualModifyCallback) NULL)
     {
       const char
@@ -2473,6 +2492,86 @@ CompositeImageRegion(const CompositeOperator compose,
     {
       status=MagickFail;
     }
+
+  return status;
+}
+
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   M a g i c k C o m p o s i t e I m a g e U n d e r C o l o r               %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  MagickCompositeImageUnderColor() composites a color underneath an image,
+%  removing any existing opacity.
+%
+%  The format of the MagickCompositeImageUnderColor method is:
+%
+%      MagickPassFail MagickCompositeImageUnderColor(Image *image,
+%                                              PixelPacket *undercolor,
+%                                              ExceptionInfo *exception)
+%
+%  A description of each parameter follows:
+%
+%    o image: Image to modify.
+%
+%    o undercolor: Background color to apply.
+%
+%    o exception: Details of any error are reported here.
+%
+*/
+static MagickPassFail
+MagickCompositeImageUnderColorPixels(void *mutable_data,             /* User provided mutable data */
+				     const void *immutable_data,     /* User provided immutable data */
+				     Image *image,                   /* Modify image */
+				     PixelPacket * restrict pixels,  /* Pixel row */
+				     IndexPacket * restrict indexes, /* Pixel row indexes */
+				     const long npixels,             /* Number of pixels in row */
+				     ExceptionInfo *exception)       /* Exception report */
+{
+  const PixelPacket
+    * restrict background_color = (const PixelPacket *) immutable_data;
+
+  register long
+    i;
+
+  ARG_NOT_USED(mutable_data);
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  for (i=0; i < npixels; i++)
+    {
+      AlphaCompositePixel(&pixels[i],&pixels[i],pixels[i].opacity,background_color,
+			  background_color->opacity);
+      pixels[i].opacity=OpaqueOpacity;
+    }
+
+  return MagickPass;
+}
+
+MagickExport MagickPassFail
+MagickCompositeImageUnderColor(Image *image,const PixelPacket *undercolor,
+			       ExceptionInfo *exception)
+{
+  MagickPassFail
+    status;
+
+  image->storage_class=DirectClass;
+  status=PixelIterateMonoModify(MagickCompositeImageUnderColorPixels,
+				NULL,
+				"[%s] Applying undercolor...",
+				NULL,undercolor,
+				0,0,image->columns,image->rows,
+				image,
+				exception);
+  image->matte=MagickFalse;
 
   return status;
 }

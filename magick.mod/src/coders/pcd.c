@@ -886,6 +886,7 @@ ModuleExport void RegisterPCDImage(void)
   entry->magick=(MagickHandler) IsPCD;
   entry->adjoin=False;
   entry->description="Photo CD";
+  entry->seekable_stream=MagickTrue;
   entry->module="PCD";
   (void) RegisterMagickInfo(entry);
 
@@ -894,6 +895,7 @@ ModuleExport void RegisterPCDImage(void)
   entry->encoder=(EncoderHandler) WritePCDImage;
   entry->adjoin=False;
   entry->description="Photo CD";
+  entry->seekable_stream=MagickTrue;
   entry->module="PCD";
   (void) RegisterMagickInfo(entry);
 }

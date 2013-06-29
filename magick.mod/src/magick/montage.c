@@ -383,9 +383,9 @@ MagickExport Image *MontageImages(const Image *images,
       if (!thumbnail)
         --i;
 
-      for (tile=0; tile <= (unsigned long) i; tile++)
-        if (image_list[tile])
-          DestroyImage(image_list[tile]);
+      for (tile=0; (long) tile <= i; tile++)
+	if (image_list[tile])
+	  DestroyImage(image_list[tile]);
       MagickFreeMemory(master_list);
       return((Image *) NULL);
     }

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -120,7 +120,8 @@ MagickExport unsigned int ExecuteModuleProcess(const char *tag,
 %                                                                             %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  RegisterStaticModules() statically registers all the available module
+%  
+RegisterStaticModules() statically registers all the available module
 %  handlers.
 %
 %  The format of the RegisterStaticModules method is:
@@ -170,8 +171,12 @@ MagickExport void RegisterStaticModules(void)
   RegisterHTMLImage();
   RegisterICONImage();
   RegisterIDENTITYImage();
+  RegisterINFOImage();
 #if defined(HasJBIG)
   RegisterJBIGImage();
+#endif
+#if defined(HasJPEG)
+  RegisterJNXImage();
 #endif
 #if defined(HasJPEG)
   RegisterJPEGImage();
@@ -182,6 +187,7 @@ MagickExport void RegisterStaticModules(void)
   RegisterLABELImage();
   RegisterLOCALEImage();
   RegisterLOGOImage();
+  RegisterMACImage();
   RegisterMAPImage();
   RegisterMATImage();
   RegisterMATTEImage();
@@ -320,8 +326,12 @@ MagickExport void UnregisterStaticModules(void)
   UnregisterHTMLImage();
   UnregisterICONImage();
   UnregisterIDENTITYImage();
+  UnregisterINFOImage();
 #if defined(HasJBIG)
   UnregisterJBIGImage();
+#endif
+#if defined(HasJPEG)
+  UnregisterJNXImage();
 #endif
 #if defined(HasJPEG)
   UnregisterJPEGImage();
@@ -332,6 +342,7 @@ MagickExport void UnregisterStaticModules(void)
   UnregisterLABELImage();
   UnregisterLOCALEImage();
   UnregisterLOGOImage();
+  UnregisterMACImage();
   UnregisterMAPImage();
   UnregisterMATImage();
   UnregisterMATTEImage();

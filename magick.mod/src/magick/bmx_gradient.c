@@ -96,6 +96,9 @@ MagickExport MagickPassFail GradientImage(Image *image,
       register PixelPacket
         *q;
 
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_GradientImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;

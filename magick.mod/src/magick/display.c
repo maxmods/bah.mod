@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004 GraphicsMagick Group
+% Copyright (C) 2003 - 2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -409,14 +409,14 @@ static unsigned int MagickXAnnotateEditImage(Display *display,
               break;
             if (entry != 8)
               {
-                degrees=atof(RotateMenu[entry]);
+                degrees=MagickAtoF(RotateMenu[entry]);
                 break;
               }
             (void) MagickXDialogWidget(display,windows,"OK","Enter rotation angle:",
               angle);
             if (*angle == '\0')
               break;
-            degrees=atof(angle);
+            degrees=MagickAtoF(angle);
             break;
           }
           case AnnotateHelpCommand:
@@ -2397,7 +2397,7 @@ static unsigned int MagickXCompositeImage(Display *display,
               GXinvert);
             if (*factor == '\0')
               break;
-            blend=atof(factor);
+            blend=MagickAtoF(factor);
             compose=DissolveCompositeOp;
             break;
           }
@@ -4009,14 +4009,14 @@ static unsigned int MagickXDrawEditImage(Display *display,
                 break;
               if (entry != 5)
                 {
-                  line_width=atoi(WidthsMenu[entry]);
+                  line_width=MagickAtoI(WidthsMenu[entry]);
                   break;
                 }
               (void) MagickXDialogWidget(display,windows,"Ok","Enter line width:",
                 width);
               if (*width == '\0')
                 break;
-              line_width=atoi(width);
+              line_width=MagickAtoI(width);
               break;
             }
             case DrawUndoCommand:
@@ -4931,7 +4931,7 @@ static CommandType MagickXImageWindowCommand(Display *display,
       last_symbol=key_symbol;
       delta[strlen(delta)+1]='\0';
       delta[strlen(delta)]=Digits[key_symbol-XK_0];
-      resource_info->quantum=atoi(delta);
+      resource_info->quantum=MagickAtoI(delta);
       return(NullCommand);
     }
   last_symbol=key_symbol;
@@ -5393,7 +5393,13 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       /*
         Select image.
       */
-      (void) chdir(resource_info->home_directory);
+      if (chdir(resource_info->home_directory) != 0)
+        {
+          MagickXNoticeWidget(display,windows,"Unable to restore directory:",
+                              resource_info->home_directory);
+          MagickFatalError(ConfigureFatalError,UnableToRestoreCurrentDirectory,
+                           resource_info->home_directory);
+        }
       nexus=MagickXOpenImage(display,resource_info,windows,True);
       break;
     }
@@ -5403,10 +5409,14 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
         Save image.
       */
       status=MagickXSaveImage(display,resource_info,windows,*image);
-      if (status == False)
+      if (status == MagickFail)
         {
-          MagickXNoticeWidget(display,windows,"Unable to write X image:",
-            (*image)->filename);
+	  char reason[MaxTextExtent];
+
+	  FormatString(reason,"%s \"%s\"",
+		       (*image)->exception.reason ? (*image)->exception.reason : "",
+		       (*image)->exception.description ? (*image)->exception.description : "");
+	  MagickXNoticeWidget(display,windows,"Unable to save file:",reason);
           break;
         }
       break;
@@ -5419,8 +5429,12 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       status=MagickXPrintImage(display,resource_info,windows,*image);
       if (status == False)
         {
-          MagickXNoticeWidget(display,windows,"Unable to print X image:",
-            (*image)->filename);
+	  char reason[MaxTextExtent];
+
+	  FormatString(reason,"%s \"%s\"",
+		       (*image)->exception.reason ? (*image)->exception.reason : "",
+		       (*image)->exception.description ? (*image)->exception.description : "");
+          MagickXNoticeWidget(display,windows,"Unable to print image:",reason);
           break;
         }
       break;
@@ -6102,7 +6116,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       MagickXSetCursorState(display,windows,True);
       MagickXCheckRefreshWindows(display,windows);
       GetQuantizeInfo(&quantize_info);
-      quantize_info.number_colors=atol(colors);
+      quantize_info.number_colors=MagickAtoL(colors);
       quantize_info.dither=(status ? False : True);
       quantize_info.colorspace=(*image)->colorspace;
       (void) QuantizeImage(&quantize_info,*image);
@@ -6178,7 +6192,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       */
       MagickXSetCursorState(display,windows,True);
       MagickXCheckRefreshWindows(display,windows);
-      ReplaceImage(*image,ReduceNoiseImage(*image,atol(radius),
+      ReplaceImage(*image,ReduceNoiseImage(*image,MagickAtoL(radius),
         &(*image)->exception));
       MagickXSetCursorState(display,windows,False);
       if (windows->image.orphan)
@@ -6334,7 +6348,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       */
       MagickXSetCursorState(display,windows,True);
       MagickXCheckRefreshWindows(display,windows);
-      ReplaceImage(*image,EdgeImage(*image,atof(radius),
+      ReplaceImage(*image,EdgeImage(*image,MagickAtoF(radius),
         &(*image)->exception));
       MagickXSetCursorState(display,windows,False);
       if (windows->image.orphan)
@@ -6360,7 +6374,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       */
       MagickXSetCursorState(display,windows,True);
       MagickXCheckRefreshWindows(display,windows);
-      ReplaceImage(*image,SpreadImage(*image,atoi(amount),
+      ReplaceImage(*image,SpreadImage(*image,MagickAtoI(amount),
         &(*image)->exception));
       MagickXSetCursorState(display,windows,False);
       if (windows->image.orphan)
@@ -6504,7 +6518,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       */
       MagickXSetCursorState(display,windows,True);
       MagickXCheckRefreshWindows(display,windows);
-      ReplaceImage(*image,SwirlImage(*image,atof(degrees),
+      ReplaceImage(*image,SwirlImage(*image,MagickAtoF(degrees),
         &(*image)->exception));
       MagickXSetCursorState(display,windows,False);
       if (windows->image.orphan)
@@ -6530,7 +6544,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       */
       MagickXSetCursorState(display,windows,True);
       MagickXCheckRefreshWindows(display,windows);
-      ReplaceImage(*image,ImplodeImage(*image,atof(factor),
+      ReplaceImage(*image,ImplodeImage(*image,MagickAtoF(factor),
         &(*image)->exception));
       MagickXSetCursorState(display,windows,False);
       if (windows->image.orphan)
@@ -6589,7 +6603,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
       */
       MagickXSetCursorState(display,windows,True);
       MagickXCheckRefreshWindows(display,windows);
-      ReplaceImage(*image,OilPaintImage(*image,atof(radius),
+      ReplaceImage(*image,OilPaintImage(*image,MagickAtoF(radius),
         &(*image)->exception));
       MagickXSetCursorState(display,windows,False);
       if (windows->image.orphan)
@@ -7039,7 +7053,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
         "Pause how many 1/100ths of a second between images:",delay);
       if (*delay == '\0')
         break;
-      resource_info->delay=atoi(delay);
+      resource_info->delay=MagickAtoI(delay);
       MagickXClientMessage(display,windows->image.id,windows->im_protocols,
         windows->im_next_image,CurrentTime);
       break;
@@ -7905,7 +7919,7 @@ static unsigned int MagickXMatteEditImage(Display *display,
             q=GetImagePixels(*image,x_offset,y_offset,1,1);
             if (q == (PixelPacket *) NULL)
               break;
-            q->opacity=(Quantum) atol(matte);
+            q->opacity=(Quantum) MagickAtoL(matte);
             (void) SyncImagePixels(*image);
             break;
           }
@@ -7926,7 +7940,7 @@ static unsigned int MagickXMatteEditImage(Display *display,
               for (x=0; x < (int) (*image)->columns; x++)
               {
                 if (FuzzyColorMatch(q,&target,(*image)->fuzz))
-                  q->opacity=(Quantum) atol(matte);
+                  q->opacity=(Quantum) MagickAtoL(matte);
                 q++;
               }
               if (!SyncImagePixels(*image))
@@ -7950,7 +7964,7 @@ static unsigned int MagickXMatteEditImage(Display *display,
                 target.green=ScaleShortToQuantum(border_color.green);
                 target.blue=ScaleShortToQuantum(border_color.blue);
               }
-            (void) MatteFloodfillImage(*image,target,atoi(matte),x_offset,
+            (void) MatteFloodfillImage(*image,target,MagickAtoI(matte),x_offset,
               y_offset,method);
             break;
           }
@@ -7967,13 +7981,13 @@ static unsigned int MagickXMatteEditImage(Display *display,
                 break;
               for (x=0; x < (int) (*image)->columns; x++)
               {
-                q->opacity=(Quantum) atol(matte);
+                q->opacity=(Quantum) MagickAtoL(matte);
                 q++;
               }
               if (!SyncImagePixels(*image))
                 break;
             }
-            if (atol(matte) == OpaqueOpacity)
+            if (MagickAtoL(matte) == OpaqueOpacity)
               (*image)->matte=False;
             break;
           }
@@ -8093,7 +8107,7 @@ static Image *MagickXOpenImage(Display *display,MagickXResourceInfo *resource_in
   image_info=CloneImageInfo(resource_info->image_info);
   (void) strlcpy(image_info->filename,filename,MaxTextExtent);
   GetExceptionInfo(&exception);
-  (void) SetImageInfo(image_info,False,&exception);
+  (void) SetImageInfo(image_info,SETMAGICK_READ,&exception);
   if (LocaleCompare(image_info->magick,"X") == 0)
     {
       char
@@ -8107,7 +8121,7 @@ static Image *MagickXOpenImage(Display *display,MagickXResourceInfo *resource_in
         seconds);
       if (*seconds == '\0')
         return((Image *) NULL);
-      MagickXDelay(display,1000*atol(seconds));
+      MagickXDelay(display,1000*MagickAtoL(seconds));
     }
   if ((LocaleCompare(image_info->magick,"CMYK") == 0) ||
       (LocaleCompare(image_info->magick,"GRAY") == 0) ||
@@ -8143,6 +8157,8 @@ static Image *MagickXOpenImage(Display *display,MagickXResourceInfo *resource_in
   handler=(MonitorHandler) NULL;
   if (LocaleCompare(image_info->magick,"X") == 0)
     handler=SetMonitorHandler((MonitorHandler) NULL);
+  DestroyExceptionInfo(&exception);
+  GetExceptionInfo(&exception);
   nexus=ReadImage(image_info,&exception);
   if (exception.severity != UndefinedException)
     CatchException(&exception);
@@ -8836,6 +8852,8 @@ static unsigned int MagickXPrintImage(Display *display,MagickXResourceInfo *reso
   FormatString(print_image->filename,"print:%s",filename);
   status=WriteImage(image_info,print_image);
  error_return:
+  if (MagickFail == status)
+    CopyException(&image->exception,&print_image->exception);
   DestroyImage(print_image);
   DestroyImageInfo(image_info);
   MagickXSetCursorState(display,windows,False);
@@ -10281,7 +10299,9 @@ static unsigned int MagickXSaveImage(Display *display,MagickXResourceInfo *resou
 
       GetPathComponent(image->filename,HeadPath,path);
       GetPathComponent(image->filename,TailPath,filename);
-      (void) chdir(path);
+      if (chdir(path) != 0)
+        MagickXNoticeWidget(display,windows,"Unable to change to directory:",
+                            path);
     }
   MagickXFileBrowserWidget(display,windows,"Save",filename);
   if (*filename == '\0')
@@ -10297,7 +10317,7 @@ static unsigned int MagickXSaveImage(Display *display,MagickXResourceInfo *resou
     }
   image_info=CloneImageInfo(resource_info->image_info);
   (void) strlcpy(image_info->filename,filename,MaxTextExtent);
-  (void) SetImageInfo(image_info,False,&image->exception);
+  (void) SetImageInfo(image_info,SETMAGICK_WRITE,&image->exception);
   if ((LocaleCompare(image_info->magick,"JPEG") == 0) ||
       (LocaleCompare(image_info->magick,"JPG") == 0))
     {
@@ -10312,7 +10332,7 @@ static unsigned int MagickXSaveImage(Display *display,MagickXResourceInfo *resou
         quality);
       if (*quality == '\0')
         return(True);
-      image_info->quality=atol(quality);
+      image_info->quality=MagickAtoL(quality);
       image_info->interlace=status ? NoInterlace : PlaneInterlace;
     }
   if ((LocaleCompare(image_info->magick,"EPS") == 0) ||
@@ -10352,8 +10372,10 @@ static unsigned int MagickXSaveImage(Display *display,MagickXResourceInfo *resou
   */
   (void) strlcpy(save_image->filename,filename,MaxTextExtent);
   status=WriteImage(image_info,save_image);
-  if (status != False)
+  if (status != MagickFail)
     image->taint=False;
+  else
+    CopyException(&image->exception,&save_image->exception);
   DestroyImage(save_image);
   DestroyImageInfo(image_info);
   MagickXSetCursorState(display,windows,False);
@@ -11395,6 +11417,8 @@ static Image *MagickXVisualDirectoryImage(Display *display,
     (void) strlcpy(clone_info->filename,filelist[i],MaxTextExtent);
     *clone_info->magick='\0';
     (void) CloneString(&clone_info->size,DefaultTileGeometry);
+    DestroyExceptionInfo(&exception);
+    GetExceptionInfo(&exception);
     next_image=ReadImage(clone_info,&exception);
     if (exception.severity != UndefinedException)
       CatchException(&exception);
@@ -12240,7 +12264,13 @@ MagickXDisplayImage(Display *display,MagickXResourceInfo *resource_info,
       /*
         Change to the working directory.
       */
-      (void) chdir(working_directory);
+      if (('\0' != working_directory[0]) && (chdir(working_directory) != 0))
+        {
+          MagickXNoticeWidget(display,windows,"Unable to restore directory:",
+                              working_directory);
+          MagickFatalError(ConfigureFatalError,UnableToChangeToWorkingDirectory,
+                           NULL);
+        }
       /*
         Set the progress monitor if progress monitoring is requested.
       */
@@ -12442,19 +12472,20 @@ MagickXDisplayImage(Display *display,MagickXResourceInfo *resource_info,
       (void ) CloneString(&windows->image.name,"");
       (void ) CloneString(&windows->image.icon_name,"");
       GetPathComponent(display_image->filename,TailPath,filename);
-      FormatString(windows->image.name,"GraphicsMagick: %.1024s[%lu]",filename,
-        display_image->scene);
+      FormatString(windows->image.name,"%s: %.1024s[%lu]",MagickPackageName,
+		   filename,display_image->scene);
       q=display_image;
       while (q->previous != (Image *) NULL)
         q=q->previous;
       for (count=1; q->next != (Image *) NULL; count++)
         q=q->next;
-      FormatString(windows->image.name,"GraphicsMagick: %.1024s[%lu of %lu]",
-        filename,display_image->scene,count);
+      FormatString(windows->image.name,"%s: %.1024s[%lu of %lu]",
+		   MagickPackageName,filename,display_image->scene+1U,count);
       if ((display_image->previous == (Image *) NULL) &&
           (display_image->next == (Image *) NULL) &&
           (display_image->scene == 0))
-        FormatString(windows->image.name,"GraphicsMagick: %.1024s",filename);
+        FormatString(windows->image.name,"%s: %.1024s",MagickPackageName,
+		     filename);
       (void) strlcpy(windows->image.icon_name,filename,MaxTextExtent);
     }
   if (resource_info->immutable)
@@ -12799,7 +12830,6 @@ MagickXDisplayImage(Display *display,MagickXResourceInfo *resource_info,
   */
   if (resource_info->delay > 1)
     display_image->delay=resource_info->delay;
-  timer=time((time_t *) NULL)+(long) display_image->delay/100+1;
   update_time=0;
   if (resource_info->update)
     {
@@ -12809,7 +12839,10 @@ MagickXDisplayImage(Display *display,MagickXResourceInfo *resource_info,
       status=MagickStat(display_image->filename,&file_info);
       if (status == 0)
         update_time=file_info.st_mtime;
+      if (resource_info->delay <= 1)
+          display_image->delay=resource_info->update*100;
     }
+  timer=time((time_t *) NULL)+(long) display_image->delay/100+1;
   *state&=(~FormerImageState);
   *state&=(~MontageImageState);
   *state&=(~NextImageState);
@@ -13830,8 +13863,14 @@ MagickXDisplayImage(Display *display,MagickXResourceInfo *resource_info,
   /*
     Change to home directory.
   */
-  (void) getcwd(working_directory,MaxTextExtent-1);
-  (void) chdir(resource_info->home_directory);
+  if (getcwd(working_directory,MaxTextExtent-1) == NULL)
+    MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                     NULL);
+  if (chdir(resource_info->home_directory) != 0)
+    {
+      MagickFatalError(ConfigureFatalError,UnableToRestoreCurrentDirectory,
+                       resource_info->home_directory);
+    }
   *image=display_image;
   return(nexus);
 }

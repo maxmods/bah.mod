@@ -40,18 +40,6 @@
 #include "magick/pixel_iterator.h"
 #include "magick/utility.h"
 
-/* Assign value of attribute to double if attribute exists for key */
-#define MagickAttributeToDouble(image,key,variable) \
-{ \
-    const ImageAttribute \
-      *attribute; \
-\
-  if ((attribute=GetImageAttribute(image,key))) \
-  { \
-    variable=strtod(attribute->value,(char **) NULL); \
-  } \
-}
-
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %

@@ -1130,7 +1130,9 @@ MagickXAnimateImages(Display *display,
   windows=MagickXSetWindows((MagickXWindows *) ~0);
   if (windows != (MagickXWindows *) NULL)
     {
-      (void) chdir(working_directory);
+      if (chdir(working_directory) != 0)
+        MagickFatalError(ConfigureFatalError,UnableToRestoreCurrentDirectory,
+                         NULL);
       monitor_handler=SetMonitorHandler(MagickXMagickMonitor);
       warning_handler=resource_info->display_warnings ?
         SetErrorHandler(MagickXWarning) : SetErrorHandler((ErrorHandler) NULL);
@@ -2558,8 +2560,12 @@ MagickXAnimateImages(Display *display,
   /*
     Change to home directory.
   */
-  (void) getcwd(working_directory,MaxTextExtent-1);
-  (void) chdir(resource_info->home_directory);
+  if (getcwd(working_directory,MaxTextExtent-1) == NULL)
+    MagickFatalError(ConfigureFatalError,UnableToGetCurrentDirectory,
+                     NULL);
+  if (chdir(resource_info->home_directory) != 0)
+    MagickFatalError(ConfigureFatalError,UnableToRestoreCurrentDirectory,
+                     resource_info->home_directory);
   return(nexus);
 }
 #endif

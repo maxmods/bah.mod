@@ -1,6 +1,6 @@
 // This may look like C code, but it is really -*- C++ -*-
 //
-// Copyright Bob Friesenhahn, 1999, 2000, 2001, 2002, 2003, 2004, 2009
+// Copyright Bob Friesenhahn, 1999 - 2012
 //
 // Definition of Image, the representation of a single image in Magick++
 //
@@ -629,6 +629,9 @@ namespace Magick
     // Create an image which appears in stereo when viewed with
     // red-blue glasses (Red image on left, blue on right)
     void            stereo ( const Image &rightImage_ );
+
+    // Remove all profiles and text attributes from the image.
+    void            strip ( void );
     
     // Swirl image (image pixels are rotated by degrees)
     void            swirl ( const double degrees_ );

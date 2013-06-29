@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -139,6 +139,7 @@ ModuleExport void RegisterMPRImage(void)
   entry->description="Magick Persistent Registry";
   entry->module="MPR";
   entry->coder_class=PrimaryCoderClass;
+  entry->extension_treatment=IgnoreExtensionTreatment;
   (void) RegisterMagickInfo(entry);
 
   entry=SetMagickInfo("MPRI");
@@ -150,6 +151,7 @@ ModuleExport void RegisterMPRImage(void)
   entry->description="Magick Persistent Registry";
   entry->module="MPRI";
   entry->coder_class=PrimaryCoderClass;
+  entry->extension_treatment=IgnoreExtensionTreatment;
   (void) RegisterMagickInfo(entry);
 }
 

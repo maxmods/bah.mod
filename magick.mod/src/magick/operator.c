@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2004 - 2009 GraphicsMagick Group
+% Copyright (C) 2004 - 2012 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -90,9 +90,10 @@ typedef struct _ChannelOptions_t
 %        LShiftQuantumOp, MultiplyQuantumOp,  NegateQuantumOp,
 %        NoiseGaussianQuantumOp, NoiseImpulseQuantumOp,
 %        NoiseLaplacianQuantumOp, NoiseMultiplicativeQuantumOp,
-%        NoisePoissonQuantumOp, NoiseUniformQuantumOp, OrQuantumOp,
-%        RShiftQuantumOp, SubtractQuantumOp, ThresholdBlackQuantumOp,
-%        ThresholdQuantumOp, ThresholdWhiteQuantumOp, XorQuantumOp).
+%        NoisePoissonQuantumOp, NoiseRandomQuantumOp, NoiseUniformQuantumOp,
+%        OrQuantumOp, RShiftQuantumOp, SubtractQuantumOp,
+%        ThresholdBlackQuantumOp, ThresholdQuantumOp, ThresholdWhiteQuantumOp,
+%        XorQuantumOp).
 %
 %    o rvalue: Operator argument.
 %
@@ -301,9 +302,10 @@ QuantumOperatorImageMultivalue(Image *image,
 %        LShiftQuantumOp, MultiplyQuantumOp,  NegateQuantumOp,
 %        NoiseGaussianQuantumOp, NoiseImpulseQuantumOp,
 %        NoiseLaplacianQuantumOp, NoiseMultiplicativeQuantumOp,
-%        NoisePoissonQuantumOp, NoiseUniformQuantumOp, OrQuantumOp,
-%        RShiftQuantumOp, SubtractQuantumOp, ThresholdBlackQuantumOp,
-%        ThresholdQuantumOp, ThresholdWhiteQuantumOp, XorQuantumOp).
+%        NoisePoissonQuantumOp, NoiseRandomQuantumOp, NoiseUniformQuantumOp,
+%        OrQuantumOp, RShiftQuantumOp, SubtractQuantumOp,
+%        ThresholdBlackQuantumOp, ThresholdQuantumOp, ThresholdWhiteQuantumOp,
+%        XorQuantumOp).
 %
 %    o rvalue: Operator argument.
 %
@@ -1437,6 +1439,21 @@ QuantumNoisePoissonCB(void *mutable_data,
   return
     QuantumNoiseCB(mutable_data,immutable_data,image,pixels,indexes,npixels,exception,PoissonNoise);
 }
+
+
+static MagickPassFail
+QuantumNoiseRandomCB(void *mutable_data,
+		     const void *immutable_data,
+                      Image *image,
+                      PixelPacket *pixels,
+                      IndexPacket *indexes,
+                      const long npixels,
+                      ExceptionInfo *exception)
+{
+  return
+    QuantumNoiseCB(mutable_data,immutable_data,image,pixels,indexes,npixels,exception,RandomNoise);
+}
+
 static MagickPassFail
 QuantumNoiseUniformCB(void *mutable_data,
                       const void *immutable_data,
@@ -2192,6 +2209,9 @@ QuantumOperatorRegionImage(Image *image,
       break;
     case PowQuantumOp:
       call_back=QuantumPowCB;
+      break;
+    case NoiseRandomQuantumOp:
+      call_back=QuantumNoiseRandomCB;
       break;
     }
 

@@ -583,21 +583,16 @@ static char* hexvals[] =
     "F0","F1","F2","F3","F4","F5","F6","F7","F8","F9","FA","FB",
     "FC","FD","FE","FF",NULL
   };
-static inline char *AppendHexVal(char *q,unsigned int val)
+static inline char *AppendHexVal(char *q,unsigned char val)
 {
-  char
-    *hexval;
-
-  assert(val < 256);
-  hexval=hexvals[val];
-  *q++=*hexval++;
-  *q++=*hexval++;
+  *q++=*(hexvals[val]);
+  *q++=*(hexvals[val]+1);
   return q;
 }
 static inline char* AppendHexTriplet(char *q,
-                                     unsigned int a,
-                                     unsigned int b,
-                                     unsigned int c)
+                                     unsigned char a,
+                                     unsigned char b,
+                                     unsigned char c)
 {
   q=AppendHexVal(q,a);
   q=AppendHexVal(q,b);

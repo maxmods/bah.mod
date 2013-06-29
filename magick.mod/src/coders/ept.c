@@ -584,7 +584,7 @@ static unsigned int WriteEPTImage(const ImageInfo *image_info,Image *image)
       FormatString(image->filename,"%s:%.1024s",subformat,ps_filename);
       if (logging)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Writing temporary EPS file \"%s\"",ps_filename);
+			      "Writing temporary EPS file \"%s\"",ps_filename);
       (void) WriteImage(image_info,image);
     }
   /*
@@ -600,89 +600,109 @@ static unsigned int WriteEPTImage(const ImageInfo *image_info,Image *image)
   image->compression=RLECompression;
   if (logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-      "Writing temporary TIFF preview file \"%s\"",tiff_filename);
+			  "Writing temporary TIFF preview file \"%s\"",tiff_filename);
   (void) WriteImage(image_info,image);
   /*
     Write EPT image.
   */
   (void) strlcpy(image->filename,filename,MaxTextExtent);
-  status=OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception);
-  ps_file=fopen(ps_filename,"rb");
-  status&=ps_file != (FILE *) NULL;
-  if (logging && (ps_file == 0))
-    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-       "Failed to open \"%s\" for read",ps_filename);
-  tiff_file=fopen(tiff_filename,"rb");
-  if (logging && (tiff_file == 0))
-    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-      "Failed to open \"%s\" for read",tiff_filename);
-  status&=tiff_file != (FILE *) NULL;
-  if (status != False)
+  status=MagickFail;
+  if (OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception) != MagickFail)
     {
-      int
-        c;
+      if ((ps_file=fopen(ps_filename,"rb")) != (FILE *) NULL)
+	{
+	  if ((tiff_file=fopen(tiff_filename,"rb")) != (FILE *) NULL)
+	    {
+	      int
+		c;
 
-      struct stat
-        attributes;
+	      struct stat
+		attributes;
 
-      /*
-        Write EPT image.
-      */
+	      /*
+		Write EPT image.
+	      */
 
-      /* MS-DOS EPS binary file magic signature */
-      (void) WriteBlobLSBLong(image,0xc6d3d0c5ul);
-      /* Byte position in file for start of Postscript language code
-         section */
-      (void) WriteBlobLSBLong(image,30);
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "EPS section offset is %lu bytes",(unsigned long) 30);
-      /* Byte length of PostScript language section. */
-      attributes.st_size=0;
-      (void) fstat(fileno(ps_file),&attributes);
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "EPS section is %lu bytes long",(unsigned long)attributes.st_size);
-      (void) WriteBlobLSBLong(image,(unsigned long) attributes.st_size);
-      /* Byte position in file for start of Metafile screen
-         representation (none provided). */
-      (void) WriteBlobLSBLong(image,0);
-      /* Byte length of Metafile section (PSize). (none provided) */
-      (void) WriteBlobLSBLong(image,0);
-      /* Byte position of TIFF representation. */
-      (void) WriteBlobLSBLong(image,(unsigned long) attributes.st_size+30);
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "TIFF section offset is %lu bytes",(unsigned long) attributes.st_size+30);
-      /* Byte length of TIFF section. */
-      (void) fstat(fileno(tiff_file),&attributes);
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "TIFF section is %lu bytes long",(unsigned long) attributes.st_size);
-      (void) WriteBlobLSBLong(image,(long) attributes.st_size);
-      /* Checksum of header (XOR of bytes 0-27). If Checksum is FFFF
-         then ignore it. This is lazy code. */
-      (void) WriteBlobLSBShort(image,0xffff);
-      /* EPS section */
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Writing EPS section at offset %ld",(long) TellBlob(image));
-      for (c=fgetc(ps_file); c != EOF; c=fgetc(ps_file))
-        (void) WriteBlobByte(image,c);
-      /* TIFF section */
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Writing TIFF section at offset %ld",(long) TellBlob(image));
-      for (c=fgetc(tiff_file); c != EOF; c=fgetc(tiff_file))
-        (void) WriteBlobByte(image,c);
+	      /* MS-DOS EPS binary file magic signature */
+	      (void) WriteBlobLSBLong(image,0xc6d3d0c5ul);
+	      /* Byte position in file for start of Postscript language code
+		 section */
+	      (void) WriteBlobLSBLong(image,30);
+	      if (logging)
+		(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				      "EPS section offset is %lu bytes",(unsigned long) 30);
+	      /* Byte length of PostScript language section. */
+	      attributes.st_size=0;
+	      (void) fstat(fileno(ps_file),&attributes);
+	      if (logging)
+		(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				      "EPS section is %lu bytes long",
+				      (unsigned long)attributes.st_size);
+	      (void) WriteBlobLSBLong(image,(unsigned long) attributes.st_size);
+	      /* Byte position in file for start of Metafile screen
+		 representation (none provided). */
+	      (void) WriteBlobLSBLong(image,0);
+	      /* Byte length of Metafile section (PSize). (none provided) */
+	      (void) WriteBlobLSBLong(image,0);
+	      /* Byte position of TIFF representation. */
+	      (void) WriteBlobLSBLong(image,(unsigned long) attributes.st_size+30);
+	      if (logging)
+		(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				      "TIFF section offset is %lu bytes",
+				      (unsigned long) attributes.st_size+30);
+	      /* Byte length of TIFF section. */
+	      (void) fstat(fileno(tiff_file),&attributes);
+	      if (logging)
+		(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				      "TIFF section is %lu bytes long",
+				      (unsigned long) attributes.st_size);
+	      (void) WriteBlobLSBLong(image,(long) attributes.st_size);
+	      /* Checksum of header (XOR of bytes 0-27). If Checksum is FFFF
+		 then ignore it. This is lazy code. */
+	      (void) WriteBlobLSBShort(image,0xffff);
+	      /* EPS section */
+	      if (logging)
+		(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				      "Writing EPS section at offset %ld",
+				      (long) TellBlob(image));
+	      for (c=fgetc(ps_file); c != EOF; c=fgetc(ps_file))
+		(void) WriteBlobByte(image,c);
+	      /* TIFF section */
+	      if (logging)
+		(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				      "Writing TIFF section at offset %ld",
+				      (long) TellBlob(image));
+	      for (c=fgetc(tiff_file); c != EOF; c=fgetc(tiff_file))
+		(void) WriteBlobByte(image,c);
+	      (void) fclose(tiff_file);
+	      status=MagickPass;
+	    }
+	  else
+	    {
+	      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				    "Failed to open \"%s\" for read",
+				    tiff_filename);
+	    }
+	  (void) fclose(ps_file);
+	}
+      else
+	{
+	  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"Failed to open \"%s\" for read",ps_filename);
+	}
+
       CloseBlob(image);
     }
-  (void) fclose(ps_file);
-  (void) fclose(tiff_file);
+  else
+    {
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"Failed to open \"%s\" for write",
+			    image->filename);
+    }
   if (LocaleCompare(image_info->magick,"EPS") != 0)
     (void) LiberateTemporaryFile(ps_filename);
   (void) LiberateTemporaryFile(tiff_filename);
-  if (status == False)
+  if (status == MagickFail)
     ThrowWriterException(FileOpenError,UnableToOpenFile,image);
-  return(True);
+  return(MagickPass);
 }

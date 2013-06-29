@@ -1,6 +1,6 @@
 // This may look like C code, but it is really -*- C++ -*-
 //
-// Copyright Bob Friesenhahn, 1999, 2002, 2009
+// Copyright Bob Friesenhahn, 1999 - 2012
 //
 // Implementation of STL classes and functions
 //
@@ -943,6 +943,15 @@ Magick::swirlImage::swirlImage( const double degrees_ )
 void Magick::swirlImage::operator()( Magick::Image &image_ ) const
 {
   image_.swirl( _degrees );
+}
+
+// Remove all profiles and text attributes from the image.
+Magick::stripImage::stripImage( void )
+{
+}
+void Magick::stripImage::operator()( Magick::Image &image_ ) const
+{
+  image_.strip( );
 }
 
 // Channel a texture on image background

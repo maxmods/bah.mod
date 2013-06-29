@@ -117,7 +117,7 @@ MagickExport Image *AverageImages(const Image *image,ExceptionInfo *exception)
   number_scenes=(double) GetImageListLength(image);
   last_image=GetLastImageInList(image);
 #if defined(HAVE_OPENMP)
-#  pragma omp parallel for schedule(dynamic) shared(row_count, status)
+#  pragma omp parallel for schedule(static) shared(row_count, status)
 #endif
   for (y=0; y < (long) image->rows; y++)
     {
@@ -136,6 +136,9 @@ MagickExport Image *AverageImages(const Image *image,ExceptionInfo *exception)
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_AverageImages)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;

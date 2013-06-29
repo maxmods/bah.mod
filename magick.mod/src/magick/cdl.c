@@ -211,7 +211,11 @@ MagickExport MagickPassFail CdlImage(Image *image,const char *cdl)
       if (lut != (PixelPacket *) NULL)
 	{
 #if (MaxMap > 256) && defined(HAVE_OPENMP)
-#  pragma omp parallel for schedule(guided)
+#  if defined(USE_STATIC_SCHEDULING_ONLY)
+#    pragma omp parallel for schedule(static,4)
+#  else
+#    pragma omp parallel for schedule(guided)
+#  endif
 #endif
 	  for (i=0; i <= (long) MaxMap; i++)
 	    {

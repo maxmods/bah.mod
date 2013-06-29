@@ -962,12 +962,14 @@ static Image *ReadPSDImage(const ImageInfo *image_info,ExceptionInfo *exception)
 
               combinedlength += length + 1;
 
-              // layer name, including length byte, is padded to multiple of 4 bytes
-              // skip over padding
-              //padBytes = ((length + 1 + 3) & ~3) - (length + 1);
-			  //for (j=0; j < padBytes; j++)
-			  //	ReadBlobByte(image);
-
+              /*
+                layer name, including length byte, is padded to
+                multiple of 4 bytes skip over padding
+              */
+              /* padBytes = ((length + 1 + 3) & ~3) - (length + 1); */
+              /* for (j=0; j < padBytes; j++) */
+              /*   ReadBlobByte(image); */
+              
 #if 0  /* still in development */
               /*
                 Adjustment layers and other stuff...
@@ -1278,7 +1280,7 @@ static Image *ReadPSDImage(const ImageInfo *image_info,ExceptionInfo *exception)
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                                     "  putting layers into image list");
             }
-          // omit any 0x0 sized layers from the list, as they break compositing
+          /* omit any 0x0 sized layers from the list, as they break compositing */
           for (i=0; i < number_layers; i++)
             if(layer_info[i].page.height > 0 && layer_info[i].page.width > 0)
             {

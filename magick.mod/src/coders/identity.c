@@ -86,7 +86,7 @@ static Image *ReadIdentityImage(const ImageInfo *image_info,
   image=(Image *) NULL;
   order=8;
   if (image_info->filename[0] != '\0')
-    order=atol(image_info->filename);
+    order=MagickAtoL(image_info->filename);
   if (order < 2)
     order=8;
   
@@ -95,7 +95,11 @@ static Image *ReadIdentityImage(const ImageInfo *image_info,
   image->columns=image->rows=order*order*order;
 
 #if defined(HAVE_OPENMP)
-#  pragma omp parallel for shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) image->rows; y += order)
     {
@@ -105,6 +109,9 @@ static Image *ReadIdentityImage(const ImageInfo *image_info,
       register PixelPacket
         *q;
 
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_IdentityImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -144,7 +151,7 @@ static Image *ReadIdentityImage(const ImageInfo *image_info,
         }
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical (GM_GradientImage)
+#  pragma omp critical (GM_IdentityImage)
 #endif
       {
         row_count++;

@@ -179,12 +179,11 @@ DONE_READING:
 %    o image:  A pointer to an Image structure.
 %
 */
-static unsigned int WriteARTImage(const ImageInfo *image_info,Image *image)
+static MagickPassFail WriteARTImage(const ImageInfo *image_info,Image *image)
 {
   long y;
   unsigned dummy = 0;
-  long DataSize;
-  const PixelPacket *q;
+  size_t DataSize;
   unsigned int status;
   unsigned char Padding;
   int logging;
@@ -199,7 +198,7 @@ static unsigned int WriteARTImage(const ImageInfo *image_info,Image *image)
   assert(image->signature == MagickSignature);
   logging=LogMagickEvent(CoderEvent,GetMagickModule(),"enter ART");
   status=OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception);
-  if (status == False)
+  if (status == MagickFail)
     ThrowWriterException(FileOpenError,UnableToOpenFile,image);
 
   DataSize = (long)((image->columns+7) / 8);
@@ -222,13 +221,28 @@ static unsigned int WriteARTImage(const ImageInfo *image_info,Image *image)
   */
   for(y=0; y<(long)image->rows; y++)
   {
-    q = AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
-    (void)ExportImagePixelArea(image,GrayQuantum,1,pixels,0,0);
-    (void)WriteBlob(image,DataSize,pixels);
-    (void)WriteBlob(image,Padding,(char *)&dummy);
+    if (AcquireImagePixels(image,0,y,image->columns,1,&image->exception)
+	== (const PixelPacket *) NULL)
+      {
+	status=MagickFail;
+	break;
+      }
+    if (ExportImagePixelArea(image,GrayQuantum,1,pixels,0,0) != MagickPass)
+      {
+	status=MagickFail;
+	break;
+      }
+    if (WriteBlob(image,DataSize,pixels) != DataSize)
+      {
+	status=MagickFail;
+	break;
+      }
+    if (WriteBlob(image,Padding,(char *)&dummy) != Padding)
+      {
+	status=MagickFail;
+	break;
+      }
   }
-
-  status=True;
 
   CloseBlob(image);
   MagickFreeMemory(pixels);

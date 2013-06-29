@@ -1,6 +1,6 @@
 // This may look like C code, but it is really -*- C++ -*-
 //
-// Copyright Bob Friesenhahn, 1999, 2000, 2001, 2002, 2003, 2004, 2009
+// Copyright Bob Friesenhahn, 1999 - 2012
 //
 // Definition and implementation of template functions for using
 // Magick::Image with STL containers.
@@ -1032,6 +1032,17 @@ namespace Magick
 
   private:
     double _degrees;
+  };
+
+  // Remove all profiles and text attributes from the image.
+  class MagickDLLDecl stripImage : public std::unary_function<Image&,void>
+  {
+  public:
+    stripImage( void );
+
+    void operator()( Image &image_ ) const;
+
+  private:
   };
 
   // Channel a texture on image background
@@ -2318,6 +2329,12 @@ namespace Magick
   }
 
   // Write Images
+  //
+  // If an attribute is not supported as an explicit argument
+  // (e.g. 'magick'), then the attribute must be set on the involved
+  // images in the container prior to invoking writeImages() since
+  // attributes from the individual images are the ones which are
+  // used.
   template <class InputIterator>
   void writeImages( InputIterator first_,
 		    InputIterator last_,
@@ -2337,11 +2354,20 @@ namespace Magick
     unlinkImages( first_, last_ );
 
     if ( errorStat != false )
-      return;
+      {
+	MagickLib::DestroyExceptionInfo( &exceptionInfo );
+	return;
+      }
 
     throwException( exceptionInfo );
   }
   // Write images to BLOB
+  // 
+  // If an attribute is not supported as an explicit argument
+  // (e.g. 'magick'), then the attribute must be set on the involved
+  // images in the container prior to invoking writeImages() since
+  // attributes from the individual images are the ones which are
+  // used.
   template <class InputIterator>
   void writeImages( InputIterator first_,
 		    InputIterator last_,

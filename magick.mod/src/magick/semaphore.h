@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003-2010 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -20,12 +20,11 @@ typedef struct _SemaphoreInfo SemaphoreInfo;
 extern MagickExport SemaphoreInfo
   *AllocateSemaphoreInfo(void);
 
-extern MagickExport unsigned int
+extern MagickExport void
+  DestroySemaphoreInfo(SemaphoreInfo **),
   LockSemaphoreInfo(SemaphoreInfo *),
   UnlockSemaphoreInfo(SemaphoreInfo *);
 
-extern MagickExport void
-  DestroySemaphoreInfo(SemaphoreInfo **);
 
 /*
   These are deprecated.
@@ -46,3 +45,11 @@ extern MagickExport void
 #endif
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

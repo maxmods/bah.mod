@@ -870,8 +870,7 @@ static Image *ReadWPGImage(const ImageInfo *image_info,
 
   int
     i,
-    bpp,
-    WPG2Flags;
+    bpp;
 
   int logging;
 
@@ -1292,7 +1291,7 @@ static Image *ReadWPGImage(const ImageInfo *image_info,
               break;
 
 	    case 0x1B:          /*bitmap rectangle*/
-              WPG2Flags = LoadWPG2Flags(image,StartWPG.PosSizePrecision,NULL,&CTM);
+              (void) LoadWPG2Flags(image,StartWPG.PosSizePrecision,NULL,&CTM); /* WPG2Flags */
               break;
             }
         }
@@ -1301,8 +1300,8 @@ static Image *ReadWPGImage(const ImageInfo *image_info,
 
     default:
       {
-        ThrowReaderException(CoderError,DataEncodingSchemeIsNotSupported,image)
-          }
+        ThrowReaderException(CoderError,DataEncodingSchemeIsNotSupported,image);
+      }
     }
 
  Finish:

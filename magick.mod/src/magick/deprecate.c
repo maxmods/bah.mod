@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2007, 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -39,6 +39,23 @@
 #include "magick/pixel_cache.h"
 #include "magick/utility.h"
 #include "magick/deprecate.h"
+
+#undef LoadImageText
+#undef SaveImageText
+#undef LoadImagesText
+#undef SaveImagesText
+
+extern MagickExport const char
+  *LoadImageText,
+  *LoadImagesText,
+  *SaveImageText,
+  *SaveImagesText;
+
+const char
+  *LoadImageText = "[%s] Loading image: %lux%lu...  ",
+  *LoadImagesText = "[%s] Loading images...  ",
+  *SaveImageText = "[%s] Saving image: %lux%lu...  ",
+  *SaveImagesText = "[%s] Saving images...  ";
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

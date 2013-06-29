@@ -46,8 +46,32 @@ extern MagickExport MagickPassFail
 extern MagickExport void
   DestroyImageAttributes(Image *image);
 
+#if defined(MAGICK_IMPLEMENTATION)
+
+/* Assign value of attribute to double if attribute exists for key */
+#define MagickAttributeToDouble(image,key,variable) \
+{ \
+    const ImageAttribute \
+      *attribute; \
+\
+  if ((attribute=GetImageAttribute(image,key))) \
+  { \
+    variable=strtod(attribute->value,(char **) NULL); \
+  } \
+}
+
+#endif /* defined(MAGICK_IMPLEMENTATION) */
+
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

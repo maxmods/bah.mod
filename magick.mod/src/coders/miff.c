@@ -647,8 +647,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
     *image;
 
   int
-    c,
-    code;
+    c;
 
   size_t
     length;
@@ -714,7 +713,6 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
       DestroyImage(image);
       return((Image *) NULL);
     }
-  code=0;
   *id='\0';
   version=0.0;
   do
@@ -782,9 +780,9 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               if ((p-keyword) < (MaxTextExtent-1))
                 *p++=c;
               c=ReadBlobByte(image);
-            } while (isalnum(c) || (c == '-'));
+            } while ((isalnum(c) || (c == '-')) && (c != EOF));
             *p='\0';
-            while (isspace(c) || (c == '='))
+            while ((isspace(c) || (c == '=')) && (c != EOF))
               c=ReadBlobByte(image);
             p=values;
             while ((c != '}') && (c != EOF))
@@ -855,7 +853,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
                   }
                 if (LocaleCompare(keyword,"colors") == 0)
                   {
-                    colors=atol(values);
+                    colors=MagickAtoL(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"colorspace") == 0)
@@ -882,7 +880,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
                   }
                 if (LocaleCompare(keyword,"columns") == 0)
                   {
-                    image->columns= atol(values);
+                    image->columns= MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -894,17 +892,17 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               {
                 if (LocaleCompare(keyword,"delay") == 0)
                   {
-                    image->delay=atol(values);
+                    image->delay=MagickAtoL(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"depth") == 0)
                   {
-                    image->depth=atol(values);
+                    image->depth=MagickAtoL(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"dispose") == 0)
                   {
-                    image->dispose=(DisposeType) atol(values);
+                    image->dispose=(DisposeType) MagickAtoL(values);
                     if (LocaleCompare(values,"Background") == 0)
                       image->dispose=BackgroundDispose;
                     else
@@ -924,7 +922,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               {
                 if (LocaleCompare(keyword,"gamma") == 0)
                   {
-                    image->gamma=atof(values);
+                    image->gamma=MagickAtoF(values);
                     break;
                   }
                 if (LocaleCompare(keyword,"green-primary") == 0)
@@ -948,7 +946,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
                   }
                 if (LocaleCompare(keyword,"iterations") == 0)
                   {
-                    image->iterations=atol(values);
+                    image->iterations=MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -1013,7 +1011,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
                     if (profiles == (ProfileInfo *) NULL)
                       ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
                     profiles[i].name=AllocateString(keyword+8);
-                    profiles[i].length=atol(values);
+                    profiles[i].length=MagickAtoL(values);
                     profiles[i].info=(unsigned char *) NULL;
                     number_of_profiles++;
                     break;
@@ -1056,7 +1054,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
                   }
                 if (LocaleCompare(keyword,"rows") == 0)
                   {
-                    image->rows= atol(values);
+                    image->rows= MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -1068,7 +1066,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               {
                 if (LocaleCompare(keyword,"scene") == 0)
                   {
-                    image->scene=atol(values);
+                    image->scene=MagickAtoL(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -1097,7 +1095,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               {
                 if (LocaleCompare(keyword,"version") == 0)
                   {
-                    version=atof(values);
+                    version=MagickAtoF(values);
                     break;
                   }
                 (void) SetImageAttribute(image,keyword,
@@ -1135,9 +1133,9 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
     (void) ReadBlobByte(image);
 
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                          "id=\"%s\" class=%s compression=%s matte=%s "
+                          "id=\"%s\" version=%g class=%s compression=%s matte=%s "
 			  "columns=%lu rows=%lu depth=%u",
-                          id,ClassTypeToString(image->storage_class),
+                          id,version,ClassTypeToString(image->storage_class),
                           CompressionTypeToString(image->compression),
                           MagickBoolToString(image->matte),
                           image->columns, image->rows, image->depth);
@@ -1331,6 +1329,9 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
 #if defined(HasZLIB)
       case ZipCompression:
         {
+	  int
+	    code=0;
+
           for (y=0; y < (long) image->rows; y++)
             {
               q=SetImagePixels(image,0,y,image->columns,1);
@@ -1384,6 +1385,9 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
 #if defined(HasBZLIB)
       case BZipCompression:
         {
+	  int
+	    code=0;
+
           for (y=0; y < (long) image->rows; y++)
             {
               q=SetImagePixels(image,0,y,image->columns,1);
@@ -1590,6 +1594,7 @@ ModuleExport void RegisterMIFFImage(void)
   entry->encoder=(EncoderHandler) WriteMIFFImage;
   entry->magick=(MagickHandler) IsMIFF;
   entry->description="Magick Image File Format";
+  entry->seekable_stream=MagickTrue;
   if (*version != '\0')
     entry->version=version;
   entry->module="MIFF";
@@ -1795,9 +1800,6 @@ static unsigned int WriteMIFFImage(const ImageInfo *image_info,Image *image)
   IndexPacket
     index;
 
-  int
-    code;
-
   long
     y;
 
@@ -1865,7 +1867,6 @@ static unsigned int WriteMIFFImage(const ImageInfo *image_info,Image *image)
   compression=image->compression;
   if (image_info->compression != UndefinedCompression)
     compression=image_info->compression;
-  code=0;
   scene=0;
   do
   {
@@ -2247,6 +2248,9 @@ static unsigned int WriteMIFFImage(const ImageInfo *image_info,Image *image)
 #if defined(HasZLIB)
         case ZipCompression:
         {
+	  int
+	    code;
+
           if (y == 0)
             {
               zip_info.zalloc=ZLIBAllocFunc;
@@ -2293,6 +2297,9 @@ static unsigned int WriteMIFFImage(const ImageInfo *image_info,Image *image)
 #if defined(HasBZLIB)
         case BZipCompression:
         {
+	  int
+	    code;
+
           if (y == 0)
             {
               bzip_info.bzalloc=NULL;

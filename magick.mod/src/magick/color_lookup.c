@@ -1344,7 +1344,13 @@ QueryColorname(const Image *image,const PixelPacket *color,
   register const ColorInfo
     *p;
 
+  MagickBool
+    matte;
+
   *name='\0';
+  matte=image->matte;
+  if (compliance == XPMCompliance)
+    matte=MagickFalse;
   p=GetColorInfo("*",exception);
   if (p != (const ColorInfo *) NULL)
     {
@@ -1360,7 +1366,7 @@ QueryColorname(const Image *image,const PixelPacket *color,
         return(True);
       }
     }
-  GetColorTuple(color,image->depth,image->matte,True,name);
+  GetColorTuple(color,image->depth,matte,True,name);
   return(False);
 }
 
@@ -1600,7 +1606,7 @@ ReadColorConfigureFile(const char *basename,
 	      {
 		if (LocaleCompare((char *) keyword,"blue") == 0)
 		  {
-		    color_list->color.blue=ScaleCharToQuantum(atol(token));
+		    color_list->color.blue=ScaleCharToQuantum(MagickAtoL(token));
 		    break;
 		  }
 		break;
@@ -1630,7 +1636,7 @@ ReadColorConfigureFile(const char *basename,
 	      {
 		if (LocaleCompare((char *) keyword,"green") == 0)
 		  {
-		    color_list->color.green=ScaleCharToQuantum(atol(token));
+		    color_list->color.green=ScaleCharToQuantum(MagickAtoL(token));
 		    break;
 		  }
 		break;
@@ -1650,7 +1656,7 @@ ReadColorConfigureFile(const char *basename,
 	      {
 		if (LocaleCompare((char *) keyword,"opacity") == 0)
 		  {
-		    color_list->color.opacity=ScaleCharToQuantum(atol(token));
+		    color_list->color.opacity=ScaleCharToQuantum(MagickAtoL(token));
 		    break;
 		  }
 		break;
@@ -1660,7 +1666,7 @@ ReadColorConfigureFile(const char *basename,
 	      {
 		if (LocaleCompare((char *) keyword,"red") == 0)
 		  {
-		    color_list->color.red=ScaleCharToQuantum(atol(token));
+		    color_list->color.red=ScaleCharToQuantum(MagickAtoL(token));
 		    break;
 		  }
 		break;

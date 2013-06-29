@@ -291,7 +291,7 @@ extern MagickExport WarningHandler
   (ThrowLoggedException(exception_,severity_,reason_,description_,\
     GetMagickModule()))
 
-/* Serverity and description IDs translated */
+/* Severity and description IDs translated */
 #    define ThrowException3(exception_,severity_,reason_,description_) \
   (ThrowLoggedException(exception_,severity_,GetLocaleMessageFromID(\
     MGK_##severity_##reason_),GetLocaleMessageFromID(\
@@ -470,3 +470,11 @@ do { \
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
 #endif /* !defined(_MAGICK_ERROR_H) */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

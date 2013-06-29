@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -51,11 +51,43 @@
 #include "magick/transform.h"
 #include "magick/utility.h"
 #if defined(HasLCMS)
-#if defined(HAVE_LCMS_LCMS_H)
-#include <lcms/lcms.h>
-#else
-#include "lcms.h"
+#  if defined(HAVE_LCMS2_LCMS2_H)
+#    include <lcms2/lcms2.h>
+#  elif defined(HAVE_LCMS2_H)
+#    include <lcms2.h>
+#  elif defined(HAVE_LCMS_LCMS_H)
+#    include <lcms/lcms.h>
+#  else
+#    include <lcms.h>
 #endif
+
+/* LCMS_VERSION was introduced in lcms 1.12 with value 112 */
+
+#if !defined(LCMS_VERSION) || (LCMS_VERSION < 2000)
+#  define cmsSigXYZData   icSigXYZData
+#  define cmsSigLabData   icSigLabData
+#  define cmsSigCmykData  icSigCmykData
+#  define cmsSigYCbCrData icSigYCbCrData
+#  define cmsSigLuvData   icSigLuvData
+#  define cmsSigGrayData  icSigGrayData
+#  define cmsSigRgbData   icSigRgbData
+
+#  define cmsFLAGS_NOOPTIMIZE cmsFLAGS_NOTPRECALC
+
+#  define cmsUInt32Number DWORD
+
+#  define cmsSetLogErrorHandler(handler) cmsSetErrorHandler(handler)
+
+#  define cmsCreateTransformTHR(context,source_profile,source_type, \
+				target_profile,target_type,intent,flags) \
+  cmsCreateTransform(source_profile,source_type,target_profile,target_type, \
+		     intent,flags);
+
+#  define cmsOpenProfileFromMemTHR(context,profile,length) \
+  cmsOpenProfileFromMem(profile,length)
+
+#endif /* !defined(LCMS_VERSION) || (LCMS_VERSION < 2000) */
+
 #endif
 
 /*
@@ -176,6 +208,7 @@ AppendImageProfile(Image *image,
       (void) memcpy(profile,existing_profile,existing_length);
       (void) memcpy(profile+existing_length,profile_chunk,chunk_length);
       status=SetImageProfile(image,name,profile,profile_length);
+      MagickFreeMemory(profile);
     }
 
   return status;
@@ -426,7 +459,66 @@ NextImageProfile(ImageProfileIterator profile_iterator,
 %
 */
 #if defined(HasLCMS)
-#if defined(LCMS_VERSION) && (LCMS_VERSION > 1010)
+
+typedef struct _ProfilePacket
+{
+  unsigned short
+    red,
+    green,
+    blue,
+    black;
+} ProfilePacket;
+
+typedef struct _TransformInfo
+{
+  Image           *image;             /* image handle */
+  cmsHPROFILE     source_profile;     /* input profile */
+  cmsHPROFILE     target_profile;     /* output profile */
+  cmsUInt32Number source_type;        /* input pixel format */
+  cmsUInt32Number target_type;        /* output pixel format */
+  int             intent;             /* rendering intent */
+  cmsUInt32Number flags;              /* create transform flags */
+  ThreadViewDataSet *transform;       /* Thread-specific transforms */
+  ColorspaceType  source_colorspace;  /* source image transform colorspace */
+  ColorspaceType  target_colorspace;  /* target image transform colorspace */
+  unsigned long   signature;          /* structure validation signature */
+} TransformInfo;
+
+#if defined(LCMS_VERSION) && (LCMS_VERSION >= 2000)
+/*
+  This version works with lcms 2.0 and later.
+*/
+static void
+lcmsReplacementErrorHandler(cmsContext ContextID, cmsUInt32Number ErrorCode, const char *ErrorText)
+{
+  TransformInfo
+    *xform;
+
+  ExceptionType
+    type=TransformError;
+
+  xform=(TransformInfo *) ContextID;
+
+  switch(ErrorCode)
+  {
+  default:
+    type=TransformWarning;
+    break;
+  }
+
+  (void) LogMagickEvent(type,GetMagickModule(),"lcms: #%u, %s",
+			ErrorCode,(ErrorText != (char *) NULL) ? ErrorText : "No error text");
+
+  if (xform != (TransformInfo *) NULL)
+    {
+      ThrowException2(&xform->image->exception,type,"UnableToTransformColorspace",
+		     (ErrorText != (char *) NULL) ? ErrorText : "No error text");
+    }
+}
+#else
+/*
+  This version works with lcms 1.1X versions starting with 1.11.
+*/
 static int
 lcmsReplacementErrorHandler(int ErrorCode, const char *ErrorText)
 {
@@ -448,30 +540,7 @@ lcmsReplacementErrorHandler(int ErrorCode, const char *ErrorText)
     ErrorCode,(ErrorText != (char *) NULL) ? ErrorText : "No error text");
   return 1; /* tells lcms that we handled the problem */
 }
-#endif /* LCMS_VERSION > 1010 */
-
-typedef struct _ProfilePacket
-{
-  unsigned short
-    red,
-    green,
-    blue,
-    black;
-} ProfilePacket;
-
-typedef struct _TransformInfo
-{
-  cmsHPROFILE     source_profile;     /* input profile */
-  cmsHPROFILE     target_profile;     /* output profile */
-  DWORD           source_type;        /* input pixel format */
-  DWORD           target_type;        /* output pixel format */
-  int             intent;             /* rendering intent */
-  DWORD           flags;              /* create transform flags */
-  //cmsHTRANSFORM   transform;          /* LCMS transform */
-  ThreadViewDataSet *transform;       /* Thread-specific transforms */
-  ColorspaceType  source_colorspace;  /* source image transform colorspace */
-  ColorspaceType  target_colorspace;  /* target image transform colorspace */
-} TransformInfo;
+#endif /* defined(LCMS_VERSION) && (LCMS_VERSION >= 2000) */
 
 static MagickPassFail
 ProfileImagePixels(void *mutable_data,         /* User provided mutable data */
@@ -588,16 +657,86 @@ const char *
     case PT_HSV:    result="HSV"   ; break;
     case PT_HLS:    result="HLS"   ; break;
     case PT_Yxy:    result="Yxy"   ; break;
+
+#if defined(PT_HiFi)
     case PT_HiFi:   result="HiFi"  ; break;
+#endif
+#if defined(PT_HiFi7)
     case PT_HiFi7:  result="HiFi7" ; break;
+#endif
+#if defined(PT_HiFi8)
     case PT_HiFi8:  result="HiFi8" ; break;
+#endif
+#if defined(PT_HiFi9)
     case PT_HiFi9:  result="HiFi9" ; break;
+#endif
+#if defined(PT_HiFi10)
     case PT_HiFi10: result="HiFi10"; break;
+#endif
+#if defined(PT_HiFi11)
     case PT_HiFi11: result="HiFi11"; break;
+#endif
+#if defined(PT_HiFi12)
     case PT_HiFi12: result="HiFi12"; break;
+#endif
+#if defined(PT_HiFi13)
     case PT_HiFi13: result="HiFi13"; break;
+#endif
+#if defined(PT_HiFi14)
     case PT_HiFi14: result="HiFi14"; break;
+#endif
+#if defined(PT_HiFi15)
     case PT_HiFi15: result="HiFi15"; break;
+#endif
+
+#if defined(PT_MCH1)
+    case PT_MCH1:   result="MCH1"  ; break;
+#endif
+#if defined(PT_MCH2)
+    case PT_MCH2:   result="MCH2"  ; break;
+#endif
+#if defined(PT_MCH3)
+    case PT_MCH3:   result="MCH3"  ; break;
+#endif
+#if defined(PT_MCH4)
+    case PT_MCH4:   result="MCH4"  ; break;
+#endif
+#if defined(PT_MCH5)
+    case PT_MCH5:   result="MCH5"  ; break;
+#endif
+#if defined(PT_MCH6)
+    case PT_MCH6:   result="MCH6"  ; break;
+#endif
+#if defined(PT_MCH7)
+    case PT_MCH7:   result="MCH7"  ; break;
+#endif
+#if defined(PT_MCH8)
+    case PT_MCH8:   result="MCH8"  ; break;
+#endif
+#if defined(PT_MCH9)
+    case PT_MCH9:   result="MCH9"  ; break;
+#endif
+#if defined(PT_MCH10)
+    case PT_MCH10:  result="MCH10" ; break;
+#endif
+#if defined(PT_MCH11)
+    case PT_MCH11:  result="MCH11" ; break;
+#endif
+#if defined(PT_MCH12)
+    case PT_MCH12:  result="MCH12" ; break;
+#endif
+#if defined(PT_MCH13)
+    case PT_MCH13:  result="MCH13" ; break;
+#endif
+#if defined(PT_MCH14)
+    case PT_MCH14:  result="MCH14" ; break;
+#endif
+#if defined(PT_MCH15)
+    case PT_MCH15:  result="MCH15" ; break;
+#endif
+#if defined(PT_LabV2)
+    case PT_LabV2:  result="LabV2" ; break;
+#endif
     }
 
   return result;
@@ -737,15 +876,17 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
           /*
             Transform pixel colors as defined by the color profiles.
           */
-#if defined(LCMS_VERSION) && (LCMS_VERSION > 1010)
-          cmsSetErrorHandler(lcmsReplacementErrorHandler);
-#else
-          (void) cmsErrorAction(LCMS_ERROR_SHOW);
-#endif
-          xform.source_profile=cmsOpenProfileFromMem((unsigned char *) existing_profile,
-						     existing_profile_length);
-          xform.target_profile=cmsOpenProfileFromMem((unsigned char *) profile,
-						     length);
+	  (void) memset(&xform,0,sizeof(xform));
+	  xform.signature=MagickSignature;
+	  xform.image=image;
+          cmsSetLogErrorHandler(lcmsReplacementErrorHandler);
+
+          xform.source_profile=cmsOpenProfileFromMemTHR((cmsContext) &xform,
+							(unsigned char *) existing_profile,
+							existing_profile_length);
+          xform.target_profile=cmsOpenProfileFromMemTHR((cmsContext) &xform,
+							(unsigned char *) profile,
+							length);
           if ((xform.source_profile == (cmsHPROFILE) NULL) ||
               (xform.target_profile == (cmsHPROFILE) NULL))
             ThrowBinaryException3(ResourceLimitError,UnableToManageColor,
@@ -753,43 +894,43 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
 
           switch (cmsGetColorSpace(xform.source_profile))
             {
-            case icSigXYZData:
+            case cmsSigXYZData:
               {
                 xform.source_colorspace=XYZColorspace;
                 xform.source_type=TYPE_XYZ_16;
                 break;
               }
-            case icSigLabData:
+            case cmsSigLabData:
               {
                 xform.source_colorspace=LABColorspace;
                 xform.source_type=TYPE_Lab_16;
                 break;
               }
-            case icSigCmykData:
+            case cmsSigCmykData:
               {
                 xform.source_colorspace=CMYKColorspace;
                 xform.source_type=TYPE_CMYK_16;
                 break;
               }
-            case icSigYCbCrData:
+            case cmsSigYCbCrData:
               {
                 xform.source_colorspace=YCbCrColorspace;
                 xform.source_type=TYPE_YCbCr_16;
                 break;
               }
-            case icSigLuvData:
+            case cmsSigLuvData:
               {
                 xform.source_colorspace=YUVColorspace;
                 xform.source_type=TYPE_YUV_16;
                 break;
               }
-            case icSigGrayData:
+            case cmsSigGrayData:
               {
                 xform.source_colorspace=GRAYColorspace;
                 xform.source_type=TYPE_GRAY_16;
                 break;
               }
-            case icSigRgbData:
+            case cmsSigRgbData:
               {
                 xform.source_colorspace=RGBColorspace;
                 xform.source_type=TYPE_RGB_16;
@@ -804,43 +945,43 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
             }
           switch (cmsGetColorSpace(xform.target_profile))
             {
-            case icSigXYZData:
+            case cmsSigXYZData:
               {
                 xform.target_colorspace=XYZColorspace;
                 xform.target_type=TYPE_XYZ_16;
                 break;
               }
-            case icSigLabData:
+            case cmsSigLabData:
               {
                 xform.target_colorspace=LABColorspace;
                 xform.target_type=TYPE_Lab_16;;
                 break;
               }
-            case icSigCmykData:
+            case cmsSigCmykData:
               {
                 xform.target_colorspace=CMYKColorspace;
                 xform.target_type=TYPE_CMYK_16;
                 break;
               }
-            case icSigYCbCrData:
+            case cmsSigYCbCrData:
               {
                 xform.target_colorspace=YCbCrColorspace;
                 xform.target_type=TYPE_YCbCr_16;
                 break;
               }
-            case icSigLuvData:
+            case cmsSigLuvData:
               {
                 xform.target_colorspace=YUVColorspace;
                 xform.target_type=TYPE_YUV_16;
                 break;
               }
-            case icSigGrayData:
+            case cmsSigGrayData:
               {
                 xform.target_colorspace=GRAYColorspace;
                 xform.target_type=TYPE_GRAY_16;
                 break;
               }
-            case icSigRgbData:
+            case cmsSigRgbData:
               {
                 xform.target_colorspace=RGBColorspace;
                 xform.target_type=TYPE_RGB_16;
@@ -963,7 +1104,7 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
              (xform.source_colorspace == xform.target_colorspace));
 
 	  /* build pre-computed transforms? */
-	  xform.flags=(transform_colormap ? cmsFLAGS_NOTPRECALC : 0);
+	  xform.flags=(transform_colormap ? cmsFLAGS_NOOPTIMIZE : 0);
 
 	  xform.transform=AllocateThreadViewDataSet(MagickFreeCMSTransform,
 						    image,&image->exception);
@@ -979,12 +1120,13 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
 
 	      for (index=0 ; index < GetThreadViewDataSetAllocatedViews(xform.transform); index++)
 		{
-		  transform=cmsCreateTransform(xform.source_profile, /* input profile */
-					       xform.source_type,    /* input pixel format */
-					       xform.target_profile, /* output profile */
-					       xform.target_type,    /* output pixel format */
-					       xform.intent,         /* rendering intent */
-					       xform.flags           /* pre-computed transforms? */
+		  transform=cmsCreateTransformTHR((cmsContext) &xform,/* transform handle */
+					       xform.source_profile,  /* input profile */
+					       xform.source_type,     /* input pixel format */
+					       xform.target_profile,  /* output profile */
+					       xform.target_type,     /* output pixel format */
+					       xform.intent,          /* rendering intent */
+					       xform.flags            /* pre-computed transforms? */
 					       );
 		  if (transform == (cmsHTRANSFORM) NULL)
 		    {

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -562,8 +562,14 @@ MagickExport void InitializeMagickResources(void)
 
 #if defined(HAVE_OPENMP)
     max_threads=omp_get_num_procs();
+    (void) LogMagickEvent(ResourceEvent,GetMagickModule(),
+			  "%i CPU cores are available",(int) max_threads);
     if ((envp=getenv("OMP_NUM_THREADS")))
-      max_threads=MagickSizeStrToInt64(envp,1024);
+      {
+	max_threads=MagickSizeStrToInt64(envp,1024);
+	(void) LogMagickEvent(ResourceEvent,GetMagickModule(),
+			      "OMP_NUM_THREADS requests %i threads",(int) max_threads);
+      }
     if (max_threads < 1)
       max_threads=1;
     omp_set_num_threads((int) max_threads);
@@ -811,7 +817,7 @@ MagickExport MagickPassFail ListMagickResourceInfo(FILE *file,
           FormatSize(resource_info[index].maximum,limit);
           strlcat(limit,resource_info[index].units,sizeof(limit));
         }
-      FormatString(heading,"%c%s",toupper(resource_info[index].name[0]),
+      FormatString(heading,"%c%s",toupper((int) resource_info[index].name[0]),
                    resource_info[index].name+1);
 
       (void) strlcpy(environment,resource_info[index].env,sizeof(environment));
@@ -879,6 +885,10 @@ MagickExport MagickPassFail SetMagickResourceLimit(const ResourceType type,
 
           FormatSize((magick_int64_t) limit, f_limit);
 	  info->maximum = limit;
+#if defined(HAVE_OPENMP)
+	  if (ThreadsResource == type)
+	    omp_set_num_threads((int) limit);
+#endif /* HAVE_OPENMP */
           (void) LogMagickEvent(ResourceEvent,GetMagickModule(),
                                 "Set %s resource limit to %s%s",
                                 info->name,f_limit,info->units);

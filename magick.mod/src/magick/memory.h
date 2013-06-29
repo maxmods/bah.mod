@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 - 2009 GraphicsMagick Group
+  Copyright (C) 2003-2012 GraphicsMagick Group
  
   This program is covered by multiple licenses, which are described in
   Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -14,23 +14,25 @@
 extern "C" {
 #endif
 
-typedef void *(*MagickMallocFunc)(size_t size);
+typedef void *(*MagickMallocFunc)(size_t size) MAGICK_FUNC_ALLOC_SIZE_1ARG(1);
 typedef void (*MagickFreeFunc)(void *ptr);
-typedef void *(*MagickReallocFunc)(void *ptr, size_t size);
+typedef void *(*MagickReallocFunc)(void *ptr, size_t size) MAGICK_FUNC_ALLOC_SIZE_1ARG(2);
 
 extern MagickExport void
    MagickAllocFunctions(MagickFreeFunc free_func,MagickMallocFunc malloc_func,
                         MagickReallocFunc realloc_func),
-  *MagickMalloc(const size_t size) MAGICK_FUNC_MALLOC,
-  *MagickMallocCleared(const size_t size) MAGICK_FUNC_MALLOC,
+  *MagickMalloc(const size_t size) MAGICK_FUNC_MALLOC MAGICK_FUNC_ALLOC_SIZE_1ARG(1),
+  *MagickMallocAligned(const size_t alignment, const size_t size) MAGICK_FUNC_MALLOC MAGICK_FUNC_ALLOC_SIZE_1ARG(2),
+  *MagickMallocCleared(const size_t size) MAGICK_FUNC_MALLOC MAGICK_FUNC_ALLOC_SIZE_1ARG(1),
   *MagickCloneMemory(void *destination,const void *source,const size_t size) MAGICK_FUNC_NONNULL,
-  *MagickRealloc(void *memory,const size_t size) MAGICK_FUNC_MALLOC,
-   MagickFree(void *memory);
+  *MagickRealloc(void *memory,const size_t size) MAGICK_FUNC_MALLOC MAGICK_FUNC_ALLOC_SIZE_1ARG(2),
+   MagickFree(void *memory),
+   MagickFreeAligned(void *memory);
 
 #if defined(MAGICK_IMPLEMENTATION)
 
 extern MagickExport void
-  *MagickMallocArray(const size_t count,const size_t size) MAGICK_FUNC_MALLOC;
+  *MagickMallocArray(const size_t count,const size_t size) MAGICK_FUNC_MALLOC MAGICK_FUNC_ALLOC_SIZE_2ARG(1,2);
 
 extern MagickExport size_t
   MagickArraySize(const size_t count,const size_t size);
@@ -39,7 +41,6 @@ extern MagickExport size_t
   Allocate memory
 */
 
-/* #define MagickAllocateMemory(type,size) ((type) MagickMalloc((size_t) (size))) */
 #define MagickAllocateMemory(type,size) \
   ((((size) != ((size_t) (size))) || (size == 0)) ? ((type) 0) : \
    ((type) MagickMalloc((size_t) (size))))
@@ -71,6 +72,24 @@ extern MagickExport size_t
     memory=(type) _magick_mp; \
 }
 
+/*
+  Allocate memory aligned to a specified alignment boundary
+*/
+#define MagickAllocateAlignedMemory(type,alignment,size)		\
+  ((((size) != ((size_t) (size))) || (size == 0)) ? ((type) 0) :	\
+   ((type) MAGICK_ASSUME_ALIGNED(MagickMallocAligned((size_t) alignment, (size_t) (size)),alignment)))
+
+/*
+  Free aligned memory (from MagickAllocateAlignedMemory()) and set pointer to
+  NULL
+*/
+#define MagickFreeAlignedMemory(memory)		\
+{						\
+  void *_magick_mp=memory;			\
+  MagickFreeAligned(_magick_mp);		\
+  memory=0;					\
+}
+
 #endif /* defined(MAGICK_IMPLEMENTATION) */
 
 #if defined(__cplusplus) || defined(c_plusplus)
@@ -78,3 +97,11 @@ extern MagickExport size_t
 #endif
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

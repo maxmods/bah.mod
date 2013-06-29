@@ -85,6 +85,8 @@
 static unsigned int
   WriteJP2Image(const ImageInfo *,Image *);
 #endif
+
+static MagickBool jasper_initialized=MagickFalse;
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -320,6 +322,17 @@ static Image *ReadJP2Image(const ImageInfo *image_info,
 
   unsigned int
     status;
+
+  /*
+    Initialize Jasper
+  */
+#if defined(HasJP2)
+  if (!jasper_initialized)
+    {
+      jas_init();
+      jasper_initialized=MagickTrue;
+    }
+#endif
 
   /*
     Open image file.
@@ -724,13 +737,6 @@ ModuleExport void RegisterJP2Image(void)
 #endif
   entry->coder_class=StableCoderClass;
   (void) RegisterMagickInfo(entry);
-
-  /*
-    Initialize Jasper
-  */
-#if defined(HasJP2)
-  jas_init();
-#endif
 }
 
 /*
@@ -763,7 +769,11 @@ ModuleExport void UnregisterJP2Image(void)
   /*
     Cleanup Jasper
   */
-  jas_cleanup();
+  if (jasper_initialized)
+    {
+      jas_cleanup();
+      jasper_initialized=MagickFalse;
+    }
 #endif
 }
 
@@ -844,6 +854,17 @@ WriteJP2Image(const ImageInfo *image_info,Image *image)
 
   ImageCharacteristics
     characteristics;
+
+  /*
+    Initialize Jasper
+  */
+#if defined(HasJP2)
+  if (!jasper_initialized)
+    {
+      jas_init();
+      jasper_initialized=MagickTrue;
+    }
+#endif
 
   /*
     Open image file.

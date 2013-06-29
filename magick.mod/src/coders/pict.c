@@ -1358,6 +1358,7 @@ ModuleExport void RegisterPICTImage(void)
   entry->encoder=(EncoderHandler) WritePICTImage;
   entry->adjoin=False;
   entry->description="Apple Macintosh QuickDraw/PICT";
+  entry->seekable_stream=MagickTrue;
   entry->module="PICT";
   (void) RegisterMagickInfo(entry);
 
@@ -1366,6 +1367,7 @@ ModuleExport void RegisterPICTImage(void)
   entry->encoder=(EncoderHandler) WritePICTImage;
   entry->adjoin=False;
   entry->description="Apple Macintosh QuickDraw/PICT";
+  entry->seekable_stream=MagickTrue;
   entry->module="PICT";
   (void) RegisterMagickInfo(entry);
 }

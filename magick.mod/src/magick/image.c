@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2012 GraphicsMagick Group
 % Copyright (C) 2003 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -144,6 +144,69 @@ MagickExport const char *AccessDefinition(const ImageInfo *image_info,
 %                                                                             %
 %                                                                             %
 %                                                                             %
+%   A d d D e f i n i t i o n                                                 %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  AddDefinition() adds a key/value definition to the current map of
+%  definitions in ImageInfo. Definitions may be used by coders/decoders
+%  that read and write images.
+%
+%  The format of the AddDefinition method is:
+%
+%      MagickPassFail AddDefinition(ImageInfo *image_info,const char *magick,
+%                                   const char *key, const char *value,
+%                                   ExceptionInfo *exception)
+%
+%  A description of each parameter follows:
+%
+%    o image_info: The image info.
+%
+%    o magick: format/classification identifier
+%
+%    o key: subidentifier within format/classification
+%
+%    o value: definition value
+%
+%    o exception: Errors result in updates to this structure.
+%
+*/
+MagickExport MagickPassFail
+AddDefinition(ImageInfo *image_info,const char *magick, const char *key,
+	      const char *value, ExceptionInfo *exception)
+{
+  MagickPassFail
+    status = MagickFail;
+
+  char
+    search_key[MaxTextExtent];
+
+  if (image_info->definitions == 0)
+    image_info->definitions=MagickMapAllocateMap(MagickMapCopyString,
+						 MagickMapDeallocateString);
+  if (image_info->definitions != 0)
+    {
+      /*
+	Format string like "magick:key"
+      */
+      FormatString(search_key, "%.60s:%.1024s", magick, key);
+      
+      /*
+	Add entry to map
+      */
+      status = MagickMapAddEntry((MagickMap) image_info->definitions,search_key,value,0,exception);
+    }
+
+  return status;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 %   A d d D e f i n i t i o n s                                               %
 %                                                                             %
 %                                                                             %
@@ -156,7 +219,7 @@ MagickExport const char *AccessDefinition(const ImageInfo *image_info,
 %
 %  The format of the AddDefinitions method is:
 %
-%      void AddDefinitions(ImageInfo *image_info,const char *options)
+%      MagickPassFail AddDefinitions(ImageInfo *image_info,const char *options)
 %
 %  A description of each parameter follows:
 %
@@ -178,7 +241,7 @@ AddDefinitions(ImageInfo *image_info,const char *definitions,
     key[MaxTextExtent],
     value[MaxTextExtent];
 
-  unsigned int
+  MagickPassFail
     status;
 
   unsigned int
@@ -193,6 +256,8 @@ AddDefinitions(ImageInfo *image_info,const char *definitions,
   if (image_info->definitions == 0)
     image_info->definitions=MagickMapAllocateMap(MagickMapCopyString,
       MagickMapDeallocateString);
+  if (image_info->definitions == 0)
+    return MagickFail;
 
   length=strlen(definitions);
   i=0;
@@ -497,7 +562,8 @@ MagickExport MagickPassFail AnimateImages(const ImageInfo *image_info,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
-%     A p p e n d I m a g e s                                                 %
+%                                                                             %
+%   A p p e n d I m a g e s                                                   %
 %                                                                             %
 %                                                                             %
 %                                                                             %
@@ -552,8 +618,8 @@ MagickExport Image *AppendImages(const Image *image,const unsigned int stack,
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickSignature);
   if (image->next == (Image *) NULL)
-    ThrowImageException3(ImageError, ImageSequenceIsRequired,
-      UnableToAppendImage);
+    return CloneImage(image,0,0,MagickTrue,exception);
+
   width=image->columns;
   height=image->rows;
   for (next=image->next; next != (Image *) NULL; next=next->next)
@@ -575,7 +641,6 @@ MagickExport Image *AppendImages(const Image *image,const unsigned int stack,
   append_image=CloneImage(image,width,height,True,exception);
   if (append_image == (Image *) NULL)
     return((Image *) NULL);
-  (void) SetImage(append_image,OpaqueOpacity);
   scene=0;
   if (stack)
     {
@@ -588,6 +653,10 @@ MagickExport Image *AppendImages(const Image *image,const unsigned int stack,
         if (next->storage_class == DirectClass)
           (void) SetImageType(append_image,TrueColorType);
         (void) CompositeImage(append_image,CopyCompositeOp,next,0,y);
+	if (append_image->columns > next->columns)
+	  SetImageColorRegion(append_image,next->columns,y,
+			      append_image->columns-next->columns,next->rows,
+			      &append_image->background_color);
         y+=next->rows;
         status=MagickMonitorFormatted(scene,GetImageListLength(image),
                                       exception,AppendImageText,
@@ -607,6 +676,11 @@ MagickExport Image *AppendImages(const Image *image,const unsigned int stack,
     if (next->storage_class == DirectClass)
       (void) SetImageType(append_image,TrueColorType);
     (void) CompositeImage(append_image,CopyCompositeOp,next,x,0);
+    if (append_image->rows > next->rows)
+      SetImageColorRegion(append_image,x,next->rows,
+			  next->columns,
+			  append_image->rows-next->rows,
+			  &append_image->background_color);
     x+=next->columns;
     status=MagickMonitorFormatted(scene++,GetImageListLength(image),
                                   exception,AppendImageText,
@@ -1541,7 +1615,7 @@ MagickExport void GetImageInfo(ImageInfo *image_info)
   */
   assert(image_info != (ImageInfo *) NULL);
   (void) memset(image_info,0,sizeof(ImageInfo));
-  image_info->adjoin=True;
+  image_info->adjoin=MagickTrue;
   image_info->depth=QuantumDepth;
   image_info->interlace=UndefinedInterlace;
   image_info->quality=DefaultCompressionQuality;
@@ -1562,7 +1636,8 @@ MagickExport void GetImageInfo(ImageInfo *image_info)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
-+     I s S u b i m a g e                                                     %
+%                                                                             %
++   I s S u b i m a g e                                                       %
 %                                                                             %
 %                                                                             %
 %                                                                             %
@@ -1613,7 +1688,8 @@ MagickExport unsigned int IsSubimage(const char *geometry,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
-%     I s T a i n t I m a g e                                                 %
+%                                                                             %
+%   I s T a i n t I m a g e                                                   %
 %                                                                             %
 %                                                                             %
 %                                                                             %
@@ -1830,6 +1906,96 @@ RemoveDefinitions(const ImageInfo *image_info,const char *keys)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
+%                                                                             %
+%     R e s e t I m a g e P a g e                                             %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  ResetImagePage adjusts the current page canvas and position based on a
+%  relative page specification.
+%
+%  The format of the ResetImagePage method is:
+%
+%      MagickPassFail ResetImagePage(Image *image,const char *page)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o page: Relative page offset adjustment
+%
+*/
+MagickExport MagickPassFail
+ResetImagePage(Image *image,const char *page)
+{
+  RectangleInfo
+    page_geometry;
+
+  int
+    flags;
+
+  assert(image != (Image *) NULL);
+  assert(image->signature == MagickSignature);
+
+  /* Parse page geometry */
+  page_geometry.x=0;
+  page_geometry.y=0;
+  page_geometry.width=0;
+  page_geometry.height=0;
+  flags=GetMagickGeometry(page,&page_geometry.x,&page_geometry.y,
+			  &page_geometry.width,&page_geometry.height);
+
+  /* If no values were parsed, then return failed status */
+  if (NoValue == flags)
+    return MagickFail;
+
+  /* If width was provided */
+  if (flags & WidthValue)
+    {
+      /* If height was not provided, then default it to width */
+      if (!(flags & HeightValue))
+        page_geometry.height=page_geometry.width;
+      image->page.width=page_geometry.width;
+      image->page.height=page_geometry.height;
+    }
+  /* If values are absolute, then only adjust the page offset
+     values */
+  if (flags & AspectValue) /* ! */
+    {
+      if (flags & XValue)
+        image->page.x+=page_geometry.x;
+      if (flags & YValue)
+        image->page.y+=page_geometry.y;
+    }
+  else
+    {
+      /* If values are not absolute, then use offset values, and page
+	 width and height based on image width and height plus page
+	 offsets */
+      if (flags & XValue)
+        {
+          image->page.x=page_geometry.x;
+          if ((image->page.width == 0) && (page_geometry.x > 0))
+            image->page.width=image->columns+page_geometry.x;
+        }
+      if (flags & YValue)
+        {
+          image->page.y=page_geometry.y;
+          if ((image->page.height == 0) && (page_geometry.y > 0))
+            image->page.height=image->rows+page_geometry.y;
+        }
+    }
+
+  return MagickPass;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 %   S e t I m a g e                                                           %
 %                                                                             %
 %                                                                             %
@@ -1925,7 +2091,111 @@ MagickExport MagickPassFail SetImage(Image *image,const Quantum opacity)
   image->is_monochrome=IsMonochrome(image->background_color);
   return status;
 }
-
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   S e t I m a g e C o l o r                                                 %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  SetImageColor() sets the red, green, blue and opacity components of each
+%  pixel to those from a specified pixel value.
+%
+%  The format of the SetImageColor method is:
+%
+%      MagickPassFail SetImageColor(Image *image,const PixelPacket *pixel)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o pixel: Set each pixel in the image to this pixel's color and transparency.
+%
+%
+*/
+MagickExport MagickPassFail SetImageColor(Image *image,
+					  const PixelPacket *pixel)
+{
+  image->is_grayscale=IsGray(*pixel);
+  image->is_monochrome=IsMonochrome(*pixel);
+  return SetImageColorRegion(image,0,0,image->columns,image->rows,pixel);
+}
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   S e t I m a g e C o l o r R e g i o n                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  SetImageColorRegion() sets the red, green, blue and opacity components
+%  of each pixel in the specified region to those from a specified pixel
+%  value.
+%
+%  The format of the SetImageColorRegion method is:
+%
+%      MagickPassFail SetImageColorRegion(Image *image,
+%                                         long x,
+%                                         long y,
+%                                         unsigned long width,
+%                                         unsigned long height,
+%                                         const PixelPacket *pixel)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o pixel: Set each pixel in the image to this pixel's color and transparency.
+%
+%
+*/
+MagickExport MagickPassFail
+SetImageColorRegion(Image *image,
+		    long x,
+		    long y,
+		    unsigned long width,
+		    unsigned long height,
+		    const PixelPacket *pixel)
+{
+  MagickPassFail
+    status;
+
+  MagickBool
+    is_grayscale;
+
+  MagickBool
+    is_monochrome;
+
+  assert(image != (Image *) NULL);
+  assert(pixel != (PixelPacket *) NULL);
+  assert(image->signature == MagickSignature);
+  status=MagickPass;
+
+  is_grayscale=(image->is_grayscale && IsGray(*pixel));
+  is_monochrome=(image->is_monochrome && IsMonochrome(*pixel));
+
+  if (pixel->opacity != OpaqueOpacity)
+    image->matte=MagickTrue;
+  image->colorspace=RGBColorspace;
+  image->storage_class=DirectClass;
+
+  status=PixelIterateMonoModify(SetImageColorCallBack,NULL,
+				SetImageColorText,
+				NULL,pixel,x,y,
+				width,height,
+				image,&image->exception);
+
+  image->is_grayscale=is_grayscale;
+  image->is_monochrome=is_monochrome;
+  return status;
+}
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
@@ -2038,27 +2308,62 @@ MagickExport MagickPassFail SetImageDepth(Image *image,const unsigned long depth
 %                                                                             %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  SetImageInfo() initializes the `magick' field of the ImageInfo structure.
-%  It is set to a type of image format based on the prefix or suffix of the
-%  filename.  For example, `ps:image' returns PS indicating a Postscript image.
-%  JPEG is returned for this filename: `image.jpg'.  The filename prefix has
-%  precendence over the suffix.  Use an optional index enclosed in brackets
-%  after a file name to specify a desired subimage of a multi-resolution image
-%  format like Photo CD (e.g. img0001.pcd[4]).  A True (non-zero) return value
-%  indicates success.
+%  SetImageInfo() inspects the filename field of the ImageInfo
+%  structure.  Based on what it finds, it may update the `affirm',
+%  `filename', `magick', `subimage', `subrange', `temporary', and
+%  `tile' fields in the ImageInfo structure, and may even allocate a
+%  temporary file. This is a powerful, mysterious, and anchient
+%  function which supports the many special features associated with
+%  input and output file specifications, and is intended for use only
+%  within GraphicsMagick code.
+%
+%  If the file will be read and the file specification includes an
+%  index enclosed in brackets after the file name and the file exists,
+%  then it is assumed to specify a subimage of a multi-resolution image
+%  format like Photo CD (e.g.  img0001.pcd[4]).  The `tile' `subimage',
+%  and `subrange' fields will be updated.  The filename specification
+%  is then truncated to remove the subimage specification.
+%
+%  The filename is inspected for an image format prefix. For example,
+%  `ps:image' returns PS indicating a Postscript image.  If a format
+%  prefix was found, then `filename' is updated to remove it.  The
+%  `magick' field is set to the specified format and the `affirm' field
+%  is set to indicate an explicit user request for the format (which
+%  will not be overridden).
+%
+%  If the format is not yet known, the filename is inspected for an
+%  image format extension.  If format support exists for this
+%  extension, then the official format designator for that format is
+%  written into the `magick' field. For example, "JPEG" is set in the
+%  `magick' field for the filename: `image.jpg'. Some file extensions
+%  are intentionally ignored due to potential confusion or security
+%  issues.  The file extension is used as a strong hint of the file
+%  format but is not authoritative.
+%
+%  If the file will be read, then its content is inspected for its
+%  type.  If the input is not seekable, then its content is copied to a
+%  temporary file, `filename` is updated with the name of the temporary
+%  file, and `temporary' is set to true so that the temporary file may
+%  be automatically deleted later.  The `magick' field is updated if
+%  file header matches a known type.
+%
+%  MagickFail is returned if an error is encountered.
 %
 %  The format of the SetImageInfo method is:
 %
-%      unsigned int SetImageInfo(ImageInfo *image_info,
-%        const unsigned int rectify,ExceptionInfo *exception)
+%      MagickPassFail SetImageInfo(ImageInfo *image_info,
+%        const unsigned int flags,ExceptionInfo *exception)
 %
 %  A description of each parameter follows:
 %
 %    o image_info: The image info..
 %
-%    o rectify: an unsigned value other than zero rectifies the attribute for
-%      multi-frame support (user may want multi-frame but image format may not
-%      support it).
+%    o flags: Flag options based on an OR of SETMAGICK_READ, SETMAGICK_WRITE,
+%        and SETMAGICK_RECTIFY. SETMAGICK_READ indicates that the file is to
+%        be read, SETMAGICK_WRITE indicates that the the file will be written,
+%        and SETMAGICK_RECTIFY indicates that the file specification should be
+%        inspected for an embedded scene specification, and adjust the 'ajoin'
+%        accordingly.
 %
 %    o exception: Return any errors or warnings in this structure.
 %
@@ -2212,7 +2517,7 @@ ParseSubImageSpecification(char *filename,
 }
 
 MagickExport MagickPassFail
-SetImageInfo(ImageInfo *image_info,const MagickBool rectify,
+SetImageInfo(ImageInfo *image_info,const unsigned int flags,
 	     ExceptionInfo *exception)
 {
   static const char
@@ -2252,35 +2557,58 @@ SetImageInfo(ImageInfo *image_info,const MagickBool rectify,
   size_t
     magick_length;
 
+  unsigned int
+    lflags;
+
   unsigned char
     magick[2*MaxTextExtent];
 
   MagickPassFail
     status=MagickPass;
 
-  /*
-    Look for 'image.format' in filename.
-  */
   assert(image_info != (ImageInfo *) NULL);
   assert(image_info->signature == MagickSignature);
-  *magic='\0';
-  p=image_info->filename+Max((long) strlen(image_info->filename)-1,0);
+
   /*
-    Sometimes the provided argument is a real file and we need to
-    account for that.  If it is not a real file and the argument ends
-    with ']' then the trailing part is likely a sub-image or size
-    specification.
+    Ensure backward compatiblity with previous flags which used
+    True/False logic.
   */
-  if (*p == ']' && !IsAccessibleNoLogging(image_info->filename))
+  lflags=flags;
+  if (MagickFalse == flags)
+    lflags=SETMAGICK_WRITE;
+  else if (MagickTrue == flags)
+    lflags=(SETMAGICK_WRITE | SETMAGICK_RECTIFY);
+
+#if 0
+  fprintf(stderr,"SetImageInfo \"%s\" Read=%d Write=%d Rectify=%d\n",
+	  image_info->filename,
+	  ((lflags & SETMAGICK_READ) > 0),
+	  ((lflags & SETMAGICK_WRITE) > 0),
+	  ((lflags & SETMAGICK_RECTIFY) > 0));
+#endif
+
+  *magic='\0';
+
+  if (lflags & SETMAGICK_READ)
     {
       /*
-        Look for sub-image specification (e.g. img0001.pcd[4]).
+	Look for sub-image specification (e.g. img0001.pcd[4]).
       */
-      (void) ParseSubImageSpecification(image_info->filename,
-					&image_info->tile,
-					&image_info->subimage,
-					&image_info->subrange,
-					exception);
+      p=image_info->filename+Max((long) strlen(image_info->filename)-1,0);
+      /*
+	Sometimes the provided argument is a real file and we need to
+	account for that.  If it is not a real file and the argument ends
+	with ']' then the trailing part is likely a sub-image or size
+	specification.
+      */
+      if (*p == ']' && !IsAccessibleNoLogging(image_info->filename))
+	{
+	  (void) ParseSubImageSpecification(image_info->filename,
+					    &image_info->tile,
+					    &image_info->subimage,
+					    &image_info->subrange,
+					    exception);
+	}
     }
 
   /*
@@ -2411,82 +2739,71 @@ SetImageInfo(ImageInfo *image_info,const MagickBool rectify,
         }
     }
 
-  if (rectify)
-    {
-      /*
-        Test for multiple image support in file filename template. In
-        this case, the filename contains a printf style string
-        containing some variation of %d (e.g. "image%02d.miff");
-      */
-
-      if (MagickSceneFileName(filename,image_info->filename,".%lu",MagickFalse,0))
-        image_info->adjoin=False;
-
-      magick_info=GetMagickInfo(magic,exception);
-      if (magick_info != (const MagickInfo *) NULL)
-        image_info->adjoin&=magick_info->adjoin;
-      return(MagickTrue);
-    }
   if (image_info->affirm)
-    return(MagickTrue);
-  /*
-    Determine the image format from the first few bytes of the file.
-  */
-  image=AllocateImage(image_info);
-  if (image == (Image *) NULL)
-    return(False);
-  (void) strlcpy(image->filename,image_info->filename,MaxTextExtent);
-  status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
-  if (status == MagickFail)
-    {
-      DestroyImage(image);
-      return(MagickFail);
-    }
-  if (!BlobIsSeekable(image))
+    return(MagickPass);
+  if (lflags & SETMAGICK_READ)
     {
       /*
-        Copy standard input or pipe to temporary file.
+	Determine the file format from the first few bytes of the
+	file.
       */
-      if(!AcquireTemporaryFileName(filename))
-        {
-          CloseBlob(image);
-          DestroyImage(image);
-          return(False);
-        }
-      (void) ImageToFile(image,filename,exception);
-      CloseBlob(image);
-      (void) strcpy(image->filename,filename);
+      image=AllocateImage(image_info);
+      if (image == (Image *) NULL)
+	return(MagickFail);
+      (void) strlcpy(image->filename,image_info->filename,MaxTextExtent);
       status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
       if (status == MagickFail)
-        {
-          DestroyImage(image);
-          return(MagickFail);
-        }
-      (void) strcpy(image_info->filename,filename);
-      image_info->temporary=MagickTrue;
+	{
+	  DestroyImage(image);
+	  return(MagickFail);
+	}
+      if (!BlobIsSeekable(image))
+	{
+	  /*
+	    Copy standard input or pipe to temporary file.
+	  */
+	  if(!AcquireTemporaryFileName(filename))
+	    {
+	      CloseBlob(image);
+	      DestroyImage(image);
+	      return(MagickFail);
+	    }
+	  (void) ImageToFile(image,filename,exception);
+	  CloseBlob(image);
+	  (void) strcpy(image->filename,filename);
+	  status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
+	  if (status == MagickFail)
+	    {
+	      DestroyImage(image);
+	      return(MagickFail);
+	    }
+	  (void) strcpy(image_info->filename,filename);
+	  image_info->temporary=MagickTrue;
+	}
+      magick[0]='\0';
+      magick_length = ReadBlob(image,2*MaxTextExtent,magick);
+      CloseBlob(image);
+      DestroyImage(image);
+      /*
+	Check format using magic.mgk configuration file.  Use of an
+	external config file is absolutely necessary when using loadable
+	modules since otherwise the code necessary to perform the test
+	might not be available yet.
+      */
+      if (GetMagickFileFormat(magick,magick_length,image_info->magick,
+			      MaxTextExtent,exception))
+	return(MagickPass);
     }
-  magick[0]='\0';
-  magick_length = ReadBlob(image,2*MaxTextExtent,magick);
-  CloseBlob(image);
-  DestroyImage(image);
-  /*
-    Check format using magic.mgk configuration file.  Use of an
-    external config file is absolutely necessary when using loadable
-    modules since otherwise the code necessary to perform the test
-    might not be available yet.
-  */
-  if (GetMagickFileFormat(magick,magick_length,image_info->magick,
-                          MaxTextExtent,exception))
-    return(MagickPass);
 
-  return(MagickFail);
+  return(MagickPass);
 }
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
-%     S e t I m a g e O p a c i t y                                           %
+%                                                                             %
+%   S e t I m a g e O p a c i t y                                             %
 %                                                                             %
 %                                                                             %
 %                                                                             %
@@ -2529,16 +2846,16 @@ ModulateImageOpacityCallBack(void *mutable_data,         /* User provided mutabl
   ARG_NOT_USED(image);
   ARG_NOT_USED(exception);
 
-if (image->colorspace == CMYKColorspace)
-  {
-    for (i=0; i < npixels; i++)
-      indexes[i]=(IndexPacket) BlendQuantumOpacity(indexes[i],opacity);
-  }
- else
-   {
-     for (i=0; i < npixels; i++)
-       pixels[i].opacity=(Quantum) BlendQuantumOpacity(pixels[i].opacity,opacity);
-   }
+  if (image->colorspace == CMYKColorspace)
+    {
+      for (i=0; i < npixels; i++)
+        indexes[i]=(IndexPacket) BlendQuantumOpacity(indexes[i],opacity);
+    }
+  else
+    {
+      for (i=0; i < npixels; i++)
+        pixels[i].opacity=(Quantum) BlendQuantumOpacity(pixels[i].opacity,opacity);
+    }
   return MagickPass;
 }
 static MagickPassFail
@@ -2560,16 +2877,16 @@ SetImageOpacityCallBack(void *mutable_data,         /* User provided mutable dat
   ARG_NOT_USED(image);
   ARG_NOT_USED(exception);
 
-if (image->colorspace == CMYKColorspace)
-  {
-    for (i=0; i < npixels; i++)
-      indexes[i]=opacity;
-  }
- else
-   {
-     for (i=0; i < npixels; i++)
-       pixels[i].opacity=opacity;
-   }
+  if (image->colorspace == CMYKColorspace)
+    {
+      for (i=0; i < npixels; i++)
+        indexes[i]=opacity;
+    }
+  else
+    {
+      for (i=0; i < npixels; i++)
+        pixels[i].opacity=opacity;
+    }
   return MagickPass;
 }
 MagickExport void SetImageOpacity(Image *image,const unsigned int opacity_val)
@@ -2625,10 +2942,9 @@ MagickExport void SetImageOpacity(Image *image,const unsigned int opacity_val)
 %
 %  (void) SetImageType() sets the type of image.  Choose from these types:
 %
-%        Bilevel        Grayscale       GrayscaleMatte
-%        Palette        PaletteMatte    TrueColor
-%        TrueColorMatte ColorSeparation ColorSeparationMatte
-%        OptimizeType
+%      BilevelType, GrayscaleType, GrayscaleMatteType, PaletteType,
+%      PaletteMatteType, TrueColorType, TrueColorMatteType,
+%      ColorSeparationType, ColorSeparationMatteType, OptimizeType
 %
 %  The format of the (void) SetImageType method is:
 %
@@ -2872,6 +3188,60 @@ MagickExport MagickPassFail SetImageType(Image *image,const ImageType image_type
       break;
   }
   return (status);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%     S t r i p I m a g e                                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  StripImage removes all profiles and text attributes from the image.
+%
+%  The format of the StripImage method is:
+%
+%      MagickPassFail StripImage(Image *image)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+*/
+MagickExport MagickPassFail
+StripImage(Image *image)
+{
+  /* Text attributes to strip.  List is NULL terminated. */
+  static const char *strip_attributes[] =
+    {
+      "artist",
+      "comment",
+      "copyright",
+      "hostcomputer",
+      "label",
+      "make",
+      "model",
+      "timestamp",
+      (const char *) NULL
+    };
+
+  unsigned int
+    i;
+
+  assert(image != (Image *) NULL);
+
+  /* Strip all profiles */
+  (void) ProfileImage(image,"*",NULL,0,MagickFalse);
+
+  /* Strip common text attributes */
+  for (i=0; strip_attributes[i] != NULL; i++)
+    (void) SetImageAttribute(image,strip_attributes[i],(char *) NULL);
+
+  return MagickPass;
 }
 
 /*

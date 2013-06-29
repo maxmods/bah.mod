@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -111,7 +111,6 @@ ModuleAliases[] =
   MODULEALIAS("DCR","DCRAW"),
   MODULEALIAS("DCX","PCX"),
   MODULEALIAS("DNG","DCRAW"),
-  MODULEALIAS("EMF","WMF"),
   MODULEALIAS("EPDF","PDF"),
   MODULEALIAS("EPI","PS"),
   MODULEALIAS("EPS","PS"),
@@ -154,6 +153,7 @@ ModuleAliases[] =
   MODULEALIAS("LOCALEMC","LOCALE"),
   MODULEALIAS("M","GRAY"),
   MODULEALIAS("M2V","MPEG"),
+  MODULEALIAS("MEF","DCRAW"),
   MODULEALIAS("MNG","PNG"),
   MODULEALIAS("MPG","MPEG"),
   MODULEALIAS("MRW","DCRAW"),
@@ -163,6 +163,7 @@ ModuleAliases[] =
   MODULEALIAS("ORF","DCRAW"),
   MODULEALIAS("P7","PNM"),
   MODULEALIAS("PAL","UYVY"),
+  MODULEALIAS("PAM","PNM"),
   MODULEALIAS("PATTERN","LOGO"),
   MODULEALIAS("PBM","PNM"),
   MODULEALIAS("PCDS","PCD"),
@@ -195,7 +196,6 @@ ModuleAliases[] =
   MODULEALIAS("XMP","META"),
   MODULEALIAS("XTRNARRAY","XTRN"),
   MODULEALIAS("XTRNBLOB","XTRN"),
-  MODULEALIAS("XTRNBSTR","XTRN"),
   MODULEALIAS("XTRNFILE","XTRN"),
   MODULEALIAS("XTRNIMAGE","XTRN"),
   MODULEALIAS("XV","VIFF"),
@@ -409,9 +409,16 @@ DestroyModuleInfo(void)
     DestroyModuleInfoEntry(module_info);
   }
   module_list=(ModuleInfo *) NULL;
+  /*
+    Destroy the libltdl environment unless Jasper is used since Jasper
+    sometimes registers an atexit() handler to destroy itself and this
+    causes a crash if the Jasper library is already unloaded.
+  */
   if (ltdl_initialized)
     {
+#if !defined(HasJP2)
       (void) lt_dlexit();
+#endif
       ltdl_initialized=False;
     }
 }

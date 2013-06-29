@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -304,7 +304,7 @@ static void
   HilbertCurve(CubeInfo *,Image *,const unsigned long,const unsigned int),
   PruneLevel(CubeInfo *,const NodeInfo *),
   PruneToCubeDepth(CubeInfo *,const NodeInfo *),
-  ReduceImageColors(CubeInfo *,const unsigned long,ExceptionInfo *);
+  ReduceImageColors(const char *filename,CubeInfo *,const unsigned long,ExceptionInfo *);
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2465,7 +2465,7 @@ MagickExport MagickPassFail QuantizeImage(const QuantizeInfo *quantize_info,
       /*
         Reduce the number of colors in the image.
       */
-      ReduceImageColors(cube_info,number_colors,&image->exception);
+      ReduceImageColors(image->filename,cube_info,number_colors,&image->exception);
       status=AssignImageColors(cube_info,image);
       if (quantize_info->colorspace != RGBColorspace)
         (void) TransformColorspace(image,quantize_info->colorspace);
@@ -2604,7 +2604,7 @@ MagickExport MagickPassFail QuantizeImages(const QuantizeInfo *quantize_info,
       /*
         Reduce the number of colors in an image sequence.
       */
-      ReduceImageColors(cube_info,number_colors,&image->exception);
+      ReduceImageColors(image->filename,cube_info,number_colors,&image->exception);
       image=images;
       for (i=0; image != (Image *) NULL; i++)
       {
@@ -2725,10 +2725,12 @@ static void Reduce(CubeInfo *cube_info,const NodeInfo *node_info)
 %
 %  The format of the ReduceImageColors method is:
 %
-%      ReduceImageColors(CubeInfo *cube_info,const unsigned int number_colors,
-%        ExceptionInfo *exception)
+%      ReduceImageColors(const char *filename, CubeInfo *cube_info,
+%        const unsigned int number_colors, ExceptionInfo *exception)
 %
 %  A description of each parameter follows.
+%
+%    o filename: Filename for use in progress messages.
 %
 %    o cube_info: A pointer to the Cube structure.
 %
@@ -2740,10 +2742,10 @@ static void Reduce(CubeInfo *cube_info,const NodeInfo *node_info)
 %    o exception: Return any errors or warnings in this structure.
 %
 */
-static void ReduceImageColors(CubeInfo *cube_info,
+static void ReduceImageColors(const char *filename,CubeInfo *cube_info,
   const unsigned long number_colors,ExceptionInfo *exception)
 {
-#define ReduceImageText "Reduce colors: %lu..."
+#define ReduceImageText "[%s] Reduce colors: %lu..."
 
   unsigned int
     status;
@@ -2762,6 +2764,7 @@ static void ReduceImageColors(CubeInfo *cube_info,
     status=MagickMonitorFormatted(span-cube_info->colors,
                                   span-number_colors+1,exception,
                                   ReduceImageText,
+				  filename,
 				  number_colors);
     if (status == False)
       break;

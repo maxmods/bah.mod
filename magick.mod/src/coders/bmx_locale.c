@@ -238,7 +238,8 @@ static unsigned int ReadConfigureFile(Image *image,const char *basename,
               (void) strlcat(locale,"/",sizeof(locale));
             }
         }
-        for (p=q; (*q != '<') && (*q != '\0'); q++);
+        for (p=q; (*q != '<') && (*q != '\0'); q++)
+          { /* nada */ };
         {
           (void) strncpy(message,p,(size_t)(q-p));
           message[q-p]='\0';
@@ -706,7 +707,7 @@ static void output_switches(Image *image,struct locale_str *locstr, int indent, 
         if (flag)
           {
             FormatString(message, "\n%*scase '%c':  case '%c':\n",
-                    indent, "", tolower(*xl->name), toupper(*xl->name));
+			 indent, "", tolower((int) *xl->name), toupper((int) *xl->name));
             (void) WriteBlobString(image,message);
           }
 
@@ -720,7 +721,7 @@ static void output_switches(Image *image,struct locale_str *locstr, int indent, 
         FormatString(message, "%*selse\n", indent+INDENT, "");
         (void) WriteBlobString(image,message);
 
-        flag = xl->next == 0 || tolower(*xl->name) != tolower(*xl->next->name);
+        flag = xl->next == 0 || tolower((int) *xl->name) != tolower((int) *xl->next->name);
         if (flag)
           {
             FormatString(message, "%*sreturn tag;\n", indent+INDENT+INDENT, "");

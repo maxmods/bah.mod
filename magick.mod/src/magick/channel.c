@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2004, 2008 GraphicsMagick Group
+% Copyright (C) 2004 - 2010 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -36,10 +36,51 @@
 */
 #include "magick/studio.h"
 #include "magick/channel.h"
+#include "magick/enum_strings.h"
 #include "magick/image.h"
 #include "magick/operator.h"
 #include "magick/pixel_iterator.h"
 #include "magick/utility.h"
+
+/*
+    Verify that image colorspace is compatible with with requested
+    channel type.  Only check mismatch between RGB and CMYK since user
+    might intentionally export some obsure colorspace channel.  We
+    don't silently convert between RGB and CMYK since there is no one
+    correct transform, and the transform is lossy.
+  */
+static MagickPassFail ValidateChannelRequest(const ColorspaceType image_colorspace,
+					     const ChannelType channel,
+					     ExceptionInfo *exception)
+{
+  MagickPassFail
+    status = MagickPass;
+
+  switch(channel)
+    {
+    case CyanChannel:
+    case MagentaChannel:
+    case YellowChannel:
+    case BlackChannel:
+      if (image_colorspace != CMYKColorspace)
+	status = MagickFail;
+      break;
+    case RedChannel:
+    case GreenChannel:
+    case BlueChannel:
+      if (image_colorspace == CMYKColorspace)
+	status = MagickFail;;
+      break;
+    default:
+      {
+      }
+    }
+
+  if (MagickFail == status)
+    ThrowException3(exception,ImageError,UnableToHandleImageChannel,ImageColorspaceMismatch);
+
+  return status;
+}
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,6 +208,7 @@ ChannelImagePixels(void *mutable_data,            /* User provided mutable data 
         image->matte=False;
         break;
       }
+
     case UndefinedChannel:
     case AllChannels:
     case GrayChannel:
@@ -185,7 +227,8 @@ ChannelImagePixels(void *mutable_data,            /* User provided mutable data 
 }
 MagickExport MagickPassFail ChannelImage(Image *image,const ChannelType channel)
 {
-#define ChannelImageText "[%s] Extract channel...  "
+  char
+    progress_message[MaxTextExtent];
 
   ChannelType
     channel_type = channel;
@@ -199,9 +242,21 @@ MagickExport MagickPassFail ChannelImage(Image *image,const ChannelType channel)
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
 
+  FormatString(progress_message,"[%%s] Extract %s channel...  ",
+	       ChannelTypeToString(channel));
+
+  /*
+    Verify that image colorspace is compatible with with requested
+    channel type.
+  */
+  if (ValidateChannelRequest(image->colorspace,channel,&image->exception)
+      == MagickFail)
+    return MagickFail;
+
+  image->storage_class=DirectClass;
   status=PixelIterateMonoModify(ChannelImagePixels,
                                 NULL,
-                                ChannelImageText,
+                                progress_message,
                                 NULL,&channel_type,0,0,image->columns,image->rows,
                                 image,&image->exception);
 
@@ -355,6 +410,14 @@ MagickExport Image *ExportImageChannel(const Image *source_image,
   assert(source_image->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickSignature);
+
+  /*
+    Verify that image colorspace is compatible with with requested
+    channel type.
+  */
+  if (ValidateChannelRequest(source_image->colorspace,channel,exception)
+      == MagickFail)
+    return (Image *) NULL;
 
   new_image=CloneImage(source_image,source_image->columns,source_image->rows,
                        True,exception);
@@ -683,6 +746,14 @@ MagickPassFail ImportImageChannel(const Image *source_image,
   assert(update_image->signature == MagickSignature);
   assert(source_image != (Image *) NULL);
   assert(source_image->signature == MagickSignature);
+
+  /*
+    Verify that image colorspace is compatible with with requested
+    channel type.
+  */
+  if (ValidateChannelRequest(update_image->colorspace,channel,&update_image->exception)
+      == MagickFail)
+    return MagickFail;
 
   update_image->storage_class=DirectClass;
   status=PixelIterateDualModify(ImportImageChannelPixels,

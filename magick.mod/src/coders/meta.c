@@ -176,7 +176,7 @@ static int stringnicmp(const char *p,const char *q,size_t n)
     p++;
     q++;
   }
-  return(toupper(*p)-toupper(*q));
+  return(toupper((int) *p)-toupper((int) *q));
 }
 
 static int convertHTMLcodes(char *s, int len)
@@ -347,10 +347,10 @@ static long parse8BIM(Image *ifile, Image *ofile)
                 if (strcmp(newstr,"8BIM")==0)
                   dataset = 255;
                 else
-                  dataset = (unsigned char) atoi(newstr);
+                  dataset = (unsigned char) MagickAtoI(newstr);
                 break;
               case 1:
-                recnum = atoi(newstr);
+                recnum = MagickAtoI(newstr);
                 break;
               case 2:
                 name = MagickAllocateMemory(char *,strlen(newstr)+1);
@@ -612,10 +612,10 @@ static long parse8BIMW(Image *ifile, Image *ofile)
                 if (strcmp(newstr,"8BIM")==0)
                   dataset = 255;
                 else
-                  dataset = (unsigned char) atoi(newstr);
+                  dataset = (unsigned char) MagickAtoI(newstr);
                 break;
               case 1:
-                recnum = atoi(newstr);
+                recnum = MagickAtoI(newstr);
                 break;
               case 2:
                 name = MagickAllocateMemory(char *,strlen(newstr)+1);
@@ -1534,7 +1534,6 @@ static long GetIPTCStream(const unsigned char *blob, size_t blob_length, size_t 
     *p;
 
   unsigned char
-    buffer[4],
     c;
 
   unsigned int
@@ -1662,19 +1661,21 @@ iptc_find:
     info_length++;
     if (c & (unsigned char) 0x80)
       {
-        for (i=0; i < 4; i++)
+	/* long format */
+	tag_length=0;
+	for (i=0; i < 4; i++)
         {
-          buffer[i]=(*p++);
+	  tag_length <<= 8;
+          tag_length |= (*p++);
           blob_length--;
           if (blob_length == 0)
             break;
           info_length++;
         }
-        tag_length=(((long) buffer[0]) << 24) | (((long) buffer[1]) << 16) |
-          (((long) buffer[2]) << 8) | (((long) buffer[3]));
       }
     else
       {
+	/* short format */
         tag_length=((long) c) << 8;
         c=(*p++);
         blob_length--;

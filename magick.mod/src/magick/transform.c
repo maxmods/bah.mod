@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -43,6 +43,7 @@
 #include "magick/monitor.h"
 #include "magick/pixel_cache.h"
 #include "magick/resize.h"
+#include "magick/texture.h"
 #include "magick/transform.h"
 #include "magick/utility.h"
 #include "magick/log.h"
@@ -137,7 +138,11 @@ MagickExport Image *ChopImage(const Image *image,const RectangleInfo *chop_info,
     Extract chop image.
   */
 #if defined(HAVE_OPENMP)  && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for schedule(static,4) shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) clone_info.y; y++)
     {
@@ -159,6 +164,9 @@ MagickExport Image *ChopImage(const Image *image,const RectangleInfo *chop_info,
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_ChopImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -205,7 +213,11 @@ MagickExport Image *ChopImage(const Image *image,const RectangleInfo *chop_info,
     Extract chop image.
   */
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for schedule(static,4) shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) (image->rows-(clone_info.y+clone_info.height)); y++)
     {
@@ -227,6 +239,9 @@ MagickExport Image *ChopImage(const Image *image,const RectangleInfo *chop_info,
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_ChopImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -282,6 +297,7 @@ MagickExport Image *ChopImage(const Image *image,const RectangleInfo *chop_info,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
+%                                                                             %
 %     C o a l e s c e I m a g e s                                             %
 %                                                                             %
 %                                                                             %
@@ -314,6 +330,12 @@ MagickExport Image *CoalesceImages(const Image *image,ExceptionInfo *exception)
 
   register const Image
     *next;
+
+  register long
+    i;
+  
+  MagickBool
+    found_transparency=False;
 
   /*
     Coalesce the image sequence.
@@ -350,9 +372,21 @@ MagickExport Image *CoalesceImages(const Image *image,ExceptionInfo *exception)
       }
       case BackgroundDispose:
       {
+        /*
+	  Fill image with transparent color, if one exists.
+	*/
         coalesce_image->next=CloneImage(coalesce_image,0,0,True,exception);
-        if (coalesce_image->next != (Image *) NULL)
-          (void) SetImage(coalesce_image->next,OpaqueOpacity);
+        if (coalesce_image->next != (Image *) NULL) {
+          for (i = 0; i < (long) coalesce_image->colors; i++) {
+            if (coalesce_image->colormap[i].opacity == TransparentOpacity) {
+              found_transparency = True;
+              (void) SetImageColor(coalesce_image->next,&coalesce_image->colormap[i]);
+              break;
+            }
+          }
+          if (!found_transparency)
+            (void) SetImage(coalesce_image->next,OpaqueOpacity);
+        }
         break;
       }
       case PreviousDispose:
@@ -374,6 +408,7 @@ MagickExport Image *CoalesceImages(const Image *image,ExceptionInfo *exception)
     (void) CompositeImage(coalesce_image,next->matte ? OverCompositeOp :
       CopyCompositeOp,next,next->page.x,next->page.y);
   }
+
   while (coalesce_image->previous != (Image *) NULL)
     coalesce_image=coalesce_image->previous;
   return(coalesce_image);
@@ -502,7 +537,11 @@ MagickExport Image *CropImage(const Image *image,const RectangleInfo *geometry,
   if ((geometry->width == 0) || (geometry->height == 0))
     (void) memset(&crop_image->page,0,sizeof(RectangleInfo));
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for schedule(static,4) shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) crop_image->rows; y++)
     {
@@ -521,6 +560,9 @@ MagickExport Image *CropImage(const Image *image,const RectangleInfo *geometry,
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_CropImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -570,6 +612,7 @@ MagickExport Image *CropImage(const Image *image,const RectangleInfo *geometry,
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
 %                                                                             %
 %                                                                             %
 %     D e c o n s t r u c t I m a g e s                                       %
@@ -764,6 +807,85 @@ MagickExport Image *DeconstructImages(const Image *image,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
+%                                                                             %
+%   E x t e n t I m a g e                                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Use ExtentImage() to change the image dimensions as specified by geometry
+%  width and height.  The existing image content is composited at the position
+%  specified by geometry x and y using the image compose method.  Existing
+%  image content which falls outside the bounds of the new image dimensions
+%  is discarded.
+%
+%  The format of the ExtentImage method is:
+%
+%      Image *ExtentImage(const Image *image,const RectangleInfo *geometry,
+%        ExceptionInfo *exception)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o geometry: Define the new image dimension with width and height, and
+%        the top left coordinate to place the existing image content with
+%        x and y.
+%
+%    o exception: Return any errors or warnings in this structure.
+%
+%
+*/
+MagickExport Image *ExtentImage(const Image *image,const RectangleInfo *geometry,
+				ExceptionInfo *exception)
+{
+  Image
+    *extent_image;
+
+  assert(image != (const Image *) NULL);
+  assert(image->signature == MagickSignature);
+  assert(geometry != (const RectangleInfo *) NULL);
+  assert(exception != (ExceptionInfo *) NULL);
+  assert(exception->signature == MagickSignature);
+
+  /*
+    Allocate canvas image
+  */
+  if ((extent_image=CloneImage(image,geometry->width,geometry->height,
+			       MagickTrue,exception)) == (Image *) NULL)
+    return((Image *) NULL);
+
+  /*
+    Set canvas image color to background color
+  */
+  if ((SetImage(extent_image,image->background_color.opacity)) == MagickFail)
+    {
+      CopyException(exception,&extent_image->exception);
+      DestroyImage(extent_image);
+      return((Image *) NULL);
+    }
+
+  /*
+    Composite existing image at position using requested composition
+    operator.
+  */
+  if ((CompositeImage(extent_image,image->compose,image,geometry->x,
+		      geometry->y)) == MagickFail)
+    {
+      CopyException(exception,&extent_image->exception);
+      DestroyImage(extent_image);
+      return((Image *) NULL);
+    }
+
+  return(extent_image);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 %     F l a t t e n I m a g e                                                 %
 %                                                                             %
 %                                                                             %
@@ -804,6 +926,14 @@ MagickExport Image *FlattenImages(const Image *image,ExceptionInfo *exception)
     Clone first image in sequence to serve as canvas image
   */
   flatten_image=CloneImage(image,0,0,True,exception);
+
+  /*
+    Apply background color under image if it has a matte channel.
+  */
+  if ((flatten_image != (Image *) NULL) && (flatten_image->matte))
+    (void) MagickCompositeImageUnderColor(flatten_image,
+					  &flatten_image->background_color,
+					  exception);
 
   if ((flatten_image != (Image *) NULL) &&
       (image->next != (Image *) NULL))
@@ -874,7 +1004,11 @@ MagickExport Image *FlipImage(const Image *image,ExceptionInfo *exception)
     Flip each row.
   */
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for schedule(static,4) shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) flip_image->rows; y++)
     {
@@ -893,6 +1027,9 @@ MagickExport Image *FlipImage(const Image *image,ExceptionInfo *exception)
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_FlipImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -993,7 +1130,11 @@ MagickExport Image *FlopImage(const Image *image,ExceptionInfo *exception)
     Flop each row.
   */
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    pragma omp parallel for schedule(static,4) shared(row_count, status)
+#  endif
 #endif
   for (y=0; y < (long) flop_image->rows; y++)
     {
@@ -1015,6 +1156,9 @@ MagickExport Image *FlopImage(const Image *image,ExceptionInfo *exception)
       MagickBool
         thread_status;
 
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_FlopImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -1105,19 +1249,22 @@ MagickExport Image *MosaicImages(const Image *image,ExceptionInfo *exception)
     *next;
 
   unsigned int
-    scene,
+    scene;
+
+  MagickBool
+    matte;
+
+  MagickPassFail
     status;
 
-  /*
-    Determine mosaic bounding box.
-  */
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickSignature);
-  if (image->next == (Image *) NULL)
-    ThrowImageException3(ImageError,ImageSequenceIsRequired,
-      UnableToCreateImageMosaic);
+
+  /*
+    Determine mosaic bounding box.
+  */
   page.width=image->columns;
   page.height=image->rows;
   page.x=0;
@@ -1135,26 +1282,44 @@ MagickExport Image *MosaicImages(const Image *image,ExceptionInfo *exception)
     if (next->page.height > page.height)
       page.height=next->page.height;
   }
+
   /*
-    Allocate mosaic image.
+    Allocate canvas image.
   */
   mosaic_image=AllocateImage((ImageInfo *) NULL);
   if (mosaic_image == (Image *) NULL)
     return((Image *) NULL);
   mosaic_image->columns=page.width;
   mosaic_image->rows=page.height;
-  (void) SetImage(mosaic_image,OpaqueOpacity);
+
   /*
-    Initialize colormap.
+    Canvas image supports transparency if any subordinate image uses
+    transparency.
+  */
+  matte=MagickTrue;
+  for (next=image; next != (Image *) NULL; next=next->next)
+    matte &= next->matte;
+  mosaic_image->matte=matte;
+
+  /*
+    Canvas color is copied from background color of first image in
+    list.  Default canvas color is 'white' but opaque 'black' or
+    'transparent' is often best for composition.
+  */
+  mosaic_image->background_color=image->background_color;
+  (void) SetImage(mosaic_image,OpaqueOpacity);
+
+  /*
+    Composite mosaic.
   */
   scene=0;
   for (next=image; next != (Image *) NULL; next=next->next)
   {
-    (void) CompositeImage(mosaic_image,CopyCompositeOp,next,next->page.x,
+    (void) CompositeImage(mosaic_image,next->compose,next,next->page.x,
       next->page.y);
     status=MagickMonitorFormatted(scene++,GetImageListLength(image),
                                   exception,MosaicImageText,image->filename);
-    if (status == False)
+    if (status == MagickFail)
       break;
   }
   return(mosaic_image);

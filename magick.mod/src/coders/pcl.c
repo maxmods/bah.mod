@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003-2009 GraphicsMagick Group
+% Copyright (C) 2003-2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -31,6 +31,11 @@
 %
 %
 */
+/*
+  Tunables
+*/
+#define NEED_END_OF_ROW_DELTA_OUTPUT
+/*#define DISABLE_ZERO_ROW_COMPRESSION */
 
 /*
   Include declarations.
@@ -231,6 +236,7 @@ static PCL_CompressionType PCL_ChooseCompression(unsigned long row_width,
   q=row;
   this_char=0;
   last_char=!*q;
+  rep=0;
   while (x < row_width)
     {
       /*
@@ -273,8 +279,10 @@ static PCL_CompressionType PCL_ChooseCompression(unsigned long row_width,
   /*
     Special case #1 - row is all zero
   */
-  if ((rep=row_width) && (!this_char))
+#if defined(DISABLE_ZERO_ROW_COMPRESSION)
+  if ((rep==row_width) && (!this_char))
     return PCL_ZeroRowCompression;
+#endif
 
   /*
     Calculate cost to encode via delta method
@@ -886,13 +894,19 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
           (void) WriteBlobByte(image,8); /* bits per blue component */
         }
       else
+      if (characteristics.monochrome)
+        {
+          /*
+            Use default printer monochrome setup - NB white = 0, black = 1
+          */
+          bits_per_pixel=1;
+        }
+      else
         {
           /*
             PseudoClass
           */
           bits_per_pixel=8;
-          if (characteristics.monochrome)
-            bits_per_pixel=1;
           (void) WriteBlobString(image,"\033*v6W"); /* set color mode... */
           (void) WriteBlobByte(image,0); /* RGB */
           (void) WriteBlobByte(image,1); /* indexed by pixel */
@@ -927,7 +941,8 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
       /*
         Start raster image
       */
-      if  (AccessDefinition(image_info,"pcl","fit_to_page") != NULL)
+      if  ((AccessDefinition(image_info,"pcl","fit-to-page") != NULL) ||
+	   (AccessDefinition(image_info,"pcl","fit_to_page") != NULL))
         (void) WriteBlobString(image,"\033*r3A");  /* start raster graphics with scaling */
       else
         (void) WriteBlobString(image,"\033*r1A");  /* start raster graphics */
@@ -944,7 +959,7 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
       /*
         Set up for compression if desired
       */
-      last_row_compression = PCL_UndefinedCompression;  
+      last_row_compression = PCL_UndefinedCompression;
       if (image_info->compression != NoCompression)
         {
           MagickFreeMemory(last_row_pixels);
@@ -962,13 +977,13 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
               MagickFreeMemory(last_row_pixels);
               ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);
             }
-          memset(last_row_pixels,0,bytes_per_line);
+            memset(last_row_pixels,0,bytes_per_line);
         }
 
       /*
         Convert MIFF to PCL raster pixels.
       */
-      zero_rows =0;
+      zero_rows=0;
       for (y=0; y < (long) image->rows; y++)
         {
           p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -976,64 +991,60 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
             break;
           q=pixels;
 
-          switch (bits_per_pixel)
+          if (characteristics.monochrome)
             {
-            case 1:
-              {
-                register unsigned char
-                  bit,
-                  byte;
-                /*
-                  Monochrome row
-                */
-                indexes=AccessImmutableIndexes(image);
-                bit=0;
-                byte=0;
-                for (x=0; x < (long) image->columns; x++)
-                  {
-                    byte<<=1;
-                    byte|=indexes[x] ? 0x01 : 0x00;
-                    bit++;
-                    if (bit == 8)
-                      {
-                        *q++=byte;
-                        bit=0;
-                        byte=0;
-                      }
-                  }
-                if (bit != 0)
-                  *q++=byte << (8-bit);
-                break;
-              }
-
-            case 8:
-              {
-                /*
-                  8 bit PseudoClass row
-                */
-                indexes=AccessImmutableIndexes(image);
-                for (x=0; x < (long) image->columns; x++)
-                  {
-                    *q++=indexes[x];
-                  }
-                break;
-              }
-
-            case 24:
-            case 32:
-              {
-                /*
-                  DirectClass/RGB row
-                */
-                for (x=0; x < (long) image->columns; x++)
-                  {
-                    *q++=ScaleQuantumToChar(p->red);
-                    *q++=ScaleQuantumToChar(p->green);
-                    *q++=ScaleQuantumToChar(p->blue);
-                    p++;
-                  }
-                break;
-              }
+              register unsigned char
+                bit,
+                byte;
+              int
+                blk_ind;
+              /*
+                Monochrome row
+              */
+              blk_ind = ((image->colormap == NULL) || (image->colormap[0].red == 0)) ? 0 : 1;
+              indexes=AccessImmutableIndexes(image);
+              bit=0;
+              byte=0;
+              for (x=0; x < (long) image->columns; x++)
+                {
+                  byte<<=1;
+                  if (indexes[x] == blk_ind) byte |= 1;
+                  bit++;
+                  if (bit == 8)
+                    {
+                      *q++=byte;
+                      bit=0;
+                      byte=0;
+                    }
+                }
+              if (bit != 0)
+                *q++=byte << (8-bit);
+            }
+          else
+          if (bits_per_pixel == 8)
+            {
+              /*
+                8 bit PseudoClass row
+              */
+              indexes=AccessImmutableIndexes(image);
+              for (x=0; x < (long) image->columns; x++)
+                {
+                  *q++=indexes[x];
+                }
+            }
+          else
+          if ((bits_per_pixel == 24) || (bits_per_pixel == 32))
+            {
+              /*
+                DirectClass/RGB row
+              */
+              for (x=0; x < (long) image->columns; x++)
+                {
+                  *q++=ScaleQuantumToChar(p->red);
+                  *q++=ScaleQuantumToChar(p->green);
+                  *q++=ScaleQuantumToChar(p->blue);
+                  p++;
+                }
             }
 
           if (image_info->compression == NoCompression)
@@ -1062,88 +1073,92 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
                           if (zero_rows < i)
                             i=zero_rows;
                           FormatString(buffer,"\033*b%ldY",i); /* Y Offset */
+                          (void) WriteBlobString(image,buffer);
                           zero_rows -= i;
                         } while (zero_rows > 0);
                     }
 
-              switch (compression)
-                {
-                  case PCL_DeltaCompression:
+                  switch (compression)
                     {
-                      if (compression != last_row_compression)
+                      case PCL_DeltaCompression:
                         {
-                          FormatString(buffer,"\033*b3M");  /* delta compression */
+                          if (compression != last_row_compression)
+                            {
+                              FormatString(buffer,"\033*b3M");  /* delta compression */
+                              (void) WriteBlobString(image,buffer);
+                              last_row_compression=compression;
+                            }
+                          bytes_to_write=PCL_DeltaCompress(bytes_per_line,pixels,
+                                                           last_row_pixels,output_row);
+                          FormatString(buffer,"\033*b%luW",bytes_to_write);
                           (void) WriteBlobString(image,buffer);
-                          last_row_compression=compression;
-                        }
-                      bytes_to_write=PCL_DeltaCompress(bytes_per_line,pixels,
-                                                       last_row_pixels,output_row);
-                      FormatString(buffer,"\033*b%luW",bytes_to_write);
-                      (void) WriteBlobString(image,buffer);
-                      WriteBlob(image,bytes_to_write,output_row);
-                      break;
-                    } 
-                  case PCL_TiffRLECompression:
-                    {
-                      if (compression != last_row_compression)
+                          WriteBlob(image,bytes_to_write,output_row);
+                          break;
+                        } 
+                      case PCL_TiffRLECompression:
                         {
-                          FormatString(buffer,"\033*b2M");  /* Tiff RLE compression */
+                          if (compression != last_row_compression)
+                            {
+                              FormatString(buffer,"\033*b2M");  /* Tiff RLE compression */
+                              (void) WriteBlobString(image,buffer);
+                              last_row_compression=compression;
+                            }
+                          bytes_to_write=PCL_TiffRLECompress(bytes_per_line,pixels,output_row);
+                          FormatString(buffer,"\033*b%luW",bytes_to_write);
                           (void) WriteBlobString(image,buffer);
-                          last_row_compression=compression;
+                          WriteBlob(image,bytes_to_write,output_row);         
+                          break;
                         }
-                      bytes_to_write=PCL_TiffRLECompress(bytes_per_line,pixels,output_row);
-                      FormatString(buffer,"\033*b%luW",bytes_to_write);
-                      (void) WriteBlobString(image,buffer);
-                      WriteBlob(image,bytes_to_write,output_row);         
-                      break;
-                    }
-                  case PCL_RLECompression:
-                    {
-                      if (compression != last_row_compression)
+                      case PCL_RLECompression:
                         {
-                          FormatString(buffer,"\033*b1M");  /* RLE compression */
+                          if (compression != last_row_compression)
+                            {
+                              FormatString(buffer,"\033*b1M");  /* RLE compression */
+                              (void) WriteBlobString(image,buffer);
+                              last_row_compression=compression;
+                            }
+                          bytes_to_write=PCL_RLECompress(bytes_per_line,pixels,output_row);
+                          FormatString(buffer,"\033*b%luW",bytes_to_write);
                           (void) WriteBlobString(image,buffer);
-                          last_row_compression=compression;
+                          WriteBlob(image,bytes_to_write,output_row);         
+                          break;
                         }
-                      bytes_to_write=PCL_RLECompress(bytes_per_line,pixels,output_row);
-                      FormatString(buffer,"\033*b%luW",bytes_to_write);
-                      (void) WriteBlobString(image,buffer);
-                      WriteBlob(image,bytes_to_write,output_row);         
-                      break;
-                    }
-                  case PCL_RepeatedRowCompression:
-                    {
-                      compression=PCL_DeltaCompression;
-                      if (compression != last_row_compression)
+                      case PCL_RepeatedRowCompression:
                         {
-                          FormatString(buffer,"\033*b3M");  /* delta row compression */
+                          compression=PCL_DeltaCompression;
+                          if (compression != last_row_compression)
+                            {
+                              FormatString(buffer,"\033*b3M");  /* delta row compression */
+                              (void) WriteBlobString(image,buffer);
+                              last_row_compression=compression;
+                            }
+                          FormatString(buffer,"\033*b0W");  /* no data -> replicate row */
                           (void) WriteBlobString(image,buffer);
-                          last_row_compression=compression;
-                        }
-                      FormatString(buffer,"\033*b0W");  /* no data -> replicate row */
-                      (void) WriteBlobString(image,buffer);
-                      break;
-                    } 
-                  case PCL_NoCompression:
-                    {
-                      if (compression != last_row_compression)
+                          break;
+                        } 
+                      case PCL_NoCompression:
                         {
-                          FormatString(buffer,"\033*b0M");  /* no compression */
+                          if (compression != last_row_compression)
+                            {
+                              FormatString(buffer,"\033*b0M");  /* no compression */
+                              (void) WriteBlobString(image,buffer);
+                              last_row_compression=compression;
+                            }
+                          FormatString(buffer,"\033*b%luW",bytes_per_line);  /* send row */
                           (void) WriteBlobString(image,buffer);
-                          last_row_compression=compression;
+                          (void) WriteBlob(image,bytes_per_line,pixels);
+                          break;
                         }
-                      FormatString(buffer,"\033*b%luW",bytes_per_line);  /* send row */
-                      (void) WriteBlobString(image,buffer);
-                      (void) WriteBlob(image,bytes_per_line,pixels);
-                      break;
-                    }
-                  case PCL_ZeroRowCompression:
-                  case PCL_UndefinedCompression:
-                    {
-                      break;
+                      case PCL_ZeroRowCompression:
+                        {
+                          break;
+                        }
+                      case PCL_UndefinedCompression:
+                        {
+                          break;
+                        }
                     }
                 }
-            }
 
             /*
               Swap row with last row

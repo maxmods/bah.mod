@@ -40,7 +40,7 @@
 #  if defined(__CYGWIN__)
 #    include <windows.h>
 #  else
-     // All MinGW needs ...
+     /* All MinGW needs ... */
 #    include <wingdi.h>
 #  endif
 #endif
@@ -126,7 +126,7 @@ static Image *ReadCLIPBOARDImage(const ImageInfo *image_info,ExceptionInfo *exce
           *pBits,
           *ppBits;
 
-        // create an offscreen DC for the source
+        /* create an offscreen DC for the source */
         hMemDC = CreateCompatibleDC( NULL );
         hOldBitmap = SelectObject( hMemDC, bitmapH );
         GetObject( bitmapH, sizeof( BITMAP ), (LPSTR) &bitmap );
@@ -155,7 +155,7 @@ static Image *ReadCLIPBOARDImage(const ImageInfo *image_info,ExceptionInfo *exce
         if (!hBitmap)
           ThrowReaderException(CoderError,UnableToCreateBitmap,image);
 
-        // create an offscreen DC
+        /* create an offscreen DC */
         hDC=CreateCompatibleDC(NULL);
         if (!hDC)
           {
@@ -170,10 +170,10 @@ static Image *ReadCLIPBOARDImage(const ImageInfo *image_info,ExceptionInfo *exce
             ThrowReaderException(CoderError,UnableToCreateBitmap,image);
           }
 
-        // bitblt from the memory to the DIB-based one
+        /* bitblt from the memory to the DIB-based one */
         BitBlt( hDC, 0, 0, image->columns, image->rows, hMemDC, 0, 0, SRCCOPY );
 
-        // finally copy the pixels!
+        /* finally copy the pixels! */
         pBits=ppBits;
         for (y=0; y < (long) image->rows; y++)
           {

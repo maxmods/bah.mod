@@ -20,3 +20,11 @@ extern MagickExport void
 
 extern MagickExport const unsigned char
   *MagickGetBitRevTable(int);
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

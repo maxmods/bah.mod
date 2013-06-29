@@ -25,3 +25,11 @@ extern MagickExport Image
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
 #endif /* _MAGICK_SHEAR_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

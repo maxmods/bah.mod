@@ -174,6 +174,8 @@ extern MagickExport MagickPassFail
     const ImportPixelAreaOptions *options,ImportPixelAreaInfo *import_info),
   WriteImage(const ImageInfo *image_info,Image *image),
   WriteImages(const ImageInfo *image_info,Image *image,const char *filename,
+    ExceptionInfo *exception),
+  WriteImagesFile(const ImageInfo *image_info,Image *image,FILE * file,
     ExceptionInfo *exception);
 
 extern MagickExport void
@@ -185,6 +187,9 @@ extern MagickExport MagickPassFail
     unsigned long width, unsigned long height,StorageType type,
     unsigned scanline_octets, void *scanline_buffer,
     double *min, double *max);
+
+extern MagickExport unsigned int
+  MagickGetQuantumSamplesPerPixel(const QuantumType quantum_type);
 
 #if defined(MAGICK_IMPLEMENTATION)
 
@@ -201,3 +206,11 @@ extern MagickPassFail
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
 #endif /* _MAGICK_CONSTITUTE_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

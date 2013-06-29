@@ -31,3 +31,11 @@ extern MagickExport void
   *MagickTsdGetSpecific(MagickTsdKey_t key);
 
 #endif /* _MAGICK_TSD_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

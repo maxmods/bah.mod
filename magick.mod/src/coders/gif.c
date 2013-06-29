@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -40,6 +40,7 @@
 #include "magick/blob.h"
 #include "magick/color.h"
 #include "magick/colormap.h"
+#include "magick/log.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
 #include "magick/pixel_cache.h"
@@ -84,7 +85,7 @@ static unsigned int
 %
 %
 */
-#define MaxStackSize  4096
+#define MaxStackSize  4096L
 #define NullCode  (-1)
 static MagickPassFail DecodeImage(Image *image,const long opacity)
 {
@@ -278,6 +279,9 @@ static MagickPassFail DecodeImage(Image *image,const long opacity)
           */
           if (available >= MaxStackSize)
             {
+              (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                                    "Excessive LZW string data "
+                                    "(string table overflow)");
               status=MagickFail;
               break;
             }
@@ -737,7 +741,7 @@ static MagickBool IsGIF(const unsigned char *magick,const size_t length)
 %
 %  Method ReadBlobBlock reads data from the image file and returns it.  The
 %  amount of data is determined by first reading a count byte.  The number
-%  or bytes read is returned.
+%  of bytes read is returned.
 %
 %  The format of the ReadBlobBlock method is:
 %
@@ -757,7 +761,7 @@ static MagickBool IsGIF(const unsigned char *magick,const size_t length)
 static size_t ReadBlobBlock(Image *image,unsigned char *data)
 {
   size_t
-    count;
+    count=0;
 
   unsigned char
     block_count;
@@ -765,10 +769,12 @@ static size_t ReadBlobBlock(Image *image,unsigned char *data)
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
   assert(data != (unsigned char *) NULL);
-  count=ReadBlob(image,1,&block_count);
-  if (count == 0)
-    return(0);
-  return(ReadBlob(image,(size_t) block_count,data));
+  if (ReadBlob(image,1,&block_count) == 1)
+    {
+      if ((count=ReadBlob(image,(size_t) block_count,data)) != (size_t) block_count)
+	count=0;
+    }
+  return count;
 }
 
 /*
@@ -857,7 +863,7 @@ static Image *ReadGIFImage(const ImageInfo *image_info,ExceptionInfo *exception)
     Determine if this is a GIF file.
   */
   count=ReadBlob(image,6,(char *) magick);
-  if ((count == 0) || ((LocaleNCompare((char *) magick,"GIF87",5) != 0) &&
+  if ((count != 6) || ((LocaleNCompare((char *) magick,"GIF87",5) != 0) &&
       (LocaleNCompare((char *) magick,"GIF89",5) != 0)))
     ThrowReaderException(CorruptImageError,ImproperImageHeader,image);
   global_colors=0;
@@ -881,7 +887,7 @@ static Image *ReadGIFImage(const ImageInfo *image_info,ExceptionInfo *exception)
   for ( ; ; )
   {
     count=ReadBlob(image,1,(char *) &c);
-    if (count == 0)
+    if (count != 1)
       break;
     if (c == ';')
       break;  /* terminator */
@@ -891,7 +897,7 @@ static Image *ReadGIFImage(const ImageInfo *image_info,ExceptionInfo *exception)
           GIF Extension block.
         */
         count=ReadBlob(image,1,(char *) &c);
-        if (count == 0) {
+        if (count != 1) {
 	  MagickFreeMemory(global_colormap);
           ThrowReaderException(CorruptImageError,UnableToReadExtensionBlock,	 
             image);
@@ -1022,6 +1028,8 @@ static Image *ReadGIFImage(const ImageInfo *image_info,ExceptionInfo *exception)
           image->colormap[i].red=ScaleCharToQuantum(*p++);
           image->colormap[i].green=ScaleCharToQuantum(*p++);
           image->colormap[i].blue=ScaleCharToQuantum(*p++);
+          if (i == opacity)
+	    image->colormap[i].opacity=(Quantum) TransparentOpacity;
         }
         image->background_color=
           image->colormap[Min(background,image->colors-1)];
@@ -1041,13 +1049,20 @@ static Image *ReadGIFImage(const ImageInfo *image_info,ExceptionInfo *exception)
             ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
                                  image);
           }
-        (void) ReadBlob(image,3*image->colors,(char *) colormap);
+        if (ReadBlob(image,3*image->colors,(char *) colormap) != 3*image->colors)
+	  {
+	    MagickFreeMemory(global_colormap);
+	    MagickFreeMemory(colormap);
+	    ThrowReaderException(CorruptImageError,InsufficientImageDataInFile,image);
+	  }
         p=colormap;
         for (i=0; i < (long) image->colors; i++)
         {
           image->colormap[i].red=ScaleCharToQuantum(*p++);
           image->colormap[i].green=ScaleCharToQuantum(*p++);
           image->colormap[i].blue=ScaleCharToQuantum(*p++);
+          if (i == opacity)
+            image->colormap[i].opacity=(Quantum) TransparentOpacity;
         }
         MagickFreeMemory(colormap);
       }

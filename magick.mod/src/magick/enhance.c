@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2010 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -40,10 +40,12 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/attribute.h"
 #include "magick/color.h"
 #include "magick/enhance.h"
 #include "magick/gem.h"
 #include "magick/pixel_iterator.h"
+#include "magick/log.h"
 #include "magick/monitor.h"
 #include "magick/utility.h"
 
@@ -888,9 +890,11 @@ MagickExport MagickPassFail LevelImage(Image *image,const char *levels)
 %
 %  The format of the LevelImage method is:
 %
-%      unsigned int LevelImageChannel(Image *image,const char *level,
-%        const ChannelType channel,const double black_point,
-%        const double mid_point,const double white_point)
+%      MagickPassFail LevelImageChannel(Image *image,
+%                                       const ChannelType channel,
+%                                       const double black_point,
+%                                       const double mid_point,
+%                                       const double white_point)
 %
 %  A description of each parameter follows:
 %
@@ -1293,12 +1297,59 @@ MagickExport MagickPassFail NegateImage(Image *image,const unsigned int grayscal
 %
 */
 #define MaxRange(color)  ScaleQuantumToMap(color)
+/*
+  Find histogram bounds based on a minimum threshold value.
+*/
+#define FindHistogramBoundsAlg(Q,threshold,low,high,histogram)	\
+  {								\
+    double							\
+      intensity;						\
+								\
+    intensity=0.0;						\
+    for (low.Q=0.0; low.Q < MaxMapDouble; low.Q += 1.0)		\
+      {								\
+	intensity+=histogram[(long) low.Q].Q;			\
+	if (intensity > threshold)				\
+	  break;						\
+      }								\
+    intensity=0.0;						\
+    for (high.Q=MaxMapDouble; high.Q >= 1.0; high.Q -= 1.0)	\
+      {								\
+	intensity+=histogram[(long) high.Q].Q;			\
+	if (intensity > threshold)				\
+	  break;						\
+      }								\
+}
+/*
+  Find histogram bounds, but with additional fallback in case
+  contrast is not reasonable.
+*/
+#define FindHistogramBounds(Q,threshold,low,high,histogram)	\
+  {								\
+    FindHistogramBoundsAlg(Q,threshold,low,high,histogram);	\
+    if (low.red == high.red)					\
+      FindHistogramBoundsAlg(Q,0.0,low,high,histogram);		\
+}
+/*
+  Compute levels map entry for a quantum.
+*/
+#define ComputeHistogramMapQuantum(Q,levels,low,high)			\
+{									\
+  if (i < (long) low.Q)							\
+    levels.map[i].Q=0;							\
+  else									\
+    if (i > (long) high.Q)						\
+      levels.map[i].Q=MaxRGB;						\
+    else								\
+      if (low.Q != high.Q)						\
+	levels.map[i].Q=						\
+	  ScaleMapToQuantum((MaxMapDouble*(i-low.Q))/(high.Q-low.Q));	\
+}
 MagickExport MagickPassFail NormalizeImage(Image *image)
 {
   DoublePixelPacket
     high,
     *histogram,
-    intensity,
     low;
 
   ApplyLevels_t
@@ -1310,8 +1361,9 @@ MagickExport MagickPassFail NormalizeImage(Image *image)
   unsigned int
     is_grayscale;
 
-  unsigned long
-    threshold_intensity;
+  double
+    threshold,
+    threshold_percent;
 
   MagickPassFail
     status=MagickPass;
@@ -1337,200 +1389,37 @@ MagickExport MagickPassFail NormalizeImage(Image *image)
     }
   /*
     Find the histogram boundaries by locating the 0.1 percent levels.
-  */
-  threshold_intensity=(long) (image->columns*image->rows)/1000;
-  (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-  for (low.red=0; low.red < MaxMap; low.red++)
-    {
-      intensity.red+=histogram[(long) low.red].red;
-      if (intensity.red > threshold_intensity)
-        break;
-    }
-  (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-  for (high.red=MaxMap; high.red != 0; high.red--)
-    {
-      intensity.red+=histogram[(long) high.red].red;
-      if (intensity.red > threshold_intensity)
-        break;
-    }
-  if (low.red == high.red)
-    {
-      /*
-        Unreasonable contrast;  use zero threshold to determine boundaries.
-      */
-      threshold_intensity=0;
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (low.red=0; low.red < MaxRange(MaxRGB); low.red++)
-        {
-          intensity.red+=histogram[(long) low.red].red;
-          if (intensity.red > threshold_intensity)
-            break;
-        }
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (high.red=MaxRange(MaxRGB); high.red != 0; high.red--)
-        {
-          intensity.red+=histogram[(long) high.red].red;
-          if (intensity.red > threshold_intensity)
-            break;
-        }
-    }
-  (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-  for (low.green=0; low.green < MaxRange(MaxRGB); low.green++)
-    {
-      intensity.green+=histogram[(long) low.green].green;
-      if (intensity.green > threshold_intensity)
-        break;
-    }
-  (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-  for (high.green=MaxRange(MaxRGB); high.green != 0; high.green--)
-    {
-      intensity.green+=histogram[(long) high.green].green;
-      if (intensity.green > threshold_intensity)
-        break;
-    }
-  if (low.green == high.green)
-    {
-      /*
-        Unreasonable contrast;  use zero threshold to determine boundaries.
-      */
-      threshold_intensity=0;
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (low.green=0; low.green < MaxRange(MaxRGB); low.green++)
-        {
-          intensity.green+=histogram[(long) low.green].green;
-          if (intensity.green > threshold_intensity)
-            break;
-        }
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (high.green=MaxRange(MaxRGB); high.green != 0; high.green--)
-        {
-          intensity.green+=histogram[(long) high.green].green;
-          if (intensity.green > threshold_intensity)
-            break;
-        }
-    }
-  (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-  for (low.blue=0; low.blue < MaxRange(MaxRGB); low.blue++)
-    {
-      intensity.blue+=histogram[(long) low.blue].blue;
-      if (intensity.blue > threshold_intensity)
-        break;
-    }
-  (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-  for (high.blue=MaxRange(MaxRGB); high.blue != 0; high.blue--)
-    {
-      intensity.blue+=histogram[(long) high.blue].blue;
-      if (intensity.blue > threshold_intensity)
-        break;
-    }
-  if (low.blue == high.blue)
-    {
-      /*
-        Unreasonable contrast;  use zero threshold to determine boundaries.
-      */
-      threshold_intensity=0;
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (low.blue=0; low.blue < MaxRange(MaxRGB); low.blue++)
-        {
-          intensity.blue+=histogram[(long) low.blue].blue;
-          if (intensity.blue > threshold_intensity)
-            break;
-        }
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (high.blue=MaxRange(MaxRGB); high.blue != 0; high.blue--)
-        {
-          intensity.blue+=histogram[(long) high.blue].blue;
-          if (intensity.blue > threshold_intensity)
-            break;
-        }
-    }
-  high.opacity=0;
-  low.opacity=0;
+  */ 
+  threshold_percent=0.1;
+  MagickAttributeToDouble(image,"histogram-threshold",threshold_percent);
+  threshold=(long) ((double) image->columns*image->rows*0.01*threshold_percent);
+  (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+			"Histogram Threshold = %g%% (%g)", threshold_percent, threshold);
+  FindHistogramBounds(red,threshold,low,high,histogram);
+  FindHistogramBounds(green,threshold,low,high,histogram);
+  FindHistogramBounds(blue,threshold,low,high,histogram);
+  high.opacity=0.0;
+  low.opacity=0.0;
   if (image->matte)
-    {
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (low.opacity=0; low.opacity < MaxRange(MaxRGB); low.opacity++)
-        {
-          intensity.opacity+=histogram[(long) low.opacity].opacity;
-          if (intensity.opacity > threshold_intensity)
-            break;
-        }
-      (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-      for (high.opacity=MaxRange(MaxRGB); high.opacity != 0; high.opacity--)
-        {
-          intensity.opacity+=histogram[(long) high.opacity].opacity;
-          if (intensity.opacity > threshold_intensity)
-            break;
-        }
-      if (low.opacity == high.opacity)
-        {
-          /*
-            Unreasonable contrast;  use zero threshold to determine boundaries.
-          */
-          threshold_intensity=0;
-          (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-          for (low.opacity=0; low.opacity < MaxRange(MaxRGB); low.opacity++)
-            {
-              intensity.opacity+=histogram[(long) low.opacity].opacity;
-              if (intensity.opacity > threshold_intensity)
-                break;
-            }
-          (void) memset(&intensity,0,sizeof(DoublePixelPacket));
-          for (high.opacity=MaxRange(MaxRGB); high.opacity != 0; high.opacity--)
-            {
-              intensity.opacity+=histogram[(long) high.opacity].opacity;
-              if (intensity.opacity > threshold_intensity)
-                break;
-            }
-        }
-    }
+    FindHistogramBounds(opacity,threshold,low,high,histogram);
+
   MagickFreeMemory(histogram);
+
   /*
     Stretch the histogram to create the normalized image mapping.
   */
   (void) memset(levels.map,0,(MaxMap+1)*sizeof(PixelPacket));
+
   for (i=0; i <= (long) MaxMap; i++)
     {
-      if (i < (long) low.red)
-        levels.map[i].red=0;
-      else
-        if (i > (long) high.red)
-          levels.map[i].red=MaxRGB;
-        else
-          if (low.red != high.red)
-            levels.map[i].red=
-              ScaleMapToQuantum((MaxMap*(i-low.red))/(high.red-low.red));
-      if (i < (long) low.green)
-        levels.map[i].green=0;
-      else
-        if (i > (long) high.green)
-          levels.map[i].green=MaxRGB;
-        else
-          if (low.green != high.green)
-            levels.map[i].green=ScaleMapToQuantum((MaxMap*(i-low.green))/
-                                                  (high.green-low.green));
-      if (i < (long) low.blue)
-        levels.map[i].blue=0;
-      else
-        if (i > (long) high.blue)
-          levels.map[i].blue=MaxRGB;
-        else
-          if (low.blue != high.blue)
-            levels.map[i].blue=
-              ScaleMapToQuantum((MaxMap*(i-low.blue))/(high.blue-low.blue));
+      ComputeHistogramMapQuantum(red,levels,low,high);
+      ComputeHistogramMapQuantum(green,levels,low,high);
+      ComputeHistogramMapQuantum(blue,levels,low,high);
+      levels.map[i].opacity=OpaqueOpacity;
       if (image->matte)
-        {
-          if (i < (long) low.opacity)
-            levels.map[i].opacity=0;
-          else
-            if (i > (long) high.opacity)
-              levels.map[i].opacity=MaxRGB;
-            else
-              if (low.opacity != high.opacity)
-                levels.map[i].opacity=ScaleMapToQuantum(
-                                                        (MaxMap*(i-low.opacity))/(high.opacity-low.opacity));
-        }
+	ComputeHistogramMapQuantum(opacity,levels,low,high);
     }
+
   /*
     Normalize the image.
   */

@@ -37,6 +37,7 @@
 /*
   Include declarations.
 */
+#include "magick/confirm_access.h"
 #include "magick/utility.h"
 #include "magick/monitor.h"
 #include "magick/nt_feature.h"

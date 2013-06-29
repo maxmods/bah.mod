@@ -2020,9 +2020,12 @@ static int util_font_weight( const char* font )
  * This is extremely odd at best, particularly since player/meta.h has access
  * to the corrected font_height (as drawtext.font_height) when it invokes the
  * stringwidth callback.  It should be possible to compute the real stringwidth!
+ *
+ * For the moment it seems to do the least harm to simply return 0.
  */
 static float lite_font_stringwidth( wmfAPI* API, wmfFont* font, char* str)
 {
+#if 0
   wmf_magick_t
     *ddata = WMF_MAGICK_GetData(API);
 
@@ -2082,7 +2085,14 @@ static float lite_font_stringwidth( wmfAPI* API, wmfFont* font, char* str)
   image->y_resolution = orig_y_resolution;
   image->units = orig_resolution_units;
 
+  return stringwidth;
+#else
+  (void) API;
+  (void) font;
+  (void) str;
+
   return 0;
+#endif
 }
 
 /* Map font (similar to wmf_ipa_font_map) */

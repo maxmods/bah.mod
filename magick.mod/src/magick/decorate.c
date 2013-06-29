@@ -291,13 +291,20 @@ MagickExport Image *FrameImage(const Image *image,const FrameInfo *frame_info,
     Draw sides of ornamental border.
   */
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,8) shared(row_count, status) private (p, q, width, x)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status) private (p, q, width, x)
+#  else
+#    pragma omp parallel for schedule(static,8) shared(row_count, status) private (p, q, width, x)
+#  endif
 #endif
   for (y=0; y < (long) image->rows; y++)
     {
       MagickBool
         thread_status;
-    
+
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_FrameImage)
+#endif    
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -488,13 +495,20 @@ RaiseImage(Image *image,const RectangleInfo *raise_info,const int raise_flag)
   (void) SetImageType(image,TrueColorType);
 
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status) private (q, x)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status) private (q, x)
+#  else
+#    pragma omp parallel for schedule(static,4) shared(row_count, status) private (q, x)
+#  endif
 #endif
   for ( y=0; y < (long) image->rows; y++)
     {
       MagickBool
         thread_status;
-    
+
+#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
+#  pragma omp critical (GM_RaiseImage)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;

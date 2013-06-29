@@ -19,7 +19,8 @@ using namespace std;
 
 // Construct with message string
 Magick::Exception::Exception( const std::string& what_ )
-  : _what(what_)
+  : std::exception(),
+    _what(what_)
 {
 }
 
@@ -60,8 +61,16 @@ Magick::Warning::Warning ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::Warning::~Warning ( ) throw ()
+{
+}
+
 Magick::WarningUndefined::WarningUndefined ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningUndefined::~WarningUndefined ( ) throw ()
 {
 }
 
@@ -70,8 +79,16 @@ Magick::WarningBlob::WarningBlob ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningBlob::~WarningBlob ( ) throw ()
+{
+}
+
 Magick::WarningCache::WarningCache ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningCache::~WarningCache ( ) throw ()
 {
 }
 
@@ -80,8 +97,16 @@ Magick::WarningCoder::WarningCoder ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningCoder::~WarningCoder ( ) throw ()
+{
+}
+
 Magick::WarningConfigure::WarningConfigure ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningConfigure::~WarningConfigure ( ) throw ()
 {
 }
 
@@ -90,8 +115,16 @@ Magick::WarningCorruptImage::WarningCorruptImage ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningCorruptImage::~WarningCorruptImage ( ) throw ()
+{
+}
+
 Magick::WarningDelegate::WarningDelegate ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningDelegate::~WarningDelegate ( ) throw ()
 {
 }
 
@@ -100,8 +133,16 @@ Magick::WarningDraw::WarningDraw ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningDraw::~WarningDraw ( ) throw ()
+{
+}
+
 Magick::WarningFileOpen::WarningFileOpen ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningFileOpen::~WarningFileOpen ( ) throw ()
 {
 }
 
@@ -110,8 +151,16 @@ Magick::WarningImage::WarningImage ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningImage::~WarningImage ( ) throw ()
+{
+}
+
 Magick::WarningMissingDelegate::WarningMissingDelegate ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningMissingDelegate::~WarningMissingDelegate ( ) throw ()
 {
 }
 
@@ -120,8 +169,16 @@ Magick::WarningModule::WarningModule ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningModule::~WarningModule ( ) throw ()
+{
+}
+
 Magick::WarningMonitor::WarningMonitor ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningMonitor::~WarningMonitor ( ) throw ()
 {
 }
 
@@ -130,8 +187,16 @@ Magick::WarningOption::WarningOption ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningOption::~WarningOption ( ) throw ()
+{
+}
+
 Magick::WarningRegistry::WarningRegistry ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningRegistry::~WarningRegistry ( ) throw ()
 {
 }
 
@@ -140,8 +205,16 @@ Magick::WarningResourceLimit::WarningResourceLimit ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningResourceLimit::~WarningResourceLimit ( ) throw ()
+{
+}
+
 Magick::WarningStream::WarningStream ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningStream::~WarningStream ( ) throw ()
 {
 }
 
@@ -150,8 +223,16 @@ Magick::WarningType::WarningType ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::WarningType::~WarningType ( ) throw ()
+{
+}
+
 Magick::WarningXServer::WarningXServer ( const std::string& what_ )
   : Warning(what_)
+{
+}
+
+/*virtual*/ Magick::WarningXServer::~WarningXServer ( ) throw ()
 {
 }
 
@@ -164,8 +245,16 @@ Magick::Error::Error ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::Error::~Error ( ) throw ()
+{
+}
+
 Magick::ErrorUndefined::ErrorUndefined ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorUndefined::~ErrorUndefined ( ) throw ()
 {
 }
 
@@ -174,8 +263,16 @@ Magick::ErrorBlob::ErrorBlob ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorBlob::~ErrorBlob ( ) throw ()
+{
+}
+
 Magick::ErrorCache::ErrorCache ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorCache::~ErrorCache ( ) throw ()
 {
 }
 
@@ -184,8 +281,16 @@ Magick::ErrorCoder::ErrorCoder ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorCoder::~ErrorCoder ( ) throw ()
+{
+}
+
 Magick::ErrorConfigure::ErrorConfigure ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorConfigure::~ErrorConfigure ( ) throw ()
 {
 }
 
@@ -194,8 +299,16 @@ Magick::ErrorCorruptImage::ErrorCorruptImage ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorCorruptImage::~ErrorCorruptImage ( ) throw ()
+{
+}
+
 Magick::ErrorDelegate::ErrorDelegate ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorDelegate::~ErrorDelegate ( ) throw ()
 {
 }
 
@@ -204,8 +317,16 @@ Magick::ErrorDraw::ErrorDraw ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorDraw::~ErrorDraw ( ) throw ()
+{
+}
+
 Magick::ErrorFileOpen::ErrorFileOpen ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorFileOpen::~ErrorFileOpen ( ) throw ()
 {
 }
 
@@ -214,8 +335,16 @@ Magick::ErrorImage::ErrorImage ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorImage::~ErrorImage ( ) throw ()
+{
+}
+
 Magick::ErrorMissingDelegate::ErrorMissingDelegate ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorMissingDelegate::~ErrorMissingDelegate ( ) throw ()
 {
 }
 
@@ -224,8 +353,16 @@ Magick::ErrorModule::ErrorModule ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorModule::~ErrorModule ( ) throw ()
+{
+}
+
 Magick::ErrorMonitor::ErrorMonitor ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorMonitor::~ErrorMonitor ( ) throw ()
 {
 }
 
@@ -234,8 +371,16 @@ Magick::ErrorOption::ErrorOption ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorOption::~ErrorOption ( ) throw ()
+{
+}
+
 Magick::ErrorRegistry::ErrorRegistry ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorRegistry::~ErrorRegistry ( ) throw ()
 {
 }
 
@@ -244,8 +389,16 @@ Magick::ErrorResourceLimit::ErrorResourceLimit ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorResourceLimit::~ErrorResourceLimit ( ) throw ()
+{
+}
+
 Magick::ErrorStream::ErrorStream ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorStream::~ErrorStream ( ) throw ()
 {
 }
 
@@ -254,8 +407,16 @@ Magick::ErrorType::ErrorType ( const std::string& what_ )
 {
 }
 
+/*virtual*/ Magick::ErrorType::~ErrorType ( ) throw ()
+{
+}
+
 Magick::ErrorXServer::ErrorXServer ( const std::string& what_ )
   : Error(what_)
+{
+}
+
+/*virtual*/ Magick::ErrorXServer::~ErrorXServer ( ) throw ()
 {
 }
 

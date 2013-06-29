@@ -662,6 +662,7 @@ ModuleExport void RegisterRLAImage(void)
   entry->decoder=(DecoderHandler) ReadRLAImage;
   entry->adjoin=False;
   entry->description="Alias/Wavefront image";
+  entry->seekable_stream=MagickTrue;
   entry->module="RLA";
   entry->coder_class=UnstableCoderClass;
   (void) RegisterMagickInfo(entry);

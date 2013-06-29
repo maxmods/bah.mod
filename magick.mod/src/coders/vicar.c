@@ -220,17 +220,17 @@ static Image *ReadVICARImage(const ImageInfo *image_info,
           Assign a value to the specified keyword.
         */
         if (LocaleCompare(keyword,"Label_RECORDS") == 0)
-          length=atol(value);
+          length=MagickAtoL(value);
         if (LocaleCompare(keyword,"LBLSIZE") == 0)
-          length=atol(value);
+          length=MagickAtoL(value);
         if (LocaleCompare(keyword,"RECORD_BYTES") == 0)
-          image->columns= atol(value);
+          image->columns= MagickAtoL(value);
         if (LocaleCompare(keyword,"NS") == 0)
-          image->columns= atol(value);
+          image->columns= MagickAtoL(value);
         if (LocaleCompare(keyword,"LINES") == 0)
-          image->rows= atol(value);
+          image->rows= MagickAtoL(value);
         if (LocaleCompare(keyword,"NL") == 0)
-          image->rows= atol(value);
+          image->rows= MagickAtoL(value);
       }
     while (isspace(c))
     {

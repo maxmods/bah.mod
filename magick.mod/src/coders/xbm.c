@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 -2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -251,13 +251,6 @@ static Image *ReadXBMImage(const ImageInfo *image_info,ExceptionInfo *exception)
   */
   if (!AllocateImageColormap(image,image->colors))
     ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
-  padding=0;
-  if ((image->columns % 16) && ((image->columns % 16) < 9)  && (version == 10))
-    padding=1;
-  bytes_per_line=(image->columns+7)/8+padding;
-  data=MagickAllocateArray(unsigned char *,image->rows,bytes_per_line);
-  if (data == (unsigned char *) NULL)
-    ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
   /*
     Initialize colormap.
   */
@@ -272,6 +265,16 @@ static Image *ReadXBMImage(const ImageInfo *image_info,ExceptionInfo *exception)
       CloseBlob(image);
       return(image);
     }
+  /*
+    Allocate temporary storage for X bitmap image
+  */
+  padding=0;
+  if ((image->columns % 16) && ((image->columns % 16) < 9)  && (version == 10))
+    padding=1;
+  bytes_per_line=(image->columns+7)/8+padding;
+  data=MagickAllocateArray(unsigned char *,image->rows,bytes_per_line);
+  if (data == (unsigned char *) NULL)
+    ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
   /*
     Initialize hex values.
   */

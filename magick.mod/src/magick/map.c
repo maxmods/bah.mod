@@ -598,8 +598,7 @@ MagickMapAllocateIterator(MagickMap map)
   assert(map != 0);
   assert(map->signature == MagickSignature);
 
-  if (LockSemaphoreInfo(map->semaphore) == False)
-    return 0;
+  LockSemaphoreInfo(map->semaphore);
 
   iterator=MagickAllocateMemory(MagickMapIterator,
                                 sizeof(MagickMapIteratorHandle));
@@ -612,7 +611,7 @@ MagickMapAllocateIterator(MagickMap map)
       iterator->signature=MagickSignature;
     }
 
-  (void) UnlockSemaphoreInfo(map->semaphore);
+  UnlockSemaphoreInfo(map->semaphore);
 
   return iterator;
 }
@@ -864,8 +863,7 @@ MagickMapIterateNext(MagickMapIterator iterator,const char **key)
   assert(iterator->signature == MagickSignature);
   assert(key != 0);
 
-  if (LockSemaphoreInfo(iterator->map->semaphore) != True)
-    return False;
+  LockSemaphoreInfo(iterator->map->semaphore);
 
   switch (iterator->position)
     {
@@ -887,7 +885,7 @@ MagickMapIterateNext(MagickMapIterator iterator,const char **key)
   if (iterator->member)
     *key=iterator->member->key;
 
-  (void) UnlockSemaphoreInfo(iterator->map->semaphore);
+  UnlockSemaphoreInfo(iterator->map->semaphore);
   
   return (iterator->member != 0);
 }
@@ -926,8 +924,7 @@ MagickMapIteratePrevious(MagickMapIterator iterator,const char **key)
   assert(iterator->signature == MagickSignature);
   assert(key != 0);
 
-  if(LockSemaphoreInfo(iterator->map->semaphore) != True)
-    return False;
+  LockSemaphoreInfo(iterator->map->semaphore);
 
   switch (iterator->position)
     {
@@ -953,7 +950,7 @@ MagickMapIteratePrevious(MagickMapIterator iterator,const char **key)
   if (iterator->member)
     *key=iterator->member->key;
 
-  (void) UnlockSemaphoreInfo(iterator->map->semaphore);
+  UnlockSemaphoreInfo(iterator->map->semaphore);
 
   return (iterator->member != 0);
 }
@@ -994,8 +991,7 @@ MagickMapRemoveEntry(MagickMap map,const char *key)
   assert(map->signature == MagickSignature);
   assert(key != 0);
 
-  if(LockSemaphoreInfo(map->semaphore) != True)
-    return False;
+  LockSemaphoreInfo(map->semaphore);
 
   if (map->list)
     {
@@ -1034,7 +1030,7 @@ MagickMapRemoveEntry(MagickMap map,const char *key)
         }
     }
 
-  (void) UnlockSemaphoreInfo(map->semaphore);
+  UnlockSemaphoreInfo(map->semaphore);
 
   return status;
 }

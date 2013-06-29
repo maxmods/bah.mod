@@ -1,6 +1,6 @@
 // This may look like C code, but it is really -*- C++ -*-
 //
-// Copyright Bob Friesenhahn, 2001, 2002
+// Copyright Bob Friesenhahn, 2001-2010
 //
 // CoderInfo implementation
 //
@@ -13,6 +13,26 @@
 #include "Magick++/Exception.h"
 
 using namespace std;
+
+// Default constructor
+Magick::CoderInfo::CoderInfo ( void )
+  : _name(),
+    _description(),
+    _isReadable(false),
+    _isWritable(false),
+    _isMultiFrame(false)
+{
+}
+
+// Copy constructor
+Magick::CoderInfo::CoderInfo ( const Magick::CoderInfo &coder_ )
+{
+  _name         = coder_._name;
+  _description  = coder_._description;
+  _isReadable   = coder_._isReadable;
+  _isWritable   = coder_._isWritable;
+  _isMultiFrame = coder_._isMultiFrame;
+}
 
 Magick::CoderInfo::CoderInfo ( const std::string &name_ )
   : _name(),
@@ -74,6 +94,21 @@ bool Magick::CoderInfo::isMultiFrame( void ) const
   return _isMultiFrame;
 }
 
+// Assignment operator
+Magick::CoderInfo& Magick::CoderInfo::operator= (const Magick::CoderInfo &coder_ )
+{
+  // If not being set to ourself
+  if (this != &coder_)
+    {
+      _name         = coder_._name;
+      _description  = coder_._description;
+      _isReadable   = coder_._isReadable;
+      _isWritable   = coder_._isWritable;
+      _isMultiFrame = coder_._isMultiFrame;
+    }
+  return *this;
+}
+
 // Construct from MagickLib::MagickInfo*
 Magick::CoderInfo::CoderInfo ( const MagickLib::MagickInfo *magickInfo_ )
   : _name(string(magickInfo_->name ? magickInfo_->name : "")),
@@ -84,4 +119,3 @@ Magick::CoderInfo::CoderInfo ( const MagickLib::MagickInfo *magickInfo_ )
 {
   // Nothing more to do
 }
-

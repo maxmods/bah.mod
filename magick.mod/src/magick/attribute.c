@@ -930,7 +930,7 @@ Generate8BIMAttribute(Image *image,const char *key)
     *name='\0';
   sub_number=1;
   if (*name == '#')
-    sub_number=atol(&name[1]);
+    sub_number=MagickAtoL(&name[1]);
   sub_number=Max(sub_number,1);
   resource=(char *) NULL;
 
@@ -2441,6 +2441,10 @@ GetImageInfoAttribute(const ImageInfo *image_info,const Image *image,
 %  otherwise False.  If the value is NULL, the matching key is deleted
 %  from the list.
 %
+%  The 'comment' and 'label' attributes are treated specially in that
+%  embedded format specifications are translated according to the formatting
+%  rules of TranslateText().
+%
 %  The format of the SetImageAttribute method is:
 %
 %      unsigned int SetImageAttribute(Image *image,const char *key,
@@ -2503,18 +2507,20 @@ SetImageAttribute(Image *image,const char *key,const char *value)
     return(MagickFail);
   attribute->key=AllocateString(key);
   attribute->length=0;
-  if ((LocaleNCompare(key,"comment",7) == 0) ||
-      (LocaleNCompare(key,"label",5) == 0))
+  if (!GetBlobIsOpen(image) &&
+      ((LocaleNCompare(key,"comment",7) == 0) ||
+       (LocaleNCompare(key,"label",5) == 0)))
     {
       /*
-        Translate format requests in attribute text.
+        Translate format requests in attribute text when the blob is
+        not open.
 
         This is really gross since it is assumed that the attribute is
         supplied by the user and the user intends for translation to
-        occur.  However, comment attributes may also come from an
-        image file and may contain arbitrary text.  There does not
-        seem to be any work-around which preserves the already defined
-        interface.
+        occur.  However, 'comment' and 'label' attributes may also
+        come from an image file and may contain arbitrary text.  As a
+        crude-workaround, translations are only performed when the
+        blob is not open.
       */
       attribute->value=TranslateText((ImageInfo *) NULL,image,value);
       if (attribute->value != (char *) NULL)
@@ -2556,7 +2562,8 @@ SetImageAttribute(Image *image,const char *key,const char *value)
 	    Extend existing text string.
 	  */
 	  min_l=p->length+attribute->length+1;
-	  for (realloc_l=2; realloc_l <= min_l; realloc_l *= 2);
+	  for (realloc_l=2; realloc_l <= min_l; realloc_l *= 2)
+            { /* nada */};
 	  MagickReallocMemory(char *,p->value,realloc_l);
 	  if (p->value != (char *) NULL)
 	    (void) strcat(p->value+p->length,attribute->value);

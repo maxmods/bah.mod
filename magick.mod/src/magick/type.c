@@ -884,7 +884,7 @@ static unsigned int ReadTypeConfigureFile(const char *basename,
       {
         if (LocaleCompare((char *) keyword,"weight") == 0)
           {
-            type_list->weight=atol(token);
+            type_list->weight=MagickAtoL(token);
             if (LocaleCompare(token,"bold") == 0)
               type_list->weight=700;
             if (LocaleCompare(token,"normal") == 0)

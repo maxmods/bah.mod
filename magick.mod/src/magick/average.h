@@ -30,3 +30,11 @@ extern MagickExport Image
 #endif
 
 #endif /* _MAGICK_AVERAGE_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2012 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -507,7 +507,15 @@ MagickExport Image *MinifyImage(const Image *image,ExceptionInfo *exception)
 
     (void) memset(&zero,0,sizeof(DoublePixelPacket));
 #if defined(HAVE_OPENMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(row_count, status)
+#  else
+#    if defined(USE_STATIC_SCHEDULING_ONLY)
+#      pragma omp parallel for schedule(static) shared(row_count, status)
+#    else
+#      pragma omp parallel for schedule(guided) shared(row_count, status)
+#    endif
+#  endif
 #endif
     for (y=0; y < (long) minify_image->rows; y++)
       {
@@ -527,6 +535,9 @@ MagickExport Image *MinifyImage(const Image *image,ExceptionInfo *exception)
         MagickBool
           thread_status;
 
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_MinifyImage)
+#endif
         thread_status=status;
         if (thread_status == MagickFail)
           continue;
@@ -825,7 +836,15 @@ HorizontalFilter(const Image *source,Image *destination,
   scale=1.0/scale;
   (void) memset(&zero,0,sizeof(DoublePixelPacket));
 #if defined(HAVE_OPENMP)
-#  pragma omp parallel for shared(status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(status)
+#  else
+#    if defined(USE_STATIC_SCHEDULING_ONLY)
+#      pragma omp parallel for schedule(static) shared(status)
+#    else
+#      pragma omp parallel for schedule(guided) shared(status)
+#    endif
+#  endif
 #endif
   for (x=0; x < (long) destination->columns; x++)
     {
@@ -856,7 +875,10 @@ HorizontalFilter(const Image *source,Image *destination,
 
       MagickBool
         thread_status;
-    
+
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_HorizontalFilter)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -1041,7 +1063,15 @@ VerticalFilter(const Image *source,Image *destination,
   scale=1.0/scale;
   (void) memset(&zero,0,sizeof(DoublePixelPacket));
 #if defined(HAVE_OPENMP)
-#  pragma omp parallel for shared(status)
+#  if defined(TUNE_OPENMP)
+#    pragma omp parallel for schedule(runtime) shared(status)
+#  else
+#    if defined(USE_STATIC_SCHEDULING_ONLY)
+#      pragma omp parallel for schedule(static) shared(status)
+#    else
+#      pragma omp parallel for schedule(guided) shared(status)
+#    endif
+#  endif
 #endif
   for (y=0; y < (long) destination->rows; y++)
     {
@@ -1072,7 +1102,10 @@ VerticalFilter(const Image *source,Image *destination,
 
       MagickBool
         thread_status;
-    
+
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_VerticalFilter)
+#endif
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
@@ -1303,13 +1336,12 @@ MagickExport Image *ResizeImage(const Image *image,const unsigned long columns,
   x_factor=(double) resize_image->columns/image->columns;
   y_factor=(double) resize_image->rows/image->rows;
   i=(long) DefaultResizeFilter;
-  if (image->filter != UndefinedFilter)
-    i=(long) image->filter;
+  if (filter != UndefinedFilter)
+    i=(long) filter;
   else
     if ((image->storage_class == PseudoClass) || image->matte ||
         ((x_factor*y_factor) > 1.0))
       i=(long) MitchellFilter;
-
 
   if (IsEventLogging())
     (void) LogMagickEvent(TransformEvent,GetMagickModule(),
@@ -1917,14 +1949,26 @@ MagickExport Image *ThumbnailImage(const Image *image,
     *sample_image,
     *thumbnail_image;
 
+  FilterTypes
+    resize_filter;
+
+  /*
+    Thumbnailing defaults to a fast box filter, but allow user to
+    overide the filter used.
+  */
+  if (UndefinedFilter != image->filter)
+    resize_filter=image->filter;
+  else
+    resize_filter=DefaultThumbnailFilter;
+
   x_factor=(double) columns/image->columns;
   y_factor=(double) rows/image->rows;
   if ((x_factor*y_factor) > 0.1)
-    return(ResizeImage(image,columns,rows,BoxFilter,image->blur,exception));
+    return(ResizeImage(image,columns,rows,resize_filter,image->blur,exception));
   sample_image=SampleImage(image,5*columns,5*rows,exception);
   if (sample_image == (Image *) NULL)
     return((Image *) NULL);
-  thumbnail_image=ResizeImage(sample_image,columns,rows,BoxFilter,
+  thumbnail_image=ResizeImage(sample_image,columns,rows,resize_filter,
     sample_image->blur,exception);
   DestroyImage(sample_image);
   return(thumbnail_image);

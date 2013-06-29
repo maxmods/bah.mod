@@ -147,3 +147,11 @@ extern MagickExport MagickInfo
 #endif
 
 #endif /* _MAGICK_MAGICK_H */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */
