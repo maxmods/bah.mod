@@ -872,6 +872,62 @@ typedef JMETHOD(boolean, jpeg_marker_parser_method, (j_decompress_ptr cinfo));
 #define JPP(arglist)	()
 #endif
 
+/* BaH - fi_ prefix */
+#ifdef FREEIMAGE_JPEG_EXTERNAL_NAMES
+#define jpeg_std_error	fi_jpeg_std_error
+#define jpeg_CreateCompress	fi_jpeg_CreateCompress
+#define jpeg_CreateDecompress	fi_jpeg_CreateDecompress
+#define jpeg_destroy_compress	fi_jpeg_destroy_compress
+#define jpeg_destroy_decompress	fi_jpeg_destroy_decompress
+#define jpeg_stdio_dest	fi_jpeg_stdio_dest
+#define jpeg_stdio_src	fi_jpeg_stdio_src
+#define jpeg_mem_dest	fi_jpeg_mem_dest
+#define jpeg_mem_src	fi_jpeg_mem_src
+#define jpeg_set_defaults	fi_jpeg_set_defaults
+#define jpeg_set_colorspace	fi_jpeg_set_colorspace
+#define jpeg_default_colorspace	fi_jpeg_default_colorspace
+#define jpeg_set_quality	fi_jpeg_set_quality
+#define jpeg_set_linear_quality	fi_jpeg_set_linear_quality
+#define jpeg_default_qtables	fi_jpeg_default_qtables
+#define jpeg_add_quant_table	fi_jpeg_add_quant_table
+#define jpeg_quality_scaling	fi_jpeg_quality_scaling
+#define jpeg_simple_progression	fi_jpeg_simple_progression
+#define jpeg_suppress_tables	fi_jpeg_suppress_tables
+#define jpeg_alloc_quant_table	fi_jpeg_alloc_quant_table
+#define jpeg_alloc_huff_table	fi_jpeg_alloc_huff_table
+#define jpeg_start_compress	fi_jpeg_start_compress
+#define jpeg_write_scanlines	fi_jpeg_write_scanlines
+#define jpeg_finish_compress	fi_jpeg_finish_compress
+#define jpeg_calc_jpeg_dimensions	fi_jpeg_calc_jpeg_dimensions
+#define jpeg_write_raw_data	fi_jpeg_write_raw_data
+#define jpeg_write_marker	fi_jpeg_write_marker
+#define jpeg_write_m_header	fi_jpeg_write_m_header
+#define jpeg_write_m_byte	fi_jpeg_write_m_byte
+#define jpeg_write_tables	fi_jpeg_write_tables
+#define jpeg_read_header	fi_jpeg_read_header
+#define jpeg_start_decompress	fi_jpeg_start_decompress
+#define jpeg_read_scanlines	fi_jpeg_read_scanlines
+#define jpeg_finish_decompress	fi_jpeg_finish_decompress
+#define jpeg_read_raw_data	fi_jpeg_read_raw_data
+#define jpeg_has_multiple_scans	fi_jpeg_has_multiple_scans
+#define jpeg_start_output	fi_jpeg_start_output
+#define jpeg_finish_output	fi_jpeg_finish_output
+#define jpeg_input_complete	fi_jpeg_input_complete
+#define jpeg_new_colormap	fi_jpeg_new_colormap
+#define jpeg_consume_input	fi_jpeg_consume_input
+#define jpeg_core_output_dimensions	fi_jpeg_core_output_dimensions
+#define jpeg_calc_output_dimensions	fi_jpeg_calc_output_dimensions
+#define jpeg_save_markers	fi_jpeg_save_markers
+#define jpeg_set_marker_processor	fi_jpeg_set_marker_processor
+#define jpeg_read_coefficients	fi_jpeg_read_coefficients
+#define jpeg_write_coefficients	fi_jpeg_write_coefficients
+#define jpeg_copy_critical_parameters	fi_jpeg_copy_critical_parameters
+#define jpeg_abort_compress	fi_jpeg_abort_compress
+#define jpeg_abort_decompress	fi_jpeg_abort_decompress
+#define jpeg_abort	fi_jpeg_abort
+#define jpeg_destroy	fi_jpeg_destroy
+#define jpeg_resync_to_restart	fi_jpeg_resync_to_restart
+#endif /* FREEIMAGE_JPEG_EXTERNAL_NAMES */
 
 /* Short forms of external names for systems with brain-damaged linkers.
  * We shorten external names to be unique in the first six letters, which
