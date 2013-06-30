@@ -23,11 +23,9 @@ SuperStrict
 Import BRL.Blitz
 Import Pub.FreeType
 Import Pub.libpng
-Import Pub.libjpeg
 Import BaH.libxml
 
 Import "../../pub.mod/freetype.mod/include/*.h"
-Import "../../pub.mod/libjpeg.mod/*.h"
 Import "../../pub.mod/zlib.mod/*.h"
 Import "../../bah.mod/libxml.mod/src/*.h"
 Import "src/*.h"
@@ -38,6 +36,8 @@ Import "src/delegates/jasper/*.h"
 Import "src/delegates/bzip2/*.h"
 
 Import "src/delegates/libtiff/*.h"
+
+Import "src/delegates/libjpeg/*.h"
 
 Import "src/magick/annotate.c"
 Import "src/magick/attribute.c"
@@ -373,5 +373,54 @@ Import "src/delegates/libtiff/tif_win32.c"
 ?Not win32
 Import "src/delegates/libtiff/tif_unix.c"
 ?
+
+' libjpeg
+Import "src/delegates/libjpeg/jcapimin.c"
+Import "src/delegates/libjpeg/jcapistd.c"
+Import "src/delegates/libjpeg/jaricom.c"
+Import "src/delegates/libjpeg/jcarith.c"
+Import "src/delegates/libjpeg/jccoefct.c"
+Import "src/delegates/libjpeg/jccolor.c"
+Import "src/delegates/libjpeg/jcdctmgr.c"
+Import "src/delegates/libjpeg/jchuff.c"
+Import "src/delegates/libjpeg/jcinit.c"
+Import "src/delegates/libjpeg/jcmainct.c"
+Import "src/delegates/libjpeg/jcmarker.c"
+Import "src/delegates/libjpeg/jcmaster.c"
+Import "src/delegates/libjpeg/jcomapi.c"
+Import "src/delegates/libjpeg/jcparam.c"
+Import "src/delegates/libjpeg/jcprepct.c"
+Import "src/delegates/libjpeg/jcsample.c"
+Import "src/delegates/libjpeg/jctrans.c"
+Import "src/delegates/libjpeg/jdapimin.c"
+Import "src/delegates/libjpeg/jdapistd.c"
+Import "src/delegates/libjpeg/jdarith.c"
+Import "src/delegates/libjpeg/jdatadst.c"
+Import "src/delegates/libjpeg/jdatasrc.c"
+Import "src/delegates/libjpeg/jdcoefct.c"
+Import "src/delegates/libjpeg/jdcolor.c"
+Import "src/delegates/libjpeg/jddctmgr.c"
+Import "src/delegates/libjpeg/jdhuff.c"
+Import "src/delegates/libjpeg/jdinput.c"
+Import "src/delegates/libjpeg/jdmainct.c"
+Import "src/delegates/libjpeg/jdmarker.c"
+Import "src/delegates/libjpeg/jdmaster.c"
+Import "src/delegates/libjpeg/jdmerge.c"
+Import "src/delegates/libjpeg/jdpostct.c"
+Import "src/delegates/libjpeg/jdsample.c"
+Import "src/delegates/libjpeg/jdtrans.c"
+Import "src/delegates/libjpeg/jerror.c"
+Import "src/delegates/libjpeg/jfdctflt.c"
+Import "src/delegates/libjpeg/jfdctfst.c"
+Import "src/delegates/libjpeg/jfdctint.c"
+Import "src/delegates/libjpeg/jidctflt.c"
+Import "src/delegates/libjpeg/jidctfst.c"
+Import "src/delegates/libjpeg/jidctint.c"
+Import "src/delegates/libjpeg/jmemmgr.c"
+Import "src/delegates/libjpeg/jmemnobs.c"
+Import "src/delegates/libjpeg/jquant1.c"
+Import "src/delegates/libjpeg/jquant2.c"
+Import "src/delegates/libjpeg/jutils.c"
+Import "src/delegates/libjpeg/transupp.c"
 
 Import "glue.cpp"

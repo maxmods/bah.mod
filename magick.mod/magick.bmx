@@ -35,10 +35,11 @@ ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
 ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC"
+ModuleInfo "CC_OPTS: -DMAGICK_JPEG_EXTERNAL_NAMES"
 ?Not win32
 ModuleInfo "CC_OPTS: -std=c99"
 ?win32
-ModuleInfo "CC_OPTS: -DWIN32 -D_MAX_PATH=260"
+ModuleInfo "CC_OPTS: -DWIN32 -D_MAX_PATH=260 -DHAVE_UNSIGNED_CHAR -DHAVE_UNSIGNED_SHORT"
 ?
 
 Import BRL.Pixmap
@@ -56,6 +57,8 @@ Import "drawable.bmx"
 '
 ' Added windows.h include to tif_win32.c
 '
+' Changed jpeglib.h
+'    Use mk_ prefix
 
 
 Global _magick_initialized:Int = False
