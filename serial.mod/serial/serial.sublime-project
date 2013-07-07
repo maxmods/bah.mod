@@ -1,0 +1,19 @@
+{
+	"word_wrap": "on",
+    "wrap_width": 80,
+	"folders":
+	[
+		{
+			"path": "./"
+		}
+	],
+	"settings":
+	{
+		"sublimeclang_options":
+		[
+			"-I/usr/include",
+			"-I/usr/local/include",
+			"-I${folder:${project_path:serial.sublime-project}}/include"
+		]
+	}
+}
