@@ -40,6 +40,8 @@
 #include "serial/serial.h"
 
 #include "windows.h"
+// BaH - added for alloca
+#include "malloc.h"
 
 namespace serial {
 

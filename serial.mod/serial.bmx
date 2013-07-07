@@ -37,6 +37,12 @@ ModuleInfo "CC_OPTS: -fexceptions"
 
 Import "common.bmx"
 
+' Changes
+'   win.h
+'  Added malloc.h include for alloca
+'
+
+
 Rem
 bbdoc: A serial port interface.
 End Rem
