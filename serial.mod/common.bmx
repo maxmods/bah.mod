@@ -26,6 +26,7 @@ Extern
 
 	Function bmx_serial_create:Byte Ptr(port:String, baudrate:Int, timeout:Byte Ptr, bytesize:Int, parity:Int, stopbits:Int, flowcontrol:Int)
 	Function bmx_serial_open(handle:Byte Ptr)
+	Function bmx_serial_close(handle:Byte Ptr)
 	Function bmx_serial_isopen:Int(handle:Byte Ptr)
 	Function bmx_serial_available:Int(handle:Byte Ptr)
 	Function bmx_serial_read:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)

@@ -38,6 +38,7 @@ extern "C" {
 
 	serial::Serial * bmx_serial_create(BBString * port, int baudrate, MaxTimeout * timeout, int bytesize, int parity, int stopbits, int flowcontrol);
 	void bmx_serial_open(serial::Serial * ser);
+	void bmx_serial_close(serial::Serial * ser);
 	int bmx_serial_isopen(serial::Serial * ser);
 	int bmx_serial_available(serial::Serial * ser);
 	int bmx_serial_read(serial::Serial * ser, uint8_t * buffer, int size);
@@ -139,6 +140,10 @@ void bmx_serial_open(serial::Serial * ser) {
 	} catch (serial::SerialException &e) {
 		bmx_serial_throw_serialexception(e);
 	}
+}
+
+void bmx_serial_close(serial::Serial * ser) {
+	ser->close();
 }
 
 int bmx_serial_isopen(serial::Serial * ser) {

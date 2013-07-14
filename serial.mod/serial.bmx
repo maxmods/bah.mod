@@ -72,6 +72,13 @@ Type TSerial
 	End Method
 	
 	Rem
+	bbdoc: Closes the serial port.
+	End Rem
+	Method close()
+		bmx_serial_close(serialPtr)
+	End Method
+	
+	Rem
 	bbdoc: Gets the open status of the serial port.
 	returns: True if the port is open, False otherwise.
 	End Rem
