@@ -34,7 +34,6 @@ ModuleInfo "History: 1.00 Initial Release"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 
-
 Import "common.bmx"
 
 ' Changes
@@ -354,7 +353,20 @@ Type TSerial
 		Return bmx_serial_getcd(serialPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns an array of available serial ports.
+	End Rem
+	Function listPorts:TList()
+		Local list:TList = New TList
+		bmx_serial_listports(list)
+		Return list
+	End Function
+
 End Type
+
+Extern
+	Function bmx_serial_listports(list:TList)
+End Extern
 
 Rem
 bbdoc: Type for setting the timeout of the serial port, times are in milliseconds.
@@ -437,6 +449,53 @@ Type TPortNotOpenedException Extends TSerialException
 
 	Function _create:TSerialException(what:String)
 		Return New TPortNotOpenedException.CreateException(what)
+	End Function
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TSerialPortInfo
+	Rem
+	bbdoc: 
+	End Rem
+	Field portName:String
+	Rem
+	bbdoc: 
+	End Rem
+	Field physicalName:String
+	Rem
+	bbdoc: 
+	End Rem
+	Field productName:String
+	Rem
+	bbdoc: 
+	End Rem
+	Field enumeratorName:String
+	Rem
+	bbdoc: 
+	End Rem
+	Field vendorId:Int
+	Rem
+	bbdoc: 
+	End Rem
+	Field productId:Int
+	
+	Function _create:TSerialPortInfo(portName:String, physicalName:String, productName:String, enumeratorName:String, ..
+			vendorId:Int, productId:Int)
+		Local this:TSerialPortInfo = New TSerialPortInfo
+		this.portName = portName
+		this.physicalName = physicalName
+		this.productName = productName
+		this.enumeratorName = enumeratorName
+		this.vendorId = vendorId
+		this.productId = productId
+		Return this
+	End Function
+	
+	Function _addInfo(list:TList, info:TSerialPortInfo)
+		list.AddLast(info)
 	End Function
 
 End Type

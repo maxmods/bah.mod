@@ -33,3 +33,10 @@ Import "serial/src/impl/unix.cc"
 
 Import "glue.cpp"
 
+?macos
+Import "list_osx.cpp"
+?win32
+Import "list_win32.cpp"
+?linux
+Import "list_linux.cpp"
+?

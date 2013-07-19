@@ -20,6 +20,12 @@
 ' 
 SuperStrict
 
+Import BRL.LinkedList
+
+?macos
+Import "-framework IOKit"
+?
+
 Import "source.bmx"
 
 Extern
