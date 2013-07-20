@@ -23,6 +23,8 @@ SuperStrict
 Import BRL.LinkedList
 ?win32
 Import BaH.Regex
+?linux
+Import BRL.FileSystem
 ?
 
 ?macos

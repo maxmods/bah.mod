@@ -527,5 +527,18 @@ Type TSerialPortInfo
 
 		Return val
 	End Function
+?linux
+	Function _listPorts(list:TList)
+		If FileType("/dev/serial") = FILETYPE_DIR Then
+			If FileType("/dev/serial/by-id") = FILETYPE_DIR Then
+				Local ports:String[] = LoadDir("/dev/serial/by-id")
+				For Local port:String = EachIn ports
+					Local info:TSerialPortInfo = New TSerialPortInfo
+					info.setPortName("/dev/serial/by-id/" + port)
+					list.AddLast(info)
+				Next
+			End If
+		End If
+	End Function
 ?
 End Type
