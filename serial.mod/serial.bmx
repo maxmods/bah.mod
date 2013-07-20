@@ -534,7 +534,7 @@ Type TSerialPortInfo
 				Local ports:String[] = LoadDir("/dev/serial/by-id")
 				For Local port:String = EachIn ports
 					Local info:TSerialPortInfo = New TSerialPortInfo
-					info.setPortName("/dev/serial/by-id/" + port)
+					info.portName = "/dev/serial/by-id/" + port
 					list.AddLast(info)
 				Next
 			End If

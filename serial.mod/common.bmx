@@ -31,6 +31,8 @@ Import BRL.FileSystem
 Import "-framework IOKit"
 ?win32
 Import "-lsetupapi"
+?linux
+Import "-lrt"
 ?
 
 Import "source.bmx"
