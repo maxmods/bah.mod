@@ -21,9 +21,14 @@
 SuperStrict
 
 Import BRL.LinkedList
+?win32
+Import BaH.Regex
+?
 
 ?macos
 Import "-framework IOKit"
+?win32
+Import "-lsetupapi"
 ?
 
 Import "source.bmx"

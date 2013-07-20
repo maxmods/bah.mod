@@ -484,6 +484,11 @@ Type TSerialPortInfo
 	
 	Function _create:TSerialPortInfo(portName:String, physicalName:String, productName:String, enumeratorName:String, ..
 			vendorId:Int, productId:Int)
+?win32
+		If portName.StartsWith("LPT") Then
+			Return Null
+		End If
+?
 		Local this:TSerialPortInfo = New TSerialPortInfo
 		this.portName = portName
 		this.physicalName = physicalName
@@ -497,5 +502,30 @@ Type TSerialPortInfo
 	Function _addInfo(list:TList, info:TSerialPortInfo)
 		list.AddLast(info)
 	End Function
+?win32
+	Function _getIds(hids:String, vendorId:Int Ptr, productId:Int Ptr)
+		Local regex:TRegEx = TRegEx.Create( "VID_(\w+)&PID_(\w+)")
+		Try
+			Local match:TRegExMatch = regex.Find(hids)
+			
+			If match Then
+				vendorId[0] = hexToInt(match.SubExp(1))
+				productId[0] = hexToInt(match.SubExp(2))
+			End If
+			
+		Catch e:TRegExException
+		End Try
+	End Function
+	
+	Function hexToInt:Int(text:String)
+		Local val:Int
+		Local length:Int = text.length
+		
+		For Local i:Int = 0 Until length
+			val :+ Int(text[length - i - 1..length - i]) Shl (i * 4)
+		Next
 
+		Return val
+	End Function
+?
 End Type
