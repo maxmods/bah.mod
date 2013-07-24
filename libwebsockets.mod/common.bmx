@@ -33,6 +33,7 @@ Extern
 	Function bmx_libwebsockets_service:Int(handle:Byte Ptr, timeout:Int)
 	Function bmx_libwebsockets_serve_http_file:Int(handle:Byte Ptr, wsi:Byte Ptr, file:String, contentType:String)
 	Function bmx_libwebsocket_context_destroy(handle:Byte Ptr)
+	Function bmx_libwebsocket_callback_on_writable:Int(handle:Byte Ptr, wsi:Byte Ptr)
 
 	Function bmx_libwebsockets_contextcreationinfo_new:Byte Ptr()
 	Function bmx_libwebsockets_contextcreationinfo_free(handle:Byte Ptr)
@@ -41,11 +42,14 @@ Extern
 
 	Function bmx_libwebsockets_protocol_create:Byte Ptr(name:String)
 	Function bmx_libwebsocket_callback_on_writable_all_protocol:Int(protocol:Byte Ptr)
-	
+	Function bmx_libwebsocket_rx_flow_allow_all_protocol(protocol:Byte Ptr)
+
 	Function bmx_libwebsockets_websocket_writetext:Int(handle:Byte Ptr, offset:Byte Ptr, length:Int)
 	Function bmx_libwebsockets_websocket_write:Int(handle:Byte Ptr, offset:Byte Ptr, length:Int, protocol:Int)
 	Function bmx_libwebsockets_lws_frame_is_binary:Int(handle:Byte Ptr)
 	Function bmx_libwebsockets_remaining_packet_payload:Int(handle:Byte Ptr)
+	Function bmx_libwebsocket_rx_flow_control:Int(handle:Byte Ptr, enable:Int)
+	Function bmx_libwebsockets_lws_send_pipe_choked:Int(handle:Byte Ptr)
 
 End Extern
 

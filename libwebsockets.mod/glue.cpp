@@ -37,6 +37,7 @@ extern "C" {
 	int bmx_libwebsockets_service(struct libwebsocket_context * context, int timeout);
 	int bmx_libwebsockets_serve_http_file(struct libwebsocket_context * context, struct libwebsocket * wsi, BBString * file, BBString * contentType);
 	void bmx_libwebsocket_context_destroy(struct libwebsocket_context * context);
+	int bmx_libwebsocket_callback_on_writable(struct libwebsocket_context * context, struct libwebsocket * wsi);
 
 	struct lws_context_creation_info * bmx_libwebsockets_contextcreationinfo_new();
 	void bmx_libwebsockets_contextcreationinfo_free(struct lws_context_creation_info * info);
@@ -45,6 +46,7 @@ extern "C" {
 
 	struct libwebsocket_protocols * bmx_libwebsockets_protocol_create(BBString * name);
 	int bmx_libwebsocket_callback_on_writable_all_protocol(struct libwebsocket_protocols * protocol);
+	void bmx_libwebsocket_rx_flow_allow_all_protocol(struct libwebsocket_protocols * protocol);
 
 	int bmx_libwebsockets_callback(struct libwebsocket_context * context, struct libwebsocket * wsi, enum libwebsocket_callback_reasons reason, void * user, void * in, size_t len);
 	
@@ -52,6 +54,8 @@ extern "C" {
 	int bmx_libwebsockets_websocket_write(struct libwebsocket * wsi, unsigned char * buf, int length, int protocol);
 	int bmx_libwebsockets_lws_frame_is_binary(struct libwebsocket * wsi);
 	int bmx_libwebsockets_remaining_packet_payload(struct libwebsocket * wsi);
+	int bmx_libwebsocket_rx_flow_control(struct libwebsocket * wsi, int enable);
+	int bmx_libwebsockets_lws_send_pipe_choked(struct libwebsocket * wsi);
 
 	struct per_session_data_obj {
 		BBObject * handle;
@@ -88,10 +92,18 @@ void bmx_libwebsocket_context_destroy(struct libwebsocket_context * context) {
 	libwebsocket_context_destroy(context);
 }
 
+int bmx_libwebsocket_callback_on_writable(struct libwebsocket_context * context, struct libwebsocket * wsi) {
+	return libwebsocket_callback_on_writable(context, wsi);
+}
+
 // ********************************************************
 
 struct lws_context_creation_info * bmx_libwebsockets_contextcreationinfo_new() {
-	return (struct lws_context_creation_info*) calloc(1, sizeof(struct lws_context_creation_info));
+	struct lws_context_creation_info * info = (struct lws_context_creation_info*) calloc(1, sizeof(struct lws_context_creation_info));
+	info->extensions = libwebsocket_get_internal_extensions();
+	info->gid = -1;
+	info->uid = -1;
+	return info;
 }
 
 void bmx_libwebsockets_contextcreationinfo_free(struct lws_context_creation_info * info) {
@@ -173,6 +185,10 @@ int bmx_libwebsocket_callback_on_writable_all_protocol(struct libwebsocket_proto
 	return libwebsocket_callback_on_writable_all_protocol(protocol);
 }
 
+void bmx_libwebsocket_rx_flow_allow_all_protocol(struct libwebsocket_protocols * protocol) {
+	libwebsocket_rx_flow_allow_all_protocol(protocol);
+}
+
 // ********************************************************
 
 int bmx_libwebsockets_websocket_writetext(struct libwebsocket * wsi, unsigned char * buf, int length) {
@@ -189,4 +205,12 @@ int bmx_libwebsockets_lws_frame_is_binary(struct libwebsocket * wsi) {
 
 int bmx_libwebsockets_remaining_packet_payload(struct libwebsocket * wsi) {
 	return static_cast<int>(libwebsockets_remaining_packet_payload(wsi));
+}
+
+int bmx_libwebsocket_rx_flow_control(struct libwebsocket * wsi, int enable) {
+	return libwebsocket_rx_flow_control(wsi, enable);
+}
+
+int bmx_libwebsockets_lws_send_pipe_choked(struct libwebsocket * wsi) {
+	return lws_send_pipe_choked(wsi);
 }

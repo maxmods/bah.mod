@@ -110,6 +110,14 @@ Function CallbackOnWritableAllProtocol:Int(protocol:TLWSProtocol)
 	Return bmx_libwebsocket_callback_on_writable_all_protocol(protocol.offsetPtr)
 End Function
 
+Rem
+bbdoc: Allow all connections with this protocol to receive.
+about: When the user server code realizes it can accept more input, it can call this to have the RX flow restriction removed from all connections using the given protocol.
+End Rem
+Function RxFlowAllowAllProtocol(protocol:TLWSProtocol)
+	bmx_libwebsocket_rx_flow_allow_all_protocol(protocol.offsetPtr)
+End Function
+
 
 Rem
 bbdoc: 
@@ -163,6 +171,13 @@ Type TLWSContext
 	End Method
 	
 	Rem
+	bbdoc: Request a callback when this socket becomes able to be written to without blocking.
+	End Rem
+	Method callbackOnWritable:Int(wsi:TLWSWebSocket)
+		Return bmx_libwebsocket_callback_on_writable(contextPtr, wsi.socketPtr)
+	End Method
+	
+	Rem
 	bbdoc: Frees the websocket context.
 	about: Closes any active connections and then frees the context. After calling this, any further use of the context is undefined.
 	End Rem
@@ -213,7 +228,7 @@ Type TLWSProtocol
 		Local proto:TLWSProtocol = getProtocol(name)
 
 		Return proto.callback(TLWSContext(TLWSContext.contexts.ValueForKey(String(Int(contextPtr)))), ..
-				TLWSWebSocket._create(wsiPtr), reason, user, in, length)
+				TLWSWebSocket._create(wsiPtr, proto), reason, user, in, length)
 	End Function
 	
 	Function _objectCallback:Object(name:String)
@@ -235,10 +250,13 @@ Type TLWSWebSocket
 
 	Field socketPtr:Byte Ptr
 	
-	Function _create:TLWSWebSocket(socketPtr:Byte Ptr)
+	Field protocol:TLWSProtocol
+	
+	Function _create:TLWSWebSocket(socketPtr:Byte Ptr, proto:TLWSProtocol)
 		If socketPtr Then
 			Local this:TLWSWebSocket = New TLWSWebSocket
 			this.socketPtr = socketPtr
+			this.protocol = proto
 			Return this
 		End If
 	End Function
@@ -295,6 +313,21 @@ Type TLWSWebSocket
 	End Rem
 	Method remainingPacketPayload:Int()
 		Return bmx_libwebsockets_remaining_packet_payload(socketPtr)
+	End Method
+	
+	Rem
+	bbdoc: Enable or disable socket servicing for receieved packets.
+	about: If the output side of a server process becomes choked, this allows flow control for the input side.
+	End Rem
+	Method rxFlowControl:Int(enable:Int)
+		Return bmx_libwebsocket_rx_flow_control(socketPtr, enable)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method sendPipeChoked:Int()
+		Return bmx_libwebsockets_lws_send_pipe_choked(socketPtr)
 	End Method
 	
 End Type
