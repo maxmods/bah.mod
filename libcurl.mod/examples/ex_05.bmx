@@ -9,7 +9,7 @@ Import BRL.StandardIO
 
 Local urls:String[] = ["http://www.google.com/", "http://www.altavista.com/", "http://www.yahoo.com/"]
 
-'DebugStop
+
 Local multi:TCurlMulti = TCurlMulti.Create()
 
 For Local i:Int = 0 Until urls.length
@@ -35,12 +35,13 @@ Wend
 
 While running And status = CURLM_OK
 	' wait for network 
+'DebugStop
 	If multi.multiSelect() <> -1 Then
 		' pull in any new data, or at least handle timeouts 
 		status = multi.multiPerform(running)
-		While status = CURLM_CALL_MULTI_PERFORM 
-			status = multi.multiPerform(running)
-		Wend
+		'While status = CURLM_CALL_MULTI_PERFORM 
+		'	status = multi.multiPerform(running)
+		'Wend
 	End If
 Wend
 
@@ -55,25 +56,25 @@ Print "success"
 ' now, let's see what we got !
 
 Local size:Int
-Local msg:TCurlMultiMsg = multi.multiInfoRead(size)
+Local MSG:TCurlMultiMsg = multi.multiInfoRead(size)
 
-While msg
+While MSG
 
 	Print "*********************************************"
 
-	If msg.result = CURLE_OK Then
-		Print msg.easy.toString() ' the data from the internal string
+	If MSG.result = CURLE_OK Then
+		Print MSG.easy.toString() ' the data from the internal string
 	Else
-		Print CurlError(msg.result)
+		Print CurlError(MSG.result)
 	End If
 
 	' remove the easy handle
-	multi.multiRemove(msg.easy)
+	multi.multiRemove(MSG.easy)
 	
 	' cleanup the easy handle
-	msg.easy.cleanup()
+	MSG.easy.cleanup()
 
-	msg = multi.multiInfoRead(size)
+	MSG = multi.multiInfoRead(size)
 Wend
 
 ' cleanup the multi handle

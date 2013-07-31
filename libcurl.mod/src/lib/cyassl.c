@@ -26,16 +26,12 @@
  *
  */
 
-#include "setup.h"
+#include "curl_setup.h"
 
 #ifdef USE_CYASSL
 
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
-#endif
-
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
 #endif
 
 #include "urldata.h"

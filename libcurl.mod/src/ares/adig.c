@@ -16,9 +16,6 @@
 
 #include "ares_setup.h"
 
-#ifdef HAVE_SYS_SOCKET_H
-#  include <sys/socket.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
 #endif
@@ -37,25 +34,12 @@
 #  include <arpa/nameser_compat.h>
 #endif
 
-#ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-#endif
 #ifdef HAVE_STRINGS_H
 #  include <strings.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
 #include "ares.h"
 #include "ares_dns.h"
-#include "inet_ntop.h"
-#include "inet_net_pton.h"
 #include "ares_getopt.h"
 #include "ares_nowarn.h"
 
@@ -390,9 +374,9 @@ int main(int argc, char **argv)
         break;
       tvp = ares_timeout(channel, NULL, &tv);
       count = select(nfds, &read_fds, &write_fds, NULL, tvp);
-      if (count < 0 && SOCKERRNO != EINVAL)
+      if (count < 0 && (status = SOCKERRNO) != EINVAL)
         {
-          perror("select");
+          printf("select fail: %d", status);
           return 1;
         }
       ares_process(channel, &read_fds, &write_fds);

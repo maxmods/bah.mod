@@ -17,29 +17,17 @@
 #include "ares_setup.h"
 
 #if !defined(WIN32) || defined(WATT32)
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
 #endif
-#endif
+
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "ares.h"
 #include "ares_dns.h"
-#include "inet_ntop.h"
-#include "inet_net_pton.h"
 #include "ares_getopt.h"
 #include "ares_ipv6.h"
 #include "ares_nowarn.h"

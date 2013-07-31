@@ -1,5 +1,5 @@
-#ifndef __SELECT_H
-#define __SELECT_H
+#ifndef HEADER_CURL_SELECT_H
+#define HEADER_CURL_SELECT_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -22,7 +22,7 @@
  *
  ***************************************************************************/
 
-#include "setup.h"
+#include "curl_setup.h"
 
 #ifdef HAVE_SYS_POLL_H
 #include <sys/poll.h>
@@ -81,6 +81,12 @@ int Curl_socket_check(curl_socket_t readfd, curl_socket_t readfd2,
 
 int Curl_poll(struct pollfd ufds[], unsigned int nfds, int timeout_ms);
 
+/* On non-DOS and non-Winsock platforms, when Curl_ack_eintr is set,
+ * EINTR condition is honored and function might exit early without
+ * awaiting full timeout.  Otherwise EINTR will be ignored and full
+ * timeout will elapse. */
+extern int Curl_ack_eintr;
+
 int Curl_wait_ms(int timeout_ms);
 
 #ifdef TPF
@@ -104,4 +110,5 @@ int tpf_select_libcurl(int maxfds, fd_set* reads, fd_set* writes,
 } WHILE_FALSE
 #endif
 
-#endif /* __SELECT_H */
+#endif /* HEADER_CURL_SELECT_H */
+
