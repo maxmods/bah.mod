@@ -1,20 +1,23 @@
-/* config.h.  Generated from config.h.in by configure.  */
-/* config.h.in.  Generated from configure.ac by autoheader.  */
+/* ares_config.h.  Generated from ares_config.h.in by configure.  */
+/* ares_config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define if building universal (internal helper macro) */
+/* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* define this if ares is built for a big endian system */
 /* #undef ARES_BIG_ENDIAN */
 
-/* Define to 1 if you have the $func function. */
-/* #undef AS_TR_CPP */
-
 /* when building as static part of libcurl */
 /* #undef BUILDING_LIBCURL */
 
-/* Set to explicitly specify we don't want to use thread-safe functions */
-/* #undef DISABLED_THREADSAFE */
+/* Definition to make a library symbol externally visible. */
+#define CARES_SYMBOL_SCOPE_EXTERN __attribute__ ((__visibility__ ("default")))
 
 /* if a /etc/inet dir is being used */
 /* #undef ETC_INET */
+
+/* Define to the type of arg 2 for gethostname. */
+#define GETHOSTNAME_TYPE_ARG2 size_t
 
 /* Define to the type qualifier of arg 1 for getnameinfo. */
 #define GETNAMEINFO_QUAL_ARG1 const
@@ -49,6 +52,9 @@
 /* Define to 1 if you have the <arpa/nameser.h> header file. */
 #define HAVE_ARPA_NAMESER_H 1
 
+/* Define to 1 if you have the <assert.h> header file. */
+#define HAVE_ASSERT_H 1
+
 /* Define to 1 if you have the `bitncmp' function. */
 /* #undef HAVE_BITNCMP */
 
@@ -57,6 +63,15 @@
 
 /* Define to 1 if you have the clock_gettime function and monotonic timer. */
 /* #undef HAVE_CLOCK_GETTIME_MONOTONIC */
+
+/* Define to 1 if you have the closesocket function. */
+/* #undef HAVE_CLOSESOCKET */
+
+/* Define to 1 if you have the CloseSocket camel case function. */
+/* #undef HAVE_CLOSESOCKET_CAMEL */
+
+/* Define to 1 if you have the connect function. */
+#define HAVE_CONNECT 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -78,6 +93,12 @@
 
 /* Define to 1 if you have a working getaddrinfo function. */
 #define HAVE_GETADDRINFO 1
+
+/* Define to 1 if the getaddrinfo function is threadsafe. */
+#define HAVE_GETADDRINFO_THREADSAFE 1
+
+/* Define to 1 if you have the getenv function. */
+#define HAVE_GETENV 1
 
 /* Define to 1 if you have the gethostbyaddr function. */
 #define HAVE_GETHOSTBYADDR 1
@@ -101,11 +122,8 @@
 #define HAVE_IF_INDEXTONAME 1
 
 #ifdef __APPLE__
-/* Define to 1 if you have the `inet_net_pton' function. */
+/* Define to 1 if you have a IPv6 capable working inet_net_pton function. */
 #define HAVE_INET_NET_PTON 1
-
-/* Define to 1 if inet_net_pton supports IPv6. */
-#define HAVE_INET_NET_PTON_IPV6 1
 #endif
 
 /* Define to 1 if you have a IPv6 capable working inet_ntop function. */
@@ -142,8 +160,8 @@
 /* Define to 1 if you have the `resolve' library (-lresolve). */
 /* #undef HAVE_LIBRESOLVE */
 
-/* Define to 1 if you have the `socket' library (-lsocket). */
-/* #undef HAVE_LIBSOCKET */
+/* Define to 1 if you have the <limits.h> header file. */
+#define HAVE_LIMITS_H 1
 
 /* if your compiler supports LL */
 #define HAVE_LL 1
@@ -154,7 +172,7 @@
 /* Define to 1 if you have the malloc.h header file. */
 /* #undef HAVE_MALLOC_H */
 
-/* Define to 1 if you have the <memory.h> header file. */
+/* Define to 1 if you have the memory.h header file. */
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the MSG_NOSIGNAL flag. */
@@ -201,6 +219,12 @@
 
 /* Define to 1 if your struct sockaddr_in6 has sin6_scope_id. */
 #define HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID 1
+
+/* Define to 1 if you have the socket function. */
+#define HAVE_SOCKET 1
+
+/* Define to 1 if you have the <socket.h> header file. */
+/* #undef HAVE_SOCKET_H */
 
 /* Define to 1 if you have the <stdbool.h> header file. */
 #define HAVE_STDBOOL_H 1
@@ -301,14 +325,21 @@
 /* Define to 1 if you have the ws2tcpip.h header file. */
 /* #undef HAVE_WS2TCPIP_H */
 
-/* Define to 1 if you are building a native Windows target. */
-/* #undef NATIVE_WINDOWS */
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
 
 /* Define to 1 if you need the malloc.h header file even with stdlib.h */
 /* #undef NEED_MALLOC_H */
 
+/* Define to 1 if you need the memory.h header file even with stdlib.h */
+/* #undef NEED_MEMORY_H */
+
 /* Define to 1 if _REENTRANT preprocessor symbol must be defined. */
 /* #undef NEED_REENTRANT */
+
+/* Define to 1 if _THREAD_SAFE preprocessor symbol must be defined. */
+/* #undef NEED_THREAD_SAFE */
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */
@@ -320,22 +351,28 @@
 #define PACKAGE "c-ares"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "c-ares mailing list => http://cool.haxx.se/mailman/listinfo/c-ares"
+#define PACKAGE_BUGREPORT "c-ares mailing list: http://cool.haxx.se/mailman/listinfo/c-ares"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "c-ares"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "c-ares 1.6.0"
+#define PACKAGE_STRING "c-ares 1.10.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "c-ares"
 
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.6.0"
+#define PACKAGE_VERSION "1.10.0"
 
 /* a suitable file/device to read random data from */
 #define RANDOM_FILE "/dev/urandom"
+
+/* Define to the type qualifier pointed by arg 5 for recvfrom. */
+#define RECVFROM_QUAL_ARG5 
 
 /* Define to the type of arg 1 for recvfrom. */
 #define RECVFROM_TYPE_ARG1 int
@@ -403,8 +440,14 @@
 /* Define to the function return type for send. */
 #define SEND_TYPE_RETV ssize_t
 
+/* The size of `int', as computed by sizeof. */
+#define SIZEOF_INT 4
+
 /* The size of `long', as computed by sizeof. */
 #define SIZEOF_LONG 4
+
+/* The size of `short', as computed by sizeof. */
+#define SIZEOF_SHORT 2
 
 /* The size of `size_t', as computed by sizeof. */
 #define SIZEOF_SIZE_T 4
@@ -428,14 +471,33 @@
 /* #undef USE_BLOCKING_SOCKETS */
 
 /* Version number of package */
-#define VERSION "1.6.0"
+#define VERSION "1.10.0"
 
 /* Define to avoid automatic inclusion of winsock.h */
 /* #undef WIN32_LEAN_AND_MEAN */
 
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+/* #  undef WORDS_BIGENDIAN */
+# endif
+#endif
+
 /* Define to 1 if OS is AIX. */
 #ifndef _ALL_SOURCE
 /* #  undef _ALL_SOURCE */
+#endif
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifdef __APPLE__
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
@@ -443,9 +505,6 @@
 
 /* Define for large files, on AIX-style hosts. */
 /* #undef _LARGE_FILES */
-
-/* define this if you need it to compile thread-safe code */
-/* #undef _THREAD_SAFE */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
@@ -455,9 +514,6 @@
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 /* #undef size_t */
-
-/* Type to use in place of socklen_t when system does not provide it. */
-/* #undef socklen_t */
 
 /* the signed version of size_t */
 /* #undef ssize_t */
