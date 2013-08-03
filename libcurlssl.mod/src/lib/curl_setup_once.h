@@ -1,5 +1,5 @@
-#ifndef __SETUP_ONCE_H
-#define __SETUP_ONCE_H
+#ifndef HEADER_CURL_SETUP_ONCE_H
+#define HEADER_CURL_SETUP_ONCE_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2013, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -21,16 +21,6 @@
  * KIND, either express or implied.
  *
  ***************************************************************************/
-
-
-/********************************************************************
- *                              NOTICE                              *
- *                             ========                             *
- *                                                                  *
- *  Content of header files lib/setup_once.h and ares/setup_once.h  *
- *  must be kept in sync. Modify the other one if you change this.  *
- *                                                                  *
- ********************************************************************/
 
 
 /*
@@ -81,6 +71,34 @@
 
 #if defined(HAVE_STDBOOL_H) && defined(HAVE_BOOL_T)
 #include <stdbool.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#ifdef __hpux
+#  if !defined(_XOPEN_SOURCE_EXTENDED) || defined(_KERNEL)
+#    ifdef _APP32_64BIT_OFF_T
+#      define OLD_APP32_64BIT_OFF_T _APP32_64BIT_OFF_T
+#      undef _APP32_64BIT_OFF_T
+#    else
+#      undef OLD_APP32_64BIT_OFF_T
+#    endif
+#  endif
+#endif
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
+#ifdef __hpux
+#  if !defined(_XOPEN_SOURCE_EXTENDED) || defined(_KERNEL)
+#    ifdef OLD_APP32_64BIT_OFF_T
+#      define _APP32_64BIT_OFF_T OLD_APP32_64BIT_OFF_T
+#      undef OLD_APP32_64BIT_OFF_T
+#    endif
+#  endif
 #endif
 
 
@@ -239,6 +257,8 @@ struct timeval {
 #  define sclose(x)  closesocket((x))
 #elif defined(HAVE_CLOSESOCKET_CAMEL)
 #  define sclose(x)  CloseSocket((x))
+#elif defined(HAVE_CLOSE_S)
+#  define sclose(x)  close_s((x))
 #elif defined(USE_LWIPSOCK)
 #  define sclose(x)  lwip_close((x))
 #else
@@ -274,6 +294,18 @@ struct timeval {
                           (((unsigned char)x) == '\t'))
 
 #define TOLOWER(x)  (tolower((int)  ((unsigned char)x)))
+
+
+/*
+ * 'bool' stuff compatible with HP-UX headers.
+ */
+
+#if defined(__hpux) && !defined(HAVE_BOOL_T)
+   typedef int bool;
+#  define false 0
+#  define true 1
+#  define HAVE_BOOL_T
+#endif
 
 
 /*
@@ -496,17 +528,6 @@ typedef int sig_atomic_t;
 #define EREMOTE          WSAEREMOTE
 #endif
 
-
-/*
- *  Actually use __32_getpwuid() on 64-bit VMS builds for getpwuid()
- */
-
-#if defined(__VMS) && \
-    defined(__INITIAL_POINTER_SIZE) && (__INITIAL_POINTER_SIZE == 64)
-#define getpwuid __32_getpwuid
-#endif
-
-
 /*
  * Macro argv_item_t hides platform details to code using it.
  */
@@ -526,4 +547,5 @@ typedef int sig_atomic_t;
 #define ZERO_NULL 0
 
 
-#endif /* __SETUP_ONCE_H */
+#endif /* HEADER_CURL_SETUP_ONCE_H */
+

@@ -5,9 +5,9 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 2012, Marc Hoersken, <info@marc-hoersken.de>, et al.
+ * Copyright (C) 2012 - 2013, Marc Hoersken, <info@marc-hoersken.de>
  * Copyright (C) 2012, Mark Salisbury, <mark.salisbury@hp.com>
- * Copyright (C) 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 2012 - 2013, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -51,7 +51,7 @@
  *   http://msdn.microsoft.com/en-us/library/windows/desktop/aa380161.aspx
  */
 
-#include "setup.h"
+#include "curl_setup.h"
 
 #ifdef USE_SCHANNEL
 
@@ -219,8 +219,8 @@ schannel_connect_step1(struct connectdata *conn, int sockindex)
 
   /* setup request flags */
   connssl->req_flags = ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT |
-                       ISC_REQ_CONFIDENTIALITY | ISC_REQ_EXTENDED_ERROR |
-                       ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_STREAM;
+                       ISC_REQ_CONFIDENTIALITY | ISC_REQ_ALLOCATE_MEMORY |
+                       ISC_REQ_STREAM;
 
   /* allocate memory for the security context handle */
   connssl->ctxt = malloc(sizeof(struct curl_schannel_ctxt));
@@ -503,8 +503,6 @@ schannel_connect_step3(struct connectdata *conn, int sockindex)
       failf(data, "schannel: failed to setup replay detection");
     if(!(connssl->ret_flags & ISC_RET_CONFIDENTIALITY))
       failf(data, "schannel: failed to setup confidentiality");
-    if(!(connssl->ret_flags & ISC_RET_EXTENDED_ERROR))
-      failf(data, "schannel: failed to setup extended errors");
     if(!(connssl->ret_flags & ISC_RET_ALLOCATED_MEMORY))
       failf(data, "schannel: failed to setup memory allocation");
     if(!(connssl->ret_flags & ISC_RET_STREAM))
@@ -536,6 +534,7 @@ schannel_connect_step3(struct connectdata *conn, int sockindex)
       return retcode;
     }
     else {
+      connssl->cred->cached = TRUE;
       infof(data, "schannel: stored credential handle in session cache\n");
     }
   }
@@ -1128,15 +1127,26 @@ int Curl_schannel_shutdown(struct connectdata *conn, int sockindex)
 
     /* free SSPI Schannel API security context handle */
     if(connssl->ctxt) {
+      infof(data, "schannel: clear security context handle\n");
       s_pSecFn->DeleteSecurityContext(&connssl->ctxt->ctxt_handle);
       Curl_safefree(connssl->ctxt);
     }
 
-    /* decrement the reference counter of the credential/session handle */
-    if(connssl->cred && connssl->cred->refcount > 0) {
-      connssl->cred->refcount--;
-      infof(data, "schannel: decremented credential handle refcount = %d\n",
-            connssl->cred->refcount);
+    /* free SSPI Schannel API credential handle */
+    if(connssl->cred) {
+      /* decrement the reference counter of the credential/session handle */
+      if(connssl->cred->refcount > 0) {
+        connssl->cred->refcount--;
+        infof(data, "schannel: decremented credential handle refcount = %d\n",
+              connssl->cred->refcount);
+      }
+
+      /* if the handle was not cached and the refcount is zero */
+      if(!connssl->cred->cached && connssl->cred->refcount == 0) {
+        infof(data, "schannel: clear credential handle\n");
+        s_pSecFn->FreeCredentialsHandle(&connssl->cred->cred_handle);
+        Curl_safefree(connssl->cred);
+      }
     }
   }
 
@@ -1161,7 +1171,7 @@ void Curl_schannel_session_free(void *ptr)
 {
   struct curl_schannel_cred *cred = ptr;
 
-  if(cred && cred->refcount == 0) {
+  if(cred && cred->cached && cred->refcount == 0) {
     s_pSecFn->FreeCredentialsHandle(&cred->cred_handle);
     Curl_safefree(cred);
   }

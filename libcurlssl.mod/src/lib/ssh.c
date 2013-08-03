@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2013, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -22,7 +22,7 @@
 
 /* #define CURL_LIBSSH2_DEBUG */
 
-#include "setup.h"
+#include "curl_setup.h"
 
 #ifdef USE_LIBSSH2
 
@@ -33,17 +33,10 @@
 #include <libssh2.h>
 #include <libssh2_sftp.h>
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -429,9 +422,9 @@ static CURLcode ssh_getworkingpath(struct connectdata *conn,
       free(working_path);
       return CURLE_OUT_OF_MEMORY;
     }
-    if((working_path_len > 1) && (working_path[1] == '~'))
-      /* It is referenced to the home directory, so strip the leading '/' */
-      memcpy(real_path, working_path+1, 1 + working_path_len-1);
+    if((working_path_len > 3) && (!memcmp(working_path, "/~/", 3)))
+      /* It is referenced to the home directory, so strip the leading '/~/' */
+      memcpy(real_path, working_path+3, 4 + working_path_len-3);
     else
       memcpy(real_path, working_path, 1 + working_path_len);
   }
@@ -2502,6 +2495,9 @@ static CURLcode ssh_statemach_act(struct connectdata *conn, bool *block)
 #ifdef HAVE_LIBSSH2_KNOWNHOST_API
       DEBUGASSERT(sshc->kh == NULL);
 #endif
+#ifdef HAVE_LIBSSH2_AGENT_API
+      DEBUGASSERT(sshc->ssh_agent == NULL);
+#endif
 
       Curl_safefree(sshc->rsa_pub);
       Curl_safefree(sshc->rsa);
@@ -2639,7 +2635,7 @@ static CURLcode ssh_multi_statemach(struct connectdata *conn, bool *done)
   return result;
 }
 
-static CURLcode ssh_easy_statemach(struct connectdata *conn,
+static CURLcode ssh_block_statemach(struct connectdata *conn,
                                    bool duringconnect)
 {
   struct ssh_conn *sshc = &conn->proto.sshc;
@@ -2797,13 +2793,7 @@ static CURLcode ssh_connect(struct connectdata *conn, bool *done)
 
   state(conn, SSH_INIT);
 
-  if(data->state.used_interface == Curl_if_multi)
-    result = ssh_multi_statemach(conn, done);
-  else {
-    result = ssh_easy_statemach(conn, TRUE);
-    if(!result)
-      *done = TRUE;
-  }
+  result = ssh_multi_statemach(conn, done);
 
   return result;
 }
@@ -2832,13 +2822,8 @@ CURLcode scp_perform(struct connectdata *conn,
   state(conn, SSH_SCP_TRANS_INIT);
 
   /* run the state-machine */
-  if(conn->data->state.used_interface == Curl_if_multi) {
-    result = ssh_multi_statemach(conn, dophase_done);
-  }
-  else {
-    result = ssh_easy_statemach(conn, FALSE);
-    *dophase_done = TRUE; /* with the easy interface we are done here */
-  }
+  result = ssh_multi_statemach(conn, dophase_done);
+
   *connected = conn->bits.tcpconnect[FIRSTSOCKET];
 
   if(*dophase_done) {
@@ -2917,7 +2902,7 @@ static CURLcode scp_disconnect(struct connectdata *conn, bool dead_connection)
 
     state(conn, SSH_SESSION_DISCONNECT);
 
-    result = ssh_easy_statemach(conn, FALSE);
+    result = ssh_block_statemach(conn, FALSE);
   }
 
   return result;
@@ -2938,7 +2923,7 @@ static CURLcode ssh_done(struct connectdata *conn, CURLcode status)
        non-blocking DONE operations, not in the multi state machine and with
        Curl_done() invokes on several places in the code!
     */
-    result = ssh_easy_statemach(conn, FALSE);
+    result = ssh_block_statemach(conn, FALSE);
   }
   else
     result = status;
@@ -2983,7 +2968,7 @@ static ssize_t scp_send(struct connectdata *conn, int sockindex,
     nwrite = 0;
   }
   else if(nwrite < LIBSSH2_ERROR_NONE) {
-    *err = libssh2_session_error_to_CURLE(nwrite);
+    *err = libssh2_session_error_to_CURLE((int)nwrite);
     nwrite = -1;
   }
 
@@ -3041,13 +3026,8 @@ CURLcode sftp_perform(struct connectdata *conn,
   state(conn, SSH_SFTP_QUOTE_INIT);
 
   /* run the state-machine */
-  if(conn->data->state.used_interface == Curl_if_multi) {
-    result = ssh_multi_statemach(conn, dophase_done);
-  }
-  else {
-    result = ssh_easy_statemach(conn, FALSE);
-    *dophase_done = TRUE; /* with the easy interface we are done here */
-  }
+  result = ssh_multi_statemach(conn, dophase_done);
+
   *connected = conn->bits.tcpconnect[FIRSTSOCKET];
 
   if(*dophase_done) {
@@ -3085,7 +3065,7 @@ static CURLcode sftp_disconnect(struct connectdata *conn, bool dead_connection)
   if(conn->proto.sshc.ssh_session) {
     /* only if there's a session still around to use! */
     state(conn, SSH_SFTP_SHUTDOWN);
-    result = ssh_easy_statemach(conn, FALSE);
+    result = ssh_block_statemach(conn, FALSE);
   }
 
   DEBUGF(infof(conn->data, "SSH DISCONNECT is done\n"));
@@ -3131,7 +3111,7 @@ static ssize_t sftp_send(struct connectdata *conn, int sockindex,
     nwrite = 0;
   }
   else if(nwrite < LIBSSH2_ERROR_NONE) {
-    *err = libssh2_session_error_to_CURLE(nwrite);
+    *err = libssh2_session_error_to_CURLE((int)nwrite);
     nwrite = -1;
   }
 

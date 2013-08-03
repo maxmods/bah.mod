@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2013, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -20,13 +20,9 @@
  *
  ***************************************************************************/
 
-#include "setup.h"
+#include "curl_setup.h"
 
 #if !defined(CURL_DISABLE_PROXY) && !defined(CURL_DISABLE_HTTP)
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 #include "urldata.h"
 #include <curl/curl.h>
@@ -91,13 +87,6 @@ CURLcode Curl_proxy_connect(struct connectdata *conn)
  * Curl_proxyCONNECT() requires that we're connected to a HTTP proxy. This
  * function will issue the necessary commands to get a seamless tunnel through
  * this proxy. After that, the socket can be used just as a normal socket.
- *
- * This badly needs to be rewritten. CONNECT should be sent and dealt with
- * like any ordinary HTTP request, and not specially crafted like this. This
- * function only remains here like this for now since the rewrite is a bit too
- * much work to do at the moment.
- *
- * This function is BLOCKING which is nasty for all multi interface using apps.
  */
 
 CURLcode Curl_proxyCONNECT(struct connectdata *conn,
@@ -234,41 +223,12 @@ CURLcode Curl_proxyCONNECT(struct connectdata *conn,
         return result;
 
       conn->tunnel_state[sockindex] = TUNNEL_CONNECT;
+
+      /* now we've issued the CONNECT and we're waiting to hear back, return
+         and get called again polling-style */
+      return CURLE_OK;
+
     } /* END CONNECT PHASE */
-
-    /* now we've issued the CONNECT and we're waiting to hear back -
-       we try not to block here in multi-mode because that might be a LONG
-       wait if the proxy cannot connect-through to the remote host. */
-
-    /* if timeout is requested, find out how much remaining time we have */
-    check = timeout - /* timeout time */
-      Curl_tvdiff(Curl_tvnow(), conn->now); /* spent time */
-    if(check <= 0) {
-      failf(data, "Proxy CONNECT aborted due to timeout");
-      return CURLE_RECV_ERROR;
-    }
-
-    /* if we're in multi-mode and we would block, return instead for a retry */
-    if(Curl_if_multi == data->state.used_interface) {
-      if(0 == Curl_socket_ready(tunnelsocket, CURL_SOCKET_BAD, 0))
-        /* return so we'll be called again polling-style */
-        return CURLE_OK;
-      else {
-        DEBUGF(infof(data,
-                     "Multi mode finished polling for response from "
-                     "proxy CONNECT\n"));
-      }
-    }
-    else {
-      DEBUGF(infof(data, "Easy mode waiting response from proxy CONNECT\n"));
-    }
-
-    /* at this point, either:
-       1) we're in easy-mode and so it's okay to block waiting for a CONNECT
-       response
-       2) we're in multi-mode and we didn't block - it's either an error or we
-       now have some data waiting.
-       In any case, the tunnel_connecting phase is over. */
 
     { /* BEGIN NEGOTIATION PHASE */
       size_t nread;   /* total size read */
@@ -396,6 +356,10 @@ CURLcode Curl_proxyCONNECT(struct connectdata *conn,
 
                   result = Curl_client_write(conn, writetype, line_start,
                                              perline);
+
+                  data->info.header_size += (long)perline;
+                  data->req.headerbytecount += (long)perline;
+
                   if(result)
                     return result;
 
@@ -576,6 +540,12 @@ CURLcode Curl_proxyCONNECT(struct connectdata *conn,
     if(closeConnection && data->req.newurl)
       conn->bits.proxy_connect_closed = TRUE;
 
+    if(data->req.newurl) {
+      /* this won't be used anymore for the CONNECT so free it now */
+      free(data->req.newurl);
+      data->req.newurl = NULL;
+    }
+
     /* to back to init state */
     conn->tunnel_state[sockindex] = TUNNEL_INIT;
 
@@ -594,6 +564,8 @@ CURLcode Curl_proxyCONNECT(struct connectdata *conn,
 
   infof (data, "Proxy replied OK to CONNECT request\n");
   data->req.ignorebody = FALSE; /* put it (back) to non-ignore state */
+  conn->bits.rewindaftersend = FALSE; /* make sure this isn't set for the
+                                         document request  */
   return CURLE_OK;
 }
 #endif /* CURL_DISABLE_PROXY */

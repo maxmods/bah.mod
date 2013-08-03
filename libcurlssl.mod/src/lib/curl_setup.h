@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2012, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2013, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -230,6 +230,14 @@
 #endif
 
 /*
+ * VMS setup file includes some system headers.
+ */
+
+#ifdef __VMS
+#  include "setup-vms.h"
+#endif
+
+/*
  * Include header files for windows builds before redefining anything.
  * Use this preprocessor block only to include or exclude windows.h,
  * winsock2.h, ws2tcpip.h or winsock.h. Any other windows thing belongs
@@ -360,7 +368,9 @@
 #  include <sys/stat.h>
 #  undef  lseek
 #  define lseek(fdes,offset,whence)  _lseeki64(fdes, offset, whence)
+#  undef  fstat
 #  define fstat(fdes,stp)            _fstati64(fdes, stp)
+#  undef  stat
 #  define stat(fname,stp)            _stati64(fname, stp)
 #  define struct_stat                struct _stati64
 #  define LSEEK_ERROR                (__int64)-1
@@ -645,8 +655,8 @@ int netware_init(void);
  * Include macros and defines that should only be processed once.
  */
 
-#ifndef __SETUP_ONCE_H
-#include "setup_once.h"
+#ifndef HEADER_CURL_SETUP_ONCE_H
+#include "curl_setup_once.h"
 #endif
 
 /*
@@ -684,6 +694,11 @@ int netware_init(void);
 /* Define S_ISREG if not defined by system headers, f.e. MSVC */
 #if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
 #define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
+
+/* Define S_ISDIR if not defined by system headers, f.e. MSVC */
+#if !defined(S_ISDIR) && defined(S_IFMT) && defined(S_IFDIR)
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
 #endif
 
 #endif /* HEADER_CURL_SETUP_H */

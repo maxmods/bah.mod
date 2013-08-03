@@ -20,7 +20,7 @@
  *
  ***************************************************************************/
 
-#include "setup.h"
+#include "curl_setup.h"
 
 #ifdef HAVE_STRERROR_R
 #  if (!defined(HAVE_POSIX_STRERROR_R) && \
@@ -291,6 +291,9 @@ curl_easy_strerror(CURLcode error)
 
   case CURLE_CHUNK_FAILED:
     return "Chunk callback failed";
+
+  case CURLE_NO_CONNECTION_AVAILABLE:
+    return "The max connection limit is reached";
 
     /* error codes not used by current libcurl */
   case CURLE_OBSOLETE16:
