@@ -283,12 +283,32 @@ namespace libtorrent
 	{
 		TORRENT_ASSERT(file_index < num_files());
 		TORRENT_ASSERT(file_index >= 0);
-		size_type offset = file_offset + at(file_index).offset;
 
 		peer_request ret;
-		ret.piece = int(offset / piece_length());
-		ret.start = int(offset % piece_length());
-		ret.length = size;
+		if (file_index < 0 || file_index >= num_files())
+		{
+			ret.piece = m_num_pieces;
+			ret.start = 0;
+			ret.length = 0;
+			return ret;
+		}
+
+		size_type offset = file_offset + internal_at(file_index).offset;
+
+		if (offset >= total_size())
+		{
+			ret.piece = m_num_pieces;
+			ret.start = 0;
+			ret.length = 0;
+		}
+		else
+		{
+			ret.piece = int(offset / piece_length());
+			ret.start = int(offset % piece_length());
+			ret.length = size;
+			if (offset + size > total_size())
+				ret.length = total_size() - offset;
+		}
 		return ret;
 	}
 
@@ -407,7 +427,7 @@ namespace libtorrent
 	void file_storage::set_file_base(int index, size_type off)
 	{
 		TORRENT_ASSERT(index >= 0 && index < int(m_files.size()));
-		if (int(m_file_base.size()) <= index) m_file_base.resize(index);
+		if (int(m_file_base.size()) <= index) m_file_base.resize(index + 1, 0);
 		m_file_base[index] = off;
 	}
 
@@ -463,7 +483,7 @@ namespace libtorrent
 	{
 		int index = &fe - &m_files[0];
 		TORRENT_ASSERT(index >= 0 && index < int(m_files.size()));
-		if (int(m_file_base.size()) <= index) m_file_base.resize(index);
+		if (int(m_file_base.size()) <= index) m_file_base.resize(index + 1, 0);
 		m_file_base[index] = off;
 	}
 
@@ -539,10 +559,10 @@ namespace libtorrent
 	{
 		// the main purpuse of padding is to optimize disk
 		// I/O. This is a conservative memory page size assumption
-		int alignment = 8*1024;
+		int alignment = 16*1024;
 
 		// it doesn't make any sense to pad files that
-		// are smaller than one piece
+		// are smaller than the alignment
 		if (pad_file_limit >= 0 && pad_file_limit < alignment)
 			pad_file_limit = alignment;
 
@@ -568,7 +588,6 @@ namespace libtorrent
 				}
 			}
 			else if (pad_file_limit >= 0
-				&& (off & (alignment-1)) != 0
 				&& i->size > pad_file_limit
 				&& i->pad_file == false)
 			{

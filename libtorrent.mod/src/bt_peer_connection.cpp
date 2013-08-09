@@ -521,20 +521,15 @@ namespace libtorrent
 		// write the verification constant and crypto field
 		int encrypt_size = sizeof(msg) - 512 + pad_size - 40;
 
-		int crypto_provide = 0;
-		pe_settings::enc_level const& allowed_enc_level = m_ses.get_pe_settings().allowed_enc_level;
+		pe_settings::enc_level crypto_provide = m_ses.get_pe_settings().allowed_enc_level;
 
-		if (allowed_enc_level == pe_settings::both) 
-			crypto_provide = 0x03;
-		else if (allowed_enc_level == pe_settings::rc4) 
-			crypto_provide = 0x02;
-		else if (allowed_enc_level == pe_settings::plaintext)
-			crypto_provide = 0x01;
+		// this is an invalid setting, but let's just make the best of the situation
+		if ((crypto_provide & pe_settings::both) == 0) crypto_provide = pe_settings::both;
 
 #ifdef TORRENT_VERBOSE_LOGGING
 		char const* level[] = {"plaintext", "rc4", "plaintext rc4"};
 		peer_log(" crypto provide : [ %s ]"
-			, level[allowed_enc_level-1]);
+			, level[crypto_provide-1]);
 #endif
 
 		write_pe_vc_cryptofield(ptr, encrypt_size, crypto_provide, pad_size);
@@ -1551,7 +1546,7 @@ namespace libtorrent
 				error_code ec;
 				char const* err_msg[] = {"no such peer", "not connected", "no support", "no self"};
 				peer_log("<== HOLEPUNCH [ msg:failed error: %d msg: %s ]", error
-					, ((error >= 0 && error < 4)?err_msg[error]:"unknown message id"));
+					, ((error > 0 && error < 5)?err_msg[error-1]:"unknown message id"));
 #endif
 				// #error deal with holepunch errors
 				(void)error;
@@ -1899,6 +1894,11 @@ namespace libtorrent
 		boost::shared_ptr<torrent> t = associated_torrent().lock();
 		if (m_upload_only_id == 0) return;
 		if (t->share_mode()) return;
+
+		// if we send upload-only, the other end is very likely to disconnect
+		// us, at least if it's a seed. If we don't want to close redundant
+		// connections, don't sent upload-only
+		if (!m_ses.settings().close_redundant_connections) return;
 
 		char msg[7] = {0, 0, 0, 3, msg_extended};
 		char* ptr = msg + 5;
@@ -2746,8 +2746,8 @@ namespace libtorrent
 
 				if (crypto_select == 0)
 				{
-						disconnect(errors::unsupported_encryption_mode, 1);
-						return;
+					disconnect(errors::unsupported_encryption_mode, 1);
+					return;
 				}
 
 				// write the pe4 step

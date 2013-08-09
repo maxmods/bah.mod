@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/file_pool.hpp"
 #include "libtorrent/storage.hpp"
 #include "libtorrent/escape_string.hpp"
+#include "libtorrent/torrent_info.hpp" // for merkle_*()
 
 #include <boost/bind.hpp>
 #include <boost/next_prior.hpp>
@@ -45,11 +46,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent
 {
-	// defined in torrent_info.cpp
-	int merkle_num_leafs(int);
-	int merkle_num_nodes(int);
-	int merkle_get_parent(int);
-	int merkle_get_sibling(int);
 
 	namespace detail
 	{
@@ -203,6 +199,7 @@ namespace libtorrent
 #else
 		std::string const& path = p;
 #endif
+
 		boost::scoped_ptr<storage_interface> st(
 			default_storage_constructor(const_cast<file_storage&>(t.files()), 0, path, fp
 			, std::vector<boost::uint8_t>()));

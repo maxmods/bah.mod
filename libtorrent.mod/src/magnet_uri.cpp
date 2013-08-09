@@ -44,53 +44,48 @@ namespace libtorrent
 	{
 		if (!handle.is_valid()) return "";
 
-		char ret[1024];
+		char ret[2048];
 		sha1_hash const& ih = handle.info_hash();
 		int num_chars = snprintf(ret, sizeof(ret), "magnet:?xt=urn:btih:%s"
 			, base32encode(std::string((char const*)&ih[0], 20)).c_str());
 
 		std::string name = handle.name();
 
-		if (!name.empty())
+		if (!name.empty() && sizeof(ret) - 5 > num_chars)
 			num_chars += snprintf(ret + num_chars, sizeof(ret) - num_chars, "&dn=%s"
 				, escape_string(name.c_str(), name.length()).c_str());
 
-		std::string tracker;
-		torrent_status st = handle.status();
-		if (!st.current_tracker.empty())
+		std::vector<announce_entry> const& tr = handle.trackers();
+
+		for (std::vector<announce_entry>::const_iterator i = tr.begin(), end(tr.end()); i != end; ++i)
 		{
-			tracker = st.current_tracker;
-		}
-		else
-		{
-			std::vector<announce_entry> const& tr = handle.trackers();
-			if (!tr.empty()) tracker = tr[0].url;
-		}
-		if (!tracker.empty())
+			if (num_chars >= sizeof(ret)) break;
 			num_chars += snprintf(ret + num_chars, sizeof(ret) - num_chars, "&tr=%s"
-				, escape_string(tracker.c_str(), tracker.size()).c_str());
+				, escape_string(i->url.c_str(), i->url.length()).c_str());
+		}
 
 		return ret;
 	}
 
 	std::string make_magnet_uri(torrent_info const& info)
 	{
-		char ret[1024];
+		char ret[2048];
 		sha1_hash const& ih = info.info_hash();
 		int num_chars = snprintf(ret, sizeof(ret), "magnet:?xt=urn:btih:%s"
 			, base32encode(std::string((char*)&ih[0], 20)).c_str());
 
 		std::string const& name = info.name();
 
-		if (!name.empty())
+		if (!name.empty() && sizeof(ret) - 5 > num_chars)
 			num_chars += snprintf(ret + num_chars, sizeof(ret) - num_chars, "&dn=%s"
 				, escape_string(name.c_str(), name.length()).c_str());
 
 		std::vector<announce_entry> const& tr = info.trackers();
-		if (!tr.empty())
+		for (std::vector<announce_entry>::const_iterator i = tr.begin(), end(tr.end()); i != end; ++i)
 		{
+			if (num_chars >= sizeof(ret)) break;
 			num_chars += snprintf(ret + num_chars, sizeof(ret) - num_chars, "&tr=%s"
-				, escape_string(tr[0].url.c_str(), tr[0].url.length()).c_str());
+				, escape_string(i->url.c_str(), i->url.length()).c_str());
 		}
 
 		return ret;
@@ -150,6 +145,7 @@ namespace libtorrent
 
 	void parse_magnet_uri(std::string const& uri, add_torrent_params& p, error_code& ec)
 	{
+		ec.clear();
 		std::string name;
 		std::string tracker;
 

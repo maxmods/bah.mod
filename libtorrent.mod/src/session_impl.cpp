@@ -388,6 +388,7 @@ namespace aux {
 		TORRENT_SETTING(boolean, drop_skipped_requests)
 		TORRENT_SETTING(boolean, low_prio_disk)
 		TORRENT_SETTING(integer, local_service_announce_interval)
+		TORRENT_SETTING(integer, dht_announce_interval)
 		TORRENT_SETTING(integer, udp_tracker_token_expiry)
 		TORRENT_SETTING(boolean, volatile_read_cache)
 		TORRENT_SETTING(boolean, guided_read_cache)
@@ -410,6 +411,8 @@ namespace aux {
 		TORRENT_SETTING(boolean, no_recheck_incomplete_resume)
 		TORRENT_SETTING(boolean, anonymous_mode)
 		TORRENT_SETTING(integer, tick_interval)
+		TORRENT_SETTING(boolean, report_web_seed_downloads)
+		TORRENT_SETTING(integer, share_mode_target)
 		TORRENT_SETTING(integer, upload_rate_limit)
 		TORRENT_SETTING(integer, download_rate_limit)
 		TORRENT_SETTING(integer, local_upload_rate_limit)
@@ -2108,7 +2111,9 @@ namespace aux {
 		if (ep.protocol() == tcp::v6())
 		{
 			error_code err; // ignore errors here
+#ifdef IPV6_V6ONLY
 			s->sock->set_option(v6only(v6_only), err);
+#endif
 #ifdef TORRENT_WINDOWS
 
 #ifndef PROTECTION_LEVEL_UNRESTRICTED
@@ -3827,7 +3832,11 @@ retry:
 
 			utp_stream* utp_socket = p->get_socket()->get<utp_stream>();
 #ifdef TORRENT_USE_OPENSSL
-			if (!utp_socket) utp_socket = p->get_socket()->get<ssl_stream<utp_stream> >();
+			if (!utp_socket)
+			{
+				ssl_stream<utp_stream>* ssl_str = p->get_socket()->get<ssl_stream<utp_stream> >();
+				if (ssl_str) utp_socket = &ssl_str->next_layer();
+			}
 #endif
 			if (utp_socket)
 			{
@@ -4275,6 +4284,12 @@ retry:
 			num_seeds = (std::numeric_limits<int>::max)();
 		if (hard_limit == -1)
 			hard_limit = (std::numeric_limits<int>::max)();
+		if (dht_limit == -1)
+			dht_limit = (std::numeric_limits<int>::max)();
+		if (lsd_limit == -1)
+			lsd_limit = (std::numeric_limits<int>::max)();
+		if (tracker_limit == -1)
+			tracker_limit = (std::numeric_limits<int>::max)();
             
 		for (torrent_map::iterator i = m_torrents.begin()
 			, end(m_torrents.end()); i != end; ++i)

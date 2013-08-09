@@ -37,10 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/thread.hpp"
 #include "libtorrent/session_settings.hpp"
 #include "libtorrent/allocator.hpp"
-
-#ifndef TORRENT_DISABLE_POOL_ALLOCATOR
-#include <boost/pool/pool.hpp>
-#endif
+// BaH - Added boost include
+#include <boost/noncopyable.hpp>
 
 #ifdef TORRENT_DISK_STATS
 #include <fstream>
@@ -100,12 +98,6 @@ namespace libtorrent
 	private:
 
 		mutable mutex m_pool_mutex;
-
-#ifndef TORRENT_DISABLE_POOL_ALLOCATOR
-		// memory pool for read and write operations
-		// and disk cache
-		boost::pool<page_aligned_allocator> m_pool;
-#endif
 
 #if defined TORRENT_DISK_STATS || defined TORRENT_STATS
 		int m_allocations;

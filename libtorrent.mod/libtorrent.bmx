@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2012 Bruce A Henderson
+' Copyright (c) 2010-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,10 @@ Module BaH.Libtorrent
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: libtorrent - 2003-2006 Arvid Norberg"
-ModuleInfo "Copyright: Wrapper - 2010-2012 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2010-2013 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (libtorrent 0.16.5)"
+ModuleInfo "History: Initial Release. (libtorrent 0.16.10)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE -DBOOST_FILESYSTEM_VERSION=3 -DBOOST_ASIO_SEPARATE_COMPILATION"
@@ -49,7 +49,10 @@ ModuleInfo "CC_OPTS: -DBOOST_THREAD_USE_LIB -DWINVER=1280 -DBOOST_ASIO_ENABLE_CA
 
 
 ' asio_ssl.cpp
-'   include config.hpp.
+'   Added SSL_CTX_clear_options checks (for boost ssl support)
+'
+' disk_buffer_pool.hpp
+'   Added boost/noncopyable include
 '
 
 Import "core.bmx"

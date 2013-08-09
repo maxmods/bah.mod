@@ -145,7 +145,7 @@ void print_backtrace(char* out, int len, int max_depth)
 
 void print_backtrace(char* out, int len, int max_depth)
 {
-	typedef USHORT (*RtlCaptureStackBackTrace_t)(
+	typedef USHORT (WINAPI *RtlCaptureStackBackTrace_t)(
 		__in ULONG FramesToSkip,
 		__in ULONG FramesToCapture,
 		__out PVOID *BackTrace,
@@ -219,7 +219,7 @@ TORRENT_EXPORT void assert_fail(char const* expr, int line, char const* file
 	print_backtrace(stack, sizeof(stack), 0);
 
 	fprintf(out, "assertion failed. Please file a bugreport at "
-		"http://code.rasterbar.com/libtorrent/newticket\n"
+		"http://code.google.com/p/libtorrent/issues\n"
 		"Please include the following information:\n\n"
 		"version: " LIBTORRENT_VERSION "\n"
 		"%s\n"

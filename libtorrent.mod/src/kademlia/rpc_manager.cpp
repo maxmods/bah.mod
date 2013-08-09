@@ -372,8 +372,8 @@ time_duration rpc_manager::tick()
 {
 	INVARIANT_CHECK;
 
-	const static int short_timeout = 3;
-	const static int timeout = 20;
+	const static int short_timeout = 1;
+	const static int timeout = 8;
 
 	//	look for observers that have timed out
 
@@ -383,6 +383,16 @@ time_duration rpc_manager::tick()
 
 	time_duration ret = seconds(short_timeout);
 	ptime now = time_now();
+
+#if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
+	ptime last = min_time();
+	for (transactions_t::iterator i = m_transactions.begin();
+		i != m_transactions.end(); ++i)
+	{
+		TORRENT_ASSERT((*i)->sent() >= last);
+		last = (*i)->sent();
+	}
+#endif
 
 	for (transactions_t::iterator i = m_transactions.begin();
 		i != m_transactions.end();)
@@ -474,8 +484,9 @@ bool rpc_manager::invoke(entry& e, udp::endpoint target_addr
 #if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
 		o->m_was_sent = true;
 #endif
+		return true;
 	}
-	return true;
+	return false;
 }
 
 observer::~observer()

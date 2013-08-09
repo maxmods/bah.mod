@@ -104,7 +104,7 @@ namespace libtorrent {
 	{
 		char ret[200 + TORRENT_MAX_PATH * 2];
 		snprintf(ret, sizeof(ret), "%s: failed to rename file %d: %s"
-			, torrent_alert::message().c_str(), index, error.message().c_str());
+			, torrent_alert::message().c_str(), index, convert_from_native(error.message()).c_str());
 		return ret;
 	}
 
@@ -276,7 +276,7 @@ namespace libtorrent {
 	{
 		char ret[200];
 		snprintf(ret, sizeof(ret), "listening on %s failed: %s"
-			, print_endpoint(endpoint).c_str(), error.message().c_str());
+			, print_endpoint(endpoint).c_str(), convert_from_native(error.message()).c_str());
 		return ret;
 	}
 
@@ -291,7 +291,7 @@ namespace libtorrent {
 	{
 		static char const* type_str[] = {"NAT-PMP", "UPnP"};
 		return std::string("could not map port using ") + type_str[map_type]
-			+ ": " + error.message();
+			+ ": " + convert_from_native(error.message());
 	}
 
 	std::string portmap_alert::message() const
@@ -408,13 +408,8 @@ namespace libtorrent {
 	void alert_manager::post_alert_ptr(alert* alert_)
 	{
 		std::auto_ptr<alert> a(alert_);
-		mutex::scoped_lock lock(m_mutex);
-
-		post_impl(a);
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
-		lock.unlock();
-
 		for (ses_extension_list_t::iterator i = m_ses_extensions.begin()
 			, end(m_ses_extensions.end()); i != end; ++i)
 		{
@@ -424,18 +419,15 @@ namespace libtorrent {
 		}
 #endif
 
+		mutex::scoped_lock lock(m_mutex);
+		post_impl(a);
 	}
 
 	void alert_manager::post_alert(const alert& alert_)
 	{
 		std::auto_ptr<alert> a(alert_.clone());
-		mutex::scoped_lock lock(m_mutex);
-
-		post_impl(a);
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
-		lock.unlock();
-
 		for (ses_extension_list_t::iterator i = m_ses_extensions.begin()
 			, end(m_ses_extensions.end()); i != end; ++i)
 		{
@@ -445,6 +437,8 @@ namespace libtorrent {
 		}
 #endif
 
+		mutex::scoped_lock lock(m_mutex);
+		post_impl(a);
 	}
 		
 	void alert_manager::post_impl(std::auto_ptr<alert>& alert_)
@@ -568,14 +562,14 @@ namespace libtorrent {
 		char msg[600];
 		char const* state_msg[] = {"updating", "updated", "error"};
 		snprintf(msg, sizeof(msg), "RSS feed %s: %s (%s)"
-			, url.c_str(), state_msg[state], error.message().c_str());
+			, url.c_str(), state_msg[state], convert_from_native(error.message()).c_str());
 		return msg;
 	}
 
 	std::string torrent_error_alert::message() const
 	{
 		char msg[200];
-		snprintf(msg, sizeof(msg), " ERROR: %s", error.message().c_str());
+		snprintf(msg, sizeof(msg), " ERROR: %s", convert_from_native(error.message()).c_str());
 		return torrent_alert::message() + msg;
 	}
 	
@@ -620,7 +614,8 @@ namespace libtorrent {
 		char msg[600];
 		if (error)
 		{
-			snprintf(msg, sizeof(msg), "failed to add torrent: %s", error.message().c_str());
+			snprintf(msg, sizeof(msg), "failed to add torrent: %s"
+				, convert_from_native(error.message()).c_str());
 		}
 		else
 		{

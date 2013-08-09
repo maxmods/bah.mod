@@ -199,6 +199,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_USE_NETLINK 1
 #define TORRENT_USE_IFCONF 1
 #define TORRENT_HAS_SALEN 0
+#define TORRENT_USE_POSIX_MEMALIGN 1
 
 // ==== MINGW ===
 #elif defined __MINGW32__
@@ -363,11 +364,11 @@ inline int snprintf(char* buf, int len, char const* fmt, ...)
 #endif
 
 #ifndef TORRENT_USE_WSTRING
-#if defined UNICODE && !defined BOOST_NO_STD_WSTRING
+#if !defined BOOST_NO_STD_WSTRING
 #define TORRENT_USE_WSTRING 1
 #else
 #define TORRENT_USE_WSTRING 0
-#endif // UNICODE
+#endif // BOOST_NO_STD_WSTRING
 #endif // TORRENT_USE_WSTRING
 
 #ifndef TORRENT_HAS_FALLOCATE
@@ -449,11 +450,19 @@ inline int snprintf(char* buf, int len, char const* fmt, ...)
 #endif
 
 #if !defined(TORRENT_READ_HANDLER_MAX_SIZE)
-# define TORRENT_READ_HANDLER_MAX_SIZE 300
+# ifdef _GLIBCXX_DEBUG
+#  define TORRENT_READ_HANDLER_MAX_SIZE 400
+# else
+#  define TORRENT_READ_HANDLER_MAX_SIZE 300
+# endif
 #endif
 
 #if !defined(TORRENT_WRITE_HANDLER_MAX_SIZE)
-# define TORRENT_WRITE_HANDLER_MAX_SIZE 300
+# ifdef _GLIBCXX_DEBUG
+#  define TORRENT_WRITE_HANDLER_MAX_SIZE 400
+# else
+#  define TORRENT_WRITE_HANDLER_MAX_SIZE 300
+# endif
 #endif
 
 #if defined _MSC_VER && _MSC_VER <= 1200

@@ -2226,6 +2226,22 @@ namespace libtorrent
 
 		boost::shared_ptr<torrent> t = associated_torrent().lock();
 		TORRENT_ASSERT(t);
+
+		// piece_block can't necessarily hold large piece numbers
+		// so check that first
+		if (r.piece < 0
+			|| r.piece >= t->torrent_file().num_pieces()
+			|| r.start < 0
+			|| r.start > t->torrent_file().piece_length())
+		{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_ERROR_LOGGING
+			peer_log("*** INVALID_PIECE [ piece: %d s: %d l: %d ]"
+				, r.piece, r.start, r.length);
+#endif
+			disconnect(errors::invalid_piece, 2);
+			return;
+		}
+
 		piece_block b(r.piece, r.start / t->block_size());
 		m_receiving_block = b;
 
@@ -3941,9 +3957,6 @@ namespace libtorrent
 		}
 
 		p.estimated_reciprocation_rate = m_est_reciprocation_rate;
-		int upload_capacity = m_ses.settings().upload_rate_limit;
-		if (upload_capacity == 0)
-			upload_capacity = (std::max)(20000, m_ses.m_peak_up_rate + 10000);
 
 		error_code ec;
 		p.local_endpoint = get_socket()->local_endpoint(ec);
@@ -4177,6 +4190,7 @@ namespace libtorrent
 			m_last_request = now;
 			request_a_block(*t, *this);
 			if (m_disconnecting) return;
+			send_block_requests();
 		}
 
 		on_tick();
@@ -4736,7 +4750,7 @@ namespace libtorrent
 #endif
 		return m_ses.m_upload_rate.request_bandwidth(self()
 			, (std::max)(m_send_buffer.size(), m_statistics.upload_rate() * 2
-				/ (1000 / m_ses.m_settings.tick_interval))
+				* m_ses.m_settings.tick_interval / 1000)
 			, priority
 			, bwc1, bwc2, bwc3, bwc4);
 	}
@@ -4768,8 +4782,7 @@ namespace libtorrent
 		TORRENT_ASSERT((m_channel_state[download_channel] & peer_info::bw_limit) == 0);
 		return m_ses.m_download_rate.request_bandwidth(self()
 			, (std::max)((std::max)(m_outstanding_bytes, m_packet_size - m_recv_pos) + 30
-				, m_statistics.download_rate() * 2
-				/ (1000 / m_ses.m_settings.tick_interval))
+				, m_statistics.download_rate() * 2 * m_ses.m_settings.tick_interval / 1000)
 			, priority , bwc1, bwc2, bwc3, bwc4);
 	}
 

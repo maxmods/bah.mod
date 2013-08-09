@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <set>
 #include <list>
+#include <deque>
 
 #ifdef _MSC_VER
 #pragma warning(push, 1)
@@ -780,7 +781,7 @@ namespace libtorrent
 			m_verified.free();
 		}
 		bool all_verified() const
-		{ return m_num_verified == m_torrent_file->num_pieces(); }
+		{ return int(m_num_verified) == m_torrent_file->num_pieces(); }
 		bool verified_piece(int piece) const
 		{
 			TORRENT_ASSERT(piece < int(m_verified.size()));
@@ -963,6 +964,9 @@ namespace libtorrent
 		// this torrent belongs to.
 		aux::session_impl& m_ses;
 
+		// used to resolve hostnames for web seeds
+		mutable tcp::resolver m_host_resolver;
+
 		std::vector<boost::uint8_t> m_file_priority;
 
 		// this vector contains the number of bytes completely
@@ -994,7 +998,7 @@ namespace libtorrent
 		};
 
 		// this list is sorted by time_critical_piece::deadline
-		std::list<time_critical_piece> m_time_critical_pieces;
+		std::deque<time_critical_piece> m_time_critical_pieces;
 
 		std::string m_trackerid;
 		std::string m_username;
@@ -1267,19 +1271,19 @@ namespace libtorrent
 		bool m_share_mode:1;
 
 		// m_num_verified = m_verified.count()
-		boost::uint16_t m_num_verified;
+		boost::uint32_t m_num_verified;
 
 		// the number of seconds since the last scrape request to
 		// one of the trackers in this torrent
-		boost::uint16_t m_last_scrape;
+		boost::uint32_t m_last_scrape;
 
 		// the number of seconds since the last piece passed for
 		// this torrent
-		boost::uint16_t m_last_download;
+		boost::uint32_t m_last_download;
 
 		// the number of seconds since the last byte was uploaded
 		// from this torrent
-		boost::uint16_t m_last_upload;
+		boost::uint32_t m_last_upload;
 
 		// the scrape data from the tracker response, this
 		// is optional and may be 0xffffff
