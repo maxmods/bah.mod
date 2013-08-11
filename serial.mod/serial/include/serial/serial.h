@@ -381,7 +381,7 @@ public:
    *      the serial port that can pass before a timeout occurs.  Setting this 
    *      to zero will prevent inter byte timeouts from occurring.
    *  * Total time timeout:
-   *    * The the constant and multiplier component of this timeout condition, 
+   *    * The constant and multiplier component of this timeout condition, 
    *      for both read and write, are defined in serial::Timeout.  This 
    *      timeout occurs if the total time since the read or write call was 
    *      made exceeds the specified time in milliseconds.
@@ -599,8 +599,7 @@ public:
 private:
   // Disable copy constructors
   Serial(const Serial&);
-  void operator=(const Serial&);
-  const Serial& operator=(Serial);
+  Serial& operator=(const Serial&);
 
   std::string read_cache_; //!< Cache for doing reads in chunks.
 
@@ -624,8 +623,7 @@ private:
 class SerialException : public std::exception
 {
   // Disable copy constructors
-  void operator=(const SerialException&);
-  const SerialException& operator=(SerialException);
+  SerialException& operator=(const SerialException&);
   std::string e_what_;
 public:
   SerialException (const char *description) {
@@ -645,8 +643,7 @@ public:
 class IOException : public std::exception
 {
   // Disable copy constructors
-  void operator=(const IOException&);
-  const IOException& operator=(IOException);
+  IOException& operator=(const IOException&);
   std::string file_;
   int line_;
   std::string e_what_;
@@ -655,7 +652,13 @@ public:
   explicit IOException (std::string file, int line, int errnum)
     : file_(file), line_(line), errno_(errnum) {
       std::stringstream ss;
-      ss << "IO Exception (" << errno_ << "): " << strerror (errnum);
+#ifdef WIN32
+      char error_str [1024];
+      strerror_s(error_str, 1024, errnum);
+#else
+      char * error_str = strerror(errnum);
+#endif
+      ss << "IO Exception (" << errno_ << "): " << error_str;
       ss << ", file " << file_ << ", line " << line_ << ".";
       e_what_ = ss.str();
   }
@@ -681,7 +684,6 @@ public:
 class PortNotOpenedException : public std::exception
 {
   // Disable copy constructors
-  void operator=(const PortNotOpenedException&);
   const PortNotOpenedException& operator=(PortNotOpenedException);
   std::string e_what_;
 public:

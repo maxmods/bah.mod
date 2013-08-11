@@ -46,6 +46,7 @@
 namespace serial {
 
 using std::string;
+using std::wstring;
 using std::invalid_argument;
 
 using serial::SerialException;
@@ -174,7 +175,7 @@ protected:
   void reconfigurePort ();
 
 private:
-  string port_;               // Path to the file descriptor
+  wstring port_;               // Path to the file descriptor
   HANDLE fd_;
 
   bool is_open_;
