@@ -150,6 +150,8 @@
 #  define gz_header_s           fi_gz_header_s
 #  define internal_state        fi_internal_state
 
+/* BaH */
+#  define z_errmsg				fi_z_errmsg
 #endif
 
 #if defined(__MSDOS__) && !defined(MSDOS)
