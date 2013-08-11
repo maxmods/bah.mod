@@ -40,6 +40,9 @@ Import "common.bmx"
 '   win.h
 '  Added malloc.h include for alloca
 '
+'   serial.h
+'  Added check for mingw in sterror usage
+'
 
 
 Rem
