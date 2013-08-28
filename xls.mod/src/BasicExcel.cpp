@@ -1,6 +1,6 @@
 #include "ExcelFormat.h"
 
-#ifdef _MSC_VER
+#ifdef WIN32
 #include <malloc.h>	// for alloca()
 #endif
 

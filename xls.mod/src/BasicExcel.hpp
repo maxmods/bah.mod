@@ -80,7 +80,8 @@
 #define BASICEXCEL_HPP
 
 //MF
-#if defined(_MSC_VER) && _MSC_VER<=1200 // VC++ 6.0
+//#if defined(_MSC_VER) && _MSC_VER<=1200 // VC++ 6.0
+#ifdef WIN32
 #pragma warning(disable: 4786)
 
 #define LONGINT __int64
@@ -107,7 +108,7 @@ typedef unsigned short	WORD;	// 16 bit unsigned integer
 typedef short			SHORT;	// 16 bit signed integer
 typedef unsigned short	USHORT;	// 16 bit unsigned integer
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 typedef unsigned long	DWORD;	// 32 bit unsigned integer
 typedef long			LONG;	// 32 bit signed integer
 typedef unsigned long	ULONG;	// 32 bit unsigned integer
@@ -125,7 +126,8 @@ typedef ULONG	DFSIGNATURE;
 typedef WORD	DFPROPTYPE;
 typedef ULONG	CBF_SID;	// renamed SID because of ambiguity with windows header files
 
-#ifndef GUID_DEFINED
+
+#ifndef WIN32
 #define GUID_DEFINED
 typedef struct _GUID {
 	ULONG	Data1;
@@ -133,8 +135,8 @@ typedef struct _GUID {
 	USHORT	Data3;
 	BYTE	Data4[8];
 } GUID;
-#endif
 typedef GUID CLSID;	// 16 bytes
+#endif
 
 struct TIME_T { // FILETYPE
     DWORD	dwLowDateTime;
@@ -177,6 +179,7 @@ enum DECOLOR {
 #include <map>
 #include <vector>
 #include <string>	//MF
+
 using namespace std;
 
  // get facet from locale for GCC
@@ -190,7 +193,7 @@ using namespace std;
 #include <string.h>
 #endif
 
-#define UTF16
+//#define UTF16
 #ifdef UTF16
 #define SIZEOFWCHAR_T 2
 #else
