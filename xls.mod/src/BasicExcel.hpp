@@ -193,7 +193,7 @@ using namespace std;
 #include <string.h>
 #endif
 
-//#define UTF16
+#define UTF16
 #ifdef UTF16
 #define SIZEOFWCHAR_T 2
 #else
