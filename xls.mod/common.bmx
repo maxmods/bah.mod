@@ -38,7 +38,10 @@ Extern
 
 	Function bmx_xls_basicexcel_GetTotalWorkSheets:Int(handle:Byte Ptr)
 	Function bmx_xls_basicexcel_GetWorksheet:Byte Ptr(handle:Byte Ptr, index:Int)
-
+	Function bmx_xls_basicexcel_GetWorksheetByName:Byte Ptr(handle:Byte Ptr, name:String)
+	Function bmx_xls_basicexcel_AddWorksheet:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function bmx_xls_basicexcel_AddWorksheetByName:Byte Ptr(handle:Byte Ptr, name:String, index:Int)
+ 
 	Function bmx_xls_basicexcelworksheet_GetTotalRows:Int(handle:Byte Ptr)
 	Function bmx_xls_basicexcelworksheet_GetTotalCols:Int(handle:Byte Ptr)
 	Function bmx_xls_basicexcelworksheet_Cell:Byte Ptr(handle:Byte Ptr, row:Int, col:Int)
@@ -48,7 +51,12 @@ Extern
 	Function bmx_xls_basicexcelcell_SetDouble(handle:Byte Ptr, value:Double)
 	Function bmx_xls_basicexcelcell_SetText(handle:Byte Ptr, value:String)
 	Function bmx_xls_basicexcelcell_EraseContents(handle:Byte Ptr)
+	Function bmx_xls_basicexcelcell_Get:Int(handle:Byte Ptr)
+	Function bmx_xls_basicexcelcell_GetDouble:Double(handle:Byte Ptr)
+	Function bmx_xls_basicexcelcell_GetText:String(handle:Byte Ptr)
 
+	Function bmx_xls_excelfont_create:Byte Ptr()
+	Function bmx_xls_excelfont_free(handle:Byte Ptr)
 
 End Extern
 

@@ -100,12 +100,24 @@ Type TBasicExcel
 	End Method
 
 	Method GetWorksheetByName:TBasicExcelWorksheet(name:String)
+		Return TBasicExcelWorksheet._create(bmx_xls_basicexcel_GetWorksheetByName(xlsPtr, name))
 	End Method
 
 	Method AddWorksheet:TBasicExcelWorksheet(index:Int = -1)
+		Return TBasicExcelWorksheet._create(bmx_xls_basicexcel_AddWorksheet(xlsPtr, index))
 	End Method
 
 	Method AddWorksheetByName:TBasicExcelWorksheet(name:String, index:Int = -1)
+		Return TBasicExcelWorksheet._create(bmx_xls_basicexcel_AddWorksheetByName(xlsPtr, name, index))
+	End Method
+
+	Method GetSheetName:String(index:Int)
+	End Method
+
+	Method RenameWorksheet:Int(index:Int, toName:String)
+	End Method
+
+	Method RenameWorksheetByName:Int(fromName:String, toName:String)
 	End Method
 
 End Type
@@ -123,6 +135,12 @@ Type TBasicExcelWorksheet
 
 		Return Null
 	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetSheetName:String()
+	End Method
 
 	Rem
 	bbdoc: Total number of rows in current Excel worksheet.
@@ -152,7 +170,15 @@ Type TBasicExcelWorksheet
 		Return bmx_xls_basicexcelworksheet_EraseCell(sheetPtr, row, col)
 	End Method
 
-	
+	Method SetColWidth(col:Int, colWidth:Int)
+	End Method
+
+	Method GetColWidth:Int(col:Int)
+	End Method
+
+	Method MergeCells(row:Int, col:Int, rowRange:Int, colRange:Int)
+	End Method
+
 End Type
 
 Rem
@@ -193,13 +219,28 @@ Type TBasicExcelCell
 		bmx_xls_basicexcelcell_SetText(cellPtr, value)
 	End Method
 
+	Rem
+	bbdoc: Gets an integer value.
+	returns: 0 if cell does not contain an integer.
+	End Rem
 	Method Get:Int()
+		Return bmx_xls_basicexcelcell_Get(cellPtr)
 	End Method
 
+	Rem
+	bbdoc: Gets a double value.
+	returns: 0 if cell does not contain a double.
+	End Rem
 	Method GetDouble:Double()
+		Return bmx_xls_basicexcelcell_GetDouble(cellPtr)
 	End Method
 
+	Rem
+	bbdoc: Gets a String value.
+	returns: Null if cell does not contain a string.
+	End Rem
 	Method GetText:String()
+		Return bmx_xls_basicexcelcell_GetText(cellPtr)
 	End Method
 
 	Rem
@@ -209,5 +250,53 @@ Type TBasicExcelCell
 		bmx_xls_basicexcelcell_EraseContents(cellPtr)
 	End Method
 
+	Method GetMergedRows:Int()
+	End Method
+
+	Method GetMergedColumns:Int()
+	End Method
+
+	Method SetMergedRows(rows:Int)
+	End Method
+
+	Method SetMergedColumns(cols:Int)
+	End Method
+
+	Method SetFormat(format:TCellFormat)
+	End Method
+
 End Type
+
+Type TExcelFont
+
+	Field fontPtr:Byte Ptr
+
+	Method Create:TExcelFont()
+		fontPtr = bmx_xls_excelfont_create()
+		return Self
+	End Method
+
+
+	Method Delete()
+		If fontPtr Then
+			bmx_xls_excelfont_free(fontPtr)
+			fontPtr = Null
+		End If
+	End Method
+
+End Type
+
+Type TXLSFormatManager
+
+	Field mgrPtr:Byte Ptr
+
+End Type
+
+Type TCellFormat
+
+	Field formatPtr:Byte Ptr
+
+End Type
+
+
 

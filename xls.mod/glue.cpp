@@ -22,6 +22,8 @@
 
 #include "ExcelFormat.h"
 
+class MaxExcelFont;
+
 extern "C" {
 
 #include "blitz.h"
@@ -36,6 +38,9 @@ extern "C" {
 
 	int bmx_xls_basicexcel_GetTotalWorkSheets(YExcel::BasicExcel * xls);
 	YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_GetWorksheet(YExcel::BasicExcel * xls, int index);
+	YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_GetWorksheetByName(YExcel::BasicExcel * xls, BBString * name);
+	YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_AddWorksheet(YExcel::BasicExcel * xls, int index);
+	YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_AddWorksheetByName(YExcel::BasicExcel * xls, BBString * name, int index);
 
 	int bmx_xls_basicexcelworksheet_GetTotalRows(YExcel::BasicExcelWorksheet * sheet);
 	int bmx_xls_basicexcelworksheet_GetTotalCols(YExcel::BasicExcelWorksheet * sheet);
@@ -46,8 +51,15 @@ extern "C" {
 	void bmx_xls_basicexcelcell_SetDouble(YExcel::BasicExcelCell * cell, double value);
 	void bmx_xls_basicexcelcell_SetText(YExcel::BasicExcelCell * cell, BBString * value);
 	void bmx_xls_basicexcelcell_EraseContents(YExcel::BasicExcelCell * cell);
+	int bmx_xls_basicexcelcell_Get(YExcel::BasicExcelCell * cell);
+	double bmx_xls_basicexcelcell_GetDouble(YExcel::BasicExcelCell * cell);
+	BBString * bmx_xls_basicexcelcell_GetText(YExcel::BasicExcelCell * cell);
 
+        MaxExcelFont * bmx_xls_excelfont_create();
+        void bmx_xls_excelfont_free(MaxExcelFont * font);
 }
+
+// ********************************************************
 
 #ifdef WIN32
 #define WCHAR_FREE(s) bbMemFree(s)
@@ -75,7 +87,46 @@ wchar_t * bbStringToWchar_t(BBString * text) {
 #endif
 }
 
+BBString * bbStringFromWchar_t(const wchar_t * text) {
+	if (!text) {
+		return &bbEmptyString;
+	}
+#ifdef WIN32
+	return bbStringFromWString((BBChar*)text);
+#else
+	int len = wcslen(text) + 1;
+	char * s = (char*)malloc(len * 3);
+	wcstombs(s, text, len);
 
+	BBString * txt = bbStringFromUTF8String(s);
+
+	free(s);
+
+	return txt;
+#endif
+}
+
+// ********************************************************
+
+class MaxExcelFont
+{
+public:
+	MaxExcelFont() {}
+
+	MaxExcelFont(ExcelFormat::ExcelFont & f) : font(f) {}
+
+	~MaxExcelFont() {}
+
+	ExcelFormat::ExcelFont & Font() {
+		return font;
+	}
+
+private:
+	ExcelFormat::ExcelFont font;
+
+};
+
+// ********************************************************
 
 YExcel::BasicExcel * bmx_xls_basicexcel_CreateFromFile(BBString * filename) {
 	
@@ -109,6 +160,24 @@ int bmx_xls_basicexcel_GetTotalWorkSheets(YExcel::BasicExcel * xls) {
 
 YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_GetWorksheet(YExcel::BasicExcel * xls, int index) {
 	return xls->GetWorksheet(index);
+}
+
+YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_GetWorksheetByName(YExcel::BasicExcel * xls, BBString * name) {
+	wchar_t * s = bbStringToWchar_t(name);
+	YExcel::BasicExcelWorksheet * sheet = xls->GetWorksheet(s);
+	WCHAR_FREE(s);
+	return sheet;
+}
+
+YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_AddWorksheet(YExcel::BasicExcel * xls, int index) {
+	return xls->AddWorksheet(index);
+}
+
+YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_AddWorksheetByName(YExcel::BasicExcel * xls, BBString * name, int index) {
+	wchar_t * s = bbStringToWchar_t(name);
+	YExcel::BasicExcelWorksheet * sheet = xls->AddWorksheet(s, index);
+	WCHAR_FREE(s);
+	return sheet;
 }
 
 // ********************************************************
@@ -147,5 +216,32 @@ void bmx_xls_basicexcelcell_SetText(YExcel::BasicExcelCell * cell, BBString * va
 
 void bmx_xls_basicexcelcell_EraseContents(YExcel::BasicExcelCell * cell) {
 	cell->EraseContents();
+}
+
+int bmx_xls_basicexcelcell_Get(YExcel::BasicExcelCell * cell) {
+	return cell->GetInteger();
+}
+
+double bmx_xls_basicexcelcell_GetDouble(YExcel::BasicExcelCell * cell) {
+	return cell->GetDouble();
+}
+
+BBString * bmx_xls_basicexcelcell_GetText(YExcel::BasicExcelCell * cell) {
+	const char * s = cell->GetString();
+	if (s) {
+		return bbStringFromCString(s);
+	}
+	
+	return bbStringFromWchar_t(cell->GetWString());
+}
+
+// ********************************************************
+
+MaxExcelFont * bmx_xls_excelfont_create() {
+	return new MaxExcelFont();
+}
+
+void bmx_xls_excelfont_free(MaxExcelFont * font) {
+	delete font;
 }
 
