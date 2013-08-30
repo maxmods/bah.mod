@@ -6534,7 +6534,7 @@ bool BasicExcelCell::Get(char* str) const
 
 		return true;
 	} else {
-		assert(type_==STRING);
+		//assert(type_==STRING);
 		return false;
 	}
 }
@@ -6551,7 +6551,7 @@ bool BasicExcelCell::Get(wchar_t* str) const
 
 		return true;
 	} else {
-		assert(type_==WSTRING);
+		//assert(type_==WSTRING);
 		return false;
 	}
 }
@@ -6561,10 +6561,11 @@ size_t BasicExcelCell::GetStringLength() const
 {
 	if (type_ == STRING)
 		return str_.size() - 1;
-	else {
-		assert(type_==WSTRING);
+	else if (type_ == WSTRING) {
 		return wstr_.size() - 1;
 	}
+	
+	return 0;
 }
 
 // Get an integer value.
