@@ -52,6 +52,10 @@ Type TBasicExcel
 		Else If String(xls) Then
 			xlsPtr = bmx_xls_basicexcel_CreateFromFile(String(xls))
 		End If
+		
+		If Not xlsPtr Then
+			Return Null
+		End If
 
 		Return Self
 	End Method
@@ -215,7 +219,7 @@ Type TBasicExcelCell
 	Rem
 	bbdoc: Sets content of current Excel cell to a String.
 	End Rem
-	Method SetText(value:String)
+	Method SetString(value:String)
 		bmx_xls_basicexcelcell_SetText(cellPtr, value)
 	End Method
 
@@ -239,7 +243,7 @@ Type TBasicExcelCell
 	bbdoc: Gets a String value.
 	returns: Null if cell does not contain a string.
 	End Rem
-	Method GetText:String()
+	Method GetString:String()
 		Return bmx_xls_basicexcelcell_GetText(cellPtr)
 	End Method
 
@@ -259,10 +263,18 @@ Type TBasicExcelCell
 	Method SetMergedRows(rows:Int)
 	End Method
 
-	Method SetMergedColumns(cols:Int)
+	Method SetMergedColumns(COLS:Int)
 	End Method
 
 	Method SetFormat(format:TCellFormat)
+	End Method
+	
+	Rem
+	bbdoc: Returns the type of value stored in current Excel cell.
+	about: One of CELL_UNDEFINED, CELL_INT, CELL_DOUBLE, CELL_STRING, CELL_FORMULA
+	End Rem
+	Method GetType:Int()
+		Return bmx_xls_basicexcelcell_Type(cellPtr)
 	End Method
 
 End Type
@@ -273,7 +285,7 @@ Type TExcelFont
 
 	Method Create:TExcelFont()
 		fontPtr = bmx_xls_excelfont_create()
-		return Self
+		Return Self
 	End Method
 
 

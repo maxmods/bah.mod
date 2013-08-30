@@ -54,6 +54,7 @@ Extern
 	Function bmx_xls_basicexcelcell_Get:Int(handle:Byte Ptr)
 	Function bmx_xls_basicexcelcell_GetDouble:Double(handle:Byte Ptr)
 	Function bmx_xls_basicexcelcell_GetText:String(handle:Byte Ptr)
+	Function bmx_xls_basicexcelcell_Type:Int(handle:Byte Ptr)
 
 	Function bmx_xls_excelfont_create:Byte Ptr()
 	Function bmx_xls_excelfont_free(handle:Byte Ptr)
@@ -64,4 +65,9 @@ End Extern
 Const FW_NORMAL:Int = 400
 Const FW_BOLD:Int = 700
 
-
+Const CELL_UNDEFINED:Int = 0
+Const CELL_INT:Int = 1
+Const CELL_DOUBLE:Int = 2
+Const CELL_STRING:Int = 3
+'Const CELL_WSTRING:Int = 4 ' not used for module. GetType() always returns CELL_STRING
+Const CELL_FORMULA:Int = 5

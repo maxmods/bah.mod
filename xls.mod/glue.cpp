@@ -54,9 +54,10 @@ extern "C" {
 	int bmx_xls_basicexcelcell_Get(YExcel::BasicExcelCell * cell);
 	double bmx_xls_basicexcelcell_GetDouble(YExcel::BasicExcelCell * cell);
 	BBString * bmx_xls_basicexcelcell_GetText(YExcel::BasicExcelCell * cell);
+	int bmx_xls_basicexcelcell_Type(YExcel::BasicExcelCell * cell);
 
-        MaxExcelFont * bmx_xls_excelfont_create();
-        void bmx_xls_excelfont_free(MaxExcelFont * font);
+	MaxExcelFont * bmx_xls_excelfont_create();
+	void bmx_xls_excelfont_free(MaxExcelFont * font);
 }
 
 // ********************************************************
@@ -129,7 +130,10 @@ private:
 // ********************************************************
 
 YExcel::BasicExcel * bmx_xls_basicexcel_CreateFromFile(BBString * filename) {
-	
+	char * s = bbStringToUTF8String(filename);
+	YExcel::BasicExcel * xls = new YExcel::BasicExcel(s);
+	bbMemFree(s);
+	return xls;
 }
 
 YExcel::BasicExcel * bmx_xls_basicexcel_Create() {
@@ -163,9 +167,22 @@ YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_GetWorksheet(YExcel::BasicExcel
 }
 
 YExcel::BasicExcelWorksheet * bmx_xls_basicexcel_GetWorksheetByName(YExcel::BasicExcel * xls, BBString * name) {
-	wchar_t * s = bbStringToWchar_t(name);
-	YExcel::BasicExcelWorksheet * sheet = xls->GetWorksheet(s);
-	WCHAR_FREE(s);
+	YExcel::BasicExcelWorksheet * sheet = 0;
+
+	// Try ANSI first...	
+	char * s = bbStringToUTF8String(name);
+	sheet = xls->GetWorksheet(s);
+	bbMemFree(s);
+	
+	if (sheet) {
+		return sheet;
+	}
+
+	// Try Wide...
+	wchar_t * ws = bbStringToWchar_t(name);
+	sheet = xls->GetWorksheet(ws);
+	WCHAR_FREE(ws);
+	
 	return sheet;
 }
 
@@ -233,6 +250,14 @@ BBString * bmx_xls_basicexcelcell_GetText(YExcel::BasicExcelCell * cell) {
 	}
 	
 	return bbStringFromWchar_t(cell->GetWString());
+}
+
+int bmx_xls_basicexcelcell_Type(YExcel::BasicExcelCell * cell) {
+	int type = cell->Type();
+	if (type == YExcel::BasicExcelCell::WSTRING) {
+		return YExcel::BasicExcelCell::STRING;
+	}
+	return type;
 }
 
 // ********************************************************
