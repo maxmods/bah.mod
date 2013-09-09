@@ -2135,3 +2135,118 @@ bbdoc: Maximum number of speaker modes supported.
 End Rem
 Const FMOD_SPEAKERMODE_MAX:Int = 9
 
+Rem
+bbdoc: Picks the best output mode for the platform.
+about: This is the default.
+End Rem
+Const FMOD_OUTPUTTYPE_AUTODETECT:Int = 0
+Rem
+bbdoc: All - 3rd party plugin, unknown.
+about: This is for use with System::getOutput only.
+End Rem
+Const FMOD_OUTPUTTYPE_UNKNOWN:Int = 1
+Rem
+bbdoc: All - All calls in this mode succeed but make no sound.
+End Rem
+Const FMOD_OUTPUTTYPE_NOSOUND:Int = 2
+Rem
+bbdoc: All - Writes output to fmodoutput.wav by default.
+about: Use the 'extradriverdata' parameter in System::init, by simply passing the filename as a string, to set the wav filename.
+End Rem
+Const FMOD_OUTPUTTYPE_WAVWRITER:Int = 3
+Rem
+bbdoc: All - Non-realtime version of FMOD_OUTPUTTYPE_NOSOUND.
+about: User can drive mixer with System::update at whatever rate they want.
+End Rem
+Const FMOD_OUTPUTTYPE_NOSOUND_NRT:Int = 4
+Rem
+bbdoc: All - Non-realtime version of FMOD_OUTPUTTYPE_WAVWRITER.
+about: User can drive mixer with System::update at whatever rate they want.
+End Rem
+Const FMOD_OUTPUTTYPE_WAVWRITER_NRT:Int = 5
+Rem
+bbdoc: Win32/Win64     - DirectSound output.      (Default on Windows XP and below)
+End Rem
+Const FMOD_OUTPUTTYPE_DSOUND:Int = 6
+Rem
+bbdoc: Win32/Win64     - Windows Multimedia output.
+End Rem
+Const FMOD_OUTPUTTYPE_WINMM:Int = 7
+Rem
+bbdoc: Win32      - Windows Audio Session API.    (Default on Windows Vista and above)
+End Rem
+Const FMOD_OUTPUTTYPE_WASAPI:Int = 8
+Rem
+bbdoc: Win32      - Low latency ASIO 2.0 driver.
+End Rem
+Const FMOD_OUTPUTTYPE_ASIO:Int = 9
+Rem
+bbdoc: Linux/Linux64   - Open Sound System output.     (Default on Linux, third preference)
+End Rem
+Const FMOD_OUTPUTTYPE_OSS:Int = 10
+Rem
+bbdoc: Linux/Linux64   - Advanced Linux Sound Architecture output. (Default on Linux, second preference if available)
+End Rem
+Const FMOD_OUTPUTTYPE_ALSA:Int = 11
+Rem
+bbdoc: Linux/Linux64   - Enlightment Sound Daemon output.
+End Rem
+Const FMOD_OUTPUTTYPE_ESD:Int = 12
+Rem
+bbdoc: Linux/Linux64   - PulseAudio output.  (Default on Linux, first preference if available)
+End Rem
+Const FMOD_OUTPUTTYPE_PULSEAUDIO:Int = 13
+Rem
+bbdoc: Mac - Macintosh CoreAudio output.   (Default on Mac)
+End Rem
+Const FMOD_OUTPUTTYPE_COREAUDIO:Int = 14
+Rem
+bbdoc: Xbox 360   - Native Xbox360 output.   (Default on Xbox 360)
+End Rem
+Const FMOD_OUTPUTTYPE_XBOX360:Int = 15
+Rem
+bbdoc: PSP - Native PSP output.  (Default on PSP)
+End Rem
+Const FMOD_OUTPUTTYPE_PSP:Int = 16
+Rem
+bbdoc: PS3 - Native PS3 output.  (Default on PS3)
+End Rem
+Const FMOD_OUTPUTTYPE_PS3:Int = 17
+Rem
+bbdoc: NGP - Native NGP output.  (Default on NGP)
+End Rem
+Const FMOD_OUTPUTTYPE_NGP:Int = 18
+Rem
+bbdoc: Wii    - Native Wii output.  (Default on Wii)
+End Rem
+Const FMOD_OUTPUTTYPE_WII:Int = 19
+Rem
+bbdoc: 3DS - Native 3DS output   (Default on 3DS)
+End Rem
+Const FMOD_OUTPUTTYPE_3DS:Int = 20
+Rem
+bbdoc: Android    - Java Audio Track output. (Default on Android 2.2 and below)
+End Rem
+Const FMOD_OUTPUTTYPE_AUDIOTRACK:Int = 21
+Rem
+bbdoc: Android    - OpenSL ES output.   (Default on Android 2.3 and above)
+End Rem
+Const FMOD_OUTPUTTYPE_OPENSL:Int = 22
+Rem
+bbdoc: Native Client   - Native Client output.    (Default on Native Client)
+End Rem
+Const FMOD_OUTPUTTYPE_NACL:Int = 23
+Rem
+bbdoc: Wii U      - Native Wii U output.     (Default on Wii U)
+End Rem
+Const FMOD_OUTPUTTYPE_WIIU:Int = 24
+Rem
+bbdoc: BlackBerry - Native BlackBerry asound output.     (Default on BlackBerry)
+End Rem
+Const FMOD_OUTPUTTYPE_ASOUND:Int = 25
+Rem
+bbdoc: Maximum number of output types supported.
+End Rem
+Const FMOD_OUTPUTTYPE_MAX:Int = 26
+ 
+
