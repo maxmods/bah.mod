@@ -23,6 +23,7 @@
 #include "ExcelFormat.h"
 
 class MaxExcelFont;
+class MaxCellFormat;
 
 extern "C" {
 
@@ -55,9 +56,36 @@ extern "C" {
 	double bmx_xls_basicexcelcell_GetDouble(YExcel::BasicExcelCell * cell);
 	BBString * bmx_xls_basicexcelcell_GetText(YExcel::BasicExcelCell * cell);
 	int bmx_xls_basicexcelcell_Type(YExcel::BasicExcelCell * cell);
+	int bmx_xls_basicexcelcell_GetMergedRows(YExcel::BasicExcelCell * cell);
+	int bmx_xls_basicexcelcell_GetMergedColumns(YExcel::BasicExcelCell * cell);
+	void bmx_xls_basicexcelcell_SetMergedRows(YExcel::BasicExcelCell * cell, int rows);
+	void bmx_xls_basicexcelcell_SetMergedColumns(YExcel::BasicExcelCell * cell, int cols);
+	void bmx_xls_basicexcelcell_SetFormat(YExcel::BasicExcelCell * cell, MaxCellFormat * format);
 
 	MaxExcelFont * bmx_xls_excelfont_create();
 	void bmx_xls_excelfont_free(MaxExcelFont * font);
+	void bmx_xls_excelfont_SetWeight(MaxExcelFont * font, int weight);
+	void bmx_xls_excelfont_SetHeight(MaxExcelFont * font, int height);
+	void bmx_xls_excelfont_SetItalic(MaxExcelFont * font, int italic);
+	void bmx_xls_excelfont_SetColorIndex(MaxExcelFont * font, int index);
+	void bmx_xls_excelfont_SetUnderlineType(MaxExcelFont * font, int underline);
+	void bmx_xls_excelfont_SetEscapement(MaxExcelFont * font, int escapement);
+	void bmx_xls_excelfont_SetFontName(MaxExcelFont * font, BBString * name);
+	void bmx_xls_excelfont_SetOptions(MaxExcelFont * font, int options);
+	int bmx_xls_excelfont_GetOptions(MaxExcelFont * font);
+
+	ExcelFormat::XLSFormatManager * bmx_xls_xlsformatmanager_create(YExcel::BasicExcel * xls);
+	void bmx_xls_xlsformatmanager_free(ExcelFormat::XLSFormatManager * manager);
+
+	MaxCellFormat * bmx_xls_cellformat_create(ExcelFormat::XLSFormatManager * manager);
+	void bmx_xls_cellformat_SetFont(MaxCellFormat * format, MaxExcelFont * font);
+	void bmx_xls_cellformat_free(MaxCellFormat * format);
+	MaxExcelFont * bmx_xls_cellformat_GetFont(MaxCellFormat * format);
+	void bmx_xls_cellformat_SetFormatString(MaxCellFormat * format, BBString * text);
+	BBString * bmx_xls_cellformat_GetFormatString(MaxCellFormat * format);
+	void bmx_xls_cellformat_SetRotation(MaxCellFormat * format, int rotation);
+	int bmx_xls_cellformat_GetRotation(MaxCellFormat * format);
+
 }
 
 // ********************************************************
@@ -125,6 +153,25 @@ public:
 private:
 	ExcelFormat::ExcelFont font;
 
+};
+
+// ********************************************************
+
+class MaxCellFormat
+{
+public:
+	MaxCellFormat(ExcelFormat::XLSFormatManager & manager) : format(manager) {}
+	
+	MaxCellFormat(ExcelFormat::CellFormat & f) : format(f) {}
+
+	~MaxCellFormat() {}
+
+	ExcelFormat::CellFormat & Format() {
+		return format;
+	}
+
+private:
+	ExcelFormat::CellFormat format;
 };
 
 // ********************************************************
@@ -260,6 +307,26 @@ int bmx_xls_basicexcelcell_Type(YExcel::BasicExcelCell * cell) {
 	return type;
 }
 
+int bmx_xls_basicexcelcell_GetMergedRows(YExcel::BasicExcelCell * cell) {
+	return static_cast<int>(cell->GetMergedRows());
+}
+
+int bmx_xls_basicexcelcell_GetMergedColumns(YExcel::BasicExcelCell * cell) {
+	return static_cast<int>(cell->GetMergedColumns());
+}
+
+void bmx_xls_basicexcelcell_SetMergedRows(YExcel::BasicExcelCell * cell, int rows) {
+	cell->SetMergedRows(static_cast<USHORT>(rows));
+}
+
+void bmx_xls_basicexcelcell_SetMergedColumns(YExcel::BasicExcelCell * cell, int cols) {
+	cell->SetMergedColumns(static_cast<USHORT>(cols));
+}
+
+void bmx_xls_basicexcelcell_SetFormat(YExcel::BasicExcelCell * cell, MaxCellFormat * format) {
+	cell->SetFormat(format->Format());
+}
+
 // ********************************************************
 
 MaxExcelFont * bmx_xls_excelfont_create() {
@@ -268,5 +335,90 @@ MaxExcelFont * bmx_xls_excelfont_create() {
 
 void bmx_xls_excelfont_free(MaxExcelFont * font) {
 	delete font;
+}
+
+void bmx_xls_excelfont_SetWeight(MaxExcelFont * font, int weight) {
+	font->Font()._weight = static_cast<short>(weight);
+}
+
+void bmx_xls_excelfont_SetHeight(MaxExcelFont * font, int height) {
+	font->Font()._height = static_cast<short>(height);
+}
+
+void bmx_xls_excelfont_SetItalic(MaxExcelFont * font, int italic) {
+	font->Font().set_italic(static_cast<bool>(italic));
+}
+
+void bmx_xls_excelfont_SetColorIndex(MaxExcelFont * font, int index) {
+	font->Font()._color_index = static_cast<short>(index);
+}
+
+void bmx_xls_excelfont_SetUnderlineType(MaxExcelFont * font, int underline) {
+	font->Font()._underline_type = static_cast<char>(underline);
+}
+
+void bmx_xls_excelfont_SetEscapement(MaxExcelFont * font, int escapement) {
+	font->Font()._escapement_type = static_cast<short>(escapement);
+}
+
+void bmx_xls_excelfont_SetFontName(MaxExcelFont * font, BBString * name) {
+	wchar_t * s = bbStringToWchar_t(name);
+	font->Font()._name = s;
+	WCHAR_FREE(s);
+}
+
+void bmx_xls_excelfont_SetOptions(MaxExcelFont * font, int options) {
+	font->Font()._options = static_cast<short>(options);
+}
+
+int bmx_xls_excelfont_GetOptions(MaxExcelFont * font) {
+	return static_cast<int>(font->Font()._options);
+}
+
+// ********************************************************
+
+ExcelFormat::XLSFormatManager * bmx_xls_xlsformatmanager_create(YExcel::BasicExcel * xls) {
+	return new ExcelFormat::XLSFormatManager(*xls);
+}
+
+void bmx_xls_xlsformatmanager_free(ExcelFormat::XLSFormatManager * manager) {
+	delete manager;
+}
+
+// ********************************************************
+
+MaxCellFormat * bmx_xls_cellformat_create(ExcelFormat::XLSFormatManager * manager) {
+	return new MaxCellFormat(*manager);
+}
+
+void bmx_xls_cellformat_SetFont(MaxCellFormat * format, MaxExcelFont * font) {
+	format->Format().set_font(font->Font());
+}
+
+void bmx_xls_cellformat_free(MaxCellFormat * format) {
+	delete format;
+}
+
+MaxExcelFont * bmx_xls_cellformat_GetFont(MaxCellFormat * format) {
+	ExcelFormat::ExcelFont font(format->Format().get_font());
+	return new MaxExcelFont(font);
+}
+
+void bmx_xls_cellformat_SetFormatString(MaxCellFormat * format, BBString * text) {
+	wchar_t * s = bbStringToWchar_t(text);
+	format->Format().set_format_string(s);
+	WCHAR_FREE(s);
+}
+
+BBString * bmx_xls_cellformat_GetFormatString(MaxCellFormat * format) {
+	return bbStringFromWchar_t(format->Format().get_format_string().c_str());
+}
+
+void bmx_xls_cellformat_SetRotation(MaxCellFormat * format, int rotation) {
+	format->Format().set_rotation(static_cast<char>(rotation));
+}
+
+int bmx_xls_cellformat_GetRotation(MaxCellFormat * format) {
+	return static_cast<int>(format->Format().get_rotation());
 }
 

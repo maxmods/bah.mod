@@ -55,9 +55,35 @@ Extern
 	Function bmx_xls_basicexcelcell_GetDouble:Double(handle:Byte Ptr)
 	Function bmx_xls_basicexcelcell_GetText:String(handle:Byte Ptr)
 	Function bmx_xls_basicexcelcell_Type:Int(handle:Byte Ptr)
+	Function bmx_xls_basicexcelcell_GetMergedRows:Int(handle:Byte Ptr)
+	Function bmx_xls_basicexcelcell_GetMergedColumns:Int(handle:Byte Ptr)
+	Function bmx_xls_basicexcelcell_SetMergedRows(handle:Byte Ptr, rows:Int)
+	Function bmx_xls_basicexcelcell_SetMergedColumns(handle:Byte Ptr, cols:Int)
+	Function bmx_xls_basicexcelcell_SetFormat(handle:Byte Ptr, format:Byte Ptr)
 
 	Function bmx_xls_excelfont_create:Byte Ptr()
 	Function bmx_xls_excelfont_free(handle:Byte Ptr)
+	Function bmx_xls_excelfont_SetWeight(handle:Byte Ptr, weight:Int)
+	Function bmx_xls_excelfont_SetHeight(handle:Byte Ptr, height:Int)
+	Function bmx_xls_excelfont_SetItalic(handle:Byte Ptr, italic:Int)
+	Function bmx_xls_excelfont_SetColorIndex(handle:Byte Ptr, index:Int)
+	Function bmx_xls_excelfont_SetUnderlineType(handle:Byte Ptr, underline:Int)
+	Function bmx_xls_excelfont_SetEscapement(handle:Byte Ptr, escapement:Int)
+	Function bmx_xls_excelfont_SetFontName(handle:Byte Ptr, name:String)
+	Function bmx_xls_excelfont_SetOptions(handle:Byte Ptr, options:Int)
+	Function bmx_xls_excelfont_GetOptions:Int(handle:Byte Ptr)
+
+	Function bmx_xls_xlsformatmanager_create:Byte Ptr(xls:Byte Ptr)
+	Function bmx_xls_xlsformatmanager_free(handle:Byte Ptr)
+
+	Function bmx_xls_cellformat_create:Byte Ptr(mgr:Byte Ptr)
+	Function bmx_xls_cellformat_SetFont(handle:Byte Ptr, font:Byte Ptr)
+	Function bmx_xls_cellformat_free(handle:Byte Ptr)
+	Function bmx_xls_cellformat_GetFont:Byte Ptr(handle:Byte Ptr)
+	Function bmx_xls_cellformat_SetFormatString(handle:Byte Ptr, text:String)
+	Function bmx_xls_cellformat_GetFormatString:String(handle:Byte Ptr)
+	Function bmx_xls_cellformat_SetRotation(handle:Byte Ptr, rotation:Int)
+	Function bmx_xls_cellformat_GetRotation:Int(handle:Byte Ptr)
 
 End Extern
 
@@ -71,3 +97,79 @@ Const CELL_DOUBLE:Int = 2
 Const CELL_STRING:Int = 3
 'Const CELL_WSTRING:Int = 4 ' not used for module. GetType() always returns CELL_STRING
 Const CELL_FORMULA:Int = 5
+
+
+Const EXCEL_UNDERLINE_NONE:Int = $00
+Const EXCEL_UNDERLINE_SINGLE:Int = $01
+Const EXCEL_UNDERLINE_DOUBLE:Int = $02
+Const EXCEL_UNDERLINE_SINGLE_ACCOUNTING:Int = $21
+Const EXCEL_UNDERLINE_DOUBLE_ACCOUNTING:Int = $22
+
+Const EXCEL_FONT_FAMILY_DONTCARE:Int = 0
+Const EXCEL_FONT_FAMILY_ROMAN:Int = 1
+Const EXCEL_FONT_FAMILY_SWISS:Int = 2
+Const EXCEL_FONT_FAMILY_MODERN:Int = 3
+Const EXCEL_FONT_FAMILY_SCRIPT:Int = 4
+Const EXCEL_FONT_FAMILY_DECORATIVE:Int = 5
+
+Const EXCEL_ESCAPEMENT_NONE:Int = 0
+Const EXCEL_ESCAPEMENT_SUPERSCRIPT:Int = 1
+Const EXCEL_ESCAPEMENT_SUBSCRIPT:Int = 2
+
+Rem
+bbdoc: Excel colour index, black.
+End Rem
+Const EGA_BLACK:Int = 0 ' 000000
+Rem
+bbdoc: Excel colour index, white.
+End Rem
+Const EGA_WHITE:Int = 1 ' FFFFFF
+Rem
+bbdoc: Excel colour index, red.
+End Rem
+Const EGA_RED:Int = 2 ' FF0000
+Rem
+bbdoc: Excel colour index, green.
+End Rem
+Const EGA_GREEN:Int = 3 ' 00FF00
+Rem
+bbdoc: Excel colour index, blue.
+End Rem
+Const EGA_BLUE:Int = 4 ' 0000FF
+Rem
+bbdoc: Excel colour index, yellow.
+End Rem
+Const EGA_YELLOW:Int = 5 ' FFFF00
+Rem
+bbdoc: Excel colour index, magenta.
+End Rem
+Const EGA_MAGENTA:Int = 6 ' FF00FF
+Rem
+bbdoc: Excel colour index, cyan.
+End Rem
+Const EGA_CYAN:Int = 7 ' 00FFFF
+
+Rem
+bbdoc: Italic font option.
+End Rem
+Const EXCEL_FONT_ITALIC:Int = $02
+Rem
+bbdoc: Strike-out font option.
+End Rem
+Const EXCEL_FONT_STRUCK_OUT:Int = $08
+Rem
+bbdoc: Outline font option.
+End Rem
+Const EXCEL_FONT_OUTLINED:Int = $10
+Rem
+bbdoc: Shadow font option.
+End Rem
+Const EXCEL_FONT_SHADOWED:Int = $20
+Rem
+bbdoc: Condensed font option.
+End Rem
+Const EXCEL_FONT_CONDENSED:Int = $40
+Rem
+bbdoc: Extended style font option.
+End Rem
+Const EXCEL_FONT_EXTENDED:Int = $80
