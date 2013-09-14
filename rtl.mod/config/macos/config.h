@@ -55,23 +55,27 @@
 /* Define to 1 if you have the <wchar.h> header file. */
 #define HAVE_WCHAR_H 1
 
-/* Name of package */
-#define PACKAGE "fribidi"
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "http://fribidi.org/bug"
+#define PACKAGE_BUGREPORT "http://bugs.freedesktop.org/enter_bug.cgi?product=fribidi"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "GNU FriBidi"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU FriBidi 0.19.1"
+#define PACKAGE_STRING "GNU FriBidi 0.19.5"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "fribidi"
 
+/* Define to the home page for this package. */
+#define PACKAGE_URL "http://fribidi.org/"
+
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.19.1"
+#define PACKAGE_VERSION "0.19.5"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -93,9 +97,6 @@
 
 /* Define to 1 if you want to use simple mallocs instead of memory chunks */
 /* #undef USE_SIMPLE_MALLOC */
-
-/* Version number of package */
-#define VERSION "0.19.1"
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */

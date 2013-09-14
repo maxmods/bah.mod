@@ -1,11 +1,11 @@
 /* FriBidi
  * fribidi-bidi-types.h - character bidi types
  *
- * $Id: fribidi-bidi-types.h,v 1.14 2006/01/31 03:23:13 behdad Exp $
+ * $Id: fribidi-bidi-types.h,v 1.15 2008-11-24 17:48:31 behdad Exp $
  * $Author: behdad $
- * $Date: 2006/01/31 03:23:13 $
- * $Revision: 1.14 $
- * $Source: /cvs/fribidi/fribidi2/lib/fribidi-bidi-types.h,v $
+ * $Date: 2008-11-24 17:48:31 $
+ * $Revision: 1.15 $
+ * $Source: /home/behdad/src/fdo/fribidi/togit/git/../fribidi/fribidi2/lib/fribidi-bidi-types.h,v $
  *
  * Author:
  *   Behdad Esfahbod, 2001, 2002, 2004
@@ -25,8 +25,8 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with this library, in a file named COPYING; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307, USA
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA
  *
  * For licensing issues, contact <license@farsiweb.info>.
  */
@@ -274,7 +274,7 @@ typedef fribidi_uint32 FriBidiParType;
 /* Is explicit mark: LRE, RLE, LRO, RLO, PDF? */
 #define FRIBIDI_IS_EXPLICIT(p) ((p) & FRIBIDI_MASK_EXPLICIT)
 
-/* Is test separator: BS, SS? */
+/* Is text separator: BS, SS? */
 #define FRIBIDI_IS_SEPARATOR(p) ((p) & FRIBIDI_MASK_SEPARATOR)
 
 /* Is explicit override: LRO, RLO? */
