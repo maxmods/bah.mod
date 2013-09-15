@@ -203,6 +203,7 @@ Extern
 		maxInputChannels:Int Ptr, resampleMethod:Int Ptr, bits:Int Ptr)
 	Function FMOD_System_GetSoftwareChannels:Int(handle:Byte Ptr, numSoftwareChannels:Int Ptr)
 	'Function FMOD_System_GetRecordDriver:Int(handle:Byte Ptr, driver:Int Ptr)
+	Function FMOD_System_GetRecordDriverInfo:Int(handle:Byte Ptr, id:Int, nanme:Byte Ptr, length:Int, guid:Int Ptr)
 	Function FMOD_System_GetRecordDriverCaps:Int(handle:Byte Ptr, id:Int, caps:Int Ptr, minFrequency:Int Ptr, maxFrequency:Int Ptr)
 	Function FMOD_System_GetRecordNumDrivers:Int(handle:Byte Ptr, numDrivers:Int Ptr)
 	Function FMOD_System_GetRecordPosition:Int(handle:Byte Ptr, id:Int, position:Int Ptr)

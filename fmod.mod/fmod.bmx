@@ -678,12 +678,15 @@ Type TFMODSystem
 		Return FMOD_System_GetRecordDriverCaps(systemPtr, id, Varptr caps, Varptr minFrequency, Varptr maxFrequency)
 	End Method
 	
-	'Rem
-	'bbdoc: Retrieves identification information about a sound device specified by its index, And specific To the output mode set with System::setOutput.
-	'End Rem
-	'Method GetRecordDriverInfo:String(id:Int, guid:Int Var)
-		' TODO
-	'End Method
+	Rem
+	bbdoc: Retrieves identification information about a sound device specified by its index, And specific To the output mode set with System::setOutput.
+	End Rem
+	Method GetRecordDriverInfo:Int(id:Int, name:String Var, guid:Int Var)
+		Local n:Byte[256]
+		Local ret:Int = FMOD_System_GetRecordDriverInfo(systemPtr, id, n, 256, Varptr guid)
+		name = String.FromCString(n)
+		Return ret
+	End Method
 	
 	Rem
 	bbdoc: Retrieves the number of recording devices available for this output mode.
