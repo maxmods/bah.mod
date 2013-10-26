@@ -27,13 +27,10 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <tfile.h>
 #include <tstring.h>
 #include <tdebug.h>
+#include "trefcounter.h"
 
 #include "fileref.h"
 #include "asffile.h"
@@ -218,21 +215,28 @@ File *FileRef::create(FileName fileName, bool readAudioProperties,
 
   // Ok, this is really dumb for now, but it works for testing.
 
-  String s;
-
+  String ext;
+  {
 #ifdef _WIN32
-  s = (wcslen((const wchar_t *) fileName) > 0) ? String((const wchar_t *) fileName) : String((const char *) fileName);
+
+    String s = fileName.toString();
+
 #else
-  s = fileName;
-#endif
+
+    String s = fileName;
+
+ #endif
+
+    const int pos = s.rfind(".");
+    if(pos != -1)
+      ext = s.substr(pos + 1).upper();
+  }
 
   // If this list is updated, the method defaultFileExtensions() should also be
   // updated.  However at some point that list should be created at the same time
   // that a default file type resolver is created.
 
-  int pos = s.rfind(".");
-  if(pos != -1) {
-    String ext = s.substr(pos + 1).upper();
+  if(!ext.isEmpty()) {
     if(ext == "MP3")
       return new MPEG::File(fileName, readAudioProperties, audioPropertiesStyle);
     if(ext == "OGG")

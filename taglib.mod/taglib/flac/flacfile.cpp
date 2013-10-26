@@ -399,7 +399,7 @@ void FLAC::File::scan()
 
   char blockType = header[0] & 0x7f;
   bool isLastBlock = (header[0] & 0x80) != 0;
-  uint length = header.mid(1, 3).toUInt();
+  uint length = header.toUInt(1U, 3U);
 
   // First block should be the stream_info metadata
 
@@ -419,7 +419,7 @@ void FLAC::File::scan()
     header = readBlock(4);
     blockType = header[0] & 0x7f;
     isLastBlock = (header[0] & 0x80) != 0;
-    length = header.mid(1, 3).toUInt();
+    length = header.toUInt(1U, 3U);
 
     ByteVector data = readBlock(length);
     if(data.size() != length || length == 0) {
@@ -552,3 +552,17 @@ void FLAC::File::removePictures()
   d->blocks = newBlocks;
 }
 
+bool FLAC::File::hasXiphComment() const
+{
+  return d->hasXiphComment;
+}
+
+bool FLAC::File::hasID3v1Tag() const
+{
+  return d->hasID3v1;
+}
+
+bool FLAC::File::hasID3v2Tag() const
+{
+  return d->hasID3v2;
+}

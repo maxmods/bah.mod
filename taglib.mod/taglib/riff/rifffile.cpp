@@ -28,6 +28,7 @@
 #include <tstring.h>
 
 #include "rifffile.h"
+#include <algorithm>
 #include <vector>
 
 using namespace TagLib;
@@ -158,6 +159,11 @@ void RIFF::File::setChunkData(uint i, const ByteVector &data)
     d->chunks[i].offset = d->chunks[i-1].offset + 8 + d->chunks[i-1].size + d->chunks[i-1].padding;
 }
 
+void RIFF::File::setChunkData(const ByteVector &name, const ByteVector &data)
+{
+  setChunkData(name, data, false);
+}
+
 void RIFF::File::setChunkData(const ByteVector &name, const ByteVector &data, bool alwaysCreate)
 {
   if(d->chunks.size() == 0) {
@@ -267,7 +273,7 @@ void RIFF::File::read()
       break;
     }
 
-    if(tell() + chunkSize > uint(length())) {
+    if(static_cast<ulonglong>(tell()) + chunkSize > static_cast<ulonglong>(length())) {
       debug("RIFF::File::read() -- Chunk '" + chunkName + "' has invalid size (larger than the file size)");
       setValid(false);
       break;

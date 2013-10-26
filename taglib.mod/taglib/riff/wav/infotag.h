@@ -1,6 +1,6 @@
 /***************************************************************************
-    copyright            : (C) 2002 - 2008 by Scott Wheeler
-    email                : wheeler@kde.org
+    copyright            : (C) 2012 by Tsuda Kageyu
+    email                : tsuda.kageyu@gmail.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -82,7 +82,7 @@ namespace TagLib {
      * This is the main class in the INFO tag implementation.  RIFF INFO tag is a 
      * metadata format found in WAV audio and AVI video files.  Though it is a part 
      * of Microsoft/IBM's RIFF specification, the author could not find the official 
-     * documents about it.  So, this implementation is refering to unofficial documents 
+     * documents about it.  So, this implementation is referring to unofficial documents 
      * online and some applications' behaviors especially Windows Explorer.
      */
     class TAGLIB_EXPORT Tag : public TagLib::Tag
@@ -119,6 +119,19 @@ namespace TagLib {
       virtual void setTrack(uint i);
 
       virtual bool isEmpty() const;
+
+      /*!
+       * Returns a copy of the internal fields of the tag.  The returned map directly 
+       * reflects the contents of the "INFO" chunk.
+       *
+       * \note Modifying this map does not affect the tag's internal data.
+       * Use setFieldText() and removeField() instead.
+       *
+       * \see setFieldText()
+       * \see removeField()
+       */
+      FieldListMap fieldListMap() const;
+
       /*
        * Gets the value of the field with the ID \a id.
        */
@@ -129,7 +142,7 @@ namespace TagLib {
         * If the field does not exist, it is created.
         * If \s is empty, the field is removed.
         *
-        * \note fieldId must be four-byte long pure ascii string.  This function 
+        * \note fieldId must be four-byte long pure ASCII string.  This function 
         * performs nothing if fieldId is invalid.
         */
       void setFieldText(const ByteVector &id, const String &s);

@@ -1,7 +1,7 @@
-/**************************************************************************
-    copyright            : (C) 2010 by Lukáš Lalinský
-    email                : lalinsky@gmail.com
- **************************************************************************/
+/***************************************************************************
+    copyright            : (C) 2013 by Tsuda Kageyu
+    email                : tsuda.kageyu@gmail.com
+ ***************************************************************************/
 
 /***************************************************************************
  *   This library is free software; you can redistribute it and/or modify  *
@@ -23,25 +23,63 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-#include <taglib.h>
-#include <tdebug.h>
-#include "flacmetadatablock.h"
+#include "tdebuglistener.h"
+
+#include <iostream>
+#include <bitset>
+
+#ifdef _WIN32
+# include <windows.h>
+#endif
 
 using namespace TagLib;
 
-class FLAC::MetadataBlock::MetadataBlockPrivate
+namespace
 {
-public:
-  MetadataBlockPrivate() {}
+  class DefaultListener : public DebugListener
+  {
+  public:
+    virtual void printMessage(const String &msg)
+    {
+#ifdef _WIN32
 
-};
+      const wstring wstr = msg.toWString();
+      const int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
+      if(len != 0) {
+        std::vector<char> buf(len);
+        WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &buf[0], len, NULL, NULL);
 
-FLAC::MetadataBlock::MetadataBlock()
-{
-  d = 0;
+        std::cerr << std::string(&buf[0]);
+      }
+
+#else
+
+      std::cerr << msg;
+
+#endif 
+    }
+  };
+
+  DefaultListener defaultListener;
 }
 
-FLAC::MetadataBlock::~MetadataBlock()
+namespace TagLib
 {
-}
+  DebugListener *debugListener = &defaultListener;
 
+  DebugListener::DebugListener()
+  {
+  }
+
+  DebugListener::~DebugListener()
+  {
+  }
+
+  void setDebugListener(DebugListener *listener)
+  {
+    if(listener)
+      debugListener = listener;
+    else
+      debugListener = &defaultListener;
+  }
+}

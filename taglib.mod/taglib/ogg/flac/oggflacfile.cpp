@@ -137,6 +137,11 @@ bool Ogg::FLAC::File::save()
   return Ogg::File::save();
 }
 
+bool Ogg::FLAC::File::hasXiphComment() const
+{
+  return d->hasXiphComment;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // private members
 ////////////////////////////////////////////////////////////////////////////////
@@ -241,7 +246,7 @@ void Ogg::FLAC::File::scan()
 
   char blockType = header[0] & 0x7f;
   bool lastBlock = (header[0] & 0x80) != 0;
-  uint length = header.mid(1, 3).toUInt();
+  uint length = header.toUInt(1, 3, true);
   overhead += length;
 
   // Sanity: First block should be the stream_info metadata
@@ -251,7 +256,7 @@ void Ogg::FLAC::File::scan()
     return;
   }
 
-  d->streamInfoData = metadataHeader.mid(4,length);
+  d->streamInfoData = metadataHeader.mid(4, length);
 
   // Search through the remaining metadata
 
@@ -264,7 +269,7 @@ void Ogg::FLAC::File::scan()
     header = metadataHeader.mid(0, 4);
     blockType = header[0] & 0x7f;
     lastBlock = (header[0] & 0x80) != 0;
-    length = header.mid(1, 3).toUInt();
+    length = header.toUInt(1, 3, true);
     overhead += length;
 
     if(blockType == 1) {
