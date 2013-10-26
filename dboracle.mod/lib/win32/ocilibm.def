@@ -188,6 +188,7 @@ OCI_DescriptorArrayAlloc
 OCI_DescriptorArrayFree
 OCI_DescriptorFree
 OCI_DirPathAbort
+OCI_DirPathArrayToStream
 OCI_DirPathConvert
 OCI_DirPathCreate
 OCI_DirPathFinish
@@ -200,12 +201,15 @@ OCI_DirPathGetErrorRow
 OCI_DirPathGetMaxRows
 OCI_DirPathGetRowCount
 OCI_DirPathLoad
+OCI_DirPathLoadStream
 OCI_DirPathPrepare
 OCI_DirPathReset
 OCI_DirPathSave
+OCI_DirPathSetArray
 OCI_DirPathSetBufferSize
 OCI_DirPathSetCacheSize
 OCI_DirPathSetColumn
+OCI_DirPathSetConvertMode
 OCI_DirPathSetCurrentRows
 OCI_DirPathSetDateFormat
 OCI_DirPathSetEntry
@@ -371,6 +375,7 @@ OCI_GetDate
 OCI_GetDate2
 OCI_GetDefaultFormatDate
 OCI_GetDefaultFormatNumeric
+OCI_GetDefaultLobPrefetchSize
 OCI_GetDefine
 OCI_GetDefineIndex
 OCI_GetDomainName
@@ -741,6 +746,7 @@ OCI_SetBindAllocation
 OCI_SetBindMode
 OCI_SetDefaultFormatDate
 OCI_SetDefaultFormatNumeric
+OCI_SetDefaultLobPrefetchSize
 OCI_SetErrorHandler
 OCI_SetFetchMode
 OCI_SetFetchSize
@@ -841,4 +847,3 @@ ocistrcasecmp
 ocistrdup
 ociwcscasecmp
 ociwcsdup
-
