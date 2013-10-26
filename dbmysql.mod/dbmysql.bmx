@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2013 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ Module BaH.DBMySQL
 ModuleInfo "Version: 1.07"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Changed bool types to int."
