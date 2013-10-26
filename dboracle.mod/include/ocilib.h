@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2013 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -76,7 +76,7 @@ extern "C" {
  *
  * @section s_version Version information
  *
- * <b>Current version : 3.11.0 (2012-12-12)</b>
+ * <b>Current version : 3.12.1 (2013-03-04)</b>
  *
  * @section s_feats Main features
  *
@@ -168,8 +168,8 @@ extern "C" {
  * --------------------------------------------------------------------------------------------- */
 
 #define OCILIB_MAJOR_VERSION     3
-#define OCILIB_MINOR_VERSION     11
-#define OCILIB_REVISION_VERSION  0
+#define OCILIB_MINOR_VERSION     12
+#define OCILIB_REVISION_VERSION  1
 
 /* --------------------------------------------------------------------------------------------- *
  * Installing OCILIB
@@ -1534,6 +1534,7 @@ typedef unsigned int big_uint;
 #define OCI_CST_ALTER                       7
 #define OCI_CST_BEGIN                       8
 #define OCI_CST_DECLARE                     9
+#define OCI_CST_CALL                        10
 
 /* environment modes */
 
@@ -1759,6 +1760,11 @@ typedef unsigned int big_uint;
 #define OCI_DPR_FULL                        3
 #define OCI_DPR_PARTIAL                     4
 #define OCI_DPR_EMPTY                       5
+
+/* direct path conversion modes */
+
+#define OCI_DCM_DEFAULT                     1
+#define OCI_DCM_FORCE                       2
 
 /* trace size constants */
 
@@ -3155,6 +3161,10 @@ OCI_EXPORT boolean OCI_API OCI_SetTAFHandler
  *
  * @note
  * Default value is 20 (value from Oracle Documentation)
+ *"
+ * @warning
+ * Requires Oracle Client 9.2 or above
+ *
  *
  */
 
@@ -3170,6 +3180,9 @@ OCI_EXPORT unsigned int OCI_API OCI_GetStatementCacheSize
  * @param con   - Connection handle
  * @param value - maximun number of statements in the cache
  *
+ * @warning
+ * Requires Oracle Client 9.2 or above
+ *
  * @return
  * TRUE on success otherwise FALSE
  *
@@ -3179,6 +3192,65 @@ OCI_EXPORT boolean OCI_API OCI_SetStatementCacheSize
 (
     OCI_Connection  *con,
     unsigned int     value
+);
+
+/**
+ * @brief
+ * Return the default LOB prefetch buffer size for the connection
+ *
+ * @param con  - Connection handle
+ * 
+ * @warning
+ * Requires Oracle Client AND Server 11gR1 or above
+ *
+ * @note 
+ * Prefetch size is:
+ * - number of bytes for BLOBs and BFILEs
+ * - number of characters for CLOBs.
+ *
+ * @note
+ * Default is 0 (prefetching disabled)
+ *
+ */
+
+OCI_EXPORT unsigned int OCI_API OCI_GetDefaultLobPrefetchSize
+(
+    OCI_Connection *con
+);
+    
+/**
+ * @brief
+ * Enable or disable prefetching for all LOBs fetched in the connection
+ *
+ * @param con   - Connection handle
+ * @param value - default prefetch buffer size
+ *
+ * @note
+ * If parameter 'value':
+ * - is == 0, it disables prefetching for all LOBs fetched in the connection.
+ * - is >  0, it enables prefetching for all LOBs fetched in the connection 
+ * and the given buffer size is used for prefetching LOBs
+ *
+ * @note
+ * LOBs prefetching is disabled by default
+ *
+ * @warning
+ * Requires Oracle Client AND Server 11gR1 or above.
+ *
+ * @note 
+ * Prefetch size is:
+ * - number of bytes for BLOBs and BFILEs
+ * - number of characters for CLOBs.
+ *
+ * @return
+ * TRUE on success otherwise FALSE
+ *
+ */
+
+OCI_EXPORT boolean OCI_API OCI_SetDefaultLobPrefetchSize
+(
+    OCI_Connection *con,
+    unsigned int    value
 );
 
 /**
@@ -5346,7 +5418,7 @@ OCI_EXPORT unsigned int OCI_API OCI_GetBatchErrorCount
 (
     OCI_Statement *stmt
 );
-
+  
 /**
  * @brief
  * Return the number of binds currently associated to a statement
@@ -9255,6 +9327,7 @@ OCI_EXPORT boolean OCI_API OCI_RegisterRef
  * - OCI_CST_ALTER   : alter statement
  * - OCI_CST_BEGIN   : begin (pl/sql) statement
  * - OCI_CST_DECLARE : declare (pl/sql) statement
+ * - OCI_CST_CALL    : kpu call
  *
  * @return
  * The statement type on success or OCI_UNKOWN on error
@@ -14661,6 +14734,12 @@ OCI_EXPORT boolean OCI_API OCI_DirPathPrepare
  * - The last call that set the last piece or an entry must specify the value
  *   TRUE for the 'complete' parameter
  *
+ * @warning
+ * Current Direct Path OCILIB implementation DOES NOT support setting entry
+ * content piece by piece as mentionned above. It was planned in the original design
+ * but not supported yet. So, always set the complete parameter to TRUE.
+ * Setting entries content piece by piece may be supported in future releases
+ *
  * @return
  * TRUE on success otherwise FALSE
  *
@@ -14678,17 +14757,9 @@ OCI_EXPORT boolean OCI_API OCI_DirPathSetEntry
 
 /**
  * @brief
- * Convert user provided data to a direct path stream format
+ * Convert provided user data to the direct path stream format
  *
  * @param dp - Direct path Handle
- *
- * @note
- * if the call does return another result than OCI_DPR_COMPLETE :
- * - OCI_DirPathGetErrorRow() returns the row where the error occured
- * - OCI_DirPathGetErrorColumn() returns the column where the error occured
- *
- * @note
- * OCI_DirPathGetAffectedRows() returns the number of rows processed in the last call.
  *
  * @return
  * Possible return values :
@@ -14696,7 +14767,21 @@ OCI_EXPORT boolean OCI_API OCI_DirPathSetEntry
  * - OCI_DPR_ERROR    : an error happened while loading data
  * - OCI_DPR_FULL     : the internal stream is full
  * - OCI_DPR_PARTIAL  : a column hasn't been fully filled yet
- * - OCI_DPR_EMPTY    : no data was found to load
+ * - OCI_DPR_EMPTY    : no data was found to convert
+ *
+ * @note
+ * - When using conversion mode OCI_DCM_DEFAULT, OCI_DirPathConvert() stops when
+ *   any error is encountered and returns OCI_DPR_ERROR 
+ * - When using conversion mode OCI_DCM_FORCE, OCI_DirPathConvert() does not stop
+ *   on errors. Instead it discards any erred rows and returns OCI_DPR_COMPLETE once
+ *   all rows are processed.
+ *
+ * @note
+ * List of faulted rows and columns can be retrieved using OCI_DirPathGetErrorRow() and 
+ * OCI_DirPathGetErrorColumn()
+ * 
+ * @note
+ * OCI_DirPathGetAffectedRows() returns the number of rows converted in the last call.
  *
  */
 
@@ -14711,9 +14796,6 @@ OCI_EXPORT unsigned int OCI_API OCI_DirPathConvert
  *
  * @param dp - Direct path Handle
  *
- * @note
- * OCI_DirPathGetAffectedRows() returns the number of rows successfully loaded in the last call.
- *
  * @return
  * Possible return values :
  * - OCI_DPR_COMPLETE : conversion has been successful
@@ -14721,6 +14803,12 @@ OCI_EXPORT unsigned int OCI_API OCI_DirPathConvert
  * - OCI_DPR_FULL     : the internal stream is full
  * - OCI_DPR_PARTIAL  : a column hasn't been fully filled yet
  * - OCI_DPR_EMPTY    : no data was found to load
+ *
+ * @note
+ * List of faulted rows can be retrieved using OCI_DirPathGetErrorRow()
+ *
+ * @note
+ * OCI_DirPathGetAffectedRows() returns the number of rows successfully loaded in the last call.
  *
  */
 
@@ -15023,6 +15111,35 @@ OCI_EXPORT boolean OCI_API OCI_DirPathSetBufferSize
 
 /**
  * @brief
+ * Set the direct path conversion mode
+ *
+ * @param dp   - Direct path Handle
+ * @param mode - Conversion mode
+ *
+ * @note
+ * Possible values for parameter 'mode' :
+ *   - OCI_DCM_DEFAULT : conversion fails on error
+ *   - OCI_DCM_FORCE   : conversion does not fail on error
+ *
+ * @note
+ * See OCI_DirPathConvert() for conversion mode details
+ *
+ * @note
+ * Default value is OCI_DCM_DEFAULT
+ *
+ * @return
+ * TRUE on success otherwise FALSE
+ *
+ */
+
+OCI_EXPORT boolean OCI_API OCI_DirPathSetConvertMode
+(
+    OCI_DirPath *dp,
+    unsigned int mode
+);
+
+/**
+ * @brief
  * Return the number of rows successfully loaded into the database so far
  *
  * @param dp - Direct path Handle
@@ -15059,12 +15176,23 @@ OCI_EXPORT unsigned int OCI_API OCI_DirPathGetAffectedRows
 
 /**
  * @brief
- * Return the column index which caused an error during data conversion
+ * Return the index of a column which caused an error during data conversion
  *
  * @param dp - Direct path Handle
  *
  * @warning
- * Direct path column indexes start at 1.
+ * Direct path colmun indexes start at 1.
+ * 
+ * @Note
+ * Errors may happen while data is converted to direct path stream format
+ * using OCI_DirPathConvert().
+ * When using conversion mode OCI_DCM_DEFAULT, OCI_DirPathConvert() returns
+ * OCI_DPR_ERROR on error. OCI_DirPathGetErrorColumn() returns the column index
+ * that caused the error
+ * When using conversion mode OCI_DCM_FORCE, OCI_DirPathConvert() returns 
+ * OCI_DPR_COMPLETE even on errors. In order to retrieve the list of all column
+ * indexes that have erred, the application can call OCI_DirPathGetErrorColumn() 
+ * repeatedly until it returns 0. 
  *
  * @note
  * The internal value is reset to 0 when calling OCI_DirPathConvert()
@@ -15082,15 +15210,34 @@ OCI_EXPORT unsigned int OCI_API OCI_DirPathGetErrorColumn
 
 /**
  * @brief
- * Return the row index which caused an error during data conversion
+ * Return the index of a row which caused an error during data conversion
  *
  * @param dp - Direct path Handle
  *
  * @warning
  * Direct path row indexes start at 1.
+ * 
+ * @Note
+ * Errors may happen :
+ * - while data is converted to direct path stream format using OCI_DirPathConvert()
+ * - while data is loaded to database using OCI_DirPathLoad()
+ *
+ * @Note
+ * When using conversion mode OCI_DCM_DEFAULT, OCI_DirPathConvert() returns
+ * OCI_DPR_ERROR on error. OCI_DirPathGetErrorRow() returns the row index that
+ * caused the error.
+ * When using conversion mode OCI_DCM_FORCE, OCI_DirPathConvert() returns 
+ * OCI_DPR_COMPLETE even on errors. In order to retrieve the list of all row
+ * indexes that have erred, the application can call OCI_DirPathGetErrorRow() 
+ * repeatedly until it returns 0. 
  *
  * @note
- * The internal value is reset to 0 when calling OCI_DirPathConvert()
+ * After a call to OCI_DirPathLoad(), in order to retrieve the list of all faulted rows 
+ * indexes, the application can call OCI_DirPathGetErrorRow() repeatedly until it returns 0. 
+ *
+ * @note
+ * The internal value is reset to 0 when calling OCI_DirPathConvert(),
+ * OCI_DirPathReset() or OCI_DirPathLoad()
  *
  * @return
  * 0 is no error occurs otherwise the index of the given row which caused an

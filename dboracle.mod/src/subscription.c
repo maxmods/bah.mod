@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2013 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -239,7 +239,7 @@ OCI_Subscription * OCI_API OCI_SubscriptionRegister
                 (
                     res, sub->err,
 
-                    OCIAttrSet((dvoid *) sub->subhp, (ub4)  OCI_HTYPE_ENV,
+                    OCIAttrSet((dvoid *) sub->subhp, (ub4)  OCI_HTYPE_SUBSCRIPTION,
                                (dvoid *) &sub->port, (ub4) sizeof (sub->port),
                                (ub4) OCI_ATTR_SUBSCR_PORTNO, sub->err)
                 )
@@ -318,7 +318,7 @@ OCI_Subscription * OCI_API OCI_SubscriptionRegister
                 res, sub->err,
 
                 OCIAttrSet((dvoid *) sub->subhp, (ub4) OCI_HTYPE_SUBSCRIPTION,
-                           (dvoid *) OCI_ProcNotifyMessages, (ub4) 0,
+                           (dvoid *) OCI_ProcNotifyChanges, (ub4) 0,
                            (ub4) OCI_ATTR_SUBSCR_CALLBACK, sub->err)
             )
 

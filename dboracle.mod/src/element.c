@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2013 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -216,7 +216,7 @@ boolean OCI_ElemGetNumber
     }
     else if (elem->typinf->cols[0].type == OCI_CDT_TEXT)
     {
-        res = OCI_NumberFromString(elem->con, value, flag, OCI_ElemGetString(elem), NULL);
+        res = OCI_NumberFromString(elem->con, value, size, flag, elem->typinf->cols[0].icode, OCI_ElemGetString(elem), NULL);
     }
     else
     {

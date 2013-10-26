@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2013 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -371,13 +371,15 @@ boolean OCI_FetchPieces
                 /* update piece info */
 
                 if (res == TRUE)
-                {
+                {              
+                    lg->piecesize = bufsize;
+
                     if (lg->type == OCI_CLONG)
                     {
+                        lg->piecesize /= sizeof(dtext);
+                        lg->piecesize *= sizeof(odtext);
                         lg->piecesize -= (ub4) sizeof(odtext);
-                    }
-
-                    lg->piecesize = (bufsize / sizeof(dtext)) * sizeof(odtext);
+                    }                  
 
                     OCI_CALL1
                     (
@@ -468,7 +470,7 @@ boolean OCI_FetchPieces
                     ((odtext *)lg->buffer)[lg->size/sizeof(odtext)] = 0;
                 }
 
-                OCI_ConvertString(lg->buffer, (lg->size / sizeof(odtext)) + 1,
+                OCI_ConvertString(lg->buffer, (lg->size / sizeof(odtext)),
                                   sizeof(odtext), sizeof(dtext));
             }
         }
@@ -727,7 +729,7 @@ boolean OCI_ResultsetExpandStrings
             for (j = (int) (def->buf.count-1); j >= 0; j--)
             {
                 OCI_ConvertString(((ub1*) def->buf.data) + (def->col.bufsize * j),
-                                  def->col.bufsize / sizeof(dtext), sizeof(odtext), sizeof(dtext));
+                                  (def->col.bufsize / sizeof(dtext) ) -1 , sizeof(odtext), sizeof(dtext));
             }
         }
     }

@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2013 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -331,6 +331,28 @@ boolean OCI_DefineRequestBuffer
     OCI_Define  *def,
     unsigned int size
 );
+
+/* --------------------------------------------------------------------------------------------- *
+ * dirpath.c
+ * --------------------------------------------------------------------------------------------- */
+
+int OCI_API OCI_DirPathSetArray
+(
+    OCI_DirPath *dp,
+    ub4 row_from
+);
+
+unsigned int OCI_API OCI_DirPathArrayToStream
+(
+    OCI_DirPath *dp,
+    ub4 row_from
+);
+
+unsigned int OCI_API OCI_DirPathLoadStream
+(
+    OCI_DirPath *dp
+);
+
 
 /* --------------------------------------------------------------------------------------------- *
  * element.c
@@ -850,8 +872,10 @@ boolean OCI_NumberSet
 boolean OCI_NumberFromString
 (
     OCI_Connection *con,
-    void           *number,
+    void           *out_value,
+    uword           size,
     uword           type,
+    int             sqlcode,
     const dtext    *in_value,
     const mtext   * fmt
 );

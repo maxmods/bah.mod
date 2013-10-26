@@ -7,7 +7,7 @@
     |                                                                                         |
     |                              Website : http://www.ocilib.net                            |
     |                                                                                         |
-    |             Copyright (c) 2007-2012 Vincent ROGIER <vince.rogier@ocilib.net>            |
+    |             Copyright (c) 2007-2013 Vincent ROGIER <vince.rogier@ocilib.net>            |
     |                                                                                         |
     +-----------------------------------------------------------------------------------------+
     |                                                                                         |
@@ -839,8 +839,16 @@ boolean OCI_BindData
 
         if (bnd->type == OCI_CDT_LONG)
         {
-            stmt->long_size = size;
-            exec_mode       = OCI_DATA_AT_EXEC;
+            OCI_Long *lg = (OCI_Long *)  bnd->input;
+
+            lg->maxsize = size;
+            exec_mode   = OCI_DATA_AT_EXEC;
+
+            if (bnd->subtype == OCI_CLONG)
+            {
+                lg->maxsize /= (unsigned int) sizeof(dtext);
+                lg->maxsize *= (unsigned int) sizeof(odtext);
+            }
         }
         else if (mode == OCI_BIND_OUTPUT)
         {

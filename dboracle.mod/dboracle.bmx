@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2012 Bruce A Henderson
+' Copyright (c) 2008-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,9 @@ Module BaH.DBOracle
 ModuleInfo "Version: 1.00"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008-2012 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2013 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (ocilib 3.11.0)"
+ModuleInfo "History: 1.00 Initial Release (ocilib 3.12.1)"
 
 
 ModuleInfo "CC_OPTS: -fexceptions -DOCI_CHARSET_MIXED"
