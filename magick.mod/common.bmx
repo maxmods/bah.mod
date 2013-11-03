@@ -737,21 +737,69 @@ Const ENDIAN_LSBENDIAN:Int = 1            ' "little" endian */
 Const ENDIAN_MSBENDIAN:Int = 2            ' "big" endian */
 Const ENDIAN_NATIVEENDIAN:Int = 3         ' native endian */
 
+Rem
+bbdoc: Unset filter.
+End Rem
 Const FILTER_UNDEFINEDFILTER:Int = 0
+Rem
+bbdoc: Point filter.
+End Rem
 Const FILTER_POINTFILTER:Int = 1
+Rem
+bbdoc: Box filter.
+End Rem
 Const FILTER_BOXFILTER:Int = 2
+Rem
+bbdoc: Triangle filter.
+End Rem
 Const FILTER_TRIANGLEFILTER:Int = 3
+Rem
+bbdoc: Hermite filter.
+End Rem
 Const FILTER_HERMITEFILTER:Int = 4
+Rem
+bbdoc: Hanning filter.
+End Rem
 Const FILTER_HANNINGFILTER:Int = 5
+Rem
+bbdoc: Hamming filter.
+End Rem
 Const FILTER_HAMMINGFILTER:Int = 6
+Rem
+bbdoc: Blackman filter.
+End Rem
 Const FILTER_BLACKMANFILTER:Int = 7
+Rem
+bbdoc: Gaussian filter.
+End Rem
 Const FILTER_GAUSSIANFILTER:Int = 8
+Rem
+bbdoc: Quadratic filter.
+End Rem
 Const FILTER_QUADRATICFILTER:Int = 9
+Rem
+bbdoc: Cubic filter.
+End Rem
 Const FILTER_CUBICFILTER:Int = 10
+Rem
+bbdoc: Catrom filter.
+End Rem
 Const FILTER_CATROMFILTER:Int = 11
+Rem
+bbdoc: Mitchell filter.
+End Rem
 Const FILTER_MITCHELLFILTER:Int = 12
+Rem
+bbdoc: Lanczos filter.
+End Rem
 Const FILTER_LANCZOSFILTER:Int = 13
+Rem
+bbdoc: Bessel filter.
+End Rem
 Const FILTER_BESSELFILTER:Int = 14
+Rem
+bbdoc: Sinc filter.
+End Rem
 Const FILTER_SINCFILTER:Int = 15
 
 Const GEOMETRY_NOVALUE:Int = $0000

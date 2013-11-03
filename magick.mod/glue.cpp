@@ -247,7 +247,7 @@ extern "C" {
 	unsigned int bmx_magick_image_getquality(MaxMImage * image);
 	void bmx_magick_image_quantizecolors(MaxMImage * image, const unsigned int colors);
 	unsigned int bmx_magick_image_getquantizecolors(MaxMImage * image);
-	void bmx_magick_image_quantizecolorspace(MaxMImage * image, const ColorspaceType colorSpace);
+	void bmx_magick_image_quantizecolorspace(MaxMImage * image, int colorSpace);
 	ColorspaceType bmx_magick_image_getquantizecolorspace(MaxMImage * image);
 	void bmx_magick_image_quantizedither(MaxMImage * image, int flag);
 	int bmx_magick_image_getquantizedither(MaxMImage * image);
@@ -2209,9 +2209,9 @@ unsigned int bmx_magick_image_getquantizecolors(MaxMImage * image) {
 	}
 }
 
-void bmx_magick_image_quantizecolorspace(MaxMImage * image, const ColorspaceType colorSpace) {
+void bmx_magick_image_quantizecolorspace(MaxMImage * image, int colorSpace) {
 	try {
-		image->image().quantizeColorSpace(colorSpace);
+		image->image().quantizeColorSpace(static_cast<ColorspaceType>(colorSpace));
 	} catch (Magick::Exception & e) {
 		bmx_magick_throw_exception(e);
 	}
