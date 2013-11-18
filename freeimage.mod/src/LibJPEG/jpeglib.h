@@ -927,6 +927,8 @@ typedef JMETHOD(boolean, jpeg_marker_parser_method, (j_decompress_ptr cinfo));
 #define jpeg_abort	fi_jpeg_abort
 #define jpeg_destroy	fi_jpeg_destroy
 #define jpeg_resync_to_restart	fi_jpeg_resync_to_restart
+#define jpeg_std_message_table fi_jpeg_std_message_table
+#define jinit_marker_reader fi_jinit_marker_reader
 #endif /* FREEIMAGE_JPEG_EXTERNAL_NAMES */
 
 /* Short forms of external names for systems with brain-damaged linkers.
