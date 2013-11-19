@@ -45,10 +45,8 @@
 //-----------------------------------------------------------------------------
 
 #include "OpenEXRConfig.h"
-#ifdef __MINGW32__
-// needed for memset
+// BaH - needed for memset
 #include <string.h>
-#endif
 
 namespace Imf {
 
