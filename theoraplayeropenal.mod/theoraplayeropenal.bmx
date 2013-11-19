@@ -36,7 +36,7 @@ ModuleInfo "Copyright: Wrapper - Bruce A Henderson"
 ModuleInfo "Copyright: theoraplayer - 2008-2012 Kresimir Spes"
 
 ?win32
-ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC"
+ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC -D_LIB"
 ModuleInfo "CC_OPTS: -DAL_NO_PROTOTYPES"
 ?
 Import "common.bmx"

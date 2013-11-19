@@ -43,7 +43,7 @@ ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -D__THEORA"
 
 ?win32
-ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC"
+ModuleInfo "CC_OPTS: -DTHEORAVIDEO_STATIC -D_LIB"
 ?
 
 Import "common.bmx"
