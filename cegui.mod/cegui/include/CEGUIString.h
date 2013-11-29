@@ -81,6 +81,10 @@ private:
 	mutable size_type	d_encodeddatlen;	//!< holds length of encoded data (in case it's smaller than buffer).
 	mutable size_type	d_encodedbufflen;	//!< length of above buffer (since buffer can be bigger then the data it holds to save re-allocations).
 
+	mutable uint16*		d_encodedbuff16;		//!< holds string data encoded as utf16 (generated only by calls to c_str() and data())
+	mutable size_type	d_encodeddatlen16;	//!< holds length of encoded data (in case it's smaller than buffer).
+	mutable size_type	d_encodedbufflen16;	//!< length of above buffer (since buffer can be bigger then the data it holds to save re-allocations).
+
 	utf32		d_quickbuff[STR_QUICKBUFF_SIZE];	//!< This is a integrated 'quick' buffer to save allocations for smallish strings
 	utf32*		d_buffer;							//!< Pointer the the main buffer memory.  This is only valid when quick-buffer is not being used
 
@@ -1173,6 +1177,11 @@ public:
 	const utf8* data(void) const
 	{
 		return build_utf8_buff();
+	}
+	
+	const uint16* data16(int * length = 0) const
+	{
+		return build_utf16_buff(length);
 	}
 
     /*!
@@ -4784,6 +4793,9 @@ private:
 		d_encodedbufflen	= 0;
 		d_encodeddatlen		= 0;
         d_buffer            = 0;
+		d_encodedbuff16		= 0;
+		d_encodedbufflen16	= 0;
+		d_encodeddatlen16	= 0;
 		setlen(0);
 	}
 
@@ -4808,6 +4820,59 @@ private:
 	//	dest_len is in code units.
 	//	returns number of code units put into dest buffer.
 	size_type encode(const utf32* src, utf8* dest, size_type dest_len, size_type src_len = 0) const
+	{
+		// count length for null terminated source...
+		if (src_len == 0)
+		{
+			src_len = utf_length(src);
+		}
+
+		size_type destCapacity = dest_len;
+
+		// while there is data in the source buffer,
+		for (uint idx = 0; idx < src_len; ++idx)
+		{
+			utf32	cp = src[idx];
+
+			// check there is enough destination buffer to receive this encoded unit (exit loop & return if not)
+			if (destCapacity < encoded_size(cp))
+			{
+				break;
+			}
+
+			if (cp < 0x80)
+			{
+				*dest++ = (utf8)cp;
+				--destCapacity;
+			}
+			else if (cp < 0x0800)
+			{
+				*dest++ = (utf8)((cp >> 6) | 0xC0);
+				*dest++ = (utf8)((cp & 0x3F) | 0x80);
+				destCapacity -= 2;
+			}
+			else if (cp < 0x10000)
+			{
+				*dest++ = (utf8)((cp >> 12) | 0xE0);
+				*dest++ = (utf8)(((cp >> 6) & 0x3F) | 0x80);
+				*dest++ = (utf8)((cp & 0x3F) | 0x80);
+				destCapacity -= 3;
+			}
+			else
+			{
+				*dest++ = (utf8)((cp >> 18) | 0xF0);
+				*dest++ = (utf8)(((cp >> 12) & 0x3F) | 0x80);
+				*dest++ = (utf8)(((cp >> 6) & 0x3F) | 0x80);
+				*dest++ = (utf8)((cp & 0x3F) | 0x80);
+				destCapacity -= 4;
+			}
+
+		}
+
+		return dest_len - destCapacity;
+	}
+	
+	size_type encode(const uint16* src, utf8* dest, size_type dest_len, size_type src_len = 0) const
 	{
 		// count length for null terminated source...
 		if (src_len == 0)
@@ -4897,6 +4962,55 @@ private:
 				cp |= ((src[idx++] & 0x3F) << 12);
 				cp |= ((src[idx++] & 0x3F) << 6);
 				cp |= (src[idx++] & 0x3F);
+			}
+
+			*dest++ = cp;
+			--destCapacity;
+		}
+
+		return dest_len - destCapacity;
+	}
+
+	size_type encode(const utf8* src, uint16* dest, size_type dest_len, size_type src_len = 0) const
+	{
+		// count length for null terminated source...
+		if (src_len == 0)
+		{
+			src_len = utf_length(src);
+		}
+		size_type destCapacity = dest_len;
+
+		// while there is data in the source buffer, and space in the dest buffer
+		for (uint idx = 0; ((idx < src_len) && (destCapacity > 0));)
+		{
+			uint16	cp;
+			utf8	cu = src[idx++];
+
+			if (cu < 0x80)
+			{
+				cp = (uint16)(cu);
+			}
+			else if (cu < 0xE0)
+			{
+				cp = ((cu & 0x1F) << 6);
+				cp |= (src[idx++] & 0x3F);
+			}
+			else if (cu < 0xF0)
+			{
+				cp = ((cu & 0x0F) << 12);
+				cp |= ((src[idx++] & 0x3F) << 6);
+				cp |= (src[idx++] & 0x3F);
+			}
+			else
+			{
+				cp = ((cu & 0x07) << 18);
+				cp |= ((src[idx++] & 0x3F) << 12);
+				cp |= ((src[idx++] & 0x3F) << 6);
+				cp |= (src[idx++] & 0x3F);
+				
+				if (cp & 0xffff0000 ) {
+					cp = 0x0000FFFD;
+				}
 			}
 
 			*dest++ = cp;
@@ -5004,8 +5118,19 @@ private:
 		return cnt;
 	}
 
+	// return number of code units in a null terminated string
+	size_type utf_length(const uint16* utf16_str) const
+	{
+		size_type cnt = 0;
+		while (*utf16_str++)
+			cnt++;
+
+		return cnt;
+	}
+
 	// build an internal buffer with the string encoded as utf8 (remains valid until string is modified).
     utf8* build_utf8_buff(void) const;
+	uint16* build_utf16_buff(int * length) const;
 
 	// compare two utf32 buffers
 	int	utf32_comp_utf32(const utf32* buf1, const utf32* buf2, size_type cp_count) const

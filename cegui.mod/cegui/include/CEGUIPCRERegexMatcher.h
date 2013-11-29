@@ -56,7 +56,7 @@ private:
     //! Copy of the regex string assigned.
     String d_string;
     //! Pointer to PCRE compiled RegEx.
-    pcre* d_regex;
+    pcre16* d_regex;
 };
 
 } // End of  CEGUI namespace section

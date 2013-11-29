@@ -52,6 +52,10 @@ String::~String(void)
 	{
 		delete[] d_encodedbuff;
 	}
+		if (d_encodedbufflen16 > 0)
+	{
+		delete[] d_encodedbuff16;
+	}
 }
 
 bool String::grow(size_type new_size)
@@ -140,6 +144,33 @@ utf8* String::build_utf8_buff(void) const
     return d_encodedbuff;
 }
 
+uint16* String::build_utf16_buff(int * length) const
+{
+    size_type buffsize = encoded_size(ptr(), d_cplength) + 1;
+
+    if (buffsize > d_encodedbufflen16) {
+
+        if (d_encodedbufflen16 > 0)
+        {
+            delete[] d_encodedbuff16;
+        }
+
+        d_encodedbuff16 = new uint16[buffsize];
+        d_encodedbufflen16 = buffsize;
+    }
+
+    encode((utf8*)c_str(), d_encodedbuff16, buffsize, d_cplength);
+
+    // always add a null at end
+    d_encodedbuff16[buffsize-1] = ((uint16)0);
+    d_encodeddatlen16 = buffsize;
+
+	if (length) {
+		*length = buffsize;
+	}
+
+    return d_encodedbuff16;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

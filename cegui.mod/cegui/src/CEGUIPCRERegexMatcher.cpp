@@ -52,7 +52,7 @@ void PCRERegexMatcher::setRegexString(const String& regex)
     // try to compile this new regex string
     const char* prce_error;
     int pcre_erroff;
-    d_regex = pcre_compile(regex.c_str(), PCRE_UTF8,
+    d_regex = pcre16_compile(regex.data16(), PCRE_UTF16,
                            &prce_error, &pcre_erroff, 0);
 
     // handle failure
@@ -80,9 +80,10 @@ bool PCRERegexMatcher::matchRegex(const String& str) const
             "Attempt to use invalid RegEx '" + d_string + "'."));
 
     int match[3];
-    const char* utf8_str = str.c_str();
-    const int len = static_cast<int>(strlen(utf8_str));
-    const int result = pcre_exec(d_regex, 0, utf8_str, len, 0, 0, match, 3);
+	int len = 0;
+    const uint16* utf16_str = str.data16(&len);
+    //const int len = static_cast<int>(strlen(utf16_str));
+    const int result = pcre16_exec(d_regex, 0, utf16_str, len, 0, 0, match, 3);
 
     // a match must be for the entire string
     if (result >= 0)
@@ -102,7 +103,7 @@ void PCRERegexMatcher::release()
 {
     if (d_regex)
     {
-        pcre_free(d_regex);
+        pcre16_free(d_regex);
         d_regex = 0;
     }
 }

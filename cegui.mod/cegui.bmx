@@ -34,7 +34,7 @@ ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (CEGUI 0.7.7)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
-ModuleInfo "CC_OPTS: -DPCRE_STATIC"
+ModuleInfo "CC_OPTS: -DPCRE_STATIC -DSUPPORT_PCRE16"
 ModuleInfo "CC_OPTS: -DCEGUI_STATIC -DCEGUI_FALAGARD_RENDERER -DCEGUI_WITH_TINYXML -DCEGUI_CODEC_FREEIMAGE"
 
 ?win32
