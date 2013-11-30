@@ -21,6 +21,10 @@ initialiseResourceGroupDirectories()
 
 TCESchemeManager.createScheme("WindowsLook.scheme")
 
+If Not TCEFontManager.isDefined("DejaVuSans-10") Then
+	TCEFontManager.createFont("DejaVuSans-10.font")
+End If
+
 TCESystem.setDefaultFont("DejaVuSans-10")
 TCESystem.setDefaultMouseCursor("WindowsLook", "MouseArrow")
 

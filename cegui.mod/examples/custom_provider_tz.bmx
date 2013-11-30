@@ -21,7 +21,7 @@ Init_CEGUI(New TCEOpenGLRenderer, provider)
 
 initialiseDefaultResourceGroups()
 
-TCESchemeManager.loadScheme("TaharezLook.scheme")
+TCESchemeManager.createscheme("TaharezLook.scheme")
 
 TCESystem.setDefaultFont("DejaVuSans-10")
 TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
@@ -33,7 +33,7 @@ TCESystem.setGUISheet(root)
 
 ' coded button
 Local button:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/Button", "button")
-root.addChildWindow(button)
+root.addChild(button)
 
 button.setText("Show")
 button.setPosition(40, 100)
@@ -42,7 +42,7 @@ button.subscribeEvent(TCEPushButton.EventClicked, clicked)
 
 ' coded editbox
 Local eb:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/Editbox", "editbox")
-root.addChildWindow(eb)
+root.addChild(eb)
 
 eb.setText("Type here")
 eb.setPosition(40, 130)
