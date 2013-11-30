@@ -166,7 +166,7 @@ uint16* String::build_utf16_buff(int * length) const
     d_encodeddatlen16 = buffsize;
 
 	if (length) {
-		*length = buffsize;
+		*length = buffsize - 1;
 	}
 
     return d_encodedbuff16;
