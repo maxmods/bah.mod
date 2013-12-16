@@ -14,9 +14,9 @@ curl.setWriteString()
 curl.setOptInt(CURLOPT_VERBOSE, 1)
 curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
 
-curl.setOptString(CURLOPT_CAINFO, "../certificates/ca-bundle.crt") ' the cert bundle
+curl.setOptString(CURLOPT_CAINFO, "../certificates/cacert.pem") ' the cert bundle
 
-curl.setOptString(CURLOPT_URL, "https://msp.f-secure.com/web-test/")
+curl.setOptString(CURLOPT_URL, "https://www.google.co.uk")
 
 Local res:Int = curl.perform()
 
