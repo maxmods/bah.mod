@@ -2298,7 +2298,7 @@ lept_direxists(const char  *dirname,
     HANDLE  hFind = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAA  ffd;
         hFind = FindFirstFileA(dirname, &ffd);
-        if (hfind != INVALID_HANDLE_VALUE) {
+        if (hFind != INVALID_HANDLE_VALUE) {
             *pexists = 1;
             FindClose(hFind);
         }
