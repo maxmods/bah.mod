@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -31,7 +42,7 @@
  *      Local helpers
  *          static l_int32   pnmReadNextAsciiValue();
  *          static l_int32   pnmSkipCommentLines();
- *       
+ *
  *      These are here by popular demand, with the help of Mattias
  *      Kregert (mattias@kregert.se), who provided the first implementation.
  *
@@ -46,7 +57,7 @@
  *      format, because 2 characters are used to represent every bit
  *      (pixel) in the image.  Reading is slow because we check for extra
  *      white space and EOL at every sample value.
- * 
+ *
  *      The packed pnm formats ("raw") give file sizes similar to
  *      bmp files, which are uncompressed packed.  However, bmp
  *      are more flexible, because they can support colormaps.
@@ -315,7 +326,7 @@ l_int32  maxval;
     *ptype = type;
     if (pbps) *pbps = (d == 32) ? 8 : d;
     if (pspp) *pspp = (d == 32) ? 3 : 1;
-    
+
     if (!ppix)
         return 0;
 
@@ -373,7 +384,8 @@ PIX       *pixs;
 
     writeerror = 0;
     if (ds == 1) {  /* binary */
-        fprintf(fp, "P4\n# Raw PBM file written by leptonlib (www.leptonica.com)\n%d %d\n", w, h);
+        fprintf(fp, "P4\n# Raw PBM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n", w, h);
 
         bpl = (w + 7) / 8;
         for (i = 0; i < h; i++) {
@@ -386,7 +398,8 @@ PIX       *pixs;
     }
     else if (ds == 2 || ds == 4 || ds == 8 || ds == 16) {  /* grayscale */
         maxval = (1 << ds) - 1;
-        fprintf(fp, "P5\n# Raw PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
+        fprintf(fp, "P5\n# Raw PGM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
         if (ds != 16) {
             for (i = 0; i < h; i++) {
@@ -413,7 +426,8 @@ PIX       *pixs;
         }
     }
     else {  /* rgb color */
-        fprintf(fp, "P6\n# Raw PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
+        fprintf(fp, "P6\n# Raw PPM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n255\n", w, h);
 
         if (d == 24) {   /* packed, 3 bytes to a pixel */
             filebpl = 3 * w;
@@ -486,7 +500,8 @@ PIX       *pixs;
     ds =  pixGetDepth(pixs);
 
     if (ds == 1) {  /* binary */
-        fprintf(fp, "P1\n# Ascii PBM file written by leptonlib (www.leptonica.com)\n%d %d\n", w, h);
+        fprintf(fp, "P1\n# Ascii PBM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n", w, h);
 
         count = 0;
         for (i = 0; i < h; i++) {
@@ -505,7 +520,8 @@ PIX       *pixs;
     }
     else if (ds == 2 || ds == 4 || ds == 8 || ds == 16) {  /* grayscale */
         maxval = (1 << ds) - 1;
-        fprintf(fp, "P2\n# Ascii PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
+        fprintf(fp, "P2\n# Ascii PGM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
         count = 0;
         for (i = 0; i < h; i++) {
@@ -539,7 +555,8 @@ PIX       *pixs;
         }
     }
     else {  /* rgb color */
-        fprintf(fp, "P3\n# Ascii PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
+        fprintf(fp, "P3\n# Ascii PPM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n255\n", w, h);
 
         count = 0;
         for (i = 0; i < h; i++) {
@@ -774,7 +791,7 @@ l_int32   c, ignore;
  *      (1) Comment lines begin with '#'
  *      (2) Usage: caller should check return value for EOF
  */
-static l_int32 
+static l_int32
 pnmSkipCommentLines(FILE  *fp)
 {
 l_int32  c;

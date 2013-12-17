@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2011 Bruce A Henderson
+' Copyright (c) 2009-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial release. (leptonica 1.67)"
+ModuleInfo "History: Initial release. (leptonica 1.69)"
 
 ?Not debug
 ModuleInfo "CC_OPTS: -DNO_CONSOLE_IO"
@@ -77,20 +77,28 @@ Type TLPIX
 	
 	Rem
 	bbdoc: 
+	about: 
+	<p>Parameters:
+	<ul>
+	<li><b>pixmap</b> : The pixmap used to create the TLPIX.</li>
+	<li><b>upscale24 </b> : Upscale 24bpp images to 32bpp. More image manipulation functionality works with 32bpp.</li>
+	</ul>
+	</p>
 	End Rem
-	Function CreateWithPixmap:TLPIX(pixmap:TPixmap)
+	Function CreateWithPixmap:TLPIX(pixmap:TPixmap, upscale24:Int = True)
 		Local this:TLPIX = New TLPIX
 
 		Local depth:Int = BitsPerPixel[pixmap.format]
-		If depth = 24 Then
+		
+		If depth = 24 And upscale24 Then
 			' upgrade to 32 (ARGB)
-'DebugStop
 			pixmap = ConvertPixmap(pixmap, PF_RGBA8888)
+			depth = 32
 		End If
 
-		this.pixPtr = pixCreateNoInit(pixmap.width, pixmap.height, BitsPerPixel[pixmap.format])
+		this.pixPtr = pixCreateNoInit(pixmap.width, pixmap.height, depth)
 
-		ConvertPixelsFromStdFormatToARGB(pixmap, pixGetData(this.pixPtr))
+		ConvertPixelsToTLPix(pixmap, pixGetData(this.pixPtr), pixGetWpl(this.pixPtr))
 
 		Return this
 	End Function
@@ -117,12 +125,9 @@ Type TLPIX
 	Rem
 	bbdoc: Returns a TPixmap representation of the image. 
 	End Rem
-	Method GetPixmap:TPixmap(static:Int = True)
-		'If static Then
-		'	Return CreateStaticPixmap(pixGetData(pixPtr), pixGetWidth(pixPtr), pixGetHeight(pixPtr), pixGetWpl(pixPtr) * 4, _mapDepthToPixFormat(pixGetDepth(pixPtr)))
-		'End If
-		Local pix:TPixmap = TPixmap.Create(pixGetWidth(pixPtr), pixGetHeight(pixPtr), _mapDepthToPixFormat(pixGetDepth(pixPtr)), pixGetWpl(pixPtr) * 4)
-		ConvertPixelsFromARGBFormatToStd(pix, pixGetData(pixPtr))
+	Method GetPixmap:TPixmap()
+		Local pix:TPixmap = TPixmap.Create(pixGetWidth(pixPtr), pixGetHeight(pixPtr), _mapDepthToPixFormat(pixGetDepth(pixPtr)))', pixGetWpl(pixPtr) * 4)
+		ConvertTLPixToPixels(pix, pixGetData(pixPtr), pixGetDepth(pixPtr), pixGetWpl(pixPtr), pixPtr)
 		Return pix
 	End Method
 
@@ -1108,7 +1113,7 @@ Type TLPTA
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates an array of points of an initial @size.
 	End Rem
 	Function Create:TLPTA(size:Int)
 		Local this:TLPTA = New TLPTA
@@ -1117,14 +1122,16 @@ Type TLPTA
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Add point to array.
+	returns: 0 if OK, 1 on error.
 	End Rem
 	Method AddPt:Int(x:Float, y:Float)
 		Return ptaAddPt(ptaPtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Doubles the capacity of the array.
+	returns: 0 if OK, 1 on error.
 	End Rem
 	Method ExtendArrays:Int()
 		Return ptaExtendArrays(ptaPtr)

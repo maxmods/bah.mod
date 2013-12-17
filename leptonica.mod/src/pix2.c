@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -98,8 +109,6 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -603,7 +612,7 @@ pixClearAll(PIX  *pix)
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-        
+
     pixRasterop(pix, 0, 0, pixGetWidth(pix), pixGetHeight(pix),
                 PIX_CLR, NULL, 0, 0);
     return 0;
@@ -722,7 +731,7 @@ PIXCMAP   *cmap;
  *  pixSetBlackOrWhite()
  *
  *      Input:  pixs (all depths; cmap ok)
- *              incolor (L_BRING_IN_BLACK or L_BRING_IN_WHITE)
+ *              op (L_SET_BLACK, L_SET_WHITE)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
@@ -735,7 +744,7 @@ PIXCMAP   *cmap;
  */
 l_int32
 pixSetBlackOrWhite(PIX     *pixs,
-                   l_int32  incolor)
+                   l_int32  op)
 {
 l_int32   d, index;
 PIXCMAP  *cmap;
@@ -744,22 +753,22 @@ PIXCMAP  *cmap;
 
     if (!pixs)
         return ERROR_INT("pix not defined", procName, 1);
-    if (incolor != L_BRING_IN_BLACK && incolor != L_BRING_IN_WHITE)
-        return ERROR_INT("invalid incolor", procName, 1);
+    if (op != L_SET_BLACK && op != L_SET_WHITE)
+        return ERROR_INT("invalid op", procName, 1);
 
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
     if (!cmap) {
-        if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
-            (d > 1 && incolor == L_BRING_IN_WHITE))
+        if ((d == 1 && op == L_SET_BLACK) ||
+            (d > 1 && op == L_SET_WHITE))
             pixSetAll(pixs);
-        else 
+        else
             pixClearAll(pixs);
     }
     else {  /* handle colormap */
-        if (incolor == L_BRING_IN_BLACK)
+        if (op == L_SET_BLACK)
             pixcmapAddBlackOrWhite(cmap, 0, &index);
-        else  /* L_BRING_IN_WHITE */
+        else  /* L_SET_WHITE */
             pixcmapAddBlackOrWhite(cmap, 1, &index);
         pixSetAllArbitrary(pixs, index);
     }
@@ -961,7 +970,7 @@ PIXCMAP   *cmap;
  *  pixBlendInRect()
  *
  *      Input:  pixs (32 bpp rgb)
- *              box (in which all pixels will be blended)
+ *              box (<optional> in which all pixels will be blended)
  *              val  (blend value; 0xrrggbb00)
  *              fract (fraction of color to be blended with each pixel in pixs)
  *      Return: 0 if OK; 1 on error
@@ -969,6 +978,7 @@ PIXCMAP   *cmap;
  *  Notes:
  *      (1) This is an in-place function.  It blends the input color @val
  *          with the pixels in pixs in the specified rectangle.
+ *          If no rectangle is specified, it blends over the entire image.
  */
 l_int32
 pixBlendInRect(PIX       *pixs,
@@ -985,14 +995,28 @@ l_uint32  *datas, *lines;
 
     if (!pixs || pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
-    if (!box)
-        return ERROR_INT("box not defined", procName, 1);
 
-    boxGetGeometry(box, &bx, &by, &bw, &bh);
+    extractRGBValues(val, &rval, &gval, &bval);
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-    extractRGBValues(val, &rval, &gval, &bval);
+    if (!box) {
+        for (i = 0; i < h; i++) {   /* scan over box */
+            lines = datas +  i * wpls;
+            for (j = 0; j < w; j++) {
+                val32 = *(lines + j);
+                extractRGBValues(val32, &prval, &pgval, &pbval);
+                prval = (l_int32)((1. - fract) * prval + fract * rval);
+                pgval = (l_int32)((1. - fract) * pgval + fract * gval);
+                pbval = (l_int32)((1. - fract) * pbval + fract * bval);
+                composeRGBPixel(prval, pgval, pbval, &val32);
+                *(lines + j) = val32;
+            }
+        }
+        return 0;
+    }
+
+    boxGetGeometry(box, &bx, &by, &bw, &bh);
     for (i = 0; i < bh; i++) {   /* scan over box */
         if (by + i < 0 || by + i >= h) continue;
         lines = datas + (by + i) * wpls;
@@ -1007,7 +1031,6 @@ l_uint32  *datas, *lines;
             *(lines + bx + j) = val32;
         }
     }
-
     return 0;
 }
 
@@ -1046,7 +1069,7 @@ l_uint32  *data, *pword;
 
     pixGetDimensions(pix, &w, &h, &d);
     if (d == 32)  /* no padding exists for 32 bpp */
-        return 0;  
+        return 0;
 
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
@@ -1107,7 +1130,7 @@ l_uint32  *data, *pword;
 
     pixGetDimensions(pix, &w, &h, &d);
     if (d == 32)  /* no padding exists for 32 bpp */
-        return 0;  
+        return 0;
 
     if (by < 0)
         by = 0;
@@ -1390,7 +1413,7 @@ l_int32  i, j, w, h;
 
     return 0;
 }
-     
+
 
 /*!
  *  pixCopyBorder()
@@ -1560,16 +1583,16 @@ PIX     *pixd;
     if (val == 0)
         op = PIX_CLR;
     else if ((d == 1 && val == 1) || (d == 2 && val == 3) ||
-             (d == 4 && val == 0xf) || (d == 8 && val == 0xff) || 
+             (d == 4 && val == 0xf) || (d == 8 && val == 0xff) ||
              (d == 16 && val == 0xffff) || (d == 32 && (val >> 8) == 0xffffff))
         op = PIX_SET;
     if (op == UNDEF)
         pixSetAllArbitrary(pixd, val);   /* a little extra writing ! */
     else {
-        pixRasterop(pixd, 0, 0, left, hd, op, NULL, 0, 0); 
-        pixRasterop(pixd, wd - right, 0, right, hd, op, NULL, 0, 0); 
-        pixRasterop(pixd, 0, 0, wd, top, op, NULL, 0, 0); 
-        pixRasterop(pixd, 0, hd - bot, wd, bot, op, NULL, 0, 0); 
+        pixRasterop(pixd, 0, 0, left, hd, op, NULL, 0, 0);
+        pixRasterop(pixd, wd - right, 0, right, hd, op, NULL, 0, 0);
+        pixRasterop(pixd, 0, 0, wd, top, op, NULL, 0, 0);
+        pixRasterop(pixd, 0, hd - bot, wd, bot, op, NULL, 0, 0);
     }
 
         /* Copy pixs into the interior */
@@ -1697,7 +1720,8 @@ PIX     *pixd;
 
     return pixd;
 }
-     
+
+
 /*!
  *  pixAddRepeatedBorder()
  *
@@ -1740,7 +1764,7 @@ PIX     *pixd;
 
     return pixd;
 }
-     
+
 
 /*!
  *  pixAddMixedBorder()
@@ -1798,7 +1822,7 @@ PIX     *pixd;
 
     return pixd;
 }
-     
+
 
 
 /*-------------------------------------------------------------*
@@ -1873,7 +1897,7 @@ PIX     *pixd;
  *
  *  Notes:
  *      (1) The alpha channel (in the 4th byte of each RGB pixel)
- *          is not used in leptonica.
+ *          is mostly ignored in leptonica.
  *      (2) Three calls to this function generate the three 8 bpp component
  *          images.  This is much faster than generating the three
  *          images in parallel, by extracting a src pixel and setting
@@ -1936,7 +1960,7 @@ PIX           *pixd;
  *  Notes:
  *      (1) This places the 8 bpp pixel in pixs into the
  *          specified color component (properly interleaved) in pixd.
- *      (2) The alpha channel component is not used in leptonica.
+ *      (2) The alpha channel component mostly ignored in leptonica.
  */
 l_int32
 pixSetRGBComponent(PIX     *pixd,
@@ -2229,7 +2253,7 @@ l_uint32   word;
 PIX       *pixd;
 
     PROCNAME("pixEndianByteSwapNew");
-        
+
 #ifdef L_BIG_ENDIAN
 
     return pixClone(pixs);
@@ -2289,7 +2313,7 @@ l_int32    i, j, h, wpl;
 l_uint32   word;
 
     PROCNAME("pixEndianByteSwap");
-        
+
 #ifdef L_BIG_ENDIAN
 
     return 0;
@@ -2397,7 +2421,7 @@ l_uint32   word;
 PIX       *pixd;
 
     PROCNAME("pixEndianTwoByteSwapNew");
-        
+
 #ifdef L_BIG_ENDIAN
 
     return pixClone(pixs);
@@ -2447,7 +2471,7 @@ l_int32    i, j, h, wpl;
 l_uint32   word;
 
     PROCNAME("pixEndianTwoByteSwap");
-        
+
 #ifdef L_BIG_ENDIAN
 
     return 0;
@@ -2494,7 +2518,7 @@ l_uint32   word;
 l_int32
 pixGetRasterData(PIX       *pixs,
                  l_uint8  **pdata,
-                 l_int32   *pnbytes)
+                 size_t    *pnbytes)
 {
 l_int32    w, h, d, wpl, i, j, rval, gval, bval;
 l_int32    databpl;  /* bytes for each raster line in returned data */
@@ -2664,5 +2688,3 @@ l_setAlphaMaskBorder(l_float32  val1,
     AlphaMaskBorderVals[0] = val1;
     AlphaMaskBorderVals[1] = val2;
 }
-
-

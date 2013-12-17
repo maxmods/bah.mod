@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -20,11 +31,12 @@
  *           PIX             *pixMaskConnComp()
  *           PIX             *pixMaskBoxa()
  *           PIX             *pixPaintBoxa()
+ *           PIX             *pixSetWhiteOrBlackBoxa()
  *           PIX             *pixPaintBoxaRandom()
  *           PIX             *pixBlendBoxaRandom()
  *           PIX             *pixDrawBoxa()
  *           PIX             *pixDrawBoxaRandom()
- *           PIX             *boxaaDisplay() 
+ *           PIX             *boxaaDisplay()
  *
  *      Split mask components into Boxa
  *           BOXA            *pixSplitIntoBoxa()
@@ -35,8 +47,6 @@
  *  boxes on images.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static l_int32 pixSearchForRectangle(PIX *pixs, BOX *boxs, l_int32 minsum,
@@ -110,7 +120,7 @@ PIX   *pixd;
  *          on pixs.
  *      (3) This simple function is typically used with 1 bpp images.
  *          It uses the 1-image rasterop function, rasteropUniLow(),
- *          to set, clear or flip the pixels in pixd.  
+ *          to set, clear or flip the pixels in pixd.
  *      (4) If you want to generate a 1 bpp mask of ON pixels from the boxes
  *          in a Boxa, in a pix of size (w,h):
  *              pix = pixCreate(w, h, 1);
@@ -177,7 +187,7 @@ BOX     *box;
  *            * Draw the outline
  *            * Blend the outline or region with the existing image
  *          We provide painting and drawing here; blending is in blend.c.
- *          When painting or drawing, the result can be either a 
+ *          When painting or drawing, the result can be either a
  *          cmapped image or an rgb image.  The dest will be cmapped
  *          if the src is either 1 bpp or has a cmap that is not full.
  *          To force RGB output, use pixConvertTo8(pixs, FALSE)
@@ -232,6 +242,81 @@ PIXCMAP  *cmap;
             pixSetInRectArbitrary(pixd, box, newindex);
         else
             pixSetInRectArbitrary(pixd, box, val);
+        boxDestroy(&box);
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixSetBlackOrWhiteBoxa()
+ *
+ *      Input:  pixs (any depth, can be cmapped)
+ *              boxa (<optional> of boxes, to clear or set)
+ *              op (L_SET_BLACK, L_SET_WHITE)
+ *      Return: pixd (with boxes filled with white or black), or null on error
+ */
+PIX *
+pixSetBlackOrWhiteBoxa(PIX     *pixs,
+                       BOXA    *boxa,
+                       l_int32  op)
+{
+l_int32   i, n, d, index;
+l_uint32  color;
+BOX      *box;
+PIX      *pixd;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixSetBlackOrWhiteBoxa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!boxa)
+        return pixCopy(NULL, pixs);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return pixCopy(NULL, pixs);
+
+    pixd = pixCopy(NULL, pixs);
+    d = pixGetDepth(pixd);
+    if (d == 1) {
+        for (i = 0; i < n; i++) {
+            box = boxaGetBox(boxa, i, L_CLONE);
+            if (op == L_SET_WHITE)
+                pixClearInRect(pixd, box);
+            else
+                pixSetInRect(pixd, box);
+            boxDestroy(&box);
+        }
+        return pixd;
+    }
+
+    cmap = pixGetColormap(pixs);
+    if (cmap) {
+        color = (op == L_SET_WHITE) ? 1 : 0;
+        pixcmapAddBlackOrWhite(cmap, color, &index);
+    }
+    else if (d == 8)
+        color = (op == L_SET_WHITE) ? 0xff : 0x0;
+    else if (d == 32)
+        color = (op == L_SET_WHITE) ? 0xffffff00 : 0x0;
+    else if (d == 2)
+        color = (op == L_SET_WHITE) ? 0x3 : 0x0;
+    else if (d == 4)
+        color = (op == L_SET_WHITE) ? 0xf : 0x0;
+    else if (d == 16)
+        color = (op == L_SET_WHITE) ? 0xffff : 0x0;
+    else {
+        pixDestroy(&pixd);
+        return (PIX *)ERROR_PTR("invalid depth", procName, NULL);
+    }
+
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        if (cmap)
+            pixSetInRectArbitrary(pixd, box, index);
+        else
+            pixSetInRectArbitrary(pixd, box, color);
         boxDestroy(&box);
     }
 
@@ -521,7 +606,7 @@ PIXCMAP  *cmap;
 
     if (!boxaa)
         return (PIX *)ERROR_PTR("boxaa not defined", procName, NULL);
-    if (w == 0 || h == 0) 
+    if (w == 0 || h == 0)
         boxaaGetExtent(boxaa, &w, &h, NULL);
 
     pix = pixCreate(w, h, 8);
@@ -532,10 +617,10 @@ PIXCMAP  *cmap;
     pixcmapAddColor(cmap, 255, 255, 255);
     pixcmapAddColor(cmap, rbox, gbox, bbox);
     pixcmapAddColor(cmap, rboxa, gboxa, bboxa);
-    
+
     n = boxaaGetCount(boxaa);
     for (i = 0; i < n; i++) {
-        boxa = boxaaGetBoxa(boxaa, i, L_CLONE);   
+        boxa = boxaaGetBoxa(boxaa, i, L_CLONE);
         boxaGetExtent(boxa, NULL, NULL, &box);
         pixRenderBoxArb(pix, box, linewba, rboxa, gboxa, bboxa);
         boxDestroy(&box);
@@ -664,7 +749,7 @@ PIXA    *pixas;
  *          in the box.  This is done from all four sides, and the
  *          side with the largest score is saved as a rectangle.
  *          The process repeats until there is either no rectangle
- *          left, or there is one that can't be captured from any 
+ *          left, or there is one that can't be captured from any
  *          direction.  For the latter case, we simply accept the
  *          last rectangle.
  *      (4) The input box is only used to specify the location of
@@ -784,7 +869,7 @@ PIX     *pixs;
     pixDestroy(&pixs);
     return boxad;
 }
-        
+
 
 /*!
  *  pixSearchForRectangle()
@@ -1035,5 +1120,3 @@ success:
     FREE(lines1);
     return 0;
 }
-
-

@@ -1,18 +1,28 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
-
 
 
 /*
@@ -68,7 +78,7 @@
  *            l_int32    selaWriteStream()
  *            l_int32    selWrite()
  *            l_int32    selWriteStream()
- *       
+ *
  *         Building custom hit-miss sels from compiled strings
  *            SEL       *selCreateFromString()
  *            char      *selPrintToString()     [for debugging]
@@ -136,7 +146,6 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;  /* n'import quoi */
 static const l_int32  MANY_SELS = 1000;
 
 static SEL *selCreateFromSArray(SARRAY *sa, l_int32 first, l_int32 last);
-static void selaComputeCompositeParameters(const char *fileout);
 
 struct CompParameterMap
 {
@@ -148,6 +157,7 @@ struct CompParameterMap
     char     selnamev1[20];
     char     selnamev2[20];
 };
+
 static const struct CompParameterMap  comp_parameter_map[] =
     { { 2, 2, 1, "sel_2h", "", "sel_2v", "" },
       { 3, 3, 1, "sel_3h", "", "sel_3v", "" },
@@ -343,7 +353,7 @@ SEL     *sel;
 
 
 /*!
- *  selCopy() 
+ *  selCopy()
  *
  *      Input:  sel
  *      Return: a copy of the sel, or null on error
@@ -562,7 +572,7 @@ SEL     *csel;
 
     return 0;
 }
-    
+
 
 /*!
  *  selaExtendArray()
@@ -577,7 +587,7 @@ selaExtendArray(SELA  *sela)
 
     if (!sela)
         return ERROR_INT("sela not defined", procName, 1);
-    
+
     if ((sela->sel = (SEL **)reallocNew((void **)&sela->sel,
                               sizeof(SEL *) * sela->nalloc,
                               2 * sizeof(SEL *) * sela->nalloc)) == NULL)
@@ -688,7 +698,7 @@ selSetName(SEL         *sel,
  *      Return: 0 if OK; 1 on error
  */
 l_int32
-selaFindSelByName(SELA        *sela, 
+selaFindSelByName(SELA        *sela,
                   const char  *name,
                   l_int32     *pindex,
                   SEL        **psel)
@@ -712,7 +722,7 @@ SEL     *sel;
             L_WARNING("missing sel", procName);
             continue;
         }
-            
+
         sname = selGetName(sel);
         if (sname && (!strcmp(name, sname))) {
             if (pindex)
@@ -722,7 +732,7 @@ SEL     *sel;
             return 0;
         }
     }
-    
+
     return 1;
 }
 
@@ -818,10 +828,10 @@ selGetParameters(SEL      *sel,
     if (pcx) *pcx = 0;
     if (!sel)
         return ERROR_INT("sel not defined", procName, 1);
-    if (psy) *psy = sel->sy; 
-    if (psx) *psx = sel->sx; 
-    if (pcy) *pcy = sel->cy; 
-    if (pcx) *pcx = sel->cx; 
+    if (psy) *psy = sel->sy;
+    if (psx) *psx = sel->sx;
+    if (pcy) *pcy = sel->cy;
+    if (pcx) *pcx = sel->cx;
     return 0;
 }
 
@@ -971,19 +981,24 @@ SEL     *sel;
 }
 
 
+/* --------- Function used to generate code in this file  ---------- */
+#if 0
+static void selaComputeCompositeParameters(const char *fileout);
+
 /*!
  *  selaComputeCompParameters()
  *
  *      Input:  output filename
- *      Return: void 
+ *      Return: void
  *
  *  Notes:
  *      (1) This static function was used to construct the comp_parameter_map[]
  *          array at the top of this file.  It is static because it does
- *          not need to be called again.
+ *          not need to be called again.  It remains here to show how
+ *          the composite parameter map was computed.
  *      (2) The output file was pasted directly into comp_parameter_map[].
- *          It is used to quickly determine the linear decomposition
- *          parameters and sel names.
+ *          The composite parameter map is used to quickly determine
+ *          the linear decomposition parameters and sel names.
  */
 static void
 selaComputeCompositeParameters(const char  *fileout)
@@ -1020,13 +1035,15 @@ SELA    *selabasic, *selacomb;
     }
     str = sarrayToString(sa, 1);
     len = strlen(str);
-    arrayWrite(fileout, "w", str, len + 1);
+    l_binaryWrite(fileout, "w", str, len + 1);
     FREE(str);
     sarrayDestroy(&sa);
     selaDestroy(&selabasic);
     selaDestroy(&selacomb);
     return;
 }
+#endif
+/* -------------------------------------------------------------------- */
 
 
 /*!
@@ -1205,7 +1222,7 @@ SEL     *seld;
         ncy = cx;
     } else if (quads == 2) {  /* 180 degrees cw */
         nsx = sx;
-        nsy = sy; 
+        nsy = sy;
         ncx = sx - cx - 1;
         ncy = sy - cy - 1;
     } else {  /* 270 degrees cw */
@@ -1259,7 +1276,7 @@ SELA  *sela;
     if (!fname)
         return (SELA *)ERROR_PTR("fname not defined", procName, NULL);
 
-    if ((fp = fopen(fname, "rb")) == NULL)
+    if ((fp = fopenReadStream(fname)) == NULL)
         return (SELA *)ERROR_PTR("stream not opened", procName, NULL);
     if ((sela = selaReadStream(fp)) == NULL)
         return (SELA *)ERROR_PTR("sela not returned", procName, NULL);
@@ -1326,7 +1343,7 @@ SEL   *sel;
     if (!fname)
         return (SEL *)ERROR_PTR("fname not defined", procName, NULL);
 
-    if ((fp = fopen(fname, "rb")) == NULL)
+    if ((fp = fopenReadStream(fname)) == NULL)
         return (SEL *)ERROR_PTR("stream not opened", procName, NULL);
     if ((sel = selReadStream(fp)) == NULL)
         return (SEL *)ERROR_PTR("sela not returned", procName, NULL);
@@ -1406,7 +1423,7 @@ FILE  *fp;
     if (!sela)
         return ERROR_INT("sela not defined", procName, 1);
 
-    if ((fp = fopen(fname, "wb")) == NULL)
+    if ((fp = fopenWriteStream(fname, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     selaWriteStream(fp, sela);
     fclose(fp);
@@ -1468,7 +1485,7 @@ FILE  *fp;
     if (!sel)
         return ERROR_INT("sel not defined", procName, 1);
 
-    if ((fp = fopen(fname, "wb")) == NULL)
+    if ((fp = fopenWriteStream(fname, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     selWriteStream(fp, sel);
     fclose(fp);
@@ -1555,7 +1572,7 @@ char     ch;
         return (SEL *)ERROR_PTR("height must be > 0", procName, NULL);
     if (w < 1)
         return (SEL *)ERROR_PTR("width must be > 0", procName, NULL);
-    
+
     sel = selCreate(h, w, name);
 
     for (y = 0; y < h; ++y) {
@@ -1676,7 +1693,7 @@ l_int32  sx, sy, cx, cy, x, y;
  *             the end of file is reached.
  *      (3) See selCreateFromString() for a description of the string
  *          format for the Sel data.  As an example, here are the lines
- *          of is a valid file for a single Sel.  In the file, all lines 
+ *          of is a valid file for a single Sel.  In the file, all lines
  *          are left-justified:
  *                    # diagonal sel
  *                    sel_5diag
@@ -1690,7 +1707,8 @@ SELA *
 selaCreateFromFile(const char  *filename)
 {
 char    *filestr, *line;
-l_int32  nbytes, i, n, first, last, nsel, insel;
+l_int32  i, n, first, last, nsel, insel;
+size_t   nbytes;
 NUMA    *nafirst, *nalast;
 SARRAY  *sa;
 SEL     *sel;
@@ -1700,8 +1718,8 @@ SELA    *sela;
 
     if (!filename)
         return (SELA *)ERROR_PTR("filename not defined", procName, NULL);
-    
-    filestr = (char *)arrayRead(filename, &nbytes);
+
+    filestr = (char *)l_binaryRead(filename, &nbytes);
     sa = sarrayCreateLinesFromString(filestr, 1);
     FREE(filestr);
     n = sarrayGetCount(sa);
@@ -1721,14 +1739,14 @@ SELA    *sela;
             numaAddNumber(nafirst, i);
             insel = TRUE;
 	    continue;
-        }	    
+        }
 	if (insel &&
             (line[0] == '\0' || line[0] == ' ' ||
              line[0] == '\t' || line[0] == '\n' || line[0] == '#')) {
             numaAddNumber(nalast, i - 1);
             insel = FALSE;
             continue;
-        }	    
+        }
     }
     if (insel)  /* fell off the end of the file */
         numaAddNumber(nalast, n - 1);
@@ -1774,7 +1792,7 @@ SELA    *sela;
  *          - 'last' gives the last line in the Sel data.
  *      (2) See selCreateFromString() for a description of the string
  *          format for the Sel data.  As an example, here are the lines
- *          of is a valid file for a single Sel.  In the file, all lines 
+ *          of is a valid file for a single Sel.  In the file, all lines
  *          are left-justified:
  *                    # diagonal sel
  *                    sel_5diag
@@ -1801,7 +1819,7 @@ SEL     *sel;
     n = sarrayGetCount(sa);
     if (first < 0 || first >= n || last <= first || last >= n)
         return (SEL *)ERROR_PTR("invalid range", procName, NULL);
-    
+
     name = sarrayGetString(sa, first, L_NOCOPY);
     h = last - first;
     line = sarrayGetString(sa, first + 1, L_NOCOPY);
@@ -1885,7 +1903,7 @@ SEL     *sel;
     boxDestroy(&box);
     if (x < 0 || y < 0)
         return (SEL *)ERROR_PTR("not all x and y >= 0", procName, NULL);
-    
+
     sel = selCreate(y + h, x + w, name);
     selSetOrigin(sel, cy, cx);
     for (i = 0; i < n; i++) {
@@ -2260,9 +2278,8 @@ SEL     *sel;
         pixDestroy(&pixt);
     }
     width += (ncols + 1) * spacing;  /* add spacing all around as well */
-    
+
     pixd = pixaDisplayTiledInRows(pixa, 1, width, 1.0, 0, spacing, 0);
     pixaDestroy(&pixa);
     return pixd;
 }
-

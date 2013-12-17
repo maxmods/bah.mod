@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -18,6 +29,7 @@
  *
  *      Pixa Display (render into a pix)
  *           PIX      *pixaDisplay()
+ *           PIX      *pixaDisplayOnColor()
  *           PIX      *pixaDisplayRandomCmap()
  *           PIX      *pixaDisplayOnLattice()
  *           PIX      *pixaDisplayUnsplit()
@@ -42,6 +54,8 @@
  *    pixaDisplay()
  *        This uses the boxes to lay out each pix.  It is typically
  *        used to reconstruct a pix that has been broken into components.
+ *    pixaDisplayOnColor()
+ *        pixaDisplay() with choice of background color
  *    pixaDisplayRandomCmap()
  *        This also uses the boxes to lay out each pix.  However, it creates
  *        a colormapped dest, where each 1 bpp pix is given a randomly
@@ -77,8 +91,6 @@
  *        are derived from the same initial image.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>   /* for sqrt() */
 #include "allheaders.h"
@@ -99,10 +111,11 @@
  *      (1) This uses the boxes to place each pix in the rendered composite.
  *      (2) Set w = h = 0 to use the b.b. of the components to determine
  *          the size of the returned pix.
- *      (3) The background is written "white".  On 1 bpp, each successive
+ *      (3) Uses the first pix in pixa to determine the depth.
+ *      (4) The background is written "white".  On 1 bpp, each successive
  *          pix is "painted" (adding foreground), whereas for grayscale
  *          or color each successive pix is blitted with just the src.
- *      (4) If the pixa is empty, returns an empty 1 bpp pix.
+ *      (5) If the pixa is empty, returns an empty 1 bpp pix.
  */
 PIX *
 pixaDisplay(PIXA    *pixa,
@@ -117,7 +130,7 @@ PIX     *pixt, *pixd;
 
     if (!pixa)
         return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
-    
+
     n = pixaGetCount(pixa);
     if (n == 0 && w == 0 && h == 0)
         return (PIX *)ERROR_PTR("no components; no size", procName, NULL);
@@ -161,6 +174,97 @@ PIX     *pixt, *pixd;
 
 
 /*!
+ *  pixaDisplayOnColor()
+ *
+ *      Input:  pixa
+ *              w, h (if set to 0, determines the size from the
+ *                    b.b. of the components in pixa)
+ *              color (background color to use)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) This uses the boxes to place each pix in the rendered composite.
+ *      (2) Set w = h = 0 to use the b.b. of the components to determine
+ *          the size of the returned pix.
+ *      (3) If any pix in @pixa are colormapped, or if the pix have
+ *          different depths, it returns a 32 bpp pix.  Otherwise,
+ *          the depth of the returned pixa equals that of the pix in @pixa.
+ *      (4) If the pixa is empty, return null.
+ */
+PIX *
+pixaDisplayOnColor(PIXA     *pixa,
+                   l_int32   w,
+                   l_int32   h,
+                   l_uint32  bgcolor)
+{
+l_int32  i, n, xb, yb, wb, hb, hascmap, maxdepth, same;
+BOXA    *boxa;
+PIX     *pixt1, *pixt2, *pixd;
+PIXA    *pixat;
+
+    PROCNAME("pixaDisplayOnColor");
+
+    if (!pixa)
+        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+    if ((n = pixaGetCount(pixa)) == 0)
+        return (PIX *)ERROR_PTR("no components", procName, NULL);
+
+        /* If w and h are not input, determine the minimum size
+         * required to contain the origin and all c.c. */
+    if (w == 0 || h == 0) {
+        boxa = pixaGetBoxa(pixa, L_CLONE);
+        boxaGetExtent(boxa, &w, &h, NULL);
+        boxaDestroy(&boxa);
+    }
+
+        /* If any pix have colormaps, or if they have different depths,
+         * generate rgb */
+    pixaAnyColormaps(pixa, &hascmap);
+    pixaGetDepthInfo(pixa, &maxdepth, &same);
+    if (hascmap || !same) {
+        maxdepth = 32;
+        pixat = pixaCreate(n);
+        for (i = 0; i < n; i++) {
+            pixt1 = pixaGetPix(pixa, i, L_CLONE);
+            pixt2 = pixConvertTo32(pixt1);
+            pixaAddPix(pixat, pixt2, L_INSERT);
+            pixDestroy(&pixt1);
+        }
+    }
+    else
+        pixat = pixaCopy(pixa, L_CLONE);
+
+        /* Make the output pix and set the background color */
+    if ((pixd = pixCreate(w, h, maxdepth)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if ((maxdepth == 1 && bgcolor > 0) ||
+        (maxdepth == 2 && bgcolor >= 0x3) ||
+        (maxdepth == 4 && bgcolor >= 0xf) ||
+        (maxdepth == 8 && bgcolor >= 0xff) ||
+        (maxdepth == 16 && bgcolor >= 0xffff) ||
+        (maxdepth == 32 && bgcolor >= 0xffffff00)) {
+        pixSetAll(pixd);
+    }
+    else if (bgcolor > 0)
+        pixSetAllArbitrary(pixd, bgcolor);
+
+        /* Blit each pix into its place */
+    for (i = 0; i < n; i++) {
+        if (pixaGetBoxGeometry(pixat, i, &xb, &yb, &wb, &hb)) {
+            L_WARNING("no box found!", procName);
+            continue;
+        }
+        pixt1 = pixaGetPix(pixat, i, L_CLONE);
+        pixRasterop(pixd, xb, yb, wb, hb, PIX_SRC, pixt1, 0, 0);
+        pixDestroy(&pixt1);
+    }
+
+    pixaDestroy(&pixat);
+    return pixd;
+}
+
+
+/*!
  *  pixaDisplayRandomCmap()
  *
  *      Input:  pixa (of 1 bpp components, with boxa)
@@ -188,7 +292,7 @@ PIXCMAP  *cmap;
 
     if (!pixa)
         return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
-    
+
     n = pixaGetCount(pixa);
     if (n == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
@@ -259,7 +363,7 @@ PIXA    *pixat;
 
     if (!pixa)
         return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
-    
+
         /* If any pix have colormaps, generate rgb */
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
@@ -288,7 +392,7 @@ PIXA    *pixat;
         pixaDestroy(&pixat);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
-    
+
     index = 0;
     for (i = 0; i < nh; i++) {
         for (j = 0; j < nw && index < n; j++, index++) {
@@ -299,7 +403,7 @@ PIXA    *pixat;
                 pixDestroy(&pixt);
                 continue;
             }
-            pixRasterop(pixd, j * xspace, i * yspace, wt, ht, 
+            pixRasterop(pixd, j * xspace, i * yspace, wt, ht,
                         PIX_PAINT, pixt, 0, 0);
             pixDestroy(&pixt);
         }
@@ -551,7 +655,7 @@ PIXA    *pixan;
     if (border < 0)
         border = 0;
     if (scalefactor <= 0.0) scalefactor = 1.0;
-    
+
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
 
@@ -602,8 +706,8 @@ PIXA    *pixan;
         pixaGetPixDimensions(pixan, i, &wt, &ht, NULL);
         wtry = w + wt + spacing;
         if (wtry > maxwidth) {  /* end the current row and start next one */
-            numaAddNumber(nainrow, irow); 
-            numaAddNumber(namaxh, maxh); 
+            numaAddNumber(nainrow, irow);
+            numaAddNumber(namaxh, maxh);
             wmaxrow = L_MAX(wmaxrow, w);
             h += maxh + spacing;
             irow = 0;
@@ -616,11 +720,11 @@ PIXA    *pixan;
     }
 
         /* Enter the parameters for the last row */
-    numaAddNumber(nainrow, irow); 
-    numaAddNumber(namaxh, maxh); 
+    numaAddNumber(nainrow, irow);
+    numaAddNumber(namaxh, maxh);
     wmaxrow = L_MAX(wmaxrow, w);
     h += maxh + spacing;
-            
+
     if ((pixd = pixCreate(wmaxrow, h, outdepth)) == NULL) {
         numaDestroy(&nainrow);
         numaDestroy(&namaxh);
@@ -703,7 +807,7 @@ PIXA      *pixan;
         return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
     if (border < 0 || border > tilewidth / 5)
         border = 0;
-    
+
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
 
@@ -830,7 +934,7 @@ PIXA    *pixa;
 
     if (!pixaa)
         return (PIX *)ERROR_PTR("pixaa not defined", procName, NULL);
-    
+
     n = pixaaGetCount(pixaa);
     if (n == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
@@ -867,7 +971,7 @@ PIXA    *pixa;
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    
+
     x = y = 0;
     for (i = 0; i < n; i++) {
         pixa = pixaaGetPixa(pixaa, i, L_CLONE);
@@ -923,7 +1027,7 @@ PIXA    *pixa;
 
     if (!pixaa)
         return (PIX *)ERROR_PTR("pixaa not defined", procName, NULL);
-    
+
     if ((npixa = pixaaGetCount(pixaa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
 
@@ -1024,7 +1128,7 @@ PIXA    *pixa, *pixad;
         return (PIXA *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
     if (border < 0 || border > tilewidth / 5)
         border = 0;
-    
+
     if ((n = pixaaGetCount(pixaa)) == 0)
         return (PIXA *)ERROR_PTR("no components", procName, NULL);
 

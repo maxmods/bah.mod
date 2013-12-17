@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 
@@ -22,6 +33,7 @@
  *           PTA      *ptaCreateFromNuma()
  *           void      ptaDestroy()
  *           PTA      *ptaCopy()
+ *           PTA      *ptaCopyRange()
  *           PTA      *ptaClone()
  *           l_int32   ptaEmpty()
  *
@@ -35,6 +47,7 @@
  *           l_int32   ptaGetCount()
  *           l_int32   ptaGetPt()
  *           l_int32   ptaGetIPt()
+ *           l_int32   ptaSetPt()
  *           l_int32   ptaGetArrays()
  *
  *      Pta serialized for I/O
@@ -209,6 +222,47 @@ PTA       *npta;
 
 
 /*!
+ *  ptaCopyRange()
+ *
+ *      Input:  ptas
+ *              istart  (starting index in ptas)
+ *              iend  (ending index in ptas; use 0 to copy to end)
+ *      Return: 0 if OK, 1 on error
+ */
+PTA *
+ptaCopyRange(PTA     *ptas,
+             l_int32  istart,
+             l_int32  iend)
+{
+l_int32  n, i, x, y;
+PTA     *ptad;
+
+    PROCNAME("ptaCopyRange");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+    n = ptaGetCount(ptas);
+    if (istart < 0)
+        istart = 0;
+    if (istart >= n)
+        return (PTA *)ERROR_PTR("istart out of bounds", procName, NULL);
+    if (iend <= 0 || iend >= n)
+        iend = n - 1;
+    if (istart > iend)
+        return (PTA *)ERROR_PTR("istart > iend; no pts", procName, NULL);
+
+    if ((ptad = ptaCreate(iend - istart + 1)) == NULL)
+        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+    for (i = istart; i <= iend; i++) {
+        ptaGetIPt(ptas, i, &x, &y);
+        ptaAddPt(ptad, x, y);
+    }
+
+    return ptad;
+}
+
+
+/*!
  *  ptaClone()
  *
  *      Input:  pta
@@ -374,6 +428,8 @@ ptaGetPt(PTA        *pta,
     if (py) *py = 0;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
+    if (index < 0 || index >= pta->n)
+        return ERROR_INT("invalid index", procName, 1);
 
     if (px) *px = pta->x[index];
     if (py) *py = pta->y[index];
@@ -402,9 +458,38 @@ ptaGetIPt(PTA      *pta,
     if (py) *py = 0;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
+    if (index < 0 || index >= pta->n)
+        return ERROR_INT("invalid index", procName, 1);
 
     if (px) *px = (l_int32)(pta->x[index] + 0.5);
     if (py) *py = (l_int32)(pta->y[index] + 0.5);
+    return 0;
+}
+
+
+/*!
+ *  ptaSetPt()
+ *
+ *      Input:  pta
+ *              index  (into arrays)
+ *              x, y
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+ptaSetPt(PTA       *pta,
+         l_int32    index,
+         l_float32  x,
+         l_float32  y)
+{
+    PROCNAME("ptaSetPt");
+
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+    if (index < 0 || index >= pta->n)
+        return ERROR_INT("invalid index", procName, 1);
+
+    pta->x[index] = x;
+    pta->y[index] = y;
     return 0;
 }
 
@@ -562,7 +647,7 @@ FILE  *fp;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (ptaWriteStream(fp, pta, type))
         return ERROR_INT("pta not written to stream", procName, 1);
@@ -933,7 +1018,7 @@ FILE  *fp;
     if (!ptaa)
         return ERROR_INT("ptaa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (ptaaWriteStream(fp, ptaa, type))
         return ERROR_INT("ptaa not written to stream", procName, 1);
@@ -977,4 +1062,3 @@ PTA     *pta;
 
     return 0;
 }
-

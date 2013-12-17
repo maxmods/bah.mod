@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 #ifndef  LEPTONICA_ENVIRON_H
@@ -46,7 +57,7 @@ typedef unsigned int uintptr_t;
 #endif
 
 /* VC++6 doesn't seem to have powf, expf. */
-#if (_MSC_VER <= 1400)
+#if (_MSC_VER < 1400)
 #define powf(x, y) (float)pow((double)(x), (double)(y))
 #define expf(x) (float)exp((double)(x))
 #endif
@@ -57,10 +68,13 @@ typedef unsigned int uintptr_t;
 
 #ifdef _WIN32
 
-/* DLL EXPORT/IMPORT */
-#ifdef LEPTONLIB_EXPORTS
+/* DLL EXPORTS and IMPORTS:
+ * Important: LEPTONLIB_* is deprected.  It is retained here only for
+ * compatibility with tesseract 3.00.  In your project files, use
+ * LIBLEPT_EXPORTS and LIBLEPT_IMPORTS  */
+#if defined(LIBLEPT_EXPORTS) || defined(LEPTONLIB_EXPORTS)
 #define LEPT_DLL __declspec(dllexport)
-#elif defined(LEPTONLIB_IMPORTS)
+#elif defined(LIBLEPT_IMPORTS) || defined(LEPTONLIB_IMPORTS)
 #define LEPT_DLL __declspec(dllimport)
 #else
 #define LEPT_DLL
@@ -73,6 +87,7 @@ typedef unsigned int uintptr_t;
 
 typedef intptr_t l_intptr_t;
 typedef uintptr_t l_uintptr_t;
+typedef void *L_TIMER;
 
 
 /*--------------------------------------------------------------------*
@@ -118,12 +133,13 @@ typedef uintptr_t l_uintptr_t;
  *       Environ variables for uncompressed formatted image I/O       *
  *--------------------------------------------------------------------*/
 /*
- *  Leptonica supplies image I/O for pnm, bmp and ps.
+ *  Leptonica supplies image I/O for pnm, bmp, ps, and pdf.
  *  Setting any of these to 0 causes non-functioning stubs to be linked.
  */
 #define  USE_BMPIO        0
 #define  USE_PNMIO        0
 #define  USE_PSIO         0
+#define  USE_PDFIO        0
 
 
 /*--------------------------------------------------------------------*
@@ -269,9 +285,8 @@ enum {
  *                        snprintf() renamed in MSVC                      *
  *------------------------------------------------------------------------*/
 #ifdef _MSC_VER
-#define snprintf _snprintf
+#define snprintf(buf, size, ...)  _snprintf_s(buf, size, _TRUNCATE, __VA_ARGS__)
 #endif
 
 
 #endif /* LEPTONICA_ENVIRON_H */
-

@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -111,7 +122,7 @@ PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
     if (wc == 0 && hc == 0)   /* no-op */
         return pixCopy(NULL, pix);
 
-        /* Remove colormap if necessary */ 
+        /* Remove colormap if necessary */
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
         L_WARNING("pix has colormap; removing", procName);
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
@@ -209,12 +220,12 @@ PIX       *pixd, *pixt;
         if ((pixt = pixBlockconvAccum(pixs)) == NULL)
             return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
     }
-        
+
     if ((pixd = pixCreateTemplate(pixs)) == NULL) {
         pixDestroy(&pixt);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
-    
+
     wpl = pixGetWpl(pixs);
     wpla = pixGetWpl(pixt);
     datad = pixGetData(pixd);
@@ -345,7 +356,7 @@ PIX       *pixsb, *pixacc, *pixd;
 	pixDestroy(&pixacc);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
-    
+
     wpla = pixGetWpl(pixacc);
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
@@ -440,8 +451,8 @@ PIXTILING  *pt;
         ny = h / (hc + 2);
         L_WARNING_INT("tile height too small; ny reduced to %d", procName, ny);
     }
- 
-        /* Remove colormap if necessary */ 
+
+        /* Remove colormap if necessary */
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
         L_WARNING("pix has colormap; removing", procName);
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
@@ -566,7 +577,7 @@ PIX       *pixt, *pixd;
         if ((pixt = pixBlockconvAccum(pixs)) == NULL)
             return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
     }
-        
+
     if ((pixd = pixCreateTemplate(pixs)) == NULL) {
         pixDestroy(&pixt);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
@@ -615,6 +626,9 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs (8 bpp grayscale)
  *              wc, hc   (half width/height of convolution kernel)
+ *              hasborder (use 1 if it already has (wc + 1) border pixels
+ *                         on left and right, and (hc + 1) on top and bottom;
+ *                         use 0 to add kernel-dependent border)
  *              &pixm (<optional return> 8 bpp mean value in window)
  *              &pixms (<optional return> 32 bpp mean square value in window)
  *              &fpixv (<optional return> float variance in window)
@@ -624,7 +638,10 @@ PIX       *pixt, *pixd;
  *  Notes:
  *      (1) This is a high-level convenience function for calculating
  *          any or all of these derived images.
- *      (2) These statistical measures over the pixels in the
+ *      (2) If @hasborder = 0, a border is added and the result is
+ *          computed over all pixels in pixs.  Otherwise, no border is
+ *          added and the border pixels are removed from the output images.
+ *      (3) These statistical measures over the pixels in the
  *          rectangular window are:
  *            - average value: <p>  (pixm)
  *            - average squared value: <p*p> (pixms)
@@ -632,15 +649,20 @@ PIX       *pixt, *pixd;
  *            - square-root of variance: (pixrv)
  *          where the brackets < .. > indicate that the average value is
  *          to be taken over the window.
- *      (3) Note that the variance is just the mean square difference from
+ *      (4) Note that the variance is just the mean square difference from
  *          the mean value; and the square root of the variance is the
  *          root mean square difference from the mean, sometimes also
  *          called the 'standard deviation'.
+ *      (5) The added border, along with the use of an accumulator array,
+ *          allows computation without special treatment of pixels near
+ *          the image boundary, and runs in a time that is independent
+ *          of the size of the convolution kernel.
  */
 l_int32
 pixWindowedStats(PIX     *pixs,
                  l_int32  wc,
                  l_int32  hc,
+                 l_int32  hasborder,
                  PIX    **ppixm,
                  PIX    **ppixms,
                  FPIX   **pfpixv,
@@ -661,16 +683,21 @@ PIX  *pixb, *pixm, *pixms;
     if (pfpixv) *pfpixv = NULL;
     if (pfpixrv) *pfpixrv = NULL;
 
-    pixb = pixAddBorderGeneral(pixs, wc + 1, wc + 1, hc + 1, hc + 1, 0);
+        /* Add border if requested */
+    if (!hasborder)
+        pixb = pixAddBorderGeneral(pixs, wc + 1, wc + 1, hc + 1, hc + 1, 0);
+    else
+        pixb = pixClone(pixs);
+
     if (!pfpixv && !pfpixrv) {
-        if (ppixm) *ppixm = pixWindowedMean(pixb, wc, hc, 1);
-        if (ppixms) *ppixms = pixWindowedMeanSquare(pixb, wc, hc);
+        if (ppixm) *ppixm = pixWindowedMean(pixb, wc, hc, 1, 1);
+        if (ppixms) *ppixms = pixWindowedMeanSquare(pixb, wc, hc, 1);
         pixDestroy(&pixb);
         return 0;
     }
 
-    pixm = pixWindowedMean(pixb, wc, hc, 1);
-    pixms = pixWindowedMeanSquare(pixb, wc, hc);
+    pixm = pixWindowedMean(pixb, wc, hc, 1, 1);
+    pixms = pixWindowedMeanSquare(pixb, wc, hc, 1);
     pixWindowedVariance(pixm, pixms, pfpixv, pfpixrv);
     if (ppixm)
         *ppixm = pixm;
@@ -690,6 +717,9 @@ PIX  *pixb, *pixm, *pixms;
  *
  *      Input:  pixs (8 or 32 bpp grayscale)
  *              wc, hc   (half width/height of convolution kernel)
+ *              hasborder (use 1 if it already has (wc + 1) border pixels
+ *                         on left and right, and (hc + 1) on top and bottom;
+ *                         use 0 to add kernel-dependent border)
  *              normflag (1 for normalization to get average in window;
  *                        0 for the sum in the window (un-normalized))
  *      Return: pixd (8 or 32 bpp, average over kernel window)
@@ -697,38 +727,52 @@ PIX  *pixb, *pixm, *pixms;
  *  Notes:
  *      (1) The input and output depths are the same.
  *      (2) A set of border pixels of width (wc + 1) on left and right,
- *          and of height (hc + 1) on top and bottom, is included in pixs.
- *          The output pixd (after convolution) has this border removed.
+ *          and of height (hc + 1) on top and bottom, must be on the
+ *          pix before the accumulator is found.  The output pixd
+ *          (after convolution) has this border removed.
+ *          If @hasborder = 0, the required border is added.
  *      (3) Typically, @normflag == 1.  However, if you want the sum
  *          within the window, rather than a normalized convolution,
  *          use @normflag == 0.
  *      (4) This builds a block accumulator pix, uses it here, and
  *          destroys it.
+ *      (5) The added border, along with the use of an accumulator array,
+ *          allows computation without special treatment of pixels near
+ *          the image boundary, and runs in a time that is independent
+ *          of the size of the convolution kernel.
  */
 PIX *
 pixWindowedMean(PIX     *pixs,
                 l_int32  wc,
                 l_int32  hc,
+                l_int32  hasborder,
                 l_int32  normflag)
 {
 l_int32    i, j, w, h, d, wd, hd, wplc, wpld, wincr, hincr;
 l_uint32   val;
 l_uint32  *datac, *datad, *linec1, *linec2, *lined;
 l_float32  norm;
-PIX       *pixc, *pixd;
+PIX       *pixb, *pixc, *pixd;
 
     PROCNAME("pixWindowedMean");
-    
+
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, &d);
+    d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
     if (wc < 2 || hc < 2)
         return (PIX *)ERROR_PTR("wc and hc not >= 2", procName, NULL);
 
-        /* Strip off wc + 1 border pixels from each side and
-         * hc + 1 border pixels from top and bottom. */
+        /* Add border if requested */
+    if (!hasborder)
+        pixb = pixAddBorderGeneral(pixs, wc + 1, wc + 1, hc + 1, hc + 1, 0);
+    else
+        pixb = pixClone(pixs);
+
+        /* The output has wc + 1 border pixels stripped from each side
+         * of pixb, and hc + 1 border pixels stripped from top and bottom. */
+    pixGetDimensions(pixb, &w, &h, NULL);
     wd = w - 2 * (wc + 1);
     hd = h - 2 * (hc + 1);
     if (wd < 2 || hd < 2)
@@ -736,8 +780,9 @@ PIX       *pixc, *pixd;
     if ((pixd = pixCreate(wd, hd, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-        /* Make the accumulator pix */
-    if ((pixc = pixBlockconvAccum(pixs)) == NULL) {
+        /* Make the accumulator pix from pixb */
+    if ((pixc = pixBlockconvAccum(pixb)) == NULL) {
+        pixDestroy(&pixb);
         pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
     }
@@ -764,10 +809,11 @@ PIX       *pixc, *pixd;
                 val = (l_uint32)(norm * val);
                 lined[j] = val;
             }
-        } 
+        }
     }
-            
+
     pixDestroy(&pixc);
+    pixDestroy(&pixb);
     return pixd;
 }
 
@@ -777,15 +823,18 @@ PIX       *pixc, *pixd;
  *
  *      Input:  pixs (8 bpp grayscale)
  *              wc, hc   (half width/height of convolution kernel)
- *      Return: pixd (32 bpp, average over window of size (2 * size + 1))
+ *              hasborder (use 1 if it already has (wc + 1) border pixels
+ *                         on left and right, and (hc + 1) on top and bottom;
+ *                         use 0 to add kernel-dependent border)
+ *      Return: pixd (32 bpp, average over rectangular window of
+ *                    width = 2 * wc + 1 and height = 2 * hc + 1)
  *
  *  Notes:
  *      (1) A set of border pixels of width (wc + 1) on left and right,
- *          and of height (hc + 1) on top and bottom, is included in pixs.
- *          The output pixd (after convolution) has this border removed.
- *      (1) A set of border pixels of width (size + 1) is included
- *          in pixs.  The output pixd (after convolution) has this
- *          border removed.
+ *          and of height (hc + 1) on top and bottom, must be on the
+ *          pix before the accumulator is found.  The output pixd
+ *          (after convolution) has this border removed.
+ *          If @hasborder = 0, the required border is added.
  *      (2) The advantage is that we are unaffected by the boundary, and
  *          it is not necessary to treat pixels within @wc and @hc of the
  *          border differently.  This is because processing for pixd
@@ -796,11 +845,16 @@ PIX       *pixc, *pixd;
  *          to satisfy this condition?  Answer: the accumulators
  *          are asymmetric, requiring an extra row and column of
  *          pixels at top and left to work accurately.
+ *      (4) The added border, along with the use of an accumulator array,
+ *          allows computation without special treatment of pixels near
+ *          the image boundary, and runs in a time that is independent
+ *          of the size of the convolution kernel.
  */
 PIX *
 pixWindowedMeanSquare(PIX     *pixs,
                       l_int32  wc,
-                      l_int32  hc)
+                      l_int32  hc,
+                      l_int32  hasborder)
 {
 l_int32     i, j, w, h, wd, hd, wpl, wpld, wincr, hincr;
 l_uint32    ival;
@@ -809,29 +863,36 @@ l_float64   norm;
 l_float64   val;
 l_float64  *data, *line1, *line2;
 DPIX       *dpix;
-PIX        *pixd;
+PIX        *pixb, *pixd;
 
     PROCNAME("pixWindowedMeanSquare");
-    
+
     if (!pixs || (pixGetDepth(pixs) != 8))
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, NULL);
     if (wc < 2 || hc < 2)
         return (PIX *)ERROR_PTR("wc and hc not >= 2", procName, NULL);
 
-    if ((dpix = pixMeanSquareAccum(pixs)) == NULL)
+        /* Add border if requested */
+    if (!hasborder)
+        pixb = pixAddBorderGeneral(pixs, wc + 1, wc + 1, hc + 1, hc + 1, 0);
+    else
+        pixb = pixClone(pixs);
+
+    if ((dpix = pixMeanSquareAccum(pixb)) == NULL)
         return (PIX *)ERROR_PTR("dpix not made", procName, NULL);
     wpl = dpixGetWpl(dpix);
     data = dpixGetData(dpix);
 
-        /* Strip off wc + 1 border pixels from each side and
-         * hc + 1 border pixels from top and bottom. */
+        /* The output has wc + 1 border pixels stripped from each side
+         * of pixb, and hc + 1 border pixels stripped from top and bottom. */
+    pixGetDimensions(pixb, &w, &h, NULL);
     wd = w - 2 * (wc + 1);
     hd = h - 2 * (hc + 1);
     if (wd < 2 || hd < 2)
         return (PIX *)ERROR_PTR("w or h too small for kernel", procName, NULL);
     if ((pixd = pixCreate(wd, hd, 32)) == NULL) {
         dpixDestroy(&dpix);
+        pixDestroy(&pixb);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
     wpld = pixGetWpl(pixd);
@@ -848,10 +909,11 @@ PIX        *pixd;
             val = line2[j + wincr] - line2[j] - line1[j + wincr] + line1[j];
             ival = (l_uint32)(norm * val);
             lined[j] = ival;
-        } 
+        }
     }
-            
+
     dpixDestroy(&dpix);
+    pixDestroy(&pixb);
     return pixd;
 }
 
@@ -975,7 +1037,7 @@ DPIX       *dpix;
 
     PROCNAME("pixMeanSquareAccum");
 
-    
+
     if (!pixs || (pixGetDepth(pixs) != 8))
         return (DPIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -1160,7 +1222,7 @@ PIX       *pixt, *pixd;
         if ((pixt = pixBlockconvAccum(pixs)) == NULL)
             return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
     }
-        
+
         /* 8 bpp block sum output */
     if ((pixd = pixCreate(w, h, 8)) == NULL) {
         pixDestroy(&pixt);
@@ -1260,7 +1322,7 @@ PIX       *pixav, *pixd;
     pixDestroy(&pixav);
     return pixd;
 }
-        
+
 
 /*----------------------------------------------------------------------*
  *                         Generic convolution                          *
@@ -1770,4 +1832,3 @@ l_setConvolveSampling(l_int32  xfact,
     ConvolveSamplingFactX = xfact;
     ConvolveSamplingFactY = yfact;
 }
-

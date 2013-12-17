@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 
@@ -42,30 +53,33 @@
  *           char      *stringNew()
  *           l_int32    stringCopy()
  *           l_int32    stringReplace()
+ *           l_int32    stringLength()
+ *           l_int32    stringCat()
  *           char      *stringJoin()
  *           char      *stringReverse()
  *           char      *strtokSafe()
  *           l_int32    stringSplitOnToken()
  *
- *       Find and replace string procs
+ *       Find and replace string and array procs
  *           char      *stringRemoveChars()
  *           l_int32    stringFindSubstr()
  *           char      *stringReplaceSubstr()
  *           char      *stringReplaceEachSubstr()
+ *           L_DNA     *arrayFindEachSequence()
  *           l_int32    arrayFindSequence()
  *
  *       Safe realloc
  *           void      *reallocNew()
  *
  *       Read and write between file and memory
- *           l_uint8   *arrayRead()
- *           l_uint8   *arrayReadStream()
+ *           l_uint8   *l_binaryRead()
+ *           l_uint8   *l_binaryReadStream()
+ *           l_int32    l_binaryWrite()
  *           l_int32    nbytesInFile()
  *           l_int32    fnbytesInFile()
- *           l_int32    arrayWrite()
  *
  *       Copy in memory
- *           l_uint8   *arrayCopy()
+ *           l_uint8   *l_binaryCopy()
  *
  *       File copy operations
  *           l_int32    fileCopy()
@@ -81,30 +95,74 @@
  *           l_uint16   convertOnLittleEnd16()
  *           l_uint32   convertOnLittleEnd32()
  *
- *       File opening
+ *       Opening file streams
  *           FILE      *fopenReadStream()
+ *           FILE      *fopenWriteStream()
+ *
+ *       Functions to avoid C-runtime boundary crossing with Windows DLLs
+ *           FILE      *lept_fopen()
+ *           l_int32    lept_fclose()
+ *           void       lept_calloc()
+ *           void       lept_free()
+ *
+ *       Cross-platform file system operations
+ *           l_int32    lept_mkdir()
+ *           l_int32    lept_rmdir()
+ *           l_int32    lept_direxists()
+ *           l_int32    lept_mv()
+ *           l_int32    lept_rm()
+ *           l_int32    lept_cp()
  *
  *       File name operations
  *           l_int32    splitPathAtDirectory()
  *           l_int32    splitPathAtExtension()
+ *           char      *pathJoin()
  *           char      *genPathname()
  *           char      *genTempFilename()
- *           char      *mungePathnameForWindows()
  *           l_int32    extractNumberFromFilename()
  *
  *       Generate random integer in given range
  *           l_int32    genRandomIntegerInRange()
  *
- *       Version number
- *           char      *getLeptonlibVersion()
- *           char      *getImagelibVersions()
+ *       Simple math function
+ *           l_int32    lept_roundftoi()
+ *
+ *       Leptonica version number
+ *           char      *getLeptonicaVersion()
  *
  *       Timing
  *           void       startTimer()
  *           l_float32  stopTimer()
+ *           L_TIMER    startTimerNested()
+ *           l_float32  stopTimerNested()
+ *           void       l_getCurrentTime()
+ *           void       l_getFormattedDate()
+ *
+ *       Deprecated binary read functions  (don't use these!)
+ *           l_uint8   *arrayRead()
+ *           l_uint8   *arrayReadStream()
+ *
+ *
+ *  Notes on cross-platform development
+ *  -----------------------------------
+ *  (1) With the exception of splitPathAtDirectory() and
+ *      splitPathAtExtension(), all input pathnames must have unix separators.
+ *  (2) The conversion from unix to windows pathnames happens in genPathname().
+ *  (3) Use fopenReadStream() and fopenWriteStream() to open files,
+ *      because these use genPathname() to find the platform-dependent
+ *      filenames.  Likewise for l_binaryRead() and l_binaryWrite().
+ *  (4) For moving, copying and removing files and directories,
+ *      use the lept_*() file system shell wrappers:
+ *         lept_mkdir(), lept_rmdir(), lept_mv(), lept_rm() and lept_cp().
+ *  (5) Use the lept_*() C library wrappers:
+ *         lept_fopen(), lept_fclose(), lept_calloc() and lept_free().
  */
 
 #include <string.h>
+#include <time.h>
+#ifndef _WIN32
+#include <dirent.h>     /* unix only */
+#endif  /* ! _WIN32 */
 #ifdef _MSC_VER
 #include <process.h>
 #else
@@ -116,6 +174,8 @@
 #include <windows.h>
 static const char sepchar = '\\';
 #else
+#include <sys/stat.h>  /* for mkdir(2) */
+#include <sys/types.h>
 static const char sepchar = '/';
 #endif
 
@@ -141,8 +201,8 @@ static const char sepchar = '/';
  *      Return: ival (typically 1)
  */
 l_int32
-returnErrorInt(const char  *msg, 
-               const char  *procname, 
+returnErrorInt(const char  *msg,
+               const char  *procname,
                l_int32      ival)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
@@ -159,8 +219,8 @@ returnErrorInt(const char  *msg,
  *      Return: fval
  */
 l_float32
-returnErrorFloat(const char  *msg, 
-                 const char  *procname, 
+returnErrorFloat(const char  *msg,
+                 const char  *procname,
                  l_float32    fval)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
@@ -178,7 +238,7 @@ returnErrorFloat(const char  *msg,
  */
 void *
 returnErrorPtr(const char  *msg,
-               const char  *procname, 
+               const char  *procname,
                void        *pval)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
@@ -550,7 +610,7 @@ char    *charbuf;
  */
 void
 l_infoInt(const char  *msg,
-          const char  *procname, 
+          const char  *procname,
           l_int32      ival)
 {
 l_int32  bufsize;
@@ -584,7 +644,7 @@ char    *charbuf;
  */
 void
 l_infoInt2(const char  *msg,
-           const char  *procname, 
+           const char  *procname,
            l_int32      ival1,
            l_int32      ival2)
 {
@@ -619,7 +679,7 @@ char    *charbuf;
  */
 void
 l_infoFloat(const char  *msg,
-            const char  *procname, 
+            const char  *procname,
             l_float32    fval)
 {
 l_int32  bufsize;
@@ -653,7 +713,7 @@ char    *charbuf;
  */
 void
 l_infoFloat2(const char  *msg,
-             const char  *procname, 
+             const char  *procname,
              l_float32    fval1,
              l_float32    fval2)
 {
@@ -699,7 +759,7 @@ char    *dest;
 
     if (!src)
         return (char *)ERROR_PTR("src not defined", procName, NULL);
-    
+
     len = strlen(src);
     if ((dest = (char *)CALLOC(len + 1, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("dest not made", procName, NULL);
@@ -740,13 +800,13 @@ l_int32  i;
         return 0;
 
         /* Implementation of strncpy that valgrind doesn't complain about */
-    for (i = 0 ; i < n && src[i] != '\0' ; i++)
+    for (i = 0; i < n && src[i] != '\0'; i++)
         dest[i] = src[i];
-    for ( ; i < n ; i++)
+    for (; i < n; i++)
         dest[i] = '\0';
     return 0;
 }
-    
+
 
 /*!
  *  stringReplace()
@@ -774,7 +834,7 @@ l_int32  len;
 
     if (*pdest)
         FREE(*pdest);
-    
+
     if (src) {
         len = strlen(src);
         if ((scopy = (char *)CALLOC(len + 1, sizeof(char))) == NULL)
@@ -787,7 +847,94 @@ l_int32  len;
 
     return 0;
 }
-    
+
+
+/*!
+ *  stringLength()
+ *
+ *      Input:  src string (can be null or null-terminated string)
+ *              size (size of src buffer)
+ *      Return: length of src in bytes.
+ *
+ *  Notes:
+ *      (1) Safe implementation of strlen that only checks size bytes
+ *          for trailing NUL.
+ *      (2) Valid returned string lengths are between 0 and size - 1.
+ *          If size bytes are checked without finding a NUL byte, then
+ *          an error is indicated by returning size.
+ */
+l_int32
+stringLength(const char  *src,
+             size_t       size)
+{
+l_int32  i;
+
+    PROCNAME("stringLength");
+
+    if (!src)
+        return ERROR_INT("src not defined", procName, 0);
+    if (size < 1)
+        return 0;
+
+    for (i = 0; i < size; i++) {
+        if (src[i] == '\0')
+            return i;
+    }
+    return size;
+}
+
+
+/*!
+ *  stringCat()
+ *
+ *      Input:  dest (null-terminated byte buffer)
+ *              size (size of dest)
+ *              src string (can be null or null-terminated string)
+ *      Return: number of bytes added to dest; -1 on error
+ *
+ *  Notes:
+ *      (1) Alternative implementation of strncat, that checks the input,
+ *          is easier to use (since the size of the dest buffer is specified
+ *          rather than the number of bytes to copy), and does not complain
+ *          if @src is null.
+ *      (2) Never writes past end of dest.
+ *      (3) If it can't append src (an error), it does nothing.
+ *      (4) N.B. The order of 2nd and 3rd args is reversed from that in
+ *          strncat, as in the Windows function strcat_s().
+ */
+l_int32
+stringCat(char        *dest,
+          size_t       size,
+          const char  *src)
+{
+l_int32  i, n;
+l_int32  lendest, lensrc;
+
+    PROCNAME("stringCat");
+
+    if (!dest)
+        return ERROR_INT("dest not defined", procName, -1);
+    if (size < 1)
+        return ERROR_INT("size < 1; too small", procName, -1);
+    if (!src)
+        return 0;
+
+    lendest = stringLength(dest, size);
+    if (lendest == size)
+        return ERROR_INT("no terminating nul byte", procName, -1);
+    lensrc = stringLength(src, size);
+    if (lensrc == 0)
+        return 0;
+    n = (lendest + lensrc > size - 1 ? size - lendest - 1 : lensrc);
+    if (n < 1)
+        return ERROR_INT("dest too small for append", procName, -1);
+
+    for (i = 0; i < n; i++)
+        dest[lendest + i] = src[i];
+    dest[lendest + n] = '\0';
+    return n;
+}
+
 
 /*!
  *  stringJoin()
@@ -802,7 +949,7 @@ l_int32  len;
  *          are empty, or if either or both of the pointers are null.
  */
 char *
-stringJoin(const char  *src1, 
+stringJoin(const char  *src1,
            const char  *src2)
 {
 char    *dest;
@@ -1010,7 +1157,7 @@ char  *saveptr;
  */
 char *
 stringRemoveChars(const char  *src,
-                  const char  *remchars) 
+                  const char  *remchars)
 {
 char     ch;
 char    *dest;
@@ -1022,7 +1169,7 @@ l_int32  nsrc, i, k;
         return (char *)ERROR_PTR("src not defined", procName, NULL);
     if (!remchars)
         return stringNew(src);
-    
+
     if ((dest = (char *)CALLOC(strlen(src) + 1, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("dest not made", procName, NULL);
     nsrc = strlen(src);
@@ -1119,7 +1266,7 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
         return (char *)ERROR_PTR("sub1 not defined", procName, NULL);
     if (!sub2)
         return (char *)ERROR_PTR("sub2 not defined", procName, NULL);
-    
+
     if (pfound)
         *pfound = 0;
     if (ploc)
@@ -1201,7 +1348,59 @@ l_int32  loc;
             (*pcount)++;
     }
 }
-            
+
+
+/*!
+ *  arrayFindEachSequence()
+ *
+ *      Input:  data (byte array)
+ *              datalen (length of data, in bytes)
+ *              sequence (subarray of bytes to find in data)
+ *              seqlen (length of sequence, in bytes)
+ *      Return: dna of offsets where the sequence is found, or null if
+ *              none are found or on error
+ *
+ *  Notes:
+ *      (1) The byte arrays @data and @sequence are not C strings,
+ *          as they can contain null bytes.  Therefore, for each
+ *          we must give the length of the array.
+ *      (2) This finds every occurrence in @data of @sequence.
+ */
+L_DNA *
+arrayFindEachSequence(const l_uint8  *data,
+                      l_int32         datalen,
+                      const l_uint8  *sequence,
+                      l_int32         seqlen)
+{
+l_int32  start, offset, realoffset, found;
+L_DNA   *da;
+
+    PROCNAME("arrayFindEachSequence");
+
+    if (!data || !sequence)
+        return (L_DNA *)ERROR_PTR("data & sequence not both defined",
+                                  procName, NULL);
+
+    da = l_dnaCreate(0);
+    start = 0;
+    while (1) {
+        arrayFindSequence(data + start, datalen - start, sequence, seqlen,
+                          &offset, &found);
+        if (found == TRUE) {
+            realoffset = start + offset;
+            l_dnaAddNumber(da, realoffset);
+            start = realoffset + seqlen;
+            if (start >= datalen) break;
+        }
+        else  /* no more */
+            break;
+    }
+
+    if (l_dnaGetCount(da) == 0)
+        l_dnaDestroy(&da);
+    return da;
+}
+
 
 /*!
  *  arrayFindSequence()
@@ -1212,16 +1411,16 @@ l_int32  loc;
  *              seqlen (length of sequence, in bytes)
  *              &offset (return> offset from beginning of
  *                       data where the sequence begins)
- *              &found (<return> 1 if sequence is found; 0 otherwise)
+ *              &found (<optional return> 1 if sequence is found; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The byte arrays 'data' and 'sequence' are not C strings,
  *          as they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
- *      (2) This searches for the first occurrence in 'data' of
- *          the first 'seqlen' bytes of 'sequence'.  The parameter 'seqlen'
- *          must not exceed the actual length of the 'sequence' byte array.
+ *      (2) This searches for the first occurrence in @data of @sequence,
+ *          which consists of @seqlen bytes.  The parameter @seqlen
+ *          must not exceed the actual length of the @sequence byte array.
  *      (3) If the sequence is not found, the offset will be set to -1.
  */
 l_int32
@@ -1238,11 +1437,11 @@ l_int32  i, j, found, lastpos;
 
     if (!data || !sequence)
         return ERROR_INT("data & sequence not both defined", procName, 1);
-    if (!poffset || !pfound)
-        return ERROR_INT("&offset and &found not both defined", procName, 1);
+    if (!poffset)
+        return ERROR_INT("&offset not defined", procName, 1);
 
-    *pfound = 0;
     *poffset = -1;
+    if (pfound) *pfound = 0;
     lastpos = datalen - seqlen + 1;
     found = 0;
     for (i = 0; i < lastpos; i++) {
@@ -1257,8 +1456,8 @@ l_int32  i, j, found, lastpos;
     }
 
     if (found) {
-        *pfound = 1;
         *poffset = i;
+        if (pfound) *pfound = 1;
     }
 
     return 0;
@@ -1298,7 +1497,7 @@ reallocNew(void   **pindata,
            l_int32  newsize)
 {
 l_int32  minsize;
-void    *indata; 
+void    *indata;
 void    *newdata;
 
     PROCNAME("reallocNew");
@@ -1333,46 +1532,45 @@ void    *newdata;
 
     return newdata;
 }
-    
+
 
 
 /*--------------------------------------------------------------------*
- *                       Reading bytes from file                      *
+ *                 Read and write between file and memory             *
  *--------------------------------------------------------------------*/
 /*!
- *  arrayRead()
+ *  l_binaryRead()
  *
  *      Input:  filename
  *              &nbytes (<return> number of bytes read)
- *      Return: array, or null on error
+ *      Return: data, or null on error
  */
 l_uint8 *
-arrayRead(const char  *fname, 
-           l_int32     *pnbytes)
+l_binaryRead(const char  *filename,
+             size_t      *pnbytes)
 {
 l_uint8  *data;
 FILE     *fp;
 
-    PROCNAME("arrayRead");
+    PROCNAME("l_binaryRead");
 
-    if (!fname)
-        return (l_uint8 *)ERROR_PTR("fname not defined", procName, NULL);
+    if (!filename)
+        return (l_uint8 *)ERROR_PTR("filename not defined", procName, NULL);
     if (!pnbytes)
         return (l_uint8 *)ERROR_PTR("pnbytes not defined", procName, NULL);
     *pnbytes = 0;
 
-    if ((fp = fopen(fname, "rb")) == NULL)
+    if ((fp = fopenReadStream(filename)) == NULL)
         return (l_uint8 *)ERROR_PTR("file stream not opened", procName, NULL);
 
-    data = arrayReadStream(fp, pnbytes);
+    data = l_binaryReadStream(fp, pnbytes);
     fclose(fp);
-
     return data;
 }
 
 
 /*!
- *  arrayReadStream()
+ *  l_binaryReadStream()
  *
  *      Input:  stream
  *              &nbytes (<return> number of bytes read)
@@ -1380,82 +1578,36 @@ FILE     *fp;
  *              (reading 0 bytes is not an error)
  *
  *  Notes:
- *      (1) N.B.: as a side effect, this always re-positions the
- *          stream ptr to the beginning of the file.
+ *      (1) The returned array is terminated with a null byte so that
+ *          it can be used to read ascii data into a proper C string.
+ *      (2) Side effect: this re-positions the stream ptr to the
+ *          beginning of the file.
  */
 l_uint8 *
-arrayReadStream(FILE     *fp, 
-                l_int32  *pnbytes)
+l_binaryReadStream(FILE    *fp,
+                   size_t  *pnbytes)
 {
 l_int32   ignore;
 l_uint8  *data;
 
-    PROCNAME("arrayReadStream");
+    PROCNAME("l_binaryReadStream");
 
+    if (!pnbytes)
+        return (l_uint8 *)ERROR_PTR("&nbytes not defined", procName, NULL);
+    *pnbytes = 0;
     if (!fp)
         return (l_uint8 *)ERROR_PTR("stream not defined", procName, NULL);
-    if (!pnbytes)
-        return (l_uint8 *)ERROR_PTR("ptr to nbytes not defined",
-                                    procName, NULL);
 
     *pnbytes = fnbytesInFile(fp);
     if ((data = (l_uint8 *)CALLOC(1, *pnbytes + 1)) == NULL)
-        return (l_uint8 *)ERROR_PTR("CALLOC fail for data", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for data", procName, NULL);
     ignore = fread(data, 1, *pnbytes, fp);
     return data;
 }
 
 
 /*!
- *  nbytesInFile()
- *
- *      Input:  filename
- *      Return: nbytes in file; 0 on error
- */
-l_int32
-nbytesInFile(const char  *filename)
-{
-l_int32  nbytes;
-FILE    *fp;
-
-    PROCNAME("nbytesInFile");
-
-    if (!filename)
-        return ERROR_INT("filename not defined", procName, 0);
-    if ((fp = fopen(filename, "rb")) == NULL)
-        return ERROR_INT("stream not opened", procName, 0);
-    nbytes = fnbytesInFile(fp);
-    fclose(fp);
-    return nbytes;
-}
-
-
-/*!
- *  fnbytesInFile()
- *
- *      Input:  file stream
- *      Return: nbytes in file; 0 on error
- */
-l_int32
-fnbytesInFile(FILE  *fp)
-{
-l_int32  nbytes, pos;
-
-    PROCNAME("fnbytesInFile");
-
-    if (!fp)
-        return ERROR_INT("stream not open", procName, 0);
-
-    pos = ftell(fp);          /* initial position */
-    fseek(fp, 0, SEEK_END);   /* EOF */
-    nbytes = ftell(fp);
-    fseek(fp, 0, pos);        /* back to initial position */
-    return nbytes;
-}
-
-
-/*!
- *  arrayWrite()
+ *  l_binaryWrite()
  *
  *      Input:  filename (output)
  *              operation  ("w" for write; "a" for append)
@@ -1464,15 +1616,15 @@ l_int32  nbytes, pos;
  *      Return: 0 if OK; 1 on error
  */
 l_int32
-arrayWrite(const char  *filename,
-           const char  *operation,
-           void        *data,
-           l_int32      nbytes)
+l_binaryWrite(const char  *filename,
+              const char  *operation,
+              void        *data,
+              size_t       nbytes)
 {
-FILE  *fp;
 char   actualOperation[20];
+FILE  *fp;
 
-    PROCNAME("arrayWrite");
+    PROCNAME("l_binaryWrite");
 
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
@@ -1486,14 +1638,64 @@ char   actualOperation[20];
     if (!strcmp(operation, "w") && !strcmp(operation, "a"))
         return ERROR_INT("operation not one of {'w','a'}", procName, 1);
 
+        /* The 'b' flag to fopen() is ignored for all POSIX
+         * conforming systems.  However, Windows needs the 'b' flag. */
     stringCopy(actualOperation, operation, 2);
-    strncat(actualOperation, "b", 2);  /* for windows */
-    if ((fp = fopen(filename, actualOperation)) == NULL)
+    strncat(actualOperation, "b", 2);
+
+    if ((fp = fopenWriteStream(filename, actualOperation)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     fwrite(data, 1, nbytes, fp);
     fclose(fp);
-
     return 0;
+}
+
+
+/*!
+ *  nbytesInFile()
+ *
+ *      Input:  filename
+ *      Return: nbytes in file; 0 on error
+ */
+size_t
+nbytesInFile(const char  *filename)
+{
+size_t  nbytes;
+FILE   *fp;
+
+    PROCNAME("nbytesInFile");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 0);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return ERROR_INT("stream not opened", procName, 0);
+    nbytes = fnbytesInFile(fp);
+    fclose(fp);
+    return nbytes;
+}
+
+
+/*!
+ *  fnbytesInFile()
+ *
+ *      Input:  file stream
+ *      Return: nbytes in file; 0 on error
+ */
+size_t
+fnbytesInFile(FILE  *fp)
+{
+size_t  nbytes, pos;
+
+    PROCNAME("fnbytesInFile");
+
+    if (!fp)
+        return ERROR_INT("stream not open", procName, 0);
+
+    pos = ftell(fp);          /* initial position */
+    fseek(fp, 0, SEEK_END);   /* EOF */
+    nbytes = ftell(fp);
+    fseek(fp, pos, SEEK_SET);        /* back to initial position */
+    return nbytes;
 }
 
 
@@ -1501,24 +1703,30 @@ char   actualOperation[20];
  *                            Copy in memory                          *
  *--------------------------------------------------------------------*/
 /*!
- *  arrayCopy()
+ *  l_binaryCopy()
  *
  *      Input:  datas
  *              size (of data array)
  *      Return: datad (on heap), or null on error
+ *
+ *  Notes:
+ *      (1) We add 4 bytes to the zeroed output because in some cases
+ *          (e.g., string handling) it is important to have the data
+ *          be null terminated.  This guarantees that after the memcpy,
+ *          the result is automatically null terminated.
  */
 l_uint8 *
-arrayCopy(l_uint8  *datas,
-          size_t    size)
+l_binaryCopy(l_uint8  *datas,
+             size_t    size)
 {
 l_uint8  *datad;
 
-    PROCNAME("arrayCopy");
+    PROCNAME("l_binaryCopy");
 
     if (!datas)
         return (l_uint8 *)ERROR_PTR("datas not defined", procName, NULL);
 
-    if ((datad = (l_uint8 *)CALLOC(size, sizeof(l_uint8))) == NULL)
+    if ((datad = (l_uint8 *)CALLOC(size + 4, sizeof(l_uint8))) == NULL)
         return (l_uint8 *)ERROR_PTR("datad not made", procName, NULL);
     memcpy(datad, datas, size);
     return datad;
@@ -1531,22 +1739,28 @@ l_uint8  *datad;
 /*!
  *  fileCopy()
  *
- *      Input:  filename1 (copy this file)
- *              filename2 (to this file)
+ *      Input:  srcfile (copy this file)
+ *              newfile (to this file)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-fileCopy(const char  *filename1,
-         const char  *filename2)
+fileCopy(const char  *srcfile,
+         const char  *newfile)
 {
+l_int32   ret;
+size_t    nbytes;
 l_uint8  *data;
-l_int32   nbytes, ret;
 
     PROCNAME("fileCopy");
 
-    if ((data = arrayRead(filename1, &nbytes)) == NULL)
+    if (!srcfile)
+        return ERROR_INT("srcfile not defined", procName, 1);
+    if (!newfile)
+        return ERROR_INT("newfile not defined", procName, 1);
+
+    if ((data = l_binaryRead(srcfile, &nbytes)) == NULL)
         return ERROR_INT("data not returned", procName, 1);
-    ret = arrayWrite(filename2, "w", data, nbytes);
+    ret = l_binaryWrite(newfile, "w", data, nbytes);
     FREE(data);
     return ret;
 }
@@ -1555,26 +1769,26 @@ l_int32   nbytes, ret;
 /*!
  *  fileConcatenate()
  *
- *      Input:  filename1
- *              filename2 (file to add to filename1)
+ *      Input:  srcfile (file to append)
+ *              destfile (file to add to)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-fileConcatenate(const char  *filename1,
-                const char  *filename2)
+fileConcatenate(const char  *srcfile,
+                const char  *destfile)
 {
+size_t    nbytes;
 l_uint8  *data;
-l_int32   nbytes;
 
     PROCNAME("fileConcatenate");
 
-    if (!filename1)
-        return ERROR_INT("filename1 not defined", procName, 1);
-    if (!filename2)
-        return ERROR_INT("filename2 not defined", procName, 1);
+    if (!srcfile)
+        return ERROR_INT("srcfile not defined", procName, 1);
+    if (!destfile)
+        return ERROR_INT("destfile not defined", procName, 1);
 
-    data = arrayRead(filename2, &nbytes);
-    arrayWrite(filename1, "a", data, nbytes);
+    data = l_binaryRead(srcfile, &nbytes);
+    l_binaryWrite(destfile, "a", data, nbytes);
     FREE(data);
     return 0;
 }
@@ -1600,7 +1814,7 @@ FILE  *fp;
     if (!str)
         return ERROR_INT("str not defined", procName, 1);
 
-    if ((fp = fopen(filename, "a")) == NULL)
+    if ((fp = fopenWriteStream(filename, "a")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     fprintf(fp, "%s", str);
     fclose(fp);
@@ -1624,7 +1838,8 @@ filesAreIdentical(const char  *fname1,
                   const char  *fname2,
                   l_int32     *psame)
 {
-l_int32   i, same, nbytes1, nbytes2;
+l_int32   i, same;
+size_t    nbytes1, nbytes2;
 l_uint8  *array1, *array2;
 
     PROCNAME("filesAreIdentical");
@@ -1640,9 +1855,9 @@ l_uint8  *array1, *array2;
     if (nbytes1 != nbytes2)
         return 0;
 
-    if ((array1 = arrayRead(fname1, &nbytes1)) == NULL)
+    if ((array1 = l_binaryRead(fname1, &nbytes1)) == NULL)
         return ERROR_INT("array1 not read", procName, 1);
-    if ((array2 = arrayRead(fname2, &nbytes2)) == NULL)
+    if ((array2 = l_binaryRead(fname2, &nbytes2)) == NULL)
         return ERROR_INT("array2 not read", procName, 1);
     same = 1;
     for (i = 0; i < nbytes1; i++) {
@@ -1661,7 +1876,7 @@ l_uint8  *array1, *array2;
 
 /*--------------------------------------------------------------------------*
  *   16 and 32 bit byte-swapping on big endian and little  endian machines  *
- *                                                                          * 
+ *                                                                          *
  *   These are typically used for I/O conversions:                          *
  *      (1) endian conversion for data that was read from a file            *
  *      (2) endian conversion on data before it is written to a file        *
@@ -1739,18 +1954,23 @@ convertOnBigEnd32(l_uint32  wordin)
 
 
 /*--------------------------------------------------------------------*
- *                         Opening read stream                        *
+ *                        Opening file streams                        *
  *--------------------------------------------------------------------*/
 /*!
  *  fopenReadStream()
  *
- *      Input:  filename 
- *      Return: stream or null on error
+ *      Input:  filename
+ *      Return: stream, or null on error
+ *
+ *  Notes:
+ *      (1) This wrapper also handles pathname conversions for Windows.
+ *          It should be used whenever you want to run fopen() to
+ *          read from a stream.
  */
 FILE *
 fopenReadStream(const char  *filename)
 {
-char  *tail;
+char  *fname, *tail;
 FILE  *fp;
 
     PROCNAME("fopenReadStream");
@@ -1759,18 +1979,546 @@ FILE  *fp;
         return (FILE *)ERROR_PTR("filename not defined", procName, NULL);
 
         /* Try input filename */
-    if ((fp = fopen(filename, "rb")))
-        return fp;
+    fname = genPathname(filename, NULL);
+    fp = fopen(fname, "rb");
+    FREE(fname);
+    if (fp) return fp;
 
         /* Else, strip directory and try locally */
     splitPathAtDirectory(filename, NULL, &tail);
-    if ((fp = fopen(tail, "rb"))) {
-        FREE(tail);
-        return fp;
-    }
+    fp = fopen(tail, "rb");
     FREE(tail);
 
-    return (FILE *)ERROR_PTR("file not found", procName, NULL);
+    if (!fp)
+        return (FILE *)ERROR_PTR("file not found", procName, NULL);
+    return fp;
+}
+
+
+/*!
+ *  fopenWriteStream()
+ *
+ *      Input:  filename
+ *              modestring
+ *      Return: stream, or null on error
+ *
+ *  Notes:
+ *      (1) This wrapper also handles pathname conversions for Windows.
+ *          It should be used whenever you want to run fopen() to
+ *          write or append to a stream.
+ */
+FILE *
+fopenWriteStream(const char  *filename,
+                 const char  *modestring)
+{
+FILE  *fp;
+
+    PROCNAME("fopenWriteStream");
+
+    if (!filename)
+        return (FILE *)ERROR_PTR("filename not defined", procName, NULL);
+
+#ifdef _WIN32
+    {
+    char  *fname;
+        fname = genPathname(filename, NULL);
+        fp = fopen(fname, modestring);
+        FREE(fname);
+    }
+#else
+    fp = fopen(filename, modestring);
+#endif  /* _WIN32 */
+
+    if (!fp)
+        return (FILE *)ERROR_PTR("stream not opened", procName, NULL);
+    return fp;
+}
+
+
+/*--------------------------------------------------------------------*
+ *      Functions to avoid C-runtime boundary crossing with dlls      *
+ *--------------------------------------------------------------------*/
+/*
+ *  Problems arise when pointers to streams and data are passed
+ *  between two Windows DLLs that have been generated with different
+ *  C runtimes.  To avoid this, leptonica provides wrappers for
+ *  several C library calls.
+ */
+/*!
+ *  lept_fopen()
+ *
+ *      Input:  filename
+ *              mode (same as for fopen(); e.g., "rb")
+ *      Return: stream or null on error
+ *
+ *  Notes:
+ *      (1) This must be used by any application that passes
+ *          a file handle to a leptonica Windows DLL.
+ */
+FILE *
+lept_fopen(const char  *filename,
+           const char  *mode)
+{
+    PROCNAME("lept_fopen");
+
+    if (!filename)
+        return (FILE *)ERROR_PTR("filename not defined", procName, NULL);
+    if (!mode)
+        return (FILE *)ERROR_PTR("mode not defined", procName, NULL);
+
+    if (stringFindSubstr(mode, "r", NULL))
+        return fopenReadStream(filename);
+    else
+        return fopenWriteStream(filename, mode);
+}
+
+
+/*!
+ *  lept_fclose()
+ *
+ *      Input:  fp (stream handle)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This should be used by any application that accepts
+ *          a file handle generated by a leptonica Windows DLL.
+ */
+l_int32
+lept_fclose(FILE *fp)
+{
+    PROCNAME("lept_fclose");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+
+    return fclose(fp);
+}
+
+
+/*!
+ *  lept_calloc()
+ *
+ *      Input:  nmemb (number of members)
+ *              size (of each member)
+ *      Return: void ptr, or null on error
+ *
+ *  Notes:
+ *      (1) For safety with windows DLLs, this can be used in conjunction
+ *          with lept_free() to avoid C-runtime boundary problems.
+ *          Just use these two functions throughout your application.
+ */
+void *
+lept_calloc(size_t  nmemb,
+            size_t  size)
+{
+    if (nmemb <= 0 || size <= 0)
+        return NULL;
+    return CALLOC(nmemb, size);
+}
+
+
+/*!
+ *  lept_free()
+ *
+ *      Input:  void ptr
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This should be used by any application that accepts
+ *          heap data allocated by a leptonica Windows DLL.
+ */
+void
+lept_free(void *ptr)
+{
+    if (!ptr) return;
+    FREE(ptr);
+    return;
+}
+
+
+/*--------------------------------------------------------------------*
+ *                Cross-platform file system operations               *
+ *         [ These only write to /tmp or its subdirectories ]         *
+ *--------------------------------------------------------------------*/
+/*!
+ *  lept_mkdir()
+ *
+ *      Input:  subdir
+ *      Return: 0 on success, non-zero on failure
+ *
+ *  Notes:
+ *      (1) This makes a subdirectory of /tmp/.
+ *      (2) Use unix pathname separators.
+ *      (3) On Windows, it makes a subdirectory of <Temp>/leptonica,
+ *          where <Temp> is the Windows temp dir.  The name translation is:
+ *                 /tmp  -->   <Temp>/leptonica
+ */
+l_int32
+lept_mkdir(const char  *subdir)
+{
+char     *dir;
+l_int32   ret;
+#ifdef  _WIN32
+char     *newpath;
+l_uint32  attributes;
+#endif  /* !_WIN32 */
+
+    PROCNAME("lept_mkdir");
+
+    if (!subdir)
+        return ERROR_INT("subdir not defined", procName, 1);
+    if ((strlen(subdir) == 0) || (subdir[0] == '.') || (subdir[0] == '/'))
+        return ERROR_INT("subdir not an actual subdirectory", procName, 1);
+
+    dir = pathJoin("/tmp", subdir);
+
+#ifndef _WIN32
+    ret = mkdir(dir, 0777);
+#else
+        /* Make sure the leptonica subdir exists in tmp dir */
+    newpath = genPathname("/tmp", NULL);
+    attributes = GetFileAttributes(newpath);
+    if (attributes == INVALID_FILE_ATTRIBUTES) {
+        ret = (CreateDirectory(newpath, NULL) ? 0 : 1);
+    }
+    FREE(newpath);
+
+    newpath = genPathname(dir, NULL);
+    ret = (CreateDirectory(newpath, NULL) ? 0 : 1);
+    FREE(newpath);
+#endif  /* !_WIN32 */
+
+    FREE(dir);
+    return ret;
+}
+
+
+/*!
+ *  lept_rmdir()
+ *
+ *      Input:  subdir (of /tmp or its equivalent on Windows)
+ *      Return: 0 on success, non-zero on failure
+ *
+ *  Notes:
+ *      (1) On unix, this removes all the files in the named
+ *          subdirectory of /tmp.  It then removes the subdirectory.
+ *      (2) Use unix pathname separators.
+ *      (3) On Windows, the affected directory is a subdirectory
+ *          of <Temp>/leptonica, where <Temp> is the Windows temp dir.
+ */
+l_int32
+lept_rmdir(const char  *subdir)
+{
+char    *dir, *fname, *fullname;
+l_int32  exists, ret, i, nfiles;
+SARRAY  *sa;
+#ifdef _WIN32
+char    *newpath;
+#endif  /* _WIN32 */
+
+    PROCNAME("lept_rmdir");
+
+    if (!subdir)
+        return ERROR_INT("subdir not defined", procName, 1);
+    if ((strlen(subdir) == 0) || (subdir[0] == '.') || (subdir[0] == '/'))
+        return ERROR_INT("subdir not an actual subdirectory", procName, 1);
+
+    if ((dir = pathJoin("/tmp", subdir)) == NULL)
+        return ERROR_INT("dir not made", procName, 1);
+    lept_direxists(dir, &exists);
+    if (!exists) {  /* fail silently */
+        FREE(dir);
+        return 0;
+    }
+
+        /* List all the files in temp subdir */
+    if ((sa = getFilenamesInDirectory(dir)) == NULL) {
+        L_ERROR_STRING("directory %s does not exist!!", procName, dir);
+        FREE(dir);
+        return 1;
+    }
+    nfiles = sarrayGetCount(sa);
+
+#ifndef _WIN32
+    for (i = 0; i < nfiles; i++) {
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        fullname = genPathname(dir, fname);
+        remove(fullname);
+        FREE(fullname);
+    }
+    ret = remove(dir);
+#else
+    for (i = 0; i < nfiles; i++) {
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        fullname = genPathname(dir, fname);
+        ret = DeleteFile(fullname);
+        FREE(fullname);
+    }
+    newpath = genPathname(dir, NULL);
+    ret = (RemoveDirectory(newpath) ? 0 : 1);
+    FREE(newpath);
+#endif  /* !_WIN32 */
+
+    sarrayDestroy(&sa);
+    FREE(dir);
+    return ret;
+}
+
+
+/*!
+ *  lept_direxists()
+ *
+ *      Input:  dirname
+ *              &exists (<return> 1 on success, 0 on failure)
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) For Windows, use windows pathname separators.
+ */
+void
+lept_direxists(const char  *dirname,
+               l_int32     *pexists)
+{
+    PROCNAME("lept_direxists");
+
+    if (!pexists) return;
+    *pexists = 0;
+    if (!dirname) return;
+
+#ifndef _WIN32
+    {
+    DIR  *pdir = opendir(dirname);
+        if (pdir) {
+            *pexists = 1;
+            closedir(pdir);
+        }
+    }
+#else  /* _WIN32 */
+    {
+    HANDLE  hFind = INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATAA  ffd;
+        hFind = FindFirstFileA(dirname, &ffd);
+        if (hfind != INVALID_HANDLE_VALUE) {
+            *pexists = 1;
+            FindClose(hFind);
+        }
+    }
+#endif  /* _WIN32 */
+
+    return;
+}
+
+
+/*!
+ *  lept_rm()
+ *
+ *      Input:  subdir (can be NULL, in which case the removed file is
+ *                      in /tmp)
+ *              filename (without the directory)
+ *      Return: 0 on success, non-zero on failure
+ *
+ *  Notes:
+ *      (1) This removes the named file in /tmp or a subdirectory of /tmp.
+ *          If the file is in /tmp, use NULL for the subdir.
+ *      (2) Use unix pathname separators.
+ *      (3) On Windows, the file is in either <Temp>/leptonica, or
+ *          a subdirectory of this, where <Temp> is the Windows temp dir.
+ *          The name translation is: /tmp  -->   <Temp>/leptonica
+ */
+l_int32
+lept_rm(const char  *subdir,
+        const char  *filename)
+{
+char    *dir, *pathname;
+l_int32  ret;
+#ifdef _WIN32
+char    *newpath;
+#endif  /* _WIN32 */
+
+    PROCNAME("lept_rm");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if ((strlen(filename) == 0) || (filename[0] == '.') || (filename[0] == '/'))
+        return ERROR_INT("filename cannot contain a path", procName, 1);
+
+    if (subdir) {
+        dir = pathJoin("/tmp", subdir);
+        pathname = pathJoin(dir, filename);
+        FREE(dir);
+    }
+    else
+        pathname = pathJoin("/tmp", filename);
+    if (!pathname)
+        return ERROR_INT("pathname not made", procName, 1);
+
+#ifndef _WIN32
+    ret = remove(pathname);
+#else
+    newpath = genPathname(pathname, NULL);
+    if (!newpath) {
+        FREE(pathname);
+        return ERROR_INT("newpath not made", procName, 1);
+    }
+    ret = (DeleteFile(newpath) ? 0 : 1);
+    FREE(newpath);
+#endif  /* !_WIN32 */
+
+    FREE(pathname);
+    return ret;
+}
+
+
+/*!
+ *  lept_mv()
+ *
+ *      Input:  srcfile, newfile
+ *      Return: 0 on success, non-zero on failure
+ *
+ *  Notes:
+ *      (1) This moves a srcfile to /tmp or to a subdirectory of /tmp.
+ *      (2) The input srcfile name is the complete pathname.
+ *          The input newfile is either in /tmp or a subdirectory
+ *          of /tmp, and newfile can be specified either as the
+ *          full path or without the leading '/tmp'.
+ *      (3) Use unix pathname separators.
+ *      (4) On Windows, the source and target filename are altered
+ *          internally if necessary to conform to the Windows temp file.
+ *          The name translation is: /tmp  -->   <Temp>/leptonica
+ */
+l_int32
+lept_mv(const char  *srcfile,
+        const char  *newfile)
+{
+char     *newfileplus;
+l_int32   ret;
+#ifndef _WIN32
+char     *command;
+l_int32   nbytes;
+#else
+char     *srcpath, *newpath, *tail;
+l_uint32  attributes;
+#endif  /* !_WIN32 */
+
+    PROCNAME("lept_mv");
+
+    if (!srcfile || !newfile)
+        return ERROR_INT("srcfile and newfile not both defined", procName, 1);
+    if (strncmp(newfile, "/tmp/", 5))
+        newfileplus = pathJoin("/tmp", newfile);
+    else
+        newfileplus = stringNew(newfile);
+
+#ifndef _WIN32
+    nbytes = strlen(srcfile) + strlen(newfileplus) + 10;
+    command = (char *)CALLOC(nbytes, sizeof(char));
+    snprintf(command, nbytes, "mv %s %s", srcfile, newfileplus);
+    ret = system(command);
+    FREE(command);
+#else
+    srcpath = genPathname(srcfile, NULL);
+    newpath = genPathname(newfileplus, NULL);
+    attributes = GetFileAttributes(newpath);
+    if (attributes != INVALID_FILE_ATTRIBUTES &&
+        (attributes & FILE_ATTRIBUTE_DIRECTORY)) {
+        if (splitPathAtDirectory(srcpath, NULL, &tail)) {
+            FREE(srcpath);
+            FREE(newpath);
+            return ERROR_INT("Unable to split source filename into root & tail",
+                             procName, 1);
+        }
+        FREE(newpath);
+        newpath = genPathname(newfileplus, tail);
+        FREE(tail);
+    }
+
+        /* New file overwritten if it already exists */
+    ret = (MoveFileEx(srcpath, newpath,
+                      MOVEFILE_COPY_ALLOWED |
+                      MOVEFILE_REPLACE_EXISTING) ? 0 : 1);
+    FREE(srcpath);
+    FREE(newpath);
+#endif  /* !_WIN32 */
+
+    FREE(newfileplus);
+    return ret;
+}
+
+
+/*!
+ *  lept_cp()
+ *
+ *      Input:  srcfile
+ *              newfile
+ *      Return: 0 on success, non-zero on failure
+ *
+ *  Notes:
+ *      (1) This copies a file to /tmp or a subdirectory of /tmp.
+ *      (2) The input srcfile name is the complete pathname.
+ *          The input newfile is either in /tmp or a subdirectory
+ *          of /tmp, and newfile can be specified either as the
+ *          full path or without the leading '/tmp'.
+ *      (3) Use unix pathname separators.
+ *      (4) On Windows, the source and target filename are altered
+ *          internally if necessary to conform to the Windows temp file.
+ *      (5) Alternatively, you can use fileCopy().  This avoids
+ *          forking a new process and has no restrictions on the
+ *          destination directory.
+ */
+l_int32
+lept_cp(const char  *srcfile,
+        const char  *newfile)
+{
+char     *newfileplus;
+l_int32   ret;
+#ifndef _WIN32
+char     *command;
+l_int32   nbytes;
+#else
+char     *srcpath, *newpath, *tail;
+l_uint32  attributes;
+#endif  /* !_WIN32 */
+
+    PROCNAME("lept_cp");
+
+    if (!srcfile || !newfile)
+        return ERROR_INT("srcfile and newfile not both defined", procName, 1);
+    if (strncmp(newfile, "/tmp/", 5))
+        newfileplus = pathJoin("/tmp", newfile);
+    else
+        newfileplus = stringNew(newfile);
+
+#ifndef _WIN32
+    nbytes = strlen(srcfile) + strlen(newfileplus) + 10;
+    command = (char *)CALLOC(nbytes, sizeof(char));
+    snprintf(command, nbytes, "cp %s %s", srcfile, newfile);
+    ret = system(command);
+    FREE(command);
+#else
+    srcpath = genPathname(srcfile, NULL);
+    newpath = genPathname(newfileplus, NULL);
+    attributes = GetFileAttributes(newpath);
+    if (attributes != INVALID_FILE_ATTRIBUTES &&
+        (attributes & FILE_ATTRIBUTE_DIRECTORY)) {
+        if (splitPathAtDirectory(srcpath, NULL, &tail)) {
+            FREE(srcpath);
+            FREE(newpath);
+            return ERROR_INT("Unable to split source filename into root & tail",
+                             procName, 1);
+        }
+        FREE(newpath);
+        newpath = genPathname(newfileplus, tail);
+        FREE(tail);
+    }
+
+        /* New file overwritten if it already exists */
+    ret = (CopyFile(srcpath, newpath, FALSE) ? 0 : 1);
+    FREE(srcpath);
+    FREE(newpath);
+#endif  /* !_WIN32 */
+
+    FREE(newfileplus);
+    return ret;
 }
 
 
@@ -1787,16 +2535,18 @@ FILE  *fp;
  *                     the file name within the root directory or
  *                     the last sub-directory in the path)
  *      Return: 0 if OK, 1 on error
- *       
- *  Note: (1) if you only want the tail, input null for
- *            the root directory ptr.
- *        (2) if you only want the root directory name,
- *            input null for the tail ptr.
- *        (3) This function makes decisions based only on the lexical
- *            structure of the input.  Examples:
- *              /usr/tmp/abc  -->  dir: /usr/tmp/   tail: abc
- *              /usr/tmp/  -->  dir: /usr/tmp/   tail: [empty string]
- *              /usr/tmp  -->  dir: /usr/   tail: tmp
+ *
+ *  Notes:
+ *      (1) If you only want the tail, input null for the root directory ptr.
+ *      (2) If you only want the root directory name, input null for the
+ *          tail ptr.
+ *      (3) This function makes decisions based only on the lexical
+ *          structure of the input.  Examples:
+ *            /usr/tmp/abc  -->  dir: /usr/tmp/   tail: abc
+ *            /usr/tmp/  -->  dir: /usr/tmp/   tail: [empty string]
+ *            /usr/tmp  -->  dir: /usr/   tail: tmp
+ *      (4) N.B. The input pathname must have unix directory separators
+ *          for unix and windows directory separators for windows.
  */
 l_int32
 splitPathAtDirectory(const char  *pathname,
@@ -1848,7 +2598,7 @@ char  *cpathname, *lastslash;
  *                        the last dot and the characters after it.  If
  *                        there is no extension, it returns the empty string)
  *      Return: 0 if OK, 1 on error
- *       
+ *
  *  Notes:
  *      (1) If you only want the extension, input null for the basename ptr.
  *      (2) If you only want the basename without extension, input null
@@ -1859,6 +2609,8 @@ char  *cpathname, *lastslash;
  *            /usr/tmp/.jpg  -->  basename: /usr/tmp/   tail: .jpg
  *            /usr/tmp.jpg/  -->  basename: /usr/tmp.jpg/   tail: [empty str]
  *            ./.jpg  -->  basename: ./   tail: .jpg
+ *      (4) N.B. The input pathname must have unix directory separators
+ *          for unix and windows directory separators for windows.
  */
 l_int32
 splitPathAtExtension(const char  *pathname,
@@ -1902,113 +2654,294 @@ char   empty[4] = "";
 }
 
 
-/*! 
+/*!
+ *  pathJoin()
+ *
+ *      Input:  dir (<optional> can be null)
+ *              fname (<optional> can be null)
+ *      Return: specially concatenated path, or null on error
+ *
+ *  Notes:
+ *      (1) Use unix-style pathname separators ('/').
+ *      (2) @fname can be the entire path, or part of the path containing
+ *          at least one directory, or a tail without a directory, or NULL.
+ *      (3) It produces a path that strips multiple slashes to a single
+ *          slash, joins @dir and @fname by a slash, and has no trailing
+ *          slashes (except in the cases where @dir == "/" and
+ *          @fname == NULL, or v.v.).
+ *      (4) If both @dir and @fname are null, produces an empty string.
+ *      (5) The result is not canonicalized or tested  for correctness:
+ *          garbage in (e.g., ...), garbage out.
+ *      (6) Examples:
+ *             //tmp// + //abc/  -->  /tmp/abc
+ *             tmp/ + /abc/      -->  tmp/abc
+ *             tmp/ + abc/       -->  tmp/abc
+ *             /tmp/ + ///       -->  /tmp
+ *             /tmp/ + NULL      -->  /tmp
+ *             // + /abc//       -->  /abc
+ *             // + NULL         -->  /
+ *             NULL + /abc/def/  -->  /abc/def
+ *             NULL + abc//      -->  abc
+ *             NULL + //         -->  /
+ *             NULL + NULL       -->  (empty string)
+ *             "" + ""           -->  (empty string)
+ *             "" + /            -->  /
+ */
+char *
+pathJoin(const char  *dir,
+         const char  *fname)
+{
+char     *slash = (char *)"/";
+char     *str, *dest;
+l_int32   i, n1, n2, emptydir;
+size_t    size;
+SARRAY   *sa1, *sa2;
+L_BYTEA  *ba;
+
+    if (!dir && !fname)
+        return stringNew("");
+
+    sa1 = sarrayCreate(0);
+    sa2 = sarrayCreate(0);
+    ba = l_byteaCreate(4);
+
+        /* Process @dir */
+    if (dir && strlen(dir) > 0) {
+        if (dir[0] == '/')
+            l_byteaAppendString(ba, slash);
+        sarraySplitString(sa1, dir, "/");  /* removes all slashes */
+        n1 = sarrayGetCount(sa1);
+        for (i = 0; i < n1; i++) {
+            str = sarrayGetString(sa1, i, L_NOCOPY);
+            l_byteaAppendString(ba, str);
+            l_byteaAppendString(ba, slash);
+        }
+    }
+
+        /* Special case to add leading slash: dir NULL or empty string  */
+    emptydir = dir && strlen(dir) == 0;
+    if ((!dir || emptydir) && fname && strlen(fname) > 0 && fname[0] == '/')
+        l_byteaAppendString(ba, slash);
+
+        /* Process @fname */
+    if (fname && strlen(fname) > 0) {
+        sarraySplitString(sa2, fname, "/");
+        n2 = sarrayGetCount(sa2);
+        for (i = 0; i < n2; i++) {
+            str = sarrayGetString(sa2, i, L_NOCOPY);
+            l_byteaAppendString(ba, str);
+            l_byteaAppendString(ba, slash);
+        }
+    }
+
+        /* Remove trailing slash */
+    dest = (char *)l_byteaCopyData(ba, &size);
+    if (size > 1 && dest[size - 1] == '/')
+        dest[size - 1] = '\0';
+
+    sarrayDestroy(&sa1);
+    sarrayDestroy(&sa2);
+    l_byteaDestroy(&ba);
+    return dest;
+}
+
+
+/*!
  *  genPathname()
  *
  *      Input:  dir (directory name, with or without trailing '/')
- *              fname (file name within the directory)
- *      Return: full pathname, or null on error
+ *              fname (<optional> file name within the directory)
+ *      Return: pathname (either a directory or full path), or null on error
+ *
+ *  Notes:
+ *      (1) Use unix-style pathname separators ('/').
+ *      (2) This function can be used in several ways:
+ *            * to generate a full path from a directory and a file name
+ *            * to convert a unix pathname to a windows pathname
+ *            * to convert from the unix '/tmp' directory to the
+ *              equivalent windows temp directory.
+ *          The windows name translation is:
+ *                   /tmp  -->   <Temp>/leptonica
+ *      (3) There are three cases for the input:
+ *          (a) @dir is a directory and @fname is null: result is a directory
+ *          (b) @dir is a full path and @fname is null: result is a full path
+ *          (c) @dir is a directory and @fname is defined: result is a full path
+ *      (4) In all cases, the resulting pathname is not terminated with a slash
+ *      (5) The caller is responsible for freeing the pathname.
  */
 char *
 genPathname(const char  *dir,
             const char  *fname)
 {
-char    *charbuf;
-l_int32  dirlen, namelen, totlen;
-    
+char    *cdir, *pathout;
+l_int32  dirlen, namelen, size;
+
     PROCNAME("genPathname");
 
     if (!dir)
         return (char *)ERROR_PTR("dir not defined", procName, NULL);
-    if (!fname)
-        return (char *)ERROR_PTR("fname not defined", procName, NULL);
 
-    dirlen = strlen(dir);
-    namelen = strlen(fname);
-    totlen = dirlen + namelen + 20;
-    if ((charbuf = (char *)CALLOC(totlen, sizeof(char))) == NULL)
-        return (char *)ERROR_PTR("charbuf not made", procName, NULL);
+        /* Remove trailing slash in dir, except when dir == "/"  */
+    cdir = stringNew(dir);
+    dirlen = strlen(cdir);
+    if (cdir[dirlen - 1] == '/' && dirlen != 1) {
+        cdir[dirlen - 1] = '\0';
+        dirlen--;
+    }
+
+    namelen = (fname) ? strlen(fname) : 0;
+    size = dirlen + namelen + 256;
+    if ((pathout = (char *)CALLOC(size, sizeof(char))) == NULL)
+        return (char *)ERROR_PTR("pathout not made", procName, NULL);
 
 #ifdef _WIN32
-    if (stringFindSubstr(dir, "/", NULL) > 0) {
-        char *tempname;
-        tempname = stringReplaceEachSubstr(dir, "/", "\\", NULL);
-        stringCopy(charbuf, tempname, strlen(tempname));
-        FREE(tempname);
-    }
-    else {
-        stringCopy(charbuf, dir, dirlen);
+    {
+        char  dirt[MAX_PATH];
+        if (stringFindSubstr(cdir, "/", NULL) > 0) {
+            char    *tempdir;
+            l_int32  tdirlen;
+            tempdir = stringReplaceEachSubstr(cdir, "/", "\\", NULL);
+            tdirlen = strlen(tempdir);
+            if (strncmp(dir, "/tmp", 4) == 0) {  /* get temp directory */
+                GetTempPath(sizeof(dirt), dirt);
+                stringCopy(pathout, dirt, strlen(dirt) - 1);
+                stringCat(pathout, size, "\\leptonica");
+                if (tdirlen > 4)
+                    stringCat(pathout, size, tempdir + 4);
+
+                    /* Set an extra null byte.  Otherwise, when setting
+                       sepchar later, no trailing null byte remains. */
+                pathout[strlen(pathout) + 1] = '\0';
+            }
+            else {
+                stringCopy(pathout, tempdir, tdirlen);
+            }
+            FREE(tempdir);
+        }
+        else {  /* no '/' characters; OK as is */
+            stringCopy(pathout, cdir, dirlen);
+        }
     }
 #else
-    stringCopy(charbuf, dir, dirlen);
+    stringCopy(pathout, cdir, dirlen);
 #endif  /* _WIN32 */
 
-    dirlen = strlen(charbuf);
-    if (charbuf[dirlen - 1] != sepchar)  /* append sepchar */
-        charbuf[dirlen] = sepchar;
-    strncat(charbuf, fname, namelen);
-    return charbuf;
+    if (fname && strlen(fname) > 0) {
+        dirlen = strlen(pathout);
+        pathout[dirlen] = sepchar;  /* append sepchar */
+        strncat(pathout, fname, namelen);
+    }
+    FREE(cdir);
+    return pathout;
 }
 
 
-/*! 
+/*!
  *  genTempFilename()
  *
- *      Input:  dir (directory name; use '.' for local dir; no trailing '/')
+ *      Input:  dir (directory name; use '.' for local dir;
+ *                   no trailing '/' and @dir == "/" is invalid)
  *              tail (<optional>  tailname, including extension if any;
- *                                can be null)
- *              usepid (1 to include pid in filename before the tail;
- *                      0 to omit the pid.
+ *                    can be null or empty but can't contain '/')
+ *              usetime (1 to include current time in microseconds in
+ *                       the filename; 0 to omit.
+ *              usepid (1 to include pid in filename; 0 to omit.
  *      Return: temp filename, or null on error
  *
  *  Notes:
- *      (1) This function is useful when there can be more than one
- *          process writing and reading temporary files.  It will not
- *          work properly when multiple threads from a single process call
- *          this function.  Furthermore, as with any function that
- *          provides easily guessed temporary filenames, it is not designed
- *          to be safe from an attack where the intruder is logged onto
- *          the server.
- *      (2) For windows, if the caller requests '/tmp', use GetTempPath()
- *          to select the actual directory.  This avoids using
- *          platform-conditional code wherever this is used.
- *      (3) When @usepid == 1, the output filename is:
+ *      (1) Use unix-style pathname separators ('/').
+ *      (2) Specifying the root directory (@dir == "/") is invalid.
+ *      (3) Specifying a @tail containing '/' is invalid.
+ *      (4) The most general form (@usetime = @usepid = 1) is:
+ *              <dir>/<usec>_<pid>_<tail>
+ *          When @usetime = 1, @usepid = 0, the output filename is:
+ *              <dir>/<usec>_<tail>
+ *          When @usepid = 0, @usepid = 1, the output filename is:
  *              <dir>/<pid>_<tail>
- *          Otherwise it is simply
+ *          When @usetime = @usepid = 0, the output filename is:
  *              <dir>/<tail>
+ *          Note: It is not valid to have @tail = null or empty and have
+ *          both @usetime = @usepid = 0.  That is, there must be
+ *          some non-empty tail name.
+ *      (5) N.B. The caller is responsible for freeing the returned filename.
+ *          For windows, to avoid C-runtime boundary crossing problems
+ *          when using DLLs, you must use lept_free() to free the name.
+ *      (6) For windows, if the caller requests the directory '/tmp',
+ *          this uses GetTempPath() to select the actual directory,
+ *          avoiding platform-conditional code in use.  The directory
+ *          selected is <Temp>/leptonica, where <Temp> is the Windows
+ *          temp directory.
+ *      (7) Set @usetime = @usepid = 1 when
+ *          (a) more than one process is writing and reading temp files, or
+ *          (b) multiple threads from a single process call this function, or
+ *          (c) there is the possiblity of an attack where the intruder
+ *              is logged onto the server and might try to guess filenames.
  */
 char *
 genTempFilename(const char  *dir,
                 const char  *tail,
+                l_int32      usetime,
                 l_int32      usepid)
 {
 char     buf[256];
-l_int32  i, buflen, pid;
-    
+l_int32  i, buflen, usec, pid, emptytail;
+#ifdef _WIN32
+char    *newpath;
+l_uint32 attributes;
+l_int32  ret;
+#endif  /* !_WIN32 */
+
     PROCNAME("genTempFilename");
 
     if (!dir)
         return (char *)ERROR_PTR("dir not defined", procName, NULL);
+    if (dir && strlen(dir) == 1 && dir[0] == '/')
+        return (char *)ERROR_PTR("dir == '/' not permitted", procName, NULL);
+    if (tail && strlen(tail) > 0 && stringFindSubstr(tail, "/", NULL))
+        return (char *)ERROR_PTR("tail can't contain '/'", procName, NULL);
+    emptytail = tail && (strlen(tail) == 0);
+    if (!usetime && !usepid && (!tail || emptytail))
+        return (char *)ERROR_PTR("name can't be a directory", procName, NULL);
 
     if (usepid) pid = getpid();
     buflen = sizeof(buf);
     for (i = 0; i < buflen; i++)
         buf[i] = 0;
+    l_getCurrentTime(NULL, &usec);
 
 #ifdef _WIN32
     {  /* do not assume /tmp exists */
     char  dirt[MAX_PATH];
-    if (!strcmp(dir, "/tmp"))
+    if (!strcmp(dir, "/tmp")) {
         GetTempPath(sizeof(dirt), dirt);
+        stringCat(dirt, sizeof(dirt), "leptonica\\");
+
+            /* Make sure the leptonica subdir exists in tmp dir */
+        newpath = genPathname("/tmp", NULL);
+        attributes = GetFileAttributes(newpath);
+        if (attributes == INVALID_FILE_ATTRIBUTES) {
+            ret = (CreateDirectory(newpath, NULL) ? 0 : 1);
+        }
+        FREE(newpath);
+    }
     else
         snprintf(dirt, sizeof(dirt), "%s\\", dir);  /* add trailing '\' */
-    if (usepid)
+
+    if (usetime && usepid)
+        snprintf(buf, buflen, "%s%d_%d_", dirt, usec, pid);
+    else if (usetime)
+        snprintf(buf, buflen, "%s%d_", dirt, usec);
+    else if (usepid)
         snprintf(buf, buflen, "%s%d_", dirt, pid);
     else
         snprintf(buf, buflen, "%s", dirt);
     }
 #else
-    if (usepid)
+    if (usetime && usepid)
+        snprintf(buf, buflen, "%s/%d_%d_", dir, usec, pid);
+    else if (usetime)
+        snprintf(buf, buflen, "%s/%d_", dir, usec);
+    else if (usepid)
         snprintf(buf, buflen, "%s/%d_", dir, pid);
     else
         snprintf(buf, buflen, "%s/", dir);
@@ -2018,48 +2951,7 @@ l_int32  i, buflen, pid;
 }
 
 
-/*! 
- *  mungePathnameForWindows()
- *
- *      Input:  namein (pathname)
- *      Return: nameout (in Windows, replace '/tmp')
- *
- *  Notes:
- *      (1) This returns a new string.  The caller is responsible
- *          for freeing it.
- *      (2) For windows, if the caller requests '/tmp', use GetTempPath()
- *          to select the actual directory.  This avoids using
- *          platform-conditional code wherever this is used.
- */
-char *
-mungePathnameForWindows(const char  *namein)
-{
-    PROCNAME("mungePathnameForWindows");
-
-    if (!namein)
-        return (char *)ERROR_PTR("namein not defined", procName, NULL);
-
-#ifdef _WIN32
-    {  /* do not assume /tmp exists */
-    char   dirt[MAX_PATH];
-    char  *tail, *nameout;
-    if (strncmp(namein, "/tmp", 4) != 0)
-        return stringNew(namein);
-    GetTempPath(sizeof(dirt), dirt);
-    if (strlen(namein) == 4)
-        return stringNew(dirt);
-    tail = stringNew(namein + 4);
-    nameout = stringJoin(dirt, tail);
-    FREE(tail);
-    return nameout;
-    }
-#else
-    return stringNew(namein);
-#endif
-}
-
-
-/*! 
+/*!
  *  extractNumberFromFilename()
  *
  *      Input:  fname
@@ -2069,9 +2961,10 @@ mungePathnameForWindows(const char  *namein)
  *                   not found
  *
  *  Notes:
- *      (1) The number is to be found in the basename, which is the
+ *      (1) Use unix-style pathname separators ('/').
+ *      (2) The number is to be found in the basename, which is the
  *          filename without either the directory or the last extension.
- *      (2) When a number is found, it is non-negative.  If no number
+ *      (3) When a number is found, it is non-negative.  If no number
  *          is found, this returns -1, without an error message.  The
  *          caller needs to check.
  */
@@ -2082,7 +2975,7 @@ extractNumberFromFilename(const char  *fname,
 {
 char    *tail, *basename;
 l_int32  len, nret, num;
-    
+
     PROCNAME("extractNumberFromFilename");
 
     if (!fname)
@@ -2145,23 +3038,45 @@ genRandomIntegerInRange(l_int32   range,
 
 
 /*---------------------------------------------------------------------*
- *                          Version number                             *
+ *                         Simple math function                        *
  *---------------------------------------------------------------------*/
 /*!
- *  getLeptonlibVersion()
+ *  lept_roundftoi()
  *
- *      Return: string of version number (e.g., 'leptonlib-1.65')
+ *      Input:  fval
+ *      Return: value rounded to int
+ *
+ *  Notes:
+ *      (1) For fval >= 0, fval --> round(fval) == floor(fval + 0.5)
+ *          For fval < 0, fval --> -round(-fval))
+ *          This is symmetric around 0.
+ *          e.g., for fval in (-0.5 ... 0.5), fval --> 0
+ */
+l_int32
+lept_roundftoi(l_float32  fval)
+{
+    return (fval >= 0.0) ? (l_int32)(fval + 0.5) : (l_int32)(fval - 0.5);
+}
+
+
+/*---------------------------------------------------------------------*
+ *                       Leptonica version number                      *
+ *---------------------------------------------------------------------*/
+/*!
+ *  getLeptonicaVersion()
+ *
+ *      Return: string of version number (e.g., 'leptonica-1.68')
  *
  *  Notes:
  *      (1) The caller has responsibility to free the memory.
  */
 char *
-getLeptonlibVersion()
+getLeptonicaVersion()
 {
     char *version = (char *)CALLOC(100, sizeof(char));
 
 #ifdef _MSC_VER
-  #ifdef _DLL
+  #ifdef _USRDLL
     char dllStr[] = "DLL";
   #else
     char dllStr[] = "LIB";
@@ -2178,13 +3093,13 @@ getLeptonlibVersion()
   #else
     char bitStr[] = ""
   #endif
-    snprintf(version, 100, "leptonlib-%d.%d (%s, %s) [MSC v.%d %s %s%s]",
+    snprintf(version, 100, "leptonica-%d.%d (%s, %s) [MSC v.%d %s %s%s]",
              LIBLEPT_MAJOR_VERSION, LIBLEPT_MINOR_VERSION,
              __DATE__, __TIME__, _MSC_VER, dllStr, debugStr, bitStr);
 
 #else
 
-    snprintf(version, 100, "leptonlib-%d.%d", LIBLEPT_MAJOR_VERSION,
+    snprintf(version, 100, "leptonica-%d.%d", LIBLEPT_MAJOR_VERSION,
              LIBLEPT_MINOR_VERSION);
 
 #endif   /* _MSC_VER */
@@ -2193,114 +3108,8 @@ getLeptonlibVersion()
 
 
 /*---------------------------------------------------------------------*
- *                    Image Library Version number                     *
- *---------------------------------------------------------------------*/
-/*! 
- *  getImagelibVersions()
- *
- *      Return: string of version numbers (e.g.,
- *               libgiff 4.1.6
- *               libjpeg 8b
- *               libpng 1.4.3
- *               libtiff 3.9.4
- *               zlib 1.2.5
- *
- *  Notes:
- *      (1) The caller has responsibility to free the memory.
- */
-#if HAVE_LIBGIF
-#include "gif_lib.h"
-#endif
-
-#if HAVE_LIBJPEG
-#include "jpeglib.h"
-#include "jerror.h"
-#endif
-
-#if HAVE_LIBPNG
-#include "png.h"
-#endif
-
-#if HAVE_LIBTIFF
-#include "tiffio.h"
-#endif
-
-#if HAVE_LIBZ
-#include "zlib.h"
-#endif
-
-#define stringJoinInPlace(s1, s2) \
-    tempStrP = stringJoin(s1,s2); FREE(s1); s1 = tempStrP;
-
-char *
-getImagelibVersions()
-{
-#if HAVE_LIBJPEG
-    struct jpeg_compress_struct cinfo;
-    struct jpeg_error_mgr err;
-    char buffer[JMSG_LENGTH_MAX];
-#endif
-    char *tempStrP;
-    char *versionNumP;
-    char *nextTokenP;
-    char *versionStrP = stringNew("");
-
-#if HAVE_LIBGIF
-    stringJoinInPlace(versionStrP, "libgiff 4.1.6\n");
-    //strncat_s(version, 1000, GIF_LIB_VERSION, _TRUNCATE);
-    //GIF_LIB_VERSION is just "4.1" so manually specify the full version.
-#endif
-
-#if HAVE_LIBJPEG
-    cinfo.err = jpeg_std_error(&err);
-    err.msg_code = JMSG_VERSION;
-    (*err.format_message) ((j_common_ptr ) &cinfo, buffer);
-
-    stringJoinInPlace(versionStrP, "libjpeg ");
-    versionNumP = strtokSafe(buffer, " ", &nextTokenP);
-    stringJoinInPlace(versionStrP, versionNumP);
-    stringJoinInPlace(versionStrP, "\n");
-    FREE(versionNumP);
-#endif
-
-#if HAVE_LIBPNG
-    stringJoinInPlace(versionStrP, "libpng ");
-    stringJoinInPlace(versionStrP, png_get_libpng_ver(NULL));
-    stringJoinInPlace(versionStrP, "\n");
-#endif
-
-#if HAVE_LIBTIFF
-    stringJoinInPlace(versionStrP, "libtiff ");
-    versionNumP = strtokSafe((char *)TIFFGetVersion(), " \n", &nextTokenP);
-    FREE(versionNumP);
-    versionNumP = strtokSafe(NULL, " \n", &nextTokenP);
-    FREE(versionNumP);
-    versionNumP = strtokSafe(NULL, " \n", &nextTokenP);
-    stringJoinInPlace(versionStrP, versionNumP);
-    stringJoinInPlace(versionStrP, "\n");
-    FREE(versionNumP);
-#endif
-
-#if HAVE_LIBZ
-    stringJoinInPlace(versionStrP, "zlib ");
-    stringJoinInPlace(versionStrP, zlibVersion());
-    stringJoinInPlace(versionStrP, "\n");
-#endif
-
-    return versionStrP;
-}
-
-
-/*---------------------------------------------------------------------*
  *                           Timing procs                              *
  *---------------------------------------------------------------------*/
-/*
- *  Example of use:
- *
- *      startTimer();
- *      ....
- *      fprintf(stderr, "Elapsed time = %7.3f sec\n", stopTimer());
- */
 #ifndef _WIN32
 
 #include <sys/time.h>
@@ -2309,12 +3118,20 @@ getImagelibVersions()
 static struct rusage rusage_before;
 static struct rusage rusage_after;
 
+/*!
+ *  startTimer(), stopTimer()
+ *
+ *  Example of usage:
+ *
+ *      startTimer();
+ *      ....
+ *      fprintf(stderr, "Elapsed time = %7.3f sec\n", stopTimer());
+ */
 void
 startTimer(void)
 {
     getrusage(RUSAGE_SELF, &rusage_before);
 }
-
 
 l_float32
 stopTimer(void)
@@ -2325,11 +3142,75 @@ l_int32  tsec, tusec;
 
     tsec = rusage_after.ru_utime.tv_sec - rusage_before.ru_utime.tv_sec;
     tusec = rusage_after.ru_utime.tv_usec - rusage_before.ru_utime.tv_usec;
-
     return (tsec + ((l_float32)tusec) / 1000000.0);
 }
 
+
+/*!
+ *  startTimerNested(), stopTimerNested()
+ *
+ *  Example of usage:
+ *
+ *      L_TIMER  t1 = startTimerNested();
+ *      ....
+ *      L_TIMER  t2 = startTimerNested();
+ *      ....
+ *      fprintf(stderr, "Elapsed time 2 = %7.3f sec\n", stopTimerNested(t2));
+ *      ....
+ *      fprintf(stderr, "Elapsed time 1 = %7.3f sec\n", stopTimerNested(t1));
+ */
+L_TIMER
+startTimerNested(void)
+{
+struct rusage  *rusage_start;
+
+    rusage_start = (struct rusage *)CALLOC(1, sizeof(struct rusage));
+    getrusage(RUSAGE_SELF, rusage_start);
+    return rusage_start;
+}
+
+l_float32
+stopTimerNested(L_TIMER  rusage_start)
+{
+l_int32        tsec, tusec;
+struct rusage  rusage_stop;
+
+    getrusage(RUSAGE_SELF, &rusage_stop);
+
+    tsec = rusage_stop.ru_utime.tv_sec -
+           ((struct rusage *)rusage_start)->ru_utime.tv_sec;
+    tusec = rusage_stop.ru_utime.tv_usec -
+           ((struct rusage *)rusage_start)->ru_utime.tv_usec;
+    FREE(rusage_start);
+    return (tsec + ((l_float32)tusec) / 1000000.0);
+}
+
+
+/*!
+ *  l_getCurrentTime()
+ *
+ *      Input:  &sec (<optional return> in seconds since birth of Unix)
+ *              &usec (<optional return> in microseconds since birth of Unix)
+ *      Return: void
+ */
+void
+l_getCurrentTime(l_int32  *sec,
+                 l_int32  *usec)
+{
+struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    if (sec) *sec = (l_int32)tv.tv_sec;
+    if (usec) *usec = (l_int32)tv.tv_usec;
+    return;
+}
+
+
 #else   /* _WIN32 : resource.h not implemented under Windows */
+
+    /* Note: if division by 10^7 seems strange, the time is expressed
+     * as the number of 100-nanosecond intervals that have elapsed
+     * since 12:00 A.M. January 1, 1601.  */
 
 static ULARGE_INTEGER utime_before;
 static ULARGE_INTEGER utime_after;
@@ -2339,7 +3220,7 @@ startTimer(void)
 {
 HANDLE    this_process;
 FILETIME  start, stop, kernel, user;
-    
+
     this_process = GetCurrentProcess();
 
     GetProcessTimes(this_process, &start, &stop, &kernel, &user);
@@ -2351,18 +3232,168 @@ FILETIME  start, stop, kernel, user;
 l_float32
 stopTimer(void)
 {
-HANDLE    this_process;
-FILETIME  start, stop, kernel, user;
-    
+HANDLE     this_process;
+FILETIME   start, stop, kernel, user;
+ULONGLONG  hnsec;  /* in units of hecto-nanosecond (100 ns) intervals */
+
     this_process = GetCurrentProcess();
 
     GetProcessTimes(this_process, &start, &stop, &kernel, &user);
 
     utime_after.LowPart  = user.dwLowDateTime;
     utime_after.HighPart = user.dwHighDateTime;
+    hnsec = utime_after.QuadPart - utime_before.QuadPart;
+    return (l_float32)(signed)hnsec / 10000000.0;
+}
 
-    return ((l_float32)(signed)(utime_after.QuadPart - utime_before.QuadPart) /
-             10000000.0);
+L_TIMER
+startTimerNested(void)
+{
+HANDLE           this_process;
+FILETIME         start, stop, kernel, user;
+ULARGE_INTEGER  *utime_start;
+
+    this_process = GetCurrentProcess();
+
+    GetProcessTimes (this_process, &start, &stop, &kernel, &user);
+
+    utime_start = (ULARGE_INTEGER *)CALLOC(1, sizeof(ULARGE_INTEGER));
+    utime_start->LowPart  = user.dwLowDateTime;
+    utime_start->HighPart = user.dwHighDateTime;
+    return utime_start;
+}
+
+l_float32
+stopTimerNested(L_TIMER  utime_start)
+{
+HANDLE          this_process;
+FILETIME        start, stop, kernel, user;
+ULARGE_INTEGER  utime_stop;
+ULONGLONG       hnsec;  /* in units of 100 ns intervals */
+
+    this_process = GetCurrentProcess ();
+
+    GetProcessTimes (this_process, &start, &stop, &kernel, &user);
+
+    utime_stop.LowPart  = user.dwLowDateTime;
+    utime_stop.HighPart = user.dwHighDateTime;
+    hnsec = utime_stop.QuadPart - ((ULARGE_INTEGER *)utime_start)->QuadPart;
+    FREE(utime_start);
+    return (l_float32)(signed)hnsec / 10000000.0;
+}
+
+void
+l_getCurrentTime(l_int32  *sec,
+                 l_int32  *usec)
+{
+ULARGE_INTEGER  utime, birthunix;
+FILETIME        systemtime;
+LONGLONG        birthunixhnsec = 116444736000000000;  /*in units of 100 ns */
+LONGLONG        usecs;
+
+    GetSystemTimeAsFileTime(&systemtime);
+    utime.LowPart  = systemtime.dwLowDateTime;
+    utime.HighPart = systemtime.dwHighDateTime;
+
+    birthunix.LowPart = (DWORD) birthunixhnsec;
+    birthunix.HighPart = birthunixhnsec >> 32;
+
+    usecs = (LONGLONG) ((utime.QuadPart - birthunix.QuadPart) / 10);
+
+    if (sec) *sec = (l_int32) (usecs / 1000000);
+    if (usec) *usec = (l_int32) (usecs % 1000000);
+    return;
 }
 
 #endif
+
+
+/*!
+ *  l_getFormattedDate()
+ *
+ *      Input:  (none)
+ *      Return: formatted date string, or null on error
+ */
+char *
+l_getFormattedDate()
+{
+char        buf[64];
+time_t      tmp1;
+struct tm  *tmp2;
+
+    tmp1 = time(NULL);
+    tmp2 = localtime(&tmp1);
+    strftime(buf, sizeof(buf), "%y%m%d%H%M%S", tmp2);
+    return stringNew(buf);
+}
+
+
+/*--------------------------------------------------------------------*
+ *                  Deprecated binary read functions                  *
+ *--------------------------------------------------------------------*/
+/*   Don't use these: they use l_int32 instead of size_t              */
+/*!
+ *  arrayRead()
+ *
+ *      Input:  filename
+ *              &nbytes (<return> number of bytes read)
+ *      Return: array, or null on error
+ */
+l_uint8 *
+arrayRead(const char  *fname,
+          l_int32     *pnbytes)
+{
+l_uint8  *data;
+FILE     *fp;
+
+    PROCNAME("arrayRead");
+
+    if (!fname)
+        return (l_uint8 *)ERROR_PTR("fname not defined", procName, NULL);
+    if (!pnbytes)
+        return (l_uint8 *)ERROR_PTR("pnbytes not defined", procName, NULL);
+    *pnbytes = 0;
+
+    if ((fp = fopenReadStream(fname)) == NULL)
+        return (l_uint8 *)ERROR_PTR("file stream not opened", procName, NULL);
+
+    data = arrayReadStream(fp, pnbytes);
+    fclose(fp);
+
+    return data;
+}
+
+
+/*!
+ *  arrayReadStream()
+ *
+ *      Input:  stream
+ *              &nbytes (<return> number of bytes read)
+ *      Return: null-terminated array, or null on error
+ *              (reading 0 bytes is not an error)
+ *
+ *  Notes:
+ *      (1) N.B.: as a side effect, this always re-positions the
+ *          stream ptr to the beginning of the file.
+ */
+l_uint8 *
+arrayReadStream(FILE     *fp,
+                l_int32  *pnbytes)
+{
+l_int32   ignore;
+l_uint8  *data;
+
+    PROCNAME("arrayReadStream");
+
+    if (!fp)
+        return (l_uint8 *)ERROR_PTR("stream not defined", procName, NULL);
+    if (!pnbytes)
+        return (l_uint8 *)ERROR_PTR("ptr to nbytes not defined",
+                                    procName, NULL);
+
+    *pnbytes = fnbytesInFile(fp);
+    if ((data = (l_uint8 *)CALLOC(1, *pnbytes + 1)) == NULL)
+        return (l_uint8 *)ERROR_PTR("CALLOC fail for data", procName, NULL);
+    ignore = fread(data, 1, *pnbytes, fp);
+    return data;
+}

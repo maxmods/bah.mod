@@ -1,21 +1,32 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
  *  tiffio.c
- *                     
+ *
  *     Reading tiff:
  *             PIX       *pixReadTiff()    [ special top level ]
  *             PIX       *pixReadStreamTiff()
@@ -36,7 +47,8 @@
  *     Information about tiff file
  *             l_int32    fprintTiffInfo()
  *             l_int32    tiffGetCount()
- *      static l_int32    tiffGetResolution()
+ *             l_int32    getTiffResolution()
+ *      static l_int32    getTiffStreamResolution()
  *             l_int32    readHeaderTiff()
  *             l_int32    freadHeaderTiff()
  *             l_int32    readHeaderMemTiff()
@@ -45,10 +57,13 @@
  *      static l_int32    getTiffCompressedFormat()
  *
  *     Extraction of tiff g4 data:
- *             l_int32    extractTiffG4DataFromFile()
+ *             l_int32    extractG4DataFromFile()
  *
  *     Open tiff stream from file stream
  *      static TIFF      *fopenTiff()
+ *
+ *     Wrapper for TIFFOpen:
+ *      static TIFF      *openTiff()
  *
  *     Memory I/O: reading memory --> pix and writing pix --> memory
  *             [10 static helper functions]
@@ -60,9 +75,7 @@
  *          that all the necessary functions are included.
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -90,7 +103,8 @@ static const l_int32  MAX_PAGES_IN_TIFF_FILE = 3000;  /* should be enough */
 
     /* All functions with TIFF interfaces are static. */
 static PIX      *pixReadFromTiffStream(TIFF *tif);
-static l_int32   tiffGetResolution(TIFF *tif, l_uint32 *pxres, l_uint32 *pyres);
+static l_int32   getTiffStreamResolution(TIFF *tif, l_int32 *pxres,
+                                         l_int32 *pyres);
 static l_int32   tiffReadHeaderTiff(TIFF *tif, l_int32 *pwidth,
                                     l_int32 *pheight, l_int32 *pbps,
                                     l_int32 *pspp, l_int32 *pres,
@@ -101,7 +115,8 @@ static l_int32   writeCustomTiffTags(TIFF *tif, NUMA *natags,
 static l_int32   pixWriteToTiffStream(TIFF *tif, PIX *pix, l_int32 comptype,
                                       NUMA *natags, SARRAY *savals,
                                       SARRAY *satypes, NUMA *nasizes);
-static TIFF     *fopenTiff(FILE *fp, const char *modestr); 
+static TIFF     *fopenTiff(FILE *fp, const char *modestring);
+static TIFF     *openTiff(const char *filename, const char *modestring);
 
     /* Static helper for tiff compression type */
 static l_int32   getTiffCompressedFormat(l_uint16 tiffcomp);
@@ -199,7 +214,7 @@ TIFF    *tif;
     if (!fp)
         return (PIX *)ERROR_PTR("stream not defined", procName, NULL);
 
-    if ((tif = fopenTiff(fp, "r")) == NULL)
+    if ((tif = fopenTiff(fp, "rb")) == NULL)
         return (PIX *)ERROR_PTR("tif not opened", procName, NULL);
 
     pagefound = FALSE;
@@ -257,7 +272,8 @@ l_uint8   *linebuf, *data;
 l_uint16   spp, bps, bpp, tiffbpl, photometry, tiffcomp, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval;
-l_uint32   w, h, xres, yres, tiffword;
+l_int32    xres, yres;
+l_uint32   w, h, tiffword;
 l_uint32  *line, *ppixel, *tiffdata;
 PIX       *pix;
 PIXCMAP   *cmap;
@@ -294,7 +310,7 @@ PIXCMAP   *cmap;
     if (spp == 1) {
         if ((linebuf = (l_uint8 *)CALLOC(tiffbpl + 1, sizeof(l_uint8))) == NULL)
             return (PIX *)ERROR_PTR("calloc fail for linebuf", procName, NULL);
-        
+
         for (i = 0 ; i < h ; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
                 FREE(linebuf);
@@ -332,12 +348,12 @@ PIXCMAP   *cmap;
                 bval = TIFFGetB(tiffword);
                 composeRGBPixel(rval, gval, bval, ppixel);
                 ppixel++;
-            } 
+            }
         }
         FREE(tiffdata);
     }
 
-    if (tiffGetResolution(tif, &xres, &yres)) {
+    if (getTiffStreamResolution(tif, &xres, &yres) == 0) {
         pixSetXRes(pix, xres);
         pixSetYRes(pix, yres);
     }
@@ -401,7 +417,7 @@ PIXCMAP   *cmap;
 /*--------------------------------------------------------------*
  *                       Writing to file                        *
  *--------------------------------------------------------------*/
-/*! 
+/*!
  *  pixWriteTiff()
  *
  *      Input:  filename (to write to)
@@ -427,7 +443,7 @@ pixWriteTiff(const char  *filename,
 }
 
 
-/*! 
+/*!
  *  pixWriteTiffCustom()
  *
  *      Input:  filename (to write to)
@@ -452,7 +468,7 @@ pixWriteTiff(const char  *filename,
  *              either NULL or defined and of equal size.
  *          (b) If they are defined, the tags are an array of integers,
  *              the vals are an array of values in string format, and
- *              the types are an array of types in string format. 
+ *              the types are an array of types in string format.
  *          (c) All valid tags are definined in tiff.h.
  *          (d) The types allowed are the set of strings:
  *                "char*"
@@ -467,7 +483,7 @@ pixWriteTiff(const char  *filename,
  *          (e) The last array, nasizes, is also optional.  It is for
  *              tags that take an array of bytes for a value, a number of
  *              elements in the array, and a type that is either "char*"
- *              or "l_uint8*" (probably either will work). 
+ *              or "l_uint8*" (probably either will work).
  *              Use NULL if there are no such tags.
  *          (f) VERY IMPORTANT: if there are any tags that require the
  *              extra size value, stored in nasizes, they must be
@@ -493,7 +509,7 @@ TIFF    *tif;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    if ((tif = TIFFOpen(filename, modestring)) == NULL)
+    if ((tif = openTiff(filename, modestring)) == NULL)
         return ERROR_INT("tif not opened", procName, 1);
     ret = pixWriteToTiffStream(tif, pix, comptype, natags, savals,
                                satypes, nasizes);
@@ -549,14 +565,14 @@ TIFF  *tif;
         comptype = IFF_TIFF_ZIP;
     }
 
-    if ((tif = fopenTiff(fp, "w")) == NULL)
+    if ((tif = fopenTiff(fp, "wb")) == NULL)
         return ERROR_INT("tif not opened", procName, 1);
 
     if (pixWriteToTiffStream(tif, pix, comptype, NULL, NULL, NULL, NULL)) {
         TIFFCleanup(tif);
         return ERROR_INT("tif write error", procName, 1);
     }
-    
+
     TIFFCleanup(tif);
     return 0;
 }
@@ -607,7 +623,7 @@ l_uint8   *linebuf, *data;
 l_uint16   redmap[256], greenmap[256], bluemap[256];
 l_int32    w, h, d, i, j, k, wpl, bpl, tiffbpl, ncolors, cmapsize;
 l_int32   *rmap, *gmap, *bmap;
-l_uint32   xres, yres;
+l_int32    xres, yres;
 l_uint32  *line, *ppixel;
 PIX       *pixt;
 PIXCMAP   *cmap;
@@ -637,7 +653,7 @@ char      *text;
 
     if ((text = pixGetText(pix)) != NULL)
         TIFFSetField(tif, TIFFTAG_IMAGEDESCRIPTION, text);
-        
+
     if (d == 1)
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
     else if (d == 32 || d == 24) {
@@ -680,7 +696,7 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)1);
     }
 
-    TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG); 
+    TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
     if (comptype == IFF_TIFF)  /* no compression */
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
     else if (comptype == IFF_TIFF_G4)
@@ -695,7 +711,7 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_LZW);
     else if (comptype == IFF_TIFF_ZIP)
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_ADOBE_DEFLATE);
-    else { 
+    else {
         L_WARNING("unknown tiff compression; using none", procName);
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
     }
@@ -743,7 +759,7 @@ char      *text;
                 linebuf[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
                 linebuf[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
                 ppixel++;
-            } 
+            }
             if (TIFFWriteScanline(tif, linebuf, i, 0) < 0)
                 break;
         }
@@ -766,7 +782,7 @@ char      *text;
  *              nasizes (<optional> NUMA of sizes)
  *      Return: 0 if OK, 1 on error
  *
- *  Notes: 
+ *  Notes:
  *      (1) This static function should be called indirectly through
  *          higher level functions, such as pixWriteTiffCustom(),
  *          which call pixWriteToTiffStream().  See details in
@@ -776,7 +792,7 @@ char      *text;
  *          of equal size.
  *      (4) The fourth array is always optional.
  *      (5) The most commonly used types are "char*" and "u_int16".
- *          See tiff.h for a full listing of the tiff tags. 
+ *          See tiff.h for a full listing of the tiff tags.
  *          Note that many of these tags, in particular the bit tags,
  *          are intended to be private, and cannot be set by this function.
  *          Examples are the STRIPOFFSETS and STRIPBYTECOUNTS tags,
@@ -883,7 +899,7 @@ l_uint32   uval, uval2;
     }
     return 0;
 }
-    
+
 
 /*--------------------------------------------------------------*
  *               Reading and writing multipage tiff             *
@@ -907,7 +923,7 @@ PIXA    *pixa;
     if (!filename)
         return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
 
-    if ((fp = fopen(filename, "rb")) == NULL)
+    if ((fp = fopenReadStream(filename)) == NULL)
         return (PIXA *)ERROR_PTR("stream not opened", procName, NULL);
     if (fileFormatIsTiff(fp)) {
         tiffGetCount(fp, &npages);
@@ -991,7 +1007,6 @@ writeMultipageTiffSA(SARRAY      *sa,
 char        *fname;
 const char  *op;
 l_int32      i, nfiles, firstfile, format;
-FILE        *fp;
 PIX         *pix, *pixt;
 
     PROCNAME("writeMultipageTiffSA");
@@ -1006,12 +1021,9 @@ PIX         *pix, *pixt;
     for (i = 0; i < nfiles; i++) {
         op = (firstfile) ? "w" : "a";
         fname = sarrayGetString(sa, i, L_NOCOPY);
-        if ((fp = fopen(fname, "rb")) == NULL)
-            continue;
-        findFileFormat(fp, &format);
-        fclose(fp);
+        findFileFormat(fname, &format);
         if (format == IFF_UNKNOWN) {
-            L_INFO_STRING("format unknown for file: %s", procName, fname);
+            L_INFO_STRING("format of %s not known", procName, fname);
             continue;
         }
 
@@ -1035,14 +1047,14 @@ PIX         *pix, *pixt;
 
     return 0;
 }
-        
+
 
 /*--------------------------------------------------------------*
  *                    Print info to stream                      *
  *--------------------------------------------------------------*/
 /*
  *  fprintTiffInfo()
- * 
+ *
  *      Input:  stream (for output of tag data)
  *              tiffile (input)
  *      Return: 0 if OK; 1 on error
@@ -1060,7 +1072,7 @@ TIFF  *tif;
     if (!fpout)
         return ERROR_INT("stream out not defined", procName, 1);
 
-    if ((tif = TIFFOpen(tiffile, "r")) == NULL)
+    if ((tif = openTiff(tiffile, "rb")) == NULL)
         return ERROR_INT("tif not open for read", procName, 1);
 
     TIFFPrintDirectory(tif, fpout, 0);
@@ -1071,11 +1083,11 @@ TIFF  *tif;
 
 
 /*--------------------------------------------------------------*
- *                   Get count from stream                      *
+ *                        Get page count                        *
  *--------------------------------------------------------------*/
 /*
  *  tiffGetCount()
- * 
+ *
  *      Input:  stream (opened for read)
  *              &n (<return> number of images)
  *      Return: 0 if OK; 1 on error
@@ -1095,7 +1107,7 @@ TIFF    *tif;
         return ERROR_INT("&n not defined", procName, 1);
     *pn = 0;
 
-    if ((tif = fopenTiff(fp, "r")) == NULL)
+    if ((tif = fopenTiff(fp, "rb")) == NULL)
         return ERROR_INT("tif not open for read", procName, 1);
 
     for (i = 1; i < MAX_PAGES_IN_TIFF_FILE; i++) {
@@ -1112,31 +1124,65 @@ TIFF    *tif;
  *                   Get resolution from tif                    *
  *--------------------------------------------------------------*/
 /*
- *  tiffGetResolution()
- * 
+ *  getTiffResolution()
+ *
+ *      Input:  stream (opened for read)
+ *              &xres, &yres (<return> resolution in ppi)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) If neither resolution field is set, this is not an error;
+ *          the returned resolution values are 0 (designating 'unknown').
+ */
+l_int32
+getTiffResolution(FILE     *fp,
+                  l_int32  *pxres,
+                  l_int32  *pyres)
+{
+TIFF  *tif;
+
+    PROCNAME("getTiffResolution");
+
+    if (!pxres || !pyres)
+        return ERROR_INT("&xres and &yres not both defined", procName, 1);
+    *pxres = *pyres = 0;
+    if (!fp)
+        return ERROR_INT("stream not opened", procName, 1);
+
+    if ((tif = fopenTiff(fp, "rb")) == NULL)
+        return ERROR_INT("tif not open for read", procName, 1);
+    getTiffStreamResolution(tif, pxres, pyres);
+    TIFFCleanup(tif);
+    return 0;
+}
+
+
+/*
+ *  getTiffStreamResolution()
+ *
  *      Input:  tiff stream (opened for read)
  *              &xres, &yres (<return> resolution in ppi)
- *      Return: 1 if OK; 0 on error   (nonstandard)
+ *      Return: 0 if OK; 1 on error
  *
  *  Notes:
  *      (1) If neither resolution field is set, this is not an error;
  *          the returned resolution values are 0 (designating 'unknown').
  */
 static l_int32
-tiffGetResolution(TIFF      *tif,
-                  l_uint32  *pxres,
-                  l_uint32  *pyres)
+getTiffStreamResolution(TIFF     *tif,
+                        l_int32  *pxres,
+                        l_int32  *pyres)
 {
 l_uint16   resunit;
 l_int32    foundxres, foundyres;
 l_float32  fxres, fyres;
 
-    PROCNAME("tiffGetResolution");
+    PROCNAME("getTiffStreamResolution");
 
     if (!tif)
-        return ERROR_INT("tif not opened", procName, 0);
+        return ERROR_INT("tif not opened", procName, 1);
     if (!pxres || !pyres)
-        return ERROR_INT("&xres and &yres not both defined", procName, 0);
+        return ERROR_INT("&xres and &yres not both defined", procName, 1);
     *pxres = *pyres = 0;
 
     TIFFGetFieldDefaulted(tif, TIFFTAG_RESOLUTIONUNIT, &resunit);
@@ -1149,15 +1195,15 @@ l_float32  fxres, fyres;
         fyres = fxres;
 
     if (resunit == RESUNIT_CENTIMETER) {  /* convert to ppi */
-        *pxres = (l_uint32)(2.54 * fxres + 0.5);
-        *pyres = (l_uint32)(2.54 * fyres + 0.5);
+        *pxres = (l_int32)(2.54 * fxres + 0.5);
+        *pyres = (l_int32)(2.54 * fyres + 0.5);
     }
     else {
-        *pxres = (l_uint32)fxres;
-        *pyres = (l_uint32)fyres;
+        *pxres = (l_int32)fxres;
+        *pyres = (l_int32)fyres;
     }
 
-    return 1;
+    return 0;
 }
 
 
@@ -1177,7 +1223,7 @@ l_float32  fxres, fyres;
  *              &cmap (<optional return>; colormap exists; input NULL to ignore)
  *              &format (<optional return>; tiff format; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
- * 
+ *
  *  Notes:
  *      (1) If there is a colormap, cmap is returned as 1; else 0.
  *      (2) If @n is equal to or greater than the number of images, returns 1.
@@ -1228,7 +1274,7 @@ FILE    *fp;
  *              &cmap (<optional return>; colormap exists; input NULL to ignore)
  *              &format (<optional return>; tiff format; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
- * 
+ *
  *  Notes:
  *      (1) If there is a colormap, cmap is returned as 1; else 0.
  *      (2) If @n is equal to or greater than the number of images, returns 1.
@@ -1260,14 +1306,14 @@ TIFF    *tif;
     if (pcmap) *pcmap = 0;
     if (pformat) *pformat = 0;
 
-    findFileFormat(fp, &format);
+    findFileFormatStream(fp, &format);
     if (format != IFF_TIFF &&
         format != IFF_TIFF_G3 && format != IFF_TIFF_G4 &&
         format != IFF_TIFF_RLE && format != IFF_TIFF_PACKBITS &&
         format != IFF_TIFF_LZW && format != IFF_TIFF_ZIP)
         return ERROR_INT("file not tiff format", procName, 1);
 
-    if ((tif = fopenTiff(fp, "r")) == NULL)
+    if ((tif = fopenTiff(fp, "rb")) == NULL)
         return ERROR_INT("tif not open for read", procName, 1);
 
     for (i = 0; i < n; i++) {
@@ -1326,7 +1372,7 @@ TIFF     *tif;
     if (pres) *pres = 0;
     if (pcmap) *pcmap = 0;
     if (pformat) *pformat = 0;
-    
+
         /* Open a tiff stream to memory */
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
     if ((tif = fopenTiffMemstream("tifferror", "r", &data, &size)) == NULL)
@@ -1372,7 +1418,8 @@ tiffReadHeaderTiff(TIFF     *tif,
 l_uint16   tiffcomp;
 l_uint16   bps, spp;
 l_uint16  *rmap, *gmap, *bmap;
-l_uint32   w, h, xres, yres;
+l_int32    xres, yres;
+l_uint32   w, h;
 
     PROCNAME("tiffReadHeaderTiff");
 
@@ -1390,10 +1437,10 @@ l_uint32   w, h, xres, yres;
 
     if (pres) {
         *pres = 300;  /* default ppi */
-        if (tiffGetResolution(tif, &xres, &yres))
+        if (getTiffStreamResolution(tif, &xres, &yres) == 0)
             *pres = (l_int32)xres;
     }
-            
+
     if (pcmap) {
         *pcmap = 0;
         if (TIFFGetField(tif, TIFFTAG_COLORMAP, &rmap, &gmap, &bmap))
@@ -1416,7 +1463,7 @@ l_uint32   w, h, xres, yres;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The returned compression type is that defined in 
+ *      (1) The returned compression type is that defined in
  *          the enum in imageio.h.  It is not the tiff flag value.
  *      (2) The compression type is initialized to IFF_UNKNOWN.
  *          If it is not one of the specified types, the returned
@@ -1439,7 +1486,7 @@ TIFF     *tif;
     *pcomptype = IFF_UNKNOWN;  /* init */
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
-    
+
     if ((tif = fopenTiff(fp, "rb")) == NULL)
         return ERROR_INT("tif not opened", procName, 1);
     TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
@@ -1498,7 +1545,7 @@ l_int32  comptype;
  *                   Extraction of tiff g4 data                 *
  *--------------------------------------------------------------*/
 /*!
- *  extractTiffG4DataFromFile()
+ *  extractG4DataFromFile()
  *
  *      Input:  filein
  *              &data (<return> binary data of ccitt g4 encoded stream)
@@ -1509,22 +1556,23 @@ l_int32  comptype;
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-extractTiffG4DataFromFile(const char  *filein,
-                          l_uint8    **pdata,
-                          l_int32     *pnbytes,
-                          l_int32     *pw,
-                          l_int32     *ph,
-                          l_int32     *pminisblack)
+extractG4DataFromFile(const char  *filein,
+                      l_uint8    **pdata,
+                      size_t      *pnbytes,
+                      l_int32     *pw,
+                      l_int32     *ph,
+                      l_int32     *pminisblack)
 {
 l_uint8  *inarray, *data;
 l_uint16  minisblack, comptype;  /* accessors require l_uint16 */
-l_int32   istiff, fbytes, nbytes;
+l_int32   istiff;
 l_uint32  w, h, rowsperstrip;  /* accessors require l_uint32 */
 l_uint32  diroff;
+size_t    fbytes, nbytes;
 FILE     *fpin;
 TIFF     *tif;
 
-    PROCNAME("extractTiffG4DataFromFile");
+    PROCNAME("extractG4DataFromFile");
 
     if (!pdata)
         return ERROR_INT("&data not defined", procName, 1);
@@ -1535,18 +1583,18 @@ TIFF     *tif;
     *pdata = NULL;
     *pnbytes = 0;
 
-    if ((fpin = fopen(filein, "rb")) == NULL)
-        return ERROR_INT("filein not defined", procName, 1);
+    if ((fpin = fopenReadStream(filein)) == NULL)
+        return ERROR_INT("stream not opened to file", procName, 1);
     istiff = fileFormatIsTiff(fpin);
     fclose(fpin);
     if (!istiff)
         return ERROR_INT("filein not tiff", procName, 1);
 
-    if ((inarray = arrayRead(filein, &fbytes)) == NULL)
+    if ((inarray = l_binaryRead(filein, &fbytes)) == NULL)
         return ERROR_INT("inarray not made", procName, 1);
 
         /* Get metadata about the image */
-    if ((tif = TIFFOpen(filein, "r")) == NULL)
+    if ((tif = openTiff(filein, "rb")) == NULL)
         return ERROR_INT("tif not open for read", procName, 1);
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &comptype);
     if (comptype != COMPRESSION_CCITTFAX4) {
@@ -1639,6 +1687,40 @@ l_int32  fd;
     lseek(fd, 0, SEEK_SET);
 
     return TIFFFdOpen(fd, "TIFFstream", modestring);
+}
+
+
+/*--------------------------------------------------------------*
+ *                      Wrapper for TIFFOpen                    *
+ *--------------------------------------------------------------*/
+/*!
+ *  openTiff()
+ *
+ *      Input:  filename
+ *              modestring ("r", "w", ...)
+ *      Return: tiff (data structure)
+ *
+ *  Notes:
+ *      (1) This handles multi-platform file naming.
+ */
+static TIFF *
+openTiff(const char  *filename,
+         const char  *modestring)
+{
+char  *fname;
+TIFF  *tif;
+
+    PROCNAME("openTiff");
+
+    if (!filename)
+        return (TIFF *)ERROR_PTR("filename not defined", procName, NULL);
+    if (!modestring)
+        return (TIFF *)ERROR_PTR("modestring not defined", procName, NULL);
+
+    fname = genPathname(filename, NULL);
+    tif = TIFFOpen(fname, modestring);
+    FREE(fname);
+    return tif;
 }
 
 
@@ -1844,7 +1926,7 @@ L_MEMSTREAM  *mstream;
     *data = mstream->buffer;
     *length = mstream->hw;
     return 0;
-} 
+}
 
 
 static void
@@ -1853,7 +1935,7 @@ tiffUnmapCallback(thandle_t  handle,
                   toff_t     length)
 {
     return;
-} 
+}
 
 
 /*!
@@ -1962,7 +2044,7 @@ TIFF     *tif;
 }
 
 
-/*! 
+/*!
  *  pixWriteMemTiff()
  *
  *      Input:  &data (<return> data of tiff compressed image)
@@ -1988,7 +2070,7 @@ pixWriteMemTiff(l_uint8  **pdata,
 }
 
 
-/*! 
+/*!
  *  pixWriteMemTiffCustom()
  *
  *      Input:  &data (<return> data of tiff compressed image)

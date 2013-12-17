@@ -1,29 +1,41 @@
-#/*====================================================================*
-# -  Copyright (C) 2001 Leptonica.  All rights reserved.
-# -  This software is distributed in the hope that it will be
-# -  useful, but with NO WARRANTY OF ANY KIND.
-# -  No author or distributor accepts responsibility to anyone for the
-# -  consequences of using this software, or for whether it serves any
-# -  particular purpose or works at all, unless he or she says so in
-# -  writing.  Everyone is granted permission to copy, modify and
-# -  redistribute this source code, for commercial or non-commercial
-# -  purposes, with the following restrictions: (1) the origin of this
-# -  source code must not be misrepresented; (2) modified versions must
-# -  be plainly marked as such; and (3) this notice may not be removed
-# -  or altered from any source or modified source distribution.
-# *====================================================================*/
+/*====================================================================*
+ -  Copyright (C) 2001 Leptonica.  All rights reserved.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *====================================================================*/
 
 /*
  *  skew.c
  *
- *      Simple top-level deskew interfaces
+ *      Top-level deskew interfaces
  *          PIX       *pixDeskew()
  *          PIX       *pixFindSkewAndDeskew()
+ *          PIX       *pixDeskewGeneral()
  *
- *      Simple top-level angle-finding interface
+ *      Top-level angle-finding interface
  *          l_int32    pixFindSkew()
  *
- *      Basic angle-finding functions with all parameters
+ *      Basic angle-finding functions
  *          l_int32    pixFindSkewSweep()
  *          l_int32    pixFindSkewSweepAndSearch()
  *          l_int32    pixFindSkewSweepAndSearchScore()
@@ -39,7 +51,7 @@
  *          l_int32    pixFindNormalizedSquareSum()
  *
  *
- *      ==============================================================    
+ *      ==============================================================
  *      Page skew detection
  *
  *      Skew is determined by pixel profiles, which are computed
@@ -80,13 +92,11 @@
  *      handwritten text that may be mixed with printed text.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
     /* Default sweep angle parameters for pixFindSkew() */
-static const l_float32  DEFAULT_SWEEP_RANGE = 5.;    /* degrees */
+static const l_float32  DEFAULT_SWEEP_RANGE = 7.;    /* degrees */
 static const l_float32  DEFAULT_SWEEP_DELTA = 1.;    /* degrees */
 
     /* Default final angle difference parameter for binary
@@ -113,6 +123,8 @@ static const l_int32  MIN_VALID_MAXSCORE = 10000;
      *  (height * width^2) */
 static const l_float32  MINSCORE_THRESHOLD_CONSTANT = 0.000002;
 
+    /* Default binarization threshold value */
+static const l_int32  DEFAULT_BINARY_THRESHOLD = 130;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_PRINT_SCORES     0
@@ -125,19 +137,20 @@ static const l_float32  MINSCORE_THRESHOLD_CONSTANT = 0.000002;
 
 
 
-/*----------------------------------------------------------------*
- *                       Top-level interfaces                     *
- *----------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*
+ *                       Top-level deskew interfaces                     *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixDeskew()
  *
- *      Input:  pixs  (1 bpp)
- *              redsearch  (for binary search: reduction factor = 1, 2 or 4)
- *      Return: deskewed pix, or null on error
+ *      Input:  pixs (any depth)
+ *              redsearch (for binary search: reduction factor = 1, 2 or 4;
+ *                         use 0 for default)
+ *      Return: pixd (deskewed pix), or null on error
  *
  *  Notes:
- *      (1) This is the most simple high level interface, for 1 bpp input.
- *      (2) It first finds the skew angle.  If the angle is large enough,
+ *      (1) This binarizes if necessary and finds the skew angle.  If the
+ *          angle is large enough and there is sufficient confidence,
  *          it returns a deskewed image; otherwise, it returns a clone.
  */
 PIX *
@@ -148,30 +161,31 @@ pixDeskew(PIX     *pixs,
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+    if (redsearch == 0)
+        redsearch = DEFAULT_BS_REDUCTION;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
         return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
 
-    return pixFindSkewAndDeskew(pixs, redsearch, NULL, NULL);
+    return pixDeskewGeneral(pixs, 0, 0.0, 0.0, redsearch, 0, NULL, NULL);
 }
 
 
 /*!
  *  pixFindSkewAndDeskew()
  *
- *      Input:  pixs  (1 bpp)
- *              redsearch  (for binary search: reduction factor = 1, 2 or 4)
+ *      Input:  pixs (any depth)
+ *              redsearch (for binary search: reduction factor = 1, 2 or 4;
+ *                         use 0 for default)
  *              &angle   (<optional return> angle required to deskew,
- *                        in degrees)
- *              &conf    (<optional return> conf value is ratio max/min scores)
- *      Return: deskewed pix, or null on error
+ *                        in degrees; use NULL to skip)
+ *              &conf    (<optional return> conf value is ratio
+ *                        of max/min scores; use NULL to skip)
+ *      Return: pixd (deskewed pix), or null on error
  *
  *  Notes:
- *      (1) This first finds the skew angle.  If the angle is large enough,
+ *      (1) This binarizes if necessary and finds the skew angle.  If the
+ *          angle is large enough and there is sufficient confidence,
  *          it returns a deskewed image; otherwise, it returns a clone.
- *      (2) Use NULL for &angle and/or &conf if you don't want those values
- *          returned.
  */
 PIX *
 pixFindSkewAndDeskew(PIX        *pixs,
@@ -179,24 +193,89 @@ pixFindSkewAndDeskew(PIX        *pixs,
                      l_float32  *pangle,
                      l_float32  *pconf)
 {
-l_int32    ret;
-l_float32  angle, conf, deg2rad;
-PIX       *pixd;
-
     PROCNAME("pixFindSkewAndDeskew");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+    if (redsearch == 0)
+        redsearch = DEFAULT_BS_REDUCTION;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
         return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
 
+    return pixDeskewGeneral(pixs, 0, 0.0, 0.0, redsearch, 0, pangle, pconf);
+}
+
+
+/*!
+ *  pixDeskewGeneral()
+ *
+ *      Input:  pixs  (any depth)
+ *              redsweep  (for linear search: reduction factor = 1, 2 or 4;
+ *                         use 0 for default)
+ *              sweeprange (in degrees in each direction from 0;
+ *                          use 0.0 for default)
+ *              sweepdelta (in degrees; use 0.0 for default)
+ *              redsearch  (for binary search: reduction factor = 1, 2 or 4;
+ *                          use 0 for default;)
+ *              thresh (for binarizing the image; use 0 for default)
+ *              &angle   (<optional return> angle required to deskew,
+ *                        in degrees; use NULL to skip)
+ *              &conf    (<optional return> conf value is ratio
+ *                        of max/min scores; use NULL to skip)
+ *      Return: pixd (deskewed pix), or null on error
+ *
+ *  Notes:
+ *      (1) This binarizes if necessary and finds the skew angle.  If the
+ *          angle is large enough and there is sufficient confidence,
+ *          it returns a deskewed image; otherwise, it returns a clone.
+ */
+PIX *
+pixDeskewGeneral(PIX        *pixs,
+                 l_int32     redsweep,
+                 l_float32   sweeprange,
+                 l_float32   sweepdelta,
+                 l_int32     redsearch,
+                 l_int32     thresh,
+                 l_float32  *pangle,
+                 l_float32  *pconf)
+{
+l_int32    ret, depth;
+l_float32  angle, conf, deg2rad;
+PIX       *pixb, *pixd;
+
+    PROCNAME("pixDeskewGeneral");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (redsweep == 0)
+        redsweep = DEFAULT_SWEEP_REDUCTION;
+    else if (redsweep != 1 && redsweep != 2 && redsweep != 4)
+        return (PIX *)ERROR_PTR("redsweep not in {1,2,4}", procName, NULL);
+    if (sweeprange == 0.0)
+        sweeprange = DEFAULT_SWEEP_RANGE;
+    if (sweepdelta == 0.0)
+        sweepdelta = DEFAULT_SWEEP_DELTA;
+    if (redsearch == 0)
+        redsearch = DEFAULT_BS_REDUCTION;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+        return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
+    if (thresh == 0)
+        thresh = DEFAULT_BINARY_THRESHOLD;
+
     deg2rad = 3.1415926535 / 180.;
-    ret = pixFindSkewSweepAndSearch(pixs, &angle, &conf,
-                       DEFAULT_SWEEP_REDUCTION, redsearch,
-                       DEFAULT_SWEEP_RANGE, DEFAULT_SWEEP_DELTA,
-                       DEFAULT_MINBS_DELTA);
+
+        /* Binarize if necessary */
+    depth = pixGetDepth(pixs);
+    if (depth == 1)
+        pixb = pixClone(pixs);
+    else
+        pixb = pixConvertTo1(pixs, thresh);
+
+        /* Use the 1 bpp image to find the skew */
+    ret = pixFindSkewSweepAndSearch(pixb, &angle, &conf, redsweep, redsearch,
+                                    sweeprange, sweepdelta,
+                                    DEFAULT_MINBS_DELTA);
+    pixDestroy(&pixb);
     if (pangle)
         *pangle = angle;
     if (pconf)
@@ -207,14 +286,17 @@ PIX       *pixd;
     if (L_ABS(angle) < MIN_DESKEW_ANGLE || conf < MIN_ALLOWED_CONFIDENCE)
         return pixClone(pixs);
 
-    if ((pixd = pixRotateShear(pixs, 0, 0, deg2rad * angle, L_BRING_IN_WHITE))
-             == NULL)
+    if ((pixd = pixRotate(pixs, deg2rad * angle, L_ROTATE_AREA_MAP,
+                          L_BRING_IN_WHITE, 0, 0)) == NULL)
         return pixClone(pixs);
     else
         return pixd;
 }
 
 
+/*-----------------------------------------------------------------------*
+ *                  Simple top-level angle-finding interface             *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixFindSkew()
  *
@@ -255,9 +337,9 @@ pixFindSkew(PIX        *pixs,
 }
 
 
-/*----------------------------------------------------------------*
- *         Basic angle-finding functions with all parameters      *
- *----------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*
+ *                       Basic angle-finding functions                   *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixFindSkewSweep()
  *
@@ -425,7 +507,7 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
                           l_float32   minbsdelta)
 {
     return pixFindSkewSweepAndSearchScore(pixs, pangle, pconf, NULL,
-                                          redsweep, redsearch, 0.0, sweeprange, 
+                                          redsweep, redsearch, 0.0, sweeprange,
                                           sweepdelta, minbsdelta);
 }
 
@@ -450,7 +532,7 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
  *  Notes:
  *      (1) This finds the skew angle, doing first a sweep through a set
  *          of equal angles, and then doing a binary search until convergence.
- *      (2) There are two built-in constants that determine if the 
+ *      (2) There are two built-in constants that determine if the
  *          returned confidence is nonzero:
  *            - MIN_VALID_MAXSCORE (minimum allowed maxscore)
  *            - MINSCORE_THRESHOLD_CONSTANT (determines minimum allowed
@@ -717,7 +799,7 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
         pixFindDifferentialSquareSum(pixt2, &bsearchscore[1]);
         numaAddNumber(nascore, bsearchscore[1]);
         numaAddNumber(natheta, leftcenterangle);
-        
+
             /* Get the right intermediate score */
         rightcenterangle = centerangle + delta;
         if (pivot == L_SHEAR_ABOUT_CORNER)
@@ -729,7 +811,7 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
         pixFindDifferentialSquareSum(pixt2, &bsearchscore[3]);
         numaAddNumber(nascore, bsearchscore[3]);
         numaAddNumber(natheta, rightcenterangle);
-        
+
             /* Find the maximum of the five scores and its location.
              * Note that the maximum must be in the center
              * three values, not in the end two. */
@@ -1090,5 +1172,3 @@ PIX       *pixt;
 
     return empty;
 }
-
-

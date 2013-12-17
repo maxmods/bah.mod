@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -65,20 +76,21 @@
  *           l_int32   pixaaGetCount()
  *           PIXA     *pixaaGetPixa()
  *           BOXA     *pixaaGetBoxa()
+ *           PIX      *pixaaGetPix()
  *
- *      Pixa serialized I/O
+ *      Pixa serialized I/O  (requires png support)
  *           PIXA     *pixaRead()
  *           PIXA     *pixaReadStream()
  *           l_int32   pixaWrite()
  *           l_int32   pixaWriteStream()
  *
- *      Pixaa serialized I/O
+ *      Pixaa serialized I/O  (requires png support)
  *           PIXAA    *pixaaRead()
  *           PIXAA    *pixaaReadStream()
  *           l_int32   pixaaWrite()
  *           l_int32   pixaaWriteStream()
  *
- *   
+ *
  *   Important note on reference counting:
  *     Reference counting for the Pixa is analogous to that for the Boxa.
  *     See pix.h for details.   pixaCopy() provides three possible modes
@@ -87,8 +99,6 @@
  *     it is necessary to call pixaDestroy() on it.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -119,7 +129,7 @@ PIXA  *pixa;
     pixa->n = 0;
     pixa->nalloc = n;
     pixa->refcount = 1;
-    
+
     if ((pixa->pix = (PIX **)CALLOC(n, sizeof(PIX *))) == NULL)
         return (PIXA *)ERROR_PTR("pix ptrs not made", procName, NULL);
     if ((pixa->boxa = boxaCreate(n)) == NULL)
@@ -248,7 +258,7 @@ PIXA    *pixad;
 
     return pixad;
 }
-    
+
 
 /*!
  *  pixaSplitPix()
@@ -683,7 +693,7 @@ pixaGetBoxaCount(PIXA  *pixa)
 
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 0);
-    
+
     return boxaGetCount(pixa->boxa);
 }
 
@@ -1026,8 +1036,7 @@ l_int32  i, n;
     for (i = 0; i < n; i++)
         pixDestroy(&pixa->pix[i]);
     pixa->n = 0;
-    boxaClear(pixa->boxa);
-    return 0;
+    return boxaClear(pixa->boxa);
 }
 
 
@@ -1089,7 +1098,6 @@ PIX     *pix;
     boxaJoin(boxad, boxas, 0, 0);
     boxaDestroy(&boxas);  /* just the clones */
     boxaDestroy(&boxad);
-
     return 0;
 }
 
@@ -1131,7 +1139,7 @@ PIXAA  *pixaa;
         return (PIXAA *)ERROR_PTR("pixaa not made", procName, NULL);
     pixaa->n = 0;
     pixaa->nalloc = n;
-    
+
     if ((pixaa->pixa = (PIXA **)CALLOC(n, sizeof(PIXA *))) == NULL)
         return (PIXAA *)ERROR_PTR("pixa ptrs not made", procName, NULL);
     pixaa->boxa = boxaCreate(n);
@@ -1444,9 +1452,42 @@ pixaaGetBoxa(PIXAA   *pixaa,
 }
 
 
+/*!
+ *  pixaaGetPix()
+ *
+ *      Input:  paa
+ *              ipixa  (index into the pixa array in the pixaa)
+ *              ipix  (index into the pix array in the pixa)
+ *              accessflag  (L_COPY or L_CLONE)
+ *      Return: pix, or null on error
+ */
+PIX *
+pixaaGetPix(PIXAA   *paa,
+            l_int32  ipixa,
+            l_int32  ipix,
+            l_int32  accessflag)
+{
+PIX   *pix;
+PIXA  *pixa;
+
+    PROCNAME("pixaaGetPix");
+
+    if ((pixa = pixaaGetPixa(paa, ipixa, L_CLONE)) == NULL)
+        return (PIX *)ERROR_PTR("pixa not retrieved", procName, NULL);
+    if ((pix = pixaGetPix(pixa, ipix, accessflag)) == NULL)
+        L_ERROR("pix not retrieved", procName);
+    pixaDestroy(&pixa);
+    return pix;
+}
+
+
 /*---------------------------------------------------------------------*
  *                          Pixa serialized I/O                        *
  *---------------------------------------------------------------------*/
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
 /*!
  *  pixaRead()
  *
@@ -1455,6 +1496,7 @@ pixaaGetBoxa(PIXAA   *pixaa,
  *
  *  Notes:
  *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 PIXA *
 pixaRead(const char  *filename)
@@ -1463,6 +1505,10 @@ FILE  *fp;
 PIXA  *pixa;
 
     PROCNAME("pixaRead");
+
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
+    return (PIXA *)ERROR_PTR("no libpng: can't read data", procName, NULL);
+#endif  /* !HAVE_LIBPNG */
 
     if (!filename)
         return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
@@ -1484,6 +1530,10 @@ PIXA  *pixa;
  *
  *      Input:  stream
  *      Return: pixa, or null on error
+ *
+ *  Notes:
+ *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 PIXA *
 pixaReadStream(FILE  *fp)
@@ -1496,9 +1546,9 @@ PIXA    *pixa;
 
     PROCNAME("pixaReadStream");
 
-#if  !HAVE_LIBPNG  /* defined in environ.h */
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
     return (PIXA *)ERROR_PTR("no libpng: can't read data", procName, NULL);
-#else
+#endif  /* !HAVE_LIBPNG */
 
     if (!fp)
         return (PIXA *)ERROR_PTR("stream not defined", procName, NULL);
@@ -1521,16 +1571,15 @@ PIXA    *pixa;
         if ((fscanf(fp, " pix[%d]: xres = %d, yres = %d\n",
               &ignore, &xres, &yres)) != 3)
             return (PIXA *)ERROR_PTR("res reading", procName, NULL);
-        if ((pix = pixReadStreamPng(fp)) == NULL)
+        if ((pix = pixReadStreamPng(fp)) == NULL) {
+            pixaDestroy(&pixa);
             return (PIXA *)ERROR_PTR("pix not read", procName, NULL);
+        }
         pixSetXRes(pix, xres);
         pixSetYRes(pix, yres);
         pixaAddPix(pixa, pix, L_INSERT);
     }
-
     return pixa;
-
-#endif  /* !HAVE_LIBPNG */
 }
 
 
@@ -1542,7 +1591,8 @@ PIXA    *pixa;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The pix are written to file in png format.
+ *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 l_int32
 pixaWrite(const char  *filename,
@@ -1552,17 +1602,20 @@ FILE  *fp;
 
     PROCNAME("pixaWrite");
 
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
+    return ERROR_INT("no libpng: can't write data", procName, 1);
+#endif  /* !HAVE_LIBPNG */
+
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopen(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (pixaWriteStream(fp, pixa))
         return ERROR_INT("pixa not written to stream", procName, 1);
     fclose(fp);
-
     return 0;
 }
 
@@ -1570,9 +1623,13 @@ FILE  *fp;
 /*!
  *  pixaWriteStream()
  *
- *      Input:  stream
+ *      Input:  stream (opened for "wb")
  *              pixa
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 l_int32
 pixaWriteStream(FILE  *fp,
@@ -1583,9 +1640,9 @@ PIX     *pix;
 
     PROCNAME("pixaWriteStream");
 
-#if  !HAVE_LIBPNG  /* defined in environ.h */
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
     return ERROR_INT("no libpng: can't write data", procName, 1);
-#else
+#endif  /* !HAVE_LIBPNG */
 
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
@@ -1605,8 +1662,6 @@ PIX     *pix;
         pixDestroy(&pix);
     }
     return 0;
-
-#endif  /* !HAVE_LIBPNG */
 }
 
 
@@ -1621,6 +1676,7 @@ PIX     *pix;
  *
  *  Notes:
  *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 PIXAA *
 pixaaRead(const char  *filename)
@@ -1629,6 +1685,10 @@ FILE   *fp;
 PIXAA  *pixaa;
 
     PROCNAME("pixaaRead");
+
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
+    return (PIXAA *)ERROR_PTR("no libpng: can't read data", procName, NULL);
+#endif  /* !HAVE_LIBPNG */
 
     if (!filename)
         return (PIXAA *)ERROR_PTR("filename not defined", procName, NULL);
@@ -1650,6 +1710,10 @@ PIXAA  *pixaa;
  *
  *      Input:  stream
  *      Return: pixaa, or null on error
+ *
+ *  Notes:
+ *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 PIXAA *
 pixaaReadStream(FILE  *fp)
@@ -1661,6 +1725,10 @@ PIXA    *pixa;
 PIXAA   *pixaa;
 
     PROCNAME("pixaaReadStream");
+
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
+    return (PIXAA *)ERROR_PTR("no libpng: can't read data", procName, NULL);
+#endif  /* !HAVE_LIBPNG */
 
     if (!fp)
         return (PIXAA *)ERROR_PTR("stream not defined", procName, NULL);
@@ -1701,7 +1769,8 @@ PIXAA   *pixaa;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Serialization of pixaa; the pix are written in png
+ *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 l_int32
 pixaaWrite(const char  *filename,
@@ -1711,12 +1780,16 @@ FILE  *fp;
 
     PROCNAME("pixaaWrite");
 
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
+    return ERROR_INT("no libpng: can't read data", procName, 1);
+#endif  /* !HAVE_LIBPNG */
+
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
     if (!pixaa)
         return ERROR_INT("pixaa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopen(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (pixaaWriteStream(fp, pixaa))
         return ERROR_INT("pixaa not written to stream", procName, 1);
@@ -1729,9 +1802,13 @@ FILE  *fp;
 /*!
  *  pixaaWriteStream()
  *
- *      Input:  stream
+ *      Input:  stream (opened for "wb")
  *              pixaa
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The pix are stored in the file as png.
+ *          If the png library is not linked, this will fail.
  */
 l_int32
 pixaaWriteStream(FILE   *fp,
@@ -1741,6 +1818,10 @@ l_int32  n, i;
 PIXA    *pixa;
 
     PROCNAME("pixaaWriteStream");
+
+#if !HAVE_LIBPNG     /* defined in environ.h and config_auto.h */
+    return ERROR_INT("no libpng: can't read data", procName, 1);
+#endif  /* !HAVE_LIBPNG */
 
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
@@ -1760,5 +1841,3 @@ PIXA    *pixa;
     }
     return 0;
 }
-
-

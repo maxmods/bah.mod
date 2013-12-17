@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -24,6 +35,7 @@
  *           void        pixcmapDestroy()
  *           l_int32     pixcmapAddColor()
  *           l_int32     pixcmapAddNewColor()
+ *           l_int32     pixcmapAddNearestColor()
  *           l_int32     pixcmapUsableColor()
  *           l_int32     pixcmapAddBlackOrWhite()
  *           l_int32     pixcmapSetBlackAndWhite()
@@ -59,14 +71,13 @@
  *           l_int32     pixcmapToRGBTable()
  *           l_int32     pixcmapSerializeToMemory()
  *           PIXCMAP    *pixcmapDeserializeFromMemory()
+ *           char       *pixcmapConvertToHex()
  *
  *      Colormap transforms
  *           l_int32     pixcmapGammaTRC()
  *           l_int32     pixcmapContrastTRC()
  *           l_int32     pixcmapShiftIntensity()
- *           l_int32     pixcmapConvertRGBToHSV()
- *           l_int32     pixcmapConvertHSVToRGB()
- *
+ *           l_int32     pixcmapShiftByComponent()
  */
 
 #include <string.h>
@@ -121,7 +132,7 @@ PIXCMAP    *cmap;
  *          chosen randomly.
  *      (2) The number of randomly chosen colors is:
  *               2^(depth) - haswhite - hasblack
- *      (3) Because rand() is seeded, it might disrupt otherwise 
+ *      (3) Because rand() is seeded, it might disrupt otherwise
  *          deterministic results if also used elsewhere in a program.
  *      (4) rand() is not threadsafe, and will generate garbage if run
  *          on multiple threads at once -- though garbage is generally
@@ -201,7 +212,7 @@ PIXCMAP  *cmap;
 /*!
  *  pixcmapCopy()
  *
- *      Input:  cmaps 
+ *      Input:  cmaps
  *      Return: cmapd, or null on error
  */
 PIXCMAP *
@@ -341,6 +352,52 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
 
 
 /*!
+ *  pixcmapAddNearestColor()
+ *
+ *      Input:  cmap
+ *              rval, gval, bval (colormap entry to be added; each number
+ *                                is in range [0, ... 255])
+ *              &index (<return> index of color)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This only adds color if not already there.
+ *      (2) If it's not in the colormap and there is no room to add
+ *          another color, this returns the index of the nearest color.
+ */
+l_int32
+pixcmapAddNearestColor(PIXCMAP  *cmap,
+                       l_int32   rval,
+                       l_int32   gval,
+                       l_int32   bval,
+                       l_int32  *pindex)
+{
+    PROCNAME("pixcmapAddNearestColor");
+
+    if (!pindex)
+        return ERROR_INT("&index not defined", procName, 1);
+    *pindex = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+
+        /* Check if the color is already present. */
+    if (!pixcmapGetIndex(cmap, rval, gval, bval, pindex))  /* found */
+        return 0;
+
+        /* We need to add the color.  Is there room? */
+    if (cmap->n < cmap->nalloc) {
+        pixcmapAddColor(cmap, rval, gval, bval);
+        *pindex = pixcmapGetCount(cmap) - 1;
+        return 0;
+    }
+
+        /* There's no room.  Return the index of the nearest color */
+    pixcmapGetNearestIndex(cmap, rval, gval, bval, pindex);
+    return 0;
+}
+
+
+/*!
  *  pixcmapUsableColor()
  *
  *      Input:  cmap
@@ -387,7 +444,7 @@ l_int32  index;
  *  pixcmapAddBlackOrWhite()
  *
  *      Input:  cmap
- *              color (0 for black, 1 for white) 
+ *              color (0 for black, 1 for white)
  *              &index (<optional return> index of color; can be null)
  *      Return: 0 if OK, 1 on error
  *
@@ -891,7 +948,7 @@ RGBA_QUAD  *cta;
         delta = cta[i].blue - bval;
         dist += delta * delta;
         if (dist < mindist) {
-            *pindex = i; 
+            *pindex = i;
             if (dist == 0)
                 break;
             mindist = dist;
@@ -1152,7 +1209,7 @@ PIXCMAP   *cmapd;
         val = (l_int32)(rwt * rval + gwt * gval + bwt * bval + 0.5);
         pixcmapResetColor(cmapd, i, val, val, val);
     }
-        
+
     return cmapd;
 }
 
@@ -1316,7 +1373,7 @@ l_uint32  *tab;
     if ((tab = (l_uint32 *)CALLOC(ncolors, sizeof(l_uint32))) == NULL)
         return ERROR_INT("tab not made", procName, 1);
     *ptab = tab;
-   
+
     for (i = 0; i < ncolors; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
         composeRGBPixel(rval, gval, bval, &tab[i]);
@@ -1434,6 +1491,68 @@ PIXCMAP  *cmap;
 }
 
 
+/*!
+ *  pixcmapConvertToHex()
+ *
+ *      Input:  data  (binary serialized data)
+ *              nbytes (size of data)
+ *              ncolors (in colormap)
+ *      Return: hexdata (bracketed, space-separated ascii hex string),
+ *                       or null on error.
+ *
+ *  Notes:
+ *      (1) If rgb, there are 3 colors/component; if rgba, there are 4.
+ *      (2) Output is in form:
+ *             < r0g0b0 r1g1b1 ... rngnbn >
+ *          where r0, g0, b0, ... are each 2 bytes of hex ascii
+ *      (3) This is used in pdf files to express the colormap as an
+ *          array in ascii (human-readable) format.
+ */
+char *
+pixcmapConvertToHex(l_uint8 *data,
+                    l_int32  nbytes,
+                    l_int32  ncolors)
+{
+l_int32  i, j, hexbytes;
+l_int32  cpc;  /* colors per component */
+char    *hexdata = NULL;
+char     buf[4];
+
+    PROCNAME("pixcmapConvertToHex");
+
+    if (!data)
+        return (char *)ERROR_PTR("data not defined", procName, NULL);
+    if (ncolors < 1)
+        return (char *)ERROR_PTR("no colors", procName, NULL);
+
+    cpc = nbytes / ncolors;
+    if (cpc != 3 && cpc != 4)
+        return (char *)ERROR_PTR("cpc not 3 or 4", procName, NULL);
+
+    hexbytes = 2 + (2 * cpc + 1) * ncolors + 2;
+    hexdata = (char *)CALLOC(hexbytes, sizeof(char));
+    hexdata[0] = '<';
+    hexdata[1] = ' ';
+
+    for (i = 0; i < ncolors; i++) {
+        j = 2 + (2 * cpc + 1) * i;
+        snprintf(buf, sizeof(buf), "%02x", data[cpc * i]);
+        hexdata[j] = buf[0];
+        hexdata[j + 1] = buf[1];
+        snprintf(buf, sizeof(buf), "%02x", data[cpc * i + 1]);
+        hexdata[j + 2] = buf[0];
+        hexdata[j + 3] = buf[1];
+        snprintf(buf, sizeof(buf), "%02x", data[cpc * i + 2]);
+        hexdata[j + 4] = buf[0];
+        hexdata[j + 5] = buf[1];
+        hexdata[j + 6] = ' ';
+    }
+    hexdata[j + 7] = '>';
+    hexdata[j + 8] = '\0';
+    return hexdata;
+}
+
+
 /*-------------------------------------------------------------*
  *                     Colormap transforms                     *
  *-------------------------------------------------------------*/
@@ -1447,9 +1566,9 @@ PIXCMAP  *cmap;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - see pixGammaTRC() and numaGammaTRC() in enhance.c for
- *        description and use of transform
+ *      (1) This is an in-place transform
+ *      (2) See pixGammaTRC() and numaGammaTRC() in enhance.c
+ *          for description and use of transform
  */
 l_int32
 pixcmapGammaTRC(PIXCMAP   *cmap,
@@ -1457,8 +1576,8 @@ pixcmapGammaTRC(PIXCMAP   *cmap,
                 l_int32    minval,
                 l_int32    maxval)
 {
-l_int32   rval, gval, bval, trval, tgval, tbval, i, ncolors;
-NUMA     *nag;
+l_int32  rval, gval, bval, trval, tgval, tbval, i, ncolors;
+NUMA    *nag;
 
     PROCNAME("pixcmapGammaTRC");
 
@@ -1500,16 +1619,16 @@ NUMA     *nag;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - see pixContrastTRC() and numaContrastTRC() in enhance.c for
- *        description and use of transform
+ *      (1) This is an in-place transform
+ *      (2) See pixContrastTRC() and numaContrastTRC() in enhance.c
+ *          for description and use of transform
  */
 l_int32
 pixcmapContrastTRC(PIXCMAP   *cmap,
                    l_float32  factor)
 {
-l_int32   i, ncolors, rval, gval, bval, trval, tgval, tbval;
-NUMA     *nac;
+l_int32  i, ncolors, rval, gval, bval, trval, tgval, tbval;
+NUMA    *nac;
 
     PROCNAME("pixcmapContrastTRC");
 
@@ -1545,20 +1664,20 @@ NUMA     *nac;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - This does a proportional shift of the intensity for each color.
- *      - If fraction < 0.0, it moves all colors towards (0,0,0).
- *        This darkens the image.
- *      - If fraction > 0.0, it moves all colors towards (255,255,255)
- *        This fades the image.
- *      - The equivalent transform can be accomplished with pixcmapGammaTRC(),
- *        but it is considerably more difficult (see numaGammaTRC()).
+ *      (1) This is an in-place transform
+ *      (2) It does a proportional shift of the intensity for each color.
+ *      (3) If fraction < 0.0, it moves all colors towards (0,0,0).
+ *          This darkens the image.
+ *          If fraction > 0.0, it moves all colors towards (255,255,255)
+ *          This fades the image.
+ *      (4) The equivalent transform can be accomplished with pixcmapGammaTRC(),
+ *          but it is considerably more difficult (see numaGammaTRC()).
  */
 l_int32
 pixcmapShiftIntensity(PIXCMAP   *cmap,
                       l_float32  fraction)
 {
-l_int32   i, ncolors, rval, gval, bval;
+l_int32  i, ncolors, rval, gval, bval;
 
     PROCNAME("pixcmapShiftIntensity");
 
@@ -1587,22 +1706,30 @@ l_int32   i, ncolors, rval, gval, bval;
 
 
 /*!
- *  pixcmapConvertRGBToHSV()
+ *  pixcmapShiftByComponent()
  *
  *      Input:  colormap
+ *              srcval (source color: 0xrrggbb00)
+ *              dstval (target color: 0xrrggbb00)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - See convertRGBToHSV() for def'n of HSV space.
- *      - replaces: r --> h, g --> s, b --> v
+ *      (1) This is an in-place transform
+ *      (2) It implements pixelShiftByComponent() for each color.
+ *          The mapping is specified by srcval and dstval.
+ *      (3) If a component decreases, the component in the colormap
+ *          decreases by the same ratio.  Likewise for increasing, except
+ *          all ratios are taken with respect to the distance from 255.
  */
 l_int32
-pixcmapConvertRGBToHSV(PIXCMAP  *cmap)
+pixcmapShiftByComponent(PIXCMAP  *cmap,
+                        l_uint32  srcval,
+                        l_uint32  dstval)
 {
-l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
+l_int32   i, ncolors, rval, gval, bval;
+l_uint32  newval;
 
-    PROCNAME("pixcmapConvertRGBToHSV");
+    PROCNAME("pixcmapShiftByComponent");
 
     if (!cmap)
         return ERROR_INT("cmap not defined", procName, 1);
@@ -1610,40 +1737,10 @@ l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
     ncolors = pixcmapGetCount(cmap);
     for (i = 0; i < ncolors; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
-        convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
-        pixcmapResetColor(cmap, i, hval, sval, vval);
-    }
-    return 0;
-}
-
-
-/*!
- *  pixcmapConvertHSVToRGB()
- *
- *      Input:  colormap
- *      Return: 0 if OK; 1 on error
- *
- *  Notes:
- *      - in-place transform
- *      - See convertRGBToHSV() for def'n of HSV space.
- *      - replaces: h --> r, s --> g, v --> b
- */
-l_int32
-pixcmapConvertHSVToRGB(PIXCMAP  *cmap)
-{
-l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
-
-    PROCNAME("pixcmapConvertHSVToRGB");
-
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
-
-    ncolors = pixcmapGetCount(cmap);
-    for (i = 0; i < ncolors; i++) {
-        pixcmapGetColor(cmap, i, &hval, &sval, &vval);
-        convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
+        pixelShiftByComponent(rval, gval, bval, srcval, dstval, &newval);
+        extractRGBValues(newval, &rval, &gval, &bval);
         pixcmapResetColor(cmap, i, rval, gval, bval);
     }
+
     return 0;
 }
-

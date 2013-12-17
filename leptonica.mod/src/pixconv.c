@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -104,15 +115,6 @@
  *      Conversion for printing in PostScript
  *           PIX        *pixConvertForPSWrap()
  *
- *      Colorspace conversion between RGB and HSV
- *           PIX        *pixConvertRGBToHSV()
- *           PIX        *pixConvertHSVToRGB()
- *           l_int32     convertRGBToHSV()
- *           l_int32     convertHSVToRGB()
- *           PIX        *pixConvertRGBToHue()
- *           PIX        *pixConvertRGBToSaturation()
- *           PIX        *pixConvertRGBToValue()
- *
  *      Scaling conversion to subpixel RGB
  *           PIX        *pixConvertToSubpixelRGB()
  *           PIX        *pixConvertGrayToSubpixelRGB()
@@ -121,12 +123,9 @@
  *      *** indicates implicit assumption about RGB component ordering
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
-
 
 #ifndef  NO_CONSOLE_IO
 #define DEBUG_CONVERT_TO_COLORMAP  0
@@ -596,7 +595,7 @@ PIXCMAP   *cmap;
             SET_DATA_BYTE(lined, j, revmap[val]);
         }
     }
-    
+
     pixDestroy(&pixt);
     FREE(inta);
     FREE(revmap);
@@ -731,7 +730,7 @@ PIX       *pixd;
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-    
+
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
@@ -828,7 +827,7 @@ PIX       *pixd;
  *      (4) For 2 and 4 bpp src, this generates a colormap that
  *          assumes full coverage of the gray space, with equally spaced
  *          levels: 4 levels for d = 2 and 16 levels for d = 4.
- *      (5) In all cases, the depth of the dest is the same as the src. 
+ *      (5) In all cases, the depth of the dest is the same as the src.
  */
 PIX *
 pixConvertGrayToColormap(PIX  *pixs)
@@ -860,7 +859,7 @@ PIXCMAP   *cmap;
     pixSetColormap(pixd, cmap);
     return pixd;
 }
-        
+
 
 /*!
  *  pixConvertGrayToColormap8()
@@ -898,7 +897,7 @@ PIXCMAP   *cmap;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)        
+    if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (mindepth != 2 && mindepth != 4 && mindepth != 8) {
         L_WARNING("invalid value of mindepth; setting to 8", procName);
@@ -989,7 +988,7 @@ PIXCMAP   *cmap;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))        
+    if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs not 8 bpp or cmapped", procName, NULL);
 
     if (pixGetColormap(pixs))
@@ -1004,7 +1003,7 @@ PIXCMAP   *cmap;
         pixDestroy(&pixt);
         return pixd;
     }
-    
+
         /* Make an RGB pix */
     pixcmapToRGBTable(cmap, &tab, NULL);
     pixGetDimensions(pixt, &w, &h, NULL);
@@ -1060,7 +1059,7 @@ PIXCMAP   *cmap;
  *          there is a color wash (a slow variation of color), but it
  *          is about twice as slow and results in significantly larger
  *          files when losslessly compressed (e.g., into png).
- */     
+ */
 PIX *
 pixConvertRGBToColormap(PIX     *pixs,
                         l_int32  ditherflag)
@@ -1073,7 +1072,7 @@ PIX     *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 32)        
+    if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
         /* Get the histogram and count the number of occupied level 4
@@ -1110,7 +1109,7 @@ PIX     *pixd;
  *---------------------------------------------------------------------------*/
 /*!
  *  pixQuantizeIfFewColors()
- *     
+ *
  *      Input:  pixs (8 bpp gray or 32 bpp rgb)
  *              maxcolors (max number of colors allowed to be returned
  *                         from pixColorsForQuantization(); use 0 for default)
@@ -1224,7 +1223,7 @@ PIX     *pixg, *pixd;
  *---------------------------------------------------------------------------*/
 /*!
  *  pixConvert16To8()
- *     
+ *
  *      Input:  pixs (16 bpp)
  *              whichbyte (1 for MSB, 0 for LSB)
  *      Return: pixd (8 bpp), or null on error
@@ -1280,7 +1279,7 @@ PIX       *pixd;
 
     return pixd;
 }
-    
+
 
 
 /*---------------------------------------------------------------------------*
@@ -1299,7 +1298,7 @@ PIX       *pixd;
  *      (2) For 16 bpp input, it first converts to 8 bpp and then
  *          adds the colormap.
  *      (3) The colormap is modeled after the Matlab "jet" configuration.
- */     
+ */
 PIX *
 pixConvertGrayToFalseColor(PIX       *pixs,
                            l_float32  gamma)
@@ -1315,7 +1314,7 @@ PIXCMAP   *cmap;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     d = pixGetDepth(pixs);
-    if (d != 8 && d != 16)        
+    if (d != 8 && d != 16)
         return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
 
     if (d == 16)
@@ -1394,7 +1393,7 @@ PIXCMAP   *cmap;
  *  Notes:
  *      (1) This function calls special cases of pixConvert1To*(),
  *          for 2, 4, 8, 16 and 32 bpp destinations.
- */     
+ */
 PIX *
 pixUnpackBinary(PIX     *pixs,
                 l_int32  depth,
@@ -1460,7 +1459,7 @@ PIX  *pixd;
  *      (1) If pixd is null, a new pix is made.
  *      (2) If pixd is not null, it must be of equal width and height
  *          as pixs.  It is always returned.
- */     
+ */
 PIX *
 pixConvert1To16(PIX      *pixd,
                 PIX      *pixs,
@@ -1494,7 +1493,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     pixCopyResolution(pixd, pixs);
 
         /* Use a table to convert 2 src bits at a time */
-    if ((tab = (l_uint32 *)CALLOC(4, sizeof(l_uint32))) == NULL) 
+    if ((tab = (l_uint32 *)CALLOC(4, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     val[0] = val0;
     val[1] = val1;
@@ -1519,7 +1518,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     FREE(tab);
     return pixd;
 }
- 
+
 
 /*!
  *  pixConvert1To32()
@@ -1534,7 +1533,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
  *      (1) If pixd is null, a new pix is made.
  *      (2) If pixd is not null, it must be of equal width and height
  *          as pixs.  It is always returned.
- */     
+ */
 PIX *
 pixConvert1To32(PIX      *pixd,
                 PIX      *pixs,
@@ -1582,7 +1581,7 @@ l_uint32  *datas, *datad, *lines, *lined;
 
     return pixd;
 }
- 
+
 
 /*---------------------------------------------------------------------------*
  *                    Conversion from 1 bpp to 2 bpp                         *
@@ -1595,7 +1594,7 @@ l_uint32  *datas, *datad, *lines, *lined;
  *
  *  Notes:
  *      (1) Input 0 is mapped to (255, 255, 255); 1 is mapped to (0, 0, 0)
- */     
+ */
 PIX *
 pixConvert1To2Cmap(PIX  *pixs)
 {
@@ -1635,7 +1634,7 @@ PIXCMAP  *cmap;
  *          as pixs.  It is always returned.
  *      (3) A simple unpacking might use val0 = 0 and val1 = 3.
  *      (4) If you want a colormapped pixd, use pixConvert1To2Cmap().
- */     
+ */
 PIX *
 pixConvert1To2(PIX     *pixd,
                PIX     *pixs,
@@ -1669,7 +1668,7 @@ l_uint32  *datas, *datad, *lines, *lined;
     pixCopyResolution(pixd, pixs);
 
         /* Use a table to convert 8 src bits to 16 dest bits */
-    if ((tab = (l_uint16 *)CALLOC(256, sizeof(l_uint16))) == NULL) 
+    if ((tab = (l_uint16 *)CALLOC(256, sizeof(l_uint16))) == NULL)
         return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     val[0] = val0;
     val[1] = val1;
@@ -1713,7 +1712,7 @@ l_uint32  *datas, *datad, *lines, *lined;
  *
  *  Notes:
  *      (1) Input 0 is mapped to (255, 255, 255); 1 is mapped to (0, 0, 0)
- */     
+ */
 PIX *
 pixConvert1To4Cmap(PIX  *pixs)
 {
@@ -1753,7 +1752,7 @@ PIXCMAP  *cmap;
  *          as pixs.  It is always returned.
  *      (3) A simple unpacking might use val0 = 0 and val1 = 15, or v.v.
  *      (4) If you want a colormapped pixd, use pixConvert1To4Cmap().
- */     
+ */
 PIX *
 pixConvert1To4(PIX     *pixd,
                PIX     *pixs,
@@ -1786,7 +1785,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     pixCopyResolution(pixd, pixs);
 
         /* Use a table to convert 8 src bits to 32 bit dest word */
-    if ((tab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL) 
+    if ((tab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     val[0] = val0;
     val[1] = val1;
@@ -1845,7 +1844,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
  *             pixcmapAddColor(cmap, 255, 255, 255);
  *             pixcmapAddColor(cmap, 0, 0, 0);
  *             pixSetColormap(pixd, cmap);
- */     
+ */
 PIX *
 pixConvert1To8(PIX     *pixd,
                PIX     *pixs,
@@ -1878,7 +1877,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     pixCopyResolution(pixd, pixs);
 
         /* Use a table to convert 4 src bits at a time */
-    if ((tab = (l_uint32 *)CALLOC(16, sizeof(l_uint32))) == NULL) 
+    if ((tab = (l_uint32 *)CALLOC(16, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     val[0] = val0;
     val[1] = val1;
@@ -1905,7 +1904,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     FREE(tab);
     return pixd;
 }
- 
+
 
 /*!
  *  pixConvert2To8()
@@ -1934,7 +1933,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
  *            image are from the colormap.
  *          - If pixs does not have a colormap, the input values are
  *            used to populate the 8 bpp image.
- */     
+ */
 PIX *
 pixConvert2To8(PIX     *pixs,
                l_uint8  val0,
@@ -2001,7 +2000,7 @@ PIXCMAP   *cmaps, *cmapd;
         /* Last case: no colormap in either pixs or pixd.
          * Use input values and build a table to convert 1 src byte
          * (4 src pixels) at a time */
-    if ((tab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL) 
+    if ((tab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     val[0] = val0;
     val[1] = val1;
@@ -2026,7 +2025,7 @@ PIXCMAP   *cmaps, *cmapd;
     FREE(tab);
     return pixd;
 }
- 
+
 
 /*!
  *  pixConvert4To8()
@@ -2049,7 +2048,7 @@ PIXCMAP   *cmaps, *cmapd;
  *            in pixd are from the colormap (converted to gray).
  *          - If pixs does not have a colormap, the pixel values in pixs
  *            are used, with shift replication, to populate pixd.
- */     
+ */
 PIX *
 pixConvert4To8(PIX     *pixs,
                l_int32  cmapflag)
@@ -2090,7 +2089,7 @@ PIXCMAP   *cmaps, *cmapd;
             }
         }
         else {  /* make a colormap with a linear trc */
-            for (i = 0; i < 16; i++) 
+            for (i = 0; i < 16; i++)
                 pixcmapAddColor(cmapd, 17 * i, 17 * i, 17 * i);
         }
         pixSetColormap(pixd, cmapd);
@@ -2201,7 +2200,7 @@ PIX       *pixt, *pixd;
  *      (2) Any existing colormap is removed.
  *      (3) If the input image has 1 bpp and no colormap, the operation is
  *          lossless and a copy is returned.
- */     
+ */
 PIX *
 pixConvertTo1(PIX     *pixs,
               l_int32  threshold)
@@ -2255,7 +2254,7 @@ PIXCMAP  *cmap;
  *  Notes:
  *      (1) This is a fast, quick/dirty, top-level converter.
  *      (2) See pixConvertTo1() for default values.
- */     
+ */
 PIX *
 pixConvertTo1BySampling(PIX     *pixs,
                         l_int32  factor,
@@ -2304,7 +2303,7 @@ PIX       *pixt, *pixd;
  *      (5) If 32 bpp RGB, this is converted to gray.  If you want
  *          to do color quantization, you must specify the type
  *          explicitly, using the color quantization code.
- */     
+ */
 PIX *
 pixConvertTo8(PIX     *pixs,
               l_int32  cmapflag)
@@ -2375,7 +2374,7 @@ PIXCMAP  *cmap;
  *  Notes:
  *      (1) This is a fast, quick/dirty, top-level converter.
  *      (2) See pixConvertTo8() for default values.
- */     
+ */
 PIX *
 pixConvertTo8BySampling(PIX     *pixs,
                         l_int32  factor,
@@ -2413,7 +2412,7 @@ PIX       *pixt, *pixd;
  *      1 bpp:  val0 = 0xffff, val1 = 0
  *      8 bpp:  replicates the 8 bit value in both the MSB and LSB
  *              of the 16 bit pixel.
- */     
+ */
 PIX *
 pixConvertTo16(PIX  *pixs)
 {
@@ -2460,7 +2459,7 @@ l_int32  d;
  *
  *  Notes:
  *      (1) Implicit assumption about RGB component ordering.
- */     
+ */
 PIX *
 pixConvertTo32(PIX  *pixs)
 {
@@ -2496,7 +2495,7 @@ PIX     *pixt, *pixd;
         return pixd;
     }
     else if (d == 24)
-        return pixConvert32To24(pixs);
+        return pixConvert24To32(pixs);
     else if (d == 32)
         return pixCopy(NULL, pixs);
     else
@@ -2515,7 +2514,7 @@ PIX     *pixt, *pixd;
  *  Notes:
  *      (1) This is a fast, quick/dirty, top-level converter.
  *      (2) See pixConvertTo32() for default values.
- */     
+ */
 PIX *
 pixConvertTo32BySampling(PIX     *pixs,
                          l_int32  factor)
@@ -2582,7 +2581,7 @@ PIX       *pixd;
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-    
+
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
@@ -2653,7 +2652,7 @@ PIX     *pixd;
 
     return pixd;
 }
- 
+
 
 /*---------------------------------------------------------------------------*
  *                 Conversion between 24 bpp and 32 bpp rgb                  *
@@ -2870,7 +2869,7 @@ PIX       *pixd;
  *          RGB, depending on whether the colormap has color content.
  *      (3) Images without colormaps, that are not 1 bpp or 32 bpp,
  *          are converted to 8 bpp gray.
- */     
+ */
 PIX *
 pixConvertForPSWrap(PIX  *pixs)
 {
@@ -2916,504 +2915,6 @@ PIXCMAP  *cmap;
 
    return pixd;
 }
-
-
-/*---------------------------------------------------------------------------*
- *                  Colorspace conversion between RGB and HSB                *
- *---------------------------------------------------------------------------*/
-/*!
- *  pixConvertRGBToHSV()
- *
- *      Input:  pixd (can be NULL; if not NULL, must == pixs)
- *              pixs
- *      Return: pixd always
- *
- *  Notes:
- *      (1) For pixs = pixd, this is in-place; otherwise pixd must be NULL.
- *      (2) The definition of our HSV space is given in convertRGBToHSV().
- *      (3) The h, s and v values are stored in the same places as
- *          the r, g and b values, respectively.  Here, they are explicitly
- *          placed in the 3 MS bytes in the pixel.
- *      (4) Normalizing to 1 and considering the r,g,b components,
- *          a simple way to understand the HSV space is:
- *           - v = max(r,g,b)
- *           - s = (max - min) / max
- *           - h ~ (mid - min) / (max - min)  [apart from signs and constants]
- *      (5) Normalizing to 1, some properties of the HSV space are:
- *           - For gray values (r = g = b) along the continuum between
- *             black and white:
- *                s = 0  (becoming undefined as you approach black)
- *                h is undefined everywhere
- *           - Where one component is saturated and the others are zero:
- *                v = 1
- *                s = 1
- *                h = 0 (r = max), 1/3 (g = max), 2/3 (b = max)
- *           - Where two components are saturated and the other is zero:
- *                v = 1
- *                s = 1
- *                h = 1/2 (if r = 0), 5/6 (if g = 0), 1/6 (if b = 0)
- */
-PIX *
-pixConvertRGBToHSV(PIX  *pixd,
-                   PIX  *pixs)
-{
-l_int32    w, h, d, wpl, i, j, rval, gval, bval, hval, sval, vval;
-l_uint32   pixel;
-l_uint32  *line, *data;
-PIXCMAP   *cmap;
-
-    PROCNAME("pixConvertRGBToHSV");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
-    if (pixd && pixd != pixs)
-        return (PIX *)ERROR_PTR("pixd defined and not inplace", procName, pixd);
-
-    d = pixGetDepth(pixs);
-    cmap = pixGetColormap(pixs);
-    if (!cmap && d != 32)
-        return (PIX *)ERROR_PTR("not cmapped or rgb", procName, pixd);
-
-    if (!pixd)
-        pixd = pixCopy(NULL, pixs);
-
-    cmap = pixGetColormap(pixd);
-    if (cmap) {   /* just convert the colormap */
-        pixcmapConvertRGBToHSV(cmap);
-        return pixd;
-    }
-
-        /* Convert RGB image */
-    pixGetDimensions(pixd, &w, &h, NULL);
-    wpl = pixGetWpl(pixd);
-    data = pixGetData(pixd);
-    for (i = 0; i < h; i++) {
-        line = data + i * wpl;
-        for (j = 0; j < w; j++) {
-            pixel = line[j];
-            extractRGBValues(pixel, &rval, &gval, &bval);
-            convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
-            line[j] = (hval << 24) | (sval << 16) | (vval << 8);
-        }
-    }
-
-    return pixd;
-}
-
-
-/*!
- *  pixConvertHSVToRGB()
- *
- *      Input:  pixd (can be NULL; if not NULL, must == pixs)
- *              pixs
- *      Return: pixd always
- *
- *  Notes:
- *      (1) For pixs = pixd, this is in-place; otherwise pixd must be NULL.
- *      (2) The user takes responsibility for making sure that pixs is
- *          in our HSV space.  The definition of our HSV space is given
- *          in convertRGBToHSV().
- *      (3) The h, s and v values are stored in the same places as
- *          the r, g and b values, respectively.  Here, they are explicitly
- *          placed in the 3 MS bytes in the pixel.
- */
-PIX *
-pixConvertHSVToRGB(PIX  *pixd,
-                   PIX  *pixs)
-{
-l_int32    w, h, d, wpl, i, j, rval, gval, bval, hval, sval, vval;
-l_uint32   pixel;
-l_uint32  *line, *data;
-PIXCMAP   *cmap;
-
-    PROCNAME("pixConvertHSVToRGB");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
-    if (pixd && pixd != pixs)
-        return (PIX *)ERROR_PTR("pixd defined and not inplace", procName, pixd);
-
-    d = pixGetDepth(pixs);
-    cmap = pixGetColormap(pixs);
-    if (!cmap && d != 32)
-        return (PIX *)ERROR_PTR("not cmapped or hsv", procName, pixd);
-
-    if (!pixd)
-        pixd = pixCopy(NULL, pixs);
-
-    cmap = pixGetColormap(pixd);
-    if (cmap) {   /* just convert the colormap */
-        pixcmapConvertHSVToRGB(cmap);
-        return pixd;
-    }
-
-        /* Convert HSV image */
-    pixGetDimensions(pixd, &w, &h, NULL);
-    wpl = pixGetWpl(pixd);
-    data = pixGetData(pixd);
-    for (i = 0; i < h; i++) {
-        line = data + i * wpl;
-        for (j = 0; j < w; j++) {
-            pixel = line[j];
-            hval = pixel >> 24;
-            sval = (pixel >> 16) & 0xff;
-            vval = (pixel >> 8) & 0xff;
-            convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
-            composeRGBPixel(rval, gval, bval, line + j);
-        }
-    }
-
-    return pixd;
-}
-
-
-/*!
- *  convertRGBToHSV()
- *
- *      Input:  rval, gval, bval (RGB input)
- *              &hval, &sval, &vval (<return> HSV values)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) The range of returned values is:
- *            h [0 ... 239]
- *            s [0 ... 255]
- *            v [0 ... 255]
- *      (2) If r = g = b, the pixel is gray (s = 0), and we define h = 0.
- *      (3) h wraps around, so that h = 0 and h = 240 are equivalent
- *          in hue space.
- *      (4) h has the following correspondence to color:
- *            h = 0         magenta
- *            h = 40        red
- *            h = 80        yellow
- *            h = 120       green
- *            h = 160       cyan
- *            h = 200       blue
- */     
-l_int32
-convertRGBToHSV(l_int32   rval,
-                l_int32   gval,
-                l_int32   bval,
-                l_int32  *phval,
-                l_int32  *psval,
-                l_int32  *pvval)
-{
-l_int32    minrg, maxrg, min, max, delta;
-l_float32  h;
-
-    PROCNAME("convertRGBToHSV");
-
-    if (!phval || !psval || !pvval)
-        return ERROR_INT("&hval, &sval, &vval not all defined", procName, 1);
-
-    minrg = L_MIN(rval, gval);
-    min = L_MIN(minrg, bval);
-    maxrg = L_MAX(rval, gval);
-    max = L_MAX(maxrg, bval);
-    delta = max - min;
-
-    *pvval = max;
-    if (delta == 0) {   /* gray; no chroma */
-        *phval = 0;
-        *psval = 0;
-    }
-    else {
-        *psval = (l_int32)(255. * (l_float32)delta / (l_float32)max + 0.5);
-        if (rval == max)  /* between magenta and yellow */
-            h = (l_float32)(gval - bval) / (l_float32)delta; 
-        else if (gval == max)  /* between yellow and cyan */
-            h = 2. + (l_float32)(bval - rval) / (l_float32)delta; 
-        else  /* between cyan and magenta */
-            h = 4. + (l_float32)(rval - gval) / (l_float32)delta;
-        h *= 40.0;
-        if (h < 0.0)
-            h += 240.0;
-        if (h >= 239.5)
-            h = 0.0;
-        *phval = (l_int32)(h + 0.5);
-    }
-
-    return 0;
-}
-
-
-/*!
- *  convertHSVToRGB()
- *
- *      Input:  hval, sval, vval
- *              &rval, &gval, &bval (<return> RGB values)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) See convertRGBToHSV() for valid input range of HSV values
- *          and their interpretation in color space.
- */     
-l_int32
-convertHSVToRGB(l_int32   hval,
-                l_int32   sval,
-                l_int32   vval,
-                l_int32  *prval,
-                l_int32  *pgval,
-                l_int32  *pbval)
-{
-l_int32   i, x, y, z;
-l_float32 h, f, s;
-
-    PROCNAME("convertHSVToRGB");
-
-    if (!prval || !pgval || !pbval)
-        return ERROR_INT("&rval, &gval, &bval not all defined", procName, 1);
-
-    if (sval == 0) {  /* gray */
-        *prval = vval;
-        *pgval = vval;
-        *pbval = vval;
-    }
-    else {
-        if (hval < 0 || hval > 240)
-            return ERROR_INT("invalid hval", procName, 1);
-        if (hval == 240)
-            hval = 0;
-        h = (l_float32)hval / 40.;
-        i = (l_int32)h;
-        f = h - i;
-        s = (l_float32)sval / 255.;
-        x = (l_int32)(vval * (1. - s) + 0.5);
-        y = (l_int32)(vval * (1. - s * f) + 0.5);
-        z = (l_int32)(vval * (1. - s * (1. - f)) + 0.5);
-        switch (i)
-        {
-        case 0:
-            *prval = vval;
-            *pgval = z;
-            *pbval = x;
-            break;
-        case 1:
-            *prval = y;
-            *pgval = vval;
-            *pbval = x;
-            break;
-        case 2:
-            *prval = x;
-            *pgval = vval;
-            *pbval = z;
-            break;
-        case 3:
-            *prval = x;
-            *pgval = y;
-            *pbval = vval;
-            break;
-        case 4:
-            *prval = z;
-            *pgval = x;
-            *pbval = vval;
-            break;
-        case 5:
-            *prval = vval;
-            *pgval = x;
-            *pbval = y;
-            break;
-        default:  /* none possible */
-            return 1;
-        }
-    }
-  
-    return 0;
-}
-
-
-/*!
- *  pixConvertRGBToHue()
- *
- *      Input:  pixs (32 bpp RGB or 8 bpp with colormap)
- *      Return: pixd (8 bpp hue of HSV), or null on error
- *
- *  Notes:
- *      (1) The conversion to HSV hue is in-lined here.
- *      (2) If there is a colormap, it is removed.
- *      (3) If you just want the hue component, this does it
- *          at about 10 Mpixels/sec/GHz, which is about
- *          2x faster than using pixConvertRGBToHSV()
- */
-PIX *
-pixConvertRGBToHue(PIX  *pixs)
-{
-l_int32    w, h, d, wplt, wpld;
-l_int32    i, j, rval, gval, bval, hval, minrg, min, maxrg, max, delta;
-l_float32  fh;
-l_uint32   pixel;
-l_uint32  *linet, *lined, *datat, *datad;
-PIX       *pixt, *pixd;
-
-    PROCNAME("pixConvertRGBToHue");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 32 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("not cmapped or rgb", procName, NULL);
-    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
-
-        /* Convert RGB image */
-    pixd = pixCreate(w, h, 8);
-    pixCopyResolution(pixd, pixs);
-    wplt = pixGetWpl(pixt);
-    datat = pixGetData(pixt);
-    wpld = pixGetWpl(pixd);
-    datad = pixGetData(pixd);
-    for (i = 0; i < h; i++) {
-        linet = datat + i * wplt;
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
-            pixel = linet[j];
-            extractRGBValues(pixel, &rval, &gval, &bval);
-            minrg = L_MIN(rval, gval);
-            min = L_MIN(minrg, bval);
-            maxrg = L_MAX(rval, gval);
-            max = L_MAX(maxrg, bval);
-            delta = max - min;
-            if (delta == 0)  /* gray; no chroma */
-                hval = 0;
-            else {
-                if (rval == max)  /* between magenta and yellow */
-                    fh = (l_float32)(gval - bval) / (l_float32)delta; 
-                else if (gval == max)  /* between yellow and cyan */
-                    fh = 2. + (l_float32)(bval - rval) / (l_float32)delta; 
-                else  /* between cyan and magenta */
-                    fh = 4. + (l_float32)(rval - gval) / (l_float32)delta;
-                fh *= 40.0;
-                if (fh < 0.0)
-                    fh += 240.0;
-                hval = (l_int32)(fh + 0.5);
-            }
-            SET_DATA_BYTE(lined, j, hval);
-        }
-    }
-    pixDestroy(&pixt);
-
-    return pixd;
-}
-
-
-
-/*!
- *  pixConvertRGBToSaturation()
- *
- *      Input:  pixs (32 bpp RGB or 8 bpp with colormap)
- *      Return: pixd (8 bpp sat of HSV), or null on error
- *
- *  Notes:
- *      (1) The conversion to HSV sat is in-lined here.
- *      (2) If there is a colormap, it is removed.
- *      (3) If you just want the saturation component, this does it
- *          at about 12 Mpixels/sec/GHz.
- */
-PIX *
-pixConvertRGBToSaturation(PIX  *pixs)
-{
-l_int32    w, h, d, wplt, wpld;
-l_int32    i, j, rval, gval, bval, sval, minrg, min, maxrg, max, delta;
-l_uint32   pixel;
-l_uint32  *linet, *lined, *datat, *datad;
-PIX       *pixt, *pixd;
-
-    PROCNAME("pixConvertRGBToSaturation");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 32 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("not cmapped or rgb", procName, NULL);
-    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
-
-        /* Convert RGB image */
-    pixd = pixCreate(w, h, 8);
-    pixCopyResolution(pixd, pixs);
-    wplt = pixGetWpl(pixt);
-    datat = pixGetData(pixt);
-    wpld = pixGetWpl(pixd);
-    datad = pixGetData(pixd);
-    for (i = 0; i < h; i++) {
-        linet = datat + i * wplt;
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
-            pixel = linet[j];
-            extractRGBValues(pixel, &rval, &gval, &bval);
-            minrg = L_MIN(rval, gval);
-            min = L_MIN(minrg, bval);
-            maxrg = L_MAX(rval, gval);
-            max = L_MAX(maxrg, bval);
-            delta = max - min;
-            if (delta == 0)  /* gray; no chroma */
-                sval = 0;
-            else
-                sval = (l_int32)(255. *
-                                 (l_float32)delta / (l_float32)max + 0.5);
-            SET_DATA_BYTE(lined, j, sval);
-        }
-    }
-
-    pixDestroy(&pixt);
-    return pixd;
-}
-
-
-/*!
- *  pixConvertRGBToValue()
- *
- *      Input:  pixs (32 bpp RGB or 8 bpp with colormap)
- *      Return: pixd (8 bpp max component intensity of HSV), or null on error
- *
- *  Notes:
- *      (1) The conversion to HSV sat is in-lined here.
- *      (2) If there is a colormap, it is removed.
- *      (3) If you just want the value component, this does it
- *          at about 35 Mpixels/sec/GHz.
- */
-PIX *
-pixConvertRGBToValue(PIX  *pixs)
-{
-l_int32    w, h, d, wplt, wpld;
-l_int32    i, j, rval, gval, bval, maxrg, max;
-l_uint32   pixel;
-l_uint32  *linet, *lined, *datat, *datad;
-PIX       *pixt, *pixd;
-
-    PROCNAME("pixConvertRGBToValue");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 32 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("not cmapped or rgb", procName, NULL);
-    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
-
-        /* Convert RGB image */
-    pixd = pixCreate(w, h, 8);
-    pixCopyResolution(pixd, pixs);
-    wplt = pixGetWpl(pixt);
-    datat = pixGetData(pixt);
-    wpld = pixGetWpl(pixd);
-    datad = pixGetData(pixd);
-    for (i = 0; i < h; i++) {
-        linet = datat + i * wplt;
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
-            pixel = linet[j];
-            extractRGBValues(pixel, &rval, &gval, &bval);
-            maxrg = L_MAX(rval, gval);
-            max = L_MAX(maxrg, bval);
-            SET_DATA_BYTE(lined, j, max);
-        }
-    }
-
-    pixDestroy(&pixt);
-    return pixd;
-}
-
 
 
 /*---------------------------------------------------------------------------*
@@ -3703,4 +3204,3 @@ PIXCMAP   *cmap;
     pixDestroy(&pixt2);
     return pixd;
 }
-

@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2011 Bruce A Henderson
+' Copyright (c) 2009-2013 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -177,8 +177,10 @@ End Extern
 
 Function _mapDepthToPixFormat:Int(depth:Int)
 	Select depth
-		Case 8
+		Case 1, 2, 4, 8
 			Return PF_I8
+		Case 16
+			Return PF_RGB888
 		Case 24
 			Return PF_RGB888
 		Case 32
@@ -187,55 +189,107 @@ Function _mapDepthToPixFormat:Int(depth:Int)
 	Return 0	
 End Function
 
-Function ConvertPixelsFromStdFormatToARGB( pixmap:TPixmap,out_buf:Byte Ptr )
+Function ConvertPixelsToTLPix(pixmap:TPixmap, out_buf:Byte Ptr, wpl:Int )
 
 	Local count:Int = pixmap.width
 	Local pitch:Int = pixmap.pitch
+	Local bytesPerPixel:Int = BitsPerPixel[pixmap.format] / 8
 
 	For Local y:Int = 0 Until pixmap.height
 
-		Local out:Byte Ptr = out_buf + y * pitch
+		Local out:Byte Ptr = out_buf + y * (wpl * 4)
 		Local in:Byte Ptr = pixmap.pixels + y * pitch
-		Local in_end:Byte Ptr = in + count * 4
+		Local in_end:Byte Ptr = in + count * bytesPerPixel
 	'BGRA
 		While in<>in_end
-			out[0]=in[3]
-			out[1]=in[2]
-			out[2]=in[1]
-			out[3]=in[0]
-'			out[0]=in[2]
-'			out[1]=in[1]
-'			out[2]=in[0]
-'			out[3]=in[3]
-			in:+4;out:+4
+			Select pixmap.format
+				Case PF_I8
+					out[0]=in[0]
+					in:+1
+				Case PF_BGR888
+					out[0]=in[0]
+					out[1]=in[1]
+					out[2]=in[2]
+					in:+3
+				Case PF_RGB888
+					out[0]=in[2]
+					out[1]=in[1]
+					out[2]=in[0]
+					in:+3
+				Case PF_BGRA8888
+					out[0]=in[3]
+					out[1]=in[0]
+					out[2]=in[1]
+					out[3]=in[2]
+					in:+4
+				Case PF_RGBA8888
+					out[0]=in[3]
+					out[1]=in[2]
+					out[2]=in[1]
+					out[3]=in[0]
+					in:+4
+			End Select
+			out:+bytesPerPixel
 		Wend
 
 	Next
 
 End Function
 
-Function ConvertPixelsFromARGBFormatToStd( pixmap:TPixmap, in_buf:Byte Ptr )
+Function ConvertTLPixToPixels( pixmap:TPixmap, out_buf:Byte Ptr, depth:Int, wpl:Int, pixPtr:Byte Ptr )
 
 ' pixGetData(pixPtr), pixGetWidth(pixPtr), pixGetHeight(pixPtr), pixGetWpl(pixPtr) * 4, _mapDepthToPixFormat(pixGetDepth(pixPtr))
 
 	Local count:Int = pixmap.width
 	Local pitch:Int = pixmap.pitch
+	Local bytesPerPixel:Int = depth / 8
 
-	For Local y:Int = 0 Until pixmap.height
-
-		Local in:Byte Ptr = pixmap.pixels + y * pitch
-		Local out:Byte Ptr = in_buf + y * pitch
-		Local out_end:Byte Ptr = out + count * 4
+	If depth >= 8 Then
+		For Local y:Int = 0 Until pixmap.height
 	
-		While out<>out_end
-			in[0]=out[3]
-			in[1]=out[2]
-			in[2]=out[1]
-			in[3]=out[0]
-			in:+4;out:+4
-		Wend
+			Local in:Byte Ptr = pixmap.pixels + y * pitch
+			Local out:Byte Ptr = out_buf + y * (wpl * 4)
+			Local out_end:Byte Ptr = out + count * bytesPerPixel
+		
+			While out<>out_end
+				Select depth
+					Case 8
+						in[0]=out[0]
+						in:+1;out:+1
+					Case 16
+						in[0]=out[0]
+						in[1]=out[1]
+						in[2]=out[1]
+						in:+3;out:+2
+					Case 24
+						in[0]=out[2]
+						in[1]=out[1]
+						in[2]=out[0]
+						in:+3;out:+3
+					Case 32
+						in[0]=out[3]
+						in[1]=out[2]
+						in[2]=out[1]
+						in[3]=out[0]
+						in:+4;out:+4
+				End Select
+			Wend
+	
+		Next
+	Else
+		Local value:Int
+		For Local y:Int = 0 Until pixmap.height
 
-	Next
+			Local in:Byte Ptr = pixmap.pixels + y * pitch
+
+			For Local x:Int = 0 Until pixmap.width
+				pixGetPixel(pixPtr, x, y, Varptr value)
+				in[0] = value
+				in:+ 1
+			Next
+		Next
+	End If
+	
 
 End Function
 

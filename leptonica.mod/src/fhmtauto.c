@@ -1,22 +1,33 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 
 /*
  *  fhmtauto.c
- *      
+ *
  *    Main function calls:
  *       l_int32             fhmtautogen()
  *       l_int32             fhmtautogen1()
@@ -50,7 +61,7 @@
  *        you can invoke fhmtautogen() any number of times
  *        to get functions that all have different names so that
  *        they can be linked into one program.
- *        
+ *
  *    (3) You copy the generated source code back to your src
  *        directory for compilation.  Put their names in the
  *        Makefile, regnerate the prototypes, and recompile
@@ -74,11 +85,9 @@
  *        As an example, see the file prog/fmtauto_reg.c, which
  *        verifies the correctness of the implementation by
  *        comparing the dwa result with that of full-image
- *        rasterops. 
+ *        rasterops.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -241,8 +250,8 @@ char    *str_doc1, *str_doc2, *str_doc3, *str_doc4;
 char    *str_def1, *str_def2, *str_proc1, *str_proc2;
 char    *str_dwa1, *str_low_dt, *str_low_ds;
 char     bigbuf[BUFFER_SIZE];
-l_int32  i, nsels, nbytes;
-l_int32  actstart, end, newstart;
+l_int32  i, nsels, nbytes, actstart, end, newstart;
+size_t   size;
 SARRAY  *sa1, *sa2, *sa3;
 
     PROCNAME("fhmtautogen1");
@@ -253,12 +262,12 @@ SARRAY  *sa1, *sa2, *sa3;
         fileindex = 0;
     if ((nsels = selaGetCount(sela)) == 0)
         return ERROR_INT("no sels in sela", procName, 1);
-    
+
         /* Make array of sel names */
     sa1 = selaGetSelnames(sela);
 
         /* Make array of textlines from from hmttemplate1.txt */
-    if ((filestr = (char *)arrayRead(TEMPLATE1, &nbytes)) == NULL)
+    if ((filestr = (char *)l_binaryRead(TEMPLATE1, &size)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa2 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa2 not made", procName, 1);
@@ -383,7 +392,7 @@ SARRAY  *sa1, *sa2, *sa3;
         sprintf(bigbuf, "%s.%d.c", filename, fileindex);
     else
         sprintf(bigbuf, "%s.%d.c", OUTROOT, fileindex);
-    arrayWrite(bigbuf, "w", filestr, nbytes);
+    l_binaryWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
@@ -424,6 +433,7 @@ char     staticstring[] = "static void";
 l_int32  i, k, l, nsels, nbytes, nhits, nmisses;
 l_int32  actstart, end, newstart;
 l_int32  argstart, argend, loopstart, loopend, finalstart, finalend;
+size_t   size;
 SARRAY  *sa1, *sa2, *sa3, *sa4, *sa5, *sa6;
 SEL     *sel;
 
@@ -435,9 +445,9 @@ SEL     *sel;
         fileindex = 0;
     if ((nsels = selaGetCount(sela)) == 0)
         return ERROR_INT("no sels in sela", procName, 1);
-    
+
         /* Make the array of textlines from hmttemplate2.txt */
-    if ((filestr = (char *)arrayRead(TEMPLATE2, &nbytes)) == NULL)
+    if ((filestr = (char *)l_binaryRead(TEMPLATE2, &size)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa1 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa1 not made", procName, 1);
@@ -493,7 +503,7 @@ SEL     *sel;
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa4, linestr, L_INSERT);
     }
-        
+
         /* Insert function header */
     sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
     sarrayAppendRange(sa4, sa1, actstart, end);
@@ -539,11 +549,11 @@ SEL     *sel;
             /* Declare and define wplsN args, as necessary */
         if ((sel = selaGetSel(sela, i)) == NULL)
             return ERROR_INT("sel not returned", procName, 1);
-        if ((sa5 = sarrayMakeWplsCode(sel)) == NULL) 
+        if ((sa5 = sarrayMakeWplsCode(sel)) == NULL)
             return ERROR_INT("sa5 not made", procName, 1);
         sarrayConcatenate(sa4, sa5);
         sarrayDestroy(&sa5);
-        
+
             /* Make sure sel has at least one hit */
         nhits = 0;
         nmisses = 0;
@@ -582,13 +592,13 @@ SEL     *sel;
         sprintf(bigbuf, "%slow.%d.c", filename, fileindex);
     else
         sprintf(bigbuf, "%slow.%d.c", OUTROOT, fileindex);
-    arrayWrite(bigbuf, "w", filestr, nbytes);
+    l_binaryWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
     FREE(filestr);
-        
+
     return 0;
 }
 
@@ -603,7 +613,7 @@ SEL     *sel;
 static SARRAY *
 sarrayMakeWplsCode(SEL  *sel)
 {
-char     spacestring[] = "    ";
+char     emptystring[] = "";
 l_int32  i, j, ymax, dely;
 SARRAY  *sa;
 
@@ -647,7 +657,7 @@ SARRAY  *sa;
     if (ymax > 1)
         sarrayAddString(sa, wpldecls[ymax - 2], 1);
 
-    sarrayAddString(sa, spacestring, 1);
+    sarrayAddString(sa, emptystring, 1);
 
         /* Definitions */
     for (i = 2; i <= ymax; i++)
@@ -783,7 +793,6 @@ char     bigbuf[BUFFER_SIZE];
             sprintf(bigbuf, "((~*(sptr %s) << %d) | (~*(sptr %s + 1) >> %d))",
                   wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
     }
-            
+
     return stringNew(bigbuf);
 }
-

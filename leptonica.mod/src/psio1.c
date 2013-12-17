@@ -1,16 +1,27 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
- -  This software is distributed in the hope that it will be
- -  useful, but with NO WARRANTY OF ANY KIND.
- -  No author or distributor accepts responsibility to anyone for the
- -  consequences of using this software, or for whether it serves any
- -  particular purpose or works at all, unless he or she says so in
- -  writing.  Everyone is granted permission to copy, modify and
- -  redistribute this source code, for commercial or non-commercial
- -  purposes, with the following restrictions: (1) the origin of this
- -  source code must not be misrepresented; (2) modified versions must
- -  be plainly marked as such; and (3) this notice may not be removed
- -  or altered from any source or modified source distribution.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
 /*
@@ -19,10 +30,10 @@
  *    |=============================================================|
  *    |                         Important note                      |
  *    |=============================================================|
- *    |Some of these functions require libtiff and libjpeg.         |
- *    |If you do not have both of these libraries, you must set     |
+ *    | Some of these functions require libtiff, libjpeg and libz.  |
+ *    | If you do not have these libraries, you must set            |
  *    |     #define  USE_PSIO     0                                 |
- *    |in environ.h.  This will link psio1stub.c                    |
+ *    | in environ.h.  This will link psio1stub.c                   |
  *    |=============================================================|
  *
  *     This is a PostScript "device driver" for wrapping images
@@ -87,8 +98,6 @@
  *  sets a flag to give low-level control over this.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -358,7 +367,9 @@ l_int32  ret, i, w, h, nfiles, index, firstfile, format, res;
  *             * if in tiffg4  -->  use ccittg4
  *             * if in jpeg    -->  use dct
  *             * all others    -->  use flate
- *      (3) @index is incremented if the page is successfully written.
+ *      (3) Before the first call, set @firstpage = 1.  After writing
+ *          the first page, it will be set to 0.
+ *      (4) @index is incremented if the page is successfully written.
  */
 l_int32
 writeImageCompressedToPSFile(const char  *filein,
@@ -369,19 +380,15 @@ writeImageCompressedToPSFile(const char  *filein,
 {
 const char  *op;
 l_int32      format, retval;
-FILE        *fp;
 
     PROCNAME("writeImageCompressedToPSFile");
 
     if (!pfirstfile || !pindex)
         return ERROR_INT("&firstfile and &index not defined", procName, 1);
 
-    if ((fp = fopenReadStream(filein)) == NULL)
-        return ERROR_INT("filein not found", procName, 1);
-    findFileFormat(fp, &format);
-    fclose(fp);
+    findFileFormat(filein, &format);
     if (format == IFF_UNKNOWN) {
-        L_ERROR_STRING("Format of %s not known", procName, filein);
+        L_ERROR_STRING("format of %s not known", procName, filein);
         return 1;
     }
 
@@ -395,8 +402,8 @@ FILE        *fp;
         }
     }
     else if (format == IFF_TIFF_G4) {
-        retval = convertTiffG4ToPS(filein, fileout, op, 0, 0,
-                                   res, 1.0, *pindex + 1, FALSE, TRUE);
+        retval = convertG4ToPS(filein, fileout, op, 0, 0,
+                               res, 1.0, *pindex + 1, FALSE, TRUE);
         if (retval == 0) {
             *pfirstfile = FALSE;
             (*pindex)++;
@@ -444,7 +451,7 @@ FILE        *fp;
  *          substrings for string matches.
  *      (2) The page images are taken in lexicographic order.
  *          Mask images whose numbers match the page images are used to
- *          segment the page images.  Page images without a matching 
+ *          segment the page images.  Page images without a matching
  *          mask image are scaled, thresholded and rendered entirely as text.
  *      (3) Each PS page is generated as a compressed representation of
  *          the page image, where the part of the image under the mask
@@ -759,8 +766,8 @@ l_int32      resb, resc, endpage, maskop, ret;
         pixWrite(tnameb, pixb, IFF_TIFF_G4);
         op = (pageno <= 1 && !pixc) ? "w" : "a";
         maskop = (pixc) ? 1 : 0;
-        ret = convertTiffG4ToPS(tnameb, fileout, op, 0, 0, resb, 1.0,
-              pageno, maskop, 1);
+        ret = convertG4ToPS(tnameb, fileout, op, 0, 0, resb, 1.0,
+                            pageno, maskop, 1);
         if (ret)
             return ERROR_INT("tiff data not written", procName, 1);
     }
@@ -802,7 +809,6 @@ convertToPSEmbed(const char  *filein,
 const char  nametif[] = "/tmp/junk_convert_ps_embed.tif";
 const char  namejpg[] = "/tmp/junk_convert_ps_embed.jpg";
 l_int32     d, format;
-FILE       *fp;
 PIX        *pix, *pixs;
 
     PROCNAME("convertToPSEmbed");
@@ -822,17 +828,18 @@ PIX        *pix, *pixs;
     }
 
         /* Find the format and write out directly if in jpeg or tiff g4 */
-    if ((fp = fopen(filein, "rb")) == NULL)
-        return ERROR_INT("filein not found", procName, 1);
-    findFileFormat(fp, &format);
-    fclose(fp);
+    findFileFormat(filein, &format);
     if (format == IFF_JFIF_JPEG) {
         convertJpegToPSEmbed(filein, fileout);
         return 0;
     }
     else if (format == IFF_TIFF_G4) {
-        convertTiffG4ToPSEmbed(filein, fileout);
+        convertG4ToPSEmbed(filein, fileout);
         return 0;
+    }
+    else if (format == IFF_UNKNOWN) {
+        L_ERROR_STRING("format of %s not known", procName, filein);
+        return 1;
     }
 
         /* If level 3, flate encode. */
@@ -855,7 +862,7 @@ PIX        *pix, *pixs;
     d = pixGetDepth(pix);
     if (d == 1) {
         pixWrite(nametif, pix, IFF_TIFF_G4);
-        convertTiffG4ToPSEmbed(nametif, fileout);
+        convertG4ToPSEmbed(nametif, fileout);
     }
     else {
         pixWrite(namejpg, pix, IFF_JFIF_JPEG);
@@ -884,12 +891,14 @@ PIX        *pix, *pixs;
  *      (1) This generates a PS file of multiple page images, all
  *          with bounding boxes.
  *      (2) It compresses to:
- *              1 bpp:          tiffg4
- *              cmap + level3:  flate
- *              cmap + level2:  jpeg
- *              16 bpp:         flate
- *              2, 4 or 8 bpp:  jpeg (after conversion to 8 bpp)
- *              32 bpp:         jpeg
+ *              cmap + level2:        jpeg
+ *              cmap + level3:        flate
+ *              1 bpp:                tiffg4
+ *              2 or 4 bpp + level2:  jpeg
+ *              2 or 4 bpp + level3:  flate
+ *              8 bpp:                jpeg
+ *              16 bpp:               flate
+ *              32 bpp:               jpeg
  *      (3) To generate a pdf, use: ps2pdf <infile.ps> <outfile.pdf>
  */
 l_int32
@@ -898,6 +907,7 @@ pixaWriteCompressedToPS(PIXA        *pixa,
                         l_int32      res,
                         l_int32      level)
 {
+char     *tname, *g4_name, *jpeg_name, *png_name;
 l_int32   i, n, firstfile, index, writeout, d;
 PIX      *pix, *pixt;
 PIXCMAP  *cmap;
@@ -916,33 +926,52 @@ PIXCMAP  *cmap;
     n = pixaGetCount(pixa);
     firstfile = TRUE;
     index = 0;
+    g4_name = genTempFilename("/tmp", "temp_compr.tif", 0, 0);
+    jpeg_name = genTempFilename("/tmp", "temp_compr.jpg", 0, 0);
+    png_name = genTempFilename("/tmp", "temp_compr.png", 0, 0);
     for (i = 0; i < n; i++) {
         writeout = TRUE;
         pix = pixaGetPix(pixa, i, L_CLONE);
         d = pixGetDepth(pix);
         cmap = pixGetColormap(pix);
-        if (d == 1)
-            pixWrite("/tmp/junk_compr_tmp", pix, IFF_TIFF_G4);
+        if (d == 1) {
+            tname = g4_name;
+            pixWrite(tname, pix, IFF_TIFF_G4);
+        }
         else if (cmap) {
-            if (level == 3)
-                pixWrite("/tmp/junk_compr_tmp", pix, IFF_PNG);
-            else {
+            if (level == 2) {
                 pixt = pixConvertForPSWrap(pix);
-                pixWrite("/tmp/junk_compr_tmp", pixt, IFF_JFIF_JPEG);
+                tname = jpeg_name;
+                pixWrite(tname, pixt, IFF_JFIF_JPEG);
                 pixDestroy(&pixt);
+            }
+            else {  /* level == 3 */
+                tname = png_name;
+                pixWrite(tname, pix, IFF_PNG);
             }
         }
         else if (d == 16) {
-            L_WARNING("d = 16; must write out flate", procName);
-            pixWrite("/tmp/junk_compr_tmp", pix, IFF_PNG);
+            if (level == 2)
+                L_WARNING("d = 16; must write out flate", procName);
+            tname = png_name;
+            pixWrite(tname, pix, IFF_PNG);
         }
-        else if (d == 2 || d == 4 || d == 8) {
-            pixt = pixConvertTo8(pix, 0);
-            pixWrite("/tmp/junk_compr_tmp", pix, IFF_JFIF_JPEG);
-            pixDestroy(&pixt);
+        else if (d == 2 || d == 4) {
+            if (level == 2) {
+                pixt = pixConvertTo8(pix, 0);
+                tname = jpeg_name;
+                pixWrite(tname, pixt, IFF_JFIF_JPEG);
+                pixDestroy(&pixt);
+            }
+            else {  /* level == 3 */
+                tname = png_name;
+                pixWrite(tname, pix, IFF_PNG);
+            }
         }
-        else if (d == 32)
-            pixWrite("/tmp/junk_compr_tmp", pix, IFF_JFIF_JPEG);
+        else if (d == 8 || d == 32) {
+            tname = jpeg_name;
+            pixWrite(tname, pix, IFF_JFIF_JPEG);
+        }
         else {  /* shouldn't happen */
             L_ERROR_INT("invalid depth: %d", procName, d);
             writeout = FALSE;
@@ -950,16 +979,17 @@ PIXCMAP  *cmap;
         pixDestroy(&pix);
 
         if (writeout)
-            writeImageCompressedToPSFile("/tmp/junk_compr_tmp", fileout,
-                                         res, &firstfile, &index);
+            writeImageCompressedToPSFile(tname, fileout, res,
+                                         &firstfile, &index);
     }
 
+    FREE(g4_name);
+    FREE(jpeg_name);
+    FREE(png_name);
     return 0;
 }
-
 
 
 /* --------------------------------------------*/
 #endif  /* USE_PSIO */
 /* --------------------------------------------*/
-
