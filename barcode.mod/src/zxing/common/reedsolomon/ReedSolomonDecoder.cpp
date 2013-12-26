@@ -1,7 +1,5 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
- *  ReedSolomonDecoder.cpp
- *  zxing
- *
  *  Created by Christian Brunschen on 05/05/2008.
  *  Copyright 2008 Google UK. All rights reserved.
  *
@@ -22,42 +20,31 @@
 
 #include <memory>
 #include <zxing/common/reedsolomon/ReedSolomonDecoder.h>
-#include <zxing/common/reedsolomon/GF256.h>
-#include <zxing/common/reedsolomon/GF256Poly.h>
 #include <zxing/common/reedsolomon/ReedSolomonException.h>
 #include <zxing/common/IllegalArgumentException.h>
+#include <zxing/IllegalStateException.h>
 
-using namespace std;
+using std::vector;
+using zxing::Ref;
+using zxing::ArrayRef;
+using zxing::ReedSolomonDecoder;
+using zxing::GenericGFPoly;
+using zxing::IllegalStateException;
 
-namespace zxing {
+// VC++
+using zxing::GenericGF;
 
-ReedSolomonDecoder::ReedSolomonDecoder(GF256 &fld) :
-    field(fld) {
-}
+ReedSolomonDecoder::ReedSolomonDecoder(Ref<GenericGF> field_) : field(field_) {}
 
 ReedSolomonDecoder::~ReedSolomonDecoder() {
 }
 
 void ReedSolomonDecoder::decode(ArrayRef<int> received, int twoS) {
-
-  Ref<GF256Poly> poly(new GF256Poly(field, received));
-
-
-#ifdef DEBUG
-  cout << "decoding with poly " << *poly << "\n";
-#endif
-
-  ArrayRef<int> syndromeCoefficients(new Array<int> (twoS));
-
-
-#ifdef DEBUG
-  cout << "syndromeCoefficients array = " <<
-       syndromeCoefficients.array_ << "\n";
-#endif
-
+  Ref<GenericGFPoly> poly(new GenericGFPoly(field, received));
+  ArrayRef<int> syndromeCoefficients(twoS);
   bool noError = true;
   for (int i = 0; i < twoS; i++) {
-    int eval = poly->evaluateAt(field.exp(i));
+    int eval = poly->evaluateAt(field->exp(i + field->getGeneratorBase()));
     syndromeCoefficients[syndromeCoefficients->size() - 1 - i] = eval;
     if (eval != 0) {
       noError = false;
@@ -66,46 +53,43 @@ void ReedSolomonDecoder::decode(ArrayRef<int> received, int twoS) {
   if (noError) {
     return;
   }
-
-  Ref<GF256Poly> syndrome(new GF256Poly(field, syndromeCoefficients));
-  Ref<GF256Poly> monomial(field.buildMonomial(twoS, 1));
-  vector<Ref<GF256Poly> > sigmaOmega(runEuclideanAlgorithm(monomial, syndrome, twoS));
-  ArrayRef<int> errorLocations = findErrorLocations(sigmaOmega[0]);
-  ArrayRef<int> errorMagitudes = findErrorMagnitudes(sigmaOmega[1], errorLocations);
-  for (unsigned i = 0; i < errorLocations->size(); i++) {
-    int position = received->size() - 1 - field.log(errorLocations[i]);
-    //TODO: check why the position would be invalid
-    if (position < 0 || (size_t)position >= received.size())
-      throw IllegalArgumentException("Invalid position (ReedSolomonDecoder)");
-    received[position] = GF256::addOrSubtract(received[position], errorMagitudes[i]);
+  Ref<GenericGFPoly> syndrome(new GenericGFPoly(field, syndromeCoefficients));
+  vector<Ref<GenericGFPoly> > sigmaOmega =
+    runEuclideanAlgorithm(field->buildMonomial(twoS, 1), syndrome, twoS);
+  Ref<GenericGFPoly> sigma = sigmaOmega[0];
+  Ref<GenericGFPoly> omega = sigmaOmega[1];
+  ArrayRef<int> errorLocations = findErrorLocations(sigma);
+  ArrayRef<int> errorMagitudes = findErrorMagnitudes(omega, errorLocations);
+  for (int i = 0; i < errorLocations->size(); i++) {
+    int position = received->size() - 1 - field->log(errorLocations[i]);
+    if (position < 0) {
+      throw ReedSolomonException("Bad error location");
+    }
+    received[position] = GenericGF::addOrSubtract(received[position], errorMagitudes[i]);
   }
 }
 
-vector<Ref<GF256Poly> > ReedSolomonDecoder::runEuclideanAlgorithm(Ref<GF256Poly> a, Ref<GF256Poly> b, int R) {
+vector<Ref<GenericGFPoly> > ReedSolomonDecoder::runEuclideanAlgorithm(Ref<GenericGFPoly> a,
+                                                                      Ref<GenericGFPoly> b,
+                                                                      int R) {
   // Assume a's degree is >= b's
   if (a->getDegree() < b->getDegree()) {
-    Ref<GF256Poly> tmp = a;
+    Ref<GenericGFPoly> tmp = a;
     a = b;
     b = tmp;
   }
 
-  Ref<GF256Poly> rLast(a);
-  Ref<GF256Poly> r(b);
-  Ref<GF256Poly> sLast(field.getOne());
-  Ref<GF256Poly> s(field.getZero());
-  Ref<GF256Poly> tLast(field.getZero());
-  Ref<GF256Poly> t(field.getOne());
-
+  Ref<GenericGFPoly> rLast(a);
+  Ref<GenericGFPoly> r(b);
+  Ref<GenericGFPoly> tLast(field->getZero());
+  Ref<GenericGFPoly> t(field->getOne());
 
   // Run Euclidean algorithm until r's degree is less than R/2
   while (r->getDegree() >= R / 2) {
-    Ref<GF256Poly> rLastLast(rLast);
-    Ref<GF256Poly> sLastLast(sLast);
-    Ref<GF256Poly> tLastLast(tLast);
+    Ref<GenericGFPoly> rLastLast(rLast);
+    Ref<GenericGFPoly> tLastLast(tLast);
     rLast = r;
-    sLast = s;
     tLast = t;
-
 
     // Divide rLastLast by rLast, with quotient q and remainder r
     if (rLast->isZero()) {
@@ -113,18 +97,21 @@ vector<Ref<GF256Poly> > ReedSolomonDecoder::runEuclideanAlgorithm(Ref<GF256Poly>
       throw ReedSolomonException("r_{i-1} was zero");
     }
     r = rLastLast;
-    Ref<GF256Poly> q(field.getZero());
+    Ref<GenericGFPoly> q = field->getZero();
     int denominatorLeadingTerm = rLast->getCoefficient(rLast->getDegree());
-    int dltInverse = field.inverse(denominatorLeadingTerm);
+    int dltInverse = field->inverse(denominatorLeadingTerm);
     while (r->getDegree() >= rLast->getDegree() && !r->isZero()) {
       int degreeDiff = r->getDegree() - rLast->getDegree();
-      int scale = field.multiply(r->getCoefficient(r->getDegree()), dltInverse);
-      q = q->addOrSubtract(field.buildMonomial(degreeDiff, scale));
+      int scale = field->multiply(r->getCoefficient(r->getDegree()), dltInverse);
+      q = q->addOrSubtract(field->buildMonomial(degreeDiff, scale));
       r = r->addOrSubtract(rLast->multiplyByMonomial(degreeDiff, scale));
     }
 
-    s = q->multiply(sLast)->addOrSubtract(sLastLast);
     t = q->multiply(tLast)->addOrSubtract(tLastLast);
+
+    if (r->getDegree() >= rLast->getDegree()) {
+      throw IllegalStateException("Division algorithm failed to reduce polynomial?");
+    }
   }
 
   int sigmaTildeAtZero = t->getCoefficient(0);
@@ -132,38 +119,28 @@ vector<Ref<GF256Poly> > ReedSolomonDecoder::runEuclideanAlgorithm(Ref<GF256Poly>
     throw ReedSolomonException("sigmaTilde(0) was zero");
   }
 
-  int inverse = field.inverse(sigmaTildeAtZero);
-  Ref<GF256Poly> sigma(t->multiply(inverse));
-  Ref<GF256Poly> omega(r->multiply(inverse));
-
-
-#ifdef DEBUG
-  cout << "t = " << *t << "\n";
-  cout << "r = " << *r << "\n";
-  cout << "sigma = " << *sigma << "\n";
-  cout << "omega = " << *omega << "\n";
-#endif
-
-  vector<Ref<GF256Poly> > result(2);
+  int inverse = field->inverse(sigmaTildeAtZero);
+  Ref<GenericGFPoly> sigma(t->multiply(inverse));
+  Ref<GenericGFPoly> omega(r->multiply(inverse));
+  vector<Ref<GenericGFPoly> > result(2);
   result[0] = sigma;
   result[1] = omega;
   return result;
 }
 
-ArrayRef<int> ReedSolomonDecoder::findErrorLocations(Ref<GF256Poly> errorLocator) {
+ArrayRef<int> ReedSolomonDecoder::findErrorLocations(Ref<GenericGFPoly> errorLocator) {
   // This is a direct application of Chien's search
   int numErrors = errorLocator->getDegree();
   if (numErrors == 1) { // shortcut
-    ArrayRef<int> result(1);
+    ArrayRef<int> result(new Array<int>(1));
     result[0] = errorLocator->getCoefficient(1);
     return result;
   }
-  ArrayRef<int> result(numErrors);
+  ArrayRef<int> result(new Array<int>(numErrors));
   int e = 0;
-  for (int i = 1; i < 256 && e < numErrors; i++) {
-    // cout << "errorLocator(" << i << ") == " << errorLocator->evaluateAt(i) << "\n";
+  for (int i = 1; i < field->getSize() && e < numErrors; i++) {
     if (errorLocator->evaluateAt(i) == 0) {
-      result[e] = field.inverse(i);
+      result[e] = field->inverse(i);
       e++;
     }
   }
@@ -173,21 +150,25 @@ ArrayRef<int> ReedSolomonDecoder::findErrorLocations(Ref<GF256Poly> errorLocator
   return result;
 }
 
-ArrayRef<int> ReedSolomonDecoder::findErrorMagnitudes(Ref<GF256Poly> errorEvaluator, ArrayRef<int> errorLocations) {
+ArrayRef<int> ReedSolomonDecoder::findErrorMagnitudes(Ref<GenericGFPoly> errorEvaluator, ArrayRef<int> errorLocations) {
   // This is directly applying Forney's Formula
-  int s = errorLocations.size();
-  ArrayRef<int> result(s);
+  int s = errorLocations->size();
+  ArrayRef<int> result(new Array<int>(s));
   for (int i = 0; i < s; i++) {
-    int xiInverse = field.inverse(errorLocations[i]);
+    int xiInverse = field->inverse(errorLocations[i]);
     int denominator = 1;
     for (int j = 0; j < s; j++) {
       if (i != j) {
-        denominator = field.multiply(denominator, GF256::addOrSubtract(1, field.multiply(errorLocations[j],
-                                     xiInverse)));
+        int term = field->multiply(errorLocations[j], xiInverse);
+        int termPlus1 = (term & 0x1) == 0 ? term | 1 : term & ~1;
+        denominator = field->multiply(denominator, termPlus1);
       }
     }
-    result[i] = field.multiply(errorEvaluator->evaluateAt(xiInverse), field.inverse(denominator));
+    result[i] = field->multiply(errorEvaluator->evaluateAt(xiInverse),
+                                field->inverse(denominator));
+    if (field->getGeneratorBase() != 0) {
+      result[i] = field->multiply(result[i], xiInverse);
+    }
   }
   return result;
-}
 }

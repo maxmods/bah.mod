@@ -5,7 +5,7 @@ Import BRL.JPGLoader
 Import BRL.PNGLoader
 Import BRL.StandardIO
 
-Local pix:TPixmap = LoadPixmap("media/code39_01.jpg")
+Local pix:TPixmap = LoadPixmap("media/datamatrix_01.png")
 
 Local barcode:TBCResult = decodeBarcode(pix)
 

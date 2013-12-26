@@ -1,4 +1,4 @@
-' Copyright 2010-2011 Bruce A Henderson
+' Copyright 2010-2013 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ Module BaH.Barcode
 
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: ZXing - 2011 ZXing authors All rights reserved"
-ModuleInfo "Copyright: Wrapper - 2010-2011 Bruce A Henderson"
+ModuleInfo "Copyright: ZXing - 2013 ZXing authors All rights reserved"
+ModuleInfo "Copyright: Wrapper - 2010-2013 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Update to ZXIng 1.7."
+ModuleInfo "History: Update to ZXIng 2.3.0."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (ZXing - SVN rev 1633)"
 

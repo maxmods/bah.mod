@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 #ifndef __BIT_MATRIX_H__
 #define __BIT_MATRIX_H__
 
@@ -22,40 +23,65 @@
 
 #include <zxing/common/Counted.h>
 #include <zxing/common/BitArray.h>
+#include <zxing/common/Array.h>
 #include <limits>
 
 namespace zxing {
 
 class BitMatrix : public Counted {
+public:
+  static const int bitsPerWord = std::numeric_limits<unsigned int>::digits;
+
 private:
-  size_t width_;
-  size_t height_;
-  size_t words_;
-  unsigned int* bits_;
+  int width;
+  int height;
+  int rowSize;
+  ArrayRef<int> bits;
+
+#define ZX_LOG_DIGITS(digits) \
+    ((digits == 8) ? 3 : \
+     ((digits == 16) ? 4 : \
+      ((digits == 32) ? 5 : \
+       ((digits == 64) ? 6 : \
+        ((digits == 128) ? 7 : \
+         (-1))))))
+
+  static const int logBits = ZX_LOG_DIGITS(bitsPerWord);
+  static const int bitsMask = (1 << logBits) - 1;
 
 public:
-  BitMatrix(size_t dimension);
-  BitMatrix(size_t width, size_t height);
+  BitMatrix(int dimension);
+  BitMatrix(int width, int height);
 
   ~BitMatrix();
-  // Inlining this does not really improve performance.
-  bool get(size_t x, size_t y) const;
-  void set(size_t x, size_t y);
-  void flip(size_t x, size_t y);
+
+  bool get(int x, int y) const {
+    int offset = y * rowSize + (x >> logBits);
+    return ((((unsigned)bits[offset]) >> (x & bitsMask)) & 1) != 0;
+  }
+
+  void set(int x, int y) {
+    int offset = y * rowSize + (x >> logBits);
+    bits[offset] |= 1 << (x & bitsMask);
+  }
+
+  void flip(int x, int y);
   void clear();
-  void setRegion(size_t left, size_t top, size_t width, size_t height);
+  void setRegion(int left, int top, int width, int height);
   Ref<BitArray> getRow(int y, Ref<BitArray> row);
 
-  size_t getDimension() const;
-  size_t getWidth() const;
-  size_t getHeight() const;
+  int getWidth() const;
+  int getHeight() const;
 
-  unsigned int* getBits() const;
+  ArrayRef<int> getTopLeftOnBit() const;
+  ArrayRef<int> getBottomRightOnBit() const;
 
   friend std::ostream& operator<<(std::ostream &out, const BitMatrix &bm);
   const char *description();
 
 private:
+  inline void init(int, int);
+
   BitMatrix(const BitMatrix&);
   BitMatrix& operator =(const BitMatrix&);
 };

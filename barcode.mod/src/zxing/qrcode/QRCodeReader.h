@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 #ifndef __QR_CODE_READER_H__
 #define __QR_CODE_READER_H__
 
@@ -25,19 +26,23 @@
 #include <zxing/DecodeHints.h>
 
 namespace zxing {
-	namespace qrcode {
+namespace qrcode {
 		
-		class QRCodeReader : public Reader {
-		private:
-			Decoder decoder_;
+class QRCodeReader : public Reader {
+ private:
+  Decoder decoder_;
 			
-		public:
-			QRCodeReader();
-			virtual Ref<Result> decode(Ref<BinaryBitmap> image, DecodeHints hints);
-			virtual ~QRCodeReader();
+ protected:
+  Decoder& getDecoder();
+
+ public:
+  QRCodeReader();
+  virtual ~QRCodeReader();
 			
-		};
-	}
+  Ref<Result> decode(Ref<BinaryBitmap> image, DecodeHints hints);
+};
+
+}
 }
 
 #endif // __QR_CODE_READER_H__

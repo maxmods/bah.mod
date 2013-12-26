@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 #ifndef __FINDER_PATTERN_FINDER_H__
 #define __FINDER_PATTERN_FINDER_H__
 
@@ -36,6 +37,8 @@ namespace qrcode {
 class FinderPatternFinder {
 private:
   static int CENTER_QUORUM;
+
+protected:
   static int MIN_SKIP;
   static int MAX_MODULES;
 
@@ -58,6 +61,10 @@ private:
   bool haveMultiplyConfirmedCenters();
   std::vector<Ref<FinderPattern> > selectBestPatterns();
   static std::vector<Ref<FinderPattern> > orderBestPatterns(std::vector<Ref<FinderPattern> > patterns);
+
+  Ref<BitMatrix> getImage();
+  std::vector<Ref<FinderPattern> >& getPossibleCenters();
+
 public:
   static float distance(Ref<ResultPoint> p1, Ref<ResultPoint> p2);
   FinderPatternFinder(Ref<BitMatrix> image, Ref<ResultPointCallback>const&);

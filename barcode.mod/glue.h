@@ -1,5 +1,5 @@
 /*
-  Copyright 2010-2011 Bruce A Henderson
+  Copyright 2010-2013 Bruce A Henderson
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include "zxing/MultiFormatReader.h"
 #include "zxing/LuminanceSource.h"
 
+#include "zxing/common/Array.h"
 #include "zxing/common/GlobalHistogramBinarizer.h"
 #include "zxing/Result.h"
 
@@ -54,13 +55,9 @@ public:
 	MaxBitmapSource(unsigned char * p, int w, int h);
 	~MaxBitmapSource();
 
-	int getWidth() const;
-	int getHeight() const;
-	unsigned char * getRow(int y, unsigned char* row);
-	unsigned char* getMatrix();
+	zxing::ArrayRef<char> getRow(int y, zxing::ArrayRef<char>) const;
+	zxing::ArrayRef<char> getMatrix() const;
 
 private:
-	int width;
-	int height;
 	unsigned char * pixels;
 };

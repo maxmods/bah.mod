@@ -20,27 +20,24 @@
  * limitations under the License.
  */
 
-#include <vector>
 #include <zxing/common/Counted.h>
 #include <zxing/common/Array.h>
 #include <zxing/common/BitMatrix.h>
 #include <zxing/ResultPoint.h>
-#include <zxing/common/PerspectiveTransform.h>
 
 namespace zxing {
 
 class DetectorResult : public Counted {
 private:
   Ref<BitMatrix> bits_;
-  std::vector<Ref<ResultPoint> > points_;
-  Ref<PerspectiveTransform> transform_;
+  ArrayRef< Ref<ResultPoint> > points_;
 
 public:
-  DetectorResult(Ref<BitMatrix> bits, std::vector<Ref<ResultPoint> > points, Ref<PerspectiveTransform> transform);
+  DetectorResult(Ref<BitMatrix> bits, ArrayRef< Ref<ResultPoint> > points);
   Ref<BitMatrix> getBits();
-  std::vector<Ref<ResultPoint> > getPoints();
-  Ref<PerspectiveTransform> getTransform();
+  ArrayRef< Ref<ResultPoint> > getPoints();
 };
+
 }
 
 #endif // __DETECTOR_RESULT_H__

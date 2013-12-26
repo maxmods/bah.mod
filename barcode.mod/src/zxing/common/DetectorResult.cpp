@@ -1,3 +1,4 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 /*
  *  DetectorResult.cpp
  *  zxing
@@ -22,20 +23,17 @@
 
 namespace zxing {
 
-DetectorResult::DetectorResult(Ref<BitMatrix> bits, std::vector<Ref<ResultPoint> > points, Ref<PerspectiveTransform> transform) :
-    bits_(bits), points_(points), transform_(transform) {
+DetectorResult::DetectorResult(Ref<BitMatrix> bits,
+                               ArrayRef< Ref<ResultPoint> > points)
+  : bits_(bits), points_(points) {
 }
 
 Ref<BitMatrix> DetectorResult::getBits() {
   return bits_;
 }
 
-std::vector<Ref<ResultPoint> > DetectorResult::getPoints() {
+ArrayRef< Ref<ResultPoint> > DetectorResult::getPoints() {
   return points_;
-}
-
-Ref<PerspectiveTransform> DetectorResult::getTransform() {
-  return transform_;
 }
 
 }

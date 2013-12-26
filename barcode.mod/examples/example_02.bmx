@@ -29,8 +29,8 @@ Type TTestApp Extends ofBaseApp
 	Field pix:TPixmap
 
 	Method setup()
-		camWidth 		= 320	' Try To grab at this size. 
-		camHeight 	= 240
+		camWidth 		= 640	' Try To grab at this size. 
+		camHeight 	= 480
 		
 		vidGrabber = New ofVideoGrabber
 		vidGrabber.initGrabber(camWidth,camHeight)

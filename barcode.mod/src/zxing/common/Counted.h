@@ -1,10 +1,8 @@
+// -*- mode:c++; tab-width:2; indent-tabs-mode:nil; c-basic-offset:2 -*-
 #ifndef __COUNTED_H__
 #define __COUNTED_H__
 
 /*
- *  Counted.h
- *  zxing
- *
  *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,14 +18,7 @@
  * limitations under the License.
  */
 
-//#define DEBUG_COUNTING
-//using namespace std;
-
 #include <iostream>
-
-#ifdef DEBUG_COUNTING
-#include <typeinfo>
-#endif
 
 namespace zxing {
 
@@ -38,43 +29,16 @@ private:
 public:
   Counted() :
       count_(0) {
-#ifdef DEBUG_COUNTING
-    cout << "instantiating " << typeid(*this).name() << " " << this <<
-         " @ " << count_ << "\n";
-#endif
   }
   virtual ~Counted() {
   }
-  virtual Counted *retain() {
-#ifdef DEBUG_COUNTING
-    cout << "retaining " << typeid(*this).name() << " " << this <<
-         " @ " << count_;
-#endif
+  Counted *retain() {
     count_++;
-#ifdef DEBUG_COUNTING
-    cout << "->" << count_ << "\n";
-#endif
     return this;
   }
-  virtual void release() {
-#ifdef DEBUG_COUNTING
-    cout << "releasing " << typeid(*this).name() << " " << this <<
-         " @ " << count_;
-#endif
-    if (count_ == 0 || count_ == 54321) {
-#ifdef DEBUG_COUNTING
-      cout << "\nOverreleasing already-deleted object " << this << "!!!\n";
-#endif
-      throw 4711;
-    }
+  void release() {
     count_--;
-#ifdef DEBUG_COUNTING
-    cout << "->" << count_ << "\n";
-#endif
     if (count_ == 0) {
-#ifdef DEBUG_COUNTING
-      cout << "deleting " << typeid(*this).name() << " " << this << "\n";
-#endif
       count_ = 0xDEADF001;
       delete this;
     }
@@ -94,53 +58,26 @@ public:
   T *object_;
   explicit Ref(T *o = 0) :
       object_(0) {
-#ifdef DEBUG_COUNTING
-    cout << "instantiating Ref " << this << " from pointer" << o << "\n";
-#endif
     reset(o);
   }
-
-  explicit Ref(const T &o) :
-      object_(0) {
-#ifdef DEBUG_COUNTING
-    cout << "instantiating Ref " << this << " from reference\n";
-#endif
-    reset(const_cast<T *>(&o));
-  }
-
   Ref(const Ref &other) :
       object_(0) {
-#ifdef DEBUG_COUNTING
-    cout << "instantiating Ref " << this << " from Ref " << &other << "\n";
-#endif
     reset(other.object_);
   }
 
   template<class Y>
   Ref(const Ref<Y> &other) :
       object_(0) {
-#ifdef DEBUG_COUNTING
-    cout << "instantiating Ref " << this << " from reference\n";
-#endif
     reset(other.object_);
   }
 
   ~Ref() {
-#ifdef DEBUG_COUNTING
-    cout << "destroying Ref " << this << " with " <<
-         (object_ ? typeid(*object_).name() : "NULL") << " " << object_ << "\n";
-#endif
     if (object_) {
       object_->release();
     }
   }
 
   void reset(T *o) {
-#ifdef DEBUG_COUNTING
-    cout << "resetting Ref " << this << " from " <<
-         (object_ ? typeid(*object_).name() : "NULL") << " " << object_ <<
-         " to " << (o ? typeid(*o).name() : "NULL") << " " << o << "\n";
-#endif
     if (o) {
       o->retain();
     }
@@ -178,8 +115,8 @@ public:
     return object_;
   }
 
-  bool operator==(const int x) {
-    return x == 0 ? object_ == 0 : false;
+  bool operator==(const T* that) {
+    return object_ == that;
   }
   bool operator==(const Ref &other) const {
     return object_ == other.object_ || *object_ == *(other.object_);
@@ -189,17 +126,15 @@ public:
     return object_ == other.object_ || *object_ == *(other.object_);
   }
 
-  bool operator!=(const int x) {
-    return x == 0 ? object_ != 0 : true;
+  bool operator!=(const T* that) {
+    return !(*this == that);
   }
 
   bool empty() const {
     return object_ == 0;
   }
-
-  template<class Y>
-  friend std::ostream& operator<<(std::ostream &out, Ref<Y>& ref);
 };
+
 }
 
 #endif // __COUNTED_H__

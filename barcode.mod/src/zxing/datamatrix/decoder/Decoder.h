@@ -22,7 +22,6 @@
  */
 
 #include <zxing/common/reedsolomon/ReedSolomonDecoder.h>
-#include <zxing/common/reedsolomon/GF256.h>
 #include <zxing/common/Counted.h>
 #include <zxing/common/Array.h>
 #include <zxing/common/DecoderResult.h>
@@ -36,7 +35,7 @@ class Decoder {
 private:
   ReedSolomonDecoder rsDecoder_;
 
-  void correctErrors(ArrayRef<unsigned char> bytes, int numDataCodewords);
+  void correctErrors(ArrayRef<char> bytes, int numDataCodewords);
 
 public:
   Decoder();

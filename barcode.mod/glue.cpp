@@ -1,5 +1,5 @@
 /*
-  Copyright 2010-2011 Bruce A Henderson
+  Copyright 2010-2013 Bruce A Henderson
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ MaxResult::~MaxResult()
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 MaxBitmapSource::MaxBitmapSource(unsigned char * p, int w, int h)
-	: pixels(p), width(w), height(h)
+	: zxing::LuminanceSource(w, h), pixels(p)
 {
 }
 
@@ -36,26 +36,16 @@ MaxBitmapSource::~MaxBitmapSource()
 {
 }
 
-int MaxBitmapSource::getWidth() const {
-	return width;
-}
-
-int MaxBitmapSource::getHeight() const {
-	return height;
-}
-
-unsigned char * MaxBitmapSource::getRow(int y, unsigned char* row) {
-  if (row == NULL) {
-    row = new unsigned char[width];
-  }
-  int offset = y * width;
-  memcpy(row, &pixels[offset], width);
+zxing::ArrayRef<char> MaxBitmapSource::getRow(int y, zxing::ArrayRef<char> row) const {
+  int offset = y * getWidth();
+  memcpy(&row[0], &pixels[offset], getWidth());
   return row;
 }
 
-unsigned char* MaxBitmapSource::getMatrix() {
-	unsigned char* matrix = new unsigned char[width*height];
-	memcpy(matrix, pixels, sizeof(unsigned char) * width * height);
+zxing::ArrayRef<char> MaxBitmapSource::getMatrix() const {
+	int size = getWidth() * getHeight();
+	zxing::ArrayRef<char> matrix (size);
+	memcpy(&matrix[0], pixels, size);
 	return matrix;
 }
 
@@ -104,8 +94,8 @@ void bmx_barcode_result_free(MaxResult * result) {
 
 BBArray * bmx_barcode_result_getResultPoints(MaxResult * result) {
 
-	std::vector<zxing::Ref<zxing::ResultPoint> > points = result->result->getResultPoints();
-	int size = points.size() * 2;
+	zxing::ArrayRef< zxing::Ref<zxing::ResultPoint> >  points = result->result->getResultPoints();
+	int size = points->size() * 2;
 	
 	BBArray * arr = bbArrayNew1D( "f", size );
 	float * f = (float*)BBARRAYDATA(arr, arr->dims);
