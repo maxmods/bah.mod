@@ -51,7 +51,11 @@ namespace {
     char* ds = d;
     size_t dl = sizeof(d);
     iconv_t ic = iconv_open("UTF-8", "ISO-8859-1");
+#ifdef WIN32
     iconv(ic, (const char**)&ss, &sl, &ds, &dl); // BaH - const cast
+#else
+    iconv(ic, &ss, &sl, &ds, &dl);
+#endif
     iconv_close(ic);
     d[sizeof(d)-dl] = 0;
     result.append(d);
