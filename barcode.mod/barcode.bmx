@@ -34,6 +34,13 @@ ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DZXING_ICONV_CONST"
 ?
 
+' Changes
+'   ZXing.h
+'       Added __GNUC__ check
+'
+'   aztec/decoder/Decoder.cpp
+'       Added cast for const char**
+
 Import "common.bmx"
 
 

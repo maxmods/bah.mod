@@ -37,9 +37,10 @@ typedef bool boolean;
 
 #include <limits>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64)) && !defined(__GNUC__) // BaH GUNC check
 
 #include <float.h>
+
 
 namespace zxing {
 inline bool isnan(float v) {return _isnan(v) != 0;}
