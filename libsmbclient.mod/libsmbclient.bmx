@@ -37,7 +37,7 @@ be populated as required.
 End Rem
 Type TSMBCAuth
 
-	Field contextPtr:Byte Ptr
+	Field context:TSMBC
 
 	Field server:String
 	Field share:String
@@ -47,9 +47,9 @@ Type TSMBCAuth
 	Field password:String
 
 	' private access functions
-	Function _new:TSMBCAuth(contextPtr:Byte Ptr, server:String, share:String)
+	Function _new:TSMBCAuth(context:TSMBC, server:String, share:String)
 		Local auth:TSMBCAuth = New TSMBCAuth
-		auth.contextPtr = contextPtr
+		auth.context = context
 		auth.server = server
 		auth.share = share
 		Return auth
@@ -117,8 +117,6 @@ about: Subclass this to implement your authorization callback.
 End Rem
 Type TSMBC
 
-	Global map:TMap = New TMap
-
 	Field contextPtr:Byte Ptr
 
 	Rem
@@ -126,10 +124,10 @@ Type TSMBC
 	End Rem
 	Method Create:TSMBC(smbDebug:Int = 0)
 	
-		contextPtr = bmx_smbc_new_context(smbDebug)
+		contextPtr = bmx_smbc_new_context(Self, smbDebug)
 		
 		If contextPtr Then
-			map.Insert(String(Int(contextPtr)), Self)
+			'map.Insert(String(Int(contextPtr)), Self)
 			Return Self
 		End If
 		
@@ -138,13 +136,10 @@ Type TSMBC
 	
 	Function _authDataCallback(auth:TSMBCAuth)
 	
-		' get instance from map
-		Local smbc:TSMBC = TSMBC(map.ValueForKey(String(Int(auth.contextPtr))))
+		Local smbc:TSMBC = auth.context
 		
 		If smbc Then
-	
 			smbc.GetAuthorization(auth)
-		
 		End If		
 		
 	End Function
@@ -221,6 +216,24 @@ Type TSMBC
 	End Method
 	
 	Rem
+	bbdoc: Gets whether to treat file names as case-sensitive if we can't determine when connecting to the remote share whether the file system is case sensitive.
+	about: This defaults to False since it's most likely that if we can't retrieve the file system attributes, it's a
+	very old file system that does not support case sensitivity.
+	End Rem
+	Method GetOptionCaseSensitive:Int()
+		Return bmx_smbc_getoptioncasesensitive(contextPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets whether to treat file names as case-sensitive if we can't determine when connecting to the remote share whether the file system is case sensitive.
+	about: This defaults to False since it's most likely that if we can't retrieve the file system attributes, it's 
+	very old file system that does not support case sensitivity.
+	End Rem
+	Method SetOptionCaseSensitive(value:Int)
+		bmx_smbc_setoptioncasesensitive(contextPtr, value)
+	End Method
+	
+	Rem
 	bbdoc: Gets file type.
 	returns: 0 if file at @path doesn't exist, FILETYPE_FILE (1) if the file is a plain file or FILETYPE_DIR (2) if the file is a directory.
 	End Rem
@@ -245,7 +258,7 @@ Type TSMBC
 	End Rem
 	Method Free()
 		If contextPtr Then
-			smbc_free_context(contextPtr, 1)
+			bmx_smbc_free_context(contextPtr)
 			contextPtr = Null
 		End If
 	End Method
@@ -258,7 +271,106 @@ End Type
 
 Type TSMBCStream Extends TStream
 
+	Const MODE_READ:Int = $1
+	Const MODE_WRITE:Int = $2
+
+	Field context:TSMBC
+	Field filePtr:Byte Ptr
+	
+	Field _pos:Int
+	Field _size:Int
+	Field _mode:Int
+
+	Method Pos:Int()
+		Return _pos
+	End Method
+
+	Method Size:Int()
+		Return _size
+	End Method
+
+	Method Seek:Int(pos:Int)
+		Assert filePtr Else "Attempt to seek closed stream"
+		_pos = bmx_smbc_seek(context.contextPtr, filePtr, pos)
+		Return _pos
+	End Method
+
+	Method Read:Int(buf:Byte Ptr, count:Int)
+		Assert filePtr Else "Attempt to read from closed stream"
+		Assert _mode & MODE_READ Else "Attempt to read from write-only stream"
+		count = bmx_smbc_read(context.contextPtr, filePtr, buf, count)	
+		_pos :+ count
+		Return count
+	End Method
+
+	Method Write:Int(buf:Byte Ptr, count:Int)
+		Assert filePtr Else "Attempt to write to closed stream"
+		Assert _mode & MODE_WRITE Else "Attempt to write to read-only stream"
+		count = bmx_smbc_write(context.contextPtr, filePtr, buf, count)
+		_pos :+ count
+		If _pos > _size Then
+			_size=_pos
+		End If
+		Return count
+	End Method
+
+	Method Close()
+		If filePtr Then
+			bmx_smbc_close(context.contextPtr, filePtr)
+			_pos=0
+			_size=0
+			filePtr = Null
+		End If		
+	End Method
+	
+	Method Delete()
+		Close()
+	End Method
+
+	Function Create:TSMBCStream(context:TSMBC, path:String, readable:Int, writeable:Int)
+		Local stream:TSMBCStream = New TSMBCStream
+		stream.context = context
+		stream._pos = 0
+		stream._size = 0
+		
+		If readable Then
+			stream._mode :| MODE_READ
+		End If
+		If writeable Then
+			stream._mode :| MODE_WRITE
+		End If
+		
+		stream.filePtr = bmx_smbc_open(context.contextPtr, path, stream._mode, stream)
+		
+		Return stream
+	End Function
+
 End Type
 
+Type TSMBCStreamFactory Extends TStreamFactory
+
+	Global contexts:TList = New TList
+
+	Method CreateStream:TStream(url:Object, proto:String, path:String, readable:Int, writeable:Int)
+		If proto = "smb" Then
+			Local context:TSMBC = TSMBC(contexts.First())	
+		
+			If context Then
+				Return TSMBCStream.Create(context, "smb://" + path, readable, writeable)
+			End If
+		End If
+	End Method
+	
+	Function AddContext(ctx:TSMBC)
+		contexts.AddLast(ctx)
+	End Function
+	
+	Function RemoveContext(ctx:TSMBC)
+		contexts.Remove(ctx)
+	End Function
+	
+End Type
+
+New TSMBCStreamFactory
 
 ?

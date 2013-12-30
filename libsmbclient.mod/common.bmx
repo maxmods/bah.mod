@@ -23,6 +23,7 @@ SuperStrict
 
 Import BRL.Blitz
 Import BRL.Map
+Import BRL.LinkedList
 Import BRL.Stream
 
 Import "-lsmbclient"
@@ -34,7 +35,8 @@ Import "glue.cpp"
 Extern
 	Function smbc_free_context:Int(handle:Byte Ptr, shutdown:Int)
 
-	Function bmx_smbc_new_context:Byte Ptr(smbDebug:Int)
+	Function bmx_smbc_new_context:Byte Ptr(handle:Object, smbDebug:Int)
+	Function bmx_smbc_free_context(handle:Byte Ptr)
 	
 	Function bmx_smbc_opendir:Object(handle:Byte Ptr, path:String)
 	Function bmx_smbc_readdir:Object(handle:Byte Ptr, dir:Byte Ptr)
@@ -43,7 +45,15 @@ Extern
 	Function bmx_smbc_filetype:Int(handle:Byte Ptr, path:String)
 	
 	Function bmx_smbc_purgecachedservers(handle:Byte Ptr)
+	Function bmx_smbc_getoptioncasesensitive:Int(handle:Byte Ptr)
+	Function bmx_smbc_setoptioncasesensitive(handle:Byte Ptr, value:Int)
 
+	Function bmx_smbc_open:Byte Ptr(context:Byte Ptr, path:String, _mode:Int, handle:Object)
+	Function bmx_smbc_seek:Int(context:Byte Ptr, file:Byte Ptr, pos:Int)
+	Function bmx_smbc_read:Int(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Int)
+	Function bmx_smbc_write:Int(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Int)
+	Function bmx_smbc_close(context:Byte Ptr, file:Byte Ptr)
+	
 End Extern
 
 Const SMBC_WORKGROUP:Int = 1

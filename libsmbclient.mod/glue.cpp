@@ -21,12 +21,13 @@
 */ 
 
 #include "libsmbclient.h"
+#include <map>
 
 extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_libsmbclient_TSMBCAuth__new(SMBCCTX * context, BBString * server, BBString * share);
+	BBObject * _bah_libsmbclient_TSMBCAuth__new(BBObject * context, BBString * server, BBString * share);
 	BBString * _bah_libsmbclient_TSMBCAuth__workgroup(BBObject * auth);
 	BBString * _bah_libsmbclient_TSMBCAuth__username(BBObject * auth);
 	BBString * _bah_libsmbclient_TSMBCAuth__password(BBObject * auth);
@@ -41,7 +42,9 @@ extern "C" {
 	void bmx_smbc_get_auth_data_fn(const char *srv, const char *shr, char *wg, int wglen, 
 		char *un, int unlen, char *pw, int pwlen);
 
-	SMBCCTX * bmx_smbc_new_context(int smbDebug);
+	SMBCCTX * bmx_smbc_new_context(BBObject * maxHandle, int smbDebug);
+	void bmx_smbc_free_context(SMBCCTX * context);
+	
 	BBObject * bmx_smbc_opendir(SMBCCTX * context, BBString * path);
 	BBObject * bmx_smbc_readdir(SMBCCTX * context, SMBCFILE * dir);
 	BBObject * bmx_smbc_closedir(SMBCCTX * context, SMBCFILE * dir);
@@ -49,16 +52,74 @@ extern "C" {
 	int bmx_smbc_filetype(SMBCCTX * context, BBString * path);
 
 	void bmx_smbc_purgecachedservers(SMBCCTX * context);
+	int bmx_smbc_getoptioncasesensitive(SMBCCTX * context);
+	void bmx_smbc_setoptioncasesensitive(SMBCCTX * context, int value);
+
+	SMBCFILE * bmx_smbc_open(SMBCCTX * context, BBString * path, int mode, BBObject * streamHandle);
 
 }
 
+// ********************************************************
+
+typedef std::map<SMBCCTX*, BBObject*> ContextMap;
+
+static ContextMap contextMap;
+
+void cxbind( SMBCCTX *obj, BBObject *peer ) {
+	if( !obj || peer==&bbNullObject ) return;
+	contextMap.insert( std::make_pair( obj,peer ) );
+	BBRETAIN( peer );
+}
+
+BBObject *cxfind( SMBCCTX *obj ){
+	if( !obj ) return &bbNullObject;
+	ContextMap::iterator it = contextMap.find( obj );
+	if( it != contextMap.end() ) return it->second;
+	return &bbNullObject;
+}
+
+void cxunbind(SMBCCTX *obj) {
+	BBObject * peer = cxfind(obj);
+	if (peer != &bbNullObject) {
+		contextMap.erase(obj);
+		BBRELEASE(peer);
+	}
+}
+
+// ********************************************************
+
+typedef std::map<SMBCFILE*, BBObject*> FileMap;
+
+static FileMap fileMap;
+
+void fxbind( SMBCFILE *obj, BBObject *peer ) {
+	if( !obj || peer==&bbNullObject ) return;
+	fileMap.insert( std::make_pair( obj,peer ) );
+	BBRETAIN( peer );
+}
+
+BBObject *fxfind( SMBCFILE *obj ){
+	if( !obj ) return &bbNullObject;
+	FileMap::iterator it = fileMap.find( obj );
+	if( it != fileMap.end() ) return it->second;
+	return &bbNullObject;
+}
+
+void fxunbind(SMBCFILE *obj) {
+	BBObject * peer = fxfind(obj);
+	if (peer != &bbNullObject) {
+		fileMap.erase(obj);
+		BBRELEASE(peer);
+	}
+}
 
 // ********************************************************
 
 void bmx_smbc_get_auth_data_fn(SMBCCTX * context, const char *srv, const char *shr, char *wg, int wglen, 
 		char *un, int unlen, char *pw, int pwlen) {
 
-	BBObject * auth = _bah_libsmbclient_TSMBCAuth__new(context, bbStringFromUTF8String(srv), bbStringFromUTF8String(shr));
+	BBObject * auth = _bah_libsmbclient_TSMBCAuth__new((BBObject*)smbc_getOptionUserData(context), bbStringFromUTF8String(srv),
+			bbStringFromUTF8String(shr));
 
 	// callback	and populate
 	_bah_libsmbclient_TSMBC__authDataCallback(auth);
@@ -89,19 +150,27 @@ void bmx_smbc_get_auth_data_fn(SMBCCTX * context, const char *srv, const char *s
 	
 }
 
-SMBCCTX * bmx_smbc_new_context(int smbDebug) {
+SMBCCTX * bmx_smbc_new_context(BBObject * maxHandle, int smbDebug) {
 
 	SMBCCTX * context = smbc_new_context();
 	
 	smbc_setDebug(context, smbDebug);
+	smbc_setOptionUserData(context, maxHandle);
 	smbc_setFunctionAuthDataWithContext(context, bmx_smbc_get_auth_data_fn);
 
 	if (!smbc_init_context(context)){
 		smbc_free_context(context, 1);
 		return 0;
 	}
+	
+	cxbind(context, maxHandle);
 
 	return context;
+}
+
+void bmx_smbc_free_context(SMBCCTX * context) {
+	cxunbind(context);
+	smbc_free_context(context, 1);
 }
 
 BBObject * bmx_smbc_opendir(SMBCCTX * context, BBString * path) {
@@ -132,7 +201,6 @@ BBObject * bmx_smbc_closedir(SMBCCTX * context, SMBCFILE * dir) {
 }
 
 void bmx_smbc_purgecachedservers(SMBCCTX * context) {
-	TALLOC_CTX *frame = talloc_stackframe();
 	smbc_getFunctionPurgeCachedServers(context)(context);
 }
 
@@ -157,3 +225,41 @@ int bmx_smbc_filetype(SMBCCTX * context, BBString * path) {
 	return 0;
 }
 
+int bmx_smbc_getoptioncasesensitive(SMBCCTX * context) {
+	return static_cast<int>(smbc_getOptionCaseSensitive(context));
+}
+
+void bmx_smbc_setoptioncasesensitive(SMBCCTX * context, int value) {
+	smbc_setOptionCaseSensitive(context, static_cast<smbc_bool>(value));
+}
+
+// ********************************************************
+
+SMBCFILE * bmx_smbc_open(SMBCCTX * context, BBString * path, int mode, BBObject * streamHandle) {
+
+	char * p = bbStringToUTF8String(path);
+	
+	int flags = 0;
+	
+	if (mode & 3) {
+		flags = O_RDWR | O_CREAT;
+	} else if (mode & 1) {
+		flags = O_RDONLY;
+	} else {
+		flags = O_WRONLY | O_CREAT | O_TRUNC;
+	}
+	
+	SMBCFILE * file = smbc_getFunctionOpen(context)(context, p, flags, (mode_t)0);
+	
+	bbMemFree(p);
+	
+	if (file) {
+		
+		// bind our stream object to the file
+		fxbind(file, streamHandle);
+		
+		return file;
+	}
+	
+	return 0;
+}
