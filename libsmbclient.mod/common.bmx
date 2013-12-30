@@ -23,6 +23,7 @@ SuperStrict
 
 Import BRL.Blitz
 Import BRL.Map
+Import BRL.Stream
 
 Import "-lsmbclient"
 
@@ -38,6 +39,8 @@ Extern
 	Function bmx_smbc_opendir:Object(handle:Byte Ptr, path:String)
 	Function bmx_smbc_readdir:Object(handle:Byte Ptr, dir:Byte Ptr)
 	Function bmx_smbc_closedir:Object(handle:Byte Ptr, dir:Byte Ptr)
+
+	Function bmx_smbc_filetype:Int(handle:Byte Ptr, path:String)
 	
 	Function bmx_smbc_purgecachedservers(handle:Byte Ptr)
 

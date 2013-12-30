@@ -12,11 +12,11 @@ Local share:String = "Share"
 
 Local client:TSMBC = New TSMBClient.Create()
 
-Local dir:TSMBDirHandle = client.ReadDir("smb://" + server + "/" + share + "/")
+Local dir:TSMBCDirHandle = client.ReadDir("smb://" + server + "/" + share + "/")
 
 If dir Then
 	
-	Local file:TSMBDirent = client.NextFile(dir)
+	Local file:TSMBCDirent = client.NextFile(dir)
 	
 	While file
 		Print file.name	

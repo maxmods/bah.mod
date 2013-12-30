@@ -73,13 +73,13 @@ Rem
 bbdoc: A directory handle.
 about: For use with ReadDir, NextFile and CloseDir methods of TSMBC.
 End Rem
-Type TSMBDirHandle
+Type TSMBCDirHandle
 
 	Field fdPtr:Byte Ptr
 	
-	Function _new:TSMBDirHandle(fdPtr:Byte Ptr)
+	Function _new:TSMBCDirHandle(fdPtr:Byte Ptr)
 		If fdPtr Then
-			Local this:TSMBDirHandle = New TSMBDirHandle
+			Local this:TSMBCDirHandle = New TSMBCDirHandle
 			this.fdPtr = fdPtr
 			Return this
 		End If
@@ -93,13 +93,13 @@ about: This can represent one of several different entity types : SMBC_WORKGROUP
 	SMBC_SERVER, SMBC_FILE_SHARE, SMBC_PRINTER_SHARE, SMBC_COMMS_SHARE,
 	SMBC_IPC_SHARE, SMBC_DIR, SMBC_FILE, or SMBC_LINK.
 End Rem
-Type TSMBDirent
+Type TSMBCDirent
 
 	Field name:String
 	Field ftype:Int
 	
-	Function _new:TSMBDirent(name:String, ftype:Int)
-		Local this:TSMBDirent = New TSMBDirent
+	Function _new:TSMBCDirent(name:String, ftype:Int)
+		Local this:TSMBCDirent = New TSMBCDirent
 		this.name = name
 		this.ftype = ftype
 		Return this
@@ -158,24 +158,24 @@ Type TSMBC
 
 	Rem
 	bbdoc: Opens a directory
-	returns: A TSMBDirHandle directory handle, or 0 if the directory does not exist
+	returns: A TSMBCDirHandle directory handle, or 0 if the directory does not exist
 	End Rem
-	Method ReadDir:TSMBDirHandle(path:String)
-		Return TSMBDirHandle(bmx_smbc_opendir(contextPtr, path))
+	Method ReadDir:TSMBCDirHandle(path:String)
+		Return TSMBCDirHandle(bmx_smbc_opendir(contextPtr, path))
 	End Method
 	
 	Rem
 	bbdoc: Returns next file in a directory
 	returns: The next file in directory opened using #ReadDir, or an empty object if there are no more files to read.
 	End Rem
-	Method NextFile:TSMBDirent(dir:TSMBDirHandle)
-		Return TSMBDirent(bmx_smbc_readdir(contextPtr, dir.fdPtr))
+	Method NextFile:TSMBCDirent(dir:TSMBCDirHandle)
+		Return TSMBCDirent(bmx_smbc_readdir(contextPtr, dir.fdPtr))
 	End Method
 	
 	Rem
 	bbdoc: Closes a directory
 	End Rem
-	Method CloseDir(dir:TSMBDirHandle)
+	Method CloseDir(dir:TSMBCDirHandle)
 		bmx_smbc_closedir(contextPtr, dir.fdPtr)
 	End Method
 
@@ -185,17 +185,17 @@ Type TSMBC
 	about: The @skipDots parameter, if true, removes the '.' (current) and '..'
 	(parent) directories from the returned array.
 	End Rem 
-	Method LoadDir:TSMBDirent[](path:String, skipDots:Int = True)
-		Local dir:TSMBDirHandle = ReadDir(path)
+	Method LoadDir:TSMBCDirent[](path:String, skipDots:Int = True)
+		Local dir:TSMBCDirHandle = ReadDir(path)
 		If Not dir Then
 			Return Null
 		End If
 			
-		Local entries:TSMBDirent[100]
+		Local entries:TSMBCDirent[100]
 		Local n:Int
 		
 		Repeat
-			Local f:TSMBDirent = NextFile(dir)
+			Local f:TSMBCDirent = NextFile(dir)
 			If Not f Exit
 			If f.name = "" Then
 				Continue
@@ -219,6 +219,26 @@ Type TSMBC
 	Method PurgeCachedServers()
 		bmx_smbc_purgecachedservers(contextPtr)
 	End Method
+	
+	Rem
+	bbdoc: Gets file type.
+	returns: 0 if file at @path doesn't exist, FILETYPE_FILE (1) if the file is a plain file or FILETYPE_DIR (2) if the file is a directory.
+	End Rem
+	Method FileType:Int(path:String)
+		Return bmx_smbc_filetype(contextPtr, path)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method DeleteDir:Int(path:String, recurse:Int = False)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method CreateDir:Int(path:String)
+	End Method
 
 	Rem
 	bbdoc: Frees the client context. 
@@ -236,6 +256,9 @@ Type TSMBC
 	
 End Type
 
+Type TSMBCStream Extends TStream
+
+End Type
 
 
 ?

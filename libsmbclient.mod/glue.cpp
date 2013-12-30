@@ -31,8 +31,8 @@ extern "C" {
 	BBString * _bah_libsmbclient_TSMBCAuth__username(BBObject * auth);
 	BBString * _bah_libsmbclient_TSMBCAuth__password(BBObject * auth);
 	
-	BBObject * _bah_libsmbclient_TSMBDirHandle__new(SMBCFILE * fd);
-	BBObject * _bah_libsmbclient_TSMBDirent__new(BBString * name, int type);
+	BBObject * _bah_libsmbclient_TSMBCDirHandle__new(SMBCFILE * fd);
+	BBObject * _bah_libsmbclient_TSMBCDirent__new(BBString * name, int type);
 	
 	
 	void _bah_libsmbclient_TSMBC__authDataCallback(BBObject * auth);
@@ -45,6 +45,8 @@ extern "C" {
 	BBObject * bmx_smbc_opendir(SMBCCTX * context, BBString * path);
 	BBObject * bmx_smbc_readdir(SMBCCTX * context, SMBCFILE * dir);
 	BBObject * bmx_smbc_closedir(SMBCCTX * context, SMBCFILE * dir);
+
+	int bmx_smbc_filetype(SMBCCTX * context, BBString * path);
 
 	void bmx_smbc_purgecachedservers(SMBCCTX * context);
 
@@ -105,7 +107,7 @@ SMBCCTX * bmx_smbc_new_context(int smbDebug) {
 BBObject * bmx_smbc_opendir(SMBCCTX * context, BBString * path) {
 	char * p = bbStringToUTF8String(path);
 
-	BBObject * dir = _bah_libsmbclient_TSMBDirHandle__new(smbc_getFunctionOpendir(context)(context, p));
+	BBObject * dir = _bah_libsmbclient_TSMBCDirHandle__new(smbc_getFunctionOpendir(context)(context, p));
 	
 	bbMemFree(p);
 	
@@ -117,7 +119,7 @@ BBObject * bmx_smbc_readdir(SMBCCTX * context, SMBCFILE * dir) {
 	struct smbc_dirent * dirent = smbc_getFunctionReaddir(context)(context, dir);
 	
 	if (dirent) {
-		BBObject * file = _bah_libsmbclient_TSMBDirent__new(bbStringFromUTF8String(dirent->name), dirent->smbc_type);
+		BBObject * file = _bah_libsmbclient_TSMBCDirent__new(bbStringFromUTF8String(dirent->name), dirent->smbc_type);
 		return file;
 	}
 	
@@ -130,6 +132,28 @@ BBObject * bmx_smbc_closedir(SMBCCTX * context, SMBCFILE * dir) {
 }
 
 void bmx_smbc_purgecachedservers(SMBCCTX * context) {
+	TALLOC_CTX *frame = talloc_stackframe();
 	smbc_getFunctionPurgeCachedServers(context)(context);
+}
+
+int bmx_smbc_filetype(SMBCCTX * context, BBString * path) {
+	struct stat s;
+	
+	char * p = bbStringToUTF8String(path);
+	int res = smbc_getFunctionStat(context)(context, p, &s);
+	bbMemFree(p);
+	
+	if (res) {
+		return 0;
+	}
+	
+	switch(s.st_mode & S_IFMT) {
+		case S_IFDIR:
+			return 2;
+		case S_IFREG:
+			return 1; 
+	}
+
+	return 0;
 }
 

@@ -31,9 +31,9 @@ End Type
 
 
 Function Traverse(client:TSMBC, path:String, group:String = "", level:Int = 0)
-	Local list:TSMBDirent[] = client.LoadDir(path)
+	Local list:TSMBCDirent[] = client.LoadDir(path)
 	
-	For Local file:TSMBDirEnt = EachIn list
+	For Local file:TSMBCDirEnt = EachIn list
 
 		Select file.ftype
 			Case SMBC_WORKGROUP, SMBC_SERVER
