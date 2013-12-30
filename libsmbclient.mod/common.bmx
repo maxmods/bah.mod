@@ -43,12 +43,13 @@ Extern
 	Function bmx_smbc_closedir:Object(handle:Byte Ptr, dir:Byte Ptr)
 
 	Function bmx_smbc_filetype:Int(handle:Byte Ptr, path:String)
+	Function bmx_smbc_filesize:Int(handle:Byte Ptr, path:String)
 	
 	Function bmx_smbc_purgecachedservers(handle:Byte Ptr)
 	Function bmx_smbc_getoptioncasesensitive:Int(handle:Byte Ptr)
 	Function bmx_smbc_setoptioncasesensitive(handle:Byte Ptr, value:Int)
 
-	Function bmx_smbc_open:Byte Ptr(context:Byte Ptr, path:String, _mode:Int, handle:Object)
+	Function bmx_smbc_open:Byte Ptr(context:Byte Ptr, path:String, readable:Int, writeable:Int)
 	Function bmx_smbc_seek:Int(context:Byte Ptr, file:Byte Ptr, pos:Int)
 	Function bmx_smbc_read:Int(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Int)
 	Function bmx_smbc_write:Int(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Int)

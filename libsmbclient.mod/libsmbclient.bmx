@@ -127,7 +127,7 @@ Type TSMBC
 		contextPtr = bmx_smbc_new_context(Self, smbDebug)
 		
 		If contextPtr Then
-			'map.Insert(String(Int(contextPtr)), Self)
+			TSMBCStreamFactory.AddContext(Self)
 			Return Self
 		End If
 		
@@ -242,15 +242,24 @@ Type TSMBC
 	End Method
 	
 	Rem
+	bbdoc: Gets the file size.
+	End Rem
+	Method FileSize:Int(path:String)
+		Return bmx_smbc_filesize(contextPtr, path)
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method DeleteDir:Int(path:String, recurse:Int = False)
+		' TODO
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method CreateDir:Int(path:String)
+		' TODO
 	End Method
 
 	Rem
@@ -259,6 +268,7 @@ Type TSMBC
 	Method Free()
 		If contextPtr Then
 			bmx_smbc_free_context(contextPtr)
+			TSMBCStreamFactory.RemoveContext(Self)
 			contextPtr = Null
 		End If
 	End Method
@@ -340,9 +350,15 @@ Type TSMBCStream Extends TStream
 			stream._mode :| MODE_WRITE
 		End If
 		
-		stream.filePtr = bmx_smbc_open(context.contextPtr, path, stream._mode, stream)
+		stream.filePtr = bmx_smbc_open(context.contextPtr, path, readable, writeable)
 		
-		Return stream
+		If stream.filePtr Then
+			stream._size = context.FileSize(path)
+			
+			Return stream
+		End If
+		
+		Return Null
 	End Function
 
 End Type
@@ -353,7 +369,7 @@ Type TSMBCStreamFactory Extends TStreamFactory
 
 	Method CreateStream:TStream(url:Object, proto:String, path:String, readable:Int, writeable:Int)
 		If proto = "smb" Then
-			Local context:TSMBC = TSMBC(contexts.First())	
+			Local context:TSMBC = TSMBC(contexts.Last())	
 		
 			If context Then
 				Return TSMBCStream.Create(context, "smb://" + path, readable, writeable)
