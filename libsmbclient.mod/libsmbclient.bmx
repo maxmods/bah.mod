@@ -21,9 +21,15 @@
 SuperStrict
 
 Rem
-bbdoc: Samba Client
+bbdoc: Linux Samba Client
 End Rem
 Module BaH.LibSMBClient
+
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: MIT"
+ModuleInfo "Copyright: 2013 Bruce A Henderson"
+
+ModuleInfo "History: 1.00 Initial Release"
 
 ?linux
 
@@ -116,6 +122,10 @@ bbdoc: An Samba client context.
 about: Subclass this to implement your authorization callback.
 End Rem
 Type TSMBC
+
+	Const FILETYPE_NONE:Int = 0
+	Const FILETYPE_FILE:Int = 1
+	Const FILETYPE_DIR:Int = 2
 
 	Field contextPtr:Byte Ptr
 
@@ -247,19 +257,101 @@ Type TSMBC
 	Method FileSize:Int(path:String)
 		Return bmx_smbc_filesize(contextPtr, path)
 	End Method
-	
+
 	Rem
-	bbdoc: 
+	bbdoc: Gets file time
+	returns: The time the file at @path was last modified 
+	End Rem
+	Method FileTime:Int(path:String)
+		Return bmx_smbc_filetime(contextPtr, path)
+	End Method
+
+	Rem
+	bbdoc: Gets file mode
+	returns: file mode flags
+	End Rem
+	Method FileMode:Int(path:String)
+		Return bmx_smbc_filemode(contextPtr, path)
+	End Method
+
+	Rem
+	bbdoc: Deletes a file
+	returns: True if successful
+	End Rem
+	Method DeleteFile:Int(path:String)
+		bmx_smbc_unlink(contextPtr, path)
+		Return FileType(path) = FILETYPE_NONE
+	End Method
+
+	Rem
+	bbdoc:  Deletes a directory.
+	returns: True if successful
+	about: Set @recurse to true to delete all subdirectories and files recursively - but be careful!
 	End Rem
 	Method DeleteDir:Int(path:String, recurse:Int = False)
-		' TODO
+		If Not path.EndsWith("/") Then
+			path :+ "/"
+		End If
+		
+		If recurse
+			Local dir:TSMBCDirHandle = ReadDir(path)
+			If Not dir Return False
+			Repeat
+				Local t:TSMBCDirent = NextFile(dir)
+				If t.name = "" Exit
+				If t.name = "." Or t.name = ".." Continue
+				Local f:String = path + "/" + t.name
+				Select FileType( f )
+					Case 1 DeleteFile(f)
+					Case 2 DeleteDir(f, True)
+				End Select
+			Forever
+			CloseDir(dir)
+		EndIf
+		bmx_smbc_rmdir(contextPtr, path)
+		If FileType( path )=0 Return True
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a directory.
+	returns: True if successful
+	about: If @recurse is true, any required subdirectories are also created.
 	End Rem
-	Method CreateDir:Int(path:String)
-		' TODO
+	Method CreateDir:Int(path:String, recurse:Int = False)
+		If Not path.EndsWith("/") Then
+			path :+ "/"
+		End If
+		
+		If Not recurse
+			bmx_smbc_mkdir(contextPtr, path, 1023)
+			Return FileType(path) = FILETYPE_DIR
+		EndIf
+		
+		Local t:String
+		Local i:Int = path.find("smb://") + 1
+		t :+ path[..i]
+		path = path[i..]
+		
+		While path
+			i = path.find("/")+1
+			t :+ path[..i]
+			path = path[i..]
+			Select FileType(t)
+			Case FILETYPE_DIR
+			Case FILETYPE_NONE
+				Local s:String
+				If t.EndsWith("/") Then
+					s = t[..t.length-1]
+				Else
+					s = t
+				End If
+				bmx_smbc_mkdir(contextPtr, s, 1023)
+				If FileType(s)<>FILETYPE_DIR Return False
+			Default
+				Return False
+			End Select
+		Wend
+		Return True
 	End Method
 
 	Rem

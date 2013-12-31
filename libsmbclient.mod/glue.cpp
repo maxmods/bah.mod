@@ -50,8 +50,14 @@ extern "C" {
 	BBObject * bmx_smbc_readdir(SMBCCTX * context, SMBCFILE * dir);
 	BBObject * bmx_smbc_closedir(SMBCCTX * context, SMBCFILE * dir);
 
+	int bmx_smbc_mkdir(SMBCCTX * context, BBString * path, int mode);
+	int bmx_smbc_rmdir(SMBCCTX * context, BBString * path);
+	int bmx_smbc_unlink(SMBCCTX * context, BBString * path);
+
 	int bmx_smbc_filetype(SMBCCTX * context, BBString * path);
 	int bmx_smbc_filesize(SMBCCTX * context, BBString * path);
+	int bmx_smbc_filetime(SMBCCTX * context, BBString * path);
+	int bmx_smbc_filemode(SMBCCTX * context, BBString * path);
 
 	void bmx_smbc_purgecachedservers(SMBCCTX * context);
 	int bmx_smbc_getoptioncasesensitive(SMBCCTX * context);
@@ -179,16 +185,44 @@ BBObject * bmx_smbc_closedir(SMBCCTX * context, SMBCFILE * dir) {
 	smbc_getFunctionClose(context)(context, dir);
 }
 
+int bmx_smbc_mkdir(SMBCCTX * context, BBString * path, int mode) {
+	char * p = bbStringToUTF8String(path);
+	int res = smbc_getFunctionMkdir(context)(context, p, static_cast<mode_t>(mode));
+	bbMemFree(p);
+	
+	return res;
+}
+
+int bmx_smbc_rmdir(SMBCCTX * context, BBString * path) {
+	char * p = bbStringToUTF8String(path);
+	int res = smbc_getFunctionRmdir(context)(context, p);
+	bbMemFree(p);
+	
+	return res;
+}
+
+int bmx_smbc_unlink(SMBCCTX * context, BBString * path) {
+	char * p = bbStringToUTF8String(path);
+	int res = smbc_getFunctionUnlink(context)(context, p);
+	bbMemFree(p);
+	
+	return res;
+}
+
 void bmx_smbc_purgecachedservers(SMBCCTX * context) {
 	smbc_getFunctionPurgeCachedServers(context)(context);
 }
 
+int bmx_smbc_stat(SMBCCTX * context, BBString * path, struct stat * s) {
+	char * p = bbStringToUTF8String(path);
+	int res = smbc_getFunctionStat(context)(context, p, s);
+	bbMemFree(p);
+	return res;
+}
+
 int bmx_smbc_filetype(SMBCCTX * context, BBString * path) {
 	struct stat s;
-	
-	char * p = bbStringToUTF8String(path);
-	int res = smbc_getFunctionStat(context)(context, p, &s);
-	bbMemFree(p);
+	int res = bmx_smbc_stat(context, path, &s);
 	
 	if (res) {
 		return 0;
@@ -206,16 +240,35 @@ int bmx_smbc_filetype(SMBCCTX * context, BBString * path) {
 
 int bmx_smbc_filesize(SMBCCTX * context, BBString * path) {
 	struct stat s;
-	
-	char * p = bbStringToUTF8String(path);
-	int res = smbc_getFunctionStat(context)(context, p, &s);
-	bbMemFree(p);
+	int res = bmx_smbc_stat(context, path, &s);
 	
 	if (res) {
 		return 0;
 	}
 	
 	return static_cast<int>(s.st_size);
+}
+
+int bmx_smbc_filetime(SMBCCTX * context, BBString * path) {
+	struct stat s;
+	int res = bmx_smbc_stat(context, path, &s);
+	
+	if (res) {
+		return 0;
+	}
+	
+	return static_cast<int>(s.st_mtime);
+}
+
+int bmx_smbc_filemode(SMBCCTX * context, BBString * path) {
+	struct stat s;
+	int res = bmx_smbc_stat(context, path, &s);
+	
+	if (res) {
+		return -1;
+	}
+	
+	return static_cast<int>(s.st_mode) & 511;
 }
 
 int bmx_smbc_getoptioncasesensitive(SMBCCTX * context) {
