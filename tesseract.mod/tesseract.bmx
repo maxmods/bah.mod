@@ -18,7 +18,7 @@ SuperStrict
 Rem
 bbdoc: Tesseract OCR Engine
 End Rem
-Module BaH.tesseract
+Module BaH.Tesseract
 
 
 ModuleInfo "Version: 1.01"
@@ -36,7 +36,7 @@ ModuleInfo "History: 1.00 Initial Release (Tesseract-2.03 SVNr205)"
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DUSE_STD_NAMESPACE -DPI=3.14159265f"
 ModuleInfo "CC_OPTS: -I../ccutil -I../cutil"
 ?win32
-ModuleInfo "CC_OPTS: -D__MSW32__ -D__BLOB_T_DEFINED"
+ModuleInfo "CC_OPTS: -D__MSW32__ -D__BLOB_T_DEFINED -DWINDLLNAME=\~qTesseract\~q"
 ?
 
 Import BRL.Pixmap
