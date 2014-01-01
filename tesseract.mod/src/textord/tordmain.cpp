@@ -39,11 +39,7 @@
 #include "config_auto.h"
 #endif
 
-// Some of the code in this file is dependent upon leptonica. If you don't
-// have it, you don't get this functionality.
-#ifdef HAVE_LIBLEPT
 #include "allheaders.h"
-#endif
 
 const ERRCODE BLOCKLESS_BLOBS = "Warning:some blobs assigned to no block";
 
@@ -58,7 +54,6 @@ const ERRCODE BLOCKLESS_BLOBS = "Warning:some blobs assigned to no block";
  * Set the horizontal and vertical stroke widths in the blob.
  **********************************************************************/
 void SetBlobStrokeWidth(Pix* pix, BLOBNBOX* blob) {
-#ifdef HAVE_LIBLEPT
   // Cut the blob rectangle into a Pix.
   int pix_height = pixGetHeight(pix);
   const TBOX& box = blob->bounding_box();
@@ -149,13 +144,6 @@ void SetBlobStrokeWidth(Pix* pix, BLOBNBOX* blob) {
       blob->set_vert_stroke_width(0.0f);
     }
   }
-#else
-  // Without leptonica present, use the 2*area/perimeter as an approximation.
-  float width = 2.0f * blob->cblob()->area();
-  width /= blob->cblob()->perimeter();
-  blob->set_horz_stroke_width(width);
-  blob->set_vert_stroke_width(width);
-#endif
 }
 
 
@@ -254,8 +242,11 @@ void Textord::filter_blobs(ICOORD page_tr,         // top right
   TO_BLOCK_IT block_it = blocks;          // destination iterator
   TO_BLOCK *block;                        // created block
 
+  #ifndef GRAPHICS_DISABLED
   if (to_win != NULL)
     to_win->Clear();
+  #endif  // GRAPHICS_DISABLED
+
   for (block_it.mark_cycle_pt(); !block_it.cycled_list();
        block_it.forward()) {
     block = block_it.data();
@@ -270,7 +261,8 @@ void Textord::filter_blobs(ICOORD page_tr,         // top right
          tesseract::CCStruct::kXHeightFraction;
     block->line_size *= textord_min_linesize;
     block->max_blob_size = block->line_size * textord_excess_blobsize;
-#ifndef GRAPHICS_DISABLED
+
+    #ifndef GRAPHICS_DISABLED
     if (textord_show_blobs && testing_on) {
       if (to_win == NULL)
         create_to_win(page_tr);
@@ -284,7 +276,7 @@ void Textord::filter_blobs(ICOORD page_tr,         // top right
       plot_box_list(to_win, &block->large_blobs, ScrollView::WHITE);
       plot_box_list(to_win, &block->blobs, ScrollView::WHITE);
     }
-#endif
+    #endif  // GRAPHICS_DISABLED
   }
 }
 

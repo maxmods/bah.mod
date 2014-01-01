@@ -31,15 +31,13 @@
 #ifdef HAVE_CONFIG_H
 #include "config_auto.h"
 #endif
-#ifdef HAVE_LIBLEPT
+
 #include "allheaders.h"
-#endif
 
 class BLOCK;
 
 namespace tesseract {
 
-#ifdef HAVE_LIBLEPT
 // Helper function to return a scaled Pix with one pixel per grid cell,
 // set (black) where the given outline enters the corresponding grid cell,
 // and clear where the outline does not touch the grid cell.
@@ -51,7 +49,6 @@ Pix* TraceOutlineOnReducedPix(C_OUTLINE* outline, int gridsize,
 // As TraceOutlineOnReducedPix above, but on a BLOCK instead of a C_OUTLINE.
 Pix* TraceBlockOnReducedPix(BLOCK* block, int gridsize,
                             ICOORD bleft, int* left, int* bottom);
-#endif
 
 template<class BBC, class BBC_CLIST, class BBC_C_IT> class GridSearch;
 
@@ -126,8 +123,7 @@ class IntGrid : public GridBase {
   IntGrid* NeighbourhoodSum() const;
 
   int GridCellValue(int grid_x, int grid_y) const {
-    ASSERT_HOST(grid_x >= 0 && grid_x < gridwidth());
-    ASSERT_HOST(grid_y >= 0 && grid_y < gridheight());
+    ClipGridCoords(&grid_x, &grid_y);
     return grid_[grid_y * gridwidth_ + grid_x];
   }
   void SetGridCell(int grid_x, int grid_y, int value) {
@@ -135,6 +131,16 @@ class IntGrid : public GridBase {
     ASSERT_HOST(grid_y >= 0 && grid_y < gridheight());
     grid_[grid_y * gridwidth_ + grid_x] = value;
   }
+  // Returns true if more than half the area of the rect is covered by grid
+  // cells that are over the theshold.
+  bool RectMostlyOverThreshold(const TBOX& rect, int threshold) const;
+
+  // Returns true if any cell value in the given rectangle is zero.
+  bool AnyZeroInRect(const TBOX& rect) const;
+
+  // Returns a full-resolution binary pix in which each cell over the given
+  // threshold is filled as a black square. pixDestroy after use.
+  Pix* ThresholdToPix(int threshold) const;
 
  private:
   int* grid_;  // 2-d array of ints.
@@ -178,7 +184,7 @@ template<class BBC, class BBC_CLIST, class BBC_C_IT> class BBGrid
   // WARNING: InsertBBox may invalidate an active GridSearch. Call
   // RepositionIterator() on any GridSearches that are active on this grid.
   void InsertBBox(bool h_spread, bool v_spread, BBC* bbox);
-#ifdef HAVE_LIBLEPT
+
   // Using a pix from TraceOutlineOnReducedPix or TraceBlockOnReducedPix, in
   // which each pixel corresponds to a grid cell, insert a bbox into every
   // place in the grid where the corresponding pixel is 1. The Pix is handled
@@ -189,7 +195,7 @@ template<class BBC, class BBC_CLIST, class BBC_C_IT> class BBGrid
   // WARNING: InsertPixPtBBox may invalidate an active GridSearch. Call
   // RepositionIterator() on any GridSearches that are active on this grid.
   void InsertPixPtBBox(int left, int bottom, Pix* pix, BBC* bbox);
-#endif
+
   // Remove the bbox from the grid.
   // WARNING: Any GridSearch operating on this grid could be invalidated!
   // If a GridSearch is operating, call GridSearch::RemoveBBox() instead.
@@ -376,6 +382,24 @@ int SortByBoxLeft(const void* void1, const void* void2) {
   return p1->bounding_box().top() - p2->bounding_box().top();
 }
 
+// Sort function to sort a BBC by bounding_box().right() in right-to-left order.
+template<class BBC>
+int SortRightToLeft(const void* void1, const void* void2) {
+  // The void*s are actually doubly indirected, so get rid of one level.
+  const BBC* p1 = *reinterpret_cast<const BBC* const *>(void1);
+  const BBC* p2 = *reinterpret_cast<const BBC* const *>(void2);
+  int result = p2->bounding_box().right() - p1->bounding_box().right();
+  if (result != 0)
+    return result;
+  result = p2->bounding_box().left() - p1->bounding_box().left();
+  if (result != 0)
+    return result;
+  result = p1->bounding_box().bottom() - p2->bounding_box().bottom();
+  if (result != 0)
+    return result;
+  return p1->bounding_box().top() - p2->bounding_box().top();
+}
+
 // Sort function to sort a BBC by bounding_box().bottom().
 template<class BBC>
 int SortByBoxBottom(const void* void1, const void* void2) {
@@ -477,7 +501,6 @@ void BBGrid<BBC, BBC_CLIST, BBC_C_IT>::InsertBBox(bool h_spread, bool v_spread,
   }
 }
 
-#ifdef HAVE_LIBLEPT
 // Using a pix from TraceOutlineOnReducedPix or TraceBlockOnReducedPix, in
 // which each pixel corresponds to a grid cell, insert a bbox into every
 // place in the grid where the corresponding pixel is 1. The Pix is handled
@@ -502,7 +525,6 @@ void BBGrid<BBC, BBC_CLIST, BBC_C_IT>::InsertPixPtBBox(int left, int bottom,
     }
   }
 }
-#endif
 
 // Remove the bbox from the grid.
 // WARNING: Any GridSearch operating on this grid could be invalidated!
@@ -864,6 +886,9 @@ void GridSearch<BBC, BBC_CLIST, BBC_C_IT>::RemoveBBox() {
 
 template<class BBC, class BBC_CLIST, class BBC_C_IT>
 void GridSearch<BBC, BBC_CLIST, BBC_C_IT>::RepositionIterator() {
+  // Something was deleted, so we have little choice but to clear the
+  // returns list.
+  returns_.shallow_clear();
   // Reset the iterator back to one past the previous return.
   // If the previous_return_ is no longer in the list, then
   // next_return_ serves as a backup.

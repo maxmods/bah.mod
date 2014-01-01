@@ -17,9 +17,9 @@
 *
 **********************************************************************/
 
-#include "mfcpch.h"
 // #define USE_VLD //Uncomment for Visual Leak Detector.
 #if (defined _MSC_VER && defined USE_VLD)
+#include "mfcpch.h"
 #include <vld.h>
 #endif
 
@@ -34,14 +34,13 @@
 #else
 #define _(x) (x)
 #endif
-#ifndef HAVE_LIBLEPT
-#error "Sorry: Tesseract no longer compiles or runs without Leptonica!";
-#endif
+
 #include "allheaders.h"
 #include "baseapi.h"
+#include "basedir.h"
 #include "strngs.h"
-#include "tprintf.h"
 #include "tesseractmain.h"
+#include "tprintf.h"
 
 /**********************************************************************
  *  main()
@@ -49,15 +48,50 @@
  **********************************************************************/
 
 int main(int argc, char **argv) {
-#ifdef USE_NLS
+#ifdef USING_GETTEXT
   setlocale (LC_ALL, "");
   bindtextdomain (PACKAGE, LOCALEDIR);
   textdomain (PACKAGE);
 #endif
-  if ((argc == 2 && strcmp(argv[1], "-v") == 0) || (argc == 2 && strcmp(argv[1], "--version") == 0)) {
+  if ((argc == 2 && strcmp(argv[1], "-v") == 0) ||
+      (argc == 2 && strcmp(argv[1], "--version") == 0)) {
+    char *versionStrP;
+
     fprintf(stderr, "tesseract %s\n", tesseract::TessBaseAPI::Version());
+
+    versionStrP = getLeptonicaVersion();
+    fprintf(stderr, " %s\n", versionStrP);
+    lept_free(versionStrP);
+
+    versionStrP = getImagelibVersions();
+    fprintf(stderr, "  %s\n", versionStrP);
+    lept_free(versionStrP);
+
     exit(0);
   }
+
+  tesseract::TessBaseAPI api;
+  STRING tessdata_dir;
+  truncate_path(argv[0], &tessdata_dir);
+  int rc = api.Init(tessdata_dir.string(), NULL);
+  if (rc) {
+    fprintf(stderr, _("Could not initialize tesseract.\n"));
+    exit(1);
+  }
+
+  if (argc == 2 && strcmp(argv[1], "--list-langs") == 0) {
+     GenericVector<STRING> languages;
+     api.GetAvailableLanguagesAsVector(&languages);
+     fprintf(stderr, _("List of available languages (%d):\n"), languages.size());
+     for (int index = 0; index < languages.size(); ++index) {
+       STRING& string = languages[index];
+       fprintf(stderr, "%s\n", string.string());
+     }
+     api.Clear();
+     exit(0);
+  }
+  api.End();
+
   // Make the order of args a bit more forgiving than it used to be.
   const char* lang = "eng";
   const char* image = NULL;
@@ -80,7 +114,7 @@ int main(int argc, char **argv) {
   }
   if (output == NULL) {
     fprintf(stderr, _("Usage:%s imagename outputbase [-l lang] "
-                      "[-psm pagesegmode] [configfile...]\n"), argv[0]);
+                      "[-psm pagesegmode] [configfile...]\n\n"), argv[0]);
     fprintf(stderr,
             _("pagesegmode values are:\n"
               "0 = Orientation and script detection (OSD) only.\n"
@@ -95,38 +129,59 @@ int main(int argc, char **argv) {
               "9 = Treat the image as a single word in a circle.\n"
               "10 = Treat the image as a single character.\n"));
     fprintf(stderr, _("-l lang and/or -psm pagesegmode must occur before any"
-                      "configfile.\n"));
+                      "configfile.\n\n"));
+    fprintf(stderr, _("Single options:\n"));
+    fprintf(stderr, _("  -v --version: version info\n"));
+    fprintf(stderr, _("  --list-langs: list available languages for tesseract "
+                      "engine\n"));
     exit(1);
   }
 
-  tesseract::TessBaseAPI  api;
 
   api.SetOutputName(output);
-  api.Init(argv[0], lang, tesseract::OEM_DEFAULT,
-           &(argv[arg]), argc - arg, NULL, NULL, false);
-  api.SetPageSegMode(pagesegmode);
-  
-  tprintf(_("Tesseract Open Source OCR Engine v%s with Leptonica\n"),
+
+  rc = api.Init(tessdata_dir.string(), lang, tesseract::OEM_DEFAULT,
+                &(argv[arg]), argc - arg, NULL, NULL, false);
+  if (rc) {
+    fprintf(stderr, _("Could not initialize tesseract.\n"));
+    exit(1);
+  }
+
+  // We have 2 possible sources of pagesegmode: a config file and
+  // the command line. For backwards compatability reasons, the
+  // default in tesseract is tesseract::PSM_SINGLE_BLOCK, but the
+  // default for this program is tesseract::PSM_AUTO. We will let
+  // the config file take priority, so the command-line default
+  // can take priority over the tesseract default, so we use the
+  // value from the command line only if the retrieved mode
+  // is still tesseract::PSM_SINGLE_BLOCK, indicating no change
+  // in any config file. Therefore the only way to force
+  // tesseract::PSM_SINGLE_BLOCK is from the command line.
+  // It would be simpler if we could set the value before Init,
+  // but that doesn't work.
+  if (api.GetPageSegMode() == tesseract::PSM_SINGLE_BLOCK)
+    api.SetPageSegMode(pagesegmode);
+  tprintf("Tesseract Open Source OCR Engine v%s with Leptonica\n",
            tesseract::TessBaseAPI::Version());
 
-  
+
   FILE* fin = fopen(image, "rb");
   if (fin == NULL) {
-    printf("Cannot open input file: %s\n", image);
+    fprintf(stderr, _("Cannot open input file: %s\n"), image);
     exit(2);
-  } 
+  }
   fclose(fin);
-  
+
   PIX   *pixs;
   if ((pixs = pixRead(image)) == NULL) {
-    printf("Unsupported image type.\n");
+    fprintf(stderr, _("Unsupported image type.\n"));
     exit(3);
   }
   pixDestroy(&pixs);
 
   STRING text_out;
   if (!api.ProcessPages(image, NULL, 0, &text_out)) {
-    tprintf(_("Error during processing.\n"));
+    fprintf(stderr, _("Error during processing.\n"));
   }
   bool output_hocr = false;
   api.GetBoolVariable("tessedit_create_hocr", &output_hocr);
@@ -136,7 +191,7 @@ int main(int argc, char **argv) {
   outfile += output_hocr ? ".html" : output_box ? ".box" : ".txt";
   FILE* fout = fopen(outfile.string(), "wb");
   if (fout == NULL) {
-    tprintf(_("Cannot create output file %s\n"), outfile.string());
+    fprintf(stderr, _("Cannot create output file %s\n"), outfile.string());
     exit(1);
   }
   fwrite(text_out.string(), 1, text_out.length(), fout);
@@ -145,7 +200,7 @@ int main(int argc, char **argv) {
   return 0;                      // Normal exit
 }
 
-#ifdef __MSW32__
+#ifdef _WIN32
 
 char szAppName[] = "Tesseract";   //app name
 int initialized = 0;

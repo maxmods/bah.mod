@@ -18,7 +18,7 @@
  **********************************************************************/
 
 #include          "mfcpch.h"     //precompiled headers
-#ifdef __MSW32__
+#ifdef _WIN32
 #include          <io.h>
 #else
 #include          <unistd.h>
@@ -33,10 +33,7 @@
 #include "config_auto.h"
 #endif
 
-#ifdef HAVE_LIBLEPT
-// Include leptonica library only if autoconf (or makefile etc) tell us to.
 #include "allheaders.h"
-#endif
 
 #include          "stderr.h"
 #include          "tprintf.h"
@@ -249,10 +246,11 @@ inT32 check_legal_image_size(                     //get rest of image
     BADIMAGESIZE.error ("check_legal_image_size", TESSLOG, "(%d,%d)", x, y);
     return -1;                   //failed
   }
-  if (bits_per_pixel != 1 && bits_per_pixel != 2
-      && bits_per_pixel != 4 && bits_per_pixel != 5
-      && bits_per_pixel != 6 && bits_per_pixel != 8 && bits_per_pixel != 24
-      && bits_per_pixel != 32) {
+  if (bits_per_pixel != 1 && bits_per_pixel != 2 &&
+      bits_per_pixel != 4 && bits_per_pixel != 5 &&
+      bits_per_pixel != 6 && bits_per_pixel != 8 &&
+      bits_per_pixel != 16 && bits_per_pixel != 24 &&
+      bits_per_pixel != 32) {
     BADBPP.error ("check_legal_image_size", TESSLOG, "%d", bits_per_pixel);
     return -1;
   }
@@ -1495,8 +1493,6 @@ void IMAGE::check_legal_access(            //check coords are legal
     BADIMAGESEEK.error ("IMAGE::check_legal_access", ABORT, "(%d,%d)", x, y);
 }
 
-#ifdef HAVE_LIBLEPT
-// ONLY available if you have Leptonica installed.
 /**********************************************************************
  * ToPix
  *
@@ -1627,7 +1623,6 @@ void IMAGE::FromPix(const Pix* src_pix) {
   if (destroy_this_pix != NULL)
     pixDestroy(&destroy_this_pix);
 }
-#endif  // HAVE_LIBLEPT
 
 /*************************************************************************
  * convolver()

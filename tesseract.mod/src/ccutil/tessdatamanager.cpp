@@ -38,17 +38,19 @@ bool TessdataManager::Init(const char *data_file_name, int debug_level) {
   data_file_ = fopen(data_file_name, "rb");
   if (data_file_ == NULL) {
     tprintf("Error opening data file %s\n", data_file_name);
+    tprintf("Please make sure the TESSDATA_PREFIX environment variable is set "
+            "to the parent directory of your \"tessdata\" directory.\n");
     return false;
   }
   fread(&actual_tessdata_num_entries_, sizeof(inT32), 1, data_file_);
-  bool swap = (actual_tessdata_num_entries_ > kMaxNumTessdataEntries);
-  if (swap) {
+  swap_ = (actual_tessdata_num_entries_ > kMaxNumTessdataEntries);
+  if (swap_) {
     actual_tessdata_num_entries_ = reverse32(actual_tessdata_num_entries_);
   }
   ASSERT_HOST(actual_tessdata_num_entries_ <= TESSDATA_NUM_ENTRIES);
   fread(offset_table_, sizeof(inT64),
         actual_tessdata_num_entries_, data_file_);
-  if (swap) {
+  if (swap_) {
     for (i = 0 ; i < actual_tessdata_num_entries_; ++i) {
       offset_table_[i] = reverse64(offset_table_[i]);
     }
@@ -128,7 +130,6 @@ bool TessdataManager::CombineDataFiles(
         kTessdataFileSuffixes[i], &type, &text_file));
     STRING filename = language_data_path_prefix;
     filename += kTessdataFileSuffixes[i];
-    // file_ptr[i] =  fopen(filename.string(), text_file ? "r" : "rb");
     file_ptr[i] =  fopen(filename.string(), "rb");
     if (file_ptr[i] != NULL) {
       offset_table[type] = ftell(output_file);
@@ -182,7 +183,6 @@ bool TessdataManager::OverwriteComponents(
   // Open the files with the new components.
   for (i = 0; i < num_new_components; ++i) {
     TessdataTypeFromFileName(component_filenames[i], &type, &text_file);
-    // file_ptr[type] = fopen(component_filenames[i], text_file ? "r" : "rb");
     file_ptr[type] = fopen(component_filenames[i], "rb");
   }
 
