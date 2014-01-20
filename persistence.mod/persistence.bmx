@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2012 Bruce A Henderson
+' Copyright (c) 2008-2014 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,13 @@ about: An object-persistence framework.
 End Rem
 Module BaH.Persistence
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008-2012 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2014 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Added encoding for String and String Array fields. (Ronny Otto)"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
 
@@ -199,7 +201,9 @@ Type TPersist
 						Case StringTypeId
 							' only if not empty
 							If String(aObj) Then
-								elementNode.setContent(String(aObj))
+								' escape special chars
+								Local s:String = doc.encodeEntities(String(aObj))
+								elementNode.setContent(s)
 							End If
 						Default
 							Local objRef:String = GetObjRef(aObj)
@@ -338,6 +342,8 @@ Type TPersist
 							' only if not empty
 							Local s:String = f.GetString(obj)
 							If s Then
+								' escape special chars
+								s = doc.encodeEntities(s) 
 								fieldNode.setContent(s)
 							End If
 						Default
