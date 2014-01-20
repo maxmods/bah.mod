@@ -142,7 +142,7 @@ void SIDEngine::synth_init   (dword mixfrq)
 {
   int i;
   mixing_frequency = mixfrq;
-  freqmul = 15872000 / mixfrq;
+  freqmul = 7936000 / mixfrq;
   filtmul = pfloat_ConvertFromFloat(21.5332031f)/mixfrq;
   for (i=0;i<16;i++) {
     attacks [i]=(int) (0x1000000 / (attackTimes[i]*mixfrq));
