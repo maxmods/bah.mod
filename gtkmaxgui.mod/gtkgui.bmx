@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2009 Bruce A Henderson
+' Copyright (c) 2006-2014 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -22,18 +22,30 @@ SuperStrict
 
 Import "gtkcommon.bmx"
 Import "gtkgadget.bmx"
-
+?linux
+Import "fdhandler.c"
+?
 
 Global GTKDriver:TGTKGUIDriver =New TGTKGUIDriver
 
 Type TGTKGuiSystemDriver Extends TGTKSystemDriver
 	Field	gui:TGTKGUIDriver
+?linux
+	Field gsource:Byte Ptr
+?
 	
 	Method Poll()
 		While gtk_events_pending()
 			gtk_main_iteration_do(False)
-			bbSystemPoll()
+'			bbSystemPoll() ' dont't think we need this now?
 		Wend
+?linux
+		' some crazy glib stuff
+		While Not g_main_context_iteration(g_main_context_default(), True)
+		Wend
+?Not linux
+		Super.Wait()
+?
 	End Method
 		
 	Method Wait()
@@ -44,6 +56,10 @@ Type TGTKGuiSystemDriver Extends TGTKSystemDriver
 		Local	guisystem:TGTKGuiSystemDriver		
 		guisystem=New TGTKGuiSystemDriver
 		guisystem.gui=host
+?linux
+		' attach max's fd to a glib event source so things like timers can work
+		guisystem.gsource = bmx_gtk_event_source_new(bbSystemAsyncFD())
+?
 		Return guisystem
 	End Function
 	
@@ -460,8 +476,7 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 			
 			If widget Then ' we need a gadget to test!
 				' but is this window currently in focus (belonging to the toplevel window?)
-				Local _gflags:Int = Int Ptr(widget + _OFFSET_GTK_FLAGS)[0]
-				If (1 & (_gflags Shr 12)) Then
+				If gtk_widget_has_focus(widget) Then
 					handle = Int Ptr(widget)[0]
 				End If
 	
@@ -570,8 +585,8 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 		Local cursor:Byte Ptr = gdk_cursor_new_for_display(gdk_screen_get_display(screen), cursorType)
 		
 		For Local window:TGTKWindow = EachIn gtkWindows
-			If Byte Ptr(Int Ptr(window.handle + _OFFSET_GTK_WINDOW)[0]) Then
-				gdk_window_set_cursor(Byte Ptr(Int Ptr(window.handle + _OFFSET_GTK_WINDOW)[0]), cursor)
+			If gtk_widget_get_window(window.handle) Then
+				gdk_window_set_cursor(gtk_widget_get_window(window.handle), cursor)
 			End If
 		Next
 	End Method
@@ -651,3 +666,12 @@ End Rem
 Function GetScreenPointerPos(x:Int Var, y:Int Var)
 	gdk_display_get_pointer(gdk_display_get_default(), Null, x, y, Null)
 End Function
+
+?linux
+Extern
+	Function bmx_gtk_event_source_new:Byte Ptr(fd:Int)
+	
+	Function g_main_context_iteration:Int(context:Byte Ptr, block:Int)
+	Function g_main_context_default:Byte Ptr()
+End Extern
+?

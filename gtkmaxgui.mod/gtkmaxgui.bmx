@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2009 Bruce A Henderson
+' Copyright (c) 2006-2014 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,15 @@ about: This modules provides a Linux GTK driver for #maxgui.maxgui.MAXGUI.
 End Rem
 Module BaH.GTKMaxGUI
 
-ModuleInfo "Version: 1.20"
+ModuleInfo "Version: 1.21"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2006-2008 Bruce A Henderson"
+ModuleInfo "Copyright: 2006-2014 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.21"
+ModuleInfo "History: Fixed low-level event handling issues."
+ModuleInfo "History: Added missing consts."
+ModuleInfo "History: Removed pointer offsets!"
 ModuleInfo "History: 1.20"
 ModuleInfo "History: Changed to use new Maxgui namespace."
 ModuleInfo "History: Removed pixmap field from TGTKIconStrip."
@@ -189,5 +193,7 @@ ModuleInfo "History: 0.90"
 ModuleInfo "History: Very Alpha preview... Lots of things work, lots of things don't!"
 
 ?Linux
+ModuleInfo "CC_OPTS: -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include"
+
 Import "gtkgui.bmx"
 ?

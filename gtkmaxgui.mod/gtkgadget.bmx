@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2009 Bruce A Henderson
+' Copyright (c) 2006-2014 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -179,7 +179,7 @@ Type TGTKGadget Extends TGadget
 			Case GTK_TEXTAREA
 				gadget = TGTKTextArea.CreateTextArea(x, y ,w , h, label, group, style)
 			Case GTK_TOOLBAR
-				gadget = TGTKToolbar.CreateToolBar(x, y ,w , h, label, group, style)
+				gadget = TGTKToolbar.CreateToolbar(x, y ,w , h, label, group, style)
 			Case GTK_LISTBOX
 				gadget = TGTKListbox.CreateListBox(x, y ,w , h, label, group, style)
 			Case GTK_TREEVIEW
@@ -190,7 +190,7 @@ Type TGTKGadget Extends TGadget
 
 		' map the new gadget - so we can find it later if required
 		If gadget Then
-			GadgetMap.Insert(TGTKInteger.Set(Int Ptr(gadget.handle)[0]),gadget)
+			GadgetMap.Insert(TGTKInteger.Set(Int(gadget.handle)),gadget)
 		End If
 		
 		If group Then
@@ -254,7 +254,7 @@ Type TGTKGadget Extends TGadget
 	End Rem
 	Method State:Int()
 		Local flags:Int
-		Local _state:Int = Byte Ptr(handle + _OFFSET_GTK_STATE)[0]
+		Local _state:Int = gtk_widget_get_state(handle)
 
 		Select _state
 			Case GTK_STATE_INSENSITIVE
@@ -265,8 +265,7 @@ Type TGTKGadget Extends TGadget
 				flags:| STATE_ACTIVE
 		End Select
 
-		Local _gflags:Int = Int Ptr(handle + _OFFSET_GTK_FLAGS)[0]
-		If Not (1 & (_gflags Shr 8)) Then
+		If Not gtk_widget_get_visible(handle) Then
 			flags:| STATE_HIDDEN
 		End If
 
@@ -289,11 +288,11 @@ Type TGTKGadget Extends TGadget
 		
 		If Not font.handle Then
 		
-			font.handle = int ptr(getPangoDescriptionFromGuiFont(font))[0]
+			font.handle = Int Ptr(getPangoDescriptionFromGuiFont(font))[0]
 		
 		End If
 
-		gtk_widget_modify_font(handle, int ptr(font.handle))
+		gtk_widget_modify_font(handle, Int Ptr(font.handle))
 
 		'pango_font_description_free(fontdesc)
 	End Method
@@ -1892,7 +1891,7 @@ Type TGTKMenuItem Extends TGTKGadget
 	NOTE - We have to ignore "obj" because it is not reliable
 	End Rem
 	Function MenuSelected:Int(widget:Byte Ptr, obj:Object)
-
+DebugStop
 		Local _menu:TGTKMenuItem = g_object_get_menudata(widget, "_maxmenu")
 
 		Assert _menu, "Menu data is missing...  !!!!"
@@ -2536,7 +2535,7 @@ Type TGTKTextArea Extends TGTKEditable
 		' NOTE: setting param4 to False causes it to scroll only as much as required to show the start
 		' Set to True to cause it to always display at the same point on the visible area.
 		gtk_text_view_scroll_to_iter(handle, _start, 0, False, 0, 0.1)
-DebugLog "SetSelection...."
+
 	End Method
 
 	Rem
@@ -3222,7 +3221,7 @@ Type TGTKPanel Extends TGTKContainer
 		Local panel:TGTKPanel = TGTKPanel(obj)
 		If panel Then
 			If panel.drawPixbuf And panel.visualpixbuf Then
-				gdk_draw_pixbuf(Byte Ptr(Int Ptr(panel.handle + _OFFSET_GTK_BIN_WINDOW)[0]), Null, panel.visualpixbuf, 0, 0, panel.pbx, panel.pby, -1, -1, 0, 0, 0)
+				gdk_draw_pixbuf(gtk_widget_get_window(panel.handle), Null, panel.visualpixbuf, 0, 0, panel.pbx, panel.pby, -1, -1, 0, 0, 0)
 			End If
 		End If
 		PostGuiEvent(EVENT_GADGETPAINT, TGadget(obj))
@@ -4000,7 +3999,7 @@ Type TGTKStepper Extends TGTKRange
 				g_object_unref(_arrow)
 				
 				' draw arrow
-				gdk_draw_pixbuf(Byte Ptr(Int Ptr(widget + _OFFSET_GTK_BIN_WINDOW)[0]), Null, stepper.arrowUp, 0, 0, pbx, pby, -1, -1, 0, 0, 0)
+				gdk_draw_pixbuf(gtk_widget_get_window(widget), Null, stepper.arrowUp, 0, 0, pbx, pby, -1, -1, 0, 0, 0)
 			End If
 			If gtk_bin_get_child(stepper.buttonDown) = widget Then
 				' clear arrow
@@ -4040,7 +4039,7 @@ Type TGTKStepper Extends TGTKRange
 				g_object_unref(_arrow)
 				
 				' draw arrow
-				gdk_draw_pixbuf(Byte Ptr(Int Ptr(widget + _OFFSET_GTK_BIN_WINDOW)[0]), Null, stepper.arrowDown, 0, 0, pbx, pby, -1, -1, 0, 0, 0)
+				gdk_draw_pixbuf(gtk_widget_get_window(widget), Null, stepper.arrowDown, 0, 0, pbx, pby, -1, -1, 0, 0, 0)
 			End If
 		End If
 	End Function
@@ -4147,7 +4146,7 @@ Type TGTKToolbar Extends TGTKGadget
 	Field toolitems:Byte Ptr[]
 	Field tooltips:Byte Ptr
 
-	Function CreateToolBar:TGTKToolbar(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
+	Function CreateToolbar:TGTKToolbar(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKToolbar = New TGTKToolbar
 
 		this.initToolbar(x, y, w, h, label, group, style)
@@ -4273,8 +4272,7 @@ Type TGTKToolbar Extends TGTKGadget
 	Method ListItemState:Int(index:Int)
 		Local state:Int = 0
 
-		Local _gflags:Int = Int Ptr(toolitems[index] + _OFFSET_GTK_FLAGS)[0]
-		If Not (1 & (_gflags Shr 9)) Then
+		If Not gtk_widget_is_sensitive(toolitems[index]) Then
 			state:| STATE_DISABLED
 		End If
 
@@ -5022,7 +5020,7 @@ Type TGTKTreeView Extends TGTKTreeViewNode
 	End Method
 
 	Rem
-	bbdoc: Callback for tree-view node activation (double-click).
+	bbdoc: Callback For tree-view node activation (Double-click).
 	End Rem
 	Function OnRowActivated(widget:Byte Ptr, treePath:Byte Ptr, treeviewColumn:Byte Ptr, obj:Object)
 		Local p:Byte Ptr = gtk_tree_path_to_string(treePath)
@@ -5176,7 +5174,7 @@ Type TGTKCanvas Extends TGTKGadget
 
 	Method CanvasGraphics:TGraphics()
 		If Not canvas Then
-			canvas = BRL.Graphics.AttachGraphics(gdk_x11_drawable_get_xid(Byte Ptr(Int Ptr(handle + _OFFSET_GTK_WINDOW)[0])), Mode)
+			canvas = BRL.Graphics.AttachGraphics(gdk_x11_drawable_get_xid(gtk_widget_get_window(handle)), Mode)
 		End If
 
 		Return canvas

@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2009 Bruce A Henderson
+' Copyright (c) 2006-2014 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,11 @@ Import "-lglib-2.0"
 Import "-lgtk-x11-2.0"
 Import "-lgdk-x11-2.0"
 Import "-latk-1.0"
-Import "-lpangox-1.0"
+'Import "-lpangox-1.0"
 Import "-lpango-1.0"
 Import "-lgobject-2.0"
 Import "-lgmodule-2.0"
+Import "-lgdk_pixbuf-2.0"
 ?
 
 Incbin "gtk_triangle.png"
@@ -122,6 +123,11 @@ Extern
 	Function gtk_widget_set_accel_path(window:Byte Ptr, path:Byte Ptr, accelGroup:Byte Ptr)
 	Function gtk_widget_unparent(window:Byte Ptr)
 	Function gtk_widget_reparent(widget:Byte Ptr, newParent:Byte Ptr)
+	Function gtk_widget_get_state:Int(widget:Byte Ptr)
+	Function gtk_widget_get_visible:Int(widget:Byte Ptr)
+	Function gtk_widget_is_sensitive:Int(widget:Byte Ptr)
+	Function gtk_widget_has_focus:Int(widget:Byte Ptr)
+	Function gtk_widget_get_window:Byte Ptr(widget:Byte Ptr)
 
 	Function gtk_button_new:Byte Ptr()
 	Function gtk_button_new_with_label:Byte Ptr(label:Byte Ptr)
@@ -652,7 +658,7 @@ Function getGuiFontFromPangoDescription:TGuiFont(fontdesc:Byte Ptr)
 
 	font.size = pango_font_description_get_size(fontdesc) / 1024
 
-	font.handle = int ptr(fontdesc)[0]
+	font.handle = Int Ptr(fontdesc)[0]
 	
 	Return font
 End Function
@@ -915,7 +921,9 @@ Const GDK_EXPOSE:Int		= 2
 Const GDK_MOTION_NOTIFY:Int	= 3
 Const GDK_BUTTON_PRESS:Int	= 4
 Const GDK_2BUTTON_PRESS:Int	= 5
+Const GDK_DOUBLE_BUTTON_PRESS:Int = GDK_2BUTTON_PRESS
 Const GDK_3BUTTON_PRESS:Int	= 6
+Const GDK_TRIPLE_BUTTON_PRESS:Int = GDK_3BUTTON_PRESS
 Const GDK_BUTTON_RELEASE:Int	= 7
 Const GDK_KEY_PRESS:Int		= 8
 Const GDK_KEY_RELEASE:Int	= 9
@@ -943,7 +951,13 @@ Const GDK_NO_EXPOSE:Int		= 30
 Const GDK_SCROLL:Int            = 31
 Const GDK_WINDOW_STATE:Int      = 32
 Const GDK_SETTING:Int           = 33
-Const GDK_OWNER_CHANGE:Int     = 34
+Const GDK_OWNER_CHANGE:Int      = 34
+Const GDK_GRAB_BROKEN:Int       = 35
+Const GDK_DAMAGE:Int            = 36
+Const GDK_TOUCH_BEGIN:Int       = 37
+Const GDK_TOUCH_UPDATE:Int      = 38
+Const GDK_TOUCH_END:Int         = 39
+Const GDK_TOUCH_CANCEL:Int      = 40
 
 ' gtkwindowtype
 Const GTK_WINDOW_TOPLEVEL:Int = 0
@@ -968,6 +982,8 @@ Const GTK_STATE_ACTIVE:Int = 1
 Const GTK_STATE_PRELIGHT:Int = 2
 Const GTK_STATE_SELECTED:Int = 3
 Const GTK_STATE_INSENSITIVE:Int = 4
+Const GTK_STATE_INCONSISTENT:Int = 5
+Const GTK_STATE_FOCUSED:Int = 6
 
 ' GtkShadowType
 Const GTK_SHADOW_NONE:Int = 0
@@ -998,27 +1014,29 @@ Const GTK_FILE_CHOOSER_ACTION_SAVE:Int = 1
 Const GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER:Int = 2
 Const GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER:Int = 3
 
-Const GDK_EXPOSURE_MASK:Int = 2
-Const GDK_POINTER_MOTION_MASK:Int = 4
-Const GDK_POINTER_MOTION_HINT_MASK:Int = 8
-Const GDK_BUTTON_MOTION_MASK:Int = 16
-Const GDK_BUTTON1_MOTION_MASK:Int = 32
-Const GDK_BUTTON2_MOTION_MASK:Int = 64
-Const GDK_BUTTON3_MOTION_MASK:Int = 128
-Const GDK_BUTTON_PRESS_MASK:Int = 256
-Const GDK_BUTTON_RELEASE_MASK:Int = 512
-Const GDK_KEY_PRESS_MASK:Int = 1024
-Const GDK_KEY_RELEASE_MASK:Int = 2048
-Const GDK_ENTER_NOTIFY_MASK:Int = 4096
-Const GDK_LEAVE_NOTIFY_MASK:Int = 8192
-Const GDK_FOCUS_CHANGE_MASK:Int = 16384
-Const GDK_STRUCTURE_MASK:Int = 32768
-Const GDK_PROPERTY_CHANGE_MASK:Int = 65536
-Const GDK_VISIBILITY_NOTIFY_MASK:Int = 131072
-Const GDK_PROXIMITY_IN_MASK:Int = 262144
-Const GDK_PROXIMITY_OUT_MASK:Int = 524288
-Const GDK_SUBSTRUCTURE_MASK:Int = 1048576
-Const GDK_SCROLL_MASK:Int = 2097152
+Const GDK_EXPOSURE_MASK:Int = 1 Shl 1
+Const GDK_POINTER_MOTION_MASK:Int = 1 Shl 2
+Const GDK_POINTER_MOTION_HINT_MASK:Int = 1 Shl 3
+Const GDK_BUTTON_MOTION_MASK:Int = 1 Shl 4
+Const GDK_BUTTON1_MOTION_MASK:Int = 1 Shl 5
+Const GDK_BUTTON2_MOTION_MASK:Int = 1 Shl 6
+Const GDK_BUTTON3_MOTION_MASK:Int = 1 Shl 7
+Const GDK_BUTTON_PRESS_MASK:Int = 1 Shl 8
+Const GDK_BUTTON_RELEASE_MASK:Int = 1 Shl 9
+Const GDK_KEY_PRESS_MASK:Int = 1 Shl 10
+Const GDK_KEY_RELEASE_MASK:Int = 1 Shl 11
+Const GDK_ENTER_NOTIFY_MASK:Int = 1 Shl 12
+Const GDK_LEAVE_NOTIFY_MASK:Int = 1 Shl 13
+Const GDK_FOCUS_CHANGE_MASK:Int = 1 Shl 14
+Const GDK_STRUCTURE_MASK:Int = 1 Shl 15
+Const GDK_PROPERTY_CHANGE_MASK:Int = 1 Shl 16
+Const GDK_VISIBILITY_NOTIFY_MASK:Int = 1 Shl 17
+Const GDK_PROXIMITY_IN_MASK:Int = 1 Shl 18
+Const GDK_PROXIMITY_OUT_MASK:Int = 1 Shl 19
+Const GDK_SUBSTRUCTURE_MASK:Int = 1 Shl 20
+Const GDK_SCROLL_MASK:Int = 1 Shl 21
+Const GDK_TOUCH_MASK:Int = 1 Shl 22
+Const GDK_SMOOTH_SCROLL_MASK:Int = 1 Shl 23
 'Const GDK_ALL_EVENTS_MASK:Int = 0x3FFFFE
 
 ' GtkWrapMode
@@ -1063,18 +1081,12 @@ Const GTK_RESPONSE_HELP:Int   = -11
 
 
 ' GtkStockItem
-Const GTK_STOCK_DIALOG_AUTHENTICATION:String = "gtk-dialog-authentication"
-Const GTK_STOCK_DIALOG_INFO:String =      "gtk-dialog-info"
-Const GTK_STOCK_DIALOG_WARNING:String =   "gtk-dialog-warning"
-Const GTK_STOCK_DIALOG_ERROR:String =     "gtk-dialog-error"
-Const GTK_STOCK_DIALOG_QUESTION:String =  "gtk-dialog-question"
-Const GTK_STOCK_DND:String =              "gtk-dnd"
-Const GTK_STOCK_DND_MULTIPLE:String =     "gtk-dnd-multiple"
 Const GTK_STOCK_ABOUT:String =            "gtk-about"
 Const GTK_STOCK_ADD:String =              "gtk-add"
 Const GTK_STOCK_APPLY:String =            "gtk-apply"
 Const GTK_STOCK_BOLD:String =             "gtk-bold"
 Const GTK_STOCK_CANCEL:String =           "gtk-cancel"
+Const GTK_STOCK_CAPS_LOCK_WARNING:String = "gtk-caps-lock-warning"
 Const GTK_STOCK_CDROM:String =            "gtk-cdrom"
 Const GTK_STOCK_CLEAR:String =            "gtk-clear"
 Const GTK_STOCK_CLOSE:String =            "gtk-close"
@@ -1084,8 +1096,16 @@ Const GTK_STOCK_CONNECT:String =          "gtk-connect"
 Const GTK_STOCK_COPY:String =             "gtk-copy"
 Const GTK_STOCK_CUT:String =              "gtk-cut"
 Const GTK_STOCK_DELETE:String =           "gtk-delete"
+Const GTK_STOCK_DIALOG_AUTHENTICATION:String = "gtk-dialog-authentication"
+Const GTK_STOCK_DIALOG_ERROR:String =     "gtk-dialog-error"
+Const GTK_STOCK_DIALOG_INFO:String =      "gtk-dialog-info"
+Const GTK_STOCK_DIALOG_QUESTION:String =  "gtk-dialog-question"
+Const GTK_STOCK_DIALOG_WARNING:String =   "gtk-dialog-warning"
 Const GTK_STOCK_DIRECTORY:String =        "gtk-directory"
+Const GTK_STOCK_DISCARD:String =          "gtk-discard"
 Const GTK_STOCK_DISCONNECT:String =       "gtk-disconnect"
+Const GTK_STOCK_DND:String =              "gtk-dnd"
+Const GTK_STOCK_DND_MULTIPLE:String =     "gtk-dnd-multiple"
 Const GTK_STOCK_EDIT:String =             "gtk-edit"
 Const GTK_STOCK_EXECUTE:String =          "gtk-execute"
 Const GTK_STOCK_FILE:String =             "gtk-file"
@@ -1104,10 +1124,9 @@ Const GTK_STOCK_GO_UP:String =            "gtk-go-up"
 Const GTK_STOCK_HARDDISK:String =         "gtk-harddisk"
 Const GTK_STOCK_HELP:String =             "gtk-help"
 Const GTK_STOCK_HOME:String =             "gtk-home"
-Const GTK_STOCK_INDEX:String =            "gtk-index"
 Const GTK_STOCK_INDENT:String =           "gtk-indent"
+Const GTK_STOCK_INDEX:String =            "gtk-index"
 Const GTK_STOCK_INFO:String =             "gtk-info"
-Const GTK_STOCK_UNINDENT:String =         "gtk-unindent"
 Const GTK_STOCK_ITALIC:String =           "gtk-italic"
 Const GTK_STOCK_JUMP_TO:String =          "gtk-jump-to"
 Const GTK_STOCK_JUSTIFY_CENTER:String =   "gtk-justify-center"
@@ -1115,7 +1134,6 @@ Const GTK_STOCK_JUSTIFY_FILL:String =     "gtk-justify-fill"
 Const GTK_STOCK_JUSTIFY_LEFT:String =     "gtk-justify-left"
 Const GTK_STOCK_JUSTIFY_RIGHT:String =    "gtk-justify-right"
 Const GTK_STOCK_LEAVE_FULLSCREEN:String = "gtk-leave-fullscreen"
-Const GTK_STOCK_MISSING_IMAGE:String =    "gtk-missing-image"
 Const GTK_STOCK_MEDIA_FORWARD:String =    "gtk-media-forward"
 Const GTK_STOCK_MEDIA_NEXT:String =       "gtk-media-next"
 Const GTK_STOCK_MEDIA_PAUSE:String =      "gtk-media-pause"
@@ -1124,15 +1142,21 @@ Const GTK_STOCK_MEDIA_PREVIOUS:String =   "gtk-media-previous"
 Const GTK_STOCK_MEDIA_RECORD:String =     "gtk-media-record"
 Const GTK_STOCK_MEDIA_REWIND:String =     "gtk-media-rewind"
 Const GTK_STOCK_MEDIA_STOP:String =       "gtk-media-stop"
+Const GTK_STOCK_MISSING_IMAGE:String =    "gtk-missing-image"
 Const GTK_STOCK_NETWORK:String =          "gtk-network"
 Const GTK_STOCK_NEW:String =              "gtk-new"
 Const GTK_STOCK_NO:String =               "gtk-no"
 Const GTK_STOCK_OK:String =               "gtk-ok"
 Const GTK_STOCK_OPEN:String =             "gtk-open"
+Const GTK_STOCK_PAGE_SETUP:String =       "gtk-page-setup"
 Const GTK_STOCK_PASTE:String =            "gtk-paste"
 Const GTK_STOCK_PREFERENCES:String =      "gtk-preferences"
 Const GTK_STOCK_PRINT:String =            "gtk-print"
+Const GTK_STOCK_PRINT_ERROR:String =      "gtk-print-error"
+Const GTK_STOCK_PRINT_PAUSED:String =     "gtk-print-paused"
 Const GTK_STOCK_PRINT_PREVIEW:String =    "gtk-print-preview"
+Const GTK_STOCK_PRINT_REPORT:String =     "gtk-print-report"
+Const GTK_STOCK_PRINT_WARNING:String =    "gtk-print-warning"
 Const GTK_STOCK_PROPERTIES:String =       "gtk-properties"
 Const GTK_STOCK_QUIT:String =             "gtk-quit"
 Const GTK_STOCK_REDO:String =             "gtk-redo"
@@ -1141,6 +1165,7 @@ Const GTK_STOCK_REMOVE:String =           "gtk-remove"
 Const GTK_STOCK_REVERT_TO_SAVED:String =  "gtk-revert-to-saved"
 Const GTK_STOCK_SAVE:String =             "gtk-save"
 Const GTK_STOCK_SAVE_AS:String =          "gtk-save-as"
+Const GTK_STOCK_SELECT_ALL:String =       "gtk-select-all"
 Const GTK_STOCK_SELECT_COLOR:String =     "gtk-select-color"
 Const GTK_STOCK_SELECT_FONT:String =      "gtk-select-font"
 Const GTK_STOCK_SORT_ASCENDING:String =   "gtk-sort-ascending"
@@ -1151,6 +1176,7 @@ Const GTK_STOCK_STRIKETHROUGH:String =    "gtk-strikethrough"
 Const GTK_STOCK_UNDELETE:String =         "gtk-undelete"
 Const GTK_STOCK_UNDERLINE:String =        "gtk-underline"
 Const GTK_STOCK_UNDO:String =             "gtk-undo"
+Const GTK_STOCK_UNINDENT:String =         "gtk-unindent"
 Const GTK_STOCK_YES:String =              "gtk-yes"
 Const GTK_STOCK_ZOOM_100:String =         "gtk-zoom-100"
 Const GTK_STOCK_ZOOM_FIT:String =         "gtk-zoom-fit"
@@ -1158,10 +1184,10 @@ Const GTK_STOCK_ZOOM_IN:String =          "gtk-zoom-in"
 Const GTK_STOCK_ZOOM_OUT:String =         "gtk-zoom-out"
 
 ' GtkFileFilterFlags
-Const GTK_FILE_FILTER_FILENAME:Int = 1
-Const GTK_FILE_FILTER_URI:Int = 2
-Const GTK_FILE_FILTER_DISPLAY_NAME:Int = 4
-Const GTK_FILE_FILTER_MIME_TYPE:Int = 8
+Const GTK_FILE_FILTER_FILENAME:Int = 1 Shl 0
+Const GTK_FILE_FILTER_URI:Int = 1 Shl 1
+Const GTK_FILE_FILTER_DISPLAY_NAME:Int = 1 Shl 2
+Const GTK_FILE_FILTER_MIME_TYPE:Int = 1 Shl 3
 
 ' GtkMessageType
 Const GTK_MESSAGE_INFO:Int = 0
@@ -1181,7 +1207,6 @@ Const GTK_BUTTONS_OK_CANCEL:Int = 5
 ' GtkDialogFlags
 Const GTK_DIALOG_MODAL:Int = 0
 Const GTK_DIALOG_DESTROY_WITH_PARENT:Int = 1
-Const GTK_DIALOG_NO_SEPARATOR:Int = 2
 
 ' GdkColorspace
 Const GDK_COLORSPACE_RGB:Int = 0
@@ -1193,8 +1218,8 @@ Const PANGO_TAB_CENTER:Int = 2
 Const PANGO_TAB_NUMERIC:Int = 3
 
 ' GType
-Const G_TYPE_STRING:Int = 64
-Const G_TYPE_POINTER:Int = 68
+Const G_TYPE_STRING:Int = 16 Shl 2
+Const G_TYPE_POINTER:Int = 17 Shl 2
 'Const GDK_TYPE_PIXBUF:Int = 150013448
 
 ' GtkSelectionMode
@@ -1299,13 +1324,15 @@ Const GDK_HINT_USER_POS:Int    = 128
 Const GDK_HINT_USER_SIZE:Int   = 256
 
 ' GdkWindowState
-Const GDK_WINDOW_STATE_WITHDRAWN:Int  = 1
-Const GDK_WINDOW_STATE_ICONIFIED:Int  = 2
-Const GDK_WINDOW_STATE_MAXIMIZED:Int  = 4
-Const GDK_WINDOW_STATE_STICKY:Int     = 8
-Const GDK_WINDOW_STATE_FULLSCREEN:Int = 16
-Const GDK_WINDOW_STATE_ABOVE:Int      = 32
-Const GDK_WINDOW_STATE_BELOW:Int      = 64
+Const GDK_WINDOW_STATE_WITHDRAWN:Int  = 1 Shl 0
+Const GDK_WINDOW_STATE_ICONIFIED:Int  = 1 Shl 1
+Const GDK_WINDOW_STATE_MAXIMIZED:Int  = 1 Shl 2
+Const GDK_WINDOW_STATE_STICKY:Int     = 1 Shl 3
+Const GDK_WINDOW_STATE_FULLSCREEN:Int = 1 Shl 4
+Const GDK_WINDOW_STATE_ABOVE:Int      = 1 Shl 5
+Const GDK_WINDOW_STATE_BELOW:Int      = 1 Shl 6
+Const GDK_WINDOW_STATE_FOCUSED:Int    = 1 Shl 7
+Const GDK_WINDOW_STATE_TILED:Int      = 1 Shl 8
 
 ' GdkWindowTypeHint
 Const GDK_WINDOW_TYPE_HINT_NORMAL:Int       = 0
@@ -1316,12 +1343,19 @@ Const GDK_WINDOW_TYPE_HINT_SPLASHSCREEN:Int = 4
 Const GDK_WINDOW_TYPE_HINT_UTILITY:Int      = 5
 Const GDK_WINDOW_TYPE_HINT_DOCK:Int         = 6
 Const GDK_WINDOW_TYPE_HINT_DESKTOP:Int      = 7
+Const GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU:Int= 8  ' A drop down menu (from a menubar)
+Const GDK_WINDOW_TYPE_HINT_POPUP_MENU:Int   = 9  ' A popup menu (from Right-click)
+Const GDK_WINDOW_TYPE_HINT_TOOLTIP:Int      = 10
+Const GDK_WINDOW_TYPE_HINT_NOTIFICATION:Int = 11
+Const GDK_WINDOW_TYPE_HINT_COMBO:Int        = 12
+Const GDK_WINDOW_TYPE_HINT_DND:Int          = 13
 
 ' GtkArrowType
 Const GTK_ARROW_UP:Int = 0
 Const GTK_ARROW_DOWN:Int = 1
 Const GTK_ARROW_LEFT:Int = 2
 Const GTK_ARROW_RIGHT:Int = 3
+Const GTK_ARROW_NONE:Int = 4
 
 ' GdkVisibilityState
 Const GDK_VISIBILITY_UNOBSCURED:Int = 0
@@ -1341,24 +1375,25 @@ Const GDK_PIXBUF_ROTATE_UPSIDEDOWN:Int       = 180
 Const GDK_PIXBUF_ROTATE_CLOCKWISE:Int        = 270
 
 ' GtkDestDefaults
-Const GTK_DEST_DEFAULT_MOTION:Int     = 1 ' respond To "drag_motion"
-Const GTK_DEST_DEFAULT_HIGHLIGHT:Int  = 2 ' auto-highlight
-Const GTK_DEST_DEFAULT_DROP:Int       = 4 ' respond To "drag_drop"
+Const GTK_DEST_DEFAULT_MOTION:Int     = 1 Shl 0 ' respond To "drag_motion"
+Const GTK_DEST_DEFAULT_HIGHLIGHT:Int  = 1 Shl 1 ' auto-highlight
+Const GTK_DEST_DEFAULT_DROP:Int       = 1 Shl 2 ' respond To "drag_drop"
 Const GTK_DEST_DEFAULT_ALL:Int        = 7
 
 ' GdkDragAction
-Const GDK_ACTION_DEFAULT:Int = 1
-Const GDK_ACTION_COPY:Int    = 2
-Const GDK_ACTION_MOVE:Int    = 4
-Const GDK_ACTION_LINK:Int    = 8
-Const GDK_ACTION_PRIVATE:Int = 16
-Const GDK_ACTION_ASK:Int     = 32
+Const GDK_ACTION_DEFAULT:Int = 1 Shl 0
+Const GDK_ACTION_COPY:Int    = 1 Shl 1
+Const GDK_ACTION_MOVE:Int    = 1 Shl 2
+Const GDK_ACTION_LINK:Int    = 1 Shl 3
+Const GDK_ACTION_PRIVATE:Int = 1 Shl 4
+Const GDK_ACTION_ASK:Int     = 1 Shl 5
 
 ' GdkScrollDirection
 Const GDK_SCROLL_UP:Int = 0
 Const GDK_SCROLL_DOWN:Int = 1
 Const GDK_SCROLL_LEFT:Int = 2
 Const GDK_SCROLL_RIGHT:Int = 3
+Const GDK_SCROLL_SMOOTH:Int = 4
 
 Const GTK_POS_LEFT:Int = 0
 Const GTK_POS_RIGHT:Int = 1
@@ -1366,20 +1401,20 @@ Const GTK_POS_TOP:Int = 2
 Const GTK_POS_BOTTOM:Int = 3
 
 
-Const _OFFSET_GTK_FLAGS:Int = 12
-Const _OFFSET_GTK_STATE:Int = 18
-Const _OFFSET_GTK_SAVED_STATE:Int = 19
-Const _OFFSET_GTK_NAME:Int = 20
-Const _OFFSET_GTK_STYLE:Int = 24
-Const _OFFSET_GTK_REQUISITION:Int = 28
+'Const _OFFSET_GTK_FLAGS:Int = 12
+'Const _OFFSET_GTK_STATE:Int = 18
+'Const _OFFSET_GTK_SAVED_STATE:Int = 19
+'Const _OFFSET_GTK_NAME:Int = 20
+'Const _OFFSET_GTK_STYLE:Int = 24
+'Const _OFFSET_GTK_REQUISITION:Int = 28
 Const _OFFSET_GTK_ALLOCATION:Int = 36
-Const _OFFSET_GTK_WINDOW:Int = 52
-Const _OFFSET_GTK_BUTTON_EVENT_WINDOW:Int = 72
-Const _OFFSET_GTK_BIN_WINDOW:Int = 88
-Const _OFFSET_GTK_SB_LABEL:Int = 80
-Const _OFFSET_GTK_SB_FRAME:Int = 76
+'Const _OFFSET_GTK_WINDOW:Int = 52
+'Const _OFFSET_GTK_BUTTON_EVENT_WINDOW:Int = 72
+'Const _OFFSET_GTK_BIN_WINDOW:Int = 88
+'Const _OFFSET_GTK_SB_LABEL:Int = 80
+'Const _OFFSET_GTK_SB_FRAME:Int = 76
 
-Const _OFFSET_GTK_MENU_ACTIVE:Int = 96
+'Const _OFFSET_GTK_MENU_ACTIVE:Int = 96
 
 Const _OFFSET_GTK_DIALOG:Int = 160
 
@@ -1388,7 +1423,7 @@ Type TGTKGuiFont Extends TGuiFont
 	
 	Method Delete()
 		If handle Then
-			pango_font_description_free(int ptr(handle))
+			pango_font_description_free(Int Ptr(handle))
 			handle = 0
 		EndIf
 	EndMethod
