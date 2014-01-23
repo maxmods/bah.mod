@@ -107,8 +107,10 @@ Type TGTKSystemDriver Extends TSystemDriver
 		
 		serious = Max(0,Min(serious, 1))
 
+		Local textPtr:Byte Ptr = text.ToUTF8String()
 		Local req:Byte Ptr = gtk_message_dialog_new(Null, GTK_DIALOG_MODAL, serious, ..
-			GTK_BUTTONS_OK, gtkCheckAndConvert(text))
+			GTK_BUTTONS_OK, textPtr)
+		MemFree(textPtr)
 
 		Local res:Int = gtk_dialog_run(req)
 
@@ -125,8 +127,10 @@ Type TGTKSystemDriver Extends TSystemDriver
 		
 		serious = Max(0,Min(serious, 1))
 
+		Local textPtr:Byte Ptr = text.ToUTF8String()
 		Local req:Byte Ptr = gtk_message_dialog_new(Null, GTK_DIALOG_MODAL, serious, ..
-			GTK_BUTTONS_YES_NO, gtkCheckAndConvert(text))
+			GTK_BUTTONS_YES_NO, textPtr)
+		MemFree(textPtr)
 
 		Local res:Int = gtk_dialog_run(req)
 
@@ -152,8 +156,10 @@ Type TGTKSystemDriver Extends TSystemDriver
 			serious = GTK_MESSAGE_QUESTION
 		End If
 
+		Local textPtr:Byte Ptr = text.ToUTF8String()
 		Local req:Byte Ptr = gtk_message_dialog_new(Null, GTK_DIALOG_MODAL, serious, ..
-			GTK_BUTTONS_YES_NO, gtkCheckAndConvert(text))
+			GTK_BUTTONS_YES_NO, textPtr)
+		MemFree(textPtr)
 
 		' add a cancel button
 		gtk_dialog_add_button(req, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL)
@@ -191,20 +197,26 @@ Type TGTKSystemDriver Extends TSystemDriver
 				opensave, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, ..
 				reqButton, GTK_RESPONSE_ACCEPT, Null)
 		Else
-			req = gtk_file_chooser_dialog_new(gtkCheckAndConvert(text), Null, ..
+			Local textPtr:Byte Ptr = text.ToUTF8String()
+			req = gtk_file_chooser_dialog_new(textPtr, Null, ..
 				opensave, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, ..
 				reqButton, GTK_RESPONSE_ACCEPT, Null)
+			MemFree(textPtr)
 		End If
 
 		Local Current:String = CurrentDir()
-		gtk_file_chooser_set_current_folder(req, gtkCheckAndConvert(Current))
+		Local currentPtr:Byte Ptr = Current.ToUTF8String()
+		gtk_file_chooser_set_current_folder(req, currentPtr)
+		MemFree(currentPtr)
 
 		' set the path if there was one.
 		If file <> Null And file.length > 0 Then
 			If Not save And Not FileType(file) Then
 				file = ""
 			End If
-			gtk_file_chooser_set_filename(req, gtkCheckAndConvert(file))
+			Local filePtr:Byte Ptr = file.ToUTF8String()
+			gtk_file_chooser_set_filename(req, filePtr)
+			MemFree(filePtr)
 		End If
 
 		' set up filters, if any
@@ -238,7 +250,9 @@ Type TGTKSystemDriver Extends TSystemDriver
 					Local filter:Byte Ptr = gtk_file_filter_new()
 					
 					If name <> Null Then
-						gtk_file_filter_set_name(filter, gtkCheckAndConvert(name))
+						Local namePtr:Byte Ptr = name.ToUTF8String()
+						gtk_file_filter_set_name(filter, namePtr)
+						MemFree(namePtr)
 					End If
 
 					For Local i:Int = 0 Until ex.length
@@ -248,7 +262,9 @@ Type TGTKSystemDriver Extends TSystemDriver
 							s = "*." + s
 						End If
 
-						gtk_file_filter_add_pattern(filter, gtkCheckAndConvert(s))
+						Local sPtr:Byte Ptr = s.ToUTF8String()
+						gtk_file_filter_add_pattern(filter, sPtr)
+						MemFree(sPtr)
 
 					Next
 
@@ -265,7 +281,7 @@ Type TGTKSystemDriver Extends TSystemDriver
 		Local res:Int = gtk_dialog_run(req)
 
 		If res = GTK_RESPONSE_ACCEPT Then
-			f = String.FromCString(gtk_file_chooser_get_filename(req))
+			f = String.FromUTF8String(gtk_file_chooser_get_filename(req))
 		End If
 
 		gtk_widget_destroy(req)
@@ -282,9 +298,11 @@ Type TGTKSystemDriver Extends TSystemDriver
 				GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, ..
 				GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, Null)
 		Else
-			req = gtk_file_chooser_dialog_new(gtkCheckAndConvert(text), Null, ..
+			Local textPtr:Byte Ptr = text.ToUTF8String()
+			req = gtk_file_chooser_dialog_new(textPtr, Null, ..
 				GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, ..
 				GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, Null)
+			MemFree(textPtr)
 		End If
 
 		' set the path if there was one.
@@ -297,8 +315,10 @@ Type TGTKSystemDriver Extends TSystemDriver
 			path = CurrentDir()
 		End If
 
-		gtk_file_chooser_set_current_folder(req, gtkCheckAndConvert(path))
-		gtk_file_chooser_set_filename(req, gtkCheckAndConvert(path))
+		Local pathPtr:Byte Ptr = path.ToUTF8String()
+		gtk_file_chooser_set_current_folder(req, pathPtr)
+		gtk_file_chooser_set_filename(req, pathPtr)
+		MemFree(pathPtr)
 
 
 		Local res:Int = gtk_dialog_run(req)

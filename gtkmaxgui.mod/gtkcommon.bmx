@@ -618,7 +618,7 @@ Function getPangoDescriptionFromGuiFont(font:TGtkGuiFont)
 	If Not font.fontDesc Then
 
 		Local fontdesc:Byte Ptr = pango_font_description_new()
-		Local s:Byte Ptr = font.name.toCString()
+		Local s:Byte Ptr = font.name.toUTF8String()
 			
 		pango_font_description_set_family(fontdesc, s)
 	
@@ -747,97 +747,7 @@ Function getGTKStockIDFromName:String(name:String)
 	Return name
 End Function
 
-Rem
-internal: Checks a string for utf8 validity and converts if necessary.
-returns: The original or converted string.
-End Rem
-Rem
-Function _gtkCheckAndConvert:String(text:String)
-	If text = Null Then
-		text = ""
-	End If
-	
-	Local s:Byte Ptr = text.toCString()
 
-	If g_utf8_validate(s, -1, Null) Then
-		MemFree(s)
-		Return text
-	End If
-	
-	' not valid utf8... we need to try converting it...
-	Local utf_len:Int
-	Local c:Byte Ptr = g_convert(s, -1, "UTF-8", "ISO-8859-1", Null, Varptr utf_len, Null)
-	MemFree(s)
-	If c <> Null Then
-		text = String.fromCString(c)
-		g_free(c)
-		Return text
-	End If
-End Function
-End Rem
-
-Rem
-internal: Checks a string for utf8 validity and converts if necessary.
-returns: The original or converted string.
-End Rem
-Function gtkCheckAndConvert:String(text:String)
-	If Not text Then
-		Return ""
-	End If
-	
-	Local l:Int = text.length
-	If l = 0 Then
-		Return ""
-	End If
-	Local count:Int = 0
-	Local s:Byte[] = New Byte[l * 3]
-	
-	For Local i:Int = 0 Until l
-		Local char:Int = text[i]
-
-		If char < 128 Then
-			s[count] = char
-			count:+ 1
-			Continue
-		Else If char<2048
-			s[count] = char/64 | 192
-			count:+ 1
-			s[count] = char Mod 64 | 128
-			count:+ 1
-			Continue
-		Else
-			s[count] =  char/4096 | 224
-			count:+ 1
-			s[count] = char/64 Mod 64 | 128
-			count:+ 1
-			s[count] = char Mod 64 | 128
-			count:+ 1
-			Continue
-		EndIf
-		
-	Next
-
-	Return String.fromBytes(s, count)
-End Function
-
-Rem
-Function gtkUTF8toISO8859:String(s:Byte Ptr)
-	Local text:String
-'	If text = Null Then
-'		text = ""
-'	End If
-	
-'	Local s:Byte Ptr = text.toCString()
-
-	Local utf_len:Int
-	Local c:Byte Ptr = g_convert(s, -1, "ISO-8859-1", "UTF-8", Null, Varptr utf_len, Null)
-	If c <> Null Then
-		text = String.fromCString(c)
-		g_free(c)
-		Return text
-	End If
-End Function
-End Rem
 Function gtkUTF8toISO8859:String(s:Byte Ptr)
 	Local l:Int = _strlen(s)
 	Local b:Short[] = New Short[l]
@@ -1407,24 +1317,6 @@ Const GTK_POS_LEFT:Int = 0
 Const GTK_POS_RIGHT:Int = 1
 Const GTK_POS_TOP:Int = 2
 Const GTK_POS_BOTTOM:Int = 3
-
-
-'Const _OFFSET_GTK_FLAGS:Int = 12
-'Const _OFFSET_GTK_STATE:Int = 18
-'Const _OFFSET_GTK_SAVED_STATE:Int = 19
-'Const _OFFSET_GTK_NAME:Int = 20
-'Const _OFFSET_GTK_STYLE:Int = 24
-'Const _OFFSET_GTK_REQUISITION:Int = 28
-'Const _OFFSET_GTK_ALLOCATION:Int = 36
-'Const _OFFSET_GTK_WINDOW:Int = 52
-'Const _OFFSET_GTK_BUTTON_EVENT_WINDOW:Int = 72
-'Const _OFFSET_GTK_BIN_WINDOW:Int = 88
-'Const _OFFSET_GTK_SB_LABEL:Int = 80
-'Const _OFFSET_GTK_SB_FRAME:Int = 76
-
-'Const _OFFSET_GTK_MENU_ACTIVE:Int = 96
-
-'Const _OFFSET_GTK_DIALOG:Int = 160
 
 
 Type TGTKGuiFont Extends TGuiFont

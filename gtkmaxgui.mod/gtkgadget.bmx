@@ -114,7 +114,9 @@ Type TGTKGadget Extends TGadget
 		Local modKey:Int
 		
 		If accelString And hasAccel Then
-			gtk_accelerator_parse(gtkCheckAndConvert(accelString), Varptr accelKey, Varptr modKey)
+			Local accelPtr:Byte Ptr = accelString.ToUTF8String()
+			gtk_accelerator_parse(accelPtr, Varptr accelKey, Varptr modKey)
+			MemFree(accelPtr)
 			If accelKey <> 0 Then
 				gtk_widget_remove_accelerator(handle, getWindow().accelGroup, accelKey, modKey)
 				hasAccel = False
@@ -124,7 +126,9 @@ Type TGTKGadget Extends TGadget
 		' enabling accelerator?	
 		If keycode Then
 			accelString = TGTKKeyMap.accelToString(keycode, modifier)
-			gtk_accelerator_parse(gtkCheckAndConvert(accelString), Varptr accelKey, Varptr modKey)
+			Local accelPtr:Byte Ptr = accelString.ToUTF8String()
+			gtk_accelerator_parse(accelPtr, Varptr accelKey, Varptr modKey)
+			MemFree(accelPtr)
 			gtk_widget_add_accelerator(handle, "activate", getWindow().accelGroup, accelKey, modKey, GTK_ACCEL_VISIBLE)
 			hasAccel = True
 		End If
@@ -387,7 +391,9 @@ Type TGTKGadget Extends TGadget
 		tooltipText = tip
 		
 		If tip And tip.length > 0 Then
-			gtk_tooltips_set_tip(_tooltip, handle, gtkCheckAndConvert(tip), Null)
+			Local tipPtr:Byte Ptr = tip.ToUTF8String()
+			gtk_tooltips_set_tip(_tooltip, handle, tipPtr, Null)
+			MemFree(tipPtr)
 		Else
 			gtk_tooltips_set_tip(_tooltip, handle, Null, Null)
 		End If
@@ -400,7 +406,7 @@ Type TGTKGadget Extends TGadget
 		Return tooltipText
 	End Method
 	
-	' checks text for mnemonics, and converts to UTF-8 if required.
+	' checks text for mnemonics
 	Method processText:String(txt:String)
 		' convert underscores to doubles
 		txt = txt.Replace("_", "__")
@@ -409,7 +415,7 @@ Type TGTKGadget Extends TGadget
 		txt = txt.Replace("&", "_")
 		txt = txt.Replace("$^^$", "&")
 		
-		Return gtkCheckAndConvert(txt)
+		Return txt
 	End Method
 	
 	' returns the widgets window
@@ -584,7 +590,13 @@ Type TGTKWindow Extends TGTKContainer
 			SetStatus("")
 		EndIf
 
-		gtk_window_set_title(handle, gtkCheckAndConvert(label))
+		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+			LocalizeGadget(Self, label)
+		Else
+			SetText(label)
+		EndIf
+
+		'gtk_window_set_title(handle, gtkCheckAndConvert(label))
 		gtk_window_move(handle, x, y)
 		
 		gtk_window_set_default_size(handle, w, calcHeight(h))
@@ -874,9 +886,15 @@ Print "OnDragDrop"
 				m1 = m1[..t]
 			End If
 			
-			gtk_label_set_text(sblabels[0], gtkCheckAndConvert(m0))
-			gtk_label_set_text(sblabels[1], gtkCheckAndConvert(m1))
-			gtk_label_set_text(sblabels[2], gtkCheckAndConvert(m2))
+			Local mb0:Byte Ptr = m0.ToUTF8String()
+			Local mb1:Byte Ptr = m1.ToUTF8String()
+			Local mb2:Byte Ptr = m2.ToUTF8String()
+			gtk_label_set_text(sblabels[0], mb0)
+			gtk_label_set_text(sblabels[1], mb1)
+			gtk_label_set_text(sblabels[2], mb2)
+			MemFree(mb2)
+			MemFree(mb1)
+			MemFree(mb0)
 
 			If m0.length = 0 And m1.length = 0 And m2.length = 0 Then
 				gtk_widget_show(sblabels[0])
@@ -1099,7 +1117,9 @@ Print "OnDragDrop"
 	End Method
 
 	Method SetText(text:String)
-		gtk_window_set_title(handle, gtkCheckAndConvert(text))
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+		gtk_window_set_title(handle, textPtr)
+		MemFree(textPtr)
 	End Method
 	
 	Method GetText:String()
@@ -1128,7 +1148,13 @@ Type TGTKButton Extends TGTKGadget
 
 		parent = group
 
-		makeButton(gtkCheckAndConvert(label))
+		makeButton(label)
+
+		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+			LocalizeGadget(Self, label)
+		Else
+			SetText(label)
+		EndIf
 		
 		setAccelMapId(label)
 
@@ -1204,7 +1230,9 @@ Type TGTKButton Extends TGTKGadget
 	Method SetText(text:String)
 		text = processText(text)
 
-		gtk_button_set_label(handle, text)
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+		gtk_button_set_label(handle, textPtr)
+		MemFree(textPtr)
 		gtk_button_set_use_underline(handle, True)
 	End Method
 
@@ -1271,10 +1299,14 @@ Type TGTKButtonPush Extends TGTKButton
 		
 		Local txt:String = getGTKStockIDFromName(label.Replace("_", ""))
 		If txt = label.Replace("_", "") Then
-			handle = gtk_button_new_with_label(label)
+			Local labelPtr:Byte Ptr = label.ToUTF8String()
+			handle = gtk_button_new_with_label(labelPtr)
+			MemFree(labelPtr)
 			gtk_button_set_use_underline(handle, True)
 		Else
-			handle = gtk_button_new_from_stock(txt)
+			Local txtPtr:Byte Ptr = txt.ToUTF8String()
+			handle = gtk_button_new_from_stock(txtPtr)
+			MemFree(txtPtr)
 		End If
 
 		' enable "default" gadget functionality
@@ -1286,10 +1318,14 @@ Type TGTKButtonPush Extends TGTKButton
 
 		Local txt:String = getGTKStockIDFromName(text.Replace("_", ""))
 		If txt <> text.Replace("_", "") Then
-			gtk_button_set_label(handle, txt)
+			Local txtPtr:Byte Ptr = txt.ToUTF8String()
+			gtk_button_set_label(handle, txtPtr)
+			MemFree(txtPtr)
 			gtk_button_set_use_stock(handle, True)
 		Else
-			gtk_button_set_label(handle, text)
+			Local textPtr:Byte Ptr = text.ToUTF8String()
+			gtk_button_set_label(handle, textPtr)
+			MemFree(textPtr)
 			gtk_button_set_use_underline(handle, True)
 		End If
 	End Method
@@ -1380,13 +1416,15 @@ Type TGTKButtonRadio Extends TGTKToggleButton
 		Local _group:Byte Ptr = TGTKContainer(parent).radioGroup
 		label = processText(label)
 
+		Local labelPtr:Byte Ptr = label.ToUTF8String()
 		If _group = Null Then
-			handle = gtk_radio_button_new_with_label(Null, label)
+			handle = gtk_radio_button_new_with_label(Null, labelPtr)
 			gtk_toggle_button_set_active(handle, True)
 			isSelected = True
 		Else
-			handle = gtk_radio_button_new_with_label(_group, label)
+			handle = gtk_radio_button_new_with_label(_group, labelPtr)
 		End If
+		MemFree(labelPtr)
 		
 		' update the radiogroup, ready for a new radio button...
 		TGTKContainer(parent).radioGroup = gtk_radio_button_get_group(handle)
@@ -1448,7 +1486,9 @@ Type TGTKButtonCheckbox Extends TGTKToggleButton
 	Method makeButton(label:String)
 		label = processText(label)
 		
-		handle = gtk_check_button_new_with_label(label)
+		Local labelPtr:Byte Ptr = label.ToUTF8String()
+		handle = gtk_check_button_new_with_label(labelPtr)
+		MemFree(labelPtr)
 		
 		gtk_button_set_use_underline(handle, True)
 	End Method
@@ -1482,7 +1522,9 @@ Type TGTKLabel Extends TGTKGadget
 		End If
 
 		If Not isSeparator Then
-			handle = gtk_label_new(gtkCheckAndConvert(label))
+			Local labelPtr:Byte Ptr = label.ToUTF8String()
+			handle = gtk_label_new(labelPtr)
+			MemFree(labelPtr)
 
 			If style & LABEL_RIGHT Then
 				gtk_misc_set_alignment(handle, 1, 0.5)
@@ -1508,6 +1550,12 @@ Type TGTKLabel Extends TGTKGadget
 			gtk_widget_show(ebox)
 			' add the label to the eventbox
 			gtk_container_add(ebox, handle)
+			
+			If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+				LocalizeGadget(Self, label)
+			Else
+				SetText(label)
+			EndIf
 		End If
 
 		' Should we add a frame?
@@ -1573,7 +1621,9 @@ Type TGTKLabel Extends TGTKGadget
 
 	Method SetText(text:String)
 		If Not isSeparator Then
-			gtk_label_set_text(handle, gtkCheckAndConvert(text))
+			Local textPtr:Byte Ptr = text.ToUtf8String()
+			gtk_label_set_text(handle, textPtr)
+			MemFree(textPtr)
 		End If
 	End Method
 	
@@ -1642,6 +1692,7 @@ Type TGTKLabel Extends TGTKGadget
 	bbdoc: Callback for mouse button press.
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local x:Int = Double Ptr(event + 16)[0]
 		Local y:Int = Double Ptr(event + 24)[0]
 		Local button:Int = Int Ptr(event + 40)[0]
@@ -1749,6 +1800,7 @@ Type TGTKMenuItem Extends TGTKGadget
 			Local p:Int = _label.find("&")
 
 			_label = processText(_label)
+			Local _labelPtr:Byte Ptr = _label.ToUTF8String()
 			
 			' does this label have a mnemonic?
 			If p >= 0 Then
@@ -1757,13 +1809,15 @@ Type TGTKMenuItem Extends TGTKGadget
 
 	                Local txt:String = getGTKStockIDFromName(_label.Replace("_",""))
 				If txt = _label.Replace("_","") Or TGTKWindow(_parent) Then
-					handle = gtk_image_menu_item_new_with_mnemonic(_label)
+					handle = gtk_image_menu_item_new_with_mnemonic(_labelPtr)
 				Else
+					Local txtPtr:Byte Ptr = txt.ToUTF8String()
 					If windowAccelGroup Then
-						handle = gtk_image_menu_item_new_from_stock(txt, windowAccelGroup)
+						handle = gtk_image_menu_item_new_from_stock(txtPtr, windowAccelGroup)
 					Else
-						handle = gtk_image_menu_item_new_from_stock(txt, Null)
+						handle = gtk_image_menu_item_new_from_stock(txtPtr, Null)
 					End If
+					MemFree(txtPtr)
 					isStockItem = True
 				End If
 
@@ -1771,20 +1825,30 @@ Type TGTKMenuItem Extends TGTKGadget
 
 				Local txt:String = getGTKStockIDFromName(_label)
 				If txt = _label Or TGTKWindow(_parent) Then
-					handle = gtk_image_menu_item_new_with_label(_label)
+					handle = gtk_image_menu_item_new_with_label(_labelPtr)
 				Else
+					Local txtPtr:Byte Ptr = txt.ToUTF8String()
 					If windowAccelGroup Then
-						handle = gtk_image_menu_item_new_from_stock(txt, windowAccelGroup)
+						handle = gtk_image_menu_item_new_from_stock(txtPtr, windowAccelGroup)
 					Else
-						handle = gtk_image_menu_item_new_from_stock(txt, Null)
+						handle = gtk_image_menu_item_new_from_stock(txtPtr, Null)
 					End If
+					MemFree(txtPtr)
 					isStockItem = True
 				End If
 
 			End If
+			MemFree(_labelPtr)
 		End If
 
 		text = _label
+
+		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+			LocalizeGadget(Self, text)
+		Else
+			SetText(text)
+		EndIf
+
 
 		' let's hope that at least the parent is set!!
 		If _parent Then
@@ -1910,11 +1974,13 @@ Type TGTKMenuItem Extends TGTKGadget
 				hasAccel = False
 			End If
 
+			Local textPtr:Byte Ptr = text.ToUtf8String()
 			If hasMnemonic Then
-				handle = gtk_check_menu_item_new_with_mnemonic(text)
+				handle = gtk_check_menu_item_new_with_mnemonic(textPtr)
 			Else
-				handle = gtk_check_menu_item_new_with_label(text)
+				handle = gtk_check_menu_item_new_with_label(textPtr)
 			End If
+			MemFree(textPtr)
 			gtk_widget_show(handle)
 
 			' if we originally gave this a keycode / modifier, we need to re-establish it.
@@ -1985,11 +2051,13 @@ Type TGTKMenuItem Extends TGTKGadget
 				label = ""
 			End If
 
+			Local labelPtr:Byte Ptr = processText(label).ToUTF8String()
 			If label.find("&") >= 0 Then
-				gtk_label_set_text_with_mnemonic(gtk_bin_get_child(handle), processText(label))
+				gtk_label_set_text_with_mnemonic(gtk_bin_get_child(handle), labelPtr)
 			Else
-				gtk_label_set_text(gtk_bin_get_child(handle), processText(label))
+				gtk_label_set_text(gtk_bin_get_child(handle), labelPtr)
 			End If
+			MemFree(labelPtr)
 		End If
 	End Method
 	
@@ -2094,7 +2162,7 @@ Type TGTKEditable Extends TGTKGadget
 
 		' only if we are using a filter...
 		If source And source.eventfilter <> Null Then
-
+			' FIXME
 			Local key:Int = TGTKKeyMap.mapBack(Int Ptr(gdkEvent + 20)[0])
 			Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(gdkEvent + 16)[0])
 
@@ -2189,7 +2257,9 @@ Type TGTKTextField Extends TGTKEditable
 			ignoreTextChange:+1
 		End If
 		
-		gtk_entry_set_text(handle, gtkCheckAndConvert(txt))
+		Local txtPtr:Byte Ptr = txt.ToUTF8String()
+		gtk_entry_set_text(handle, txtPtr)
+		MemFree(txtPtr)
 	End Method
 
 	Method free()
@@ -2216,6 +2286,7 @@ Type TGTKTextField Extends TGTKEditable
 	End Method
 	
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local button:Int = Int Ptr(event + 40)[0]
 
 		If button = 3 Then ' right mouse button
@@ -2329,6 +2400,7 @@ Type TGTKTextArea Extends TGTKEditable
 	bbdoc: Callback for mouse button press
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local x:Int = Double Ptr(event + 16)[0]
 		Local y:Int = Double Ptr(event + 24)[0]
 		Local button:Int = Int Ptr(event + 40)[0]
@@ -2345,6 +2417,7 @@ Type TGTKTextArea Extends TGTKEditable
 	bbdoc: Callback for mouse button release
 	End Rem
 	Function OnMouseUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local x:Int = Double Ptr(event + 16)[0]
 		Local y:Int = Double Ptr(event + 24)[0]
 		Local button:Int = Int Ptr(event + 40)[0]
@@ -2379,8 +2452,9 @@ Type TGTKTextArea Extends TGTKEditable
 		gtk_text_buffer_get_end_iter(_textBuffer, _end)
 
 		ignoreChange = True
-		text = gtkCheckAndConvert(text)
-		gtk_text_buffer_insert(_textBuffer, _end, text, text.length)
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+		gtk_text_buffer_insert(_textBuffer, _end, textPtr, _strlen(textPtr))
+		MemFree(textPtr)
 
 		gtk_text_buffer_get_end_iter(_textBuffer, _end)
 		brl.System.Driver.Poll() ' update events, before scrolling to the end...
@@ -2473,8 +2547,9 @@ Type TGTKTextArea Extends TGTKEditable
 	End Rem
 	Method SetText(text:String)
 		ignoreChange = True
-		text = gtkCheckAndConvert(text)
-		gtk_text_buffer_set_text(_textBuffer, text, text.length)
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+		gtk_text_buffer_set_text(_textBuffer, textPtr, _strlen(textPtr))
+		MemFree(textPtr)
 
 		' move the cursor to the start
 		Local _start:TGTKTextIter = New TGTKTextIter
@@ -2681,8 +2756,9 @@ Type TGTKTextArea Extends TGTKEditable
 			gtk_text_buffer_delete(_textBuffer, _start, _end)
 	
 			' insert new text
-			text = gtkCheckAndConvert(text)
-			gtk_text_buffer_insert(_textBuffer, _start, text, text.length)
+			Local textPtr:Byte Ptr = text.ToUTF8String()
+			gtk_text_buffer_insert(_textBuffer, _start, textPtr, _strlen(textPtr))
+			MemFree(textPtr)
 		End If
 	End Method
 
@@ -2879,7 +2955,9 @@ Type TGTKTabber Extends TGTKContainer
 		gtk_widget_show(box)
 	
 		' create a display label for the tab
-		labels[index] = gtk_label_new(text)
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+		labels[index] = gtk_label_new(textPtr)
+		MemFree(textPtr)
 		gtk_widget_show(labels[index])
 		
 		' create an hbox to place the image/label combo
@@ -2925,7 +3003,9 @@ Type TGTKTabber Extends TGTKContainer
 		End If
 
 		' set new text
-		gtk_label_set_text(labels[index], text)
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+		gtk_label_set_text(labels[index], textPtr)
+		MemFree(textPtr)
 		
 		' Add a tooltip to the event box
 		SetToolTipIndex(index, tip, box)
@@ -2979,7 +3059,9 @@ Type TGTKTabber Extends TGTKContainer
 	Method SetToolTipIndex(index:Int, tip:String, label:Byte Ptr)
 		' Add a tooltip
 		If tip And tip.length > 0 Then
-			gtk_tooltips_set_tip(tooltips, label, tip, Null)
+			Local tipPtr:Byte Ptr = tip.ToUTF8String()
+			gtk_tooltips_set_tip(tooltips, label, tipPtr, Null)
+			MemFree(tipPtr)
 		Else
 			gtk_tooltips_set_tip(tooltips, label, Null, Null)
 		End If		
@@ -3084,7 +3166,11 @@ Type TGTKPanel Extends TGTKContainer
 			gtk_widget_show(frame)
 
 			' set frame text
-			SetText(label)
+			If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+				LocalizeGadget(Self, label)
+			Else
+				SetText(label)
+			EndIf
 			
 			gtk_container_add(frame, handle)
 
@@ -3104,6 +3190,7 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse button press.
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
 			Local x:Int = Double Ptr(event + 16)[0]
 			Local y:Int = Double Ptr(event + 24)[0]
@@ -3123,6 +3210,7 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse button release.
 	End Rem
 	Function OnMouseUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
 			Local x:Int = Double Ptr(event + 16)[0]
 			Local y:Int = Double Ptr(event + 24)[0]
@@ -3166,6 +3254,7 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse movement
 	End Rem
 	Function OnMouseMove:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
 			Local x:Int = Double Ptr(event + 16)[0]
 			Local y:Int = Double Ptr(event + 24)[0]
@@ -3208,6 +3297,7 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse scroll wheel
 	End Rem
 	Function OnScroll(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
 			Local x:Int = Double Ptr(event + 16)[0]
 			Local y:Int = Double Ptr(event + 24)[0]
@@ -3224,6 +3314,7 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for key down
 	End Rem
 	Function OnKeyDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
 			Local key:Int = TGTKKeyMap.mapBack(Int Ptr(event + 20)[0])
 			Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(event + 16)[0])
@@ -3249,6 +3340,7 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for key up
 	End Rem
 	Function OnKeyUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
 			Local key:Int = TGTKKeyMap.mapBack(Int Ptr(event + 20)[0])
 			Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(event + 16)[0])
@@ -3268,7 +3360,9 @@ Type TGTKPanel Extends TGTKContainer
 			If text = Null Or text.length = 0 Then
 				gtk_frame_set_label(frame, Null)
 			Else
-				gtk_frame_set_label(frame, gtkCheckAndConvert(text))
+				Local textPtr:Byte Ptr = text.ToUTF8String()
+				gtk_frame_set_label(frame, textPtr)
+				MemFree(textPtr)
 			End If
 		End If
 	End Method
@@ -3565,6 +3659,7 @@ Type TGTKComboBox Extends TGTKList
 	End Function
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local button:Int = Int Ptr(event + 40)[0]
 
 		If button = 3 Then ' right mouse button
@@ -3628,7 +3723,7 @@ Type TGTKComboBox Extends TGTKList
 	Method ItemText:String(index:Int)
 		If index < 0 Or index >= items.length Then
 			Local s:Byte Ptr = gtk_combo_box_get_active_text(handle)
-			Local st:String = String.FromCString(s)
+			Local st:String = String.FromUTF8String(s)
 			g_free(s)
 			Return st
 		End If
@@ -4178,17 +4273,19 @@ Type TGTKToolbar Extends TGTKGadget
 			Local imageWidget:Byte Ptr = gtk_image_new_from_pixbuf(image)
 			gtk_widget_show(imageWidget)
 	
+			Local textPtr:Byte Ptr = text.ToUTF8String()
 			If items[index].flags = GADGETITEM_TOGGLE Then
 				toolitems[index] = gtk_toggle_tool_button_new()
-				gtk_tool_button_set_label(toolitems[index], gtkCheckAndConvert(text))
+				gtk_tool_button_set_label(toolitems[index], textPtr)
 				gtk_tool_button_set_icon_widget(toolitems[index], imageWidget)
 
 				addConnection("toggled", g_signal_cb2(toolitems[index], "toggled", OnToolItemToggled, Self, Destroy, 0))
 			Else
-				toolitems[index] = gtk_tool_button_new(imageWidget, gtkCheckAndConvert(text))
+				toolitems[index] = gtk_tool_button_new(imageWidget, textPtr)
 
 				addConnection("clicked", g_signal_cb2(toolitems[index], "clicked", OnToolItemClicked, Self, Destroy, 0))
 			End If
+			MemFree(textPtr)
 
 			' Add a tooltip
 			SetToolTipIndex(index, tip)
@@ -4228,7 +4325,9 @@ Type TGTKToolbar Extends TGTKGadget
 	Method SetToolTipIndex(index:Int, tip:String)
 		' Add a tooltip
 		If tip And tip.length > 0 Then
-			gtk_tool_item_set_tooltip(toolitems[index], tooltips, gtkCheckAndConvert(tip), Null)
+			Local tipPtr:Byte Ptr = tip.ToUTF8String()
+			gtk_tool_item_set_tooltip(toolitems[index], tooltips, tipPtr, Null)
+			MemFree(tipPtr)
 		Else
 			gtk_tool_item_set_tooltip(toolitems[index], tooltips, Null, Null)
 		End If		
@@ -4321,7 +4420,9 @@ Type TGTKList Extends TGTKGadget
 		' need to put the string in a GValue for placing into the list
 		Local _value:TGValue = New TGValue
 		g_value_init(_value, G_TYPE_STRING)
-	  	g_value_set_string(_value, gtkCheckAndConvert(text))
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+	  	g_value_set_string(_value, textPtr)
+		MemFree(textPtr)
 	
 		' set the row value
 		If TGTKListbox(Self) Or TGTKComboBox(Self) Then
@@ -4607,6 +4708,7 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 	End Function
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local button:Int = Int Ptr(event + 40)[0]
 
 		If button = 3 Then ' right mouse button
@@ -5051,6 +5153,7 @@ Type TGTKTreeView Extends TGTKTreeViewNode
 	bbdoc: Callback for mouse right-click
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local button:Int = Int Ptr(event + 40)[0]
 
 		If button = 3 Then ' right mouse button
@@ -5173,6 +5276,7 @@ Type TGTKCanvas Extends TGTKGadget
 	End Method
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local x:Int = Double Ptr(event + 16)[0]
 		Local y:Int = Double Ptr(event + 24)[0]
 		Local button:Int = Int Ptr(event + 40)[0]
@@ -5189,6 +5293,7 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 	
 	Function OnScroll(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local x:Int = Double Ptr(event + 16)[0]
 		Local y:Int = Double Ptr(event + 24)[0]
 		Local direction:Int = Int Ptr(event + 36)[0]
@@ -5200,6 +5305,7 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 
 	Function OnMouseUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local x:Int = Double Ptr(event + 16)[0]
 		Local y:Int = Double Ptr(event + 24)[0]
 		Local button:Int = Int Ptr(event + 40)[0]
@@ -5231,6 +5337,7 @@ Type TGTKCanvas Extends TGTKGadget
 	bbdoc: Callback for mouse movement
 	End Rem
 	Function OnMouseMove:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local x:Int = Double Ptr(event + 16)[0]
 		Local y:Int = Double Ptr(event + 24)[0]
 		Local button:Int = Int Ptr(event + 36)[0]
@@ -5249,6 +5356,7 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 
 	Function OnKeyDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		' FIXME
 		Local key:Int = TGTKKeyMap.mapBack(Int Ptr(event + 20)[0])
 		Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(event + 16)[0])
 
