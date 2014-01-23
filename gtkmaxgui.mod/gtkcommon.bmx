@@ -128,6 +128,7 @@ Extern
 	Function gtk_widget_is_sensitive:Int(widget:Byte Ptr)
 	Function gtk_widget_has_focus:Int(widget:Byte Ptr)
 	Function gtk_widget_get_window:Byte Ptr(widget:Byte Ptr)
+	Function gtk_widget_get_allocation(widget:Byte Ptr, allocation:Byte Ptr)
 
 	Function gtk_button_new:Byte Ptr()
 	Function gtk_button_new_with_label:Byte Ptr(label:Byte Ptr)
@@ -337,6 +338,7 @@ Extern
 	Function gtk_color_selection_dialog_new:Byte Ptr(title:Byte Ptr)
 	Function gtk_color_selection_set_current_color(handle:Byte Ptr, color:Byte Ptr)
 	Function gtk_color_selection_get_current_color(handle:Byte Ptr, color:Byte Ptr)
+	Function gtk_color_selection_dialog_get_color_selection:Byte Ptr(handle:Byte Ptr)
 
 	Function gtk_file_chooser_dialog_new:Byte Ptr(title:Byte Ptr, parent:Byte Ptr, ..
 				action:Int, but1:Byte Ptr, opt1:Int, but2:Byte Ptr, opt2:Int, opt3:Byte Ptr)
@@ -387,9 +389,9 @@ Extern
 	Function gtk_tooltips_set_tip(tooltips:Byte Ptr, widgetPtr:Byte Ptr, tip:Byte Ptr, priv:Byte Ptr)
 
 	Function gtk_tree_view_new:Byte Ptr()
-	Function gtk_list_store_new:Byte Ptr(cols:Int, type1:Int, type2:Int)
+	Function gtk_list_store_new:Byte Ptr(COLS:Int, type1:Int, type2:Int)
 	Function gtk_tree_view_set_model(view:Byte Ptr, store:Byte Ptr)
-	Function gtk_tree_store_new:Byte Ptr(cols:Int, type1:Int, type2:Int)
+	Function gtk_tree_store_new:Byte Ptr(COLS:Int, type1:Int, type2:Int)
 	Function gtk_list_store_insert(store:Byte Ptr, iter:Byte Ptr, index:Int)
 	Function gtk_list_store_set_value(store:Byte Ptr, iter:Byte Ptr, col:Int, value:Byte Ptr)
 	Function gtk_tree_store_set_value(store:Byte Ptr, iter:Byte Ptr, col:Int, value:Byte Ptr)
@@ -606,33 +608,39 @@ Global gtkTrianglePixmap:TPixmap = LoadPixmap("incbin::gtk_triangle.png")
 
 Rem
 internal: Returns a Pango font description based on a TGuiFont specification. (INTERNAL)
-about: Note! You need to call pango_font_description_free(fontdesc) when you are done with it...
+about: Note! You need to call pango_font_description_free(fontdesc) when you are done with it... TODO : Don't worry about freeing it now it's inside the TGtkGuiFont
 End Rem
-Function getPangoDescriptionFromGuiFont:Byte Ptr(font:TGuiFont)
+Function getPangoDescriptionFromGuiFont(font:TGtkGuiFont)
 	If font = Null Then
-		Return Null
+		Return
 	End If
+	
+	If Not font.fontDesc Then
 
-	Local fontdesc:Byte Ptr = pango_font_description_new()
-	Local s:Byte Ptr = font.name.toCString()
+		Local fontdesc:Byte Ptr = pango_font_description_new()
+		Local s:Byte Ptr = font.name.toCString()
+			
+		pango_font_description_set_family(fontdesc, s)
+	
+		If font.style & FONT_BOLD Then
+			pango_font_description_set_weight(fontdesc, PANGO_WEIGHT_BOLD)
+		Else
+			pango_font_description_set_weight(fontdesc, PANGO_WEIGHT_NORMAL)
+		End If
+	
+		If font.style & FONT_ITALIC Then
+			pango_font_description_set_style(fontdesc, PANGO_STYLE_ITALIC)
+		End If
+	
+		pango_font_description_set_size(fontdesc, font.size * 1024)
+	
+		MemFree(s)
 		
-	pango_font_description_set_family(fontdesc, s)
-
-	If font.style & FONT_BOLD Then
-		pango_font_description_set_weight(fontdesc, PANGO_WEIGHT_BOLD)
-	Else
-		pango_font_description_set_weight(fontdesc, PANGO_WEIGHT_NORMAL)
+		font.fontDesc = fontDesc
+		
 	End If
 
-	If font.style & FONT_ITALIC Then
-		pango_font_description_set_style(fontdesc, PANGO_STYLE_ITALIC)
-	End If
-
-	pango_font_description_set_size(fontdesc, font.size * 1024)
-
-	MemFree(s)
-
-	Return fontdesc
+'	Return fontdesc
 End Function
 
 Rem
@@ -641,7 +649,7 @@ about: Note! Remember to destroy the pango object with pango_font_description_fr
 done with it...
 End Rem
 Function getGuiFontFromPangoDescription:TGuiFont(fontdesc:Byte Ptr)
-	Local font:TGuiFont = New TGTKGuiFont
+	Local font:TGtkGuiFont = New TGTKGuiFont
 
 	font.name = String.FromCString(pango_font_description_get_family(fontdesc))
 	'font.path = ...
@@ -658,7 +666,7 @@ Function getGuiFontFromPangoDescription:TGuiFont(fontdesc:Byte Ptr)
 
 	font.size = pango_font_description_get_size(fontdesc) / 1024
 
-	font.handle = Int Ptr(fontdesc)[0]
+	font.fontDesc = fontdesc
 	
 	Return font
 End Function
@@ -1407,7 +1415,7 @@ Const GTK_POS_BOTTOM:Int = 3
 'Const _OFFSET_GTK_NAME:Int = 20
 'Const _OFFSET_GTK_STYLE:Int = 24
 'Const _OFFSET_GTK_REQUISITION:Int = 28
-Const _OFFSET_GTK_ALLOCATION:Int = 36
+'Const _OFFSET_GTK_ALLOCATION:Int = 36
 'Const _OFFSET_GTK_WINDOW:Int = 52
 'Const _OFFSET_GTK_BUTTON_EVENT_WINDOW:Int = 72
 'Const _OFFSET_GTK_BIN_WINDOW:Int = 88
@@ -1416,15 +1424,17 @@ Const _OFFSET_GTK_ALLOCATION:Int = 36
 
 'Const _OFFSET_GTK_MENU_ACTIVE:Int = 96
 
-Const _OFFSET_GTK_DIALOG:Int = 160
+'Const _OFFSET_GTK_DIALOG:Int = 160
 
 
 Type TGTKGuiFont Extends TGuiFont
+
+	Field fontDesc:Byte Ptr
 	
 	Method Delete()
-		If handle Then
-			pango_font_description_free(Int Ptr(handle))
-			handle = 0
+		If fontDesc Then
+			pango_font_description_free(fontDesc)
+			fontDesc = Null
 		EndIf
 	EndMethod
 	

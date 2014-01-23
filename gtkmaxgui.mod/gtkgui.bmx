@@ -341,12 +341,13 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 		Local widget:Byte Ptr = gtk_label_new(Null)
 		Local _context:Byte Ptr  = gtk_widget_get_pango_context(widget)
 
-		Local fontdesc:Byte Ptr = getPangoDescriptionFromGuiFont(font)
-		Local _fontset:Byte Ptr = pango_context_load_fontset(_context, fontdesc, Null)
+		getPangoDescriptionFromGuiFont(TGtkGuiFont(font))
+		'Local fontdesc:Byte Ptr = font.fontDesc
+		Local _fontset:Byte Ptr = pango_context_load_fontset(_context, TGtkGuiFont(font).fontDesc, Null)
 
 		pango_fontset_foreach(_fontset, fontforeach, font)
 
-		pango_font_description_free(fontdesc)
+		'pango_font_description_free(fontdesc)
 
 		gtk_widget_destroy(widget)
 		g_object_unref(_context)
@@ -389,7 +390,6 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 	Function fontforeach:Int(fontset:Byte Ptr, _font:Byte Ptr, data:Object)
 		Local fontdesc:Byte Ptr = pango_font_describe(_font)
 		Local thisfont:TGuiFont = getGuiFontFromPangoDescription(fontdesc)
-		pango_font_description_free(fontdesc)
 
 		If thisfont.name.toLower().find(TGuiFont(data).name.tolower()) >= 0  Then
 			TGuiFont(data).name = thisfont.name
@@ -501,7 +501,7 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 		color.blue = Max(0, Min(b, 255)) * 256
 
 		Local req:Byte Ptr = gtk_color_selection_dialog_new("Select color")
-		Local colsel:Byte Ptr = Byte Ptr(Int Ptr(req + _OFFSET_GTK_DIALOG)[0])
+		Local colsel:Byte Ptr = gtk_color_selection_dialog_get_color_selection(req)
 		gtk_color_selection_set_current_color(colsel, color)
 
 		Local res:Int = gtk_dialog_run(req)
@@ -523,10 +523,8 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 	Method RequestFont:TGuiFont(font:TGuiFont)
 		Local req:Byte Ptr = gtk_font_selection_dialog_new("Choose font")
 		If font Then
-			Local fontdesc:Byte Ptr = getPangoDescriptionFromGuiFont(font)
-			gtk_font_selection_dialog_set_font_name(req, pango_font_description_to_string(fontdesc))
-			
-			pango_font_description_free(fontdesc)
+			getPangoDescriptionFromGuiFont(TGtkGuiFont(font))
+			gtk_font_selection_dialog_set_font_name(req, pango_font_description_to_string(TGtkGuiFont(font).fontDesc))
 		End If
 
 		Local res:Int = gtk_dialog_run(req)
@@ -536,8 +534,6 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 			Local fontdesc:Byte Ptr = pango_font_description_from_string(gtk_font_selection_dialog_get_font_name(req))
 
 			font = getGuiFontFromPangoDescription(fontdesc)
-
-			pango_font_description_free(fontdesc)
 		End If
 
 		gtk_widget_destroy(req)

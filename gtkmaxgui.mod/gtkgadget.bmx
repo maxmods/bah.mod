@@ -286,13 +286,13 @@ Type TGTKGadget Extends TGadget
 		'_font.size = font.size
 		'_font.style = font.style
 		
-		If Not font.handle Then
+		If Not TGtkGuiFont(font).fontDesc Then
 		
-			font.handle = Int Ptr(getPangoDescriptionFromGuiFont(font))[0]
+			getPangoDescriptionFromGuiFont(TGtkGuiFont(font))
 		
 		End If
 
-		gtk_widget_modify_font(handle, Int Ptr(font.handle))
+		gtk_widget_modify_font(handle, TGtkGuiFont(font).fontDesc)
 
 		'pango_font_description_free(fontdesc)
 	End Method
@@ -509,39 +509,10 @@ Type TGTKContainer Extends TGTKGadget
 
 	Method ClientWidth:Int()
 		Return width
-		Local _width:Int
-		Select iclass
-			Case GTK_WINDOW
-				_width = Int Ptr(Byte Ptr(container + _OFFSET_GTK_ALLOCATION + 8))[0]
-
-				Return _width
-			Case GTK_PANEL
-				'If TGTKPanel(Self).hasFrame Then
-				'	_width = Int Ptr(Byte Ptr(TGTKPanel(Self).frame + _OFFSET_GTK_ALLOCATION + 8))[0]
-
-				'Else
-					_width = Int Ptr(Byte Ptr(handle + _OFFSET_GTK_ALLOCATION + 8))[0]
-				'End If
-				Return _width
-			Case GTK_TABBER
-				_width = Int Ptr(Byte Ptr(TGTKTabber(Self).container + _OFFSET_GTK_ALLOCATION + 8))[0]
-				Return _width
-		End Select
 	End Method
 
 	Method ClientHeight:Int()
 		Return height
-		Select iclass
-			Case GTK_WINDOW
-				Local _height:Int = Int Ptr(Byte Ptr(container + _OFFSET_GTK_ALLOCATION + 12))[0]
-				Return _height
-			Case GTK_PANEL
-				Local _height:Int = Int Ptr(Byte Ptr(handle + _OFFSET_GTK_ALLOCATION + 12))[0]
-				Return _height
-			Case GTK_TABBER
-				Local _height:Int = Int Ptr(Byte Ptr(TGTKTabber(Self).container + _OFFSET_GTK_ALLOCATION + 12))[0]
-				Return _height
-		End Select
 	End Method
 
 End Type
@@ -1005,7 +976,10 @@ Print "OnDragDrop"
 	End Method
 
 	Method ClientHeight:Int()
-		Local h:Int = Int Ptr(Byte Ptr(container + _OFFSET_GTK_ALLOCATION + 12))[0]
+		Local allocation:TGTKAllocation = New TGTKAllocation
+		gtk_widget_get_allocation(container, allocation)
+		'Local h:Int = Int Ptr(Byte Ptr(container + _OFFSET_GTK_ALLOCATION + 12))[0]
+		Local h:Int = allocation.height
 		'Local h:Int = height
 		If h <= 8 Then
 			h = height
@@ -1029,7 +1003,10 @@ Print "OnDragDrop"
 	End Method
 
 	Method ClientWidth:Int()
-		Local w:Int = Int Ptr(Byte Ptr(handle + _OFFSET_GTK_ALLOCATION + 8))[0]
+		Local allocation:TGTKAllocation = New TGTKAllocation
+		gtk_widget_get_allocation(handle, allocation)
+		'Local w:Int = Int Ptr(Byte Ptr(handle + _OFFSET_GTK_ALLOCATION + 8))[0]
+		Local w:Int = allocation.width
 
 		If w <= 8 Then
 			w = width
@@ -1891,7 +1868,7 @@ Type TGTKMenuItem Extends TGTKGadget
 	NOTE - We have to ignore "obj" because it is not reliable
 	End Rem
 	Function MenuSelected:Int(widget:Byte Ptr, obj:Object)
-DebugStop
+
 		Local _menu:TGTKMenuItem = g_object_get_menudata(widget, "_maxmenu")
 
 		Assert _menu, "Menu data is missing...  !!!!"
@@ -3982,8 +3959,10 @@ Type TGTKStepper Extends TGTKRange
 					th = 74
 				End If
 				
-				Local width:Int = Int Ptr(Byte Ptr(gtk_bin_get_child(stepper.buttonUp) + _OFFSET_GTK_ALLOCATION + 8))[0]
-				Local height:Int = Int Ptr(Byte Ptr(gtk_bin_get_child(stepper.buttonUp) + _OFFSET_GTK_ALLOCATION + 12))[0]
+				Local allocation:TGTKAllocation = New TGTKAllocation
+				gtk_widget_get_allocation(gtk_bin_get_child(stepper.buttonUp), allocation)
+				Local width:Int = allocation.width
+				Local height:Int = allocation.height
 				
 				Local _w:Float = width / (tw * 1.0)
 				Local _h:Float = height / (th * 1.0)
@@ -4022,8 +4001,10 @@ Type TGTKStepper Extends TGTKRange
 					th = 74
 				End If
 				
-				Local width:Int = Int Ptr(Byte Ptr(gtk_bin_get_child(stepper.buttonDown) + _OFFSET_GTK_ALLOCATION + 8))[0]
-				Local height:Int = Int Ptr(Byte Ptr(gtk_bin_get_child(stepper.buttonDown) + _OFFSET_GTK_ALLOCATION + 12))[0]
+				Local allocation:TGTKAllocation = New TGTKAllocation
+				gtk_widget_get_allocation(gtk_bin_get_child(stepper.buttonDown), allocation)
+				Local width:Int = allocation.width
+				Local height:Int = allocation.height
 				
 				Local _w:Float = width / (tw * 1.0)
 				Local _h:Float = height / (th * 1.0)
