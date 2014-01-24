@@ -439,8 +439,8 @@ Type TGTKGadget Extends TGadget
 	End Function
 	
 	Method SetRect(x:Int, y:Int, w:Int, h:Int)
-		x = Max(x, 0)
-		y = Max(y, 0)
+		'x = Max(x, 0)
+		'y = Max(y, 0)
 		Super.SetRect(x, y, w, h)
 	End Method
 
@@ -1649,11 +1649,23 @@ Type TGTKLabel Extends TGTKGadget
 	Method setToolTip(tip:String)
 		initToolTips()
 		
-		If tip And tip.length > 0 Then
-			gtk_tooltips_set_tip(_tooltip, ebox, tip, Null)
+		If Not isSeparator Then
+			If tip And tip.length > 0 Then
+				Local tipPtr:Byte Ptr = tip.ToUTF8String()
+				gtk_tooltips_set_tip(_tooltip, ebox, tipPtr, Null)
+				MemFree(tipPtr)
+			Else
+				gtk_tooltips_set_tip(_tooltip, ebox, Null, Null)
+			End If
 		Else
-			gtk_tooltips_set_tip(_tooltip, ebox, Null, Null)
-		End If		
+			If tip And tip.length > 0 Then
+				Local tipPtr:Byte Ptr = tip.ToUTF8String()
+				gtk_tooltips_set_tip(_tooltip, handle, tipPtr, Null)
+				MemFree(tipPtr)
+			Else
+				gtk_tooltips_set_tip(_tooltip, handle, Null, Null)
+			End If
+		End If
 	End Method
 
 	Method Rethink()
@@ -3443,10 +3455,10 @@ Type TGTKPanel Extends TGTKContainer
 	
 	Method rethink()
 		If frame Then
-			gtk_layout_move(TGTKContainer(parent).container, frame, Max(xpos, 0), Max(ypos, 0))
+			gtk_layout_move(TGTKContainer(parent).container, frame, xpos, ypos)
 			gtk_widget_set_size_request(frame, Max(width,0), Max(height,0))
 		Else If handle Then
-			gtk_layout_move(TGTKContainer(parent).container, handle, Max(xpos, 0), Max(ypos, 0))
+			gtk_layout_move(TGTKContainer(parent).container, handle, xpos, ypos)
 			gtk_widget_set_size_request(handle, Max(width,0), Max(height,0))
 		End If
 		redraw()
@@ -3877,7 +3889,7 @@ Type TGTKScrollBar Extends TGTKRange
 		
 		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
-
+		gtk_range_set_round_digits(handle, 0)
 
 	End Method
 

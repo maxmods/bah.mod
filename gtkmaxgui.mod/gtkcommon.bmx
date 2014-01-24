@@ -264,6 +264,7 @@ Extern
 	Function gtk_range_set_range(handle:Byte Ptr, _min:Double, _max:Double)
 	Function gtk_scale_set_draw_value(handle:Byte Ptr, bool:Int)
 	Function gtk_range_set_increments(handle:Byte Ptr, _step:Double, _page:Double)
+	Function gtk_range_set_round_digits(handle:Byte Ptr, digits:Int)
 
  	Function gtk_text_buffer_new:Byte Ptr(tagtable:Byte Ptr)
 	Function gtk_text_view_new_with_buffer:Byte Ptr(buffer:Byte Ptr)
@@ -641,7 +642,7 @@ Function getPangoDescriptionFromGuiFont(font:TGtkGuiFont)
 			pango_font_description_set_style(fontdesc, PANGO_STYLE_ITALIC)
 		End If
 	
-		pango_font_description_set_size(fontdesc, font.size * 1024)
+		pango_font_description_set_absolute_size(fontdesc, font.size * 1024)
 	
 		MemFree(s)
 		
