@@ -1771,6 +1771,8 @@ Type TGTKMenuItem Extends TGTKGadget
 	Method initMenu(_label:String, _tag:Int, _parent:TGadget)
 		iclass = GTK_MENUITEM
 		tag = _tag
+		
+		Local originalLabel:String = _label
 
 		If TGTKWindow(_parent) Then
 			windowAccelGroup = TGTKWindow(_parent).accelGroup
@@ -1844,9 +1846,9 @@ Type TGTKMenuItem Extends TGTKGadget
 		text = _label
 
 		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
-			LocalizeGadget(Self, text)
+			LocalizeGadget(Self, originalLabel)
 		Else
-			SetText(text)
+			SetText(originalLabel)
 		EndIf
 
 
