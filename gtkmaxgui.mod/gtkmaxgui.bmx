@@ -195,7 +195,16 @@ ModuleInfo "History: 0.90"
 ModuleInfo "History: Very Alpha preview... Lots of things work, lots of things don't!"
 
 ?Linux
+' glib
 ModuleInfo "CC_OPTS: -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include"
+' gtk
+ModuleInfo "CC_OPTS: -I/usr/include/gtk-2.0  -I/usr/lib/i386-linux-gnu/gtk-2.0/include -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include"
+' cairo
+ModuleInfo "CC_OPTS: -I/usr/include/cairo"
+' pango
+ModuleInfo "CC_OPTS: -I/usr/include/pango-1.0"
+' gdk
+ModuleInfo "CC_OPTS: -I/usr/include/gdk-pixbuf-2.0"
 
 Import "gtkgui.bmx"
 ?

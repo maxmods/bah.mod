@@ -25,6 +25,7 @@ Import "gtkgadget.bmx"
 ?linux
 Import "fdhandler.c"
 ?
+Import "events.c"
 
 Global GTKDriver:TGTKGUIDriver =New TGTKGUIDriver
 

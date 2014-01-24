@@ -505,6 +505,15 @@ Extern
 	Function gnome_canvas_polygon_get_type:Int()
 	Function gnome_canvas_pixbuf_get_type:Int()
 	Function gdk_pixbuf_get_type:Int()
+	
+	' event types
+	Function bmx_gtkmaxgui_gdkeventbutton(event:Byte Ptr, x:Double Ptr, y:Double Ptr, button:Int Ptr)
+	Function bmx_gtkmaxgui_gdkeventmotion(event:Byte Ptr, x:Double Ptr, y:Double Ptr, state:Int Ptr)
+	Function bmx_gtkmaxgui_gdkeventscroll(event:Byte Ptr, x:Double Ptr, y:Double Ptr, direction:Int Ptr)
+	Function bmx_gtkmaxgui_gdkeventkey(event:Byte Ptr, keyval:Int Ptr, state:Int Ptr)
+	Function bmx_gtkmaxgui_gdkeventconfigure(event:Byte Ptr, x:Int Ptr, y:Int Ptr, w:Int Ptr, h:Int Ptr)
+	Function bmx_gtkmaxgui_gdkeventwindowstate(event:Byte Ptr, state:Int Ptr)
+	
 End Extern
 
 Type TGTKRequisition

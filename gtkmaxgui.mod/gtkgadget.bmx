@@ -653,7 +653,7 @@ Type TGTKWindow Extends TGTKContainer
 		EVENT_WINDOWACCEPT	Drag and Drop operation was attempted
 		End Rem
 		' move
-		addConnection("configure_event", g_signal_cb3(handle, "configure_event", OnWindowMoveSize, Self, Destroy, 0))
+		addConnection("configure-event", g_signal_cb3(handle, "configure-event", OnWindowMoveSize, Self, Destroy, 0))
 		' size
 		addConnection("check-resize", g_signal_cb2(handle, "check-resize", OnWindowSize, Self, Destroy, 0))
 		' close
@@ -732,10 +732,8 @@ Type TGTKWindow Extends TGTKContainer
 	bbdoc: Callback for window size / move
 	End Rem
 	Function OnWindowMoveSize(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		Local x:Int' = Int Ptr(event + 12)[0]
-		Local y:Int' = Int Ptr(event + 16)[0]
-		Local w:Int = Int Ptr(event + 20)[0]
-		Local h:Int = Int Ptr(event + 24)[0]
+		Local x:Int, y:Int, w:Int, h:Int
+		bmx_gtkmaxgui_gdkeventconfigure(event, Varptr x, Varptr y, Varptr w, Varptr h)
 
 		Local win:TGTKWindow = TGTKWindow(obj)
 		If win Then
@@ -809,7 +807,8 @@ Type TGTKWindow Extends TGTKContainer
 	bbdoc: Callback for window state change.
 	End Rem	
 	Function OnWindowStateChange:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		Local statemask:Int = Int Ptr(event + 12)[0]
+		Local statemask:Int
+		bmx_gtkmaxgui_gdkeventwindowstate(event, Varptr statemask)
 		
 		Local win:TGTKWindow = TGTKWindow(obj)
 		If win Then
@@ -996,9 +995,8 @@ Print "OnDragDrop"
 	Method ClientHeight:Int()
 		Local allocation:TGTKAllocation = New TGTKAllocation
 		gtk_widget_get_allocation(container, allocation)
-		'Local h:Int = Int Ptr(Byte Ptr(container + _OFFSET_GTK_ALLOCATION + 12))[0]
 		Local h:Int = allocation.height
-		'Local h:Int = height
+
 		If h <= 8 Then
 			h = height
 			If statusbar Then
@@ -1023,7 +1021,6 @@ Print "OnDragDrop"
 	Method ClientWidth:Int()
 		Local allocation:TGTKAllocation = New TGTKAllocation
 		gtk_widget_get_allocation(handle, allocation)
-		'Local w:Int = Int Ptr(Byte Ptr(handle + _OFFSET_GTK_ALLOCATION + 8))[0]
 		Local w:Int = allocation.width
 
 		If w <= 8 Then
@@ -1192,11 +1189,10 @@ Type TGTKButton Extends TGTKGadget
 	End Function
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then ' right mouse button
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
 
 			PostGuiEvent(EVENT_GADGETMENU, TGadget(obj),,,x,y)
 
@@ -1692,10 +1688,8 @@ Type TGTKLabel Extends TGTKGadget
 	bbdoc: Callback for mouse button press.
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local x:Int = Double Ptr(event + 16)[0]
-		Local y:Int = Double Ptr(event + 24)[0]
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 		
 		If button = 3 Then ' right mouse button
 
@@ -2164,9 +2158,10 @@ Type TGTKEditable Extends TGTKGadget
 
 		' only if we are using a filter...
 		If source And source.eventfilter <> Null Then
-			' FIXME
-			Local key:Int = TGTKKeyMap.mapBack(Int Ptr(gdkEvent + 20)[0])
-			Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(gdkEvent + 16)[0])
+			Local _key:Int, _mods:Int
+			bmx_gtkmaxgui_gdkeventkey(gdkEvent, Varptr _key, Varptr _mods)
+			Local key:Int = TGTKKeyMap.mapBack(_key)
+			Local mods:Int = TGTKKeyMap.mapModifierBack(_mods)
 
 			Local event:TEvent = CreateEvent(EVENT_KEYDOWN, source, key, mods)
 			
@@ -2174,7 +2169,7 @@ Type TGTKEditable Extends TGTKGadget
 				Return True
 			End If
 
-			Local char:Int = gdk_keyval_to_unicode(Int Ptr(gdkEvent + 20)[0])
+			Local char:Int = gdk_keyval_to_unicode(_key)
 			' we sometimes get 0 from this function when key is valid... so set it to key just so that it has a value.
 			If char = 0 And key <> 0 Then
 				char = key
@@ -2288,12 +2283,10 @@ Type TGTKTextField Extends TGTKEditable
 	End Method
 	
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then ' right mouse button
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
 
 			PostGuiEvent(EVENT_GADGETMENU, TGadget(obj),,,x,y)
 
@@ -2402,10 +2395,8 @@ Type TGTKTextArea Extends TGTKEditable
 	bbdoc: Callback for mouse button press
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local x:Int = Double Ptr(event + 16)[0]
-		Local y:Int = Double Ptr(event + 24)[0]
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then ' right mouse button
 			' ignore this...  see MouseUp for menu event!
@@ -2419,10 +2410,8 @@ Type TGTKTextArea Extends TGTKEditable
 	bbdoc: Callback for mouse button release
 	End Rem
 	Function OnMouseUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local x:Int = Double Ptr(event + 16)[0]
-		Local y:Int = Double Ptr(event + 24)[0]
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then ' right mouse button
 			PostGuiEvent(EVENT_GADGETMENU, TGadget(obj),,,x,y)
@@ -3192,11 +3181,10 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse button press.
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
-			Local button:Int = Int Ptr(event + 40)[0]
+			Local x:Double, y:Double, button:Int
+			bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
+
 			If button = 3 Then
 				button = 2
 			Else If button = 2 Then
@@ -3212,11 +3200,10 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse button release.
 	End Rem
 	Function OnMouseUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
-			Local button:Int = Int Ptr(event + 40)[0]
+			Local x:Double, y:Double, button:Int
+			bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
+
 			If button = 3 Then
 				button = 2
 			Else If button = 2 Then
@@ -3256,12 +3243,10 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse movement
 	End Rem
 	Function OnMouseMove:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
-						
-			Local button:Int = Int Ptr(event + 36)[0]
+			Local _x:Double, _y:Double, button:Int
+			bmx_gtkmaxgui_gdkeventmotion(event, Varptr _x, Varptr _y, Varptr button)
+			Local x:Int, y:Int
 			
 			' we actually ignore the coords returned by the event and get the
 			' mouse coords relative to this widget's parent
@@ -3299,11 +3284,10 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for mouse scroll wheel
 	End Rem
 	Function OnScroll(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
-			Local direction:Int = Int Ptr(event + 36)[0]
+			Local x:Double, y:Double, direction:Int
+			bmx_gtkmaxgui_gdkeventscroll(event, Varptr x, Varptr y, Varptr direction)
+
 			If direction = GDK_SCROLL_UP Or direction = GDK_SCROLL_LEFT Then
 				PostGuiEvent(EVENT_MOUSEWHEEL, TGadget(obj),-1,,x,y)
 			Else
@@ -3316,10 +3300,11 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for key down
 	End Rem
 	Function OnKeyDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
-			Local key:Int = TGTKKeyMap.mapBack(Int Ptr(event + 20)[0])
-			Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(event + 16)[0])
+			Local _key:Int, _mods:Int
+			bmx_gtkmaxgui_gdkeventkey(event, Varptr _key, Varptr _mods)
+			Local key:Int = TGTKKeyMap.mapBack(_key)
+			Local mods:Int = TGTKKeyMap.mapModifierBack(_mods)
 	
 			If Not gtkSetKeyDown(key) Then
 				PostGuiEvent(EVENT_KEYDOWN, TGadget(obj), key, mods)
@@ -3327,7 +3312,7 @@ Type TGTKPanel Extends TGTKContainer
 				PostGuiEvent(EVENT_KEYREPEAT, TGadget(obj), key, mods)
 			End If
 
-			Local char:Int = gdk_keyval_to_unicode(Int Ptr(event + 20)[0])
+			Local char:Int = gdk_keyval_to_unicode(_key)
 			' we sometimes get 0 from this function when key is valid... so set it to key just so that it has a value.
 			If char = 0 And key <> 0 Then
 				char = key
@@ -3342,10 +3327,11 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Callback for key up
 	End Rem
 	Function OnKeyUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
 		If TGTKPanel(obj).style & PANEL_ACTIVE Then
-			Local key:Int = TGTKKeyMap.mapBack(Int Ptr(event + 20)[0])
-			Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(event + 16)[0])
+			Local _key:Int, _mods:Int
+			bmx_gtkmaxgui_gdkeventkey(event, Varptr _key, Varptr _mods)
+			Local key:Int = TGTKKeyMap.mapBack(_key)
+			Local mods:Int = TGTKKeyMap.mapModifierBack(_mods)
 			
 			gtkSetKeyUp(key)
 			PostGuiEvent(EVENT_KEYUP, TGadget(obj), key, mods)
@@ -3661,12 +3647,10 @@ Type TGTKComboBox Extends TGTKList
 	End Function
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then ' right mouse button
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
 
 			Local treePath:Byte Ptr
 			Local row:Int = TGTKComboBox(obj).SelectedItem()
@@ -4710,12 +4694,10 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 	End Function
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then ' right mouse button
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
 
 			Local treePath:Byte Ptr
 			Local row:Int = -1
@@ -5155,12 +5137,10 @@ Type TGTKTreeView Extends TGTKTreeViewNode
 	bbdoc: Callback for mouse right-click
 	End Rem
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then ' right mouse button
-			Local x:Int = Double Ptr(event + 16)[0]
-			Local y:Int = Double Ptr(event + 24)[0]
 			
 			Local node:TGTKTreeViewNode
 			Local treePath:Byte Ptr
@@ -5278,10 +5258,8 @@ Type TGTKCanvas Extends TGTKGadget
 	End Method
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local x:Int = Double Ptr(event + 16)[0]
-		Local y:Int = Double Ptr(event + 24)[0]
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
 
 		If button = 3 Then
 			button = 2
@@ -5295,10 +5273,9 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 	
 	Function OnScroll(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local x:Int = Double Ptr(event + 16)[0]
-		Local y:Int = Double Ptr(event + 24)[0]
-		Local direction:Int = Int Ptr(event + 36)[0]
+		Local x:Double, y:Double, direction:Int
+		bmx_gtkmaxgui_gdkeventscroll(event, Varptr x, Varptr y, Varptr direction)
+
 		If direction = GDK_SCROLL_UP Or direction = GDK_SCROLL_LEFT Then
 			PostGuiEvent(EVENT_MOUSEWHEEL, TGadget(obj),-1,,x,y)
 		Else
@@ -5307,10 +5284,9 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 
 	Function OnMouseUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local x:Int = Double Ptr(event + 16)[0]
-		Local y:Int = Double Ptr(event + 24)[0]
-		Local button:Int = Int Ptr(event + 40)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
+
 		If button = 3 Then
 			button = 2
 		Else If button = 2 Then
@@ -5339,10 +5315,9 @@ Type TGTKCanvas Extends TGTKGadget
 	bbdoc: Callback for mouse movement
 	End Rem
 	Function OnMouseMove:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local x:Int = Double Ptr(event + 16)[0]
-		Local y:Int = Double Ptr(event + 24)[0]
-		Local button:Int = Int Ptr(event + 36)[0]
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventmotion(event, Varptr x, Varptr y, Varptr button)
+
 		If button & GDK_BUTTON1_MASK Then
 			button = 1
 		Else If button & GDK_BUTTON3_MASK Then
@@ -5358,9 +5333,10 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 
 	Function OnKeyDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		' FIXME
-		Local key:Int = TGTKKeyMap.mapBack(Int Ptr(event + 20)[0])
-		Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(event + 16)[0])
+		Local _key:Int, _mods:Int
+		bmx_gtkmaxgui_gdkeventkey(event, Varptr _key, Varptr _mods)
+		Local key:Int = TGTKKeyMap.mapBack(_key)
+		Local mods:Int = TGTKKeyMap.mapModifierBack(_mods)
 
 		If Not gtkSetKeyDown(key) Then
 			PostGuiEvent(EVENT_KEYDOWN, TGadget(obj), key, mods)
@@ -5368,7 +5344,7 @@ Type TGTKCanvas Extends TGTKGadget
 			PostGuiEvent(EVENT_KEYREPEAT, TGadget(obj), key, mods)
 		End If
 
-		Local char:Int = gdk_keyval_to_unicode(Int Ptr(event + 20)[0])
+		Local char:Int = gdk_keyval_to_unicode(_key)
 		' we sometimes get 0 from this function when key is valid... so set it to key just so that it has a value.
 		If char = 0 And key <> 0 Then
 			char = key
@@ -5379,8 +5355,10 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 
 	Function OnKeyUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
-		Local key:Int = TGTKKeyMap.mapBack(Int Ptr(event + 20)[0])
-		Local mods:Int = TGTKKeyMap.mapModifierBack(Int Ptr(event + 16)[0])
+		Local _key:Int, _mods:Int
+		bmx_gtkmaxgui_gdkeventkey(event, Varptr _key, Varptr _mods)
+		Local key:Int = TGTKKeyMap.mapBack(_key)
+		Local mods:Int = TGTKKeyMap.mapModifierBack(_mods)
 		
 		gtkSetKeyUp(key)
 		PostGuiEvent(EVENT_KEYUP, TGadget(obj), key, mods)
