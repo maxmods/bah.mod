@@ -443,6 +443,8 @@ Extern
 
 	Function gdk_atom_intern:Byte Ptr(name:Byte Ptr, bool:Int)
 	Function gtk_clipboard_get:Byte Ptr(atom:Byte Ptr)
+	Function gtk_clipboard_set_text(handle:Byte Ptr, text:Byte Ptr, length:Int)
+	Function gtk_clipboard_wait_for_text:Byte Ptr(handle:Byte Ptr)
 
 	Function gtk_settings_set_string_property(settings:Byte Ptr, name:Byte Ptr, v_string:Byte Ptr, origin:Byte Ptr)
 	Function gtk_settings_get_default:Byte Ptr()

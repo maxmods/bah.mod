@@ -618,7 +618,29 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 	Method ComputerName$()
 	End Method
 	
-
+	Rem
+	bbdoc: Sets the clipboard with the current text
+	End Rem
+	Method SetClipboardText(text:String)
+		Local clipboard:Byte Ptr = gtk_clipboard_get(gdk_atom_intern("CLIPBOARD", True))
+		
+		Local textPtr:Byte Ptr = text.ToUTF8String()
+		gtk_clipboard_set_text(clipboard, textPtr, -1)
+		MemFree(textPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets the text from the clipboard
+	End Rem
+	Method ClipboardText:String()
+		Local clipboard:Byte Ptr = gtk_clipboard_get(gdk_atom_intern("CLIPBOARD", True))
+		
+		Local txtPtr:Byte Ptr = gtk_clipboard_wait_for_text(clipboard)
+		Local s:String = String.FromUTF8String(txtPtr)
+		g_free(txtPtr)
+		Return s
+	End Method
+	
 End Type
 
 Function GadgetFromHandle:TGTKGadget( handle:Int )
