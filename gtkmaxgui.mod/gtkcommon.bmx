@@ -71,6 +71,7 @@ Extern
 	Function g_signal_handler_disconnect(gtkwidget:Byte Ptr, handlerid:Long)
 	Function g_signal_stop_emission_by_name(gtkwidget:Byte Ptr, name:Byte Ptr)
 	Function g_signal_tabchange:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,a:Byte Ptr, index:Int,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
+	Function g_object_connect:Byte Ptr(gtkWidget:Byte Ptr, signalSpec:Byte Ptr, callback(widget:Byte Ptr, pspec:Byte Ptr, gadget:Object), gadget:Object, destSpec:Byte Ptr, destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int)="g_object_connect"
 
 	Function gtk_window_new:Byte Ptr(windowtype:Int)
 	Function gtk_window_set_title(windowPtr:Byte Ptr, title:Byte Ptr)
