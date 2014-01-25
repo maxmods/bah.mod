@@ -40,10 +40,6 @@ Type TGTKGuiSystemDriver Extends TGTKSystemDriver
 			gtk_main_iteration_do(False)
 '			bbSystemPoll() ' dont't think we need this now?
 		Wend
-?linux
-		' some crazy glib stuff
-		While Not g_main_context_iteration(g_main_context_default(), True)
-		Wend
 ?Not linux
 		Super.Wait()
 ?
