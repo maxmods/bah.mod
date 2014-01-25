@@ -265,6 +265,8 @@ Extern
 	Function gtk_scale_set_draw_value(handle:Byte Ptr, bool:Int)
 	Function gtk_range_set_increments(handle:Byte Ptr, _step:Double, _page:Double)
 	Function gtk_range_set_round_digits(handle:Byte Ptr, digits:Int)
+	Function gtk_range_get_adjustment:Byte Ptr(handle:Byte Ptr)
+	Function gtk_adjustment_set_page_size(handle:Byte Ptr, size:Int)
 
  	Function gtk_text_buffer_new:Byte Ptr(tagtable:Byte Ptr)
 	Function gtk_text_view_new_with_buffer:Byte Ptr(buffer:Byte Ptr)

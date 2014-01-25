@@ -3818,11 +3818,10 @@ Type TGTKRange Extends TGTKGadget
 
 	Rem
 	bbdoc: Sets the value on the slider.
-	about: Seem to have to add 1 to the value for some reason...
 	End Rem
 	Method SetProp(value:Int)
 		currentValue = value
-		gtk_range_set_value(handle, value + 1)
+		gtk_range_set_value(handle, value)
 	End Method
 
 	Rem
@@ -3862,6 +3861,10 @@ bbdoc: A scrollbar
 End Rem
 Type TGTKScrollBar Extends TGTKRange
 
+	Field thumbSize:Int
+	Field Range:Int
+	Field pageSize:Int
+
 	Function CreateScrollBar:TGTKScrollBar(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKScrollBar = New TGTKScrollBar
 
@@ -3895,15 +3898,36 @@ Type TGTKScrollBar Extends TGTKRange
 
 	Rem
 	bbdoc: Overrides the default...
-	about: instead of this being the actual range, the min is always 0 and @total defines the max.
-	@visible defines the step size.
 	End Rem
-	Method SetRange(visible:Int, total:Int)
-		rangeMin = 0
-		rangeMax = Max(1, total - 1)
-		gtk_range_set_range(handle, 0, rangeMax)
-		gtk_range_set_increments(handle, visible, visible)
+	Method SetRange(small:Int, big:Int)
+		range = big - small
+		pageSize = small
+		
+		If small <> 0 Then
+			thumbSize = big/small
+		Else
+			thumbSize = 1
+		End If
+
+		If range = 0 Then
+			range = 1
+			thumbSize = 1
+		End If
+
+	    gtk_adjustment_set_page_size(gtk_range_get_adjustment(handle), thumbSize)
+	    gtk_range_set_increments(handle, 1, pageSize)
+	    gtk_range_set_range(handle, 0, range)
+	    gtk_range_set_value(handle, GetProp())
 	End Method
+
+	Function OnChangeValue:Int(widget:Byte Ptr, scrolltype:Int, value:Double, obj:Object)
+		Local v:Int = Max(value, 0)
+
+		TGTKRange(obj).currentValue = v
+		PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), v)
+
+		Return False
+	End Function
 
 End Type
 
@@ -3943,7 +3967,6 @@ Type TGTKTrackBar Extends TGTKRange
 
 		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
-
 
 	End Method
 
