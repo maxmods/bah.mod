@@ -587,7 +587,7 @@ Type TGTKWindow Extends TGTKContainer
 
 		If style & WINDOW_STATUS Then
 			createStatusbar()
-			SetStatus("")
+			SetStatusText("")
 		EndIf
 
 		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
@@ -869,7 +869,7 @@ Print "OnDragDrop"
 	Rem
 	bbdoc: Set the window status text
 	End Rem
-	Method SetStatus(text:String)
+	Method SetStatusText(text:String)
 		If statusbar Then
 
 			Local t:Int, m0:String, m1:String, m2:String
@@ -932,14 +932,8 @@ Print "OnDragDrop"
 
 		sblabels = New Byte Ptr[3]
 		
-		' each "label" consists of a vbox, a separator and a label.
 		For Local i:Int = 0 Until 3
 
-			Local _vbox:Byte Ptr = gtk_vbox_new(False, 0)
-			gtk_widget_show(_vbox)
-			
-			Local Sep:Byte Ptr = gtk_hseparator_new()
-			gtk_widget_show(Sep)
 			sblabels[i] = gtk_label_new("")
 			
 			If i = 0 Then
@@ -948,15 +942,10 @@ Print "OnDragDrop"
 				gtk_misc_set_alignment(sblabels[i], 1, 0.5)
 			End If
 			
-			gtk_box_pack_start(_vbox, Sep, False, True, 0)
-			gtk_box_pack_start(_vbox, sblabels[i], True, True, 0)
-			
-			gtk_box_pack_start(statusbar, _vbox, True, True, 0)
-
+			gtk_box_pack_start(statusbar, sblabels[i], True, True, 0)
 		Next
 				
 		' if resizeable, add on a "handle" - uses an actual statusbar widget!
-		Rem
 		If style & WINDOW_RESIZABLE Then
 			Local sbhandle:Byte Ptr = gtk_statusbar_new()
 			gtk_statusbar_set_has_resize_grip(sbhandle,True)
@@ -967,7 +956,6 @@ Print "OnDragDrop"
 			
 			gtk_box_pack_start(statusbar, sbhandle, False, True, 0)
 		End If
-		End Rem
 		
 		' add to the window!
 		gtk_box_pack_start(vbox, statusbar, False, True, 0)
