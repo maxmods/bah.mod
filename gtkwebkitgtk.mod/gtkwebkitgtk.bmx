@@ -86,8 +86,8 @@ Type TGTKWebKitGtk Extends TGTKHTMLView
 		gtk_widget_set_size_request(handle, w, Max(h,0))
 
 		SetShow(True)
-		
-		g_object_connect(handle, "signal::notify::load-status", OnLoadStatus, Self, "signal::destroy", Destroy, 0)
+
+		g_object_connect(handle, "signal::notify::load-status", OnLoadStatus, Self, 0)
 
 	End Method
 	
