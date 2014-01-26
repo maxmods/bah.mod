@@ -47,7 +47,7 @@ Import BaH.GTKMaxGUI
 
 ?linux
 
-Import "-dl"
+Import "-ldl"
 
 
 Private
