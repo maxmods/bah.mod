@@ -209,6 +209,8 @@ ModuleInfo "CC_OPTS: -I/usr/include/cairo"
 ModuleInfo "CC_OPTS: -I/usr/include/pango-1.0"
 ' gdk
 ModuleInfo "CC_OPTS: -I/usr/include/gdk-pixbuf-2.0"
+' atk
+ModuleInfo "CC_OPTS: -I/usr/include/atk-1.0"
 
 Import "gtkgui.bmx"
 ?

@@ -1133,14 +1133,14 @@ Type TGTKButton Extends TGTKGadget
 
 		parent = group
 
+		' localisation
+		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+			MapInsert maxgui_driver._mapLocalized, Self, [label,""]
+			label = LocalizeString(label)
+		End If
+
 		makeButton(label)
 
-		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
-			LocalizeGadget(Self, label)
-		Else
-			SetText(label)
-		EndIf
-		
 		setAccelMapId(label)
 
 		gtk_layout_put(TGTKContainer(parent).container, handle, x, y)
@@ -1279,9 +1279,11 @@ Type TGTKButtonPush Extends TGTKButton
 	End Function
 
 	Method makeButton(label:String)
+
 		label = processText(label)
 		
 		Local txt:String = getGTKStockIDFromName(label.Replace("_", ""))
+
 		If txt = label.Replace("_", "") Then
 			Local labelPtr:Byte Ptr = label.ToUTF8String()
 			handle = gtk_button_new_with_label(labelPtr)
@@ -1778,6 +1780,12 @@ Type TGTKMenuItem Extends TGTKGadget
 			windowAccelGroup = Null
 		End If
 		
+		' localisation
+		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+			MapInsert maxgui_driver._mapLocalized, Self, [_label,""]
+			_label = LocalizeString(_label)
+		End If
+		
 		setAccelMapId(_label)
 
 
@@ -1803,7 +1811,7 @@ Type TGTKMenuItem Extends TGTKGadget
 				'_label = _label.replace("&", "_")
 				hasMnemonic = True
 
-	                Local txt:String = getGTKStockIDFromName(_label.Replace("_",""))
+	            Local txt:String = getGTKStockIDFromName(_label.Replace("_",""))
 				If txt = _label.Replace("_","") Or TGTKWindow(_parent) Then
 					handle = gtk_image_menu_item_new_with_mnemonic(_labelPtr)
 				Else
@@ -1838,13 +1846,6 @@ Type TGTKMenuItem Extends TGTKGadget
 		End If
 
 		text = _label
-
-		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
-			LocalizeGadget(Self, originalLabel)
-		Else
-			SetText(originalLabel)
-		EndIf
-
 
 		' let's hope that at least the parent is set!!
 		If _parent Then
@@ -2046,8 +2047,10 @@ Type TGTKMenuItem Extends TGTKGadget
 			If label = Null Then
 				label = ""
 			End If
+			
+			text = processText(label)
 
-			Local labelPtr:Byte Ptr = processText(label).ToUTF8String()
+			Local labelPtr:Byte Ptr = text.ToUTF8String()
 			If label.find("&") >= 0 Then
 				gtk_label_set_text_with_mnemonic(gtk_bin_get_child(handle), labelPtr)
 			Else
@@ -2628,19 +2631,8 @@ Type TGTKTextArea Extends TGTKEditable
 	Method SetStyle(r:Int, g:Int, b:Int, flags:Int, pos:Int, length:Int, units:Int)
 
 		' Build a style string
-		Local styleText:String = r + "_" + g + "_" + b
-		If flags & TEXTFORMAT_BOLD Then
-			styleText:+ "_bold"
-		End If
-		If flags & TEXTFORMAT_ITALIC Then
-			styleText:+ "_italic"
-		End If
-		If flags & TEXTFORMAT_UNDERLINE Then
-			styleText:+ "_under"
-		End If
-		If flags & TEXTFORMAT_STRIKETHROUGH Then
-			styleText:+ "_strike"
-		End If
+		Local s:Int = r Shl 24 | g Shl 16 | b Shl 8 | (flags & $ff)
+		Local styleText:String = String(s)
 
 		' Does this one already exist?
 		Local _textTag:Byte Ptr = gtk_text_tag_table_lookup(_textTagTable, styleText)
@@ -4811,7 +4803,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 		this.myIter = New TGtkTreeIter
 
 		this.refreshPath(index)
-
+		
 		Return this
 	End Function
 
@@ -4907,6 +4899,13 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 		End If
 
 		childNode._icon = icon
+		
+		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
+			LocalizeGadget(childNode, text)
+		Else
+			childNode.SetText(text)
+		EndIf
+
 
 		Return childNode
 	End Method
