@@ -164,7 +164,9 @@ Type TGTKGadget Extends TGadget
 					Throw "No HTMLView specified. You need To Import one!    " + ..
 						" Import BaH.gtkwebmozilla    " + ..
 						" or    " + ..
-						" Import BaH.gtkwebgtkhtml"
+						" Import BaH.gtkwebgtkhtml" + ..
+						" or    " + ..
+						" Import BaH.gtkwebkitgtk"
 				End If
 			Case GTK_TABBER
 				gadget = TGTKTabber.CreateTabber(x, y ,w , h, label, group, style)
@@ -181,7 +183,11 @@ Type TGTKGadget Extends TGadget
 			Case GTK_TRACKBAR
 				gadget = TGTKTrackBar.CreateTrackBar(x, y ,w , h, label, group, style)
 			Case GTK_TEXTAREA
-				gadget = TGTKTextArea.CreateTextArea(x, y ,w , h, label, group, style)
+				' no custom text area? use the default
+				If Not gtkmaxgui_textarea Then
+					gtkmaxgui_textarea = New TGTKDefaultTextAreaDriver
+				End If
+				gadget = gtkmaxgui_textarea.CreateTextArea(x, y ,w , h, label, group, style)
 			Case GTK_TOOLBAR
 				gadget = TGTKToolbar.CreateToolbar(x, y ,w , h, label, group, style)
 			Case GTK_LISTBOX
@@ -2304,7 +2310,7 @@ End Type
 Rem
 bbdoc: A text area.
 End Rem
-Type TGTKTextArea Extends TGTKEditable
+Type TGTKDefaultTextArea Extends TGTKTextArea
 
 	Field _tabsize:Int = 4
 
@@ -2319,7 +2325,7 @@ Type TGTKTextArea Extends TGTKEditable
 	'Field _selEnd:Int
 
 	Function CreateTextArea:TGTKTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
-		Local this:TGTKTextArea = New TGTKTextArea
+		Local this:TGTKDefaultTextArea = New TGTKDefaultTextArea
 
 		this.initTextArea(x, y, w, h, label, group, style)
 
@@ -2380,11 +2386,11 @@ Type TGTKTextArea Extends TGTKEditable
 	bbdoc: Callback for text change
 	End Rem
 	Function OnTextChanged(widget:Byte Ptr, obj:Object)
-		If Not TGTKTextArea(obj).ignoreChange Then
+		If Not TGTKDefaultTextArea(obj).ignoreChange Then
 			PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj))
 			PostGuiEvent(EVENT_GADGETACTION, TGadget(obj))
 		End If
-		TGTKTextArea(obj).ignoreChange = False
+		TGTKDefaultTextArea(obj).ignoreChange = False
 	End Function
 
 	Rem
@@ -5422,3 +5428,26 @@ Type TGTKWebDriver
 End Type
 
 Global gtkmaxgui_htmlview:TGTKWebDriver
+
+Rem
+bbdoc: A base type for text area gadgets.
+about: Implementations are in seperate modules, except for the default TGTKDefaultTextArea
+End Rem
+Type TGTKTextArea Extends TGTKEditable
+	Function CreateTextArea:TGTKTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int) Abstract
+
+End Type
+
+
+Type TGTKTextAreaDriver
+	Function CreateTextArea:TGTKTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int) Abstract
+End Type
+
+' default text area driver
+Type TGTKDefaultTextAreaDriver Extends TGTKTextAreaDriver
+	Function CreateTextArea:TGTKTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
+		Return TGTKDefaultTextArea.CreateTextArea(x, y, w, h, label, group, style)
+	End Function
+End Type
+
+Global gtkmaxgui_textarea:TGTKTextAreaDriver
