@@ -35,6 +35,8 @@ ModuleInfo "History: Initial Release."
 
 Import BaH.GTKMaxGUI
 
+?linux
+
 Import "-lwebkitgtk-1.0"
 
 Extern
