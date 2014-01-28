@@ -1,0 +1,156 @@
+' Copyright (c) 2014 Bruce A Henderson
+' 
+' Permission is hereby granted, free of charge, to any person obtaining a copy
+' of this software and associated documentation files (the "Software"), to deal
+' in the Software without restriction, including without limitation the rights
+' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the Software is
+' furnished to do so, subject to the following conditions:
+' 
+' The above copyright notice and this permission notice shall be included in
+' all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+' THE SOFTWARE.
+'
+SuperStrict
+
+Rem
+bbdoc: Scintilla-based MaxGUI TextArea gadget.
+End Rem
+Module BaH.MaxGUITextAreaScintilla
+
+
+ModuleInfo "CC_OPTS: -fexceptions"
+
+?Linux
+
+ModuleInfo "CC_OPTS: -DGTK"
+
+' glib
+ModuleInfo "CC_OPTS: -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include"
+' gtk
+ModuleInfo "CC_OPTS: -I/usr/include/gtk-2.0  -I/usr/lib/i386-linux-gnu/gtk-2.0/include -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include"
+' cairo
+ModuleInfo "CC_OPTS: -I/usr/include/cairo"
+' pango
+ModuleInfo "CC_OPTS: -I/usr/include/pango-1.0"
+' gdk
+ModuleInfo "CC_OPTS: -I/usr/include/gdk-pixbuf-2.0"
+' atk
+ModuleInfo "CC_OPTS: -I/usr/include/atk-1.0"
+
+
+Import BaH.GTKMaxGUI
+
+Import "common.bmx"
+
+Rem
+bbdoc: 
+End Rem
+Type TGTKScintillaTextArea Extends TGTKTextArea
+
+	Field sciPtr:Byte Ptr
+	Field sciId:Int
+
+	Global sci_id_count:Int = 0
+
+	Function CreateTextArea:TGTKTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
+		Local this:TGTKScintillaTextArea = New TGTKScintillaTextArea
+
+		this.initTextArea(x, y, w, h, label, group, style)
+
+		Return this
+	End Function
+
+	Method initTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
+
+		parent = group
+
+		sciId = sci_id_count
+
+		handle = scintilla_new()
+		sciPtr = bmx_mgta_scintilla_getsci(handle, sciId)
+
+		' increment internal counter		
+		sci_id_count :+ 1
+
+		gtk_widget_show(handle)
+
+		gtk_layout_put(TGTKContainer(parent).container, handle, x, y)
+		gtk_widget_set_size_request(handle, w, Max(h,0))
+
+		' set some default monospaced font
+		SetFont(LookupGuiFont(GUIFONT_MONOSPACED))
+
+	End Method
+
+	Method GetText:String()
+		Return bmx_mgta_scintilla_gettext(sciPtr)
+	End Method
+
+	Rem
+	bbdoc: Sets the text.
+	End Rem
+	Method SetText(txt:String)
+		bmx_mgta_scintilla_settext(sciPtr, txt)
+	End Method
+
+	Method SetFont(font:TGuiFont)
+
+		If font = Null Then
+			Return
+		End If
+
+		_font = font
+
+		bmx_mgta_scintilla_setfont(sciPtr, font.name, font.size)
+		
+	End Method
+
+	Rem
+	bbdoc: Set the text area selection
+	End Rem
+	Method SetSelection(pos:Int, length:Int, units:Int)
+
+		Local startPos:Int
+		Local endPos:Int
+
+		If units = TEXTAREA_LINES Then
+			startPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos)
+			endPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos + length)
+
+		Else ' must be TEXTAREA_CHARS
+			startPos = pos
+			endPos = pos + length
+
+		End If
+		
+		bmx_mgta_scintilla_setselel(sciPtr, startPos, endPos)
+
+		PostGuiEvent(EVENT_GADGETSELECT, Self)
+
+		' scroll to the start of the selection
+'		bmx_mgta_scintilla_scrollcaret(sciPtr)
+
+	End Method
+
+End Type
+
+
+' scintilla text area driver
+Type TGTKScintillaTextAreaDriver Extends TGTKTextAreaDriver
+	Function CreateTextArea:TGTKTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
+		Return TGTKScintillaTextArea.CreateTextArea(x, y, w, h, label, group, style)
+	End Function
+End Type
+
+gtkmaxgui_textarea = New TGTKScintillaTextAreaDriver
+
+
+?
