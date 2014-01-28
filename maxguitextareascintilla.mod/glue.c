@@ -89,3 +89,16 @@ void bmx_mgta_scintilla_scrollcaret(ScintillaObject * sci) {
 void bmx_mgta_scintilla_setselel(ScintillaObject * sci, int startPos, int endPos) {
 	scintilla_send_message(sci, SCI_SETSEL, startPos, endPos);
 }
+
+void bmx_mgta_scintilla_replacesel(ScintillaObject * sci, const char * text) {
+	scintilla_send_message(sci, SCI_REPLACESEL, 0, text);
+}
+
+void bmx_mgta_scintilla_stylesetback(ScintillaObject * sci, int col) {
+	int style;
+	
+	for (style = 0; style < STYLE_MAX; style++) {
+		scintilla_send_message(sci, SCI_STYLESETBACK, style, col);
+	}
+}
+

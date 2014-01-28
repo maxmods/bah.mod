@@ -40,6 +40,8 @@ Extern
 	Function bmx_mgta_scintilla_setselectionend(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_scrollcaret(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_setselel(handle:Byte Ptr, startPos:Int, endPos:Int)
-
+	Function bmx_mgta_scintilla_replacesel(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_mgta_scintilla_stylesetback(handle:Byte Ptr, col:Int)
+	
 End Extern
 

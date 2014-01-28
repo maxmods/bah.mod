@@ -124,11 +124,9 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 		If units = TEXTAREA_LINES Then
 			startPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos)
 			endPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos + length)
-
 		Else ' must be TEXTAREA_CHARS
 			startPos = pos
 			endPos = pos + length
-
 		End If
 		
 		bmx_mgta_scintilla_setselel(sciPtr, startPos, endPos)
@@ -138,6 +136,36 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 		' scroll to the start of the selection
 '		bmx_mgta_scintilla_scrollcaret(sciPtr)
 
+	End Method
+
+	Method ReplaceText(pos:Int, length:Int, text:String, units:Int)
+
+		If length = TEXTAREA_ALL Then
+			SetText(text)
+		Else
+			Local startPos:Int
+			Local endPos:Int
+	
+			If units = TEXTAREA_LINES Then
+				startPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos)
+				endPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos + length)
+			Else ' must be TEXTAREA_CHARS
+				startPos = pos
+				endPos = pos + length
+			End If
+
+			bmx_mgta_scintilla_setselectionstart(sciPtr, startPos)
+			bmx_mgta_scintilla_setselectionend(sciPtr, endPos)
+	
+			' insert new text
+			Local textPtr:Byte Ptr = text.ToUTF8String()
+			bmx_mgta_scintilla_replacesel(sciPtr, textPtr)
+			MemFree(textPtr)
+		End If
+	End Method
+
+	Method SetColor(r:Int, g:Int, b:Int)
+		bmx_mgta_scintilla_stylesetback(sciPtr, r | g Shl 8 | b Shl 16)
 	End Method
 
 End Type
