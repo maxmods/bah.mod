@@ -180,14 +180,14 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 		' Build a style string
 		Local s:Int = r Shl 24 | g Shl 16 | b Shl 8 | (flags & $ff)
 		Local style:Int = lastStyle
-		
+
 		If s <> lastStyleValue Then
 		
 			Local styleText:String = String(s)
-			Local style:Int
 	
 			Local st:String = String(styleMap.ValueForKey(styleText))
 			If Not st Then
+
 				' is there already an entry for this one?
 				If styles[styleIndex] Then
 					' remove it from the map
@@ -250,7 +250,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 			realLength = length
 		End If
 
-		bmx_mgta_scintilla_startstyling(sciPtr, startPos, style)
+		bmx_mgta_scintilla_startstyling(sciPtr, startPos)
 		bmx_mgta_scintilla_setstyling(sciPtr, realLength, style)
 
 	End Method

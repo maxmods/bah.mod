@@ -46,7 +46,7 @@ Extern
 	Function bmx_mgta_scintilla_stylesetitalic(handle:Byte Ptr, style:Int, value:Int)
 	Function bmx_mgta_scintilla_stylesetbold(handle:Byte Ptr, style:Int, value:Int)
 	Function bmx_mgta_scintilla_stylesetunderline(handle:Byte Ptr, style:Int, value:Int)
-	Function bmx_mgta_scintilla_startstyling(handle:Byte Ptr, startPos:Int, style:Int)
+	Function bmx_mgta_scintilla_startstyling(handle:Byte Ptr, startPos:Int)
 	Function bmx_mgta_scintilla_setstyling(handle:Byte Ptr, realLength:Int, style:Int)
 	Function bmx_mgta_scintilla_gettextrange:String(handle:Byte Ptr, startPos:Int, endPos:Int)
 	

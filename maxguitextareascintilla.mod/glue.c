@@ -118,8 +118,8 @@ void bmx_mgta_scintilla_stylesetunderline(ScintillaObject * sci, int style, int 
 	scintilla_send_message(sci, SCI_STYLESETUNDERLINE, style, value);
 }
 
-void bmx_mgta_scintilla_startstyling(ScintillaObject * sci, int startPos, int style) {
-	scintilla_send_message(sci, SCI_STARTSTYLING, startPos, style);
+void bmx_mgta_scintilla_startstyling(ScintillaObject * sci, int startPos) {
+	scintilla_send_message(sci, SCI_STARTSTYLING, startPos, 0x1f);
 }
 
 void bmx_mgta_scintilla_setstyling(ScintillaObject * sci, int realLength, int style) {
