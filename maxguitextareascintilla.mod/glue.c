@@ -102,3 +102,47 @@ void bmx_mgta_scintilla_stylesetback(ScintillaObject * sci, int col) {
 	}
 }
 
+void bmx_mgta_scintilla_stylesetfore(ScintillaObject * sci, int style, int color) {
+	scintilla_send_message(sci, SCI_STYLESETFORE, style, color);
+}
+
+void bmx_mgta_scintilla_stylesetitalic(ScintillaObject * sci, int style, int value) {
+	scintilla_send_message(sci, SCI_STYLESETITALIC, style, value);
+}
+
+void bmx_mgta_scintilla_stylesetbold(ScintillaObject * sci, int style, int value) {
+	scintilla_send_message(sci, SCI_STYLESETBOLD, style, value);
+}
+
+void bmx_mgta_scintilla_stylesetunderline(ScintillaObject * sci, int style, int value) {
+	scintilla_send_message(sci, SCI_STYLESETUNDERLINE, style, value);
+}
+
+void bmx_mgta_scintilla_startstyling(ScintillaObject * sci, int startPos, int style) {
+	scintilla_send_message(sci, SCI_STARTSTYLING, startPos, style);
+}
+
+void bmx_mgta_scintilla_setstyling(ScintillaObject * sci, int realLength, int style) {
+	if (realLength == -1) {
+		realLength = scintilla_send_message(sci, SCI_GETLENGTH, 0, 0);
+	}
+	scintilla_send_message(sci, SCI_SETSTYLING, realLength, style);
+}
+
+BBString * bmx_mgta_scintilla_gettextrange(ScintillaObject * sci, int startPos, int endPos) {
+	if (endPos == -1) {
+		endPos = scintilla_send_message(sci, SCI_GETLENGTH, 0, 0);
+	}
+
+	struct Sci_TextRange range;
+	range.chrg.cpMin = startPos;
+	range.chrg.cpMax = endPos;
+	
+	range.lpstrText = malloc(endPos - startPos + 1);
+	
+	int len = scintilla_send_message(sci, SCI_GETTEXTRANGE, 0, &range);
+	
+	BBString * s = bbStringFromUTF8String(range.lpstrText);
+	free(range.lpstrText);
+	return s;
+}

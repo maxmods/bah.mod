@@ -42,6 +42,12 @@ Extern
 	Function bmx_mgta_scintilla_setselel(handle:Byte Ptr, startPos:Int, endPos:Int)
 	Function bmx_mgta_scintilla_replacesel(handle:Byte Ptr, text:Byte Ptr)
 	Function bmx_mgta_scintilla_stylesetback(handle:Byte Ptr, col:Int)
+	Function bmx_mgta_scintilla_stylesetfore(handle:Byte Ptr, style:Int, color:Int)
+	Function bmx_mgta_scintilla_stylesetitalic(handle:Byte Ptr, style:Int, value:Int)
+	Function bmx_mgta_scintilla_stylesetbold(handle:Byte Ptr, style:Int, value:Int)
+	Function bmx_mgta_scintilla_stylesetunderline(handle:Byte Ptr, style:Int, value:Int)
+	Function bmx_mgta_scintilla_startstyling(handle:Byte Ptr, startPos:Int, style:Int)
+	Function bmx_mgta_scintilla_setstyling(handle:Byte Ptr, realLength:Int, style:Int)
+	Function bmx_mgta_scintilla_gettextrange:String(handle:Byte Ptr, startPos:Int, endPos:Int)
 	
 End Extern
-

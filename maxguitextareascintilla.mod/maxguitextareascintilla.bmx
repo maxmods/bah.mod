@@ -57,6 +57,13 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 	Field sciPtr:Byte Ptr
 	Field sciId:Int
+	
+	Field styleMap:TMap = New TMap
+	Field styles:Int[] = New Int[31]
+	Field styleIndex:Int = 0
+	
+	Field lastStyleValue:Int
+	Field lastStyle:Int
 
 	Global sci_id_count:Int = 0
 
@@ -166,6 +173,124 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 	Method SetColor(r:Int, g:Int, b:Int)
 		bmx_mgta_scintilla_stylesetback(sciPtr, r | g Shl 8 | b Shl 16)
+	End Method
+
+	Method SetStyle(r:Int, g:Int, b:Int, flags:Int, pos:Int, length:Int, units:Int)
+
+		' Build a style string
+		Local s:Int = r Shl 24 | g Shl 16 | b Shl 8 | (flags & $ff)
+		Local style:Int = lastStyle
+		
+		If s <> lastStyleValue Then
+		
+			Local styleText:String = String(s)
+			Local style:Int
+	
+			Local st:String = String(styleMap.ValueForKey(styleText))
+			If Not st Then
+				' is there already an entry for this one?
+				If styles[styleIndex] Then
+					' remove it from the map
+					styleMap.Remove(String(styles[styleIndex]))
+				End If
+				
+				styles[styleIndex] = s
+				
+				styleMap.Insert(styleText, Chr(styleIndex + 65))
+				style = styleIndex
+				
+				styleIndex :+ 1
+				If styleIndex > 31 Then
+					styleIndex = 0
+				End If
+
+				' create the styling
+				bmx_mgta_scintilla_stylesetfore(sciPtr, style, r | g Shl 8 | b Shl 16)
+	
+				If flags & TEXTFORMAT_ITALIC Then
+					bmx_mgta_scintilla_stylesetitalic(sciPtr, style, True)
+				Else
+					bmx_mgta_scintilla_stylesetitalic(sciPtr, style, False)
+				End If
+	
+				If flags & TEXTFORMAT_BOLD Then
+					bmx_mgta_scintilla_stylesetbold(sciPtr, style, True)
+				Else
+					bmx_mgta_scintilla_stylesetbold(sciPtr, style, False)
+				End If
+	
+				If flags & TEXTFORMAT_UNDERLINE Then
+					bmx_mgta_scintilla_stylesetunderline(sciPtr, style, True)
+				Else
+					bmx_mgta_scintilla_stylesetunderline(sciPtr, style, False)
+				End If
+				
+			Else
+				style = Asc(st) - 65
+			End If
+			
+			lastStyle = style
+			lastStyleValue = s
+
+		End If
+		
+		applyStyle(pos, length, units, style)
+		
+	End Method
+	
+	Method applyStyle(pos:Int, length:Int, units:Int, style:Int)
+		Local startPos:Int
+		Local realLength:Int
+
+		If units = TEXTAREA_LINES Then
+			startPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos)
+			realLength = bmx_mgta_scintilla_positionfromline(sciPtr, pos + length) - startPos
+		Else ' must be TEXTAREA_CHARS
+			startPos = pos
+			realLength = length
+		End If
+
+		bmx_mgta_scintilla_startstyling(sciPtr, startPos, style)
+		bmx_mgta_scintilla_setstyling(sciPtr, realLength, style)
+
+	End Method
+
+	Method AreaText:String(pos:Int, length:Int, units:Int)
+		Local startPos:Int
+		Local endPos:Int
+
+		If units = TEXTAREA_LINES Then
+			startPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos)
+			endPos = bmx_mgta_scintilla_positionfromline(sciPtr, pos + length)
+		Else ' must be TEXTAREA_CHARS
+			startPos = pos
+			endPos = pos + length
+		End If
+		
+		Return bmx_mgta_scintilla_gettextrange(sciPtr, startPos, endPos)
+	End Method
+
+	Method AreaLen:Int(units:Int)
+		' TODO
+		If units = TEXTAREA_LINES Then
+			
+		Else
+			
+		End If
+	End Method
+
+	Method GetCursorPos:Int(units:Int)
+		Local pos:Int = 0
+
+		' TODO
+
+		Return pos
+	End Method
+
+	Method SetTabs(tabs:Int)
+
+		' TODO
+
 	End Method
 
 End Type
