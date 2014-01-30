@@ -4375,7 +4375,18 @@ Type TGTKToolbar Extends TGTKGadget
 
 		Return state
 	End Method
-	
+
+	Method RemoveListItem(index:Int)
+		If toolitems[index] Then
+			gtk_container_remove(handle, toolitems[index])
+
+			For Local i:Int = index Until toolitems.length - 1
+				toolitems[i] = toolitems[i + 1]
+			Next
+			toolitems = toolitems[..toolitems.length - 1]
+		End If
+	End Method
+
 	Method rethink()
 	End Method
 
