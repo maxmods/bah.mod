@@ -1083,8 +1083,8 @@ Print "OnDragDrop"
 	Method setIcon(pix:TPixmap)
 		If pix <> Null Then
 			Local pixmap:TPixmap = pix.convert( PF_RGBA8888 )
-			Local icon:Int = gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
-						pixmap.width, pixmap.height, pixmap.Pitch, Null, Null)
+			Local icon:Int = Int(gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
+						pixmap.width, pixmap.height, pixmap.Pitch, Null, Null))
 			gtk_window_set_icon(handle, icon)
 		End If
 	End Method
@@ -2930,7 +2930,7 @@ Type TGTKTabber Extends TGTKContainer
 		Next
 
 		If image Then
-			images[index] = gtk_image_new_from_pixbuf(image)
+			images[index] = gtk_image_new_from_pixbuf(Byte Ptr(image))
 			gtk_widget_show(images[index])
 		Else
 			images[index] = gtk_image_new()
@@ -3272,7 +3272,11 @@ Type TGTKPanel Extends TGTKContainer
 		Local panel:TGTKPanel = TGTKPanel(obj)
 		If panel Then
 			If panel.drawPixbuf And panel.visualpixbuf Then
-				gdk_draw_pixbuf(gtk_widget_get_window(panel.handle), Null, panel.visualpixbuf, 0, 0, panel.pbx, panel.pby, -1, -1, 0, 0, 0)
+				Local cairo:Byte Ptr = gdk_cairo_create(gtk_layout_get_bin_window(panel.handle))
+				gdk_cairo_set_source_pixbuf(cairo, panel.visualpixbuf, panel.pbx, panel.pby)
+				cairo_paint(cairo)
+				cairo_fill(cairo)
+				cairo_destroy(cairo)
 			End If
 		End If
 		PostGuiEvent(EVENT_GADGETPAINT, TGadget(obj))
@@ -3429,8 +3433,8 @@ Type TGTKPanel Extends TGTKContainer
 				g_object_unref(panelPixbuf)
 			End If
 
-			panelPixbuf = Int Ptr(gdk_pixbuf_new_from_data(panelPixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
-							panelPixmap.width, panelPixmap.height, panelPixmap.Pitch, Null, Null))
+			panelPixbuf = gdk_pixbuf_new_from_data(panelPixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
+							panelPixmap.width, panelPixmap.height, panelPixmap.Pitch, Null, Null)
 		Else
 			If panelPixmap Then
 				panelPixmap = Null
@@ -4212,8 +4216,8 @@ Type TGTKIconStrip Extends TIconStrip
 		For x=0 Until n
 			winpix = pixmap.Window(x*w,0,w,pixmap.height)
 			If IsNotBlank(winpix) Then
-				icons.images[x]= gdk_pixbuf_new_from_data(winpix.pixels, GDK_COLORSPACE_RGB, True, 8, ..
-						w, h, pixmap.Pitch, Null, Null)
+				icons.images[x]= Int(gdk_pixbuf_new_from_data(winpix.pixels, GDK_COLORSPACE_RGB, True, 8, ..
+						w, h, pixmap.Pitch, Null, Null))
 			End If
 		Next
 		Return icons
@@ -4277,7 +4281,7 @@ Type TGTKToolbar Extends TGTKGadget
 		Next
 
 		If image Then
-			Local imageWidget:Byte Ptr = gtk_image_new_from_pixbuf(image)
+			Local imageWidget:Byte Ptr = gtk_image_new_from_pixbuf(Byte Ptr(image))
 			gtk_widget_show(imageWidget)
 	
 			Local textPtr:Byte Ptr = text.ToUTF8String()

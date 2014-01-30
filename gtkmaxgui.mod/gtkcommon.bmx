@@ -38,11 +38,11 @@ Import "-lglib-2.0"
 Import "-lgtk-x11-2.0"
 Import "-lgdk-x11-2.0"
 Import "-latk-1.0"
-'Import "-lpangox-1.0"
 Import "-lpango-1.0"
 Import "-lgobject-2.0"
 Import "-lgmodule-2.0"
 Import "-lgdk_pixbuf-2.0"
+Import "-lcairo"
 ?
 
 Incbin "gtk_triangle.png"
@@ -90,7 +90,7 @@ Extern
 	Function gtk_window_set_type_hint(window:Byte Ptr, hint:Int)
 	Function gtk_window_set_icon(window:Byte Ptr, pixbuf:Int)
 	Function gtk_window_present(window:Byte Ptr)
-	Function gtk_window_set_default_icon(pixbuf:Int)
+	Function gtk_window_set_default_icon(pixbuf:Byte Ptr)
 	Function gtk_window_resize(window:Byte Ptr, width:Int, height:Int)
 	Function gtk_window_get_title:Byte Ptr(window:Byte Ptr)
 	Function gtk_window_set_transient_for(window:Byte Ptr, parent:Byte Ptr)
@@ -130,6 +130,7 @@ Extern
 	Function gtk_widget_has_focus:Int(widget:Byte Ptr)
 	Function gtk_widget_get_window:Byte Ptr(widget:Byte Ptr)
 	Function gtk_widget_get_allocation(widget:Byte Ptr, allocation:Byte Ptr)
+	Function gtk_layout_get_bin_window:Byte Ptr(handle:Byte Ptr)
 
 	Function gtk_button_new:Byte Ptr()
 	Function gtk_button_new_with_label:Byte Ptr(label:Byte Ptr)
@@ -364,13 +365,13 @@ Extern
 	Function gdk_screen_get_root_window:Byte Ptr(screen:Byte Ptr)
 	Function gdk_screen_get_display:Byte Ptr(screen:Byte Ptr)
 
-	Function gdk_pixbuf_new_from_data:Int(data:Byte Ptr, colorspace:Int, ..
+	Function gdk_pixbuf_new_from_data:Byte Ptr(data:Byte Ptr, colorspace:Int, ..
 					has_alpha:Int, bits_per_sample:Int, width:Int, height:Int, ..
                     rowstride:Int, destroy_fn:Byte Ptr, data_fn:Byte Ptr)
 	Function gdk_pixbuf_new:Byte Ptr(colorspace:Int, alpha:Int, bits:Int, width:Int, height:Int)
 	Function gdk_pixbuf_new_subpixbuf:Byte Ptr(src:Byte Ptr, srcx:Int, srcy:Int, width:Int, height:Int)
 	Function gdk_pixbuf_copy_area(src:Byte Ptr, srcx:Int, srcy:Int, width:Int, height:Int, dest:Byte Ptr, destx:Int, desty:Int)
-	Function gtk_image_new_from_pixbuf:Byte Ptr(image:Int)
+	Function gtk_image_new_from_pixbuf:Byte Ptr(image:Byte Ptr)
 	Function gtk_image_new:Byte Ptr()
 	Function gtk_image_set_from_pixbuf(widgetPtr:Byte Ptr, image:Int)
 	Function gdk_pixbuf_rotate_simple:Byte Ptr(pixbuf:Byte Ptr, rotate:Int)
@@ -525,6 +526,13 @@ Extern
 	Function gtk_widget_get_default_style:Byte Ptr()
 	Function bmx_gtk_style_get_fontdesc:Byte Ptr(handle:Byte Ptr)
 	
+	
+	Function gdk_cairo_create:Byte Ptr(handle:Byte Ptr)
+	Function gdk_cairo_set_source_pixbuf(handle:Byte Ptr, pixbuf:Byte Ptr, x:Int, y:Int)
+	Function cairo_paint(handle:Byte Ptr)
+	Function cairo_fill(handle:Byte Ptr)
+	Function cairo_destroy(handle:Byte Ptr)
+
 End Extern
 
 Type TGTKRequisition

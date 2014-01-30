@@ -688,7 +688,7 @@ Function SetAppIcon(pix:TPixmap)
 			pixmap = pix
 		End If
 
-		Local icon:Int = gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
+		Local icon:Byte Ptr = gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
 					pixmap.width, pixmap.height, pixmap.Pitch, Null, Null)
 		gtk_window_set_default_icon(icon)
 	End If
