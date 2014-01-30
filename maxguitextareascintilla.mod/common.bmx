@@ -58,6 +58,10 @@ Extern
 	Function bmx_mgta_scintilla_settargetstart(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_settargetend(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_replacetarget(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_mgta_scintilla_cut(handle:Byte Ptr)
+	Function bmx_mgta_scintilla_copy(handle:Byte Ptr)
+	Function bmx_mgta_scintilla_paste(handle:Byte Ptr)
+	Function bmx_mgta_scintilla_linefromposition:Int(handle:Byte Ptr, index:Int)
 
 End Extern
 

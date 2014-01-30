@@ -100,12 +100,41 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 
 		addConnection("sci-notify", g_signal_cbsci(handle, "sci-notify", OnSciNotify, Self, Destroy, 0))
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
+		addConnection("button-release-event", g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0))
 		
 		' set some default monospaced font
 		SetFont(LookupGuiFont(GUIFONT_MONOSPACED))
 
 	End Method
 	
+	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
+
+		If button = 3 Then ' right mouse button
+			' ignore this...  see MouseUp for menu event!
+			Return True
+		End If
+
+		PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj))
+	End Function
+
+	Rem
+	bbdoc: Callback for mouse button release
+	End Rem
+	Function OnMouseUp:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
+		Local x:Double, y:Double, button:Int
+		bmx_gtkmaxgui_gdkeventbutton(event, Varptr x, Varptr y, Varptr button)
+
+		If button = 3 Then ' right mouse button
+			PostGuiEvent(EVENT_GADGETMENU, TGadget(obj),,,x,y)
+			Return True
+		End If
+
+		PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj))
+	End Function
+
 	Method GetText:String()
 		Return bmx_mgta_scintilla_gettext(sciPtr)
 	End Method
@@ -300,6 +329,29 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 	End Method
 
+	Method Activate(cmd:Int)
+		Super.Activate(cmd)
+
+		Select cmd
+			Case ACTIVATE_CUT
+				bmx_mgta_scintilla_cut(sciPtr)
+
+			Case ACTIVATE_COPY
+				bmx_mgta_scintilla_copy(sciPtr)
+
+			Case ACTIVATE_PASTE
+				bmx_mgta_scintilla_paste(sciPtr)
+
+		End Select
+	End Method
+
+	Method CharAt:Int(line:Int)
+		Return bmx_mgta_scintilla_positionfromline(sciPtr, line)
+	End Method
+
+	Method LineAt:Int(index:Int)
+		Return bmx_mgta_scintilla_linefromposition(sciPtr, index)
+	End Method
 
 	Function OnSciNotify(widget:Byte Ptr, id:Int, notificationPtr:Byte Ptr, obj:Object)
 		Local ta:TGTKScintillaTextArea = TGTKScintillaTextArea(obj)

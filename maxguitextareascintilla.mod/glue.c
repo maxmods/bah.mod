@@ -67,6 +67,10 @@ void bmx_mgta_scintilla_setfont(ScintillaObject * sci, BBString * name, int size
 		scintilla_send_message(sci, SCI_STYLESETSIZE, style, size);
 	}
 	
+	/* set the linenumber margin width */
+	int textWidth = scintilla_send_message(sci, SCI_TEXTWIDTH, STYLE_LINENUMBER, "_99999");
+	scintilla_send_message(sci, SCI_SETMARGINWIDTHN, 0, textWidth);
+	
 	bbMemFree(n);
 }
 
@@ -97,7 +101,7 @@ void bmx_mgta_scintilla_replacesel(ScintillaObject * sci, const char * text) {
 void bmx_mgta_scintilla_stylesetback(ScintillaObject * sci, int col) {
 	int style;
 	
-	for (style = 0; style < STYLE_MAX; style++) {
+	for (style = 0; style < 33; style++) {
 		scintilla_send_message(sci, SCI_STYLESETBACK, style, col);
 	}
 }
@@ -178,3 +182,20 @@ void bmx_mgta_scintilla_settargetend(ScintillaObject * sci, int pos) {
 void bmx_mgta_scintilla_replacetarget(ScintillaObject * sci, const char * text) {
 	scintilla_send_message(sci, SCI_REPLACETARGET, -1, text);
 }
+
+void bmx_mgta_scintilla_cut(ScintillaObject * sci) {
+	scintilla_send_message(sci, SCI_CUT, 0, 0);
+}
+
+void bmx_mgta_scintilla_copy(ScintillaObject * sci) {
+	scintilla_send_message(sci, SCI_COPY, 0, 0);
+}
+
+void bmx_mgta_scintilla_paste(ScintillaObject * sci) {
+	scintilla_send_message(sci, SCI_PASTE, 0, 0);
+}
+
+int bmx_mgta_scintilla_linefromposition(ScintillaObject * sci, int pos) {
+	return scintilla_send_message(sci, SCI_LINEFROMPOSITION, pos, 0);
+}
+
