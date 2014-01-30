@@ -62,10 +62,16 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	Field styles:Int[] = New Int[31]
 	Field styleIndex:Int = 0
 	
-	Field lastStyleValue:Int
+	Field lastStyleValue:Int = -1
 	Field lastStyle:Int
 
 	Global sci_id_count:Int = 0
+	
+	Field ignoreChange:Int
+	
+	' holder for the latest notification
+	' keep one in the type rather than locally in the callback function so we don't have to create a new object for every notification
+	Field notification:TSCNotification = New TSCNotification
 
 	Function CreateTextArea:TGTKTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKScintillaTextArea = New TGTKScintillaTextArea
@@ -92,11 +98,14 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 		gtk_layout_put(TGTKContainer(parent).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
 
+
+		addConnection("sci-notify", g_signal_cbsci(handle, "sci-notify", OnSciNotify, Self, Destroy, 0))
+		
 		' set some default monospaced font
 		SetFont(LookupGuiFont(GUIFONT_MONOSPACED))
 
 	End Method
-
+	
 	Method GetText:String()
 		Return bmx_mgta_scintilla_gettext(sciPtr)
 	End Method
@@ -124,7 +133,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	bbdoc: Set the text area selection
 	End Rem
 	Method SetSelection(pos:Int, length:Int, units:Int)
-
+		ignoreChange = True
 		Local startPos:Int
 		Local endPos:Int
 
@@ -146,7 +155,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	End Method
 
 	Method ReplaceText(pos:Int, length:Int, text:String, units:Int)
-
+		ignoreChange = True
 		If length = TEXTAREA_ALL Then
 			SetText(text)
 		Else
@@ -161,12 +170,12 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 				endPos = pos + length
 			End If
 
-			bmx_mgta_scintilla_setselectionstart(sciPtr, startPos)
-			bmx_mgta_scintilla_setselectionend(sciPtr, endPos)
+			bmx_mgta_scintilla_settargetstart(sciPtr, startPos)
+			bmx_mgta_scintilla_settargetend(sciPtr, endPos)
 	
 			' insert new text
 			Local textPtr:Byte Ptr = text.ToUTF8String()
-			bmx_mgta_scintilla_replacesel(sciPtr, textPtr)
+			bmx_mgta_scintilla_replacetarget(sciPtr, textPtr)
 			MemFree(textPtr)
 		End If
 	End Method
@@ -176,7 +185,6 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	End Method
 
 	Method SetStyle(r:Int, g:Int, b:Int, flags:Int, pos:Int, length:Int, units:Int)
-
 		' Build a style string
 		Local s:Int = r Shl 24 | g Shl 16 | b Shl 8 | (flags & $ff)
 		Local style:Int = lastStyle
@@ -271,27 +279,49 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	End Method
 
 	Method AreaLen:Int(units:Int)
-		' TODO
 		If units = TEXTAREA_LINES Then
-			
+			Return bmx_mgta_scintilla_getlinecount(sciPtr)
 		Else
-			
+			Return bmx_mgta_scintilla_getlength(sciPtr)
 		End If
 	End Method
 
 	Method GetCursorPos:Int(units:Int)
-		Local pos:Int = 0
-
-		' TODO
-
-		Return pos
+		If units = TEXTAREA_LINES Then
+			Return bmx_mgta_scintilla_getcurrentline(sciPtr)
+		Else
+			Return bmx_mgta_scintilla_getcurrentpos(sciPtr)
+		End If
 	End Method
 
 	Method SetTabs(tabs:Int)
 
-		' TODO
+		bmx_mgta_scintilla_settabwidth(sciPtr, tabs)
 
 	End Method
+
+
+	Function OnSciNotify(widget:Byte Ptr, id:Int, notificationPtr:Byte Ptr, obj:Object)
+		Local ta:TGTKScintillaTextArea = TGTKScintillaTextArea(obj)
+		
+		MemCopy ta.notification, notificationPtr, SizeOf TSCNotification
+
+		Select ta.notification.code
+			Case SCN_UPDATEUI
+				If ta.notification.updated & SC_UPDATE_SELECTION Then
+					PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj))
+				End If
+			Case SCN_MODIFIED
+				If ta.notification.modificationType & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT) Then
+					If Not ta.ignoreChange Then
+						PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj))
+						PostGuiEvent(EVENT_GADGETACTION, TGadget(obj))
+					End If
+					ta.ignoreChange = False
+				End If
+		End Select
+
+	End Function
 
 End Type
 

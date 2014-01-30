@@ -146,3 +146,35 @@ BBString * bmx_mgta_scintilla_gettextrange(ScintillaObject * sci, int startPos, 
 	free(range.lpstrText);
 	return s;
 }
+
+int bmx_mgta_scintilla_getlinecount(ScintillaObject * sci) {
+	return scintilla_send_message(sci, SCI_GETLINECOUNT, 0, 0);
+}
+
+int bmx_mgta_scintilla_getlength(ScintillaObject * sci) {
+	return scintilla_send_message(sci, SCI_GETLENGTH, 0, 0);
+}
+
+int bmx_mgta_scintilla_getcurrentpos(ScintillaObject * sci) {
+	return scintilla_send_message(sci, SCI_GETCURRENTPOS, 0, 0);
+}
+
+int bmx_mgta_scintilla_getcurrentline(ScintillaObject * sci) {
+	return scintilla_send_message(sci, SCI_LINEFROMPOSITION, scintilla_send_message(sci, SCI_GETCURRENTPOS, 0, 0), 0);
+}
+
+void bmx_mgta_scintilla_settabwidth(ScintillaObject * sci, int tabs) {
+	scintilla_send_message(sci, SCI_SETTABWIDTH, tabs, 0);
+}
+
+void bmx_mgta_scintilla_settargetstart(ScintillaObject * sci, int pos) {
+	scintilla_send_message(sci, SCI_SETTARGETSTART, pos, 0);
+}
+
+void bmx_mgta_scintilla_settargetend(ScintillaObject * sci, int pos) {
+	scintilla_send_message(sci, SCI_SETTARGETEND, pos, 0);
+}
+
+void bmx_mgta_scintilla_replacetarget(ScintillaObject * sci, const char * text) {
+	scintilla_send_message(sci, SCI_REPLACETARGET, -1, text);
+}
