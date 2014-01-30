@@ -62,6 +62,8 @@ Extern
 	Function bmx_mgta_scintilla_copy(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_paste(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_linefromposition:Int(handle:Byte Ptr, index:Int)
+	Function bmx_mgta_scintilla_appendtext(handle:Byte Ptr, text:String)
+	Function bmx_mgta_scintilla_scrolltoend(handle:Byte Ptr)
 
 End Extern
 

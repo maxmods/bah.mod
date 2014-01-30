@@ -199,3 +199,13 @@ int bmx_mgta_scintilla_linefromposition(ScintillaObject * sci, int pos) {
 	return scintilla_send_message(sci, SCI_LINEFROMPOSITION, pos, 0);
 }
 
+void bmx_mgta_scintilla_appendtext(ScintillaObject * sci, BBString * text) {
+	char * s = bbStringToUTF8String(text);
+	scintilla_send_message(sci, SCI_APPENDTEXT, strlen(s), s);
+	bbMemFree(s);
+}
+
+void bmx_mgta_scintilla_scrolltoend(ScintillaObject * sci) {
+	scintilla_send_message(sci, SCI_GOTOPOS, scintilla_send_message(sci, SCI_GETLENGTH, 0, 0), 0);
+}
+

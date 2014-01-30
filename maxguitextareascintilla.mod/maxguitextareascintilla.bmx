@@ -183,6 +183,15 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 	End Method
 
+	Method AddText(text:String)
+		ignoreChange = True
+
+		bmx_mgta_scintilla_appendtext(sciPtr, text)
+
+		brl.System.Driver.Poll() ' update events, before scrolling to the end...
+		bmx_mgta_scintilla_scrolltoend(sciPtr)
+	End Method
+
 	Method ReplaceText(pos:Int, length:Int, text:String, units:Int)
 		ignoreChange = True
 		If length = TEXTAREA_ALL Then
