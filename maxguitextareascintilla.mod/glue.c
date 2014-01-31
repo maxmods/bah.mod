@@ -95,6 +95,7 @@ int bmx_mgta_scintilla_charfrombyte(ScintillaObject * sci, int pos) {
 				characterOffset++;
 		}
 	}
+	free(range.lpstrText);
 
 	return characterOffset;
 }
@@ -133,6 +134,7 @@ int bmx_mgta_scintilla_bytefromchar(ScintillaObject * sci, int charLength, int s
 				}
 		}
 	}
+	free(range.lpstrText);
 
 	return i + 1;
 }
