@@ -30,6 +30,9 @@
 ScintillaObject * bmx_mgta_scintilla_getsci(GtkWidget * editor, int id) {
 	ScintillaObject * obj = SCINTILLA(editor);
 	scintilla_set_id(obj, id);
+
+	scintilla_send_message(obj, SCI_SETCODEPAGE, SC_CP_UTF8, 0);
+
 	return obj;
 }
 
@@ -40,7 +43,7 @@ BBString * bmx_mgta_scintilla_gettext(ScintillaObject * sci) {
 	
 	scintilla_send_message(sci, SCI_GETTEXT, len, buffer);
 	
-	BBString * s = bbStringFromCString(buffer);
+	BBString * s = bbStringFromUTF8String(buffer);
 	
 	free(buffer);
 
@@ -74,8 +77,69 @@ void bmx_mgta_scintilla_setfont(ScintillaObject * sci, BBString * name, int size
 	bbMemFree(n);
 }
 
-int bmx_mgta_scintilla_positionfromline(ScintillaObject * sci, int line) {
-	return scintilla_send_message(sci, SCI_POSITIONFROMLINE, line, 0);
+int bmx_mgta_scintilla_charfrombyte(ScintillaObject * sci, int pos) {
+	int i;
+	int characterOffset = 0;
+
+	struct Sci_TextRange range;
+	range.chrg.cpMin = 0;
+	range.chrg.cpMax = pos;
+	
+	range.lpstrText = malloc(pos + 1);
+	
+	int len = scintilla_send_message(sci, SCI_GETTEXTRANGE, 0, &range);
+
+	for (i = 0; i < pos; i++) {
+		char c = range.lpstrText[i];
+		if ((c & 0xc0) != 0x80) {
+				characterOffset++;
+		}
+	}
+
+	return characterOffset;
+}
+
+/* startBytePos is a known byte offset for startCharPos */
+int bmx_mgta_scintilla_bytefromchar(ScintillaObject * sci, int charLength, int startBytePos, int startCharPos) {
+	int i;
+	int characterOffset = startBytePos;
+
+	int characters = charLength;
+	if (!characters) {
+		return startBytePos;
+	}
+
+	int endBytePos = scintilla_send_message(sci, SCI_GETLENGTH, 0, 0);
+
+	if (characters == -1) {
+		return endBytePos;
+	}
+
+	int length = endBytePos - startBytePos + 1;
+
+	struct Sci_TextRange range;
+	range.chrg.cpMin = startBytePos;
+	range.chrg.cpMax = endBytePos;
+	
+	range.lpstrText = malloc(length);
+	
+	int len = scintilla_send_message(sci, SCI_GETTEXTRANGE, 0, &range);
+
+	for (i = 0; i < len; i++) {
+		char c = range.lpstrText[i];
+		if ((c & 0xc0) != 0x80) {
+				if (! --characters) {
+					break;
+				}
+		}
+	}
+
+	return i + 1;
+}
+
+int bmx_mgta_scintilla_positionfromline(ScintillaObject * sci, int line, int valueInBytes) {
+	int bytePos = scintilla_send_message(sci, SCI_POSITIONFROMLINE, line, 0);
+	return (valueInBytes) ? bytePos : bmx_mgta_scintilla_charfrombyte(sci, bytePos);
 }
 
 void bmx_mgta_scintilla_setselectionstart(ScintillaObject * sci, int pos) {
@@ -160,7 +224,8 @@ int bmx_mgta_scintilla_getlength(ScintillaObject * sci) {
 }
 
 int bmx_mgta_scintilla_getcurrentpos(ScintillaObject * sci) {
-	return scintilla_send_message(sci, SCI_GETCURRENTPOS, 0, 0);
+	int bytePos = scintilla_send_message(sci, SCI_GETCURRENTPOS, 0, 0);
+	return bmx_mgta_scintilla_charfrombyte(sci, bytePos);
 }
 
 int bmx_mgta_scintilla_getcurrentline(ScintillaObject * sci) {
