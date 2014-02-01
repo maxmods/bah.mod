@@ -77,19 +77,24 @@ void bmx_mgta_scintilla_setfont(ScintillaObject * sci, BBString * name, int size
 	bbMemFree(n);
 }
 
-int bmx_mgta_scintilla_charfrombyte(ScintillaObject * sci, int pos) {
+int bmx_mgta_scintilla_charfrombyte(ScintillaObject * sci, int pos, int startPos) {
 	int i;
 	int characterOffset = 0;
+	int length = pos - startPos;
+
+	if (length == 0) {
+		return 0;
+	}
 
 	struct Sci_TextRange range;
-	range.chrg.cpMin = 0;
+	range.chrg.cpMin = startPos;
 	range.chrg.cpMax = pos;
 	
-	range.lpstrText = malloc(pos + 1);
+	range.lpstrText = malloc(length + 1);
 	
 	int len = scintilla_send_message(sci, SCI_GETTEXTRANGE, 0, &range);
 
-	for (i = 0; i < pos; i++) {
+	for (i = 0; i < length; i++) {
 		char c = range.lpstrText[i];
 		if ((c & 0xc0) != 0x80) {
 				characterOffset++;
@@ -141,7 +146,7 @@ int bmx_mgta_scintilla_bytefromchar(ScintillaObject * sci, int charLength, int s
 
 int bmx_mgta_scintilla_positionfromline(ScintillaObject * sci, int line, int valueInBytes) {
 	int bytePos = scintilla_send_message(sci, SCI_POSITIONFROMLINE, line, 0);
-	return (valueInBytes) ? bytePos : bmx_mgta_scintilla_charfrombyte(sci, bytePos);
+	return (valueInBytes) ? bytePos : bmx_mgta_scintilla_charfrombyte(sci, bytePos, 0);
 }
 
 void bmx_mgta_scintilla_setselectionstart(ScintillaObject * sci, int pos) {
@@ -156,7 +161,7 @@ void bmx_mgta_scintilla_scrollcaret(ScintillaObject * sci) {
 	scintilla_send_message(sci, SCI_SCROLLCARET, 0, 0);
 }
 
-void bmx_mgta_scintilla_setselel(ScintillaObject * sci, int startPos, int endPos) {
+void bmx_mgta_scintilla_setsel(ScintillaObject * sci, int startPos, int endPos) {
 	scintilla_send_message(sci, SCI_SETSEL, startPos, endPos);
 }
 
@@ -226,12 +231,12 @@ int bmx_mgta_scintilla_getlength(ScintillaObject * sci) {
 }
 
 int bmx_mgta_scintilla_getcurrentpos(ScintillaObject * sci) {
-	int bytePos = scintilla_send_message(sci, SCI_GETCURRENTPOS, 0, 0);
-	return bmx_mgta_scintilla_charfrombyte(sci, bytePos);
+	int bytePos = scintilla_send_message(sci, SCI_GETSELECTIONSTART, 0, 0);
+	return bmx_mgta_scintilla_charfrombyte(sci, bytePos, 0);
 }
 
 int bmx_mgta_scintilla_getcurrentline(ScintillaObject * sci) {
-	return scintilla_send_message(sci, SCI_LINEFROMPOSITION, scintilla_send_message(sci, SCI_GETCURRENTPOS, 0, 0), 0);
+	return scintilla_send_message(sci, SCI_LINEFROMPOSITION, scintilla_send_message(sci, SCI_GETSELECTIONSTART, 0, 0), 0);
 }
 
 void bmx_mgta_scintilla_settabwidth(ScintillaObject * sci, int tabs) {
@@ -274,5 +279,24 @@ void bmx_mgta_scintilla_appendtext(ScintillaObject * sci, BBString * text) {
 
 void bmx_mgta_scintilla_scrolltoend(ScintillaObject * sci) {
 	scintilla_send_message(sci, SCI_GOTOPOS, scintilla_send_message(sci, SCI_GETLENGTH, 0, 0), 0);
+}
+
+int bmx_mgta_scintilla_getselectionlength(ScintillaObject * sci, int units) {
+	if (units == 2) {
+		/* lines */
+		int startPos = scintilla_send_message(sci, SCI_LINEFROMPOSITION, scintilla_send_message(sci, SCI_GETSELECTIONSTART, 0, 0), 0);
+		int endPos = scintilla_send_message(sci, SCI_LINEFROMPOSITION, scintilla_send_message(sci, SCI_GETSELECTIONEND, 0, 0), 0);
+		return endPos - startPos;
+	} else {
+		/* chars */
+		int startPos = bmx_mgta_scintilla_charfrombyte(sci, scintilla_send_message(sci, SCI_GETSELECTIONSTART, 0, 0), 0);
+		int length = bmx_mgta_scintilla_charfrombyte(sci, scintilla_send_message(sci, SCI_GETSELECTIONEND, 0, 0), startPos);
+		return length;
+	}
+}
+
+void bmx_mgta_scintilla_addtext(ScintillaObject * sci, gchar * text) {
+	int length = strlen(text);
+	scintilla_send_message(sci, SCI_ADDTEXT, length, text);
 }
 

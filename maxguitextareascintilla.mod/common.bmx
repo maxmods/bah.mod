@@ -40,7 +40,7 @@ Extern
 	Function bmx_mgta_scintilla_setselectionstart(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_setselectionend(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_scrollcaret(handle:Byte Ptr)
-	Function bmx_mgta_scintilla_setselel(handle:Byte Ptr, startPos:Int, endPos:Int)
+	Function bmx_mgta_scintilla_setsel(handle:Byte Ptr, startPos:Int, endPos:Int)
 	Function bmx_mgta_scintilla_replacesel(handle:Byte Ptr, text:Byte Ptr)
 	Function bmx_mgta_scintilla_stylesetback(handle:Byte Ptr, col:Int)
 	Function bmx_mgta_scintilla_stylesetfore(handle:Byte Ptr, style:Int, color:Int)
@@ -65,6 +65,8 @@ Extern
 	Function bmx_mgta_scintilla_appendtext(handle:Byte Ptr, text:String)
 	Function bmx_mgta_scintilla_scrolltoend(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_bytefromchar:Int(handle:Byte Ptr, charPos:Int, startBytePos:Int, startCharPos:Int)
+	Function bmx_mgta_scintilla_getselectionlength:Int(handle:Byte Ptr, units:Int)
+	Function bmx_mgta_scintilla_addtext(handle:Byte Ptr, text:Byte Ptr)
 
 End Extern
 

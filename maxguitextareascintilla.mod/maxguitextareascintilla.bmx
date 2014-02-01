@@ -162,7 +162,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	bbdoc: Set the text area selection
 	End Rem
 	Method SetSelection(pos:Int, length:Int, units:Int)
-		ignoreChange = True
+		'ignoreChange = True
 		Local startPos:Int
 		Local endPos:Int
 
@@ -186,7 +186,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 			End If
 		End If
 
-		bmx_mgta_scintilla_setselel(sciPtr, startPos, endPos)
+		bmx_mgta_scintilla_setsel(sciPtr, startPos, endPos)
 
 
 		PostGuiEvent(EVENT_GADGETSELECT, Self)
@@ -195,6 +195,22 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 '		bmx_mgta_scintilla_scrollcaret(sciPtr)
 
 	End Method
+
+	Method GetSelectionLength:Int(units:Int)
+		Return bmx_mgta_scintilla_getselectionlength(sciPtr, units)
+	End Method
+
+	Method SetMargins(leftmargin:Int)
+		' TODO
+	End Method
+
+	Method CharX:Int(char:Int)
+		' TODO
+	EndMethod
+
+	Method CharY:Int(char:Int)
+		' TODO
+	EndMethod
 
 	Method AddText(text:String)
 		ignoreChange = True
@@ -366,7 +382,13 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 				bmx_mgta_scintilla_copy(sciPtr)
 
 			Case ACTIVATE_PASTE
-				bmx_mgta_scintilla_paste(sciPtr)
+				' normal paste is asynchronous. Wait for text instead.
+				Local clipboard:Byte Ptr = gtk_clipboard_get(gdk_atom_intern("CLIPBOARD", True))
+				Local s:Byte Ptr = gtk_clipboard_wait_for_text(clipboard)
+				If s Then
+					bmx_mgta_scintilla_addtext(sciPtr, s)
+					g_free(s)
+				End If
 
 		End Select
 	End Method
