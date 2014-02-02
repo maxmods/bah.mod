@@ -141,7 +141,7 @@ int bmx_mgta_scintilla_bytefromchar(ScintillaObject * sci, int charLength, int s
 	}
 	free(range.lpstrText);
 
-	return i + 1;
+	return startBytePos + i + 1;
 }
 
 int bmx_mgta_scintilla_positionfromline(ScintillaObject * sci, int line, int valueInBytes) {

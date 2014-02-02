@@ -182,7 +182,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 				'startPos = pos
 				'endPos = pos + length
 				startPos = bmx_mgta_scintilla_bytefromchar(sciPtr, pos, 0, 0)
-				endPos = startPos + bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos)
+				endPos = bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos)
 			End If
 		End If
 
@@ -236,7 +236,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 				'startPos = pos
 				'endPos = pos + length
 				startPos = bmx_mgta_scintilla_bytefromchar(sciPtr, pos, 0, 0)
-				endPos = startPos + bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos)
+				endPos = bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos)
 			End If
 
 			bmx_mgta_scintilla_settargetstart(sciPtr, startPos)
@@ -324,7 +324,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 			realLength = bmx_mgta_scintilla_positionfromline(sciPtr, pos + length, True) - startPos
 		Else ' must be TEXTAREA_CHARS
 			startPos = bmx_mgta_scintilla_bytefromchar(sciPtr, pos, 0, 0)
-			realLength = bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos)
+			realLength = bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos) - startPos
 		End If
 
 		bmx_mgta_scintilla_startstyling(sciPtr, startPos)
@@ -343,7 +343,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 			'startPos = pos
 			'endPos = pos + length
 			startPos = bmx_mgta_scintilla_bytefromchar(sciPtr, pos, 0, 0)
-			endPos = startPos + bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos)
+			endPos = bmx_mgta_scintilla_bytefromchar(sciPtr, length, startPos, pos)
 		End If
 		
 		Return bmx_mgta_scintilla_gettextrange(sciPtr, startPos, endPos)
