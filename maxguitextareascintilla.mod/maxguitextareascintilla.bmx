@@ -382,13 +382,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 				bmx_mgta_scintilla_copy(sciPtr)
 
 			Case ACTIVATE_PASTE
-				' normal paste is asynchronous. Wait for text instead.
-				Local clipboard:Byte Ptr = gtk_clipboard_get(gdk_atom_intern("CLIPBOARD", True))
-				Local s:Byte Ptr = gtk_clipboard_wait_for_text(clipboard)
-				If s Then
-					bmx_mgta_scintilla_addtext(sciPtr, s)
-					g_free(s)
-				End If
+				bmx_mgta_scintilla_paste(sciPtr)
 
 		End Select
 	End Method
