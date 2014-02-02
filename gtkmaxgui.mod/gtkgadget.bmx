@@ -2860,7 +2860,7 @@ Type TGTKTabber Extends TGTKContainer
 	Field tooltips:Byte Ptr
 	Field images:Byte Ptr[]
 	Field labels:Byte Ptr[]
-	Field ignoreNextRedraw:Int
+	Field ignoreChange:Int
 
 	Function CreateTabber:TGTKTabber(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKTabber = New TGTKTabber
@@ -2905,7 +2905,10 @@ Type TGTKTabber Extends TGTKContainer
 	End Method
 
 	Function OnTabChanged(widget:Byte Ptr, a:Byte Ptr, index:Int, obj:Object)
-		PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), index,,,,TGadget(obj).ItemExtra(index))
+		If Not TGTKTabber(obj).ignoreChange Then
+			PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), index,,,,TGadget(obj).ItemExtra(index))
+		End If
+		TGTKTabber(obj).ignoreChange = False
 	End Function
 
 	Rem
@@ -3028,8 +3031,11 @@ Type TGTKTabber Extends TGTKContainer
 
 	Method SetListItemState(index:Int, state:Int)
 		If state & STATE_SELECTED Then
-			brl.System.Driver.Poll() ' update events
-			gtk_notebook_set_current_page(handle, index)
+			If gtk_notebook_get_current_page(handle) <> index Then
+				ignoreChange = True
+				brl.System.Driver.Poll() ' update events
+				gtk_notebook_set_current_page(handle, index)
+			End If
 		End If
 	End Method
 
