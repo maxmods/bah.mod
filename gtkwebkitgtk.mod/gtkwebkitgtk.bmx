@@ -67,6 +67,8 @@ End Type
 Type TGTKWebKitGtk Extends TGTKHTMLView
 
 	Field noNavigate:Int
+	Field scrollWindow:Byte Ptr
+	Field box:Byte Ptr
 
 	Function CreateHTMLView:TGTKWebKitGtk(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKWebKitGtk = New TGTKWebKitGtk
@@ -84,8 +86,32 @@ Type TGTKWebKitGtk Extends TGTKHTMLView
 
 		noNavigate = (style & HTMLVIEW_NONAVIGATE)
 
-		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
-		gtk_widget_set_size_request(handle, w, Max(h,0))
+
+		' create a scroll window for the html view
+		scrollWindow = gtk_scrolled_window_new(Null, Null)
+		' set container resize mode
+		gtk_container_set_resize_mode(scrollWindow, GTK_RESIZE_QUEUE)
+		' set scrollbar policy
+		gtk_scrolled_window_set_policy(scrollWindow, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+		' show
+		gtk_widget_show(scrollWindow)
+
+		' add the html view to the scroll view
+		gtk_container_add(scrollWindow, handle)
+
+
+		' We need to put this inside a box...  Why?  because we can't resize the webkit gadget 
+		' in code - but we *can* resize a box that holds the scrollwindow + webkit gadget...
+		box = gtk_vbox_new(False, 0)
+		gtk_widget_show(box)
+		gtk_box_pack_start(box, scrollWindow, True, True, 0)
+
+		gtk_layout_put(TGTKContainer(group).container, box, x, y)
+		gtk_widget_set_size_request(box, w, Max(h,0))
+
+
+'		gtk_layout_put(TGTKContainer(group).container, scrollWindow, x, y)
+'		gtk_widget_set_size_request(handle, w, Max(h,0))
 
 		SetShow(True)
 
@@ -164,6 +190,27 @@ Type TGTKWebKitGtk Extends TGTKHTMLView
 				PostGuiEvent(EVENT_GADGETDONE, TGadget(obj))
 		End Select
 	End Function
+
+	Method ClientWidth:Int()
+		Return width
+		Local req:TGTKRequisition = New TGTKRequisition
+		gtk_widget_size_request(box, req)
+		Return req.width
+	End Method
+
+	Method ClientHeight:Int()
+		Return height
+		Local req:TGTKRequisition = New TGTKRequisition
+		gtk_widget_size_request(box, req)
+		Return req.height
+	End Method
+
+	Method Rethink()
+		If handle Then
+			gtk_layout_move(TGTKContainer(parent).container, box, xpos, ypos)
+			gtk_widget_set_size_request(box, Max(width,0), Max(height,0))
+		End If
+	End Method
 
 	Method free()
 		Super.free()
