@@ -67,6 +67,7 @@ Extern
 	Function bmx_mgta_scintilla_bytefromchar:Int(handle:Byte Ptr, charPos:Int, startBytePos:Int, startCharPos:Int)
 	Function bmx_mgta_scintilla_getselectionlength:Int(handle:Byte Ptr, units:Int)
 	Function bmx_mgta_scintilla_addtext(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_mgta_scintilla_textwidth:Int(handle:Byte Ptr, text:String)
 
 End Extern
 

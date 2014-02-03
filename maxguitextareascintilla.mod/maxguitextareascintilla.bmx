@@ -68,6 +68,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	Global sci_id_count:Int = 0
 	
 	Field ignoreChange:Int
+	Field tabPixelWidth:Int
 	
 	' holder for the latest notification
 	' keep one in the type rather than locally in the callback function so we don't have to create a new object for every notification
@@ -102,6 +103,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 		addConnection("sci-notify", g_signal_cbsci(handle, "sci-notify", OnSciNotify, Self, Destroy, 0))
 		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
 		addConnection("button-release-event", g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0))
+		addConnection("key-press-event", g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0))
 		
 		' set some default monospaced font
 		SetFont(LookupGuiFont(GUIFONT_MONOSPACED))
@@ -156,6 +158,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 		bmx_mgta_scintilla_setfont(sciPtr, font.name, font.size)
 		
+		SetTabs()
 	End Method
 
 	Rem
@@ -365,9 +368,22 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 		End If
 	End Method
 
-	Method SetTabs(tabs:Int)
+	Method SetTabs(tabWidth:Int = -1)
 
-		bmx_mgta_scintilla_settabwidth(sciPtr, tabs)
+		If tabWidth >= 0 Then
+			tabPixelWidth = tabWidth
+		Else
+			tabWidth = tabPixelWidth
+		End If
+
+		' convert from pixels to characters
+		If _font Then
+			tabWidth = tabWidth / _font.CharWidth(32)
+		Else
+			tabWidth = 4
+		End If
+
+		bmx_mgta_scintilla_settabwidth(sciPtr, tabWidth)
 
 	End Method
 

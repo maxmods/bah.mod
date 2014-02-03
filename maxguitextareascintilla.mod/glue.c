@@ -77,6 +77,14 @@ void bmx_mgta_scintilla_setfont(ScintillaObject * sci, BBString * name, int size
 	bbMemFree(n);
 }
 
+int bmx_mgta_scintilla_textwidth(ScintillaObject * sci, BBString * text) {
+	char * t = bbStringToUTF8String(text);
+	int textWidth = scintilla_send_message(sci, SCI_TEXTWIDTH, STYLE_LINENUMBER, t);
+	bbMemFree(t);
+
+	return textWidth;
+}
+
 int bmx_mgta_scintilla_charfrombyte(ScintillaObject * sci, int pos, int startPos) {
 	int i;
 	int characterOffset = 0;
