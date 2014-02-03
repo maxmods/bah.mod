@@ -70,6 +70,8 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	Field ignoreChange:Int
 	Field tabPixelWidth:Int
 	
+	Field lineDigits:Int
+	
 	' holder for the latest notification
 	' keep one in the type rather than locally in the callback function so we don't have to create a new object for every notification
 	Field notification:TSCNotification = New TSCNotification
@@ -157,6 +159,9 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 		_font = font
 
 		bmx_mgta_scintilla_setfont(sciPtr, font.name, font.size)
+		
+		' set the margin size for line numbers
+		bmx_mgta_scintilla_setlinedigits(sciPtr, Varptr lineDigits)
 		
 		SetTabs()
 	End Method
@@ -428,6 +433,8 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 						PostGuiEvent(EVENT_GADGETACTION, TGadget(obj))
 					End If
 					ta.ignoreChange = False
+					
+					bmx_mgta_scintilla_setlinedigits(ta.sciPtr, Varptr ta.lineDigits)
 				End If
 		End Select
 

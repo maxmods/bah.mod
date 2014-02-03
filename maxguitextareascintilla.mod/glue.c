@@ -70,11 +70,36 @@ void bmx_mgta_scintilla_setfont(ScintillaObject * sci, BBString * name, int size
 		scintilla_send_message(sci, SCI_STYLESETSIZE, style, size);
 	}
 	
-	/* set the linenumber margin width */
-	int textWidth = scintilla_send_message(sci, SCI_TEXTWIDTH, STYLE_LINENUMBER, "_99999");
-	scintilla_send_message(sci, SCI_SETMARGINWIDTHN, 0, textWidth);
-	
 	bbMemFree(n);
+}
+
+void bmx_mgta_scintilla_setlinedigits(ScintillaObject * sci, int * digits) {
+
+	int lines = scintilla_send_message(sci, SCI_GETLINECOUNT, 0, 0);
+	int newDigits = (lines < 10 ? 1 : (lines < 100 ? 2 :   
+		(lines < 1000 ? 3 : (lines < 10000 ? 4 :   
+		(lines < 100000 ? 5 : (lines < 1000000 ? 6 :   
+		(lines < 10000000 ? 7 : (lines < 100000000 ? 8 :  
+		(lines < 1000000000 ? 9 : 10)))))))));
+	
+	if (*digits != newDigits) {
+		*digits = newDigits;
+
+		int i;
+		int len = newDigits + 1;
+		char * buf = malloc(len + 1);
+		buf[0] = '_';
+		buf[len] = 0;
+		for (i = 1; i < len; i++) {
+			buf[i] = '9';
+		}
+		
+		/* set the linenumber margin width */
+		int textWidth = scintilla_send_message(sci, SCI_TEXTWIDTH, STYLE_LINENUMBER, buf);
+		scintilla_send_message(sci, SCI_SETMARGINWIDTHN, 0, textWidth);
+		
+		free(buf);
+	}
 }
 
 int bmx_mgta_scintilla_textwidth(ScintillaObject * sci, BBString * text) {
