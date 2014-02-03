@@ -334,6 +334,11 @@ Extern
 	Function pango_context_load_fontset:Byte Ptr(context:Byte Ptr, desc:Byte Ptr, lang:Byte Ptr)
 	Function pango_fontset_foreach(fontset:Byte Ptr, callback(_set:Byte Ptr, _font:Byte Ptr ,data:Object), data:Object)
 	Function gtk_widget_get_pango_context:Byte Ptr(widgetPtr:Byte Ptr)
+	Function gdk_pango_context_get:Byte Ptr()
+	Function pango_context_set_font_description(context:Byte Ptr, desc:Byte Ptr)
+	Function pango_layout_new:Byte Ptr(context:Byte Ptr)
+	Function pango_layout_set_text(layout:Byte Ptr, text:Byte Ptr, length:Int)
+	Function pango_layout_get_pixel_size(layout:Byte Ptr, w:Int Ptr, h:Int Ptr)
 
 	Function gtk_font_selection_dialog_new:Byte Ptr(title:Byte Ptr)
 	Function gtk_font_selection_dialog_set_font_name(handle:Byte Ptr, name:Byte Ptr)
@@ -1354,18 +1359,50 @@ Const GTK_POS_BOTTOM:Int = 3
 Type TGTKGuiFont Extends TGuiFont
 
 	Field fontDesc:Byte Ptr
-	
+
+	Field context:Byte Ptr
+	Field layout:Byte Ptr
+
 	Method Delete()
 		If fontDesc Then
 			pango_font_description_free(fontDesc)
 			fontDesc = Null
 		EndIf
+
+		If layout Then
+			g_object_unref(layout)
+			layout = Null
+		End If
+
+		If context Then
+			g_object_unref(context)
+			context = Null
+		End If
 	EndMethod
 	
 	Method CharWidth:Int(char:Int)
-		If handle
-			'Return NSCharWidth(handle,char)
+		If Not fontDesc Then
+			getPangoDescriptionFromGuiFont(Self)
 		EndIf
+
+		If fontDesc Then
+			If Not context Then
+				context = gdk_pango_context_get()
+				pango_context_set_font_description(context, fontDesc)
+
+				layout = pango_layout_new(context)
+			End If
+
+			Local s:Byte Ptr = Chr(char).ToUTF8String()
+			pango_layout_set_text(layout, s, 1)
+			MemFree(s)
+
+			Local w:Int
+			pango_layout_get_pixel_size(layout, Varptr w, Null)
+
+			Return w
+		End If
+
 		Return 0
 	EndMethod 
 		
