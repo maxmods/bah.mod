@@ -25,11 +25,13 @@ bbdoc: GTKMaxGUI Linux HTMLView Widget
 End Rem
 Module BaH.GTKWebGTKHTML
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Update to GtkHTML 3.14."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: ProcessURL changes to use banks. [Simon Armstrong]"
 ModuleInfo "History: 1.01"
@@ -43,7 +45,7 @@ Import BaH.GTKMaxGUI
 
 Import "htmlhandler.bmx"
 
-Import "-lgtkhtml-3.8"
+Import "-lgtkhtml-3.14"
 Import "-lgailutil"
 
 Extern
@@ -375,13 +377,11 @@ End Rem
 		If TGTKWebGTKHTML(obj).noNavigate Then
 			PostGuiEvent(EVENT_GADGETACTION, TGadget(obj),0,0,0,0,url)
 		Else
-			'Local url:String = parse_href(String.FromCString(link), String.FromCString(gtk_html_get_base(handle)))
 			TGTKWebGTKHTML(obj).SetText(url)
 		End If
 	End Function
 
 	Function parse_href:String(url:String, base:String)
-'Print "url = " + url
 		Local tmp:String
 		Local tmpurl:THtmlHandler
 		Local retval:String
