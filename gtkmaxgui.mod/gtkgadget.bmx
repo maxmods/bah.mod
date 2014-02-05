@@ -1423,6 +1423,10 @@ Type TGTKButtonRadio Extends TGTKToggleButton
 		
 		gtk_button_set_use_underline(handle, True)
 		
+		If style & BUTTON_PUSH Then
+			gtk_toggle_button_set_mode(handle, False)
+		End If
+		
 	End Method
 
 	Method SetSelected(bool:Int)
@@ -1483,6 +1487,11 @@ Type TGTKButtonCheckbox Extends TGTKToggleButton
 		MemFree(labelPtr)
 		
 		gtk_button_set_use_underline(handle, True)
+
+		If style & BUTTON_PUSH Then
+			gtk_toggle_button_set_mode(handle, False)
+		End If
+
 	End Method
 
 End Type

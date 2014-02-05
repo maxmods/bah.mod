@@ -448,9 +448,9 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 			Case GADGET_BUTTON
 				gtkclass = GTK_BUTTON
 				Select style
-					Case BUTTON_CHECKBOX
+					Case BUTTON_CHECKBOX,BUTTON_CHECKBOX|BUTTON_PUSH
 						gtkclass = GTK_CHECKBUTTON
-					Case BUTTON_RADIO
+					Case BUTTON_RADIO,BUTTON_RADIO|BUTTON_PUSH
 						gtkclass = GTK_RADIOBUTTON
 					Case BUTTON_OK
 					Case BUTTON_CANCEL

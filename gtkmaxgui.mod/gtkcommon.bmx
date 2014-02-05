@@ -148,6 +148,7 @@ Extern
 	Function gtk_button_set_image_position(button:Byte Ptr, pos:Int)
 	Function gtk_button_set_alignment(button:Byte Ptr, xalign:Float, yalign:Float)
 	Function gtk_button_get_alignment(button:Byte Ptr, xalign:Float Ptr, yalign:Float Ptr)
+	Function gtk_toggle_button_set_mode(button:Byte Ptr, bool:Int)
 
 	Function gtk_fixed_new:Byte Ptr()
 	Function gtk_fixed_put(container:Byte Ptr, widget:Byte Ptr, x:Int, y:Int)
