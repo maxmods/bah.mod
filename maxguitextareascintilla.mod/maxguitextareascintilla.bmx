@@ -25,6 +25,13 @@ bbdoc: Scintilla-based MaxGUI TextArea gadget.
 End Rem
 Module BaH.MaxGUITextAreaScintilla
 
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: MIT"
+ModuleInfo "Copyright: (c) 2014 Bruce A Henderson"
+
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release."
+
 
 ModuleInfo "CC_OPTS: -fexceptions"
 
