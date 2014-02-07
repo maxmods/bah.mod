@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2014 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,13 @@ ModuleInfo "Version: 1.05"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: PCRE - 1997-2013 University of Cambridge"
-ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2014 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.05"
-ModuleInfo "History: Updated to PCRE 8.33"
+ModuleInfo "History: Updated to PCRE 8.34"
 ModuleInfo "History: Changed to use pcre16 functions, which is BlitzMax's native character size. (no more utf8 conversions)"
+ModuleInfo "History: Don't include the zero-termination character in sub expressions."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Updated to PCRE 8.0"
 ModuleInfo "History: Fixed offset problems when working with non-ascii text."
@@ -303,7 +304,8 @@ Type TRegEx
 
 				lastEndPos = Int Ptr(offsets)[i * 2 + 1]
 
-				match._subEnd[i] = lastEndPos
+				' end pos less 1 - as we don't need the zero terminator
+				match._subEnd[i] = lastEndPos - 1
 				
 				pcre16_free_substring(sPtr)
 

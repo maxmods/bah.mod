@@ -196,7 +196,7 @@ them both to 0; an emulation function will be used. */
 #define PACKAGE_NAME "PCRE"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PCRE 8.33"
+#define PACKAGE_STRING "PCRE 8.34"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "pcre"
@@ -205,7 +205,14 @@ them both to 0; an emulation function will be used. */
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "8.33"
+#define PACKAGE_VERSION "8.34"
+
+/* The value of PARENS_NEST_LIMIT specifies the maximum depth of nested
+   parentheses (of any kind) in a pattern. This limits the amount of system
+   stack that is used while compiling a pattern. */
+#ifndef PARENS_NEST_LIMIT
+#define PARENS_NEST_LIMIT 250
+#endif
 
 /* The value of PCREGREP_BUFSIZE determines the size of buffer used by
    pcregrep to hold parts of the file it is searching. This is also the
@@ -291,7 +298,7 @@ them both to 0; an emulation function will be used. */
 #define SUPPORT_UTF 1
 
 /* Version number of package */
-#define VERSION "8.33"
+#define VERSION "8.34"
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
