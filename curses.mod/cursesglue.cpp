@@ -38,8 +38,11 @@ extern "C" {
 #endif
 #include <cdk.h>
 
+#ifdef BMX_NG
+	BBObject * bah_curses_core_TMouseEvent__create(int id, int x, int y, int z, int bstate);
+#else
 	BBObject * _bah_curses_TMouseEvent__create(int id, int x, int y, int z, int bstate);
-
+#endif
 
 	EExitType bmx_entry_exitType(CDKENTRY * entry);
 	EExitType bmx_slider_exitType(CDKSLIDER * slider);
@@ -658,7 +661,11 @@ BBObject * bmx_getmouse() {
 
 	if (getmouse(&event) == OK) {
 printf("x = %d\n", event.x);fflush(stdout);
+#ifdef BMX_NG
+		mouseEvent = bah_curses_core_TMouseEvent__create(event.id, event.x, event.y, event.z, event.bstate);
+#else
 		mouseEvent = _bah_curses_TMouseEvent__create(event.id, event.x, event.y, event.z, event.bstate);
+#endif
 	}
 	
 	return mouseEvent;
