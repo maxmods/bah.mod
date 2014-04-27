@@ -118,7 +118,7 @@ Extern
 	Function cairo_matrix_init_rotate(matrix:Byte Ptr, radians:Double)
 	Function cairo_matrix_init_scale(matrix:Byte Ptr, sx:Double, sy:Double)
 	Function cairo_matrix_init_translate(matrix:Byte Ptr, tx:Double, ty:Double)
-	Function cairo_matrix_invert(matrix:Byte Ptr)
+	Function cairo_matrix_invert:Int(matrix:Byte Ptr)
 	Function cairo_matrix_multiply(result:Byte Ptr, a:Byte Ptr, b:Byte Ptr)
 	Function cairo_matrix_rotate(matrix:Byte Ptr, radians:Double)
 	Function cairo_matrix_scale(matrix:Byte Ptr, sx:Double, sy:Double)
