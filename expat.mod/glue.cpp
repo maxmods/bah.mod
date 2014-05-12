@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007-2012 Bruce A Henderson
+  Copyright (c) 2007-2014 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,32 +24,36 @@
 
 extern "C" {
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 #include "blitz.h"
-
-	void _bah_expat_TXMLParser__StartElementHandler(BBObject * handle, BBString * name, BBArray * attrs);
-	void _bah_expat_TXMLParser__EndElementHandler(BBObject * handle, BBString * name);
-	void _bah_expat_TXMLParser__CharacterDataHandler(BBObject * handle, BBString * text);
-	void _bah_expat_TXMLParser__ProcessingInstructionHandler(BBObject * handle, BBString * target, BBString * data);
-	void _bah_expat_TXMLParser__CommentHandler(BBObject * handle, BBString *data);
-	void _bah_expat_TXMLParser__StartCdataSectionHandler(BBObject * handle);
-	void _bah_expat_TXMLParser__EndCdataSectionHandler(BBObject * handle);
-	void _bah_expat_TXMLParser__DefaultHandler(BBObject * handle, BBString *s);
-	void _bah_expat_TXMLParser__DefaultHandlerExpand(BBObject * handle, BBString *s);
-	void _bah_expat_TXMLParser__SkippedEntityHandler(BBObject * handle, BBString *entityName, int is_parameter_entity);
-	void _bah_expat_TXMLParser__StartNamespaceDeclHandler(BBObject * handle, BBString *prefix, BBString *uri);
-	void _bah_expat_TXMLParser__EndNamespaceDeclHandler(BBObject * handle, BBString *prefix);
-	void _bah_expat_TXMLParser__XmlDeclHandler(BBObject * handle, BBString *version, BBString *encoding, int standalone);
-	void _bah_expat_TXMLParser__StartDoctypeDeclHandler(BBObject * handle, BBString *doctypeName, BBString *sysid, BBString *pubid,
+	void CB_PREF(bah_expat_TXMLParser__StartElementHandler)(BBObject * handle, BBString * name, BBArray * attrs);
+	void CB_PREF(bah_expat_TXMLParser__EndElementHandler)(BBObject * handle, BBString * name);
+	void CB_PREF(bah_expat_TXMLParser__CharacterDataHandler)(BBObject * handle, BBString * text);
+	void CB_PREF(bah_expat_TXMLParser__ProcessingInstructionHandler)(BBObject * handle, BBString * target, BBString * data);
+	void CB_PREF(bah_expat_TXMLParser__CommentHandler)(BBObject * handle, BBString *data);
+	void CB_PREF(bah_expat_TXMLParser__StartCdataSectionHandler)(BBObject * handle);
+	void CB_PREF(bah_expat_TXMLParser__EndCdataSectionHandler)(BBObject * handle);
+	void CB_PREF(bah_expat_TXMLParser__DefaultHandler)(BBObject * handle, BBString *s);
+	void CB_PREF(bah_expat_TXMLParser__DefaultHandlerExpand)(BBObject * handle, BBString *s);
+	void CB_PREF(bah_expat_TXMLParser__SkippedEntityHandler)(BBObject * handle, BBString *entityName, int is_parameter_entity);
+	void CB_PREF(bah_expat_TXMLParser__StartNamespaceDeclHandler)(BBObject * handle, BBString *prefix, BBString *uri);
+	void CB_PREF(bah_expat_TXMLParser__EndNamespaceDeclHandler)(BBObject * handle, BBString *prefix);
+	void CB_PREF(bah_expat_TXMLParser__XmlDeclHandler)(BBObject * handle, BBString *version, BBString *encoding, int standalone);
+	void CB_PREF(bah_expat_TXMLParser__StartDoctypeDeclHandler)(BBObject * handle, BBString *doctypeName, BBString *sysid, BBString *pubid,
 		int has_internal_subset);
-	void _bah_expat_TXMLParser__EndDoctypeDeclHandler(BBObject * handle);
-	void _bah_expat_TXMLParser__AttlistDeclHandler(BBObject * handle, BBString *elname, BBString *attname, BBString *att_type,
+	void CB_PREF(bah_expat_TXMLParser__EndDoctypeDeclHandler)(BBObject * handle);
+	void CB_PREF(bah_expat_TXMLParser__AttlistDeclHandler)(BBObject * handle, BBString *elname, BBString *attname, BBString *att_type,
 		BBString *dflt, int isrequired);
-	void _bah_expat_TXMLParser__EntityDeclHandler(BBObject * handle, BBString *entityName, int is_parameter_entity, BBString *value, BBString *base,
+	void CB_PREF(bah_expat_TXMLParser__EntityDeclHandler)(BBObject * handle, BBString *entityName, int is_parameter_entity, BBString *value, BBString *base,
 		BBString *systemId, BBString *publicId, BBString *notationName);
-	void _bah_expat_TXMLParser__NotationDeclHandler(BBObject * handle, BBString *notationName, BBString *base, BBString *systemId,
+	void CB_PREF(bah_expat_TXMLParser__NotationDeclHandler)(BBObject * handle, BBString *notationName, BBString *base, BBString *systemId,
 		BBString *publicId);
-	int _bah_expat_TXMLParser__NotStandaloneHandler(BBObject * handle);
-
+	int CB_PREF(bah_expat_TXMLParser__NotStandaloneHandler)(BBObject * handle);
 
 	XML_Parser bmx_expat_XML_ParserCreate(BBString * encoding);
 	XML_Status bmx_expat_XML_Parse(XML_Parser parser, BBString * text, int isFinal);
@@ -202,7 +206,7 @@ void XMLCALL bmx_expat_StartElementHandler(void *userData, const char *name, con
 		BBRETAIN(s[i]);
 	}
 
-	_bah_expat_TXMLParser__StartElementHandler((BBObject *)userData, bbStringFromUTF8String(name), p);
+	CB_PREF(bah_expat_TXMLParser__StartElementHandler)((BBObject *)userData, bbStringFromUTF8String(name), p);
 
 }
 
@@ -212,7 +216,7 @@ void bmx_expat_XML_SetEndElementHandler(XML_Parser parser) {
 
 void XMLCALL bmx_expat_EndElementHandler(void *userData, const char *name) {
 
-	_bah_expat_TXMLParser__EndElementHandler((BBObject *)userData, bbStringFromUTF8String(name));
+	CB_PREF(bah_expat_TXMLParser__EndElementHandler)((BBObject *)userData, bbStringFromUTF8String(name));
 
 }
 
@@ -235,7 +239,7 @@ void bmx_expat_XML_SetElementHandler(XML_Parser parser, int hasStart, int hasEnd
 void XMLCALL bmx_expat_CharacterDataHandler(void *userData, const char *text, int len) {
 	char buf[len+1];
 	memcpy(&buf, text, len);
-	_bah_expat_TXMLParser__CharacterDataHandler((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
+	CB_PREF(bah_expat_TXMLParser__CharacterDataHandler)((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
 
 }
 
@@ -245,7 +249,7 @@ void bmx_expat_XML_SetCharacterDataHandler(XML_Parser parser) {
 
 void XMLCALL bmx_expat_ProcessingInstructionHandler(void *userData, const char *target, const char *data) {
 	
-	_bah_expat_TXMLParser__ProcessingInstructionHandler((BBObject *)userData, bbStringFromUTF8String(target), bbStringFromUTF8String(data));
+	CB_PREF(bah_expat_TXMLParser__ProcessingInstructionHandler)((BBObject *)userData, bbStringFromUTF8String(target), bbStringFromUTF8String(data));
 
 }
 
@@ -254,7 +258,7 @@ void bmx_expat_XML_SetProcessingInstructionHandler(XML_Parser parser) {
 }
 
 void XMLCALL bmx_expat_CommentHandler(void *userData, const char *data) {
-	_bah_expat_TXMLParser__CommentHandler((BBObject *)userData, bbStringFromUTF8String(data));
+	CB_PREF(bah_expat_TXMLParser__CommentHandler)((BBObject *)userData, bbStringFromUTF8String(data));
 }
 
 void bmx_expat_XML_SetCommentHandler(XML_Parser parser) {
@@ -262,7 +266,7 @@ void bmx_expat_XML_SetCommentHandler(XML_Parser parser) {
 }
 
 void XMLCALL bmx_expat_StartCdataSectionHandler(void *userData) {
-	_bah_expat_TXMLParser__StartCdataSectionHandler((BBObject *)userData);
+	CB_PREF(bah_expat_TXMLParser__StartCdataSectionHandler)((BBObject *)userData);
 }
 
 void bmx_expat_XML_SetStartCdataSectionHandler(XML_Parser parser) {
@@ -270,7 +274,7 @@ void bmx_expat_XML_SetStartCdataSectionHandler(XML_Parser parser) {
 }
 
 void XMLCALL bmx_expat_EndCdataSectionHandler(void *userData) {
-	_bah_expat_TXMLParser__EndCdataSectionHandler((BBObject *)userData);
+	CB_PREF(bah_expat_TXMLParser__EndCdataSectionHandler)((BBObject *)userData);
 }
 
 void bmx_expat_XML_SetEndCdataSectionHandler(XML_Parser parser) {
@@ -296,7 +300,7 @@ void bmx_expat_XML_SetCdataSectionHandler(XML_Parser parser, int hasStart, int h
 void XMLCALL bmx_expat_DefaultHandler(void *userData, const char *s, int len) {
 	char buf[len+1];
 	memcpy(&buf, s, len);
-	_bah_expat_TXMLParser__DefaultHandler((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
+	CB_PREF(bah_expat_TXMLParser__DefaultHandler)((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
 }
 
 void bmx_expat_XML_SetDefaultHandler(XML_Parser parser) {
@@ -306,7 +310,7 @@ void bmx_expat_XML_SetDefaultHandler(XML_Parser parser) {
 void XMLCALL bmx_expat_DefaultHandlerExpand(void *userData, const char *s, int len) {
 	char buf[len+1];
 	memcpy(&buf, s, len);
-	_bah_expat_TXMLParser__DefaultHandlerExpand((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
+	CB_PREF(bah_expat_TXMLParser__DefaultHandlerExpand)((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
 }
 
 void bmx_expat_XML_SetDefaultHandlerExpand(XML_Parser parser) {
@@ -314,7 +318,7 @@ void bmx_expat_XML_SetDefaultHandlerExpand(XML_Parser parser) {
 }
 
 void XMLCALL bmx_expat_SkippedEntityHandler(void *userData, const char *entityName, int is_parameter_entity) {
-	_bah_expat_TXMLParser__SkippedEntityHandler((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity);
+	CB_PREF(bah_expat_TXMLParser__SkippedEntityHandler)((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity);
 }
 
 void bmx_expat_XML_SetSkippedEntityHandler(XML_Parser parser) {
@@ -322,7 +326,7 @@ void bmx_expat_XML_SetSkippedEntityHandler(XML_Parser parser) {
 }
 
 void XMLCALL bmx_expat_StartNamespaceDeclHandler(void *userData, const char *prefix, const char *uri) {
-	_bah_expat_TXMLParser__StartNamespaceDeclHandler((BBObject *)userData, bbStringFromUTF8String(prefix), bbStringFromUTF8String(uri));
+	CB_PREF(bah_expat_TXMLParser__StartNamespaceDeclHandler)((BBObject *)userData, bbStringFromUTF8String(prefix), bbStringFromUTF8String(uri));
 }
 
 void bmx_expat_XML_SetStartNamespaceDeclHandler(XML_Parser parser) {
@@ -330,7 +334,7 @@ void bmx_expat_XML_SetStartNamespaceDeclHandler(XML_Parser parser) {
 }
 
 void XMLCALL bmx_expat_EndNamespaceDeclHandler(void *userData, const char *prefix) {
-	_bah_expat_TXMLParser__EndNamespaceDeclHandler((BBObject *)userData, bbStringFromUTF8String(prefix));
+	CB_PREF(bah_expat_TXMLParser__EndNamespaceDeclHandler)((BBObject *)userData, bbStringFromUTF8String(prefix));
 }
 
 void bmx_expat_XML_SetEndNamespaceDeclHandler(XML_Parser parser) {
@@ -354,7 +358,7 @@ void bmx_expat_XML_SetNamespaceDeclHandler(XML_Parser parser, int hasStart, int 
 }
 
 void XMLCALL bmx_expat_XmlDeclHandler(void *userData, const char *version, const char *encoding, int standalone) {
-	_bah_expat_TXMLParser__XmlDeclHandler((BBObject *)userData, bbStringFromUTF8String(version), bbStringFromUTF8String(encoding),
+	CB_PREF(bah_expat_TXMLParser__XmlDeclHandler)((BBObject *)userData, bbStringFromUTF8String(version), bbStringFromUTF8String(encoding),
 		standalone);
 }
 
@@ -366,7 +370,7 @@ void XMLCALL bmx_expat_StartDoctypeDeclHandler(void *userData, const char *docty
 		int has_internal_subset) {
 
 
-	_bah_expat_TXMLParser__StartDoctypeDeclHandler((BBObject *)userData, bbStringFromUTF8String(doctypeName),
+	CB_PREF(bah_expat_TXMLParser__StartDoctypeDeclHandler)((BBObject *)userData, bbStringFromUTF8String(doctypeName),
 		bbStringFromUTF8String(sysid), bbStringFromUTF8String(pubid), has_internal_subset);
 
 }
@@ -376,7 +380,7 @@ void bmx_expat_XML_SetStartDoctypeDeclHandler(XML_Parser parser) {
 }
 
 void XMLCALL bmx_expat_EndDoctypeDeclHandler(void *userData) {
-	_bah_expat_TXMLParser__EndDoctypeDeclHandler((BBObject *)userData);
+	CB_PREF(bah_expat_TXMLParser__EndDoctypeDeclHandler)((BBObject *)userData);
 }
 
 void bmx_expat_XML_SetEndDoctypeDeclHandler(XML_Parser parser) {
@@ -402,7 +406,7 @@ void bmx_expat_XML_SetDoctypeDeclHandler(XML_Parser parser, int hasStart, int ha
 void XMLCALL bmx_expat_AttlistDeclHandler(void *userData, const char *elname, const char *attname, const char *att_type,
 		const char *dflt, int isrequired) {
 
-	_bah_expat_TXMLParser__AttlistDeclHandler((BBObject *)userData, bbStringFromUTF8String(elname), bbStringFromUTF8String(attname),
+	CB_PREF(bah_expat_TXMLParser__AttlistDeclHandler)((BBObject *)userData, bbStringFromUTF8String(elname), bbStringFromUTF8String(attname),
 		bbStringFromUTF8String(att_type), bbStringFromUTF8String(dflt), isrequired);
 
 }
@@ -418,11 +422,11 @@ void XMLCALL bmx_expat_EntityDeclHandler(void *userData, const char *entityName,
 		char buf[value_length +1];
 		memcpy(&buf, value, value_length);
 
-		_bah_expat_TXMLParser__EntityDeclHandler((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity,
+		CB_PREF(bah_expat_TXMLParser__EntityDeclHandler)((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity,
 			bbStringFromUTF8String((char*)&buf), bbStringFromUTF8String(base), bbStringFromUTF8String(systemId),
 			bbStringFromUTF8String(publicId), bbStringFromUTF8String(notationName));
 	} else {
-		_bah_expat_TXMLParser__EntityDeclHandler((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity,
+		CB_PREF(bah_expat_TXMLParser__EntityDeclHandler)((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity,
 			&bbEmptyString, bbStringFromUTF8String(base), bbStringFromUTF8String(systemId),
 			bbStringFromUTF8String(publicId), bbStringFromUTF8String(notationName));
 	}
@@ -437,7 +441,7 @@ void XMLCALL bmx_expat_NotationDeclHandler(void *userData, const char *notationN
 		const char *publicId) {
 
 
-	_bah_expat_TXMLParser__NotationDeclHandler((BBObject *)userData, bbStringFromUTF8String(notationName),
+	CB_PREF(bah_expat_TXMLParser__NotationDeclHandler)((BBObject *)userData, bbStringFromUTF8String(notationName),
 		bbStringFromUTF8String(base), bbStringFromUTF8String(systemId), bbStringFromUTF8String(publicId));
 
 }
@@ -447,7 +451,7 @@ void bmx_expat_XML_SetNotationDeclHandler(XML_Parser parser) {
 }
 
 int XMLCALL bmx_expat_NotStandaloneHandler(void *userData) {
-	return _bah_expat_TXMLParser__NotStandaloneHandler((BBObject *)userData);
+	return CB_PREF(bah_expat_TXMLParser__NotStandaloneHandler)((BBObject *)userData);
 }
 
 void bmx_expat_XML_SetNotStandaloneHandler(XML_Parser parser) {
