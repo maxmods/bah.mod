@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2011-2013 Bruce A Henderson
+ Copyright (c) 2011-2014 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,23 @@ extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_theoraplayer_TTheoraGenericException__create(BBString * mErrText, BBString * mFile, BBString * mType);
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
+#ifdef BMX_NG
+	BBObject * CB_PREF(bah_theoraplayer_common_TTheoraGenericException__create)(BBString * mErrText, BBString * mFile, BBString * mType);
+#else
+	BBObject * CB_PREF(bah_theoraplayer_TTheoraGenericException__create)(BBString * mErrText, BBString * mFile, BBString * mType);
+#endif
 	
-	int _bah_theoraplayer_TTheoraDataSource__read(BBObject * handle, void * output, int nBytes);
-	BBString * _bah_theoraplayer_TTheoraDataSource__repr(BBObject * handle);
-	void _bah_theoraplayer_TTheoraDataSource__seek(BBObject * handle, unsigned long byte_index);
-	int _bah_theoraplayer_TTheoraDataSource__size(BBObject * handle);
-	int _bah_theoraplayer_TTheoraDataSource__tell(BBObject * handle);
+	int CB_PREF(bah_theoraplayer_TTheoraDataSource__read)(BBObject * handle, void * output, int nBytes);
+	BBString * CB_PREF(bah_theoraplayer_TTheoraDataSource__repr)(BBObject * handle);
+	void CB_PREF(bah_theoraplayer_TTheoraDataSource__seek)(BBObject * handle, unsigned long byte_index);
+	int CB_PREF(bah_theoraplayer_TTheoraDataSource__size)(BBObject * handle);
+	int CB_PREF(bah_theoraplayer_TTheoraDataSource__tell)(BBObject * handle);
 
 	TheoraVideoManager * bmx_TheoraVideoManager_new(int numWorkerThreads);
 	void bmx_TheoraVideoManager_free(TheoraVideoManager * manager);
@@ -105,13 +115,13 @@ public:
 
 	int read(void * output, int nBytes) {
 printf("read - %d - ", nBytes);
-		int ret = _bah_theoraplayer_TTheoraDataSource__read(maxHandle, output, nBytes);
+		int ret = CB_PREF(bah_theoraplayer_TTheoraDataSource__read)(maxHandle, output, nBytes);
 printf("(%d)\n", ret);fflush(stdout);
 return ret;
 	}
 	
 	std::string repr() {
-		BBString * text = _bah_theoraplayer_TTheoraDataSource__repr(maxHandle);
+		BBString * text = CB_PREF(bah_theoraplayer_TTheoraDataSource__repr)(maxHandle);
 		char * r = bbStringToUTF8String(text);
 		std::string s( r );
 		bbMemFree( r );
@@ -119,15 +129,15 @@ return ret;
 	}
 	
 	void seek(unsigned long byte_index) {
-		_bah_theoraplayer_TTheoraDataSource__seek(maxHandle, byte_index);
+		CB_PREF(bah_theoraplayer_TTheoraDataSource__seek)(maxHandle, byte_index);
 	}
 	
 	unsigned long size() {
-		return _bah_theoraplayer_TTheoraDataSource__size(maxHandle);
+		return CB_PREF(bah_theoraplayer_TTheoraDataSource__size)(maxHandle);
 	}
 	
 	unsigned long tell() {
-		return _bah_theoraplayer_TTheoraDataSource__tell(maxHandle);
+		return CB_PREF(bah_theoraplayer_TTheoraDataSource__tell)(maxHandle);
 	}
 
 private:
@@ -137,7 +147,11 @@ private:
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void bmx_theoraplayer_throw_exception(_TheoraGenericException & e) {
-	bbExThrow(_bah_theoraplayer_TTheoraGenericException__create(bbStringFromUTF8String(e.mErrText.data()),
+#ifdef BMX_NG
+	bbExThrow(CB_PREF(bah_theoraplayer_common_TTheoraGenericException__create)(bbStringFromUTF8String(e.mErrText.data()),
+#else
+	bbExThrow(CB_PREF(bah_theoraplayer_TTheoraGenericException__create)(bbStringFromUTF8String(e.mErrText.data()),
+#endif
 		bbStringFromUTF8String(e.mFile.data()),
 		bbStringFromUTF8String(e.mType.data())));
 }
