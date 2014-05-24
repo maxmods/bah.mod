@@ -3,7 +3,6 @@ SuperStrict
 Framework BaH.GLSLOpt
 Import BRL.StandardIO
 
-DebugStop
 Local inp:String = LoadText("../glslopt/tests/fragment/zun-Toon_Basic-in.txt")
 
 

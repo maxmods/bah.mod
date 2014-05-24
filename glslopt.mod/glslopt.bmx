@@ -32,9 +32,7 @@ ModuleInfo "Copyright: GLSLOptimizer - 2010-2013 Unity Technologies"
 
 ModuleInfo "History: 1.00 Initial Release"
 
-?macos
 ModuleInfo "CC_OPTS: -O0"
-?
 
 Import "common.bmx"
 
