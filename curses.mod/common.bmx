@@ -183,7 +183,7 @@ Extern
 	Function bmx_curses_CDKFSelect_window:Byte Ptr(slider:Byte Ptr)
 	
 	Function newCDKButtonbox:Byte Ptr(screen:Byte Ptr, x:Int, y:Int, height:Int, width:Int, title:Byte Ptr, ..
-		rows:Int, cols:Int, buttons:Byte Ptr, buttonCount:Int, highlight:Int, box:Int, shadow:Int)
+		rows:Int, COLS:Int, buttons:Byte Ptr, buttonCount:Int, highlight:Int, box:Int, shadow:Int)
 	Function activateCDKButtonbox:Int(widgetPtr:Byte Ptr, actions:Int)
 	Function bmx_curses_CDKButtonbox_window:Byte Ptr(widgetPtr:Byte Ptr)
 	Function bmx_buttonbox_currentButton:Int(widgetPtr:Byte Ptr)
@@ -307,6 +307,7 @@ End Function
 ' custom function to convert a String array to a "C" string array.
 Function arrayToCStrings:Byte Ptr(stringArray:String[])
 
+?Not x64
 	Local cStrings:Byte Ptr = MemAlloc(4 * stringArray.length)
 		
 	For Local i:Int = 0 Until stringArray.length
@@ -315,7 +316,16 @@ Function arrayToCStrings:Byte Ptr(stringArray:String[])
 		p[i] = Int(stringArray[i].toCString())
 		
 	Next
-
+?x64
+	Local cStrings:Byte Ptr = MemAlloc(8 * stringArray.length)
+		
+	For Local i:Int = 0 Until stringArray.length
+		
+		Local p:Long Ptr = Long Ptr(cStrings)
+		p[i] = Long(stringArray[i].toCString())
+		
+	Next
+?
 	Return cStrings
 
 End Function
@@ -325,9 +335,13 @@ Function freeCStringArray(cStrings:Byte Ptr, length:Int)
 
 	For Local i:Int = 0 Until length
 	
+?Not x64
 		Local p:Int Ptr = Int Ptr(cStrings)
 		MemFree(Byte Ptr(p[i]))
-	
+?x64
+		Local p:Long Ptr = Long Ptr(cStrings)
+		MemFree(Byte Ptr(p[i]))
+?
 	Next
 
 	MemFree(cStrings)
@@ -455,13 +469,13 @@ Const vNORMAL:Int = 2
 Const vNEVER_ACTIVATED:Int = 3
 
 
+Extern
+	Function bmx_curses_GetUserName(buf:Byte Ptr)
+End Extern
 Rem
 bbdoc: Gets the user login name.
 End Rem
 Function GetUserName:String()
-Extern
-	Function bmx_curses_GetUserName(buf:Byte Ptr)
-End Extern
 	Local buf:Byte[256]
 	bmx_curses_GetUserName(buf)
 	Return String.fromUTF8String(buf)
