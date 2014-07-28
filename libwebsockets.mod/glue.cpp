@@ -27,11 +27,17 @@ extern "C" {
 
 #include "blitz.h"
 
-	void _bah_libwebsockets_TLWSContextCreationInfo__initProtocols(BBObject * info, struct libwebsocket_protocols * protocols);
-	struct libwebsocket_protocols * _bah_libwebsockets_TLWSContextCreationInfo__getProtocol(BBObject * info, int index, struct libwebsocket_protocols * offset);
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
 
-	int _bah_libwebsockets_TLWSProtocol__callback(BBString * name, struct libwebsocket_context * context, struct libwebsocket * wsi, int reason, BBObject * user, void * in, int len);
-	BBObject * _bah_libwebsockets_TLWSProtocol__objectCallback(BBString * name);
+	void CB_PREF(bah_libwebsockets_TLWSContextCreationInfo__initProtocols)(BBObject * info, struct libwebsocket_protocols * protocols);
+	struct libwebsocket_protocols * CB_PREF(bah_libwebsockets_TLWSContextCreationInfo__getProtocol)(BBObject * info, int index, struct libwebsocket_protocols * offset);
+
+	int CB_PREF(bah_libwebsockets_TLWSProtocol__callback)(BBString * name, struct libwebsocket_context * context, struct libwebsocket * wsi, int reason, BBObject * user, void * in, int len);
+	BBObject * CB_PREF(bah_libwebsockets_TLWSProtocol__objectCallback)(BBString * name);
 
 	struct libwebsocket_context * bmx_libwebsockets_create_context(BBObject * handle, struct lws_context_creation_info * info);
 	int bmx_libwebsockets_service(struct libwebsocket_context * context, int timeout);
@@ -119,10 +125,10 @@ void bmx_libwebsockets_contextcreationinfo_buildprotocollist(struct lws_context_
 	
 	info->protocols = protocols;
 
-	_bah_libwebsockets_TLWSContextCreationInfo__initProtocols(handle, protocols);
+	CB_PREF(bah_libwebsockets_TLWSContextCreationInfo__initProtocols)(handle, protocols);
 	
 	for (int i = 0; i < size; i++) {
-		struct libwebsocket_protocols * protocol = _bah_libwebsockets_TLWSContextCreationInfo__getProtocol(handle, i, protocols);
+		struct libwebsocket_protocols * protocol = CB_PREF(bah_libwebsockets_TLWSContextCreationInfo__getProtocol)(handle, i, protocols);
 		
 		memcpy(protocols, protocol , sizeof(struct libwebsocket_protocols));
 		
@@ -147,7 +153,7 @@ int bmx_libwebsockets_callback(struct libwebsocket_context * context, struct lib
 		}
 
 		// call the object creation function
-		maxObj->handle = _bah_libwebsockets_TLWSProtocol__objectCallback(name);
+		maxObj->handle = CB_PREF(bah_libwebsockets_TLWSProtocol__objectCallback)(name);
 
 		// prevent early GC
 		if (maxObj->handle != &bbNullObject) {
@@ -155,7 +161,7 @@ int bmx_libwebsockets_callback(struct libwebsocket_context * context, struct lib
 		}
 	}
 	
-	int result = _bah_libwebsockets_TLWSProtocol__callback(name, context, wsi, reason, (maxObj) ? maxObj->handle : &bbNullObject, in, len);
+	int result = CB_PREF(bah_libwebsockets_TLWSProtocol__callback)(name, context, wsi, reason, (maxObj) ? maxObj->handle : &bbNullObject, in, len);
 
 	// release on close of connection
 	if (reason == LWS_CALLBACK_CLOSED) {
