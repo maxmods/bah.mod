@@ -12,24 +12,26 @@
  * This file is dual licensed under LGPL v2.1 and the Scintilla license (http://www.scintilla.org/License.txt).
  */
 
+#include <assert.h>
+#include <sys/time.h>
+
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+
+#include <stdexcept>
+#include <vector>
+#include <map>
+
+#import <Foundation/NSGeometry.h>
+
 #import "Platform.h"
 #import "ScintillaView.h"
 #import "ScintillaCocoa.h"
 #import "PlatCocoa.h"
 
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <assert.h>
-#include <sys/time.h>
-#include <stdexcept>
-#include <vector>
-#include <map>
-
 #include "StringCopy.h"
 #include "XPM.h"
-
-#import <Foundation/NSGeometry.h>
 
 using namespace Scintilla;
 
@@ -52,7 +54,9 @@ NSRect PRectangleToNSRect(PRectangle& rc)
  */
 PRectangle NSRectToPRectangle(NSRect& rc)
 {
-  return PRectangle(rc.origin.x, rc.origin.y, rc.size.width + rc.origin.x, rc.size.height + rc.origin.y);
+  return PRectangle(rc.origin.x, rc.origin.y,
+					static_cast<XYPOSITION>(NSMaxX(rc)),
+					static_cast<XYPOSITION>(NSMaxY(rc)));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -953,7 +957,7 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, XYPOSITION 
 		while (ui<fit) {
 			size_t lenChar = utf8LengthFromLead(us[i]);
 			size_t codeUnits = (lenChar < 4) ? 1 : 2;
-			CGFloat xPosition = CTLineGetOffsetForStringIndex(mLine, ui+1, NULL);
+			CGFloat xPosition = CTLineGetOffsetForStringIndex(mLine, ui+codeUnits, NULL);
 			for (unsigned int bytePos=0; (bytePos<lenChar) && (i<len); bytePos++) {
 				positions[i++] = xPosition;
 			}
@@ -1121,6 +1125,8 @@ bool Window::HasFocus()
 static int ScreenMax(NSWindow* win)
 {
   NSScreen* screen = [win screen];
+  if (!screen)
+    screen = [NSScreen mainScreen];
   NSRect frame = [screen frame];
   return frame.origin.y + frame.size.height;
 }
@@ -1146,11 +1152,11 @@ PRectangle Window::GetPosition()
       win = reinterpret_cast<NSWindow*>(idWin);
       rect = [win frame];
     }
-    int screenHeight = ScreenMax(win);
+    CGFloat screenHeight = ScreenMax(win);
     // Invert screen positions to match Scintilla
     return PRectangle(
-        NSMinX(rect), screenHeight - NSMaxY(rect),
-        NSMaxX(rect), screenHeight - NSMinY(rect));
+        NSMinX(rect), static_cast<XYPOSITION>(screenHeight - NSMaxY(rect)),
+        NSMaxX(rect), static_cast<XYPOSITION>(screenHeight - NSMinY(rect)));
   }
   else
   {
@@ -1177,6 +1183,7 @@ void Window::SetPosition(PRectangle rc)
     else
     {
       // NSWindow
+      PLATFORM_ASSERT([idWin isKindOfClass: [NSWindow class]]);
       NSWindow* win = reinterpret_cast<NSWindow*>(idWin);
       int screenHeight = ScreenMax(win);
       NSRect nsrc = NSMakeRect(rc.left, screenHeight - rc.bottom,
@@ -1333,11 +1340,11 @@ PRectangle Window::GetMonitorRect(Point)
       NSWindow* win = reinterpret_cast<NSWindow*>(idWin);
       NSScreen* screen = [win screen];
       NSRect rect = [screen frame];
-      int screenHeight = rect.origin.y + rect.size.height;
+      CGFloat screenHeight = rect.origin.y + rect.size.height;
       // Invert screen positions to match Scintilla
       return PRectangle(
-          NSMinX(rect), screenHeight - NSMaxY(rect),
-          NSMaxX(rect), screenHeight - NSMinY(rect));
+          NSMinX(rect), static_cast<XYPOSITION>(screenHeight - NSMaxY(rect)),
+          NSMaxX(rect), static_cast<XYPOSITION>(screenHeight - NSMinY(rect)));
     }
   }
   return PRectangle();

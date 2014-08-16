@@ -186,19 +186,27 @@
 		2744E5B30FC168C500E85C33 /* PlatCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2744E5AE0FC168C500E85C33 /* PlatCocoa.mm */; };
 		2744E5B50FC168C500E85C33 /* ScintillaCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2744E5B00FC168C500E85C33 /* ScintillaCocoa.mm */; };
 		2744E5B60FC168C500E85C33 /* ScintillaView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2744E5B10FC168C500E85C33 /* ScintillaView.mm */; };
-		2791F3C60FC19F71009DBCF9 /* PlatCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E59E0FC168A100E85C33 /* PlatCocoa.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2791F3C70FC19F71009DBCF9 /* Platform.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E4850FC1678600E85C33 /* Platform.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2791F3C60FC19F71009DBCF9 /* PlatCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E59E0FC168A100E85C33 /* PlatCocoa.h */; };
+		2791F3C70FC19F71009DBCF9 /* Platform.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E4850FC1678600E85C33 /* Platform.h */; };
 		2791F3C80FC19F71009DBCF9 /* SciLexer.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E4870FC1678600E85C33 /* SciLexer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2791F3C90FC19F71009DBCF9 /* Scintilla.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E4880FC1678600E85C33 /* Scintilla.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2791F3E00FC1A390009DBCF9 /* ScintillaCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E5A20FC168A100E85C33 /* ScintillaCocoa.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2791F3E30FC1A3AE009DBCF9 /* QuartzTextLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E59F0FC168A100E85C33 /* QuartzTextLayout.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2791F3E40FC1A3AE009DBCF9 /* QuartzTextStyleAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E5A00FC168A100E85C33 /* QuartzTextStyleAttribute.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2791F3E00FC1A390009DBCF9 /* ScintillaCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E5A20FC168A100E85C33 /* ScintillaCocoa.h */; };
+		2791F3E30FC1A3AE009DBCF9 /* QuartzTextLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E59F0FC168A100E85C33 /* QuartzTextLayout.h */; };
+		2791F3E40FC1A3AE009DBCF9 /* QuartzTextStyleAttribute.h in Headers */ = {isa = PBXBuildFile; fileRef = 2744E5A00FC168A100E85C33 /* QuartzTextStyleAttribute.h */; };
 		27FEF4540FC1B413005E115A /* info_bar_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 27FEF4510FC1B413005E115A /* info_bar_bg.png */; };
 		27FEF4550FC1B413005E115A /* mac_cursor_busy.png in Resources */ = {isa = PBXBuildFile; fileRef = 27FEF4520FC1B413005E115A /* mac_cursor_busy.png */; };
 		27FEF4560FC1B413005E115A /* mac_cursor_flipped.png in Resources */ = {isa = PBXBuildFile; fileRef = 27FEF4530FC1B413005E115A /* mac_cursor_flipped.png */; };
 		280056FB188DDD2C00F200AE /* SparseState.h in Headers */ = {isa = PBXBuildFile; fileRef = 280056F8188DDD2C00F200AE /* SparseState.h */; };
 		280056FC188DDD2C00F200AE /* StringCopy.h in Headers */ = {isa = PBXBuildFile; fileRef = 280056F9188DDD2C00F200AE /* StringCopy.h */; };
 		280056FD188DDD2C00F200AE /* SubStyles.h in Headers */ = {isa = PBXBuildFile; fileRef = 280056FA188DDD2C00F200AE /* SubStyles.h */; };
+		28064A05190F12E100E6E47F /* LexDMIS.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 28064A04190F12E100E6E47F /* LexDMIS.cxx */; };
+		28A1DD51196BE0CA006EFCDD /* EditModel.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 28A1DD4E196BE0CA006EFCDD /* EditModel.cxx */; };
+		28A1DD52196BE0CA006EFCDD /* EditView.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 28A1DD4F196BE0CA006EFCDD /* EditView.cxx */; };
+		28A1DD53196BE0CA006EFCDD /* MarginView.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 28A1DD50196BE0CA006EFCDD /* MarginView.cxx */; };
+		28A1DD57196BE0ED006EFCDD /* EditModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 28A1DD54196BE0ED006EFCDD /* EditModel.h */; };
+		28A1DD58196BE0ED006EFCDD /* EditView.h in Headers */ = {isa = PBXBuildFile; fileRef = 28A1DD55196BE0ED006EFCDD /* EditView.h */; };
+		28A1DD59196BE0ED006EFCDD /* MarginView.h in Headers */ = {isa = PBXBuildFile; fileRef = 28A1DD56196BE0ED006EFCDD /* MarginView.h */; };
+		28A7D6051995E47D0062D204 /* LexRegistry.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 28A7D6041995E47D0062D204 /* LexRegistry.cxx */; };
 		28D516D81830FFCA0047C93D /* info_bar_bg@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 28D516D51830FFCA0047C93D /* info_bar_bg@2x.png */; };
 		28D516D91830FFCA0047C93D /* mac_cursor_busy@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 28D516D61830FFCA0047C93D /* mac_cursor_busy@2x.png */; };
 		28D516DA1830FFCA0047C93D /* mac_cursor_flipped@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 28D516D71830FFCA0047C93D /* mac_cursor_flipped@2x.png */; };
@@ -403,6 +411,14 @@
 		280056F8188DDD2C00F200AE /* SparseState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SparseState.h; path = ../../lexlib/SparseState.h; sourceTree = "<group>"; };
 		280056F9188DDD2C00F200AE /* StringCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StringCopy.h; path = ../../lexlib/StringCopy.h; sourceTree = "<group>"; };
 		280056FA188DDD2C00F200AE /* SubStyles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SubStyles.h; path = ../../lexlib/SubStyles.h; sourceTree = "<group>"; };
+		28064A04190F12E100E6E47F /* LexDMIS.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LexDMIS.cxx; path = ../../lexers/LexDMIS.cxx; sourceTree = "<group>"; };
+		28A1DD4E196BE0CA006EFCDD /* EditModel.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EditModel.cxx; path = ../../src/EditModel.cxx; sourceTree = "<group>"; };
+		28A1DD4F196BE0CA006EFCDD /* EditView.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EditView.cxx; path = ../../src/EditView.cxx; sourceTree = "<group>"; };
+		28A1DD50196BE0CA006EFCDD /* MarginView.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarginView.cxx; path = ../../src/MarginView.cxx; sourceTree = "<group>"; };
+		28A1DD54196BE0ED006EFCDD /* EditModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EditModel.h; path = ../../src/EditModel.h; sourceTree = "<group>"; };
+		28A1DD55196BE0ED006EFCDD /* EditView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EditView.h; path = ../../src/EditView.h; sourceTree = "<group>"; };
+		28A1DD56196BE0ED006EFCDD /* MarginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarginView.h; path = ../../src/MarginView.h; sourceTree = "<group>"; };
+		28A7D6041995E47D0062D204 /* LexRegistry.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LexRegistry.cxx; path = ../../lexers/LexRegistry.cxx; sourceTree = "<group>"; };
 		28D516D51830FFCA0047C93D /* info_bar_bg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "info_bar_bg@2x.png"; sourceTree = "<group>"; };
 		28D516D61830FFCA0047C93D /* mac_cursor_busy@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mac_cursor_busy@2x.png"; sourceTree = "<group>"; };
 		28D516D71830FFCA0047C93D /* mac_cursor_flipped@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mac_cursor_flipped@2x.png"; sourceTree = "<group>"; };
@@ -532,6 +548,7 @@
 				114B6ED211FA7526004FB6AB /* LexCSS.cxx */,
 				114B6ED311FA7526004FB6AB /* LexD.cxx */,
 				11FF3FE11810EB3900E13F13 /* LexDMAP.cxx */,
+				28064A04190F12E100E6E47F /* LexDMIS.cxx */,
 				11BEB6A114EF189600BDE92A /* LexECL.cxx */,
 				114B6ED411FA7526004FB6AB /* LexEiffel.cxx */,
 				114B6ED511FA7526004FB6AB /* LexErlang.cxx */,
@@ -577,6 +594,7 @@
 				114B6EF811FA7526004FB6AB /* LexPython.cxx */,
 				114B6EF911FA7526004FB6AB /* LexR.cxx */,
 				114B6EFA11FA7526004FB6AB /* LexRebol.cxx */,
+				28A7D6041995E47D0062D204 /* LexRegistry.cxx */,
 				114B6EFB11FA7526004FB6AB /* LexRuby.cxx */,
 				1160E0371803651C00BCEBCB /* LexRust.cxx */,
 				114B6EFC11FA7526004FB6AB /* LexScriptol.cxx */,
@@ -619,7 +637,9 @@
 				114B6FA711FA7623004FB6AB /* ContractionState.h */,
 				114B6FA811FA7623004FB6AB /* Decoration.h */,
 				114B6FA911FA7623004FB6AB /* Document.h */,
+				28A1DD54196BE0ED006EFCDD /* EditModel.h */,
 				114B6FAA11FA7623004FB6AB /* Editor.h */,
+				28A1DD55196BE0ED006EFCDD /* EditView.h */,
 				114B6FAB11FA7623004FB6AB /* ExternalLexer.h */,
 				114B6FAC11FA7623004FB6AB /* FontQuality.h */,
 				114B6FA011FA75DB004FB6AB /* ILexer.h */,
@@ -631,6 +651,7 @@
 				114B6FDD11FA7645004FB6AB /* LexerNoExceptions.h */,
 				114B6FDE11FA7645004FB6AB /* LexerSimple.h */,
 				114B6FAF11FA7623004FB6AB /* LineMarker.h */,
+				28A1DD56196BE0ED006EFCDD /* MarginView.h */,
 				114B6FDF11FA7645004FB6AB /* OptionSet.h */,
 				114B6FB011FA7623004FB6AB /* Partitioning.h */,
 				114B6FB111FA7623004FB6AB /* PerLine.h */,
@@ -671,7 +692,9 @@
 				114B6F6511FA7597004FB6AB /* ContractionState.cxx */,
 				114B6F6611FA7597004FB6AB /* Decoration.cxx */,
 				114B6F6711FA7597004FB6AB /* Document.cxx */,
+				28A1DD4E196BE0CA006EFCDD /* EditModel.cxx */,
 				114B6F6811FA7597004FB6AB /* Editor.cxx */,
+				28A1DD4F196BE0CA006EFCDD /* EditView.cxx */,
 				114B6F6911FA7598004FB6AB /* ExternalLexer.cxx */,
 				114B6F6A11FA7598004FB6AB /* Indicator.cxx */,
 				114B6F6B11FA7598004FB6AB /* KeyMap.cxx */,
@@ -680,6 +703,7 @@
 				114B6F9211FA75BE004FB6AB /* LexerNoExceptions.cxx */,
 				114B6F9311FA75BE004FB6AB /* LexerSimple.cxx */,
 				114B6F6C11FA7598004FB6AB /* LineMarker.cxx */,
+				28A1DD50196BE0CA006EFCDD /* MarginView.cxx */,
 				114B6F6D11FA7598004FB6AB /* PerLine.cxx */,
 				114B6F6E11FA7598004FB6AB /* PositionCache.cxx */,
 				114B6F9411FA75BE004FB6AB /* PropSetSimple.cxx */,
@@ -757,14 +781,14 @@
 			files = (
 				2744E5A40FC168A100E85C33 /* InfoBar.h in Headers */,
 				2744E5AC0FC168B200E85C33 /* InfoBarCommunicator.h in Headers */,
+				2744E5AA0FC168A100E85C33 /* ScintillaView.h in Headers */,
+				280056FB188DDD2C00F200AE /* SparseState.h in Headers */,
+				2791F3C80FC19F71009DBCF9 /* SciLexer.h in Headers */,
 				2791F3C60FC19F71009DBCF9 /* PlatCocoa.h in Headers */,
 				2791F3E30FC1A3AE009DBCF9 /* QuartzTextLayout.h in Headers */,
 				2791F3E40FC1A3AE009DBCF9 /* QuartzTextStyleAttribute.h in Headers */,
 				2791F3E00FC1A390009DBCF9 /* ScintillaCocoa.h in Headers */,
-				2744E5AA0FC168A100E85C33 /* ScintillaView.h in Headers */,
 				2791F3C70FC19F71009DBCF9 /* Platform.h in Headers */,
-				280056FB188DDD2C00F200AE /* SparseState.h in Headers */,
-				2791F3C80FC19F71009DBCF9 /* SciLexer.h in Headers */,
 				2791F3C90FC19F71009DBCF9 /* Scintilla.h in Headers */,
 				114B6FA111FA75DB004FB6AB /* ILexer.h in Headers */,
 				114B6FBD11FA7623004FB6AB /* AutoComplete.h in Headers */,
@@ -778,6 +802,7 @@
 				114B6FC511FA7623004FB6AB /* Editor.h in Headers */,
 				114B6FC611FA7623004FB6AB /* ExternalLexer.h in Headers */,
 				114B6FC711FA7623004FB6AB /* FontQuality.h in Headers */,
+				28A1DD57196BE0ED006EFCDD /* EditModel.h in Headers */,
 				114B6FC811FA7623004FB6AB /* Indicator.h in Headers */,
 				114B6FC911FA7623004FB6AB /* KeyMap.h in Headers */,
 				114B6FCA11FA7623004FB6AB /* LineMarker.h in Headers */,
@@ -785,6 +810,7 @@
 				114B6FCC11FA7623004FB6AB /* PerLine.h in Headers */,
 				114B6FCD11FA7623004FB6AB /* PositionCache.h in Headers */,
 				114B6FCE11FA7623004FB6AB /* RESearch.h in Headers */,
+				28A1DD58196BE0ED006EFCDD /* EditView.h in Headers */,
 				114B6FCF11FA7623004FB6AB /* RunStyles.h in Headers */,
 				280056FD188DDD2C00F200AE /* SubStyles.h in Headers */,
 				114B6FD011FA7623004FB6AB /* ScintillaBase.h in Headers */,
@@ -803,6 +829,7 @@
 				114B6FE811FA7645004FB6AB /* LexerNoExceptions.h in Headers */,
 				114B6FE911FA7645004FB6AB /* LexerSimple.h in Headers */,
 				114B6FEA11FA7645004FB6AB /* OptionSet.h in Headers */,
+				28A1DD59196BE0ED006EFCDD /* MarginView.h in Headers */,
 				114B6FEB11FA7645004FB6AB /* PropSetSimple.h in Headers */,
 				114B6FEC11FA7645004FB6AB /* StyleContext.h in Headers */,
 				114B6FED11FA7645004FB6AB /* WordList.h in Headers */,
@@ -842,7 +869,7 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "ScintillaFramework" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -916,6 +943,7 @@
 				114B6F2411FA7526004FB6AB /* LexErlang.cxx in Sources */,
 				114B6F2511FA7526004FB6AB /* LexEScript.cxx in Sources */,
 				114B6F2611FA7526004FB6AB /* LexFlagship.cxx in Sources */,
+				28064A05190F12E100E6E47F /* LexDMIS.cxx in Sources */,
 				114B6F2711FA7526004FB6AB /* LexForth.cxx in Sources */,
 				114B6F2811FA7526004FB6AB /* LexFortran.cxx in Sources */,
 				114B6F2911FA7526004FB6AB /* LexGAP.cxx in Sources */,
@@ -929,6 +957,7 @@
 				114B6F3111FA7526004FB6AB /* LexLua.cxx in Sources */,
 				114B6F3211FA7526004FB6AB /* LexMagik.cxx in Sources */,
 				114B6F3311FA7526004FB6AB /* LexMarkdown.cxx in Sources */,
+				28A1DD52196BE0CA006EFCDD /* EditView.cxx in Sources */,
 				114B6F3411FA7526004FB6AB /* LexMatlab.cxx in Sources */,
 				114B6F3511FA7526004FB6AB /* LexMetapost.cxx in Sources */,
 				114B6F3611FA7526004FB6AB /* LexMMIXAL.cxx in Sources */,
@@ -964,6 +993,7 @@
 				114B6F5411FA7526004FB6AB /* LexTAL.cxx in Sources */,
 				114B6F5511FA7526004FB6AB /* LexTCL.cxx in Sources */,
 				114B6F5611FA7526004FB6AB /* LexTeX.cxx in Sources */,
+				28A1DD53196BE0CA006EFCDD /* MarginView.cxx in Sources */,
 				114B6F5711FA7526004FB6AB /* LexTxt2tags.cxx in Sources */,
 				114B6F5811FA7526004FB6AB /* LexVB.cxx in Sources */,
 				114B6F5911FA7526004FB6AB /* LexVerilog.cxx in Sources */,
@@ -974,6 +1004,7 @@
 				114B6F7911FA7598004FB6AB /* Catalogue.cxx in Sources */,
 				114B6F7A11FA7598004FB6AB /* CellBuffer.cxx in Sources */,
 				114B6F7B11FA7598004FB6AB /* CharClassify.cxx in Sources */,
+				28A1DD51196BE0CA006EFCDD /* EditModel.cxx in Sources */,
 				114B6F7C11FA7598004FB6AB /* ContractionState.cxx in Sources */,
 				114B6F7D11FA7598004FB6AB /* Decoration.cxx in Sources */,
 				114B6F7E11FA7598004FB6AB /* Document.cxx in Sources */,
@@ -989,6 +1020,7 @@
 				114B6F8811FA7598004FB6AB /* ScintillaBase.cxx in Sources */,
 				114B6F8911FA7598004FB6AB /* Selection.cxx in Sources */,
 				114B6F8A11FA7598004FB6AB /* Style.cxx in Sources */,
+				28A7D6051995E47D0062D204 /* LexRegistry.cxx in Sources */,
 				114B6F8B11FA7598004FB6AB /* UniConversion.cxx in Sources */,
 				114B6F8C11FA7598004FB6AB /* ViewStyle.cxx in Sources */,
 				114B6F8D11FA7598004FB6AB /* XPM.cxx in Sources */,

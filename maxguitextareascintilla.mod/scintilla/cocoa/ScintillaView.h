@@ -75,7 +75,7 @@ extern NSString *const SCIUpdateUINotification;
 @private
   ScintillaView* mOwner;
   NSCursor* mCurrentCursor;
-  NSTrackingRectTag mCurrentTrackingRect;
+  NSTrackingArea *trackingArea;
 
   // Set when we are in composition mode and partial input is displayed.
   NSRange mMarkedTextRange;
@@ -120,9 +120,6 @@ extern NSString *const SCIUpdateUINotification;
 
 + (Class) contentViewClass;
 
-- (void) positionSubViews;
-
-- (void) sendNotification: (NSString*) notificationName;
 - (void) notify: (NotificationType) type message: (NSString*) message location: (NSPoint) location
           value: (float) value;
 - (void) setCallback: (id <InfoBarCommunicator>) callback;
@@ -132,19 +129,20 @@ extern NSString *const SCIUpdateUINotification;
 
 // Scroller handling
 - (void) setMarginWidth: (int) width;
-- (void) scrollerAction: (id) sender;
 - (SCIContentView*) content;
 - (void) updateMarginCursors;
 
 // NSTextView compatibility layer.
 - (NSString*) string;
 - (void) setString: (NSString*) aString;
-- (void) insertText: (NSString*) aString;
+- (void) insertText: (id) aString;
 - (void) setEditable: (BOOL) editable;
 - (BOOL) isEditable;
 - (NSRange) selectedRange;
 
 - (NSString*) selectedString;
+
+- (void) deleteRange: (NSRange) range;
 
 - (void)setFontName: (NSString*) font
                size: (int) size
@@ -176,8 +174,8 @@ extern NSString *const SCIUpdateUINotification;
 - (void) setLexerProperty: (NSString*) name value: (NSString*) value;
 - (NSString*) getLexerProperty: (NSString*) name;
 
-// The delegate property should be used instead of registerNotifyCallback which will be deprecated.
-- (void) registerNotifyCallback: (intptr_t) windowid value: (Scintilla::SciNotifyFunc) callback;
+// The delegate property should be used instead of registerNotifyCallback which is deprecated.
+- (void) registerNotifyCallback: (intptr_t) windowid value: (Scintilla::SciNotifyFunc) callback __attribute__((deprecated));
 
 - (void) setInfoBar: (NSView <InfoBarCommunicator>*) aView top: (BOOL) top;
 - (void) setStatusText: (NSString*) text;

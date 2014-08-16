@@ -57,10 +57,6 @@ class TestSimple(unittest.TestCase):
 		self.ed.StartStyling(0,0xf)
 		self.ed.SetStyling(1, 5)
 		self.assertEquals(self.ed.StyledTextRange(0, 2), b"x\005y\003")
-		# Set the mask so 0 bit changed but not 2 bit
-		self.ed.StartStyling(0,0x1)
-		self.ed.SetStyling(1, 0)
-		self.assertEquals(self.ed.StyledTextRange(0, 2), b"x\004y\003")
 
 		self.ed.StartStyling(0,0xff)
 		self.ed.SetStylingEx(2, b"\100\101")
@@ -291,7 +287,7 @@ class TestSimple(unittest.TestCase):
 			self.assertEquals(self.ed.LineLength(0), 1 + len(lineEnds[lineEndType]))
 
 	# Several tests for unicode line ends U+2028 and U+2029
-	
+
 	def testUnicodeLineEnds(self):
 		# Add two lines separated with U+2028 and ensure it is seen as two lines
 		# Then remove U+2028 and should be just 1 lines
@@ -376,7 +372,7 @@ class TestSimple(unittest.TestCase):
 		text = b"x\xe2\x80\xa9y";
 		self.ed.AddText(5, text)
 		self.assertEquals(self.ed.LineCount, 2)
-		
+
 		for i in range(len(text)):
 			self.ed.TargetStart = i
 			self.ed.TargetEnd = i + 1
@@ -387,7 +383,7 @@ class TestSimple(unittest.TestCase):
 			else:
 				# Removing byte from line end, removes 1 line
 				self.assertEquals(self.ed.LineCount, 1)
-				
+
 			self.ed.TargetEnd = i
 			self.ed.ReplaceTarget(1, text[i:i+1])
 			self.assertEquals(self.ed.LineCount, 2)
@@ -405,7 +401,7 @@ class TestSimple(unittest.TestCase):
 			self.ed.TargetEnd = i+2
 			self.ed.ReplaceTarget(0, b"")
 			self.assertEquals(self.ed.LineCount, 1)
-		
+
 	# Several tests for unicode NEL line ends U+0085
 
 	def testNELLineEnds(self):
@@ -458,7 +454,7 @@ class TestSimple(unittest.TestCase):
 		text = b"x\xc2\x85y";
 		self.ed.AddText(4, text)
 		self.assertEquals(self.ed.LineCount, 2)
-		
+
 		for i in range(len(text)):
 			self.ed.TargetStart = i
 			self.ed.TargetEnd = i + 1
@@ -469,7 +465,7 @@ class TestSimple(unittest.TestCase):
 			else:
 				# Removing byte from line end, removes 1 line
 				self.assertEquals(self.ed.LineCount, 1)
-				
+
 			self.ed.TargetEnd = i
 			self.ed.ReplaceTarget(1, text[i:i+1])
 			self.assertEquals(self.ed.LineCount, 2)
@@ -485,7 +481,7 @@ class TestSimple(unittest.TestCase):
 			self.ed.TargetEnd = i+2
 			self.ed.ReplaceTarget(0, b"")
 			self.assertEquals(self.ed.LineCount, 1)
-		
+
 	def testGoto(self):
 		self.ed.AddText(5, b"a\nb\nc")
 		self.assertEquals(self.ed.CurrentPos, 5)
@@ -1383,7 +1379,7 @@ class TestMultiSelection(unittest.TestCase):
 		self.assertEquals(self.ed.GetSelectionNAnchorVirtualSpace(0), 0)
 		self.assertEquals(self.ed.GetSelectionNCaret(0), 3)
 		self.assertEquals(self.ed.GetSelectionNCaretVirtualSpace(0), 0)
-		
+
 	def testDropSelectionN(self):
 		self.ed.SetSelection(1, 2)
 		# Only one so dropping has no effect
@@ -1614,7 +1610,7 @@ class TestCaseMapping(unittest.TestCase):
 	def testUTFGrows(self):
 		# This crashed at one point in debug builds due to looking past end of shorter string
 		self.ed.SetCodePage(65001)
-		# ﬖ is a single character ligature taking 3 bytes in UTF8: EF AC 96 
+		# ﬖ is a single character ligature taking 3 bytes in UTF8: EF AC 96
 		t = 'ﬖﬖ'.encode("UTF-8")
 		self.ed.SetContents(t)
 		self.assertEquals(self.ed.Length, 6)
@@ -1737,7 +1733,7 @@ class TestLexer(unittest.TestCase):
 		self.assertEquals(self.ed.GetLexer(), self.ed.SCLEX_CPP)
 		name = self.ed.GetLexerLanguage(0)
 		self.assertEquals(name, b"cpp")
-	
+
 	def testPropertyNames(self):
 		propertyNames = self.ed.PropertyNames()
 		self.assertNotEquals(propertyNames, b"")
@@ -2045,6 +2041,80 @@ class TestWordChars(unittest.TestCase):
 		self._setChars("punctuation", expected)
 		data = self.ed.GetPunctuationChars(None)
 		self.assertCharSetsEqual(data, expected)
+
+class TestExplicitTabStops(unittest.TestCase):
+
+	def setUp(self):
+		self.xite = Xite.xiteFrame
+		self.ed = self.xite.ed
+		self.ed.ClearAll()
+		self.ed.EmptyUndoBuffer()
+		# 2 lines of 4 characters
+		self.t = b"fun(\nint)"
+		self.ed.AddText(len(self.t), self.t)
+
+	def testAddingAndClearing(self):
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 0)
+
+		# Add a tab stop at 7
+		self.ed.AddTabStop(0, 7)
+		# Check added
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 7)
+		# Check does not affect line 1
+		self.assertEquals(self.ed.GetNextTabStop(1,0), 0)
+
+		# Add a tab stop at 18
+		self.ed.AddTabStop(0, 18)
+		# Check added
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 7)
+		self.assertEquals(self.ed.GetNextTabStop(0,7), 18)
+		# Check does not affect line 1
+		self.assertEquals(self.ed.GetNextTabStop(1,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(1,7), 0)
+
+		# Add a tab stop between others at 13
+		self.ed.AddTabStop(0, 13)
+		# Check added
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 7)
+		self.assertEquals(self.ed.GetNextTabStop(0,7), 13)
+		self.assertEquals(self.ed.GetNextTabStop(0,13), 18)
+		# Check does not affect line 1
+		self.assertEquals(self.ed.GetNextTabStop(1,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(1,7), 0)
+
+		self.ed.ClearTabStops(0)
+		# Check back to original state
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 0)
+
+	def testLineInsertionDeletion(self):
+		# Add a tab stop at 7 on line 1
+		self.ed.AddTabStop(1, 7)
+		# Check added
+		self.assertEquals(self.ed.GetNextTabStop(1,0), 7)
+
+		# More text at end
+		self.ed.AddText(len(self.t), self.t)
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(1,0), 7)
+		self.assertEquals(self.ed.GetNextTabStop(2,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(3,0), 0)
+
+		# Another 2 lines before explicit line moves the explicit tab stop
+		data = b"x\ny\n"
+		self.ed.InsertText(4, data)
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(1,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(2,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(3,0), 7)
+		self.assertEquals(self.ed.GetNextTabStop(4,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(5,0), 0)
+
+		# Undo moves the explicit tab stop back
+		self.ed.Undo()
+		self.assertEquals(self.ed.GetNextTabStop(0,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(1,0), 7)
+		self.assertEquals(self.ed.GetNextTabStop(2,0), 0)
+		self.assertEquals(self.ed.GetNextTabStop(3,0), 0)
 
 if __name__ == '__main__':
 	uu = Xite.main("simpleTests")

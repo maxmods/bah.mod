@@ -527,27 +527,34 @@ void SurfaceImpl::Release() {
 }
 
 bool SurfaceImpl::Initialised() {
+#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 8, 0)
+	if (inited && context) {
+		if (cairo_status(context) == CAIRO_STATUS_SUCCESS) {
+			// Even when status is success, the target surface may have been
+			// finished whch may cause an assertion to fail crashing the application.
+			// The cairo_surface_has_show_text_glyphs call checks the finished flag
+			// and when set, sets the status to CAIRO_STATUS_SURFACE_FINISHED
+			// which leads to warning messages instead of crashes.
+			// Performing the check in this method as it is called rarely and has no
+			// other side effects.
+			cairo_surface_t *psurfContext = cairo_get_target(context);
+			if (psurfContext) {
+				cairo_surface_has_show_text_glyphs(psurfContext);
+			}
+		}
+		return cairo_status(context) == CAIRO_STATUS_SUCCESS;
+	}
+#endif
 	return inited;
 }
 
 void SurfaceImpl::Init(WindowID wid) {
 	Release();
 	PLATFORM_ASSERT(wid);
-#if GTK_CHECK_VERSION(3,0,0)
-	GdkWindow *drawable_ = gtk_widget_get_window(PWidget(wid));
-#else
-	GdkDrawable *drawable_ = GDK_DRAWABLE(PWidget(wid)->window);
-#endif
-	if (drawable_) {
-		context = gdk_cairo_create(drawable_);
-		PLATFORM_ASSERT(context);
-	} else {
-		// Shouldn't happen with valid window but may when calls made before
-		// window completely allocated and mapped.
-		psurf = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 1, 1);
-		context = cairo_create(psurf);
-	}
-	createdGC = true;
+	// if we are only created from a window ID, we can't perform drawing
+	psurf = 0;
+	context = 0;
+	createdGC = false;
 	pcontext = gtk_widget_create_pango_context(PWidget(wid));
 	PLATFORM_ASSERT(pcontext);
 	layout = pango_layout_new(pcontext);
@@ -665,6 +672,7 @@ void SurfaceImpl::LineTo(int x_, int y_) {
 
 void SurfaceImpl::Polygon(Point *pts, int npts, ColourDesired fore,
                           ColourDesired back) {
+	PLATFORM_ASSERT(context);
 	PenColour(back);
 	cairo_move_to(context, pts[0].x + 0.5, pts[0].y + 0.5);
 	for (int i = 1; i < npts; i++) {
@@ -702,6 +710,7 @@ void SurfaceImpl::FillRectangle(PRectangle rc, Surface &surfacePattern) {
 	SurfaceImpl &surfi = static_cast<SurfaceImpl &>(surfacePattern);
 	bool canDraw = surfi.psurf;
 	if (canDraw) {
+		PLATFORM_ASSERT(context);
 		// Tile pattern over rectangle
 		// Currently assumes 8x8 pattern
 		int widthPat = 8;
@@ -787,6 +796,7 @@ void SurfaceImpl::AlphaRectangle(PRectangle rc, int cornerSize, ColourDesired fi
 }
 
 void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage) {
+	PLATFORM_ASSERT(context);
 	if (rc.Width() > width)
 		rc.left += (rc.Width() - width) / 2;
 	rc.right = rc.left + width;
@@ -821,6 +831,7 @@ void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height, const unsi
 }
 
 void SurfaceImpl::Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back) {
+	PLATFORM_ASSERT(context);
 	PenColour(back);
 	cairo_arc(context, (rc.left + rc.right) / 2, (rc.top + rc.bottom) / 2,
 		Platform::Minimum(rc.Width(), rc.Height()) / 2, 0, 2*kPi);
@@ -833,6 +844,7 @@ void SurfaceImpl::Copy(PRectangle rc, Point from, Surface &surfaceSource) {
 	SurfaceImpl &surfi = static_cast<SurfaceImpl &>(surfaceSource);
 	bool canDraw = surfi.psurf;
 	if (canDraw) {
+		PLATFORM_ASSERT(context);
 		cairo_set_source_surface(context, surfi.psurf,
 			rc.left - from.x, rc.top - from.y);
 		cairo_rectangle(context, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top);
@@ -1076,6 +1088,10 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, XYPOSITION 
 						}
 						clusterStart = clusterEnd;
 					}
+					while (i < lenPositions) {
+						// If something failed, fill in rest of the positions
+						positions[i++] = clusterStart;
+					}
 					PLATFORM_ASSERT(i == lenPositions);
 				}
 			}
@@ -1185,6 +1201,7 @@ XYPOSITION SurfaceImpl::AverageCharWidth(Font &font_) {
 }
 
 void SurfaceImpl::SetClip(PRectangle rc) {
+	PLATFORM_ASSERT(context);
 	cairo_rectangle(context, rc.left, rc.top, rc.right, rc.bottom);
 	cairo_clip(context);
 }
@@ -1788,6 +1805,7 @@ void ListBoxX::Select(int n) {
 }
 
 int ListBoxX::GetSelection() {
+	int index = -1;
 	GtkTreeIter iter;
 	GtkTreeModel *model;
 	GtkTreeSelection *selection;
@@ -1797,9 +1815,10 @@ int ListBoxX::GetSelection() {
 		int *indices = gtk_tree_path_get_indices(path);
 		// Don't free indices.
 		if (indices)
-			return indices[0];
+			index = indices[0];
+		gtk_tree_path_free(path);
 	}
-	return -1;
+	return index;
 }
 
 int ListBoxX::Find(const char *prefix) {

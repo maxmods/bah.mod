@@ -20,14 +20,13 @@
  THE SOFTWARE.
  
 */
+
 #include <gtk/gtk.h>
-#include <Scintilla.h>
-#include <SciLexer.h>
-#include <ScintillaWidget.h>
+#include "Scintilla.h"
 
 #include "blitz.h"
 
-ScintillaObject * bmx_mgta_scintilla_getsci(GtkWidget * editor, int id) {
+ScintillaObject * bmx_mgta_scintilla_getsci(void * editor, int id) {
 	ScintillaObject * obj = SCINTILLA(editor);
 	scintilla_set_id(obj, id);
 

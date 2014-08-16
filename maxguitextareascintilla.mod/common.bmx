@@ -20,15 +20,19 @@
 '
 SuperStrict
 
+?linux
 Import "-lpangocairo-1.0"
 Import "-lcairo"
+?macos
+?win32
+?
 
 Import "source.bmx"
 
 Extern
-
+?linux
 	Function g_signal_cbsci:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr, id:Int,notification:Byte Ptr,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
-
+?
 	Function scintilla_new:Byte Ptr()
 
 	Function bmx_mgta_scintilla_getsci:Byte Ptr(handle:Byte Ptr, id:Int)

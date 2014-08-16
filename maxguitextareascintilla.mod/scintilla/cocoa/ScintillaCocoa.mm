@@ -395,6 +395,10 @@ ScintillaCocoa::ScintillaCocoa(SCIContentView* view, SCIMarginView* viewMargin)
   idleTimer = NULL;
   observer = NULL;
   layerFindIndicator = NULL;
+  for (TickReason tr=tickCaret; tr<=tickPlatform; tr = static_cast<TickReason>(tr+1))
+  {
+    timers[tr] = nil;
+  }
   Initialise();
 }
 
@@ -435,7 +439,10 @@ void ScintillaCocoa::Initialise()
 void ScintillaCocoa::Finalise()
 {
   ObserverRemove();
-  SetTicking(false);
+  for (TickReason tr=tickCaret; tr<=tickPlatform; tr = static_cast<TickReason>(tr+1))
+  {
+    FineTickerCancel(tr);
+  }
   ScintillaBase::Finalise();
 }
 
@@ -656,20 +663,9 @@ void ScintillaCocoa::CancelModes() {
 //--------------------------------------------------------------------------------------------------
 
 /**
- * Helper function to get the outer container which represents the Scintilla editor on application side.
- */
-ScintillaView* ScintillaCocoa::TopContainer()
-{
-  NSView* container = static_cast<NSView*>(wMain.GetID());
-  return static_cast<ScintillaView*>([[[container superview] superview] superview]);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
  * Helper function to get the scrolling view.
  */
-NSScrollView* ScintillaCocoa::ScrollContainer() {
+NSScrollView* ScintillaCocoa::ScrollContainer() const {
   NSView* container = static_cast<NSView*>(wMain.GetID());
   return static_cast<NSScrollView*>([[container superview] superview]);
 }
@@ -689,11 +685,11 @@ SCIContentView* ScintillaCocoa::ContentView()
 /**
  * Return the top left visible point relative to the origin point of the whole document.
  */
-Scintilla::Point ScintillaCocoa::GetVisibleOriginInMain()
+Scintilla::Point ScintillaCocoa::GetVisibleOriginInMain() const
 {
   NSScrollView *scrollView = ScrollContainer();
   NSRect contentRect = [[scrollView contentView] bounds];
-  return Point(contentRect.origin.x, contentRect.origin.y);
+  return Point(static_cast<XYPOSITION>(contentRect.origin.x), static_cast<XYPOSITION>(contentRect.origin.y));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -703,12 +699,29 @@ Scintilla::Point ScintillaCocoa::GetVisibleOriginInMain()
  * in order to make scrolling working properly.
  * The returned value is in document coordinates.
  */
-PRectangle ScintillaCocoa::GetClientRectangle()
+PRectangle ScintillaCocoa::GetClientRectangle() const
 {
   NSScrollView *scrollView = ScrollContainer();
   NSSize size = [[scrollView contentView] bounds].size;
   Point origin = GetVisibleOriginInMain();
   return PRectangle(origin.x, origin.y, origin.x+size.width, origin.y + size.height);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * Allow for prepared rectangle
+ */
+PRectangle ScintillaCocoa::GetClientDrawingRectangle() {
+#if MAC_OS_X_VERSION_MAX_ALLOWED > 1080
+  NSView *content = ContentView();
+  if ([content respondsToSelector: @selector(setPreparedContentRect:)]) {
+    NSRect rcPrepared = [content preparedContentRect];
+    if (!NSIsEmptyRect(rcPrepared))
+      return NSRectToPRectangle(rcPrepared);
+  }
+#endif
+  return ScintillaCocoa::GetClientRectangle();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -723,7 +736,7 @@ Scintilla::Point ScintillaCocoa::ConvertPoint(NSPoint point)
   NSView* container = ContentView();
   NSPoint result = [container convertPoint: point fromView: nil];
   Scintilla::Point ptOrigin = GetVisibleOriginInMain();
-  return Point(result.x - ptOrigin.x, result.y - ptOrigin.y);
+  return Point(static_cast<XYPOSITION>(result.x - ptOrigin.x), static_cast<XYPOSITION>(result.y - ptOrigin.y));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -739,12 +752,26 @@ void ScintillaCocoa::RedrawRect(PRectangle rc)
 
 //--------------------------------------------------------------------------------------------------
 
+void ScintillaCocoa::DiscardOverdraw()
+{
+#if MAC_OS_X_VERSION_MAX_ALLOWED > 1080
+  // If running on 10.9, reset prepared area to visible area
+  NSView *content = ContentView();
+  if ([content respondsToSelector: @selector(setPreparedContentRect:)]) {
+    content.preparedContentRect = [content visibleRect];
+  }
+#endif
+}
+
+//--------------------------------------------------------------------------------------------------
+
 /**
  * Ensure all of prepared content is also redrawn.
  */
 void ScintillaCocoa::Redraw()
 {
   wMargin.InvalidateAll();
+  DiscardOverdraw();
   wMain.InvalidateAll();
 }
 
@@ -755,16 +782,16 @@ void ScintillaCocoa::Redraw()
  * However this is a Windows metaphor and not used here, hence we just call our fake
  * window proc. The given parameters directly reflect the message parameters used on Windows.
  *
- * @param sciThis The target which is to be called.
+ * @param ptr The target which is to be called.
  * @param iMessage A code that indicates which message was sent.
  * @param wParam One of the two free parameters for the message. Traditionally a word sized parameter
  *               (hence the w prefix).
  * @param lParam The other of the two free parameters. A signed long.
  */
-sptr_t ScintillaCocoa::DirectFunction(ScintillaCocoa *sciThis, unsigned int iMessage, uptr_t wParam,
+sptr_t ScintillaCocoa::DirectFunction(sptr_t ptr, unsigned int iMessage, uptr_t wParam,
                                       sptr_t lParam)
 {
-  return sciThis->WndProc(iMessage, wParam, lParam);
+  return reinterpret_cast<ScintillaCocoa *>(ptr)->WndProc(iMessage, wParam, lParam);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -776,8 +803,7 @@ sptr_t ScintillaCocoa::DirectFunction(ScintillaCocoa *sciThis, unsigned int iMes
 sptr_t scintilla_send_message(void* sci, unsigned int iMessage, uptr_t wParam, sptr_t lParam)
 {
   ScintillaView *control = reinterpret_cast<ScintillaView*>(sci);
-  ScintillaCocoa* scintilla = [control backend];
-  return scintilla->WndProc(iMessage, wParam, lParam);
+  return [control message:iMessage wParam:wParam lParam:lParam];
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -806,7 +832,7 @@ sptr_t ScintillaCocoa::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lPar
 
     case SCI_SETBUFFEREDDRAW:
       // Buffered drawing not supported on Cocoa
-      bufferedDraw = false;
+      view.bufferedDraw = false;
       break;
 
     case SCI_FINDINDICATORSHOW:
@@ -843,32 +869,72 @@ sptr_t ScintillaCocoa::DefWndProc(unsigned int, uptr_t, sptr_t)
 //--------------------------------------------------------------------------------------------------
 
 /**
- * Enables or disables a timer that can trigger background processing at a regular interval, like
- * drag scrolling or caret blinking.
+ * Handle any ScintillaCocoa-specific ticking or call superclass.
  */
-void ScintillaCocoa::SetTicking(bool on)
+void ScintillaCocoa::TickFor(TickReason reason)
 {
-  if (timer.ticking != on)
+  if (reason == tickPlatform)
   {
-    timer.ticking = on;
-    if (timer.ticking)
-    {
-      // Scintilla ticks = milliseconds
-      tickTimer = [NSTimer scheduledTimerWithTimeInterval: timer.tickSize / 1000.0
-						   target: timerTarget
-						 selector: @selector(timerFired:)
-						 userInfo: nil
-						  repeats: YES];
-      timer.tickerID = reinterpret_cast<TickerID>(tickTimer);
-    }
-    else
-      if (timer.tickerID != NULL)
-      {
-        [reinterpret_cast<NSTimer*>(timer.tickerID) invalidate];
-        timer.tickerID = 0;
-      }
+    DragScroll();
   }
-  timer.ticksToWait = caret.period;
+  else
+  {
+    Editor::TickFor(reason);
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * Report that this Editor subclass has a working implementation of FineTickerStart.
+ */
+bool ScintillaCocoa::FineTickerAvailable()
+{
+  return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * Is a particular timer currently running?
+ */
+bool ScintillaCocoa::FineTickerRunning(TickReason reason)
+{
+  return timers[reason] != nil;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * Start a fine-grained timer.
+ */
+void ScintillaCocoa::FineTickerStart(TickReason reason, int millis, int tolerance)
+{
+  FineTickerCancel(reason);
+  NSTimer *fineTimer = [NSTimer scheduledTimerWithTimeInterval: millis / 1000.0
+                                                        target: timerTarget
+                                                      selector: @selector(timerFired:)
+                                                      userInfo: nil
+                                                       repeats: YES];
+  if (tolerance && [fineTimer respondsToSelector: @selector(setTolerance:)])
+  {
+    [fineTimer setTolerance: tolerance / 1000.0];
+  }
+  timers[reason] = fineTimer;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * Cancel a fine-grained timer.
+ */
+void ScintillaCocoa::FineTickerCancel(TickReason reason)
+{
+  if (timers[reason])
+  {
+    [timers[reason] invalidate];
+    timers[reason] = nil;
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -952,16 +1018,8 @@ void ScintillaCocoa::Paste(bool forceRectangular)
 
   pdoc->BeginUndoAction();
   ClearSelection(false);
-  int length = selectedText.Length();
-  SelectionPosition selStart = sel.RangeMain().Start();
-  if (selectedText.rectangular)
-  {
-    PasteRectangular(selStart, selectedText.Data(), length);
-  }
-  else
-  {
-    InsertPaste(selStart, selectedText.Data(), length);
-  }
+  InsertPasteShape(selectedText.Data(), selectedText.Length(),
+	  selectedText.rectangular ? pasteRectangular : pasteStream);
   pdoc->EndUndoAction();
 
   Redraw();
@@ -1037,7 +1095,7 @@ void ScintillaCocoa::CTPaint(void* gc, NSRect rc) {
 
 void ScintillaCocoa::CallTipMouseDown(NSPoint pt) {
     NSRect rectBounds = [(NSView *)(ct.wDraw.GetID()) bounds];
-    Point location(pt.x, rectBounds.size.height - pt.y);
+    Point location(pt.x, static_cast<XYPOSITION>(rectBounds.size.height - pt.y));
     ct.MouseClick(location);
     CallTipClick();
 }
@@ -1164,6 +1222,8 @@ void ScintillaCocoa::StartDrag()
 
   inDragDrop = ddDragging;
 
+  FineTickerStart(tickPlatform, timer.tickSize, 0);
+
   // Put the data to be dragged on the drag pasteboard.
   SelectionText selectedText;
   NSPasteboard* pasteboard = [NSPasteboard pasteboardWithName: NSDragPboard];
@@ -1249,8 +1309,8 @@ void ScintillaCocoa::StartDrag()
   SurfaceImpl *sw = new SurfaceImpl();
   SurfaceImpl *pixmap = NULL;
 
-  bool lastHideSelection = hideSelection;
-  hideSelection = true;
+  bool lastHideSelection = view.hideSelection;
+  view.hideSelection = true;
   if (sw)
   {
     pixmap = new SurfaceImpl();
@@ -1277,7 +1337,7 @@ void ScintillaCocoa::StartDrag()
       CGContextTranslateCTM(gc, 0, imageRect.Height());
       CGContextScaleCTM(gc, 1.0, -1.0);
 
-      pixmap->CopyImageRectangle(*sw, imageRect, PRectangle(0, 0, imageRect.Width(), imageRect.Height()));
+      pixmap->CopyImageRectangle(*sw, imageRect, PRectangle(0.0f, 0.0f, imageRect.Width(), imageRect.Height()));
       // XXX TODO: overwrite any part of the image that is not part of the
       //           selection to make it transparent.  right now we just use
       //           the full rectangle which may include non-selected text.
@@ -1285,7 +1345,7 @@ void ScintillaCocoa::StartDrag()
     sw->Release();
     delete sw;
   }
-  hideSelection = lastHideSelection;
+  view.hideSelection = lastHideSelection;
 
   NSBitmapImageRep* bitmap = NULL;
   if (pixmap)
@@ -1325,6 +1385,7 @@ void ScintillaCocoa::StartDrag()
  */
 NSDragOperation ScintillaCocoa::DraggingEntered(id <NSDraggingInfo> info)
 {
+  FineTickerStart(tickPlatform, timer.tickSize, 0);
   return DraggingUpdated(info);
 }
 
@@ -1367,6 +1428,7 @@ void ScintillaCocoa::DraggingExited(id <NSDraggingInfo> info)
 {
 #pragma unused(info)
   SetDragPosition(SelectionPosition(invalidPosition));
+  FineTickerCancel(tickPlatform);
   inDragDrop = ddNone;
 }
 
@@ -1463,8 +1525,7 @@ bool ScintillaCocoa::GetPasteboardData(NSPasteboard* board, SelectionText* selec
 
       bool rectangular = bestType == ScintillaRecPboardType;
 
-      int len = static_cast<int>(usedLen);
-      std::string dest = Document::TransformLineEnds((char *)buffer.data(), len, pdoc->eolMode);
+      std::string dest(reinterpret_cast<const char *>(buffer.data()), usedLen);
 
       selectedText->Copy(dest, pdoc->dbcsCodePage,
                          vs.styles[STYLE_DEFAULT].characterSet , rectangular, false);
@@ -1563,6 +1624,29 @@ void ScintillaCocoa::PaintMargin(NSRect aRect)
 //--------------------------------------------------------------------------------------------------
 
 /**
+ * Prepare for drawing.
+ *
+ * @param rect The area that will be drawn, given in the sender's coordinate system.
+ */
+void ScintillaCocoa::WillDraw(NSRect rect)
+{
+  RefreshStyleData();
+  PRectangle rcWillDraw = NSRectToPRectangle(rect);
+  int positionAfterRect = PositionAfterArea(rcWillDraw);
+  pdoc->EnsureStyledTo(positionAfterRect);
+  NotifyUpdateUI();
+  if (WrapLines(wsVisible)) {
+    // Wrap may have reduced number of lines so more lines may need to be styled
+    positionAfterRect = PositionAfterArea(rcWillDraw);
+    pdoc->EnsureStyledTo(positionAfterRect);
+    // The wrapping process has changed the height of some lines so redraw all.
+    Redraw();
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
  * ScrollText is empty because scrolling is handled by the NSScrollView.
  */
 void ScintillaCocoa::ScrollText(int linesToMove)
@@ -1633,7 +1717,7 @@ bool ScintillaCocoa::SetScrollingSize(void) {
 		NSScrollView *scrollView = ScrollContainer();
 		NSClipView *clipView = [ScrollContainer() contentView];
 		NSRect clipRect = [clipView bounds];
-		CGFloat docHeight = (cs.LinesDisplayed()+1) * vs.lineHeight;
+		CGFloat docHeight = cs.LinesDisplayed() * vs.lineHeight;
 		if (!endAtLastLine)
 			docHeight += (int([scrollView bounds].size.height / vs.lineHeight)-3) * vs.lineHeight;
 		// Allow extra space so that last scroll position places whole line at top
@@ -1789,9 +1873,13 @@ bool ScintillaCocoa::CanRedo()
 
 void ScintillaCocoa::TimerFired(NSTimer* timer)
 {
-#pragma unused(timer)
-  Tick();
-  DragScroll();
+  for (TickReason tr=tickCaret; tr<=tickPlatform; tr = static_cast<TickReason>(tr+1))
+  {
+    if (timers[tr] == timer)
+    {
+      TickFor(tr);
+    }
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1925,12 +2013,15 @@ int ScintillaCocoa::InsertText(NSString* input)
   CFStringGetBytes((CFStringRef)input, rangeAll, encoding, '?',
                    false, NULL, 0, &usedLen);
 
-  std::vector<UInt8> buffer(usedLen);
+  if (usedLen > 0)
+  {
+    std::vector<UInt8> buffer(usedLen);
 
-  CFStringGetBytes((CFStringRef)input, rangeAll, encoding, '?',
-                     false, buffer.data(),usedLen, NULL);
+    CFStringGetBytes((CFStringRef)input, rangeAll, encoding, '?',
+                       false, buffer.data(),usedLen, NULL);
 
-  AddCharUTF((char*) buffer.data(), static_cast<unsigned int>(usedLen), false);
+    AddCharUTF((char*) buffer.data(), static_cast<unsigned int>(usedLen), false);
+  }
   return static_cast<int>(usedLen);
 }
 
@@ -2109,7 +2200,7 @@ void ScintillaCocoa::ActiveStateChanged(bool isActive)
   if (!isActive) {
     DropCaret();
     //SetFocusState( false );
-    SetTicking( false );
+    FineTickerCancel(tickCaret);
   } else {
     ShowCaretAtCurrentPosition();
   }

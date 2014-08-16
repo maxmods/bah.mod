@@ -25,7 +25,13 @@ Import BRL.Blitz
 Import "scintilla/include/*.h"
 Import "scintilla/lexlib/*.h"
 Import "scintilla/src/*.h"
+?linux
 Import "scintilla/gtk/*.h"
+?macos
+Import "scintilla/cocoa/*.h"
+?win32
+Import "scintilla/win32/*.h"
+?
 
 ' src
 Import "scintilla/src/AutoComplete.cxx"
@@ -38,11 +44,14 @@ Import "scintilla/src/CharClassify.cxx"
 Import "scintilla/src/ContractionState.cxx"
 Import "scintilla/src/Decoration.cxx"
 Import "scintilla/src/Document.cxx"
+Import "scintilla/src/EditModel.cxx"
 Import "scintilla/src/Editor.cxx"
+Import "scintilla/src/EditView.cxx"
 Import "scintilla/src/ExternalLexer.cxx"
 Import "scintilla/src/Indicator.cxx"
 Import "scintilla/src/KeyMap.cxx"
 Import "scintilla/src/LineMarker.cxx"
+Import "scintilla/src/MarginView.cxx"
 Import "scintilla/src/PerLine.cxx"
 Import "scintilla/src/PositionCache.cxx"
 Import "scintilla/src/RESearch.cxx"
@@ -114,7 +123,7 @@ Import "scintilla/lexers/LexLua.cxx"
 Import "scintilla/lexers/LexMagik.cxx"
 Import "scintilla/lexers/LexMarkdown.cxx"
 Import "scintilla/lexers/LexMatlab.cxx"
-Import "scintilla/lexers/LexMax.cxx"
+Import "scintilla/lexers/LexMax.cxx" ' BlitzMax lexer
 Import "scintilla/lexers/LexMetapost.cxx"
 Import "scintilla/lexers/LexMMIXAL.cxx"
 Import "scintilla/lexers/LexModula.cxx"
@@ -162,9 +171,24 @@ Import "scintilla/lexers/LexVHDL.cxx"
 Import "scintilla/lexers/LexVisualProlog.cxx"
 Import "scintilla/lexers/LexYAML.cxx"
 
+?linux
 ' gtk
 Import "scintilla/gtk/PlatGTK.cxx"
 Import "scintilla/gtk/ScintillaGTK.cxx"
 Import "scintilla/gtk/scintilla-marshal.c"
 
-Import "glue.c"
+Import "linux_glue.c"
+?macos
+' cocoa
+Import "scintilla/cocoa/PlatCocoa.mm"
+Import "scintilla/cocoa/ScintillaCocoa.mm"
+Import "scintilla/cocoa/ScintillaView.mm"
+
+Import "macos_glue.mm"
+?win32
+' win32
+Import "scintilla/win32/PlatWin.cxx"
+Import "scintilla/win32/ScintillaWin.cxx"
+?
+
+

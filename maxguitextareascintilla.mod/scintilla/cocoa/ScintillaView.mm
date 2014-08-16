@@ -165,7 +165,7 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
   {
     // Some initialization for our view.
     mCurrentCursor = [[NSCursor arrowCursor] retain];
-    mCurrentTrackingRect = 0;
+    trackingArea = nil;
     mMarkedTextRange = NSMakeRange(NSNotFound, 0);
 
     [self registerForDraggedTypes: [NSArray arrayWithObjects:
@@ -178,19 +178,31 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
 //--------------------------------------------------------------------------------------------------
 
 /**
- * When the view is resized we need to update our tracking rectangle and let the backend know.
+ * When the view is resized or scrolled we need to update our tracking area.
+ */
+- (void) updateTrackingAreas
+{
+  if (trackingArea)
+    [self removeTrackingArea:trackingArea];
+  
+  int opts = (NSTrackingActiveAlways | NSTrackingInVisibleRect | NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved);
+  trackingArea = [[NSTrackingArea alloc] initWithRect:[self bounds]
+                                              options:opts
+                                                owner:self
+                                             userInfo:nil];
+  [self addTrackingArea: trackingArea];
+  [super updateTrackingAreas];
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * When the view is resized we need to let the backend know.
  */
 - (void) setFrame: (NSRect) frame
 {
   [super setFrame: frame];
-
-  // Make the content also a tracking rectangle for mouse events.
-  if (mCurrentTrackingRect != 0)
-    [self removeTrackingRect: mCurrentTrackingRect];
-	mCurrentTrackingRect = [self addTrackingRect: [self bounds]
-                                         owner: self
-                                      userData: nil
-                                  assumeInside: YES];
+	
   mOwner.backend->Resize();
 }
 
@@ -223,6 +235,39 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
   // We only have one cursor rect: our bounds.
   [self addCursorRect: [self bounds] cursor: mCurrentCursor];
   [mCurrentCursor setOnMouseEntered: YES];
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * Called before repainting.
+ */
+- (void) viewWillDraw
+{
+  const NSRect *rects;
+  NSInteger nRects = 0;
+  [self getRectsBeingDrawn:&rects count:&nRects];
+  if (nRects > 0) {
+    NSRect rectUnion = rects[0];
+    for (int i=0;i<nRects;i++) {
+      rectUnion = NSUnionRect(rectUnion, rects[i]);
+    }
+    mOwner.backend->WillDraw(rectUnion);
+  }
+  [super viewWillDraw];
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
+ * Called before responsive scrolling overdraw.
+ */
+- (void) prepareContentInRect: (NSRect) rect
+{
+  mOwner.backend->WillDraw(rect);
+#if MAC_OS_X_VERSION_MAX_ALLOWED > 1080
+  [super prepareContentInRect: rect];
+#endif
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -383,13 +428,7 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
 		// Its replacing a non-existent position so do nothing.
 		return;
 
-	if (replacementRange.length > 0)
-	{
-		[ScintillaView directCall: mOwner
-				  message: SCI_DELETERANGE
-				   wParam: replacementRange.location
-				   lParam: replacementRange.length];
-	}
+	[mOwner deleteRange: replacementRange];
 
 	NSString* newText = @"";
 	if ([aString isKindOfClass:[NSString class]])
@@ -459,13 +498,7 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
     mOwner.backend->SelectOnlyMainSelection();
   }
 
-  if (replacementRange.length > 0)
-  {
-    [ScintillaView directCall: mOwner
-		      message: SCI_DELETERANGE
-		       wParam: replacementRange.location
-		       lParam: replacementRange.length];
-  }
+  [mOwner deleteRange: replacementRange];
 
   // Note: Scintilla internally works almost always with bytes instead chars, so we need to take
   //       this into account when determining selection ranges and such.
@@ -532,11 +565,8 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
   if (mMarkedTextRange.length > 0)
   {
     // We have already marked text. Replace that.
-    [mOwner setGeneralProperty: SCI_SETSELECTIONSTART
-                     value: mMarkedTextRange.location];
-    [mOwner setGeneralProperty: SCI_SETSELECTIONEND
-                     value: mMarkedTextRange.location + mMarkedTextRange.length];
-    mOwner.backend->InsertText(@"");
+    [mOwner deleteRange: mMarkedTextRange];
+
     mMarkedTextRange = NSMakeRange(NSNotFound, 0);
 
     // Reenable undo action collection, after we are done with text composition.
@@ -1254,6 +1284,19 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
 //--------------------------------------------------------------------------------------------------
 
 /**
+ * Delete a range from the document.
+ */
+- (void) deleteRange: (NSRange) aRange
+{
+  if (aRange.length > 0)
+  {
+    [self message: SCI_DELETERANGE wParam: aRange.location lParam: aRange.length];
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
+/**
  * Getter for the current text in raw form (no formatting information included).
  * If there is no text available an empty string is returned.
  */
@@ -1335,7 +1378,8 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
 + (sptr_t) directCall: (ScintillaView*) sender message: (unsigned int) message wParam: (uptr_t) wParam
                lParam: (sptr_t) lParam
 {
-  return ScintillaCocoa::DirectFunction(sender->mBackend, message, wParam, lParam);
+  return ScintillaCocoa::DirectFunction(
+    reinterpret_cast<sptr_t>(sender->mBackend), message, wParam, lParam);
 }
 
 - (sptr_t) message: (unsigned int) message wParam: (uptr_t) wParam lParam: (sptr_t) lParam
@@ -1626,9 +1670,12 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor)
 
 //--------------------------------------------------------------------------------------------------
 
-- (void)insertText: (NSString*)text
+- (void)insertText: (id) aString
 {
-  mBackend->InsertText(text);
+  if ([aString isKindOfClass:[NSString class]])
+    mBackend->InsertText(aString);
+  else if ([aString isKindOfClass:[NSAttributedString class]])
+    mBackend->InsertText([aString string]);
 }
 
 //--------------------------------------------------------------------------------------------------
