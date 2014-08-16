@@ -52,6 +52,13 @@ ModuleInfo "CC_OPTS: -I/usr/include/gdk-pixbuf-2.0"
 ' atk
 ModuleInfo "CC_OPTS: -I/usr/include/atk-1.0"
 
+?linuxarm
+' glib
+ModuleInfo "CC_OPTS: -I/usr/lib/arm-linux-gnueabihf/glib-2.0/include"
+' gtk
+ModuleInfo "CC_OPTS: -I/usr/lib/arm-linux-gnueabihf/gtk-2.0/include"
+
+?linux
 Import "linuxgtk.bmx"
 
 ?macos
