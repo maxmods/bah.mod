@@ -18,7 +18,7 @@
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ' THE SOFTWARE.
 '
-SuperStrict
+Strict
 
 Import "gtkcommon.bmx"
 Import "gtkgadget.bmx"
@@ -376,10 +376,15 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 		Else
 			Select font.name
 				Case "Lucida"
-					' No Lucida? Try FreeSerif...
-					font.name = "FreeSerif"
+					font.name = "DejaVu Sans Mono"
 					font = DoLoadFont(font)
-				Case "FreeSerif"
+				Case "DejaVu Sans Mono"
+					font.name = "Droid Sans Mono"
+					font = DoLoadFont(font)
+				Case "Droid Sans Mono"
+					font.name = "FreeMono"
+					font = DoLoadFont(font)
+				Case "FreeMono"
 					Return Null
 				Default ' try a default...
 					font.name = "Lucida"
@@ -530,10 +535,7 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 		Local argb:Int = Null
 
 		' populate the color object, ensuring values in valid range, then scale up
-		Local color:TGDKColor = New TGDKColor
-		color.red = Max(0, Min(r, 255)) * 256
-		color.green = Max(0, Min(g, 255)) * 256
-		color.blue = Max(0, Min(b, 255)) * 256
+		Local color:Byte Ptr = bmx_gtk_gdkcolor_new(Max(0, Min(r, 255)) * 256, Max(0, Min(g, 255)) * 256, Max(0, Min(b, 255)) * 256)
 
 		Local req:Byte Ptr = gtk_color_selection_dialog_new("Select color")
 		Local colsel:Byte Ptr = gtk_color_selection_dialog_get_color_selection(req)
@@ -543,9 +545,14 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 
 		If res = GTK_RESPONSE_OK Then
 			gtk_color_selection_get_current_color(colsel, color)
+			
+			bmx_gtk_gdkcolor_color(color, Varptr r, Varptr g, Varptr b)
+			
 			' need to scale down and populate argb var
-			argb = $ff000000 | (((color.red Shr 8)&255)Shl 16) | (((color.green Shr 8)&255)Shl 8) | ((color.blue Shr 8)&255)
+			argb = $ff000000 | (((r Shr 8)&255)Shl 16) | (((g Shr 8)&255)Shl 8) | ((b Shr 8)&255)
 		End If
+		
+		bmx_gtk_gdkcolor_free(color)
 		
 		gtk_widget_destroy(req)
 

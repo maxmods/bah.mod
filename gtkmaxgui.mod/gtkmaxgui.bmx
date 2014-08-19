@@ -26,11 +26,13 @@ about: This modules provides a Linux GTK driver for #maxgui.maxgui.MAXGUI.
 End Rem
 Module BaH.GTKMaxGUI
 
-ModuleInfo "Version: 1.21"
+ModuleInfo "Version: 1.22"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2006-2014 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.22"
+ModuleInfo "History: Removed Gtk types and replaced with Byte Ptr glue."
 ModuleInfo "History: 1.21"
 ModuleInfo "History: Fixed low-level event handling issues."
 ModuleInfo "History: Added missing consts."

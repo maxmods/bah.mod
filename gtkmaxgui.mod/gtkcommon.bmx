@@ -65,7 +65,7 @@ Extern
 	Function g_signal_cb4:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,url:Byte Ptr,stream:Byte Ptr,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
 	Function g_signal_cb_int_3:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,arg:Int,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
 	Function g_signal_cb3:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,event:Byte Ptr,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
-	Function g_signal_cb_mouse_3:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,event:TGdkEventButton,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
+	Function g_signal_cb_mouse_3:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,event:Byte Ptr,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
 	Function g_signal_cb_splitter_3:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,scroll:Int,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
 	Function g_signal_cb2:Int(gtkwidget:Byte Ptr, name:Byte Ptr, callback(widget:Byte Ptr,gadget:Object),gadget:Object,destroyhandler(data:Byte Ptr,user: Byte Ptr),flag:Int) = "g_signal_connect_data"
 	Function g_signal_handler_disconnect(gtkwidget:Byte Ptr, handlerid:Long)
@@ -379,7 +379,7 @@ Extern
 	Function gdk_pixbuf_copy_area(src:Byte Ptr, srcx:Int, srcy:Int, width:Int, height:Int, dest:Byte Ptr, destx:Int, desty:Int)
 	Function gtk_image_new_from_pixbuf:Byte Ptr(image:Byte Ptr)
 	Function gtk_image_new:Byte Ptr()
-	Function gtk_image_set_from_pixbuf(widgetPtr:Byte Ptr, image:Int)
+	Function gtk_image_set_from_pixbuf(widgetPtr:Byte Ptr, image:Byte Ptr)
 	Function gdk_pixbuf_rotate_simple:Byte Ptr(pixbuf:Byte Ptr, rotate:Int)
 	Function gtk_image_clear(imagePtr:Byte Ptr)
 
@@ -442,9 +442,11 @@ Extern
 
 	Function g_value_init(gtype:Byte Ptr, _type:Int)
 	Function g_value_set_string(_type:Byte Ptr, s:Byte Ptr)
-	Function g_value_set_object(_type:Byte Ptr, s:Int)
+	Function g_value_set_object(_type:Byte Ptr, s:Byte Ptr)
 	Function g_value_unset(_value:Byte Ptr)
 	Function g_free(obj:Byte Ptr)
+	Function bmx_gtk_gvalue_new:Byte Ptr(_type:Int)
+	Function bmx_gtk_gvalue_free(_value:Byte Ptr)
 
 	Function gtk_accel_group_new:Byte Ptr()
 
@@ -520,6 +522,12 @@ Extern
 	Function gnome_canvas_pixbuf_get_type:Int()
 	Function gdk_pixbuf_get_type:Int()
 	
+	Function bmx_gtk_gtktextiter_new:Byte Ptr()
+	Function bmx_gtk_gtktextiter_free(iter:Byte Ptr)
+	Function bmx_gtk_gdkcolor_new:Byte Ptr(r:Int, g:Int, b:Int)
+	Function bmx_gtk_gdkcolor_free(col:Byte Ptr)
+	Function bmx_gtk_gdkcolor_color(col:Byte Ptr, r:Int Ptr, g:Int Ptr, b:Int Ptr)
+	
 	' event types
 	Function bmx_gtkmaxgui_gdkeventbutton(event:Byte Ptr, x:Double Ptr, y:Double Ptr, button:Int Ptr)
 	Function bmx_gtkmaxgui_gdkeventmotion(event:Byte Ptr, x:Double Ptr, y:Double Ptr, state:Int Ptr)
@@ -532,7 +540,24 @@ Extern
 	Function gtk_widget_get_default_style:Byte Ptr()
 	Function bmx_gtk_style_get_fontdesc:Byte Ptr(handle:Byte Ptr)
 	
+	Function bmx_gtk_gtkallocation_new:Byte Ptr()
+	Function bmx_gtk_gtkallocation_dim(al:Byte Ptr, w:Int Ptr, h:Int Ptr)
+	Function bmx_gtk_gtkallocation_free(al:Byte Ptr)	
+
+	Function bmx_gtk_gtkrequisition_new:Byte Ptr()
+	Function bmx_gtk_gtkrequisition_dim(al:Byte Ptr, w:Int Ptr, h:Int Ptr)
+	Function bmx_gtk_gtkrequisition_free(al:Byte Ptr)	
+
+	Function bmx_gtk_gdkgeometry_new:Byte Ptr()
+	Function bmx_gtk_gdkgeometry_setmin(geom:Byte Ptr, w:Int, h:Int)
+	Function bmx_gtk_gdkgeometry_setmax(geom:Byte Ptr, w:Int, h:Int)
+	Function bmx_gtk_gdkgeometry_setbase(geom:Byte Ptr, w:Int, h:Int)
+	Function bmx_gtk_gdkgeometry_setinc(geom:Byte Ptr, w:Int, h:Int)
+	Function bmx_gtk_gdkgeometry_free(geom:Byte Ptr)
 	
+	Function bmx_gtk_gtktreeiter_new:Byte Ptr()
+	Function bmx_gtk_gtktreeiter_free(iter:Byte Ptr)
+
 	Function gdk_cairo_create:Byte Ptr(handle:Byte Ptr)
 	Function gdk_cairo_set_source_pixbuf(handle:Byte Ptr, pixbuf:Byte Ptr, x:Int, y:Int)
 	Function cairo_paint(handle:Byte Ptr)
@@ -540,53 +565,6 @@ Extern
 	Function cairo_destroy(handle:Byte Ptr)
 
 End Extern
-
-Type TGTKRequisition
-	Field width:Int
-	Field height:Int
-End Type
-
-Type TGTKAllocation
-  Field x:Int
-  Field y:Int
-  Field width:Int
-  Field height:Int
-End Type
-
-Type TGDKColor
-  Field pixel:Int
-  Field red:Short
-  Field green:Short
-  Field blue:Short
-End Type
-
-Type TGTKTextIter
-  ' GtkTextIter is an opaque datatype; ignore all these fields.
-  ' Initialize the iter with gtk_text_buffer_get_iter_*
-  ' functions
-  '< Private >
-  Field dummy1:Int
-  Field dummy2:Int
-  Field dummy3:Int
-  Field dummy4:Int
-  Field dummy5:Int
-  Field dummy6:Int
-  Field dummy7:Int
-  Field dummy8:Int
-  Field dummy9:Int
-  Field dummy10:Int
-  Field dummy11:Int
-  Field dummy12:Int
-  ' padding
-  Field dummy13:Int
-  Field dummy14:Int
-End Type
-
-Type TGValue
-	Field _type:Int
-	Field d1:Long
-	Field d2:Long
-End Type
 
 ' creates an Object out of an "int"
 Type TGTKInteger
@@ -602,40 +580,18 @@ Type TGTKInteger
 
 End Type
 
-Type TGtkTreeIter
-	Field stamp:Int
-	Field user_data:Byte Ptr
-	Field user_data2:Byte Ptr
-	Field user_data3:Byte Ptr
-End Type
+' creates an Object out of an "Byte Ptr"
+Type TGTKBytePtr
+	Field value:Byte Ptr
+	Function Set:TGTKBytePtr(value:Byte Ptr)
+		Local this:TGTKBytePtr = New TGTKBytePtr
+		this.value = value
+		Return this
+	End Function
+	Method Compare:Int(o:Object)
+		Return value-TGTKBytePtr(o).value
+	End Method
 
-Type TGdkEventButton
-	Field _type:Byte
-	Field _window:Byte Ptr
-	Field _send_event:Byte
-	Field _time:Int
-	Field _x:Double
-	Field _y:Double
-	Field _axes:Double Ptr
-	Field _state:Int
-	Field _button:Int
-	Field _device:Byte Ptr
-	Field _x_root:Double
-	Field _y_root:Double
-End Type
-
-Type TGdkGeometry
-  Field min_width:Int
-  Field min_height:Int
-  Field max_width:Int
-  Field max_height:Int
-  Field base_width:Int
-  Field base_height:Int
-  Field width_inc:Int
-  Field height_inc:Int
-  Field min_aspect:Double
-  Field max_aspect:Double
-  Field win_gravity:Int
 End Type
 
 Global gtkTrianglePixmap:TPixmap = LoadPixmap("incbin::gtk_triangle.png")

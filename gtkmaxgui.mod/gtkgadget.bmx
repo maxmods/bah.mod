@@ -18,7 +18,7 @@
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ' THE SOFTWARE.
 '
-SuperStrict
+Strict
 
 Import "gtkcommon.bmx"
 Import "elist.bmx"
@@ -91,7 +91,7 @@ Type TGTKGadget Extends TGadget
 
 		' remove reference from global reference map
 		If handle Then
-			GadgetMap.Remove(TGTKInteger.Set(Int Ptr(handle)[0]))
+			GadgetMap.Remove(TGTKBytePtr.Set(handle))
 		End If
 		
 		connectionMap.Clear()
@@ -200,7 +200,7 @@ Type TGTKGadget Extends TGadget
 
 		' map the new gadget - so we can find it later if required
 		If gadget Then
-			GadgetMap.Insert(TGTKInteger.Set(Int(gadget.handle)),gadget)
+			GadgetMap.Insert(TGTKBytePtr.Set(gadget.handle),gadget)
 		End If
 		
 		If group Then
@@ -311,13 +311,11 @@ Type TGTKGadget Extends TGadget
 	bbdoc: Sets the gadget text color.
 	End Rem
 	Method SetTextColor(r:Int, g:Int, b:Int)
-		Local color:TGDKColor = New TGDKColor
-		color.red = r Shl 8
-		color.green = g Shl 8
-		color.blue = b Shl 8
+		Local color:Byte Ptr = bmx_gtk_gdkcolor_new(r Shl 8, g Shl 8, b Shl 8)
 
 		gtk_widget_modify_text(handle, GTK_STATE_NORMAL, color)
 
+		bmx_gtk_gdkcolor_free(color)
 	End Method
 
 	Rem
@@ -344,9 +342,12 @@ Type TGTKGadget Extends TGadget
 	End Rem
 	Method ClientWidth:Int()
 		If initialSizing Then
-			Local req:TGTKRequisition = New TGTKRequisition
+			Local req:Byte Ptr = bmx_gtk_gtkrequisition_new()
 			gtk_widget_size_request(handle, req)
-			Return req.width
+			Local w:Int, h:Int
+			bmx_gtk_gtkrequisition_dim(req, Varptr w, Varptr h)
+			bmx_gtk_gtkrequisition_free(req)
+			Return w
 		End If
 		Return width
 	End Method
@@ -356,9 +357,12 @@ Type TGTKGadget Extends TGadget
 	End Rem
 	Method ClientHeight:Int()
 		If initialSizing Then
-			Local req:TGTKRequisition = New TGTKRequisition
+			Local req:Byte Ptr = bmx_gtk_gtkrequisition_new()
 			gtk_widget_size_request(handle, req)
-			Return req.height
+			Local w:Int, h:Int
+			bmx_gtk_gtkrequisition_dim(req, Varptr w, Varptr h)
+			bmx_gtk_gtkrequisition_free(req)
+			Return h
 		End If
 		Return height
 	End Method
@@ -374,11 +378,9 @@ Type TGTKGadget Extends TGadget
 	bbdoc: Sets the gadget color
 	End Rem
 	Method SetColor(r:Int, g:Int, b:Int)
-		Local color:TGDKColor = New TGDKColor
-		color.red = r * 256
-		color.green = g * 256
-		color.blue = b * 256
+		Local color:Byte Ptr = bmx_gtk_gdkcolor_new(r * 256, g * 256, b * 256)
 		gtk_widget_modify_base(handle, GTK_STATE_NORMAL, color)
+		bmx_gtk_gdkcolor_free(color)
 	End Method
 
 	' initializes the tooltips, if required.
@@ -617,34 +619,30 @@ Type TGTKWindow Extends TGTKContainer
 		gtk_container_add(handle, vbox)
 		' some funky window setting up...
 		' It's all rather fiddly, but it appears to work.
-		Local geom:TGdkGeometry = New TGdkGeometry
+		Local geom:Byte Ptr = bmx_gtk_gdkgeometry_new()
 		Local hints:Int = 0
 		If style & WINDOW_RESIZABLE Then
 			hints:| GDK_HINT_USER_SIZE
 		
-			geom.min_width = 16
-			geom.min_height = 16
+			bmx_gtk_gdkgeometry_setmin(geom, 16, 16)
 			
 			hints:| GDK_HINT_RESIZE_INC
-			geom.width_inc = 1
-			geom.height_inc = 1
+			bmx_gtk_gdkgeometry_setinc(geom, 1, 1)
 		Else
-			geom.min_width = w
-			geom.min_height = calcHeight(h)
+			bmx_gtk_gdkgeometry_setmin(geom, w, calcHeight(h))
 		End If
-		geom.max_width = -1
-		geom.max_height = -1
+		bmx_gtk_gdkgeometry_setmax(geom, -1, -1)
+
 		If Not (style & WINDOW_CLIENTCOORDS) Then
-			geom.base_width = w
-			geom.base_height = calcHeight(h)
+			bmx_gtk_gdkgeometry_setbase(geom, w, calcHeight(h))
 		Else
-			geom.base_width = -1
-			geom.base_height = -1
+			bmx_gtk_gdkgeometry_setbase(geom, -1, -1)
 		End If
 		gtk_window_set_geometry_hints(handle, vbox, geom, GDK_HINT_POS | GDK_HINT_MIN_SIZE | ..
 			GDK_HINT_BASE_SIZE | GDK_HINT_USER_POS | hints)
 
-
+		bmx_gtk_gdkgeometry_free(geom)
+		
 		' connect this window with its parent
 		If group And (style & WINDOW_CHILD) Then
 			gtk_window_set_transient_for(handle, TGTKWindow(group).handle)
@@ -702,15 +700,26 @@ Type TGTKWindow Extends TGTKContainer
 		If Not (style & WINDOW_CLIENTCOORDS) Then
 			Return requestedHeight	
 		Else
+			Local req:Byte Ptr
 			If statusbar Then
-				Local req:TGTKRequisition = New TGTKRequisition
+				req = bmx_gtk_gtkrequisition_new()
 				gtk_widget_size_request(statusbar, req)
-				requestedHeight:+ req.height
+				Local w:Int, h:Int
+				bmx_gtk_gtkrequisition_dim(req, Varptr w, Varptr h)
+				requestedHeight:+ h
 			End If
 			If menubar Then
-				Local req:TGTKRequisition = New TGTKRequisition
+				If Not req Then
+					req = bmx_gtk_gtkrequisition_new()
+				End If
 				gtk_widget_size_request(menubar, req)
-				requestedHeight:+ req.height
+				Local w:Int, h:Int
+				bmx_gtk_gtkrequisition_dim(req, Varptr w, Varptr h)
+				requestedHeight:+ h
+			End If
+			
+			If req Then
+				bmx_gtk_gtkrequisition_free(req)
 			End If
 			Return requestedHeight
 		End If
@@ -720,15 +729,26 @@ Type TGTKWindow Extends TGTKContainer
 		If Not (style & WINDOW_CLIENTCOORDS) Then
 			Return actualHeight	
 		Else
+			Local req:Byte Ptr
 			If statusbar Then
-				Local req:TGTKRequisition = New TGTKRequisition
+				req = bmx_gtk_gtkrequisition_new()
 				gtk_widget_size_request(statusbar, req)
-				actualHeight:- req.height
+				Local w:Int, h:Int
+				bmx_gtk_gtkrequisition_dim(req, Varptr w, Varptr h)
+				actualHeight:- h
 			End If
 			If menubar Then
-				Local req:TGTKRequisition = New TGTKRequisition
+				If Not req Then
+					req = bmx_gtk_gtkrequisition_new()
+				End If
 				gtk_widget_size_request(menubar, req)
-				actualHeight:- req.height
+				Local w:Int, h:Int
+				bmx_gtk_gtkrequisition_dim(req, Varptr w, Varptr h)
+				actualHeight:- h
+			End If
+
+			If req Then
+				bmx_gtk_gtkrequisition_free(req)
 			End If
 			Return actualHeight
 		End If
@@ -987,39 +1007,56 @@ Print "OnDragDrop"
 	End Method
 
 	Method ClientHeight:Int()
-		Local allocation:TGTKAllocation = New TGTKAllocation
+		Local allocation:Byte Ptr = bmx_gtk_gtkallocation_new()
 		gtk_widget_get_allocation(container, allocation)
-		Local h:Int = allocation.height
+		Local h:Int, w:Int
+		bmx_gtk_gtkallocation_dim(allocation, Varptr w, Varptr h)
 
 		If h <= 8 Then
 			h = height
+			Local req:Byte Ptr
 			If statusbar Then
-				Local req:TGTKRequisition = New TGTKRequisition
+				req = bmx_gtk_gtkrequisition_new()
 				gtk_widget_size_request(statusbar, req)
-				h:- req.height
+				Local rw:Int, rh:Int
+				bmx_gtk_gtkrequisition_dim(req, Varptr rw, Varptr rh)
+				h:- rh
 			End If
 			If menubar Then
-				Local req:TGTKRequisition = New TGTKRequisition
+				If Not req Then
+					req = bmx_gtk_gtkrequisition_new()
+				End If
 				gtk_widget_size_request(menubar, req)
-				h:- req.height
+				Local rw:Int, rh:Int
+				bmx_gtk_gtkrequisition_dim(req, Varptr rw, Varptr rh)
+				h:- rh
+			End If
+			
+			If req Then
+				bmx_gtk_gtkrequisition_free(req)
 			End If
 		End If
 
 		If toolbar Then
 			h:- toolbar.height
 		End If
+
+		bmx_gtk_gtkallocation_free(allocation)
 		
 		Return h
 	End Method
 
 	Method ClientWidth:Int()
-		Local allocation:TGTKAllocation = New TGTKAllocation
+		Local allocation:Byte Ptr = bmx_gtk_gtkallocation_new()
 		gtk_widget_get_allocation(handle, allocation)
-		Local w:Int = allocation.width
+		Local h:Int, w:Int
+		bmx_gtk_gtkallocation_dim(allocation, Varptr w, Varptr h)
 
 		If w <= 8 Then
 			w = width
 		End If
+
+		bmx_gtk_gtkallocation_free(allocation)
 
 		Return w
 	End Method
@@ -1071,10 +1108,10 @@ Print "OnDragDrop"
 	End Method
 	
 	Method SetMinimumSize(w:Int, h:Int)
-		Local geom:TGdkGeometry = New TGdkGeometry
-		geom.min_width = w
-		geom.min_height = h
+		Local geom:Byte Ptr = bmx_gtk_gdkgeometry_new()
+		bmx_gtk_gdkgeometry_setmin(geom, w, h)
 		gtk_window_set_geometry_hints(handle, Null, geom, GDK_HINT_MIN_SIZE)
+		bmx_gtk_gdkgeometry_free(geom)
 	End Method
 
 	Rem
@@ -1237,16 +1274,14 @@ Type TGTKButton Extends TGTKGadget
 	bbdoc: Sets the button text color.
 	End Rem
 	Method SetTextColor(r:Int, g:Int, b:Int)
-		Local color:TGDKColor = New TGDKColor
-		color.red = r Shl 8
-		color.green = g Shl 8
-		color.blue = b Shl 8
+		Local color:Byte Ptr = bmx_gtk_gdkcolor_new(r Shl 8, g Shl 8, b Shl 8)
 		
 		Local buttonLabel:Byte Ptr = gtk_bin_get_child(handle)
 		gtk_widget_modify_fg(buttonLabel, GTK_STATE_NORMAL, color)
 		gtk_widget_modify_fg(buttonLabel, GTK_STATE_ACTIVE, color)
 		gtk_widget_modify_fg(buttonLabel, GTK_STATE_PRELIGHT, color)
 
+		bmx_gtk_gdkcolor_free(color)
 	End Method
 
 	Method free()
@@ -1727,13 +1762,11 @@ Type TGTKLabel Extends TGTKGadget
 	bbdoc: Sets the label text color.
 	End Rem
 	Method SetTextColor(r:Int, g:Int, b:Int)
-		Local color:TGDKColor = New TGDKColor
-		color.red = r Shl 8
-		color.green = g Shl 8
-		color.blue = b Shl 8
+		Local color:Byte Ptr = bmx_gtk_gdkcolor_new(r Shl 8, g Shl 8, b Shl 8)
 
 		gtk_widget_modify_fg(handle, GTK_STATE_NORMAL, color)
 
+		bmx_gtk_gdkcolor_free(color)
 	End Method
 
 	Method toString:String()
@@ -1794,13 +1827,13 @@ Type TGTKMenuItem Extends TGTKGadget
 			' A popupmenu... perhaps?
 			windowAccelGroup = Null
 		End If
-		
+
 		' localisation
 		If (LocalizationMode() & LOCALIZATION_OVERRIDE) Then
 			MapInsert maxgui_driver._mapLocalized, Self, [_label,""]
 			_label = LocalizeString(_label)
 		End If
-		
+
 		setAccelMapId(_label)
 
 
@@ -2117,14 +2150,14 @@ Type TGTKMenuItem Extends TGTKGadget
 					g_object_unref(imagePixbuf)
 				End If
 	
-				imagePixbuf = Int Ptr(gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
-								pixmap.width, pixmap.height, pixmap.Pitch, Null, Null))
+				imagePixbuf = gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
+								pixmap.width, pixmap.height, pixmap.Pitch, Null, Null)
 				
 				If Not image Then
 					image = gtk_image_new()
 				End If
 
-				gtk_image_set_from_pixbuf(image, Int(imagePixbuf))
+				gtk_image_set_from_pixbuf(image, imagePixbuf)
 			Else
 				If pixmap Then
 					gtk_image_clear(image)
@@ -2139,7 +2172,7 @@ Type TGTKMenuItem Extends TGTKGadget
 	End Method
 
 	Method toString:String()
-		Return "TGTKMenuItem"
+		Return "TGTKMenuItem : " + text + " : " + Super.ToString()
 	End Method
 
 	Method SetEnabled(bool:Int)
@@ -2342,7 +2375,6 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 	End Function
 
 	Method initTextArea(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
-
 		_textBuffer = gtk_text_buffer_new(Null)
 		_textTagTable = gtk_text_buffer_get_tag_table(_textBuffer)
 
@@ -2388,7 +2420,6 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 
 		gtk_layout_put(TGTKContainer(group).container, scrollwindow, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
-
 	End Method
 
 	Rem
@@ -2456,7 +2487,7 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 	bbdoc: Adds text to the end of the text.
 	End Rem
 	Method AddText(text:String)
-		Local _end:TGTKTextIter = New TGTKTextIter
+		Local _end:Byte Ptr = bmx_gtk_gtktextiter_new()
 		' get the end of the text
 		gtk_text_buffer_get_end_iter(_textBuffer, _end)
 
@@ -2468,14 +2499,16 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 		gtk_text_buffer_get_end_iter(_textBuffer, _end)
 		brl.System.Driver.Poll() ' update events, before scrolling to the end...
 		gtk_text_view_scroll_to_iter(handle, _end, 0, False, 0, 0)
+		
+		bmx_gtk_gtktextiter_free(_end)
 	End Method
 
 	Rem
-	bbdoc: Returns the text for the specified location
+	bbdoc: Returns the text For the specified location
 	End Rem
 	Method AreaText:String(pos:Int, length:Int, units:Int)
-		Local _start:TGTKTextIter = New TGTKTextIter
-		Local _end:TGTKTextIter = New TGTKTextIter
+		Local _start:Byte Ptr = bmx_gtk_gtktextiter_new()
+		Local _end:Byte Ptr = bmx_gtk_gtktextiter_new()
 
 		If units = TEXTAREA_LINES Then
 			gtk_text_buffer_get_iter_at_line(_textBuffer, _start, pos)
@@ -2490,6 +2523,10 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 		Local s:Byte Ptr = gtk_text_buffer_get_text(_textBuffer, _start, _end)
 		Local st:String = gtkUTF8toISO8859(s)
 		g_free(s)
+		
+		bmx_gtk_gtktextiter_free(_start)
+		bmx_gtk_gtktextiter_free(_end)
+		
 		Return st
 	End Method
 
@@ -2509,8 +2546,8 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 	End Rem
 	Method GetCursorPos:Int(units:Int)
 		Local pos:Int = 0
-		Local _start:TGTKTextIter = New TGTKTextIter
-		Local _end:TGTKTextIter = New TGTKTextIter
+		Local _start:Byte Ptr = bmx_gtk_gtktextiter_new()
+		Local _end:Byte Ptr = bmx_gtk_gtktextiter_new()
 
 		' Since the cursor position might be at the end of selected text, we get the selection
 		' bounds and get the *start* location. If there is no selection, start and end will be the same
@@ -2522,6 +2559,9 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 		Else ' must be TEXTAREA_CHARS
 			pos = gtk_text_iter_get_offset(_start)
 		End If
+
+		bmx_gtk_gtktextiter_free(_start)
+		bmx_gtk_gtktextiter_free(_end)
 
 		Return pos
 	End Method
@@ -2561,10 +2601,12 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 		MemFree(textPtr)
 
 		' move the cursor to the start
-		Local _start:TGTKTextIter = New TGTKTextIter
+		Local _start:Byte Ptr = bmx_gtk_gtktextiter_new()
 		gtk_text_buffer_get_iter_at_line(_textBuffer, _start, 0)
 		gtk_text_buffer_place_cursor(_textBuffer, _start)
 		gtk_text_view_scroll_mark_onscreen(handle, gtk_text_buffer_get_insert(_textBuffer))', 0, False, 0, 0.1)
+		
+		bmx_gtk_gtktextiter_free(_start)
 	End Method
 
 	Rem
@@ -2572,8 +2614,8 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 	End Rem
 	Method SetSelection(pos:Int, length:Int, units:Int)
 
-		Local _start:TGTKTextIter = New TGTKTextIter
-		Local _end:TGTKTextIter = New TGTKTextIter
+		Local _start:Byte Ptr = bmx_gtk_gtktextiter_new()
+		Local _end:Byte Ptr = bmx_gtk_gtktextiter_new()
 
 		If units = TEXTAREA_LINES Then
 			gtk_text_buffer_get_iter_at_line(_textBuffer, _start, pos)
@@ -2597,6 +2639,8 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 		' Set to True to cause it to always display at the same point on the visible area.
 		gtk_text_view_scroll_to_iter(handle, _start, 0, False, 0, 0.1)
 
+		bmx_gtk_gtktextiter_free(_start)
+		bmx_gtk_gtktextiter_free(_end)
 	End Method
 
 	Rem
@@ -2605,8 +2649,8 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 	Method GetSelectionLength:Int(units:Int)
 		Local length:Int = 0
 
-		Local _start:TGTKTextIter = New TGTKTextIter
-		Local _end:TGTKTextIter = New TGTKTextIter
+		Local _start:Byte Ptr = bmx_gtk_gtktextiter_new()
+		Local _end:Byte Ptr = bmx_gtk_gtktextiter_new()
 
 		Local hasSelection:Int = gtk_text_buffer_get_selection_bounds(_textBuffer, _start, _end)
 
@@ -2623,6 +2667,9 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 			End If
 
 		End If
+
+		bmx_gtk_gtktextiter_free(_start)
+		bmx_gtk_gtktextiter_free(_end)
 
 		Return length
 	End Method
@@ -2655,10 +2702,7 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 		' nope... so we need to create it
 		If _textTag = Null Then
 
-			Local color:TGDKColor = New TGDKColor
-			color.red = r Shl 8
-			color.green = g Shl 8
-			color.blue = b Shl 8
+			Local color:Byte Ptr = bmx_gtk_gdkcolor_new(r Shl 8, g Shl 8, b Shl 8)
 
 			Local _style:Int = PANGO_STYLE_NORMAL
 			If flags & TEXTFORMAT_ITALIC Then
@@ -2680,6 +2724,8 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 			' create and setup the tag
 			_textTag = gtk_set_text_tag(_textBuffer, styleText, "foreground-gdk", color, ..
 					"style", _style, "weight", _weight, "underline", _under, "strikethrough", _strike)
+			
+			bmx_gtk_gdkcolor_free(color)
 		End If
 
 		applyStyle(pos, length, units, _textTag)
@@ -2688,8 +2734,8 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 	
 	Method applyStyle(pos:Int, length:Int, units:Int, _textTag:Byte Ptr)
 		' set up start and end points
-		Local _start:TGTKTextIter = New TGTKTextIter
-		Local _end:TGTKTextIter = New TGTKTextIter
+		Local _start:Byte Ptr = bmx_gtk_gtktextiter_new()
+		Local _end:Byte Ptr = bmx_gtk_gtktextiter_new()
 
 		If units = TEXTAREA_LINES Then
 			gtk_text_buffer_get_iter_at_line(_textBuffer, _start, pos)
@@ -2707,6 +2753,9 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 
 		' apply the tag to the range
 		gtk_text_buffer_apply_tag(_textBuffer, _textTag, _start, _end)
+		
+		bmx_gtk_gtktextiter_free(_start)
+		bmx_gtk_gtktextiter_free(_end)
 	End Method
 
 	Method SetBGStyle(r:Int, g:Int, b:Int, pos:Int, length:Int, units:Int)
@@ -2720,13 +2769,12 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 		' nope... so we need to create it
 		If _textTag = Null Then
 
-			Local color:TGDKColor = New TGDKColor
-			color.red = r Shl 8
-			color.green = g Shl 8
-			color.blue = b Shl 8
+			Local color:Byte Ptr = bmx_gtk_gdkcolor_new(r Shl 8, g Shl 8, b Shl 8)
 
 			' create and setup the tag
 			_textTag = gtk_set_text_bg_tag(_textBuffer, styleText, "background-gdk", color)
+			
+			bmx_gtk_gdkcolor_free(color)
 		End If
 
 		applyStyle(pos, length, units, _textTag)
@@ -2739,8 +2787,8 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 			SetText(text)
 		Else
 			' set up start and end points
-			Local _start:TGTKTextIter = New TGTKTextIter
-			Local _end:TGTKTextIter = New TGTKTextIter
+			Local _start:Byte Ptr = bmx_gtk_gtktextiter_new()
+			Local _end:Byte Ptr = bmx_gtk_gtktextiter_new()
 	
 			If units = TEXTAREA_LINES Then
 				gtk_text_buffer_get_iter_at_line(_textBuffer, _start, pos)
@@ -2757,6 +2805,9 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 			Local textPtr:Byte Ptr = text.ToUTF8String()
 			gtk_text_buffer_insert(_textBuffer, _start, textPtr, _strlen(textPtr))
 			MemFree(textPtr)
+			
+			bmx_gtk_gtktextiter_free(_start)
+			bmx_gtk_gtktextiter_free(_end)
 		End If
 	End Method
 
@@ -2800,15 +2851,19 @@ Type TGTKDefaultTextArea Extends TGTKTextArea
 	End Method
 
 	Method CharAt:Int(line:Int)
-		Local _iter:TGTKTextIter = New TGTKTextIter
+		Local _iter:Byte Ptr = bmx_gtk_gtktextiter_new()
 		gtk_text_buffer_get_iter_at_line(_textBuffer, _iter, line)
-		Return gtk_text_iter_get_offset(_iter)
+		Local ret:Int = gtk_text_iter_get_offset(_iter)
+		bmx_gtk_gtktextiter_free(_iter)
+		Return ret
 	End Method
 
 	Method LineAt:Int(index:Int)
-		Local _iter:TGTKTextIter = New TGTKTextIter
+		Local _iter:Byte Ptr = bmx_gtk_gtktextiter_new()
 		gtk_text_buffer_get_iter_at_offset(_textBuffer, _iter, index)
-		Return gtk_text_iter_get_line(_iter)
+		Local ret:Int = gtk_text_iter_get_line(_iter)
+		bmx_gtk_gtktextiter_free(_iter)
+		Return ret
 	End Method
 
 	Method free()
@@ -2925,7 +2980,7 @@ Type TGTKTabber Extends TGTKContainer
 	End Rem
 	Method InsertListItem(index:Int, text:String, tip:String, icon:Int, tag:Object)
 
-		Local image:Int
+		Local image:Byte Ptr
 
 		If icons And icon>=0 Then
 			image = icons.images[icon]
@@ -2942,7 +2997,7 @@ Type TGTKTabber Extends TGTKContainer
 		Next
 
 		If image Then
-			images[index] = gtk_image_new_from_pixbuf(Byte Ptr(image))
+			images[index] = gtk_image_new_from_pixbuf(image)
 			gtk_widget_show(images[index])
 		Else
 			images[index] = gtk_image_new()
@@ -2989,7 +3044,7 @@ Type TGTKTabber Extends TGTKContainer
 		Local box:Byte Ptr = gtk_notebook_get_tab_label(handle, child)
 
 		' is there an image to show?
-		Local image:Int
+		Local image:Byte Ptr
 		If icons And icon>=0 Then
 			image = icons.images[icon]
 		End If
@@ -3052,9 +3107,12 @@ Type TGTKTabber Extends TGTKContainer
 		Local h:Int = height
 
 		If handle Then
-			Local req:TGTKRequisition = New TGTKRequisition
+			Local req:Byte Ptr = bmx_gtk_gtkrequisition_new()
 			gtk_widget_size_request(handle, req)
-			h:- req.height
+			Local rw:Int, rh:Int
+			bmx_gtk_gtkrequisition_dim(req, Varptr rw, Varptr rh)
+			h:- rh
+			bmx_gtk_gtkrequisition_free(req)
 		End If
 
 		Return h
@@ -3424,11 +3482,9 @@ Type TGTKPanel Extends TGTKContainer
 	bbdoc: Set the panel color.
 	End Rem
 	Method SetColor(r:Int, g:Int, b:Int)
-		Local color:TGDKColor = New TGDKColor
-		color.red = r * 256
-		color.green = g * 256
-		color.blue = b * 256
+		Local color:Byte Ptr = bmx_gtk_gdkcolor_new(r * 256, g * 256, b * 256)
 		gtk_widget_modify_bg(handle, GTK_STATE_NORMAL, color)
+		bmx_gtk_gdkcolor_free(color)
 	End Method
 
 	Rem
@@ -3684,20 +3740,22 @@ Type TGTKComboBox Extends TGTKList
 	End Function
 	
 	Method InsertListItem(index:Int, text:String, tip:String, icon:Int, tag:Object)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 
 		gtk_list_store_insert(_store, iter, index)
 
 		populateListRow(index, text, tip, icon, iter)
+		bmx_gtk_gtktreeiter_free(iter)
 	End Method
 
 	Method SetListItem(index:Int, text:String, tip:String, icon:Int, tag:Object)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 		Local found:Int = gtk_tree_model_get_iter_from_string(_store, iter, String.fromInt(index))
 
 		If found Then
 			populateListRow(index, text, tip, icon, iter)
 		End If
+		bmx_gtk_gtktreeiter_free(iter)
 	End Method
 
 	Method SelectedItem:Int()
@@ -3715,12 +3773,13 @@ Type TGTKComboBox Extends TGTKList
 	End Method
 
 	Method RemoveListItem(index:Int)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 		Local found:Int = gtk_tree_model_get_iter_from_string(_store, iter, String.fromInt(index))
 		
 		If found Then
 			gtk_list_store_remove(_store, iter)
 		End If
+		bmx_gtk_gtktreeiter_free(iter)
 	End Method
 
 	Method ItemText:String(index:Int)
@@ -3905,7 +3964,7 @@ Type TGTKScrollBar Extends TGTKRange
 	bbdoc: Overrides the default...
 	End Rem
 	Method SetRange(small:Int, big:Int)
-		range = big - small
+		Range = big - small
 		pageSize = small
 		
 		If small <> 0 Then
@@ -3914,14 +3973,14 @@ Type TGTKScrollBar Extends TGTKRange
 			thumbSize = 1
 		End If
 
-		If range = 0 Then
-			range = 1
+		If Range = 0 Then
+			Range = 1
 			thumbSize = 1
 		End If
 
 	    gtk_adjustment_set_page_size(gtk_range_get_adjustment(handle), thumbSize)
 	    gtk_range_set_increments(handle, 1, pageSize)
-	    gtk_range_set_range(handle, 0, range)
+	    gtk_range_set_range(handle, 0, Range)
 	    gtk_range_set_value(handle, GetProp())
 	End Method
 
@@ -4080,10 +4139,10 @@ Type TGTKStepper Extends TGTKRange
 					th = 74
 				End If
 				
-				Local allocation:TGTKAllocation = New TGTKAllocation
+				Local allocation:Byte Ptr = bmx_gtk_gtkallocation_new()
 				gtk_widget_get_allocation(gtk_bin_get_child(stepper.buttonUp), allocation)
-				Local width:Int = allocation.width
-				Local height:Int = allocation.height
+				Local width:Int, height:Int
+				bmx_gtk_gtkallocation_dim(allocation, Varptr width, Varptr height)
 				
 				Local _w:Float = width / (tw * 1.0)
 				Local _h:Float = height / (th * 1.0)
@@ -4097,6 +4156,7 @@ Type TGTKStepper Extends TGTKRange
 				stepper.arrowUp = gdk_pixbuf_scale_simple(_arrow, newWidth, newHeight, GDK_INTERP_BILINEAR)
 				
 				g_object_unref(_arrow)
+				bmx_gtk_gtkallocation_free(allocation)
 				
 				' draw arrow
 				gdk_draw_pixbuf(gtk_widget_get_window(widget), Null, stepper.arrowUp, 0, 0, pbx, pby, -1, -1, 0, 0, 0)
@@ -4122,10 +4182,10 @@ Type TGTKStepper Extends TGTKRange
 					th = 74
 				End If
 				
-				Local allocation:TGTKAllocation = New TGTKAllocation
+				Local allocation:Byte Ptr = bmx_gtk_gtkallocation_new()
 				gtk_widget_get_allocation(gtk_bin_get_child(stepper.buttonDown), allocation)
-				Local width:Int = allocation.width
-				Local height:Int = allocation.height
+				Local width:Int, height:Int
+				bmx_gtk_gtkallocation_dim(allocation, Varptr width, Varptr height)
 				
 				Local _w:Float = width / (tw * 1.0)
 				Local _h:Float = height / (th * 1.0)
@@ -4139,6 +4199,7 @@ Type TGTKStepper Extends TGTKRange
 				stepper.arrowDown = gdk_pixbuf_scale_simple(_arrow, newWidth, newHeight, GDK_INTERP_BILINEAR)
 				
 				g_object_unref(_arrow)
+				bmx_gtk_gtkallocation_free(allocation)
 				
 				' draw arrow
 				gdk_draw_pixbuf(gtk_widget_get_window(widget), Null, stepper.arrowDown, 0, 0, pbx, pby, -1, -1, 0, 0, 0)
@@ -4186,7 +4247,7 @@ End Type
 
 Type TGTKIconStrip Extends TIconStrip
 
-	Field	images:Int[]
+	Field	images:Byte Ptr[]
 
 	Function IsNotBlank:Int(pixmap:TPixmap)
 		Local x:Int, y:Int, w:Int, h:Int, c:Int
@@ -4223,7 +4284,7 @@ Type TGTKIconStrip Extends TIconStrip
 		icons=New TGTKIconStrip
 		icons.pixmap=pixmap
 		icons.count=n
-		icons.images=New Int[n]
+		icons.images=New Byte Ptr[n]
 
 		h=pixmap.height
 		w=h
@@ -4231,8 +4292,8 @@ Type TGTKIconStrip Extends TIconStrip
 		For x=0 Until n
 			winpix = pixmap.Window(x*w,0,w,pixmap.height)
 			If IsNotBlank(winpix) Then
-				icons.images[x]= Int(gdk_pixbuf_new_from_data(winpix.pixels, GDK_COLORSPACE_RGB, True, 8, ..
-						w, h, pixmap.Pitch, Null, Null))
+				icons.images[x]= gdk_pixbuf_new_from_data(winpix.pixels, GDK_COLORSPACE_RGB, True, 8, ..
+						w, h, pixmap.Pitch, Null, Null)
 			End If
 		Next
 		Return icons
@@ -4284,7 +4345,7 @@ Type TGTKToolbar Extends TGTKGadget
 	bbdoc: Inserts an item at the specified index.
 	End Rem
 	Method InsertListItem(index:Int, text:String, tip:String, icon:Int, extra:Object)
-		Local image:Int		
+		Local image:Byte Ptr		
 
 		If icons And icon>=0 Then
 			image = icons.images[icon]
@@ -4296,7 +4357,7 @@ Type TGTKToolbar Extends TGTKGadget
 		Next
 
 		If image Then
-			Local imageWidget:Byte Ptr = gtk_image_new_from_pixbuf(Byte Ptr(image))
+			Local imageWidget:Byte Ptr = gtk_image_new_from_pixbuf(image)
 			gtk_widget_show(imageWidget)
 	
 			Local textPtr:Byte Ptr = text.ToUTF8String()
@@ -4452,11 +4513,11 @@ Type TGTKList Extends TGTKGadget
 		icons = TGTKIconStrip(iconstrip)
 	End Method
 
-	Method populateListRow(index:Int, text:String, tip:String, icon:Int, iter:TGtkTreeIter)
+	Method populateListRow(index:Int, text:String, tip:String, icon:Int, iter:Byte Ptr)
 
 		' need to put the string in a GValue for placing into the list
-		Local _value:TGValue = New TGValue
-		g_value_init(_value, G_TYPE_STRING)
+		Local _value:Byte Ptr = bmx_gtk_gvalue_new(G_TYPE_STRING)
+		'g_value_init(_value, G_TYPE_STRING)
 		Local textPtr:Byte Ptr = text.ToUTF8String()
 	  	g_value_set_string(_value, textPtr)
 		MemFree(textPtr)
@@ -4472,7 +4533,7 @@ Type TGTKList Extends TGTKGadget
 		g_value_unset(_value)
 
 
-		Local image:Int
+		Local image:Byte Ptr
 
 		If icons And icon>=0 Then
 			image = icons.images[icon]
@@ -4481,7 +4542,7 @@ Type TGTKList Extends TGTKGadget
 		If image Then
 			' Insert the appropriate icon
 
-			_value = New TGValue
+			'_value = New TGValue
 			g_value_init(_value, gdk_pixbuf_get_type())
 		  	g_value_set_object(_value, image)
 		
@@ -4497,7 +4558,7 @@ Type TGTKList Extends TGTKGadget
 		Else
 			' clear out an icon if one is present in this entry
 
-			_value = New TGValue
+			'_value = New TGValue
 			g_value_init(_value, gdk_pixbuf_get_type())
 		  	g_value_set_object(_value, Null)
 		
@@ -4512,6 +4573,8 @@ Type TGTKList Extends TGTKGadget
 			g_value_unset(_value)
 		End If
 
+		bmx_gtk_gvalue_free(_value)
+		
 	End Method
 
 	Method initColumns()
@@ -4633,28 +4696,29 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 	End Method
 
 	Method InsertListItem(index:Int, text:String, tip:String, icon:Int, extra:Object)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 
 		gtk_list_store_insert(_store, iter, index)
 
 		populateListRow(index, text, tip, icon, iter)
-
+		bmx_gtk_gtktreeiter_free(iter)
 	End Method
 
 	Method SetListItem(index:Int, text:String, tip:String, icon:Int, tag:Object)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 		Local found:Int = gtk_tree_model_get_iter_from_string(_store, iter, String.fromInt(index))
 
 		If found Then
 			populateListRow(index, text, tip, icon, iter)
 		End If
+		bmx_gtk_gtktreeiter_free(iter)
 	End Method
 
 	Rem
 	bbdoc: Removes an item from the list at the given index
 	End Rem
 	Method RemoveListItem(index:Int)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 		Local found:Int = gtk_tree_model_get_iter_from_string(_store, iter, String.fromInt(index))
 		
 		If found Then
@@ -4663,10 +4727,11 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 			End If
 			gtk_list_store_remove(_store, iter)
 		End If
+		bmx_gtk_gtktreeiter_free(iter)
 	End Method
 
 	Method SetListItemState(index:Int, state:Int)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 
 		Local found:Int = gtk_tree_model_get_iter_from_string(_store, iter, String.fromInt(index))
 
@@ -4681,12 +4746,13 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 					
 				gtk_tree_selection_unselect_iter(_selection, iter)
 			End If
-		End If		
+		End If
+		bmx_gtk_gtktreeiter_free(iter)
 	End Method
 
 	Method ListItemState:Int(index:Int)
 		Local state:Int = 0
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 
 		Local found:Int = gtk_tree_model_get_iter_from_string(_store, iter, String.fromInt(index))
 
@@ -4696,11 +4762,12 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 			End If
 		End If
 
+		bmx_gtk_gtktreeiter_free(iter)
 		Return state
 	End Method
 
 	Function OnSelectionChanged(_sel:Byte Ptr, obj:Object)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 
 		Local row:Int = -1
 		Local selected:Int = gtk_tree_selection_get_selected(_sel, Null, iter)
@@ -4720,7 +4787,7 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 		End If
 		TGTKList(obj).ignoreListChangeEvent = False
 		
-
+		bmx_gtk_gtktreeiter_free(iter)
 	End Function
 
 	Rem
@@ -4817,7 +4884,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	' internal representation of node position in the tree
 	Field _path:String
 	' direct access to the node in the tree
-	Field myIter:TGtkTreeIter
+	Field myIter:Byte Ptr
 	' icon to display for this node
 	Field _icon:Int
 	' flag to prevent non-user events from firing
@@ -4836,7 +4903,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 		this.parent = parent
 		this.icons = parent.icons
 
-		this.myIter = New TGtkTreeIter
+		this.myIter = bmx_gtk_gtktreeiter_new()
 
 		this.refreshPath(index)
 		
@@ -4869,8 +4936,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	End Method
 
 	Function OnSelectionChanged(_sel:Byte Ptr, obj:Object)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
-
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 		Local node:TGTKTreeViewNode = Null
 		Local selected:Int = gtk_tree_selection_get_selected(_sel, Null, iter)
 		If selected Then
@@ -4883,7 +4949,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 			PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj),,,,,node)
 		End If
 		TGTKList(obj).ignoreListChangeEvent = False
-
+		bmx_gtk_gtktreeiter_free(iter)
 	End Function
 
 	Rem
@@ -4900,7 +4966,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	bbdoc: Inserts a new node as a child at the specified index.
 	End Rem
 	Method InsertNode:TGadget(index:Int, text:String, icon:Int)
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 		Local childNode:TGTKTreeViewNode
 
 		' create a new row in the tree
@@ -4942,7 +5008,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 			childNode.SetText(text)
 		EndIf
 
-
+		bmx_gtk_gtktreeiter_free(iter)
 		Return childNode
 	End Method
 
@@ -4964,7 +5030,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	End Rem
 	Method SelectedNode:TGadget()
 
-		Local iter:TGtkTreeIter = New TGtkTreeIter
+		Local iter:Byte Ptr = bmx_gtk_gtktreeiter_new()
 		If gtk_tree_selection_get_selected(_selection, Null, iter) Then
 			Local path:Byte Ptr = gtk_tree_model_get_path(_store, iter)
 
@@ -4974,9 +5040,11 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 			g_free(p)
 			gtk_tree_path_free(path)
 			
+			bmx_gtk_gtktreeiter_free(iter)
 			Return node
 		End If
 
+		bmx_gtk_gtktreeiter_free(iter)
 		Return Null
 	End Method
 
@@ -4988,6 +5056,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	End Method
 
 	Method Free()
+'Print "Freeing : TGTKTreeViewNode : " + _text
 		Super.free()
 
 		If isRoot Then
@@ -5002,6 +5071,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 			' Assert myIter, "Trying to Free() a node twice?"
 			If myIter Then
 				gtk_tree_store_remove(_store, myIter)
+				bmx_gtk_gtktreeiter_free(myIter)
 				myIter = Null
 				TGTKTreeViewNode(parent).refreshChildPaths()
 			End If
@@ -5095,7 +5165,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	End Method
 
 	Method toString:String()
-		Return "TGTKTreeViewNode"
+		Return "TGTKTreeViewNode : " + _text + " : " + Super.ToString()
 	End Method
 End Type
 
