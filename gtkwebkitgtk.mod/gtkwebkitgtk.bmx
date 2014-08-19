@@ -193,16 +193,10 @@ Type TGTKWebKitGtk Extends TGTKHTMLView
 
 	Method ClientWidth:Int()
 		Return width
-		Local req:TGTKRequisition = New TGTKRequisition
-		gtk_widget_size_request(box, req)
-		Return req.width
 	End Method
 
 	Method ClientHeight:Int()
 		Return height
-		Local req:TGTKRequisition = New TGTKRequisition
-		gtk_widget_size_request(box, req)
-		Return req.height
 	End Method
 
 	Method Rethink()

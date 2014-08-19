@@ -25,11 +25,13 @@ bbdoc: GTKMaxGUI Linux HTMLView Widget
 End Rem
 Module BaH.GTKWebGTKHTML
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Removed unused code."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to GtkHTML 3.14."
 ModuleInfo "History: 1.02"
@@ -223,16 +225,10 @@ Rem
 End Rem
 	Method ClientWidth:Int()
 		Return width
-		Local req:TGTKRequisition = New TGTKRequisition
-		gtk_widget_size_request(box, req)
-		Return req.width
 	End Method
 
 	Method ClientHeight:Int()
 		Return height
-		Local req:TGTKRequisition = New TGTKRequisition
-		gtk_widget_size_request(box, req)
-		Return req.height
 	End Method
 
 	Method GetText:String()
