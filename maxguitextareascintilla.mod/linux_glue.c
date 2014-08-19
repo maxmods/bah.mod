@@ -23,6 +23,8 @@
 
 #include <gtk/gtk.h>
 #include "Scintilla.h"
+#include "SciLexer.h"
+#include "ScintillaWidget.h"
 
 #include "blitz.h"
 
