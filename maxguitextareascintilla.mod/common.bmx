@@ -18,7 +18,7 @@
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ' THE SOFTWARE.
 '
-SuperStrict
+Strict
 
 ?linux
 Import "-lpangocairo-1.0"
@@ -74,33 +74,19 @@ Extern
 	Function bmx_mgta_scintilla_textwidth:Int(handle:Byte Ptr, text:String)
 	Function bmx_mgta_scintilla_setlinedigits(handle:Byte Ptr, lineDigits:Int Ptr)
 
+	Function bmx_mgta_scintilla_notifcation_update(obj:Object, handle:Byte Ptr)
 End Extern
 
 Type TSCNotification
-	Field hwndFrom:Byte Ptr
-	Field idFrom:Byte Ptr
 	Field code:Int
-
-	Field position:Int
-	Field ch:Int
-	Field modifiers:Int
 	Field modificationType:Int
-	Field text:Byte Ptr
-	Field length:Int
-	Field linesAdded:Int
-	Field message:Int
-	Field wParam:Byte Ptr
-	Field lParam:Byte Ptr
-	Field line:Int
-	Field foldLevelNow:Int
-	Field foldLevelPrev:Int
-	Field margin:Int
-	Field listType:Int
-	Field x:Int
-	Field y:Int
-	Field token:Int
-	Field annotationLinesAdded:Int
 	Field updated:Int
+	
+	Function _update(n:TSCNotification, code:Int, modificationType:Int, updated:Int)
+		n.code = code
+		n.modificationType = modificationType
+		n.updated = updated
+	End Function
 End Type
 
 

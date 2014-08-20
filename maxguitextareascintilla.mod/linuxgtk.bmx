@@ -392,8 +392,8 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 	Function OnSciNotify(widget:Byte Ptr, id:Int, notificationPtr:Byte Ptr, obj:Object)
 		Local ta:TGTKScintillaTextArea = TGTKScintillaTextArea(obj)
-		
-		MemCopy ta.notification, notificationPtr, SizeOf TSCNotification
+
+		bmx_mgta_scintilla_notifcation_update(ta.notification, notificationPtr)
 
 		Select ta.notification.code
 			Case SCN_UPDATEUI

@@ -28,6 +28,12 @@
 
 #include "blitz.h"
 
+#ifdef BMX_NG
+	void bah_maxguitextareascintilla_common_TSCNotification__update(BBObject *, int, int, int);
+#else
+	void _bah_maxguitextareascintilla_TSCNotification__update(BBObject *, int, int, int);
+#endif
+
 ScintillaObject * bmx_mgta_scintilla_getsci(void * editor, int id) {
 	ScintillaObject * obj = SCINTILLA(editor);
 	scintilla_set_id(obj, id);
@@ -82,7 +88,7 @@ void bmx_mgta_scintilla_setlinedigits(ScintillaObject * sci, int * digits) {
 		(lines < 100000 ? 5 : (lines < 1000000 ? 6 :   
 		(lines < 10000000 ? 7 : (lines < 100000000 ? 8 :  
 		(lines < 1000000000 ? 9 : 10)))))))));
-	
+
 	if (*digits != newDigits) {
 		*digits = newDigits;
 
@@ -334,3 +340,10 @@ void bmx_mgta_scintilla_addtext(ScintillaObject * sci, gchar * text) {
 	scintilla_send_message(sci, SCI_ADDTEXT, length, text);
 }
 
+void bmx_mgta_scintilla_notifcation_update(BBObject * obj, struct SCNotification * notification) {
+#ifdef BMX_NG
+	bah_maxguitextareascintilla_common_TSCNotification__update(obj, notification->nmhdr.code, notification->modificationType, notification->updated);
+#else
+	_bah_maxguitextareascintilla_TSCNotification__update(obj, notification->nmhdr.code, notification->modificationType, notification->updated);
+#endif
+}
