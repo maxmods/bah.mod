@@ -33,6 +33,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.22"
 ModuleInfo "History: Removed Gtk types and replaced with Byte Ptr glue."
+ModuleInfo "History: Added Linux ARM include paths."
 ModuleInfo "History: 1.21"
 ModuleInfo "History: Fixed low-level event handling issues."
 ModuleInfo "History: Added missing consts."
@@ -205,9 +206,9 @@ ModuleInfo "History: Very Alpha preview... Lots of things work, lots of things d
 
 ?Linux
 ' glib
-ModuleInfo "CC_OPTS: -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include"
+ModuleInfo "CC_OPTS: -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/lib/arm-linux-gnueabihf/glib-2.0/include"
 ' gtk
-ModuleInfo "CC_OPTS: -I/usr/include/gtk-2.0  -I/usr/lib/i386-linux-gnu/gtk-2.0/include -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include"
+ModuleInfo "CC_OPTS: -I/usr/include/gtk-2.0  -I/usr/lib/i386-linux-gnu/gtk-2.0/include -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/lib/arm-linux-gnueabihf/gtk-2.0/include"
 ' cairo
 ModuleInfo "CC_OPTS: -I/usr/include/cairo"
 ' pango
