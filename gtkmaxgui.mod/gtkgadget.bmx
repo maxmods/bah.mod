@@ -189,7 +189,7 @@ Type TGTKGadget Extends TGadget
 				End If
 				gadget = gtkmaxgui_textarea.CreateTextArea(x, y ,w , h, label, group, style)
 			Case GTK_TOOLBAR
-				gadget = TGTKToolbar.CreateToolbar(x, y ,w , h, label, group, style)
+				gadget = TGTKToolbar.CreateToolBar(x, y ,w , h, label, group, style)
 			Case GTK_LISTBOX
 				gadget = TGTKListbox.CreateListBox(x, y ,w , h, label, group, style)
 			Case GTK_TREEVIEW
@@ -2214,7 +2214,13 @@ Type TGTKEditable Extends TGTKGadget
 			Local key:Int = TGTKKeyMap.mapBack(_key)
 			Local mods:Int = TGTKKeyMap.mapModifierBack(_mods)
 
-			Local event:TEvent = CreateEvent(EVENT_KEYDOWN, source, key, mods)
+			Local event:TEvent = HotKeyEvent(key, mods, Null)
+			If event Then
+				event.Emit()
+				Return True
+			End If
+
+			event = CreateEvent(EVENT_KEYDOWN, source, key, mods)
 			
 			If Not source.eventfilter(event, source.context) Then
 				Return True
@@ -4309,7 +4315,7 @@ Type TGTKToolbar Extends TGTKGadget
 	Field toolitems:Byte Ptr[]
 	Field tooltips:Byte Ptr
 
-	Function CreateToolbar:TGTKToolbar(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
+	Function CreateToolBar:TGTKToolbar(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKToolbar = New TGTKToolbar
 
 		this.initToolbar(x, y, w, h, label, group, style)
