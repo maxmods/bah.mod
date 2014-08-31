@@ -102,7 +102,7 @@ void bmx_mgta_scintilla_setlinedigits(ScintillaObject * sci, int * digits) {
 		}
 		
 		/* set the linenumber margin width */
-		int textWidth = scintilla_send_message(sci, SCI_TEXTWIDTH, STYLE_LINENUMBER, buf);
+		int textWidth = scintilla_send_message(sci, SCI_TEXTWIDTH, STYLE_LINENUMBER, buf) + 4;
 		scintilla_send_message(sci, SCI_SETMARGINWIDTHN, 0, textWidth);
 		
 		free(buf);
@@ -347,3 +347,8 @@ void bmx_mgta_scintilla_notifcation_update(BBObject * obj, struct SCNotification
 	_bah_maxguitextareascintilla_TSCNotification__update(obj, notification->nmhdr.code, notification->modificationType, notification->updated);
 #endif
 }
+
+void bmx_mgta_scintilla_setmarginleft(ScintillaObject * sci, int leftmargin) {
+	scintilla_send_message(sci, SCI_SETMARGINLEFT, 0, leftmargin);
+}
+

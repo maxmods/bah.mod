@@ -183,7 +183,7 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 	End Method
 
 	Method SetMargins(leftmargin:Int)
-		' TODO
+		bmx_mgta_scintilla_setmarginleft(sciPtr, leftmargin)
 	End Method
 
 	Method CharX:Int(char:Int)
@@ -233,6 +233,11 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 	Method SetColor(r:Int, g:Int, b:Int)
 		bmx_mgta_scintilla_stylesetback(sciPtr, r | g Shl 8 | b Shl 16)
+	End Method
+
+	Method SetTextColor(r:Int, g:Int, b:Int)
+		' set style 0 color (should be main text style)
+		bmx_mgta_scintilla_stylesetfore(sciPtr, 0, r | g Shl 8 | b Shl 16)
 	End Method
 
 	Method SetStyle(r:Int, g:Int, b:Int, flags:Int, pos:Int, length:Int, units:Int)

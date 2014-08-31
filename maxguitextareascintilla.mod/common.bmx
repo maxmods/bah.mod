@@ -73,6 +73,7 @@ Extern
 	Function bmx_mgta_scintilla_addtext(handle:Byte Ptr, text:Byte Ptr)
 	Function bmx_mgta_scintilla_textwidth:Int(handle:Byte Ptr, text:String)
 	Function bmx_mgta_scintilla_setlinedigits(handle:Byte Ptr, lineDigits:Int Ptr)
+	Function bmx_mgta_scintilla_setmarginleft(handle:Byte Ptr, leftmargin:Int)
 
 	Function bmx_mgta_scintilla_notifcation_update(obj:Object, handle:Byte Ptr)
 End Extern
