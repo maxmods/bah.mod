@@ -168,9 +168,9 @@ void bmx_freetypegl_font_buffer_render(struct bmx_font_buffer * buf) {
 	glUniformMatrix4fv( glGetUniformLocation( buf->shader, "view" ), 1, 0, buf->view.data);
 	glUniformMatrix4fv( glGetUniformLocation( buf->shader, "projection" ), 1, 0, buf->projection.data);
 	vertex_buffer_render( buf->buffer, GL_TRIANGLES );
+	
+	glUseProgram(0);
 }
-
-
 
 GLuint bmx_freetypegl_shader_load_source( const char * vert_source, const char * frag_source ) {
     GLuint handle = glCreateProgram( );
