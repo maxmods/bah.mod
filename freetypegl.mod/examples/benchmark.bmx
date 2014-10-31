@@ -4,7 +4,6 @@ Framework brl.glmax2d
 Import bah.freetypegl
 Import BRL.TextStream
 Import BRL.FreeTypeFont
-Import brl.standardio
 
 AppTitle = "FreeType-GL Benchmark"
 
@@ -57,7 +56,6 @@ While Not KeyDown(KEY_ESCAPE)
 		dispFPS = fps
 		fps = 0
 		startTime = MilliSecs()
-		Print dispFPS + " : " + renderTime
 	End If
 	
 	If KeyHit(KEY_1) Then

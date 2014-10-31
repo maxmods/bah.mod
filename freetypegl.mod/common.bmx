@@ -30,6 +30,7 @@ Import "source.bmx"
 Extern
 
 	Function bmx_freetypegl_font_manager_new:Byte Ptr(atlasWidth:Int, atlasHeight:Int)
+	Function bmx_freetypegl_font_manager_free(handle:Byte Ptr)
 
 	Function bmx_freetypegl_font_buffer_new:Byte Ptr(manager:Byte Ptr, fontPath:String, size:Float, vertSource:String, fragSource:String)
 	Function bmx_freetypegl_font_buffer_free(handle:Byte Ptr)
@@ -39,6 +40,26 @@ Extern
 	Function bmx_freetypegl_font_buffer_draw(handle:Byte Ptr, x:Float, y:Float, text:String)
 	Function bmx_freetypegl_font_buffer_setcolor(handle:Byte Ptr, r:Int, g:Int, b:Int, a:Int)
 	Function bmx_freetypegl_font_buffer_setviewport(handle:Byte Ptr, x:Int, y:Int, width:Int, height:Int)
+	Function bmx_freetypegl_font_buffer_setoutlinetype(handle:Byte Ptr, value:Int)
+	Function bmx_freetypegl_font_buffer_setoutlinethickness(handle:Byte Ptr, value:Float)
+	Function bmx_freetypegl_font_buffer_setgradientcolor(handle:Byte Ptr, r0:Int, g0:Int, b0:Int, a0:Int, r1:Int, g1:Int, b1:Int, a1:Int)
 	
 End Extern
+
+Rem
+bbdoc: 
+End Rem
+Const OUTLINE_NONE:Int = 0
+Rem
+bbdoc: 
+End Rem
+Const OUTLINE_LINE:Int = 1
+Rem
+bbdoc: 
+End Rem
+Const OUTLINE_INNER:Int = 2
+Rem
+bbdoc: 
+End Rem
+Const OUTLINE_OUTER:Int = 3
 

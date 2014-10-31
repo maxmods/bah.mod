@@ -45,16 +45,23 @@ struct bmx_font_buffer {
 	mat4 model, view, projection;
 	int height;
 	GLuint shader;
-	int r, g, b, a;
+	int r0, g0, b0, a0;
+	int r1, g1, b1, a1;
 };
 
 GLuint bmx_freetypegl_shader_load_source( const char * vert_source, const char * frag_source );
 
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 font_manager_t * bmx_freetypegl_font_manager_new(int atlasWidth, int atlasHeight) {
 	return font_manager_new(atlasWidth, atlasHeight, 1);
 }
 
+void bmx_freetypegl_font_manager_free(font_manager_t * manager) {
+	font_manager_delete(manager);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 int bmx_freetypegl_texture_font_load_glyphs(struct bmx_font_buffer * buf, BBString * text) {
 #ifdef WIN32
@@ -104,10 +111,11 @@ void bmx_freetypegl_font_buffer_free(struct bmx_font_buffer * buf) {
 
 void bmx_freetypegl_font_buffer_draw(struct bmx_font_buffer * buf, float x, float y, BBString * text) {
 	size_t i;
-	float r = buf->r/255.0, g = buf->g/255.0, b = buf->b/255.0, a = buf->a/255.0;
+	float r0 = buf->r0/255.0, g0 = buf->g0/255.0, b0 = buf->b0/255.0, a0 = buf->a0/255.0;
+	float r1 = buf->r1/255.0, g1 = buf->g1/255.0, b1 = buf->b1/255.0, a1 = buf->a1/255.0;
 
 	// top down rendering
-	y = buf->height - y - 14;
+	y = buf->height - y - buf->font->size;
 
 	for( i=0; i<text->length; ++i ) {
 
@@ -129,10 +137,12 @@ void bmx_freetypegl_font_buffer_draw(struct bmx_font_buffer * buf, float x, floa
 			float t1 = glyph->t1;
 			GLuint index = buf->buffer->vertices->size;
 			GLuint indices[] = {index, index+1, index+2, index, index+2, index+3};
-			vertex_t vertices[] = { { x0,y0,0,  s0,t0,  r,g,b,a },
-				{ x0,y1,0,  s0,t1,  r,g,b,a },
-				{ x1,y1,0,  s1,t1,  r,g,b,a },
-				{ x1,y0,0,  s1,t0,  r,g,b,a } };
+			vertex_t vertices[] = {
+				{ x0,y0,0,  s0,t0,  r0,g0,b0,a0 },
+				{ x0,y1,0,  s0,t1,  r1,g1,b1,a1 },
+				{ x1,y1,0,  s1,t1,  r1,g1,b1,a1 },
+				{ x1,y0,0,  s1,t0,  r0,g0,b0,a0 }
+			};
 			vertex_buffer_push_back_indices( buf->buffer, indices, 6 );
 			vertex_buffer_push_back_vertices( buf->buffer, vertices, 4 );
 			x += glyph->advance_x;
@@ -141,10 +151,22 @@ void bmx_freetypegl_font_buffer_draw(struct bmx_font_buffer * buf, float x, floa
 }
 
 void bmx_freetypegl_font_buffer_setcolor(struct bmx_font_buffer * buf, int r, int g, int b, int a) {
-	buf->r = r;
-	buf->g = g;
-	buf->b = b;
-	buf->a = a;
+	buf->r0 = buf->r1 = r;
+	buf->g0 = buf->g1 = g;
+	buf->b0 = buf->b1 = b;
+	buf->a0 = buf->a1 = a;
+}
+
+void bmx_freetypegl_font_buffer_setgradientcolor(struct bmx_font_buffer * buf, int r0, int g0, int b0, int a0, int r1, int g1, int b1, int a1) {
+	buf->r0 = r0;
+	buf->g0 = g0;
+	buf->b0 = b0;
+	buf->a0 = a0;
+
+	buf->r1 = r1;
+	buf->b1 = b1;
+	buf->g1 = g1;
+	buf->a1 = a1;
 }
 
 void bmx_freetypegl_font_buffer_setviewport(struct bmx_font_buffer * buf, int x, int y, int width, int height) {
@@ -171,6 +193,16 @@ void bmx_freetypegl_font_buffer_render(struct bmx_font_buffer * buf) {
 	
 	glUseProgram(0);
 }
+
+void bmx_freetypegl_font_buffer_setoutlinetype(struct bmx_font_buffer * buf, int value) {
+	buf->font->outline_type = value;
+}
+
+void bmx_freetypegl_font_buffer_setoutlinethickness(struct bmx_font_buffer * buf, float value) {
+	buf->font->outline_thickness = value;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 GLuint bmx_freetypegl_shader_load_source( const char * vert_source, const char * frag_source ) {
     GLuint handle = glCreateProgram( );

@@ -22,7 +22,9 @@
 '
 SuperStrict
 
-
+Rem
+bbdoc: FreeType-GL
+End Rem
 Module BaH.FreeTypeGL
 
 ?linux
@@ -44,7 +46,10 @@ End Rem
 Type TFontManager
 
 	Field fmPtr:Byte Ptr
-	
+
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:TFontManager(atlasWidth:Int = 512, atlasHeight:Int = 512)
 		fmPtr = bmx_freetypegl_font_manager_new(atlasWidth, atlasHeight)
 		Return Self
@@ -55,6 +60,20 @@ Type TFontManager
 	End Rem
 	Method FontBuffer:TFontBuffer(fontPath:String, size:Int)
 		Return TFontBuffer._create(fmPtr, fontPath, size)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If fmPtr Then
+			bmx_freetypegl_font_manager_free(fmPtr)
+			fmPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
 	End Method
 	
 End Type
@@ -82,19 +101,23 @@ Type TFontBuffer
 		Return Null
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetViewport(x:Int, y:Int, width:Int, height:Int)
 		bmx_freetypegl_font_buffer_setviewport(bufferPtr, x, y, width, height)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Renders the text.
 	End Rem
 	Method Render()
 		bmx_freetypegl_font_buffer_render(bufferPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Clears the text buffer of all text.
+	about: Use Draw() to re-fill the buffer.
 	End Rem
 	Method Clear()
 		bmx_freetypegl_font_buffer_clear(bufferPtr)
@@ -108,14 +131,36 @@ Type TFontBuffer
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the font color for the next Draw.
 	End Rem
 	Method SetColor(r:Int, g:Int, b:Int, a:Int = 255)
 		bmx_freetypegl_font_buffer_setcolor(bufferPtr, r, g, b, a)
 	End Method
 
 	Rem
-	bbdoc: Request the loading of several glyphs at once.
+	bbdoc: Sets the vertical gradient colors for the next Draw.
+	End Rem
+	Method SetGradientColor(r0:Int, g0:Int, b0:Int, a0:Int, r1:Int, g1:Int, b1:Int, a1:Int)
+		bmx_freetypegl_font_buffer_setgradientcolor(bufferPtr, r0, g0, b0, a0, r1, g1, b1, a1)
+	End Method
+	
+	Rem
+	bbdoc: Sets glyph outline type.
+	about: One of, #OUTLINE_NONE, #OUTLINE_LINE, #OUTLINE_INNER or #OUTLINE_OUTER
+	End Rem
+	Method SetOutlineType(value:Int)
+		bmx_freetypegl_font_buffer_setoutlinetype(bufferPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Sets glyph outline thickness.
+	End Rem
+	Method SetOutlineThickness(value:Float)
+		bmx_freetypegl_font_buffer_setoutlinethickness(bufferPtr, value)
+	End Method
+
+	Rem
+	bbdoc: Requests the loading of several glyphs at once.
 	returns: Number of missed glyphs if the texture is not big enough to hold every glyph.
 	End Rem
 	Method LoadGlyphs:Int(text:String)
