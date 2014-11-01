@@ -34,6 +34,7 @@ typedef struct {
     float x, y, z;    // position
     float s, t;       // texture
     float r, g, b, a; // color
+	float shift, gamma;
 } vertex_t;
 
 struct bmx_font_buffer {
@@ -45,16 +46,19 @@ struct bmx_font_buffer {
 	mat4 model, view, projection;
 	int height;
 	GLuint shader;
+	GLuint ufl_texture, ufl_pixel, ufl_model, ufl_view, ufl_projection;
 	int r0, g0, b0, a0;
 	int r1, g1, b1, a1;
+	float gamma;
 };
 
 GLuint bmx_freetypegl_shader_load_source( const char * vert_source, const char * frag_source );
+texture_font_t * font_manager_get_from_memory( font_manager_t *self, void * mem, int len, const char * filename, const float size );
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 font_manager_t * bmx_freetypegl_font_manager_new(int atlasWidth, int atlasHeight) {
-	return font_manager_new(atlasWidth, atlasHeight, 1);
+	return font_manager_new(atlasWidth, atlasHeight, 3);
 }
 
 void bmx_freetypegl_font_manager_free(font_manager_t * manager) {
@@ -76,7 +80,7 @@ int bmx_freetypegl_texture_font_load_glyphs(struct bmx_font_buffer * buf, BBStri
 #endif
 }
 
-struct bmx_font_buffer * bmx_freetypegl_font_buffer_new(font_manager_t * manager, BBString * fontPath, float size, BBString * vertSource, BBString *fragSource) {
+struct bmx_font_buffer * bmx_freetypegl_font_buffer_new(font_manager_t * manager, BBString * fontPath, float size, BBString * vertSource, BBString *fragSource, void * mem, int len) {
 
 	glewInit();
 
@@ -85,10 +89,14 @@ struct bmx_font_buffer * bmx_freetypegl_font_buffer_new(font_manager_t * manager
 	buf->manager = manager;
 	
 	char * path = bbStringToUTF8String(fontPath);
-	buf->font = font_manager_get_from_filename(manager, path, size);
+	if (mem) {
+		buf->font = font_manager_get_from_memory(manager, mem, len, path, size);
+	} else {
+		buf->font = font_manager_get_from_filename(manager, path, size);
+	}
 	bbMemFree(path);
 
-	buf->buffer = vertex_buffer_new( "vertex:3f,tex_coord:2f,color:4f" );
+	buf->buffer = vertex_buffer_new( "vertex:3f,tex_coord:2f,color:4f,ashift:1f,agamma:1f" );
 
 	// shaders
 	char * vs = bbStringToCString(vertSource);
@@ -96,6 +104,15 @@ struct bmx_font_buffer * bmx_freetypegl_font_buffer_new(font_manager_t * manager
 	buf->shader = bmx_freetypegl_shader_load_source(vs, fs);
 	bbMemFree(fs);
 	bbMemFree(vs);
+	
+	buf->ufl_texture = glGetUniformLocation( buf->shader, "texture" );
+	buf->ufl_pixel = glGetUniformLocation( buf->shader, "pixel" );
+
+	buf->ufl_model = glGetUniformLocation( buf->shader, "model" );
+	buf->ufl_view = glGetUniformLocation( buf->shader, "view" );
+	buf->ufl_projection = glGetUniformLocation( buf->shader, "projection" );
+	
+	buf->gamma = 1;
 
 	mat4_set_identity( &buf->projection );
 	mat4_set_identity( &buf->model );
@@ -135,16 +152,16 @@ void bmx_freetypegl_font_buffer_draw(struct bmx_font_buffer * buf, float x, floa
 			float t0 = glyph->t0;
 			float s1 = glyph->s1;
 			float t1 = glyph->t1;
-			GLuint index = buf->buffer->vertices->size;
-			GLuint indices[] = {index, index+1, index+2, index, index+2, index+3};
+
+			GLuint indices[] = {0, 1, 2, 0, 2, 3};
 			vertex_t vertices[] = {
-				{ x0,y0,0,  s0,t0,  r0,g0,b0,a0 },
-				{ x0,y1,0,  s0,t1,  r1,g1,b1,a1 },
-				{ x1,y1,0,  s1,t1,  r1,g1,b1,a1 },
-				{ x1,y0,0,  s1,t0,  r0,g0,b0,a0 }
+				{ x0,y0,0,  s0,t0,  r0,g0,b0,a0,  0, buf->gamma },
+				{ x0,y1,0,  s0,t1,  r1,g1,b1,a1,  0, buf->gamma },
+				{ x1,y1,0,  s1,t1,  r1,g1,b1,a1,  0, buf->gamma },
+				{ x1,y0,0,  s1,t0,  r0,g0,b0,a0,  0, buf->gamma }
 			};
-			vertex_buffer_push_back_indices( buf->buffer, indices, 6 );
-			vertex_buffer_push_back_vertices( buf->buffer, vertices, 4 );
+
+			vertex_buffer_push_back( buf->buffer, vertices, 4, indices, 6 );
 			x += glyph->advance_x;
 		}
 	}
@@ -185,10 +202,11 @@ void bmx_freetypegl_font_buffer_render(struct bmx_font_buffer * buf) {
 
 	glUseProgram( buf->shader );
 	
-	glUniform1i( glGetUniformLocation( buf->shader, "texture" ), 0 );
-	glUniformMatrix4fv( glGetUniformLocation( buf->shader, "model" ), 1, 0, buf->model.data);
-	glUniformMatrix4fv( glGetUniformLocation( buf->shader, "view" ), 1, 0, buf->view.data);
-	glUniformMatrix4fv( glGetUniformLocation( buf->shader, "projection" ), 1, 0, buf->projection.data);
+	glUniform1i( buf->ufl_texture, 0 );
+	glUniformMatrix4fv( buf->ufl_model, 1, 0, buf->model.data);
+	glUniformMatrix4fv( buf->ufl_view, 1, 0, buf->view.data);
+	glUniformMatrix4fv( buf->ufl_projection, 1, 0, buf->projection.data);
+	glUniform3f( buf->ufl_pixel, 1.0/buf->manager->atlas->width, 1.0/buf->manager->atlas->height, buf->manager->atlas->depth );
 	vertex_buffer_render( buf->buffer, GL_TRIANGLES );
 	
 	glUseProgram(0);
@@ -200,6 +218,26 @@ void bmx_freetypegl_font_buffer_setoutlinetype(struct bmx_font_buffer * buf, int
 
 void bmx_freetypegl_font_buffer_setoutlinethickness(struct bmx_font_buffer * buf, float value) {
 	buf->font->outline_thickness = value;
+}
+
+float bmx_freetypegl_texture_font_height(struct bmx_font_buffer * buf) {
+	return buf->font->height;
+}
+
+float bmx_freetypegl_texture_font_linegap(struct bmx_font_buffer * buf) {
+	return buf->font->linegap;
+}
+
+float bmx_freetypegl_texture_font_ascender(struct bmx_font_buffer * buf) {
+	return buf->font->ascender;
+}
+
+float bmx_freetypegl_texture_font_descender(struct bmx_font_buffer * buf) {
+	return buf->font->descender;
+}
+
+void bmx_freetypegl_font_buffer_setgamma(struct bmx_font_buffer * buf, float gamma) {
+	buf->gamma = gamma;
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -232,4 +270,28 @@ GLuint bmx_freetypegl_shader_load_source( const char * vert_source, const char *
         exit(1);
     }
     return handle;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+texture_font_t * font_manager_get_from_memory( font_manager_t *self, void * mem, int len, const char * filename, const float size ) {
+	size_t i;
+	texture_font_t *font;
+	
+	//assert( self );
+	for( i=0; i<vector_size(self->fonts); ++i ) {
+		font = * (texture_font_t **) vector_get( self->fonts, i );
+		if( (strcmp(font->filename, filename) == 0) && ( font->size == size) ) {
+			return font;
+		}
+	}
+	font = texture_font_new_from_memory( self->atlas, size, mem, len );
+	if( font ) {
+		font->filename = strdup(filename);
+		vector_push_back( self->fonts, &font );
+		texture_font_load_glyphs( font, self->cache );
+		return font;
+	}
+	fprintf( stderr, "Unable to load \"%s\" (size=%.1f) from memory\n", filename, size );
+	return 0;
 }

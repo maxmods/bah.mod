@@ -388,7 +388,9 @@ texture_font_delete( texture_font_t *self )
 
     assert( self );
 
-    if(self->location == TEXTURE_FONT_FILE && self->filename)
+    //if(self->location == TEXTURE_FONT_FILE && self->filename)
+	// BaH : Since we can now be MEMORY with a filename, always test for filename
+	if(self->filename)
         free( self->filename );
 
     for( i=0; i<vector_size( self->glyphs ); ++i)

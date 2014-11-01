@@ -33,11 +33,16 @@ ModuleInfo "CC_OPTS: `freetype-config --cflags`"
 
 Import "common.bmx"
 
+'
+' Notes :
+'  texture-font customized to allow for filename AND memory - so that Incbin can work with font manager.
+'  Implemented a font_manager_get_from_memory() in glue.c, using filename and mem.
+'
 
 ' vertex shader
-Incbin "freetype-gl/shaders/v3f-t2f-c4f.vert"
+Incbin "freetype-gl/shaders/text.vert"
 ' frag shader
-Incbin "freetype-gl/shaders/v3f-t2f-c4f.frag"
+Incbin "freetype-gl/shaders/text.frag"
 
 Rem
 bbdoc: Font Manager
@@ -87,10 +92,17 @@ Type TFontBuffer
 	Field bufferPtr:Byte Ptr
 	
 	Function _create:TFontBuffer(fmPtr:Byte Ptr, fontPath:String, size:Int)
-		Local vertSource:String = LoadString("incbin::freetype-gl/shaders/v3f-t2f-c4f.vert")
-		Local fragSource:String = LoadString("incbin::freetype-gl/shaders/v3f-t2f-c4f.frag")
+		Local vertSource:String = LoadString("incbin::freetype-gl/shaders/text.vert")
+		Local fragSource:String = LoadString("incbin::freetype-gl/shaders/text.frag")
 
-		Local bufferPtr:Byte Ptr = bmx_freetypegl_font_buffer_new(fmPtr, fontPath, size, vertSource, fragSource)
+		Local bufferPtr:Byte Ptr
+
+		If fontpath.Find("incbin::") >= 0 Then
+			Local path:String = fontPath[fontpath.Find("incbin::") + 8..]
+			bufferPtr = bmx_freetypegl_font_buffer_new(fmPtr, path, size, vertSource, fragSource, IncbinPtr(path), IncbinLen(path))
+		Else
+			bufferPtr = bmx_freetypegl_font_buffer_new(fmPtr, fontPath, size, vertSource, fragSource, 0, 0)
+		End If
 
 		If bufferPtr Then
 			Local buffer:TFontBuffer = New TFontBuffer
@@ -145,6 +157,13 @@ Type TFontBuffer
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method SetGamma(g:Float)
+		bmx_freetypegl_font_buffer_setgamma(bufferPtr, g)
+	End Method
+	
+	Rem
 	bbdoc: Sets glyph outline type.
 	about: One of, #OUTLINE_NONE, #OUTLINE_LINE, #OUTLINE_INNER or #OUTLINE_OUTER
 	End Rem
@@ -165,6 +184,43 @@ Type TFontBuffer
 	End Rem
 	Method LoadGlyphs:Int(text:String)
 		Return bmx_freetypegl_texture_font_load_glyphs(bufferPtr, text)
+	End Method
+	
+	Rem
+	bbdoc: This is simply used to compute a default line spacing (i.e., the baseline-to-baseline distance) when writing text with this font.
+	about: Note that it usually is larger than the sum of the ascender and descender
+	taken as absolute values. There is also no guarantee that no glyphs extend above or below subsequent baselines when using this distance.
+	End Rem
+	Method Height:Float()
+		Return bmx_freetypegl_texture_font_height(bufferPtr)
+	End Method
+
+	Rem
+	bbdoc: This is the distance that must be placed between two lines of text.
+	about: The baseline-to-baseline distance should be computed as: sascender - descender + linegap
+	End Rem
+	Method LineGap:Float()
+		Return bmx_freetypegl_texture_font_linegap(bufferPtr)
+	End Method
+
+	Rem
+	bbdoc: The ascender is the vertical distance from the horizontal baseline to the highest 'character' coordinate in a font face.
+	about: Unfortunately, font formats define the ascender differently. For some, it represents the
+	ascent of all capital latin characters (without accents), for others it is the ascent of the highest accented character, and finally, other
+	formats define it as being equal to bbox.yMax.
+	End Rem
+	Method Ascender:Float()
+		Return bmx_freetypegl_texture_font_ascender(bufferPtr)
+	End Method
+
+	Rem
+	bbdoc: The descender is the vertical distance from the horizontal baseline to the lowest 'character' coordinate in a font face.
+	about: Unfortunately, font formats define the descender differently. For some, it represents the
+	descent of all capital latin characters (without accents), for others it is the ascent of the lowest accented character, and finally, other
+	formats define it as being equal to bbox.yMin. This field is negative for values below the baseline.
+	End Rem
+	Method Descender:Float()
+		Return bmx_freetypegl_texture_font_descender(bufferPtr)
 	End Method
 
 	Method Free()

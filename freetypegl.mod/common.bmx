@@ -32,7 +32,7 @@ Extern
 	Function bmx_freetypegl_font_manager_new:Byte Ptr(atlasWidth:Int, atlasHeight:Int)
 	Function bmx_freetypegl_font_manager_free(handle:Byte Ptr)
 
-	Function bmx_freetypegl_font_buffer_new:Byte Ptr(manager:Byte Ptr, fontPath:String, size:Float, vertSource:String, fragSource:String)
+	Function bmx_freetypegl_font_buffer_new:Byte Ptr(manager:Byte Ptr, fontPath:String, size:Float, vertSource:String, fragSource:String, addr:Byte Ptr, length:Int)
 	Function bmx_freetypegl_font_buffer_free(handle:Byte Ptr)
 	Function bmx_freetypegl_font_buffer_render(handle:Byte Ptr)
 	Function bmx_freetypegl_texture_font_load_glyphs:Int(handle:Byte Ptr, text:String)
@@ -43,6 +43,11 @@ Extern
 	Function bmx_freetypegl_font_buffer_setoutlinetype(handle:Byte Ptr, value:Int)
 	Function bmx_freetypegl_font_buffer_setoutlinethickness(handle:Byte Ptr, value:Float)
 	Function bmx_freetypegl_font_buffer_setgradientcolor(handle:Byte Ptr, r0:Int, g0:Int, b0:Int, a0:Int, r1:Int, g1:Int, b1:Int, a1:Int)
+	Function bmx_freetypegl_texture_font_height:Float(handle:Byte Ptr)
+	Function bmx_freetypegl_texture_font_linegap:Float(handle:Byte Ptr)
+	Function bmx_freetypegl_texture_font_ascender:Float(handle:Byte Ptr)
+	Function bmx_freetypegl_texture_font_descender:Float(handle:Byte Ptr)
+	Function bmx_freetypegl_font_buffer_setgamma(handle:Byte Ptr, g:Float)
 	
 End Extern
 

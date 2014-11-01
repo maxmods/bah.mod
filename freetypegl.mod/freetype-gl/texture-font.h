@@ -236,7 +236,7 @@ typedef struct texture_font_t
         TEXTURE_FONT_MEMORY,
     } location;
 
-    union {
+    //union {
         /**
          * Font filename, for when location == TEXTURE_FONT_FILE
          */
@@ -249,7 +249,7 @@ typedef struct texture_font_t
             const void *base;
             size_t size;
         } memory;
-    };
+    //};
 
     /**
      * Font size
