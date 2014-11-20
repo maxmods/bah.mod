@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Bruce A Henderson
+  Copyright (c) 2013-2014 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -40,10 +40,16 @@ const GUID guids[] = {
 
 #include "blitz.h"
 
-	BBObject * _bah_serial_TSerialPortInfo__create(BBString * portName, BBString * physicalName, BBString * productName, 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
+	BBObject * CB_PREF(bah_serial_TSerialPortInfo__create)(BBString * portName, BBString * physicalName, BBString * productName, 
 			BBString * enumeratorName, int vendorId, int productId);
-	void _bah_serial_TSerialPortInfo__addInfo(BBObject * list, BBObject * info);
-	void _bah_serial_TSerialPortInfo__getIds(BBString * hids, int * vendorId, int * productId);
+	void CB_PREF(bah_serial_TSerialPortInfo__addInfo)(BBObject * list, BBObject * info);
+	void CB_PREF(bah_serial_TSerialPortInfo__getIds)(BBString * hids, int * vendorId, int * productId);
 
 	void bmx_serial_listports(BBObject * list);
 
@@ -121,12 +127,12 @@ void bmx_serial_listports(BBObject * list) {
 				}
 				
 				if (hids != &bbEmptyString) {
-					_bah_serial_TSerialPortInfo__getIds(hids, &bbVendorId, &bbProductId);
+					CB_PREF(bah_serial_TSerialPortInfo__getIds)(hids, &bbVendorId, &bbProductId);
 				}
 
-				BBObject * info = _bah_serial_TSerialPortInfo__create(bbPortName, bbPhysicalName, bbProductName, bbEnumeratorName, bbVendorId, bbProductId);
+				BBObject * info = CB_PREF(bah_serial_TSerialPortInfo__create)(bbPortName, bbPhysicalName, bbProductName, bbEnumeratorName, bbVendorId, bbProductId);
 				if (info) {
-					_bah_serial_TSerialPortInfo__addInfo(list, info);
+					CB_PREF(bah_serial_TSerialPortInfo__addInfo)(list, info);
 				}
 
 			}

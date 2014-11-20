@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Bruce A Henderson
+  Copyright (c) 2013-2014 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,15 @@ extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_serial_TSerialPortInfo__create(BBString * portName, BBString * physicalName, BBString * productName, 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
+	BBObject * CB_PREF(bah_serial_TSerialPortInfo__create)(BBString * portName, BBString * physicalName, BBString * productName, 
 			BBString * enumeratorName, int vendorId, int productId);
-	void _bah_serial_TSerialPortInfo__addInfo(BBObject * list, BBObject * info);
+	void CB_PREF(bah_serial_TSerialPortInfo__addInfo)(BBObject * list, BBObject * info);
 
 	void bmx_serial_listports(BBObject * list);
 
@@ -143,8 +149,8 @@ void walkIterator(io_iterator_t serialPortIterator, BBObject * list) {
 		}
 		IOObjectRelease(usbDevice);
 
-		BBObject * info = _bah_serial_TSerialPortInfo__create(bbPortName, bbPhysicalName, bbProductName, bbEnumeratorName, bbVendorId, bbProductId);
-		_bah_serial_TSerialPortInfo__addInfo(list, info);
+		BBObject * info = CB_PREF(bah_serial_TSerialPortInfo__create)(bbPortName, bbPhysicalName, bbProductName, bbEnumeratorName, bbVendorId, bbProductId);
+		CB_PREF(bah_serial_TSerialPortInfo__addInfo)(list, info);
 
 	}
 	

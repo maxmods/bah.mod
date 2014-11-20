@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Bruce A Henderson
+  Copyright (c) 2013-2014 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -28,9 +28,15 @@ extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_serial_TSerialException__create(BBString * what);
-	BBObject * _bah_serial_TIOException__create(BBString * what);
-	BBObject * _bah_serial_TPortNotOpenedException__create(BBString * what);
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
+	BBObject * CB_PREF(bah_serial_TSerialException__create)(BBString * what);
+	BBObject * CB_PREF(bah_serial_TIOException__create)(BBString * what);
+	BBObject * CB_PREF(bah_serial_TPortNotOpenedException__create)(BBString * what);
 
 	void bmx_serial_throw_serialexception(serial::SerialException &e);
 	void bmx_serial_throw_ioexception(serial::IOException &e);
@@ -96,15 +102,15 @@ private:
 // ********************************************************
 
 void bmx_serial_throw_serialexception(serial::SerialException &e) {
-	bbExThrow(_bah_serial_TSerialException__create(bbStringFromUTF8String(e.what())));
+	bbExThrow(CB_PREF(bah_serial_TSerialException__create)(bbStringFromUTF8String(e.what())));
 }
 
 void bmx_serial_throw_ioexception(serial::IOException &e) {
-	bbExThrow(_bah_serial_TIOException__create(bbStringFromUTF8String(e.what())));
+	bbExThrow(CB_PREF(bah_serial_TIOException__create)(bbStringFromUTF8String(e.what())));
 }
 
 void bmx_serial_throw_portnotopenexception(serial::PortNotOpenedException &e) {
-	bbExThrow(_bah_serial_TPortNotOpenedException__create(bbStringFromUTF8String(e.what())));
+	bbExThrow(CB_PREF(bah_serial_TPortNotOpenedException__create)(bbStringFromUTF8String(e.what())));
 }
 
 // ********************************************************
@@ -124,7 +130,8 @@ serial::Serial * bmx_serial_create(BBString * port, int baudrate, MaxTimeout * t
 	} catch (serial::PortNotOpenedException &e) {
 		bmx_serial_throw_portnotopenexception(e);
 	} catch (std::exception & e) {
-	bbExThrow(_bah_serial_TSerialException__create(bbStringFromUTF8String(e.what())));
+		// note : not a real serial exception - catch-all.
+		bbExThrow(CB_PREF(bah_serial_TSerialException__create)(bbStringFromUTF8String(e.what())));
 	}
 	
 	return ser;
@@ -151,33 +158,115 @@ int bmx_serial_isopen(serial::Serial * ser) {
 }
 
 int bmx_serial_available(serial::Serial * ser) {
-	return static_cast<int>(ser->available());
+	int ret = 0;
+
+	try {
+
+		ret = static_cast<int>(ser->available());
+	
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
+	return ret;
 }
 
 int bmx_serial_read(serial::Serial * ser, uint8_t * buffer, int size) {
-	return static_cast<int>(ser->read(buffer, size));
+	try {
+
+		return static_cast<int>(ser->read(buffer, size));
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
 }
 
 BBString * bmx_serial_readline(serial::Serial * ser, int size, BBString * eol) {
 	char * s = bbStringToUTF8String(eol);
-	BBString * ret = bbStringFromUTF8String(ser->readline(size, s).c_str());
-	bbMemFree(s);
+	BBString * ret = 0;
+	
+	try {
+
+		ret = bbStringFromUTF8String(ser->readline(size, s).c_str());
+		bbMemFree(s);
+
+	} catch (serial::PortNotOpenedException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_serialexception(e);
+	}
+
 	return ret;
 }
 
 int bmx_serial_write(serial::Serial * ser, uint8_t * data, int size) {
-	return static_cast<int>(ser->write(data, size));
+	int ret = 0;
+	
+	try {
+
+		ret = static_cast<int>(ser->write(data, size));
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+	
+	return ret;
 }
 
 int bmx_serial_writestring(serial::Serial * ser, BBString * data) {
 	char * s = bbStringToUTF8String(data);
-	int ret = static_cast<int>(ser->write(s));
+	int ret = 0;
+	
+	try {
+
+		ret = static_cast<int>(ser->write(s));
+		bbMemFree(s);
+
+	} catch (serial::PortNotOpenedException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_serialexception(e);
+	}
+	
+	return ret;
 }
 
 void bmx_serial_setport(serial::Serial * ser, BBString * port) {
 	char * s = bbStringToUTF8String(port);
-	ser->setPort(s);
-	bbMemFree(s);
+
+	try {
+
+		ser->setPort(s);
+		bbMemFree(s);
+
+	} catch (serial::IOException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bbMemFree(s);
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 BBString * bmx_serial_getport(serial::Serial * ser) {
@@ -185,7 +274,17 @@ BBString * bmx_serial_getport(serial::Serial * ser) {
 }
 
 void bmx_serial_setbaudrate(serial::Serial * ser, int baudrate) {
-	ser->setBaudrate(baudrate);
+
+	try {
+
+		ser->setBaudrate(baudrate);
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getbaudrate(serial::Serial * ser) {
@@ -193,7 +292,17 @@ int bmx_serial_getbaudrate(serial::Serial * ser) {
 }
 
 void bmx_serial_setbytesize(serial::Serial * ser, int bytesize) {
-	ser->setBytesize(static_cast<serial::bytesize_t>(bytesize));
+
+	try {
+	
+		ser->setBytesize(static_cast<serial::bytesize_t>(bytesize));
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getbytesize(serial::Serial * ser) {
@@ -201,7 +310,17 @@ int bmx_serial_getbytesize(serial::Serial * ser) {
 }
 
 void bmx_serial_setparity(serial::Serial * ser, int parity) {
-	ser->setParity(static_cast<serial::parity_t>(parity));
+
+	try {
+	
+		ser->setParity(static_cast<serial::parity_t>(parity));
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getparity(serial::Serial * ser) {
@@ -209,7 +328,17 @@ int bmx_serial_getparity(serial::Serial * ser) {
 }
 
 void bmx_serial_setstopbits(serial::Serial * ser, int stopbits) {
-	ser->setStopbits(static_cast<serial::stopbits_t>(stopbits));
+
+	try {
+	
+		ser->setStopbits(static_cast<serial::stopbits_t>(stopbits));
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getstopbits(serial::Serial * ser) {
@@ -217,7 +346,17 @@ int bmx_serial_getstopbits(serial::Serial * ser) {
 }
 
 void bmx_serial_setflowcontrol(serial::Serial * ser, int flowcontrol) {
-	ser->setFlowcontrol(static_cast<serial::flowcontrol_t>(flowcontrol));
+
+	try {
+	
+		ser->setFlowcontrol(static_cast<serial::flowcontrol_t>(flowcontrol));
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getflowcontrol(serial::Serial * ser) {
@@ -225,57 +364,181 @@ int bmx_serial_getflowcontrol(serial::Serial * ser) {
 }
 
 void bmx_serial_flush(serial::Serial * ser) {
-	ser->flush();
+
+	try {
+
+		ser->flush();
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 void bmx_serial_flushinput(serial::Serial * ser) {
-	ser->flushInput();
+
+	try {
+
+		ser->flushInput();
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 void bmx_serial_flushoutput(serial::Serial * ser) {
-	ser->flushOutput();	
+
+	try {
+	
+		ser->flushOutput();
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 void bmx_serial_sendbreak(serial::Serial * ser, int duration) {
-	ser->sendBreak(duration);
+
+	try {
+	
+		ser->sendBreak(duration);
+
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 void bmx_serial_setbreak(serial::Serial * ser, int level) {
-	ser->setBreak(static_cast<bool>(level));
+
+	try {
+	
+		ser->setBreak(static_cast<bool>(level));
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 void bmx_serial_setrts(serial::Serial * ser, int level) {
-	ser->setRTS(static_cast<bool>(level));
+
+	try {
+
+		ser->setRTS(static_cast<bool>(level));
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 void bmx_serial_setdtr(serial::Serial * ser, int level) {
-	ser->setDTR(static_cast<bool>(level));
+
+	try {
+	
+		ser->setDTR(static_cast<bool>(level));
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 void bmx_serial_waitforchange(serial::Serial * ser) {
+
 	try {
 	
 		ser->waitForChange();
 		
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
 	} catch (serial::SerialException &e) {
 		bmx_serial_throw_serialexception(e);
 	}
+
 }
 
 int bmx_serial_getcts(serial::Serial * ser) {
-	return static_cast<int>(ser->getCTS());
+
+	try {
+	
+		return static_cast<int>(ser->getCTS());
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getdsr(serial::Serial * ser) {
-	return static_cast<int>(ser->getDSR());
+
+	try {
+	
+		return static_cast<int>(ser->getDSR());
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getri(serial::Serial * ser) {
-	return static_cast<int>(ser->getRI());
+
+	try {
+	
+		return static_cast<int>(ser->getRI());
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 int bmx_serial_getcd(serial::Serial * ser) {
-	return static_cast<int>(ser->getCD());
+
+	try {
+	
+		return static_cast<int>(ser->getCD());
+
+	} catch (serial::PortNotOpenedException &e) {
+		bmx_serial_throw_portnotopenexception(e);
+	} catch (serial::IOException &e) {
+		bmx_serial_throw_ioexception(e);
+	} catch (serial::SerialException &e) {
+		bmx_serial_throw_serialexception(e);
+	}
+
 }
 
 // ********************************************************

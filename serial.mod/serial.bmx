@@ -1,4 +1,4 @@
-' Copyright (c) 2013 Bruce A Henderson
+' Copyright (c) 2013-2014 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.Serial
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Serial Library - 2012 William Woodall, John Harrison"
-ModuleInfo "Copyright: BlitzMax wrapper - 2013 Bruce A Henderson"
+ModuleInfo "Copyright: BlitzMax wrapper - 2013-2014 Bruce A Henderson"
 
 ModuleInfo "History: 1.00 Initial Release"
 
