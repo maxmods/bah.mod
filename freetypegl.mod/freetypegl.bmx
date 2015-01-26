@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2015 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ Type TFontBuffer
 			Local path:String = fontPath[fontpath.Find("incbin::") + 8..]
 			bufferPtr = bmx_freetypegl_font_buffer_new(fmPtr, path, size, vertSource, fragSource, IncbinPtr(path), IncbinLen(path))
 		Else
-			bufferPtr = bmx_freetypegl_font_buffer_new(fmPtr, fontPath, size, vertSource, fragSource, 0, 0)
+			bufferPtr = bmx_freetypegl_font_buffer_new(fmPtr, fontPath, size, vertSource, fragSource, Null, 0)
 		End If
 
 		If bufferPtr Then
