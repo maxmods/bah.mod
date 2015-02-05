@@ -22,7 +22,11 @@ SuperStrict
 
 Import "gtkkeymap.bmx"
 
+?bmxng
+Import BRL.SystemDefault
+?not bmxng
 Import BRL.System
+?
 Import MaxGUI.MaxGUI
 Import BRL.HTTPStream
 Import BRL.RAMStream
