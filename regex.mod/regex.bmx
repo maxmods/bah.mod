@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2014 Bruce A Henderson
+' Copyright (c) 2007-2015 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,18 @@ bbdoc: Regular Expressions
 End Rem
 Module BaH.RegEx
 
-ModuleInfo "Version: 1.05"
+ModuleInfo "Version: 1.06"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: PCRE - 1997-2013 University of Cambridge"
-ModuleInfo "Copyright: Wrapper - 2007-2014 Bruce A Henderson"
+ModuleInfo "Copyright: PCRE - 1997-2015 University of Cambridge"
+ModuleInfo "Copyright: Wrapper - 2007-2015 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.06"
+ModuleInfo "History: Updated to PCRE 10.00"
+ModuleInfo "History: Changed TRegExMatch to get data as required, rather than cache it."
+ModuleInfo "History: Added support for JIT compilation via new options."
+ModuleInfo "History: Added ByName methods for sub expression retrieval."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Updated to PCRE 8.34"
 ModuleInfo "History: Changed to use pcre16 functions, which is BlitzMax's native character size. (no more utf8 conversions)"
@@ -55,7 +60,7 @@ ModuleInfo "History: Options now global."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (PCRE 7.0)"
 
-ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DPCRE2_CODE_UNIT_WIDTH=16"
 
 Import "common.bmx"
 
@@ -87,9 +92,11 @@ Type TRegEx
 	Field pcre:Byte Ptr
 	
 	' pointer to the offsets vector
-	Field offsets:Byte Ptr
+	Field offsets:Int Ptr
 	' number of offsets
 	Field sizeOffsets:Int
+	
+	Field matchPtr:Byte Ptr
 	
 	Field compiled:Int = False
 	
@@ -101,6 +108,11 @@ Type TRegEx
 		If TArg Then
 			MemFree(TArg)
 		End If
+		
+		If matchPtr Then
+			pcre2_match_data_free_16(matchPtr)
+		End If
+		
 	End Method
 	
 	Rem
@@ -185,13 +197,16 @@ Type TRegEx
 		End If
 
 		' initial search...
-		Local result:Int = pcre16_exec(pcre, Null, TArg, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
+		Local result:Int = pcre2_match_16(pcre, TArg, targLength, startPos, getExecOpt(), matchPtr, Null)
 
 		' if there wasn't an error... process the match (even for no-match)
-		While result >= 0 Or result = REGEX_NOMATCH
+		While result >= 0 Or result = PCRE2_ERROR_NOMATCH
+
+			sizeOffsets = pcre2_get_ovector_count_16(matchPtr)
+			offsets = pcre2_get_ovector_pointer_16(matchPtr)
 
 			Local replaceStr:String = replaceWith 
-			Local ofs:Int Ptr = Int Ptr(offsets)
+			Local ofs:Int Ptr = offsets
 			For Local i:Int = 0 Until result
 				Local idx:Int = i * 2
 				replaceStr = replaceStr.Replace( "\" + i, lastTarget[ofs[idx]..ofs[idx+1]])
@@ -199,7 +214,7 @@ Type TRegEx
 
 			If result > 0 Then
 				' add text so far, and the replacement
-				retString:+ lastTarget[startPos..Int Ptr(offsets)[0]] + replaceStr
+				retString:+ lastTarget[startPos..offsets[0]] + replaceStr
 			
 			Else
 				' search finished. Fill to the end
@@ -209,7 +224,7 @@ Type TRegEx
 			End If
 			
 			' set start to the end of the last match position
-			startPos = Int Ptr(offsets)[1]
+			startPos = offsets[1]
 			
 			' only doing the first replace? Then we can exit now...
 			If Not globalReplace Then
@@ -221,7 +236,7 @@ Type TRegEx
 			End If
 			
 			' find the next match
-			result = pcre16_exec(pcre, Null, TArg, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
+			result = pcre2_match_16(pcre, TArg, targLength, startPos, getExecOpt(), matchPtr, Null)
 
 		Wend	
 		
@@ -284,38 +299,24 @@ Type TRegEx
 			startPos = 0
 		End If
 		
-		Local result:Int = pcre16_exec(pcre, Null, TArg, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
+		Local result:Int = pcre2_match_16(pcre, TArg, targLength, startPos, getExecOpt(), matchPtr, Null)
 		
 		If result >= 0 Then
 
+			sizeOffsets = pcre2_get_ovector_count_16(matchPtr)
+			offsets = pcre2_get_ovector_pointer_16(matchPtr)
+
 			Local match:TRegExMatch = New TRegExMatch
-			match.count = result
-			match._subExp = New String[result + 1]
-			match._subStart = New Int[result + 1]
-			match._subEnd = New Int[result + 1]
+			match.pcre = pcre
+			match.matchPtr = matchPtr
 
-			For Local i:Int = 0 Until result
-
-				Local sPtr:Short Ptr
-				Local size:Int = pcre16_get_substring(TArg, offsets, result, i, Varptr sPtr)
-
-				match._subExp[i] = String.FromShorts(sPtr, size)
-				match._subStart[i] = Int Ptr(offsets)[i * 2]
-
-				lastEndPos = Int Ptr(offsets)[i * 2 + 1]
-
-				' end pos less 1 - as we don't need the zero terminator
-				match._subEnd[i] = lastEndPos - 1
-				
-				pcre16_free_substring(sPtr)
-
-			Next
+			lastEndPos = offsets[sizeOffsets]
 			
 			Return match
 		Else
 
 			' no point raising an exception when nothing found... we can just return a null object
-			If result = REGEX_NOMATCH Then
+			If result = PCRE2_ERROR_NOMATCH Then
 				Return Null
 			End If
 			
@@ -328,75 +329,78 @@ Type TRegEx
 	Method init()
 		lastPattern = searchPattern
 		
-		Local pat:Byte Ptr = lastPattern.ToWString()
-		Local errorcodeptr:Int
-		Local buffer:Byte[256]
+		Local pat:Short Ptr = lastPattern.ToWString()
+		Local errorcode:Int
 		Local erroffset:Int
-		
-		Local bptr:Byte Ptr = pcre16_compile2(pat, getCompileOpt(), Varptr errorcodeptr, ..
- 				Varptr buffer, Varptr erroffset, Null)
-		
+
+		Local bptr:Byte Ptr = pcre2_compile_16(pat, lastPattern.length, getCompileOpt(), Varptr errorcode, ..
+ 				Varptr erroffset, Null)
+
 		MemFree(pat)
 		
 		If bptr Then
 			pcre = bptr
 		Else
-			Throw TRegExException.Raise(-99, String.fromCString(buffer))
+			Local buffer:Short[256]
+			pcre2_get_error_message_16(errorcode, buffer, 256)
+			Throw TRegExException.Raise(-99, String.fromWString(buffer))
 		End If
 
-		If offsets Then
-			MemFree(offsets)
+		Local jitOptions:Int = getJITOpt()
+		If jitOptions Then
+			Local result:Int = pcre2_jit_compile_16(pcre, jitOptions)
 		End If
-
-		Local result:Int = pcre16_fullinfo(pcre, Null, PCRE_INFO_CAPTURECOUNT, Varptr sizeOffsets)
-		sizeOffsets:+ 1 ' make sure there's enough space...
-		sizeOffsets:* 3 ' multiple of 3
-		offsets = MemAlloc((sizeOffsets * SizeOf(sizeOffsets)))
 		
+		If matchPtr Then
+			pcre2_match_data_free_16(matchPtr)
+		End If
+
+		matchPtr = pcre2_match_data_create_from_pattern_16(pcre, Null)
+	
 		compiled = True
 	End Method
 	
 	' possible options for compiling
 	Method getCompileOpt:Int()
-		Local opt:Int = PCRE_UTF8
+		Local opt:Int = PCRE2_UTF
 		
 		If Not options.caseSensitive Then
-			opt:| PCRE_CASELESS
+			opt:| PCRE2_CASELESS
 		End If
 		
 		If options.dotMatchAll Then
-			opt:| PCRE_DOTALL
+			opt:| PCRE2_DOTALL
 		End If
 		
 		If Not options.greedy Then
-			opt:| PCRE_UNGREEDY
+			opt:| PCRE2_UNGREEDY
 		End If
 		
 		Select options.lineEndType
 			Case 1
-				opt:| PCRE_NEWLINE_CR
+				opt:| PCRE2_NEWLINE_CR
 			Case 2
-				opt:| PCRE_NEWLINE_CRLF
+				opt:| PCRE2_NEWLINE_LF
 			Case 3
-				opt:| PCRE_NEWLINE_LF
+				opt:| PCRE2_NEWLINE_CRLF
 			Default
-				opt:| PCRE_NEWLINE_ANY
+				opt:| PCRE2_NEWLINE_ANY
 		End Select
 		
 		If Not options.matchEmpty Then
-			opt:| PCRE_NOTEMPTY
+			opt:| PCRE2_NOTEMPTY
 		End If
 		
 		If options.targetIsMultiline Then
-			opt:| PCRE_MULTILINE
+			opt:| PCRE2_MULTILINE
 		End If
 		
 		If options.dollarEndOnly Then
-			opt:| PCRE_DOLLAR_ENDONLY
+			opt:| PCRE2_DOLLAR_ENDONLY
 		End If
 		
 		If options.extended Then
-			opt:| PCRE_EXTENDED
+			opt:| PCRE2_EXTENDED
 		End If
 		
 		Return opt
@@ -408,28 +412,46 @@ Type TRegEx
 		
 		Select options.lineEndType
 			Case 1
-				opt:| PCRE_NEWLINE_CR
+				opt:| PCRE2_NEWLINE_CR
 			Case 2
-				opt:| PCRE_NEWLINE_CRLF
+				opt:| PCRE2_NEWLINE_LF
 			Case 3
-				opt:| PCRE_NEWLINE_LF
+				opt:| PCRE2_NEWLINE_CRLF
 			Default
-				opt:| PCRE_NEWLINE_ANY
+				opt:| PCRE2_NEWLINE_ANY
 		End Select
 
 		If Not options.matchEmpty Then
-			opt:| PCRE_NOTEMPTY
+			opt:| PCRE2_NOTEMPTY
 		End If
 		
 		If Not options.stringIsLineBeginning Then
-			opt:| PCRE_NOTBOL
+			opt:| PCRE2_NOTBOL
 		End If
 		
 		If Not options.stringIsLineEnding Then
-			opt:| PCRE_NOTEOL
+			opt:| PCRE2_NOTEOL
 		End If
 		
 		Return opt
+	End Method
+	
+	' possible options for jit
+	Method getJITOpt:Int()
+		Local opt:Int
+		
+		If options.jitComplete Then
+			opt :| PCRE2_JIT_COMPLETE
+		End If
+
+		If options.jitPartialSoft Then
+			opt :| PCRE2_JIT_PARTIAL_SOFT
+		End If
+
+		If options.jitPartialHard Then
+			opt :| PCRE2_JIT_PARTIAL_HARD
+		End If
+		
 	End Method
 	
 End Type
@@ -439,16 +461,14 @@ bbdoc: Used to extract the matched string when doing a search with regular expre
 End Rem
 Type TRegExMatch
 
-	Field count:Int
-	Field _subExp:String[]
-	Field _subStart:Int[]
-	Field _subEnd:Int[]
+	Field pcre:Byte Ptr
+	Field matchPtr:Byte Ptr
 
 	Rem
 	bbdoc: Returns the number of subexpressions as a result of the search.
 	End Rem
 	Method SubCount:Int()
-		Return count
+		Return pcre2_get_ovector_count_16(matchPtr)
 	End Method
 	
 	Rem
@@ -458,10 +478,23 @@ Type TRegExMatch
 	a parameter to return the matched string.
 	End Rem
 	Method SubExp:String(matchNumber:Int = 0)
-		If matchNumber >= 0 And matchNumber < count Then
-			Return _subExp[matchNumber]
-		End If
-		Return ""
+		Local _subExpr:String
+		
+		If matchNumber >= 0 And matchNumber < pcre2_get_ovector_count_16(matchPtr) Then
+			Local sPtr:Short Ptr
+			Local sLen:Int
+			Local result:Int = pcre2_substring_get_bynumber_16(matchPtr, matchNumber, Varptr sPtr, Varptr sLen)
+
+			If Not result Then
+
+				_subExpr = String.FromShorts(sPtr, sLen)
+				
+				pcre2_substring_free_16(sPtr)
+			End If
+		End If	
+	
+	
+		Return _subExpr
 	End Method
 	
 	Rem
@@ -471,8 +504,9 @@ Type TRegExMatch
 	to return the start position of the matched string.
 	End Rem
 	Method SubStart:Int(matchNumber:Int = 0)
-		If matchNumber >= 0 And matchNumber < count Then
-			Return _subStart[matchNumber]
+		If matchNumber >= 0 And matchNumber <  pcre2_get_ovector_count_16(matchPtr) Then
+			Local offsets:Int Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+			Return offsets[matchNumber]
 		End If
 		Return -1
 	End Method
@@ -484,12 +518,87 @@ Type TRegExMatch
 	to return the end position of the matched string.
 	End Rem
 	Method SubEnd:Int(matchNumber:Int = 0)
-		If matchNumber >= 0 And matchNumber < count Then
-			Return _subEnd[matchNumber]
+		If matchNumber >= 0 And matchNumber <  pcre2_get_ovector_count_16(matchPtr) Then
+			Local offsets:Int Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+			Return offsets[matchNumber + 1] - 1
 		End If
 		Return -1
 	End Method
 	
+	Rem
+	bbdoc: Returns the subexpression for the given @name.
+	End Rem
+	Method SubExpByName:String(name:String)
+		Local _subExpr:String
+
+		If name Then
+			Local sPtr:Short Ptr
+			Local sLen:Int
+			Local n:Short Ptr = name.ToWString()
+			Local result:Int = pcre2_substring_get_byname_16(matchPtr, n, Varptr sPtr, Varptr sLen)
+			MemFree(n)
+
+			If Not result Then
+
+				_subExpr = String.FromShorts(sPtr, sLen)
+				
+				pcre2_substring_free_16(sPtr)
+			End If
+		End If
+		
+		Return _subExpr
+	End Method
+
+	Rem
+	bbdoc: Returns the index of the subexpression for the given @name.
+	End Rem
+	Method SubIndexByName:Int(name:String)
+		If name Then
+			Local n:Short Ptr = name.ToWString()
+			Local index:Int = pcre2_substring_number_from_name_16(pcre, n)
+			MemFree(n)
+			
+			If index >= 0 Then
+				Return index
+			End If
+		End If
+		Return -1
+	End Method
+
+	Rem
+	bbdoc: Returns the start position of the subexpression for the given @name.
+	End Rem
+	Method SubStartByName:Int(name:String)
+		If name Then
+			Local n:Short Ptr = name.ToWString()
+			Local index:Int = pcre2_substring_number_from_name_16(pcre, n)
+			MemFree(n)
+			
+			If index >= 0 Then
+				Local offsets:Int Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+				Return offsets[index]
+			End If
+		End If
+		Return -1
+	End Method
+
+	Rem
+	bbdoc: Returns the end position of the subexpression for the given @name.
+	End Rem
+	Method SubEndByName:Int(name:String)
+		If name Then
+			Local n:Short Ptr = name.ToWString()
+			Local index:Int = pcre2_substring_number_from_name_16(pcre, n)
+			MemFree(n)
+			
+			If index >= 0 Then
+				Local offsets:Int Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+				Return offsets[index + 1] - 1
+			End If
+		End If
+		Return -1
+	End Method
+
 End Type
 
 Rem
@@ -517,8 +626,8 @@ Type TRegExOptions
 	<ul>
 	<li>0 - any line ending</li>
 	<li>1 - \r</li>
-	<li>2 - \r\n</li>
-	<li>3 - \n</li>
+	<li>2 - \n</li>
+	<li>3 - \r\n</li>
 	</ul>
 	End Rem
 	Field lineEndType:Int = 0
@@ -557,7 +666,23 @@ Type TRegExOptions
 	An escaping backslash can be used to include a whitespace or # character as part of the pattern.
 	End Rem
 	Field extended:Int = False
-	
+
+	Rem
+	bbdoc: Compile code for full matching.
+	about: When set to True, the JIT compiler is enabled.
+	End Rem
+	Field jitComplete:Int = False
+	Rem
+	bbdoc: Compile code For soft partial matching.
+	about: When set to True, the JIT compiler is enabled.
+	End Rem
+	Field jitPartialSoft:Int = False
+	Rem
+	bbdoc: Compile code for hard partial matching.
+	about: When set to True, the JIT compiler is enabled.
+	End Rem
+	Field jitPartialHard:Int = False
+
 End Type
 
 Rem
@@ -601,71 +726,113 @@ Type TRegExException
 			Case -1
 				Return "No Match"
 			Case -2
-				Return "PCRE_ERROR_NULL"
+				Return "PCRE2_ERROR_PARTIAL"
 			Case -3
-				Return "PCRE_ERROR_BADOPTION"
+				Return "PCRE2_ERROR_UTF8_ERR1"
 			Case -4
-				Return "PCRE_ERROR_BADMAGIC"
+				Return "PCRE2_ERROR_UTF8_ERR2"
 			Case -5
-				Return "PCRE_ERROR_UNKNOWN_OPCODE"
+				Return "PCRE2_ERROR_UTF8_ERR3"
 			Case -6
-				Return "PCRE_ERROR_NOMEMORY"
+				Return "PCRE2_ERROR_UTF8_ERR4"
 			Case -7
-				Return "PCRE_ERROR_NOSUBSTRING"
+				Return "PCRE2_ERROR_UTF8_ERR5"
 			Case -8
-				Return "PCRE_ERROR_MATCHLIMIT"
+				Return "PCRE2_ERROR_UTF8_ERR6"
 			Case -9
-				Return "PCRE_ERROR_CALLOUT"
+				Return "PCRE2_ERROR_UTF8_ERR7"
 			Case -10
-				Return "PCRE_ERROR_BADUTF8"
+				Return "PCRE2_ERROR_UTF8_ERR8"
 			Case -11
-				Return "PCRE_ERROR_BADUTF8_OFFSET"
+				Return "PCRE2_ERROR_UTF8_ERR9"
 			Case -12
-				Return "PCRE_ERROR_PARTIAL"
+				Return "PCRE2_ERROR_UTF8_ERR10"
 			Case -13
-				Return "PCRE_ERROR_BADPARTIAL"
+				Return "PCRE2_ERROR_UTF8_ERR11"
 			Case -14
-				Return "PCRE_ERROR_INTERNAL"
+				Return "PCRE2_ERROR_UTF8_ERR12"
 			Case -15
-				Return "PCRE_ERROR_BADCOUNT"
+				Return "PCRE2_ERROR_UTF8_ERR13"
 			Case -16
-				Return "PCRE_ERROR_DFA_UITEM"
+				Return "PCRE2_ERROR_UTF8_ERR14"
 			Case -17
-				Return "PCRE_ERROR_DFA_UCOND"
+				Return "PCRE2_ERROR_UTF8_ERR15"
 			Case -18
-				Return "PCRE_ERROR_DFA_UMLIMIT"
+				Return "PCRE2_ERROR_UTF8_ERR16"
 			Case -19
-				Return "PCRE_ERROR_DFA_WSSIZE"
+				Return "PCRE2_ERROR_UTF8_ERR17"
 			Case -20
-				Return "PCRE_ERROR_DFA_RECURSE"
+				Return "PCRE2_ERROR_UTF8_ERR18"
 			Case -21
-				Return "PCRE_ERROR_RECURSIONLIMIT"
+				Return "PCRE2_ERROR_UTF8_ERR19"
 			Case -22
-				Return "PCRE_ERROR_NULLWSLIMIT"
+				Return "PCRE2_ERROR_UTF8_ERR20"
 			Case -23
-				Return "PCRE_ERROR_BADNEWLINE"
+				Return "PCRE2_ERROR_UTF8_ERR21"
 			Case -24
-				Return "PCRE_ERROR_BADOFFSET"
+				Return "PCRE2_ERROR_UTF16_ERR1"
 			Case -25
-				Return "PCRE_ERROR_SHORTUTF8"
-			Case -25
-				Return "PCRE_ERROR_SHORTUTF16"
+				Return "PCRE2_ERROR_UTF16_ERR2"
 			Case -26
-				Return "PCRE_ERROR_RECURSELOOP"
+				Return "PCRE2_ERROR_UTF16_ERR3"
 			Case -27
-				Return "PCRE_ERROR_JIT_STACKLIMIT"
+				Return "PCRE2_ERROR_UTF32_ERR1"
 			Case -28
-				Return "PCRE_ERROR_BADMODE"
+				Return "PCRE2_ERROR_UTF32_ERR2"
 			Case -29
-				Return "PCRE_ERROR_BADENDIANNESS"
+				Return "PCRE2_ERROR_BADDATA"
 			Case -30
-				Return "PCRE_ERROR_DFA_BADRESTART"
+				Return "PCRE2_ERROR_BADLENGTH"
 			Case -31
-				Return "PCRE_ERROR_JIT_BADOPTION"
+				Return "PCRE2_ERROR_BADMAGIC"
 			Case -32
-				Return "PCRE_ERROR_BADLENGTH"
+				Return "PCRE2_ERROR_BADMODE"
 			Case -33
-				Return "PCRE_ERROR_UNSET"
+				Return "PCRE2_ERROR_BADOFFSET"
+			Case -34
+				Return "PCRE2_ERROR_BADOPTION"
+			Case -35
+				Return "PCRE2_ERROR_BADREPLACEMENT"
+			Case -36
+				Return "PCRE2_ERROR_BADUTFOFFSET"
+			Case -37
+				Return "PCRE2_ERROR_CALLOUT"
+			Case -38
+				Return "PCRE2_ERROR_DFA_BADRESTART"
+			Case -39
+				Return "PCRE2_ERROR_DFA_RECURSE"
+			Case -40
+				Return "PCRE2_ERROR_DFA_UCOND"
+			Case -41
+				Return "PCRE2_ERROR_DFA_UFUNC"
+			Case -42
+				Return "PCRE2_ERROR_DFA_UITEM"
+			Case -43
+				Return "PCRE2_ERROR_DFA_WSSIZE"
+			Case -44
+				Return "PCRE2_ERROR_INTERNAL"
+			Case -45
+				Return "PCRE2_ERROR_JIT_BADOPTION"
+			Case -46
+				Return "PCRE2_ERROR_JIT_STACKLIMIT"
+			Case -47
+				Return "PCRE2_ERROR_MATCHLIMIT"
+			Case -48
+				Return "PCRE2_ERROR_NOMEMORY"
+			Case -49
+				Return "PCRE2_ERROR_NOSUBSTRING"
+			Case -50
+				Return "PCRE2_ERROR_NOUNIQUESUBSTRING"
+			Case -51
+				Return "PCRE2_ERROR_NULL"
+			Case -52
+				Return "PCRE2_ERROR_RECURSELOOP"
+			Case -53
+				Return "PCRE2_ERROR_RECURSIONLIMIT"
+			Case -54
+				Return "PCRE2_ERROR_UNAVAILABLE"
+			Case -55
+				Return "PCRE2_ERROR_UNSET"
 		End Select
 	End Method
 	

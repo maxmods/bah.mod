@@ -12,7 +12,7 @@ Try
 	
 Catch e:TRegExException
 
-	If e.num <> REGEX_NOMATCH Then
+	If e.num <> PCRE2_ERROR_NOMATCH Then
 		Print "Error : " + e.toString()
 		End
 	Else
