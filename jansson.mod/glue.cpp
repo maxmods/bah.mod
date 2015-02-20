@@ -4,9 +4,15 @@ extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_jansson_TJSON__create(json_t * handle, int jsonType);
-	BBObject * _bah_jansson_TJSONError__createError(BBString * text, BBString * source, int line, int column, int position);
-	BBObject * _bah_jansson_TJSONError__createNoError(BBObject * js);
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
+	BBObject * CB_PREF(bah_jansson_TJSON__create)(json_t * handle, int jsonType);
+	BBObject * CB_PREF(bah_jansson_TJSONError__createError)(BBString * text, BBString * source, int line, int column, int position);
+	BBObject * CB_PREF(bah_jansson_TJSONError__createNoError)(BBObject * js);
 
 	void bmx_json_decref(json_t * handle);
 
@@ -53,7 +59,7 @@ BBString * bmx_json_string_value(json_t * handle) {
 BBObject * bmx_json_array_get(json_t * handle, int index) {
 	json_t * value = json_array_get(handle, index);
 	if (value) {
-		return _bah_jansson_TJSON__create(json_incref(value), json_typeof(value));
+		return CB_PREF(bah_jansson_TJSON__create)(json_incref(value), json_typeof(value));
 	} else {
 		return &bbNullObject;
 	}
@@ -94,12 +100,12 @@ BBObject * bmx_json_loads(BBString * text, int flags) {
 	json_t * js = json_loads(t, flags, &error);
 	
 	if (!js) {
-		return _bah_jansson_TJSONError__createError(bbStringFromUTF8String(error.text), bbStringFromUTF8String(error.source),
+		return CB_PREF(bah_jansson_TJSONError__createError)(bbStringFromUTF8String(error.text), bbStringFromUTF8String(error.source),
 				error.line, error.column, error.position);
 	}
 	
-	BBObject * ref = _bah_jansson_TJSON__create(js, json_typeof(js));
-	return _bah_jansson_TJSONError__createNoError(ref);	
+	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js));
+	return CB_PREF(bah_jansson_TJSONError__createNoError)(ref);	
 }
 
 json_t * bmx_json_integer(BBInt64 v) {
@@ -123,7 +129,7 @@ BBObject * bmx_json_object_get(json_t * handle, BBString * key) {
 	json_t * obj = json_object_get(handle, k);
 	bbMemFree(k);
 	if (obj) {
-		return _bah_jansson_TJSON__create(json_incref(obj), json_typeof(obj));
+		return CB_PREF(bah_jansson_TJSON__create)(json_incref(obj), json_typeof(obj));
 	} else {
 		return &bbNullObject;
 	}
