@@ -184,7 +184,33 @@ Type TJSONArray Extends TJSON
 	Method Remove:Int(index:Int)
 		Return json_array_remove(jsonPtr, index)
 	End Method
-	
+
+	Method ObjectEnumerator:TJSONArrayEnum()
+		Local enum:TJSONArrayEnum =New TJSONArrayEnum
+		enum.array = Self
+		Return enum
+	End Method
+
+End Type
+
+Rem
+bbdoc: Enumerator Object use by TJSONArray in order to implement Eachin support. 
+End Rem
+Type TJSONArrayEnum
+
+	Field array:TJSONArray
+	Field index:Int
+
+	Method HasNext:Int()
+		Return index < array.Size()
+	End Method
+
+	Method NextObject:Object()
+		Local value:Object=array.Get(index)
+		index:+ 1
+		Return value
+	End Method
+
 End Type
 
 Rem
@@ -265,7 +291,36 @@ Type TJSONObject Extends TJSON
 	Method UpdateMissing:Int(other:TJSONObject)
 		Return json_object_update_missing(jsonPtr, other.jsonPtr)
 	End Method
-	
+
+	Method ObjectEnumerator:TJSONObjectEnum()
+		Local enum:TJSONObjectEnum =New TJSONObjectEnum
+		enum.obj = Self
+		enum.objectIter = json_object_iter(jsonPtr)
+		Return enum
+	End Method
+
+End Type
+
+Rem
+bbdoc: Enumerator Object use by TJSONArray in order to implement Eachin support. 
+End Rem
+Type TJSONObjectEnum
+
+	Field obj:TJSONObject
+	Field objectIter:Byte Ptr
+
+	Method HasNext:Int()
+		If objectIter Then
+			Return True
+		End If
+	End Method
+
+	Method NextObject:Object()
+		Local value:Object = bmx_json_object_iter_value(objectIter)
+		objectIter = json_object_iter_next(obj.jsonPtr, objectIter)
+		Return value
+	End Method
+
 End Type
 
 Rem

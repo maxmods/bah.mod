@@ -63,6 +63,10 @@ Extern
 	Function json_object_update_existing:Int(handle:Byte Ptr, other:Byte Ptr)
 	Function json_object_update_missing:Int(handle:Byte Ptr, other:Byte Ptr)
 	
+	Function json_object_iter:Byte Ptr(handle:Byte Ptr)
+	Function json_object_iter_next:Byte Ptr(handle:Byte Ptr, iter:Byte Ptr)
+	Function bmx_json_object_iter_value:Object(iter:Byte Ptr)
+	
 End Extern
 
 

@@ -155,6 +155,8 @@ functions:
    Alias of :func:`json_is_true()`, i.e. returns 1 for ``JSON_TRUE``
    and 0 otherwise.
 
+   .. versionadded:: 2.7
+
 
 .. _apiref-reference-count:
 
@@ -297,18 +299,16 @@ String
 ======
 
 Jansson uses UTF-8 as the character encoding. All JSON strings must be
-valid UTF-8 (or ASCII, as it's a subset of UTF-8). Normal null
-terminated C strings are used, so JSON strings may not contain
-embedded null characters. All other Unicode codepoints U+0000 through
-U+10FFFF are allowed, but you must use length-aware functions if you
-wish to embed NUL bytes in strings.
+valid UTF-8 (or ASCII, as it's a subset of UTF-8). All Unicode
+codepoints U+0000 through U+10FFFF are allowed, but you must use
+length-aware functions if you wish to embed NUL bytes in strings.
 
 .. function:: json_t *json_string(const char *value)
 
    .. refcounting:: new
 
    Returns a new JSON string, or *NULL* on error. *value* must be a
-   valid UTF-8 encoded Unicode string.
+   valid null terminated UTF-8 encoded Unicode string.
 
 .. function:: json_t *json_stringn(const char *value, size_t len)
 
@@ -1313,7 +1313,7 @@ type whose address should be passed.
     :func:`json_string_value()` internally, so it exists as long as
     there are still references to the corresponding JSON string.
 
-``s%`` (string) [const char \*, size_t *]
+``s%`` (string) [const char \*, size_t \*]
     Convert a JSON string to a pointer to a NULL terminated UTF-8
     string and its length.
 

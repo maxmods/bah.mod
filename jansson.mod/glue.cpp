@@ -36,6 +36,8 @@ extern "C" {
 	BBObject * bmx_json_object_get(json_t * handle, BBString * key);
 	int bmx_json_object_set_nocheck(json_t * handle, BBString * key, json_t * value);
 	int bmx_json_object_del(json_t * handle, BBString * key);
+	
+	BBObject * bmx_json_object_iter_value(void * iter);
 }
 
 
@@ -149,3 +151,11 @@ int bmx_json_object_del(json_t * handle, BBString * key) {
 	return res;
 }
 
+BBObject * bmx_json_object_iter_value(void * iter) {
+	json_t * value = json_object_iter_value(iter);
+	if (value) {
+		return CB_PREF(bah_jansson_TJSON__create)(json_incref(value), json_typeof(value));
+	} else {
+		return &bbNullObject;
+	}
+}
