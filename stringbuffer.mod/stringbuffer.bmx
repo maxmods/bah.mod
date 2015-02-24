@@ -1,0 +1,234 @@
+' Copyright (c) 2015 Bruce A Henderson
+' 
+' Permission is hereby granted, free of charge, to any person obtaining a copy
+' of this software and associated documentation files (the "Software"), to deal
+' in the Software without restriction, including without limitation the rights
+' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the Software is
+' furnished to do so, subject to the following conditions:
+' 
+' The above copyright notice and this permission notice shall be included in
+' all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+' THE SOFTWARE.
+' 
+SuperStrict
+
+Rem
+bbdoc: A string buffer.
+End Rem	
+Module BaH.StringBuffer
+
+ModuleInfo "Version: 1.00"
+ModuleInfo "License: MIT"
+ModuleInfo "Copyright: 2015 Bruce A Henderson"
+
+ModuleInfo "History: 1.00 Initial Release"
+
+
+Import "common.bmx"
+
+Rem
+bbdoc: A modifiable String.
+about: A string buffer provides functionality to efficiently insert, replace, remove, append and reverse.
+It is an order of magnitude faster to append Strings to a TStringBuffer than it is to append Strings to Strings.
+End Rem	
+Type TStringBuffer
+
+	' the char buffer
+	Field buffer:Byte Ptr
+	
+	Global initialCapacity:Int = 16
+	
+	Method New()
+		buffer = bmx_stringbuffer_new(initialCapacity)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem	
+	Function Create:TStringBuffer(text:String)
+		Local this:TStringBuffer = New TStringBuffer
+		Return this.Append(text)
+	End Function
+
+	Rem
+	bbdoc: Returns the length of the string the string buffer would create.
+	End Rem	
+	Method Length:Int()
+		Return bmx_stringbuffer_count(buffer)
+	End Method
+	
+	Rem
+	bbdoc: Returns the total number of characters that the string buffer can accommodate before needing to grow.
+	End Rem	
+	Method Capacity:Int()
+		Return bmx_stringbuffer_capacity(buffer)
+	End Method
+	
+	Rem
+	bbdoc: Sets the length of the string buffer.
+	about: If the length is less than the current length, the current text will be truncated. Otherwise,
+	the capacity will be increased as necessary, although the actual length of text will remain the same.
+	End Rem	
+	Method SetLength(length:Int)
+		bmx_stringbuffer_setlength(buffer, length)
+	End Method
+	
+	Rem
+	bbdoc: Appends the text onto the string buffer.
+	End Rem	
+	Method Append:TStringBuffer(value:String)
+		bmx_stringbuffer_append_string(buffer, value)
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Appends an object onto the string buffer.
+	about: This generally calls the object's ToString() method.
+	TStringBuffer objects are simply mem-copied.
+	End Rem
+	Method AppendObject:TStringBuffer(obj:Object)
+		If TStringBuffer(obj) Then
+			bmx_stringbuffer_append_stringbuffer(buffer, TStringBuffer(obj).buffer)
+		Else
+			bmx_stringbuffer_append_string(buffer, obj.ToString())
+		End If
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Finds first occurance of a sub string.
+	returns: -1 if @subString not found.
+	End Rem
+	Method Find:Int(subString:String, startIndex:Int = 0)
+		Return bmx_stringbuffer_find(buffer, subString, startIndex)
+	End Method
+	
+	Rem
+	bbdoc: Finds last occurance of a sub string.
+	returns: -1 if @subString not found.
+	End Rem
+	Method FindLast:Int(subString:String, startIndex:Int = 0)
+		Return bmx_stringbuffer_findlast(buffer, subString, startIndex)
+	End Method
+	
+	Rem
+	bbdoc: Removes leading and trailing non-printable characters from the string buffer.
+	End Rem
+	Method Trim:TStringBuffer()
+		bmx_stringbuffer_trim(buffer)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Replaces all occurances of @subString with @withString.
+	End Rem
+	Method Replace:TStringBuffer(subString:String, withString:String)
+		bmx_stringbuffer_replace(buffer, subString, withString)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns true if string starts with @subString.
+	End Rem
+	Method StartsWith:Int(subString:String)
+		Return bmx_stringbuffer_startswith(buffer, subString)
+	End Method
+	
+	Rem
+	bbdoc: Returns true if string ends with @subString.
+	End Rem
+	Method EndsWith:Int(subString:String)
+		Return bmx_stringbuffer_endswith(buffer, subString)
+	End Method
+	
+	Rem
+	bbdoc: Returns true if string contains @subString.
+	End Rem
+	Method Contains:Int(subString:String)
+		Return Find(subString) >= 0
+	End Method
+	
+	Rem
+	bbdoc: Joins @bits together by inserting this string buffer between each bit.
+	returns: A new TStringBuffer object.
+	End Rem
+	Method Join:TStringBuffer(bits:String[])
+		Local buf:TStringBuffer = New TStringBuffer
+		bmx_stringbuffer_join(buffer, bits, buf.buffer)
+		Return buf
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem	
+	Method ToLower:TStringBuffer()
+		bmx_stringbuffer_tolower(buffer)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem	
+	Method ToUpper:TStringBuffer()
+		bmx_stringbuffer_toupper(buffer)
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Removes a range of characters from the string buffer.
+	about: @startIndex is the first character to remove. @endIndex is the index after the last character to remove.
+	End Rem
+	Method Remove:TStringBuffer(startIndex:Int, endIndex:Int)
+		bmx_stringbuffer_remove(buffer, startIndex, endIndex)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Inserts text into the string buffer at the specified offset.
+	End Rem
+	Method Insert:TStringBuffer(offset:Int, value:String)
+		bmx_stringbuffer_insert(buffer, offset, value)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Reverses the characters of the string buffer.
+	End Rem
+	Method Reverse:TStringBuffer()
+		bmx_stringbuffer_reverse(buffer)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns a substring of the string buffer given the specified indexes.
+	about: @beginIndex is the first character of the substring.
+	@endIndex is the index after the last character of the substring. If @endIndex is zero,
+	will return everything from @beginIndex until the end of the string buffer.
+	End Rem
+	Method Substring:String(beginIndex:Int, endIndex:Int = 0)
+		Return bmx_stringbuffer_substring(buffer, beginIndex, endIndex)
+	End Method
+	
+	Rem
+	bbdoc: Converts the string buffer to a String.
+	End Rem	
+	Method ToString:String()
+		Return bmx_stringbuffer_tostring(buffer)
+	End Method
+
+	Method Delete()
+		If buffer Then
+			bmx_stringbuffer_free(buffer)
+			buffer = Null
+		End If
+	End Method
+
+End Type
