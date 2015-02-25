@@ -218,6 +218,16 @@ Type TStringBuffer
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method Split:TSplitBuffer(separator:String)
+		Local buf:TSplitBuffer = New TSplitBuffer
+		buf.buffer = Self
+		buf.splitPtr = bmx_stringbuffer_split(buffer, separator)
+		Return buf
+	End Method
+	
+	Rem
 	bbdoc: Converts the string buffer to a String.
 	End Rem	
 	Method ToString:String()
@@ -232,3 +242,37 @@ Type TStringBuffer
 	End Method
 
 End Type
+
+Rem
+bbdoc: An array of split text from a TStringBuffer.
+about: Note that the TSplitBuffer is only valid while its parent TStringBuffer is unchanged.
+Once you modify the TStringBuffer you should call Split() again.
+End Rem
+Type TSplitBuffer
+	Field buffer:TStringBuffer
+	Field splitPtr:Byte Ptr
+	
+	Rem
+	bbdoc: The number of split elements.
+	End Rem
+	Method Length:Int()
+		Return bmx_stringbuffer_splitbuffer_length(splitPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the text for the given index in the split buffer.
+	End Rem
+	Method Text:String(index:Int)
+		Return bmx_stringbuffer_splitbuffer_text(splitPtr, index)
+	End Method
+	
+	Method Delete()
+		If splitPtr Then
+			buffer = Null
+			bmx_stringbuffer_splitbuffer_free(splitPtr)
+			splitPtr = Null
+		End If
+	End Method
+	
+End Type
+

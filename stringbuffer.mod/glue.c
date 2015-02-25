@@ -21,7 +21,7 @@
 */ 
 
 #include "brl.mod/blitz.mod/blitz.h"
-#ifndef BMXNG
+#ifndef BMX_NG
 extern unsigned short maxToLowerData[];
 extern unsigned short maxToUpperData[];
 #define bbToLowerData maxToLowerData
@@ -34,6 +34,13 @@ struct MaxStringBuffer {
 	BBChar * buffer;
 	int count;
 	int capacity;
+};
+
+struct MaxSplitBuffer {
+	struct MaxStringBuffer * buffer;
+	int count;
+	int * startIndex;
+	int * endIndex;
 };
 
 void bmx_stringbuffer_free(struct MaxStringBuffer * buf) {
@@ -359,4 +366,74 @@ void bmx_stringbuffer_join(struct MaxStringBuffer * buf, BBArray * bits, struct 
 		bmx_stringbuffer_append_string(newbuf, bit);
 	}
 }
+
+struct MaxSplitBuffer * bmx_stringbuffer_split(struct MaxStringBuffer * buf, BBString * separator) {
+	struct MaxSplitBuffer * splitBuffer = malloc(sizeof(struct MaxSplitBuffer));
+	splitBuffer->buffer = buf;
+	
+	int count = 1;
+	int i = 0;
+	int offset = 0;
+	if (separator->length > 0) {
+	
+		/* get a count of fields */
+		while ((offset = bmx_stringbuffer_find(buf, separator, i)) != -1 ) {
+			++count;
+			i = offset + separator->length;
+		}
+
+		splitBuffer->count = count;
+		splitBuffer->startIndex = malloc(count * sizeof(int));
+		splitBuffer->endIndex = malloc(count * sizeof(int));
+
+		i = 0;
+		
+		int * bufferStartIndex = splitBuffer->startIndex;
+		int * bufferEndIndex = splitBuffer->endIndex;
+		
+		while( count-- ){
+			offset = bmx_stringbuffer_find(buf, separator, i);
+			if (offset == -1) {
+				offset = buf->count;
+			}
+			
+			*bufferStartIndex++ = i;
+			*bufferEndIndex++ = offset;
+
+			i = offset + separator->length;
+		}
+
+	} else {
+		// TODO - properly handle Null separator
+		
+		splitBuffer->count = count;
+		splitBuffer->startIndex = malloc(count * sizeof(int));
+		splitBuffer->endIndex = malloc(count * sizeof(int));
+		
+		*splitBuffer->startIndex = 0;
+		*splitBuffer->endIndex = buf->count;
+
+	}
+	
+	return splitBuffer;
+}
+
+int bmx_stringbuffer_splitbuffer_length(struct MaxSplitBuffer * buf) {
+	return buf->count;
+}
+
+BBString * bmx_stringbuffer_splitbuffer_text(struct MaxSplitBuffer * buf, int index) {
+	if (index < 0 || index >= buf->count) {
+		return &bbEmptyString;
+	}
+
+	return bmx_stringbuffer_substring(buf->buffer, buf->startIndex[index], buf->endIndex[index]);
+}
+
+void bmx_stringbuffer_splitbuffer_free(struct MaxSplitBuffer * buf) {
+	free(buf->startIndex);
+	free(buf->endIndex);
+	free(buf);
+}
+
 

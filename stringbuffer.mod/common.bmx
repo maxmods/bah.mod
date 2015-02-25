@@ -48,6 +48,11 @@ Extern
 	Function bmx_stringbuffer_trim(buffer:Byte Ptr)
 	Function bmx_stringbuffer_replace(buffer:Byte Ptr, subString:String, withString:String)
 	Function bmx_stringbuffer_join(buffer:Byte Ptr, bits:String[], newBuffer:Byte Ptr)
+	Function bmx_stringbuffer_split:Byte Ptr(buffer:Byte Ptr, separator:String)
 	
+	Function bmx_stringbuffer_splitbuffer_length:Int(splitPtr:Byte Ptr)
+	Function bmx_stringbuffer_splitbuffer_text:String(splitPtr:Byte Ptr, index:Int)
+	Function bmx_stringbuffer_splitbuffer_free(splitPtr:Byte Ptr)
+
 End Extern
 
