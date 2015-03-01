@@ -436,4 +436,23 @@ void bmx_stringbuffer_splitbuffer_free(struct MaxSplitBuffer * buf) {
 	free(buf);
 }
 
+BBArray * bmx_stringbuffer_splitbuffer_toarray(struct MaxSplitBuffer * buf) {
+	int i, n;
+	BBString **p,*bit;
+	BBArray *bits;
+
+	n = buf->count;
+	
+	bits = bbArrayNew1D("$", n);
+	p = (BBString**)BBARRAYDATA(bits, 1);
+
+	i = 0;
+	while (n--) {
+		bit = bmx_stringbuffer_substring(buf->buffer, buf->startIndex[i], buf->endIndex[i]);
+		BBINCREFS( bit );
+		*p++ = bit;
+		i++;
+	}
+	return bits;
+}
 

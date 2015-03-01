@@ -266,6 +266,20 @@ Type TSplitBuffer
 		Return bmx_stringbuffer_splitbuffer_text(splitPtr, index)
 	End Method
 	
+	Rem
+	bbdoc: Creates a new string array of all the split elements.
+	End Rem
+	Method ToArray:String[]()
+		Return bmx_stringbuffer_splitbuffer_toarray(splitPtr)
+	End Method
+
+	Method ObjectEnumerator:TSplitBufferEnum()
+		Local enum:TSplitBufferEnum = New TSplitBufferEnum
+		enum.buffer = Self
+		enum.length = Length()
+		Return enum
+	End Method
+
 	Method Delete()
 		If splitPtr Then
 			buffer = Null
@@ -276,3 +290,20 @@ Type TSplitBuffer
 	
 End Type
 
+Type TSplitBufferEnum
+
+	Field index:Int
+	Field length:Int
+	Field buffer:TSplitBuffer
+
+	Method HasNext:Int()
+		Return index < length
+	End Method
+
+	Method NextObject:Object()
+		Local s:String = buffer.Text(index)
+		index :+ 1
+		Return s
+	End Method
+
+End Type

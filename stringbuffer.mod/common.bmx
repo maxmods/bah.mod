@@ -53,6 +53,7 @@ Extern
 	Function bmx_stringbuffer_splitbuffer_length:Int(splitPtr:Byte Ptr)
 	Function bmx_stringbuffer_splitbuffer_text:String(splitPtr:Byte Ptr, index:Int)
 	Function bmx_stringbuffer_splitbuffer_free(splitPtr:Byte Ptr)
+	Function bmx_stringbuffer_splitbuffer_toarray:String[](splitPtr:Byte Ptr)
 
 End Extern
 
