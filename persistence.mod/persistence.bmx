@@ -569,7 +569,7 @@ Type TPersist
 												If objRef Then
 													objType.SetArrayElement(obj, i, objRef)
 												Else
-													Throw New "Reference not mapped yet : " + ref
+													Throw "Reference not mapped yet : " + ref
 												End If
 											Else
 												objType.SetArrayElement(obj, i, DeSerializeObject("", arrayNode))
@@ -682,7 +682,7 @@ Type TPersist
 																		If objRef Then
 																			arrayType.SetArrayElement(arrayObj, i, objRef)
 																		Else
-																			Throw New "Reference not mapped yet : " + ref
+																			Throw "Reference not mapped yet : " + ref
 																		End If
 																	Else
 																		arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
@@ -723,7 +723,7 @@ Type TPersist
 											If objRef Then
 												fieldObj.Set(obj, objRef)
 											Else
-												Throw New "Reference not mapped yet : " + ref
+												Throw "Reference not mapped yet : " + ref
 											End If
 										Else
 											fieldObj.Set(obj, DeSerializeObject("", fieldNode))
