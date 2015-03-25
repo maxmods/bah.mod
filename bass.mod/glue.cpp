@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2013 Bruce A Henderson
+  Copyright (c) 2008-2015 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,19 @@ class MaxSyncData;
 
 extern "C" {
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 #include "blitz.h"
 
-	void _bah_bass_TBassStream__fileCloseProc(void * obj);
-	void _bah_bass_TBassStream__fileLenProc(void * obj, QWORD * len);
-	DWORD _bah_bass_TBassStream__fileReadProc(void * buffer, DWORD length, void * obj);
-	BOOL _bah_bass_TBassStream__fileSeekProc(QWORD offset, void * obj);
-	void _bah_bass_TBassStream__dlstreamcallback(const void * buffer, DWORD length, void * user);
+	void CB_PREF(bah_bass_TBassStream__fileCloseProc)(void * obj);
+	void CB_PREF(bah_bass_TBassStream__fileLenProc)(void * obj, QWORD * len);
+	DWORD CB_PREF(bah_bass_TBassStream__fileReadProc)(void * buffer, DWORD length, void * obj);
+	BOOL CB_PREF(bah_bass_TBassStream__fileSeekProc)(QWORD offset, void * obj);
+	void CB_PREF(bah_bass_TBassStream__dlstreamcallback)(const void * buffer, DWORD length, void * user);
 
 
 	DWORD bmx_bassinfo_getflags(BASS_INFO * info);
@@ -342,20 +348,20 @@ void bmx_bass_streamgetfileposition(DWORD handle, QWORD * pos, DWORD mode) {
 
 QWORD CALLBACK bmx_bass_fileLenProc(void *user) {
 	QWORD len;
-	_bah_bass_TBassStream__fileLenProc(user, &len);
+	CB_PREF(bah_bass_TBassStream__fileLenProc)(user, &len);
 	return len;
 }
 
 void CALLBACK bmx_bass_fileCloseProc(void * obj) {
-	_bah_bass_TBassStream__fileCloseProc(obj);
+	CB_PREF(bah_bass_TBassStream__fileCloseProc)(obj);
 }
 
 DWORD CALLBACK bmx_bass_fileReadProc(void * buffer, DWORD length, void * obj) {
-	return _bah_bass_TBassStream__fileReadProc(buffer, length, obj);
+	return CB_PREF(bah_bass_TBassStream__fileReadProc)(buffer, length, obj);
 }
 
 BOOL CALLBACK bmx_bass_fileSeekProc(QWORD offset, void * obj) {
-	return _bah_bass_TBassStream__fileSeekProc(offset, obj);
+	return CB_PREF(bah_bass_TBassStream__fileSeekProc)(offset, obj);
 }
 
 DWORD bmx_bass_streamcreatetstream(void * handle, DWORD system, DWORD flags) {
@@ -372,7 +378,7 @@ HSTREAM bmx_bass_streamcreateurlncb( char *url, DWORD offset, DWORD flags, void 
 }
 
 void CALLBACK bmx_bass_dlstreamcallback(const void *buffer, DWORD length, void *user) {
-	_bah_bass_TBassStream__dlstreamcallback(buffer, length, user);
+	CB_PREF(bah_bass_TBassStream__dlstreamcallback)(buffer, length, user);
 };
 
 HSTREAM bmx_bass_streamcreateurl( char *url, DWORD offset, DWORD flags, void *user) {

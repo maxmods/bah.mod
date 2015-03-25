@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2013 Bruce A Henderson
+' Copyright (c) 2008-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,19 +28,25 @@ Module BaH.Bass
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: BASS - see http://www.un4seen.com/bass.html#license"
-ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2015 Bruce A Henderson"
 ModuleInfo "Copyright: BASS - 1999-2012 Un4seen Developments Ltd."
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fix for Linux build."
 ModuleInfo "History: 1.00 Initial Release (Bass 2.4.9)"
 
-?win32
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/win32x64"
 ?macos
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
-?linux
+?linuxx86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/linux"
+?linuxx64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/linuxx64"
+?raspberrypi
+ModuleInfo "LD_OPTS: -L%PWD%/lib/raspberrypi"
 ?
 
 Import BRL.Stream
