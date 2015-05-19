@@ -33,17 +33,23 @@ class MaxMultiFreeImage;
 class MaxFreeImageTag;
 class MaxRGBQUAD;
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 	MaxFreeImage * bmx_freeimage_new(void * handle);
 	void bmx_freeimage_delete(MaxFreeImage * freeimage);
 
 	
-	unsigned _bah_freeimage_TFreeImage_read(void * maxHandle, void *buffer, int n);
-	long _bah_freeimage_TFreeImage_tell(void * maxHandle);
-	void _bah_freeimage_TFreeImage_seek(void * maxHandle, int pos);
-	unsigned _bah_freeimage_TFreeImage_write(void * maxHandle, void *buffer, int n);
-	long _bah_freeimage_TFreeImage_size(void * maxHandle);
+	unsigned CB_PREF(bah_freeimage_TFreeImage_read)(void * maxHandle, void *buffer, int n);
+	long CB_PREF(bah_freeimage_TFreeImage_tell)(void * maxHandle);
+	void CB_PREF(bah_freeimage_TFreeImage_seek)(void * maxHandle, int pos);
+	unsigned CB_PREF(bah_freeimage_TFreeImage_write)(void * maxHandle, void *buffer, int n);
+	long CB_PREF(bah_freeimage_TFreeImage_size)(void * maxHandle);
 	
 	int bmx_FreeImage_GetFileTypeFromHandle(MaxFreeImage * freeimage);
 	void bmx_freeimage_loadImage(MaxFreeImage * freeimage, int flags);
@@ -58,7 +64,7 @@ extern "C" {
 	unsigned bmx_freeimage_GetColorsUsed(MaxFreeImage * freeimage);
 	unsigned bmx_freeimage_GetPitch(MaxFreeImage * freeimage);
 	
-	void _bah_freeimage_TFreeImage_error(int format, const char * message);
+	void CB_PREF(bah_freeimage_TFreeImage_error)(int format, const char * message);
 	
 	FIBITMAP * bmx_freeimage_Rescale(MaxFreeImage * freeimage, int width, int height, FREE_IMAGE_FILTER filter);
 	void bmx_freeimage_setBitmap(MaxFreeImage * freeimage, FIBITMAP * newbitmap);
@@ -121,7 +127,7 @@ extern "C" {
 	unsigned bmx_freeimage_GetMetadataCount(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model);
 	BOOL bmx_freeimage_SetMetadata(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model, BBString * key, MaxFreeImageTag * tag);
 
-	void _bah_freeimage_TMultiFreeImage_error(int format, const char * message);
+	void CB_PREF(bah_freeimage_TMultiFreeImage_error)(int format, const char * message);
 	MaxMultiFreeImage * bmx_multifreeimage_new(void * handle, BBString * filename, BOOL readOnly, BOOL createNew);
 	int bmx_MultiFreeImage_GetFileType(MaxMultiFreeImage * freeimage);
 	void bmx_multifreeimage_loadImage(MaxMultiFreeImage * freeimage, int flags);
@@ -195,7 +201,7 @@ unsigned DLL_CALLCONV bmx_stream_read(void *buffer, unsigned size, unsigned coun
 
 	// convert to number of bytes to read...
 	unsigned fullSize = count * size;
-	unsigned actual = _bah_freeimage_TFreeImage_read(handle, buffer, fullSize);
+	unsigned actual = CB_PREF(bah_freeimage_TFreeImage_read)(handle, buffer, fullSize);
 
 	if ((count != 0) && (actual == fullSize / count)) {
 		return count;
@@ -208,7 +214,7 @@ unsigned DLL_CALLCONV bmx_stream_write(void *buffer, unsigned size, unsigned cou
 
 	// convert to number of bytes to write...
 	unsigned fullSize = count * size;
-	unsigned actual = _bah_freeimage_TFreeImage_write(handle, buffer, count * size);
+	unsigned actual = CB_PREF(bah_freeimage_TFreeImage_write)(handle, buffer, count * size);
 	if ((count != 0) && (actual == fullSize / count)) {
 		return count;
 	}
@@ -216,7 +222,7 @@ unsigned DLL_CALLCONV bmx_stream_write(void *buffer, unsigned size, unsigned cou
 }
 
 long DLL_CALLCONV bmx_stream_tell(fi_handle handle) {
-	return _bah_freeimage_TFreeImage_tell(handle);
+	return CB_PREF(bah_freeimage_TFreeImage_tell)(handle);
 //printf("tell = %d\n", i);fflush(stdout);
 //	return i;
 }
@@ -227,19 +233,19 @@ int DLL_CALLCONV bmx_stream_seek(fi_handle handle, long offset, int origin) {
 	if (origin == SEEK_CUR) {
 		offset = bmx_stream_tell(handle) + offset;
 	} else if (origin == SEEK_END) {
-		offset = _bah_freeimage_TFreeImage_size(handle) - offset;
+		offset = CB_PREF(bah_freeimage_TFreeImage_size)(handle) - offset;
 	}
 
-	_bah_freeimage_TFreeImage_seek(handle, offset);
+	CB_PREF(bah_freeimage_TFreeImage_seek)(handle, offset);
 	return 0;
 }
 
 void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
-	_bah_freeimage_TFreeImage_error((int)fif, message);
+	CB_PREF(bah_freeimage_TFreeImage_error)((int)fif, message);
 }
 
 void MultiFreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
-	_bah_freeimage_TMultiFreeImage_error((int)fif, message);
+	CB_PREF(bah_freeimage_TMultiFreeImage_error)((int)fif, message);
 }
 
 // +++++++++++++++++++++++++++++++++++++++
