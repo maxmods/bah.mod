@@ -894,12 +894,20 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc: Sets a proxy server to use for all subsequent internet connections.  
+	bbdoc: Sets a proxy server to use for all subsequent internet connections.
+	about: The name of a proxy server in host:port format e.g. www.fmod.org:8888 (defaults to port 80 if no port is specified).
+	Basic authentication is supported. To use it, this parameter must be in user:password@host:port format e.g. bob:sekrit123@www.fmod.org:8888
+	Set this parameter to Null if not required.
 	End Rem
 	Method SetNetworkProxy:Int(proxy:String)
-		Local s:Byte Ptr = proxy.ToCString()
-		Local res:Int = FMOD_System_SetNetworkProxy(systemPtr, s)
-		MemFree(s)
+		Local res:Int
+		If proxy Then
+			Local s:Byte Ptr = proxy.ToUTF8String()
+			res = FMOD_System_SetNetworkProxy(systemPtr, s)
+			MemFree(s)
+		Else
+			res = FMOD_System_SetNetworkProxy(systemPtr, Null)
+		End If
 		Return res
 	End Method
 	
