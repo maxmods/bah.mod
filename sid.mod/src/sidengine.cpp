@@ -90,9 +90,9 @@ inline int SIDEngine::GenerateDigi(int sIn)
 
             last_sample = sample;			
 						
-			// N�hstes Samples holen
+			// Nahstes Samples holen
             if (sample_order == 0) {
-                sample_nibble++;						// Nähstes Sample-Nibble
+                sample_nibble++;						// Nahstes Sample-Nibble
                 if (sample_nibble==2) {
                     sample_nibble = 0;
                     sample_position++;
@@ -372,10 +372,9 @@ void SIDEngine::sidPoke(int reg, unsigned char val)
       switch (reg) {
         case 0: { // Frequenz niederwertiges byte Stimme 1
 				  sid.v[voice].freq = (sid.v[voice].freq&0xff00)+val;
-				  //printf("Voice%d: %d\n", voice, sid.v[voice].freq);
                   break;
                 }
-        case 1: { // Frequenz h�erwertiges byte Stimme 1
+        case 1: { // Frequenz hoherwertiges byte Stimme 1
 			      sid.v[voice].freq = (sid.v[voice].freq&0xff)+(val<<8);
 			      break;
 		}
@@ -383,7 +382,7 @@ void SIDEngine::sidPoke(int reg, unsigned char val)
 				  sid.v[voice].pulse = (sid.v[voice].pulse&0xff00)+val;
 				  break;
 				}
-		case 3: { // Pulsbreite h�erwertiges byte Stimme 1
+		case 3: { // Pulsbreite hoherwertiges byte Stimme 1
 				  sid.v[voice].pulse = (sid.v[voice].pulse&0xff)+(val<<8);
 				  break;
 				}
@@ -1081,6 +1080,10 @@ unsigned short SIDEngine::LoadSIDFromMemory(void *pSidData, unsigned short *load
     {
         cpuJSR(*init_addr, 0);
         *play_addr = (memory[0x0315]<<8)+memory[0x0314];
+
+        if (*play_addr == 0) {
+            *play_addr = (memory[0xffff]<<8)+memory[0xfffe];
+        }
     }
 
     return *load_addr;
