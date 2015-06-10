@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,24 @@ bbdoc: Mike's Arbitrary Precision Math library
 End Rem
 Module BaH.MAPM
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: MAPM - 1999-2007 Michael C. Ring"
-ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: BlitzMax port - 2008-2015 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "Hisotry: Fixed strings for larger numbers."
 ModuleInfo "History: 1.01"
 ModuleInfo "Hisotry: Added Modulo() method."
 ModuleInfo "History: 1.00 Initial Release (MAPM 4.9.5)"
 
 
 Import "common.bmx"
+
+Rem
+bbdoc: Maximum number of digits when converting to string.
+End Rem
+Global MAPM_MAX_DIGITS:Int = 8192
 
 Rem
 bbdoc: A numeric type for very large numbers.
@@ -135,7 +142,7 @@ Type TMAPM
 	</p>
 	End Rem
 	Method ToExpString:String(decimalPlaces:Int)
-		Local buf:Byte[decimalPlaces + 64]
+		Local buf:Byte[MAPM_MAX_DIGITS + decimalPlaces]
 		m_apm_to_string(buf, decimalPlaces, mapmPtr)
 		Return String.FromCString(buf)
 	End Method
@@ -177,7 +184,7 @@ Type TMAPM
 	</pre>
 	End Rem
 	Method ToFixtPtString:String(decimalPlaces:Int)
-		Local buf:Byte[SignificantDigits() + 16]
+		Local buf:Byte[MAPM_MAX_DIGITS + SignificantDigits()]
 		m_apm_to_fixpt_string(buf, decimalPlaces, mapmPtr)
 		Return String.FromCString(buf)
 	End Method
@@ -216,7 +223,7 @@ Type TMAPM
 	</p>
 	End Rem
 	Method ToFixtPtStringEx:String(decimalPlaces:Int, radix:String, separator:String, separatorCount:Int)
-		Local buf:Byte[SignificantDigits() + 16]
+		Local buf:Byte[MAPM_MAX_DIGITS + SignificantDigits()]
 		m_apm_to_fixpt_stringex(buf, decimalPlaces, mapmPtr, radix[0], separator[0], separatorCount)
 		Return String.FromCString(buf)
 	End Method
@@ -242,7 +249,7 @@ Type TMAPM
 	</p>
 	End Rem
 	Method ToIntString:String()
-		Local buf:Byte[SignificantDigits() + 16]
+		Local buf:Byte[MAPM_MAX_DIGITS + SignificantDigits()]
 		m_apm_to_integer_string(buf, mapmPtr)
 		Return String.FromCString(buf)
 	End Method
