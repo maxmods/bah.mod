@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2014 Bruce A Henderson
+' Copyright (c) 2006-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@ Import "gtkkeymap.bmx"
 
 ?bmxng
 Import BRL.SystemDefault
-?not bmxng
+?Not bmxng
 Import BRL.System
 ?
 Import MaxGUI.MaxGUI
@@ -135,6 +135,7 @@ Extern
 	Function gtk_widget_get_window:Byte Ptr(widget:Byte Ptr)
 	Function gtk_widget_get_allocation(widget:Byte Ptr, allocation:Byte Ptr)
 	Function gtk_layout_get_bin_window:Byte Ptr(handle:Byte Ptr)
+	Function gtk_widget_get_parent:Byte Ptr(widget:Byte Ptr)
 
 	Function gtk_button_new:Byte Ptr()
 	Function gtk_button_new_with_label:Byte Ptr(label:Byte Ptr)

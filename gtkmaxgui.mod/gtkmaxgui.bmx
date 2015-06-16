@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2014 Bruce A Henderson
+' Copyright (c) 2006-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,14 @@ about: This modules provides a Linux GTK driver for #maxgui.maxgui.MAXGUI.
 End Rem
 Module BaH.GTKMaxGUI
 
-ModuleInfo "Version: 1.22"
+ModuleInfo "Version: 1.23"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2006-2014 Bruce A Henderson"
+ModuleInfo "Copyright: 2006-2015 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.23"
+ModuleInfo "History: Fixed treeview not always raising EVENT_GADGETCLOSE."
+ModuleInfo "History: Tabber now using page containers."
 ModuleInfo "History: 1.22"
 ModuleInfo "History: Removed Gtk types and replaced with Byte Ptr glue."
 ModuleInfo "History: Added Linux ARM include paths."

@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2014 Bruce A Henderson
+' Copyright (c) 2006-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -2213,12 +2213,12 @@ Type TGTKEditable Extends TGTKGadget
 			bmx_gtkmaxgui_gdkeventkey(gdkEvent, Varptr _key, Varptr _mods)
 			Local key:Int = TGTKKeyMap.mapBack(_key)
 			Local mods:Int = TGTKKeyMap.mapModifierBack(_mods)
-
-			Local event:TEvent = HotKeyEvent(key, mods, Null)
+			
+			Local event:TEvent=HotKeyEvent( key,mods, Null )
 			If event Then
-				event.Emit()
+				event.emit()
 				Return True
-			End If
+			EndIf
 
 			event = CreateEvent(EVENT_KEYDOWN, source, key, mods)
 			
@@ -2930,7 +2930,9 @@ Type TGTKTabber Extends TGTKContainer
 	Field tooltips:Byte Ptr
 	Field images:Byte Ptr[]
 	Field labels:Byte Ptr[]
+	Field pages:Byte Ptr[]
 	Field ignoreChange:Int
+	Field currentIndex:Int = -1
 
 	Function CreateTabber:TGTKTabber(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKTabber = New TGTKTabber
@@ -2946,27 +2948,19 @@ Type TGTKTabber Extends TGTKContainer
 
 		Init(GTK_TABBER, x, y, w, h, style)
 
-		vbox = gtk_vbox_new(False, 0)
-		gtk_widget_show(vbox)
-
-		gtk_box_pack_start(vbox, handle, False, False, 0)
-
 		container = gtk_layout_new(Null, Null)
 		gtk_widget_show(container)
-		gtk_box_pack_start(vbox, container, True, True, 0)
-
+		g_object_ref(container) ' hold an extra ref for our container
 
 		' Scrollable tabs if there are too many to fit on the display
 		gtk_notebook_set_scrollable(handle, True)
 
 		gtk_widget_show(handle)
 
-
-
 		g_signal_tabchange(handle, "switch-page", OnTabChanged, Self, Destroy, 0)
 
-		gtk_layout_put(TGTKContainer(group).container, vbox, x, y)
-		gtk_widget_set_size_request(vbox, w, Max(h,0))
+		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
+		gtk_widget_set_size_request(handle, w, Max(h,0))
 
 		' create tooltips group for managing tooltips
 		tooltips = gtk_tooltips_new()
@@ -2974,7 +2968,17 @@ Type TGTKTabber Extends TGTKContainer
 
 	End Method
 
-	Function OnTabChanged(widget:Byte Ptr, a:Byte Ptr, index:Int, obj:Object)
+	Function OnTabChanged(widget:Byte Ptr, page:Byte Ptr, index:Int, obj:Object)
+		If TGTKTabber(obj).currentIndex >= 0 Then
+			Local child:Byte Ptr = gtk_notebook_get_nth_page(TGTKTabber(obj).handle, TGTKTabber(obj).currentIndex)
+			TGTKTabber(obj).RemoveFromTab(child)
+		End If
+		
+		If index >= 0 Then
+			TGTKTabber(obj).AddToTab(page)
+		End If
+		TGTKTabber(obj).currentIndex = index
+
 		If Not TGTKTabber(obj).ignoreChange Then
 			PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), index,,,,TGadget(obj).ItemExtra(index))
 		End If
@@ -2982,7 +2986,7 @@ Type TGTKTabber Extends TGTKContainer
 	End Function
 
 	Rem
-	bbdoc: Inserts a a new tab
+	bbdoc: Inserts a new tab
 	End Rem
 	Method InsertListItem(index:Int, text:String, tip:String, icon:Int, tag:Object)
 
@@ -3000,6 +3004,11 @@ Type TGTKTabber Extends TGTKContainer
 		labels = labels[..labels.length+1]
 		For Local i:Int = labels.length - 2 To index Step -1
 			labels[i + 1] = labels[i]
+		Next
+		
+		pages = pages[..pages.length+1]
+		For Local i:Int = pages.length - 2 To index Step -1
+			pages[i + 1] = pages[i]
 		Next
 
 		If image Then
@@ -3033,12 +3042,13 @@ Type TGTKTabber Extends TGTKContainer
 		' add the hbox to the eventbox
 		gtk_container_add(box, hbox)
 
-		' we don't really care *what* goes here.. just need a child of some sort.
+		' create a child to hold our container.
 		Local child:Byte Ptr = gtk_vbox_new(False, 0)
+		pages[index] = child
 		gtk_widget_show(child)
 
 		gtk_notebook_insert_page(handle, child, box, index)
-		
+
 		' Add a tooltip to the event box
 		SetToolTipIndex(index, tip, box)
 	End Method
@@ -3077,16 +3087,32 @@ Type TGTKTabber Extends TGTKContainer
 		Local arr:Byte Ptr[] = images
 		images = images[..images.length-1]
 		For Local i:Int = index To arr.length-2
-			images[i] = arr[i+1]			
+			images[i] = arr[i+1]
 		Next
 
 		arr = labels
 		labels = labels[..labels.length-1]
 		For Local i:Int = index To arr.length-2
-			labels[i] = arr[i+1]			
+			labels[i] = arr[i+1]
 		Next
 
+		arr = pages
+		pages = pages[..pages.length-1]
+		For Local i:Int = index To arr.length-2
+			pages[i] = arr[i+1]
+		Next
+
+		' remove from current tab if required
+		If gtk_notebook_get_current_page(handle) = index Then
+			Local child:Byte Ptr = gtk_notebook_get_nth_page(handle, index)
+			RemoveFromTab(child)
+			currentIndex = -1
+		Else If index < currentIndex Then
+			currentIndex :- 1
+		End If
+		
 		gtk_notebook_remove_page(handle, index)
+		
 	End Method
 
 	Method ListItemState:Int(index:Int)
@@ -3117,11 +3143,26 @@ Type TGTKTabber Extends TGTKContainer
 			gtk_widget_size_request(handle, req)
 			Local rw:Int, rh:Int
 			bmx_gtk_gtkrequisition_dim(req, Varptr rw, Varptr rh)
-			h:- rh
+			h :- 34 ' FIXME : current hard-coded. Should be height of notebook less tab height and border.
 			bmx_gtk_gtkrequisition_free(req)
 		End If
 
-		Return h
+		Return Max(0, h)
+	End Method
+
+	Method ClientWidth:Int()
+		Local w:Int = width
+
+		If handle Then
+			Local req:Byte Ptr = bmx_gtk_gtkrequisition_new()
+			gtk_widget_size_request(handle, req)
+			Local rw:Int, rh:Int
+			bmx_gtk_gtkrequisition_dim(req, Varptr rw, Varptr rh)
+			w:- 4 ' FIXME : current hard-coded. Should be width of notebook less borders.
+			bmx_gtk_gtkrequisition_free(req)
+		End If
+
+		Return Max(0, w)
 	End Method
 
 	Method SetToolTipIndex(index:Int, tip:String, label:Byte Ptr)
@@ -3142,10 +3183,11 @@ Type TGTKTabber Extends TGTKContainer
 	Method Free()
 		Super.Free()
 		
-		If vbox Then
-			gtk_widget_destroy(vbox)
-			vbox = Null
+		If container Then
+			gtk_widget_destroy(container)
+			container = Null
 		End If
+
 		handle = Null
 		images = Null
 		labels = Null
@@ -3154,13 +3196,25 @@ Type TGTKTabber Extends TGTKContainer
 
 	Method Rethink()
 		If handle Then
-			gtk_layout_move(TGTKContainer(parent).container, vbox, Max(xpos, 0), Max(ypos, 0))
-			gtk_widget_set_size_request(vbox, Max(width,0), Max(height,0))
+			gtk_layout_move(TGTKContainer(parent).container, handle, xpos, ypos)
+			gtk_widget_set_size_request(handle, Max(width,0), Max(height,0))
 		End If
 	End Method
 
 	Method toString:String()
 		Return "TGTKTabber"
+	End Method
+	
+	Method RemoveFromTab(page:Byte Ptr)
+		If currentIndex >= 0 Then
+			g_object_ref(container)
+			gtk_container_remove(page, container)
+		End If
+	End Method
+
+	Method AddToTab(page:Byte Ptr)
+		gtk_box_pack_start(page, container, True, True, 0)
+		g_object_unref(container)
 	End Method
 
 End Type
@@ -4894,7 +4948,8 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	' icon to display for this node
 	Field _icon:Int
 	' flag to prevent non-user events from firing
-	Field ignoreExpandCollapse:Int
+	Field ignoreExpand:Int
+	Field ignoreCollapse:Int
 	' text of this node
 	Field _text:String
 
@@ -5111,8 +5166,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 		Select command
 			Case ACTIVATE_EXPAND
 				If _path <> Null And _path.length > 0 Then
-					ignoreExpandCollapse = True
-
+					ignoreExpand = True
 					' get the tree view
 					Local _root:TGTKTreeViewNode = TGTKTreeViewNode(RootNode())
 					' get this node path
@@ -5126,7 +5180,7 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 				End If
 			Case ACTIVATE_COLLAPSE
 				If _path <> Null And _path.length > 0 Then
-					ignoreExpandCollapse = True
+					ignoreCollapse = True
 
 					' get the tree view
 					Local _root:TGTKTreeViewNode = TGTKTreeViewNode(RootNode())
@@ -5243,11 +5297,11 @@ Type TGTKTreeView Extends TGTKTreeViewNode
 		' clean up mem
 		g_free(p)
 
-		If Not node.ignoreExpandCollapse Then
+		If Not node.ignoreExpand Then
 			PostGuiEvent(EVENT_GADGETOPEN, TGadget(obj),,,,,node)
 		End If
 
-		node.ignoreExpandCollapse = False
+		node.ignoreExpand = False
 	End Function
 
 	Rem
@@ -5260,11 +5314,11 @@ Type TGTKTreeView Extends TGTKTreeViewNode
 		' clean up mem
 		g_free(p)
 
-		If Not node.ignoreExpandCollapse Then
+		If Not node.ignoreCollapse Then
 			PostGuiEvent(EVENT_GADGETCLOSE, TGadget(obj),,,,,node)
 		End If
 
-		node.ignoreExpandCollapse = False
+		node.ignoreCollapse = False
 	End Function
 
 	Rem
