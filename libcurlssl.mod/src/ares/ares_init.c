@@ -552,7 +552,7 @@ static int get_REG_SZ(HKEY hKey, const char *leafKeyName, char **outptr)
   *outptr = NULL;
 
   /* Find out size of string stored in registry */
-  res = RegQueryValueEx(hKey, leafKeyName, 0, NULL, NULL, &size);
+  res = RegQueryValueExA(hKey, leafKeyName, 0, NULL, NULL, &size);
   if ((res != ERROR_SUCCESS && res != ERROR_MORE_DATA) || !size)
     return 0;
 
@@ -563,8 +563,8 @@ static int get_REG_SZ(HKEY hKey, const char *leafKeyName, char **outptr)
     return 0;
 
   /* Get the value for real */
-  res = RegQueryValueEx(hKey, leafKeyName, 0, NULL,
-                        (unsigned char *)*outptr, &size);
+  res = RegQueryValueExA(hKey, leafKeyName, 0, NULL,
+	(unsigned char *)*outptr, &size);
   if ((res != ERROR_SUCCESS) || (size == 1))
   {
     free(*outptr);
@@ -594,7 +594,7 @@ static int get_REG_SZ_9X(HKEY hKey, const char *leafKeyName, char **outptr)
   *outptr = NULL;
 
   /* Find out size of string stored in registry */
-  res = RegQueryValueEx(hKey, leafKeyName, 0, &dataType, NULL, &size);
+  res = RegQueryValueExA(hKey, leafKeyName, 0, &dataType, NULL, &size);
   if ((res != ERROR_SUCCESS && res != ERROR_MORE_DATA) || !size)
     return 0;
 
@@ -605,7 +605,7 @@ static int get_REG_SZ_9X(HKEY hKey, const char *leafKeyName, char **outptr)
     return 0;
 
   /* Get the value for real */
-  res = RegQueryValueEx(hKey, leafKeyName, 0, &dataType,
+  res = RegQueryValueExA(hKey, leafKeyName, 0, &dataType,
                         (unsigned char *)*outptr, &size);
   if ((res != ERROR_SUCCESS) || (size == 1))
   {
@@ -980,6 +980,9 @@ static int get_DNS_AdaptersAddresses(char **outptr)
 
   for (ipaaEntry = ipaa; ipaaEntry; ipaaEntry = ipaaEntry->Next)
   {
+	if(ipaaEntry->OperStatus != IfOperStatusUp)
+        continue;
+	
     for (ipaDNSAddr = ipaaEntry->FirstDnsServerAddress;
          ipaDNSAddr;
          ipaDNSAddr = ipaDNSAddr->Next)
@@ -1040,13 +1043,23 @@ done:
  */
 static int get_DNS_Windows(char **outptr)
 {
+  /* 
+     Use GetNetworkParams First in case of
+     multiple adapter is enabled on this machine.
+     GetAdaptersAddresses will retrive dummy dns servers.
+     That will slowing DNS lookup.
+  */
+  /* Try using IP helper API GetNetworkParams() */
+  if (get_DNS_NetworkParams(outptr))
+    return 1;
+
   /* Try using IP helper API GetAdaptersAddresses() */
   if (get_DNS_AdaptersAddresses(outptr))
     return 1;
 
   /* Try using IP helper API GetNetworkParams() */
-  if (get_DNS_NetworkParams(outptr))
-    return 1;
+  //if (get_DNS_NetworkParams(outptr))
+  //  return 1;
 
   /* Fall-back to registry information */
   return get_DNS_Registry(outptr);
@@ -1878,7 +1891,7 @@ static void natural_mask(struct apattern *pat)
 /* initialize an rc4 key. If possible a cryptographically secure random key
    is generated using a suitable function (for example win32's RtlGenRandom as
    described in
-   http://blogs.msdn.com/michael_howard/archive/2005/01/14/353379.aspx
+   <a href="http://blogs.msdn.com/michael_howard/archive/2005/01/14/353379.aspx" target="_blank">http://blogs.msdn.com/michael_howard/archive/2005/01/14/353379.aspx</a>
    otherwise the code defaults to cross-platform albeit less secure mechanism
    using rand
 */
