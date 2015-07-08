@@ -91,7 +91,7 @@ Type TRegEx
 	' pointer to the compiled expression
 	Field pcre:Byte Ptr
 	
-	' pointer to the offsets vector
+	' pointer to the offsets vector, owned by pcre2
 	Field offsets:Int Ptr
 	' number of offsets
 	Field sizeOffsets:Int
@@ -101,9 +101,6 @@ Type TRegEx
 	Field compiled:Int = False
 	
 	Method Delete()
-		If offsets Then
-			MemFree(offsets)
-		End If
 		
 		If TArg Then
 			MemFree(TArg)
