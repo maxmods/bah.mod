@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -141,15 +141,15 @@ Type Tstatfs
 	End Method
 	
 	Method mountedFileSystem:String()
-		Return bbStringFromUTF8String(bank.lock() + f_mntfromname)
+		Return String.FromUTF8String(bank.lock() + f_mntfromname)
 	End Method
 	
 	Method dirOfMount:String()
-		Return bbStringFromUTF8String(bank.lock() + f_mntonname)
+		Return String.FromUTF8String(bank.lock() + f_mntonname)
 	End Method
 
 	Method fileSystemType:String()
-		Return bbStringFromUTF8String(bank.lock() + f_fstypename)
+		Return String.FromUTF8String(bank.lock() + f_fstypename)
 	End Method
 	
 End Type
@@ -276,7 +276,7 @@ Type TMacVolume Extends TVolume
 		Return volume
 	End Method
 	
-	Method getPath:String(folderType:Int, flags:Int = 0)
+	Method GetPath:String(folderType:Int, flags:Int = 0)
 		Local buf:Byte[1024],ref:Byte[80]
 		
 		If flags Then
@@ -286,39 +286,39 @@ Type TMacVolume Extends TVolume
 		End If
 		If FSRefMakePath( ref,buf,1024 ) Return Null
 		
-		Return bbStringFromUTF8String( buf )
+		Return String.FromUTF8String( buf )
 	End Method
 
 	Method GetUserHomeDir:String()
-		Return getPath(kCurrentUserFolderType)
+		Return GetPath(kCurrentUserFolderType)
 	End Method
 	
 	Method GetUserDesktopDir:String()
-		Return getPath(kDesktopFolderType)
+		Return GetPath(kDesktopFolderType)
 	End Method
 	
 	Method GetUserAppDir:String()
-		Return getPath(kApplicationSupportFolderType)
+		Return GetPath(kApplicationSupportFolderType)
 	End Method
 	
 	Method GetUserDocumentsDir:String()
-		Return getPath(kDocumentsFolderType)
+		Return GetPath(kDocumentsFolderType)
 	End Method
 
 	Method GetCustomDir:String(dirType:Int, flags:Int = 0)
 		If dirType < 0 And dirType > -10 Then
 			Select dirType
 				Case DT_SHAREDUSERDATA
-					Return getPath(kSharedUserDataFolderType)
+					Return GetPath(kSharedUserDataFolderType)
 				Case DT_USERPICTURES
-					Return getPath(kPictureDocumentsFolderType)
+					Return GetPath(kPictureDocumentsFolderType)
 				Case DT_USERMUSIC
-					Return getPath(kMusicDocumentsFolderType)
+					Return GetPath(kMusicDocumentsFolderType)
 				Case DT_USERMOVIES
-					Return getPath(kMovieDocumentsFolderType)
+					Return GetPath(kMovieDocumentsFolderType)
 			End Select
 		Else
-			Return getPath(dirType, flags)
+			Return GetPath(dirType, flags)
 		End If
 		
 		Return Null

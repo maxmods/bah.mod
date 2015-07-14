@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2011 Bruce A Henderson
+' Copyright (c) 2006-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Volumes
 End Rem
 Module BaH.Volumes
 
-ModuleInfo "Version: 1.08"
+ModuleInfo "Version: 1.09"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
-ModuleInfo "Copyright: (c) 2006-2011 Bruce A Henderson"
+ModuleInfo "Copyright: (c) 2006-2015 Bruce A Henderson"
 
+ModuleInfo "History: 1.09"
+ModuleInfo "History: Use BlitzMax UTF8 functions."
 ModuleInfo "History: 1.08"
 ModuleInfo "History: Added support for FOLDERID paths for Win32. Automatically maps CSIDL to FOLDERID."
 ModuleInfo "History: 1.07"

@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -193,7 +193,7 @@ Type TLinuxVolume Extends TVolume
 	End Method
 	
 	Method getHome:String()
-		Local dir:String = bbStringFromUTF8String(getenv_("HOME"))
+		Local dir:String = String.FromUTF8String(getenv_("HOME"))
 		
 		' HOME not set?
 		If Not dir Or dir.length = 0 Then
@@ -206,7 +206,7 @@ Type TLinuxVolume Extends TVolume
 				Local pwd:TPasswdEntry = New TPasswdEntry
 				MemCopy pwd, pwdptr, SizeOf pwd
 
-				dir = bbStringFromUTF8String(pwd.pw_dir)
+				dir = String.FromUTF8String(pwd.pw_dir)
 			
 			End If
 		End If

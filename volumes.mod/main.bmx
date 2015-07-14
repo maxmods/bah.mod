@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2011 Bruce A Henderson
+' Copyright (c) 2007-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -221,34 +221,3 @@ Extern "c"
 	Function strlen_( str:Byte Ptr )="strlen"
 End Extern
 
-Function bbStringFromUTF8String:String(s:Byte Ptr)
-	If s Then
-		Local l:Int = strlen_(s)
-		Local b:Short[] = New Short[l]
-		Local bc:Int = -1, c:Int, d:Int, e:Int
-		For Local i:Int = 0 Until l
-			bc:+1
-			c = s[i]
-			If c<128 
-				b[bc] = c
-				Continue
-			End If
-			i:+1
-			d=s[i]
-			If c<224 
-				b[bc] = (c-192)*64+(d-128)
-				Continue
-			End If
-			i:+1
-			e = s[i]
-			If c < 240 
-				b[bc] = (c-224)*4096+(d-128)*64+(e-128)
-				Continue
-			End If
-		Next
-		Return String.fromshorts(b, bc + 1)
-	End If
-	
-	Return ""
-	
-End Function
