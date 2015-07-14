@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2010 Bruce A Henderson
+ Copyright (c) 2010-2015 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,26 @@
 
 #include "glue.h"
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
-	BBArray * _bah_inet_TInet__newArray(int n);
-	BBObject * _bah_inet_TInet__create(BBString * name);
-	void _bah_inet_TInet__newEntry(BBArray * arr, int index, BBObject * obj);
+	BBArray * CB_PREF(bah_inet_TInet__newArray)(int n);
+	BBObject * CB_PREF(bah_inet_TInet__create)(BBString * name);
+	void CB_PREF(bah_inet_TInet__newEntry)(BBArray * arr, int index, BBObject * obj);
 
 #if defined(WIN32) 
-	void _bah_inet_TInet__setAddress(BBObject * obj, long unsigned int address);
-	void _bah_inet_TInet__setNetmask(BBObject * obj, long unsigned int netmask);
+	void CB_PREF(bah_inet_TInet__setAddress)(BBObject * obj, long unsigned int address);
+	void CB_PREF(bah_inet_TInet__setNetmask)(BBObject * obj, long unsigned int netmask);
 #else
-	void _bah_inet_TInet__setAddress(BBObject * obj, in_addr address);
-	void _bah_inet_TInet__setNetmask(BBObject * obj, in_addr netmask);
+	void CB_PREF(bah_inet_TInet__setAddress)(BBObject * obj, in_addr address);
+	void CB_PREF(bah_inet_TInet__setNetmask)(BBObject * obj, in_addr netmask);
 #endif
-	void _bah_inet_TInet__setFlags(BBObject * obj, unsigned int flags);
-	void _bah_inet_TInet__setMACAddress(BBObject * obj, BBArray * arr, BBString * add);
+	void CB_PREF(bah_inet_TInet__setFlags)(BBObject * obj, unsigned int flags);
+	void CB_PREF(bah_inet_TInet__setMACAddress)(BBObject * obj, BBArray * arr, BBString * add);
 }
 
 
@@ -91,7 +97,7 @@ BBArray * bmx_inet_listinterfaces() {
 	PIP_ADAPTER_INFO info = adapterInfo;
 	
 	int count = countInterfaces(info);
-	BBArray * arr = _bah_inet_TInet__newArray(count);
+	BBArray * arr = CB_PREF(bah_inet_TInet__newArray)(count);
 
 	SOCKET sd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
 	if (sd == SOCKET_ERROR) {
@@ -123,19 +129,19 @@ BBArray * bmx_inet_listinterfaces() {
 
 		res = RegCloseKey(hKey);
 
-		BBObject * obj = _bah_inet_TInet__create(bbStringFromCString(buf));
-		_bah_inet_TInet__setAddress(obj, inet_addr(info->IpAddressList.IpAddress.String));
-		_bah_inet_TInet__setNetmask(obj, inet_addr(info->IpAddressList.IpMask.String));
+		BBObject * obj = CB_PREF(bah_inet_TInet__create)(bbStringFromCString(buf));
+		CB_PREF(bah_inet_TInet__setAddress)(obj, inet_addr(info->IpAddressList.IpAddress.String));
+		CB_PREF(bah_inet_TInet__setNetmask)(obj, inet_addr(info->IpAddressList.IpMask.String));
 		
 		
 		for (int n = 0; n < interfaceCount; n++) {
 			if (strcmp(info->IpAddressList.IpAddress.String, inet_ntoa(((sockaddr_in *) & (interfaces[n].iiAddress))->sin_addr)) == 0) {
-				_bah_inet_TInet__setFlags(obj, convertFlags(interfaces[i].iiFlags));
+				CB_PREF(bah_inet_TInet__setFlags)(obj, convertFlags(interfaces[i].iiFlags));
 				break;
 			}
 		}
 		
-		_bah_inet_TInet__newEntry(arr, i++, obj);
+		CB_PREF(bah_inet_TInet__newEntry)(arr, i++, obj);
 
 
 		BBArray * arr = bbArrayNew1D( "i",6 );
@@ -148,7 +154,7 @@ BBArray * bmx_inet_listinterfaces() {
 		sprintf(buffer, "%02x:%02x:%02x:%02x:%02x:%02x" ,	info->Address[0], info->Address[1],
 			info->Address[2], info->Address[3], info->Address[4], info->Address[5]);
 	
-		_bah_inet_TInet__setMACAddress(obj, arr, bbStringFromCString(buffer));
+		CB_PREF(bah_inet_TInet__setMACAddress)(obj, arr, bbStringFromCString(buffer));
 
 	
 		info = info->Next;
@@ -222,7 +228,7 @@ static void getMACAddress(BBObject * obj, const char * name) {
 	char buffer[50];
 	sprintf(buffer, "%02x:%02x:%02x:%02x:%02x:%02x" ,	address[0], address[1], address[2], address[3], address[4], address[5]);
 	
-	_bah_inet_TInet__setMACAddress(obj, arr, bbStringFromCString(buffer));
+	CB_PREF(bah_inet_TInet__setMACAddress)(obj, arr, bbStringFromCString(buffer));
 	
 	free(buf);			
 }
@@ -234,7 +240,7 @@ BBArray * bmx_inet_listinterfaces() {
 	}
 	
 	int n = countInterfaces(list);
-	BBArray * arr = _bah_inet_TInet__newArray(n);
+	BBArray * arr = CB_PREF(bah_inet_TInet__newArray)(n);
 	
 	struct ifaddrs *addr = list;
 	struct sockaddr_dl sdl;
@@ -243,14 +249,14 @@ BBArray * bmx_inet_listinterfaces() {
 	while (addr) {
 		
 		if (addr->ifa_addr->sa_family == AF_INET) {
-			BBObject * obj = _bah_inet_TInet__create(bbStringFromUTF8String(addr->ifa_name));
-			_bah_inet_TInet__setAddress(obj, ((struct sockaddr_in *)addr->ifa_addr)->sin_addr);
-			_bah_inet_TInet__setNetmask(obj, ((struct sockaddr_in *)addr->ifa_netmask)->sin_addr);
-			_bah_inet_TInet__setFlags(obj, addr->ifa_flags);
+			BBObject * obj = CB_PREF(bah_inet_TInet__create)(bbStringFromUTF8String(addr->ifa_name));
+			CB_PREF(bah_inet_TInet__setAddress)(obj, ((struct sockaddr_in *)addr->ifa_addr)->sin_addr);
+			CB_PREF(bah_inet_TInet__setNetmask)(obj, ((struct sockaddr_in *)addr->ifa_netmask)->sin_addr);
+			CB_PREF(bah_inet_TInet__setFlags)(obj, addr->ifa_flags);
 			
 			getMACAddress(obj, addr->ifa_name);
 
-			_bah_inet_TInet__newEntry(arr, i++, obj);
+			CB_PREF(bah_inet_TInet__newEntry)(arr, i++, obj);
 		}
 		
 		addr = addr->ifa_next;
@@ -283,7 +289,7 @@ BBArray * bmx_inet_listinterfaces() {
 	}
 	
 
-	BBArray * arr = _bah_inet_TInet__newArray(conf.ifc_len);
+	BBArray * arr = CB_PREF(bah_inet_TInet__newArray)(conf.ifc_len);
 
 
 	struct ifreq* ifreq = conf.ifc_req;
@@ -292,12 +298,12 @@ BBArray * bmx_inet_listinterfaces() {
 	
 		if (! ioctl(s, SIOCGIFNAME, ifreq)) {
 		
-			BBObject * obj = _bah_inet_TInet__create(bbStringFromUTF8String(ifreq->ifr_name));
+			BBObject * obj = CB_PREF(bah_inet_TInet__create)(bbStringFromUTF8String(ifreq->ifr_name));
 			
-			_bah_inet_TInet__setAddress(obj, ((struct sockaddr_in *)&ifreq->ifr_addr)->sin_addr);
+			CB_PREF(bah_inet_TInet__setAddress)(obj, ((struct sockaddr_in *)&ifreq->ifr_addr)->sin_addr);
 			
 			if (! ioctl(s, SIOCGIFNETMASK, ifreq)) {
-				_bah_inet_TInet__setNetmask(obj, ((struct sockaddr_in *)&ifreq->ifr_netmask)->sin_addr);
+				CB_PREF(bah_inet_TInet__setNetmask)(obj, ((struct sockaddr_in *)&ifreq->ifr_netmask)->sin_addr);
 			}
 
 			if (! ioctl(s, SIOCGIFHWADDR, ifreq)) {
@@ -314,15 +320,15 @@ BBArray * bmx_inet_listinterfaces() {
 				sprintf(buffer, "%02x:%02x:%02x:%02x:%02x:%02x", address[0], address[1],
 					address[2], address[3], address[4], address[5]);
 			
-				_bah_inet_TInet__setMACAddress(obj, arr, bbStringFromCString(buffer));
+				CB_PREF(bah_inet_TInet__setMACAddress)(obj, arr, bbStringFromCString(buffer));
 				
 			}
 			
 			if (! ioctl(s, SIOCGIFFLAGS, ifreq)) {
-				_bah_inet_TInet__setFlags(obj, ifreq->ifr_flags);
+				CB_PREF(bah_inet_TInet__setFlags)(obj, ifreq->ifr_flags);
 			}
 
-			_bah_inet_TInet__newEntry(arr, i++, obj);
+			CB_PREF(bah_inet_TInet__newEntry)(arr, i++, obj);
 		}
 		
 		ifreq++;

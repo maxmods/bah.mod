@@ -1,4 +1,4 @@
-' Copyright (c) 2010 Bruce A Henderson
+' Copyright (c) 2010-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: Network Interfaces.
 End Rem
 Module BaH.Inet
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2010 Bruce A Henderson"
+ModuleInfo "Copyright: 2010-2015 Bruce A Henderson"
 
+ModuleInfo "Version: 1.01"
+ModuleInfo "History: Updated for bmx-ng."
 ModuleInfo "Version: 1.00"
 ModuleInfo "History: Initial Release"
 
