@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2010-2012 Bruce A Henderson
+ Copyright (c) 2010-2015 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,15 @@
 #include "RtMidi.h"
 
 extern "C" {
-#include "blitz.h"
+#include "brl.mod/blitz.mod/blitz.h"
 
-	BBObject * _bah_rtmidi_TRtError__create(BBString * message, int type);
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
+	BBObject * CB_PREF(bah_rtmidi_TRtError__create)(BBString * message, int type);
 
 	RtMidiIn * bmx_rtmidiin_create(BBString * clientName, int queueSizeLimit);
 	void bmx_rtmidiin_openPort(RtMidiIn * m, int portNumber, BBString * portName);
@@ -36,6 +42,7 @@ extern "C" {
 	void bmx_rtmidiin_free(RtMidiIn * m);
 	BBArray * bmx_rtmidiin_getMessage(RtMidiIn * m, double * timestamp);
 	void bmx_rtmidiin_ignoreTypes(RtMidiIn * m, int midiSysex, int midiTime, int midiSense);
+	int bmx_rtmidiin_isPortOpen(RtMidiIn * m);
 
 	RtMidiOut * bmx_rtmidiout_create(BBString * clientName);
 	void bmx_rtmidiout_openPort(RtMidiOut * m, int portNumber, BBString * portName);
@@ -45,11 +52,15 @@ extern "C" {
 	BBString * bmx_rtmidiout_getPortName(RtMidiOut * m, int portNumber);
 	void bmx_rtmidiout_sendMessage(RtMidiOut * m, unsigned char * message, int length);
 	void bmx_rtmidiout_free(RtMidiOut * m);
+	int bmx_rtmidiout_isPortOpen(RtMidiOut * m);
+
+	BBString * bmx_rtmidi_getVersion();
+	BBArray * bmx_rtmidi_getCompiledApi();
 
 }
 
-void bmx_rtmidi_throw(RtError &error) {
-	bbExThrow(_bah_rtmidi_TRtError__create(bbStringFromCString(error.what()), (int)error.getType()));
+void bmx_rtmidi_throw(RtMidiError &error) {
+	bbExThrow(CB_PREF(bah_rtmidi_TRtError__create)(bbStringFromCString(error.what()), (int)error.getType()));
 }
 
 RtMidiIn * bmx_rtmidiin_create(BBString * clientName, int queueSizeLimit) {
@@ -59,7 +70,7 @@ RtMidiIn * bmx_rtmidiin_create(BBString * clientName, int queueSizeLimit) {
 	try {
 		in = new RtMidiIn(static_cast<RtMidi::Api>(0), n, queueSizeLimit);
 		bbMemFree(n);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bbMemFree(n);
 		bmx_rtmidi_throw(error);
 	}
@@ -73,7 +84,7 @@ void bmx_rtmidiin_openPort(RtMidiIn * m, int portNumber, BBString * portName) {
 	try {
 		m->openPort(portNumber, n);
 		bbMemFree(n);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bbMemFree(n);
 		bmx_rtmidi_throw(error);
 	}	
@@ -82,7 +93,7 @@ void bmx_rtmidiin_openPort(RtMidiIn * m, int portNumber, BBString * portName) {
 void bmx_rtmidiin_closePort(RtMidiIn * m) {
 	try {
 		m->closePort();
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 }
@@ -93,7 +104,7 @@ void bmx_rtmidiin_openVirtualPort(RtMidiIn * m, BBString * portName) {
 	try {
 		m->openVirtualPort(n);
 		bbMemFree(n);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bbMemFree(n);
 		bmx_rtmidi_throw(error);
 	}
@@ -103,7 +114,7 @@ int bmx_rtmidiin_getPortCount(RtMidiIn * m) {
 	unsigned int n = 0;
 	try {
 		n = m->getPortCount();
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 	return n;
@@ -113,7 +124,7 @@ BBString * bmx_rtmidiin_getPortName(RtMidiIn * m, int portNumber) {
 	try {
 		std::string s(m->getPortName(portNumber));
 		return bbStringFromUTF8String(s.c_str());
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 }
@@ -121,7 +132,7 @@ BBString * bmx_rtmidiin_getPortName(RtMidiIn * m, int portNumber) {
 void bmx_rtmidiin_free(RtMidiIn * m) {
 	try {
 		delete m;
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 }
@@ -133,7 +144,7 @@ BBArray * bmx_rtmidiin_getMessage(RtMidiIn * m, double * timestamp) {
 	
 	try {
 		*timestamp = m->getMessage(&message);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 	
@@ -153,9 +164,19 @@ BBArray * bmx_rtmidiin_getMessage(RtMidiIn * m, double * timestamp) {
 void bmx_rtmidiin_ignoreTypes(RtMidiIn * m, int midiSysex, int midiTime, int midiSense) {
 	try {
 		m->ignoreTypes(midiSysex, midiTime, midiSense);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
+}
+
+int bmx_rtmidiin_isPortOpen(RtMidiIn * m) {
+	int res = 0;
+	try {
+		res = m->isPortOpen();
+	} catch (RtMidiError &error) {
+		bmx_rtmidi_throw(error);
+	}
+	return res;
 }
 
 // --------------------------------------------------------
@@ -167,7 +188,7 @@ RtMidiOut * bmx_rtmidiout_create(BBString * clientName) {
 	try {
 		out = new RtMidiOut(static_cast<RtMidi::Api>(0), n);
 		bbMemFree(n);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bbMemFree(n);
 		bmx_rtmidi_throw(error);
 	}
@@ -181,7 +202,7 @@ void bmx_rtmidiout_openPort(RtMidiOut * m, int portNumber, BBString * portName) 
 	try {
 		m->openPort(portNumber, n);
 		bbMemFree(n);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bbMemFree(n);
 		bmx_rtmidi_throw(error);
 	}	
@@ -190,7 +211,7 @@ void bmx_rtmidiout_openPort(RtMidiOut * m, int portNumber, BBString * portName) 
 void bmx_rtmidiout_closePort(RtMidiOut * m) {
 	try {
 		m->closePort();
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 }
@@ -201,7 +222,7 @@ void bmx_rtmidiout_openVirtualPort(RtMidiOut * m, BBString * portName) {
 	try {
 		m->openVirtualPort(n);
 		bbMemFree(n);
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bbMemFree(n);
 		bmx_rtmidi_throw(error);
 	}
@@ -211,7 +232,7 @@ int bmx_rtmidiout_getPortCount(RtMidiOut * m) {
 	unsigned int n = 0;
 	try {
 		n = m->getPortCount();
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 	return n;
@@ -221,7 +242,7 @@ BBString * bmx_rtmidiout_getPortName(RtMidiOut * m, int portNumber) {
 	try {
 		std::string s(m->getPortName(portNumber));
 		return bbStringFromUTF8String(s.c_str());
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 }
@@ -233,7 +254,7 @@ void bmx_rtmidiout_sendMessage(RtMidiOut * m, unsigned char * message, int lengt
 		
 		m->sendMessage(&mess);
 		
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 
@@ -242,7 +263,50 @@ void bmx_rtmidiout_sendMessage(RtMidiOut * m, unsigned char * message, int lengt
 void bmx_rtmidiout_free(RtMidiOut * m) {
 	try {
 		delete m;
-	} catch (RtError &error) {
+	} catch (RtMidiError &error) {
+		bmx_rtmidi_throw(error);
+	}
+}
+
+int bmx_rtmidiout_isPortOpen(RtMidiOut * m) {
+	int res = 0;
+	try {
+		res = m->isPortOpen();
+	} catch (RtMidiError &error) {
+		bmx_rtmidi_throw(error);
+	}
+	return res;
+}
+// --------------------------------------------------------
+
+BBString * bmx_rtmidi_getVersion() {
+	try {
+		return bbStringFromUTF8String(RtMidi::getVersion().c_str());
+	} catch (RtMidiError &error) {
+		bmx_rtmidi_throw(error);
+	}
+}
+
+BBArray * bmx_rtmidi_getCompiledApi() {
+	try {
+		std::vector<RtMidi::Api> apis;
+		RtMidi::getCompiledApi(apis);
+		
+		if (apis.size() == 0) {
+			return &bbEmptyArray;
+		}
+		
+		BBArray * arr = bbArrayNew1D("i", apis.size());
+		
+		int *s=(int*)BBARRAYDATA( arr,arr->dims );
+		
+		for (int i = 0; i < apis.size(); i++) {
+			s[i] = static_cast<int>(apis[i]);
+		}
+		
+		return arr;
+		
+	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
 	}
 }

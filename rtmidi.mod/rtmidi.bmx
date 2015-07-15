@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2012 Bruce A Henderson
+' Copyright (c) 2010-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,15 @@ bbdoc: RTMidi
 End Rem
 Module BaH.RTMidi
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: RtMidi - 2003-2012 Gary P. Scavone"
-ModuleInfo "Copyright: Wrapper - 2010-2012 Bruce A Henderson"
+ModuleInfo "Copyright: RtMidi - 2003-2014 Gary P. Scavone"
+ModuleInfo "Copyright: Wrapper - 2010-2015 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Update to RTMidi 2.1.0.28321c051e"
+ModuleInfo "History: Added isPortOpen() method."
+ModuleInfo "History: Added getVersion() and getCompiledApi() functions."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to RTMidi 2.0.1"
 ModuleInfo "History: Removed setQueueSizeLimit() method."
@@ -51,29 +55,35 @@ ModuleInfo "CC_OPTS: -D__WINDOWS_MM__ -DUNICODE"
 
 Import "common.bmx"
 
-'
-' RtMidi.cpp
-'   Win32 getPortName() functions modified for proper unicode functionality - converting to utf8.
-'
-
-Type TRtMidi
+Type TRtMidi Abstract
 
 	Field midiPtr:Byte Ptr
 
-	Method openPort(portNumber:Int = 0, portName:String = "RtMidi")
-	End Method
+	Method openPort(portNumber:Int = 0, portName:String = "RtMidi") Abstract
 	
-	Method openVirtualPort(portName:String = "RtMidi")
-	End Method
+	Method openVirtualPort(portName:String = "RtMidi") Abstract
 	
-	Method getPortCount:Int()
-	End Method
+	Method getPortCount:Int() Abstract
 	
-	Method getPortName:String(portNumber:Int = 0)
-	End Method
+	Method getPortName:String(portNumber:Int = 0) Abstract
 	
-	Method closePort:Int()
-	End Method
+	Method closePort() Abstract
+	
+	Method isPortOpen:Int() Abstract
+
+	Rem
+	bbdoc: Determines the current RtMidi version.
+	End Rem
+	Function getVersion:String()
+		Return bmx_rtmidi_getVersion()
+	End Function
+	
+	Rem
+	bbdoc: Determines the available compiled MIDI APIs.
+	End Rem
+	Function getCompiledApi:Int[]()
+		Return bmx_rtmidi_getCompiledApi()
+	End Function
 
 End Type
 
@@ -94,8 +104,8 @@ Type TRtMidiIn Extends TRtMidi
 	Rem
 	bbdoc: Creates a Midi In object with optional client name and queue size.
 	End Rem
-	Method Create:TRtMidiIn(clientName:String = "RtMidi Input Client", queueSizeLimit:Int = 100)
-		midiPtr = bmx_rtmidiin_create(clientName, queueSizeLimit)
+	Method Create:TRtMidiIn(clientName:String = "RtMidi Input Client", queueSizeLimit:Int = 100, api:Int = API_UNSPECIFIED)
+		midiPtr = bmx_rtmidiin_create(clientName, queueSizeLimit, api)
 		Return Self
 	End Method
 
@@ -170,6 +180,13 @@ Type TRtMidiIn Extends TRtMidi
 	End Method
 	
 	Rem
+	bbdoc: Returns True if the port is open and False if not.
+	End Rem
+	Method isPortOpen:Int()
+		Return bmx_rtmidiin_isPortOpen(midiPtr)
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method Free()
@@ -198,8 +215,8 @@ Type TRtMidiOut Extends TRtMidi
 	Rem
 	bbdoc: Creates a Midi Out object with optional client name.
 	End Rem
-	Method Create:TRtMidiOut(clientName:String = "RtMidi Output Client")
-		midiPtr = bmx_rtmidiout_create(clientName)
+	Method Create:TRtMidiOut(clientName:String = "RtMidi Output Client", api:Int = API_UNSPECIFIED)
+		midiPtr = bmx_rtmidiout_create(clientName, api)
 		Return Self
 	End Method
 	
@@ -259,6 +276,13 @@ Type TRtMidiOut Extends TRtMidi
 		bmx_rtmidiout_sendMessage(midiPtr, message, length)
 	End Method
 
+	Rem
+	bbdoc: Returns True if the port is open and False if not.
+	End Rem
+	Method isPortOpen:Int()
+		Return bmx_rtmidiout_isPortOpen(midiPtr)
+	End Method
+	
 	Rem
 	bbdoc: 
 	End Rem

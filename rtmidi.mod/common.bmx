@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2012 Bruce A Henderson
+' Copyright (c) 2010-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ Import "source.bmx"
 
 Extern
 
-	Function bmx_rtmidiin_create:Byte Ptr(clientName:String, queueSizeLimit:Int)
+	Function bmx_rtmidiin_create:Byte Ptr(clientName:String, queueSizeLimit:Int, api:Int)
 	Function bmx_rtmidiin_openPort(handle:Byte Ptr, portNumber:Int, portName:String)
 	Function bmx_rtmidiin_closePort(handle:Byte Ptr)
 	Function bmx_rtmidiin_openVirtualPort(handle:Byte Ptr, portName:String)
@@ -43,8 +43,9 @@ Extern
 	Function bmx_rtmidiin_free(handle:Byte Ptr)
 	Function bmx_rtmidiin_getMessage:Byte[](handle:Byte Ptr, timestamp:Double Ptr)
 	Function bmx_rtmidiin_ignoreTypes(handle:Byte Ptr, midiSysex:Int, midiTime:Int, midiSense:Int)
+	Function bmx_rtmidiin_isPortOpen:Int(handle:Byte Ptr)
 
-	Function bmx_rtmidiout_create:Byte Ptr(clientName:String)
+	Function bmx_rtmidiout_create:Byte Ptr(clientName:String, api:Int)
 	Function bmx_rtmidiout_openPort(handle:Byte Ptr, portNumber:Int, portName:String)
 	Function bmx_rtmidiout_closePort(handle:Byte Ptr)
 	Function bmx_rtmidiout_openVirtualPort(handle:Byte Ptr, portName:String)
@@ -52,8 +53,30 @@ Extern
 	Function bmx_rtmidiout_getPortName:String(handle:Byte Ptr, portNumber:Int)
 	Function bmx_rtmidiout_sendMessage(handle:Byte Ptr, message:Byte Ptr, length:Int)
 	Function bmx_rtmidiout_free(handle:Byte Ptr)
+	Function bmx_rtmidiout_isPortOpen:Int(handle:Byte Ptr)
 
+	Function bmx_rtmidi_getVersion:String()
+	Function bmx_rtmidi_getCompiledApi:Int[]()
 
 End Extern
 
-
+Rem
+bbdoc: Search for a working compiled API.
+End Rem
+Const API_UNSPECIFIED:Int = 0
+Rem
+bbdoc: Macintosh OS-X Core Midi API.
+End Rem
+Const API_MACOSX_CORE:Int = 1
+Rem
+bbdoc: The Advanced Linux Sound Architecture API.
+End Rem
+Const API_LINUX_ALSA:Int = 2
+Rem
+bbdoc: The JACK Low-Latency MIDI Server API.
+End Rem
+Const API_UNIX_JACK:Int = 3
+Rem
+bbdoc: The Microsoft Multimedia MIDI API.
+End Rem
+Const API_WINDOWS_MM:Int = 4
