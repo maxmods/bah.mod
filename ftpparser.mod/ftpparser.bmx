@@ -1,4 +1,4 @@
-'   Copyright 2007-2009 Bruce A Henderson
+'   Copyright 2007-2015 Bruce A Henderson
 '
 '   Licensed under the Apache License, Version 2.0 (the "License");
 '   you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@ bbdoc: FTP list parser
 End Rem
 Module BaH.FTPParser
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: 2007-2009 Bruce A Henderson"
+ModuleInfo "Copyright: 2007-2015 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Fixed permissions flags check."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Fixed double-slashes in expressions."
 ModuleInfo "History: Fixed Win32 directory parsing issue."

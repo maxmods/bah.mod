@@ -1,4 +1,4 @@
-'   Copyright 2007-2009 Bruce A Henderson
+'   Copyright 2007-2015 Bruce A Henderson
 '
 '   Licensed under the Apache License, Version 2.0 (the "License");
 '   you may not use this file except in compliance with the License.
@@ -236,7 +236,7 @@ Type TFilePermissions
 		End If
 	
 		Return [ p[0] = 114, p[1] = 119, ..
-			p[2] = 120 | p[2] = 115 | p[2] = 83 | p[2] = 116 | p[2] = 84 | p[2] = 76]
+			(p[2] = 120) | (p[2] = 115) | (p[2] = 83) | (p[2] = 116) | (p[2] = 84) | (p[2] = 76)]
 		
 	End Method
 
@@ -247,7 +247,7 @@ Type TFilePermissions
 		End If
 	
 		Return [ p[3] = 114, p[4] = 119, ..
-			p[5] = 120 | p[5] = 115 | p[5] = 83 | p[5] = 116 | p[5] = 84 | p[5] = 76]
+			(p[5] = 120) | (p[5] = 115) | (p[5] = 83) | (p[5] = 116) | (p[5] = 84) | (p[5] = 76)]
 		
 	End Method
 
@@ -258,7 +258,7 @@ Type TFilePermissions
 		End If
 	
 		Return [ p[6] = 114, p[7] = 119, ..
-			p[8] = 120 | p[8] = 115 | p[8] = 83 | p[8] = 116 | p[8] = 84 | p[8] = 76]
+			(p[8] = 120) | (p[8] = 115) | (p[8] = 83) | (p[8] = 116) | (p[8] = 84) | (p[8] = 76)]
 		
 	End Method
 
