@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2013 Bruce A Henderson
+' Copyright (c) 2006-2015 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -19,10 +19,13 @@ SuperStrict
 Import Pub.FreeType
 Import BRL.Stream
 Import BRL.FileSystem
-Import Pub.Glew
+'Import Pub.Glew
 ?Not linux
 Import BRL.Map
 ?
+
+Import "src/*.h"
+Import "glue.c"
 
 ' Cairo external functions
 
@@ -259,26 +262,26 @@ Extern
 	Function cairo_ft_font_face_create_for_ft_face:Byte Ptr(ft_face:Byte Ptr, loadFlags:Int)
 
 	Function cairo_region_create:Byte Ptr()
-	Function cairo_region_create_rectangle:Byte Ptr(rect:TCairoRectangleInt Ptr)
+	Function cairo_region_create_rectangle:Byte Ptr(rect:Byte Ptr)
 	Function cairo_region_copy:Byte Ptr(regionPtr:Byte Ptr)
 	Function cairo_region_equal:Int(regionPtr:Byte Ptr, other:Byte Ptr)
 	Function cairo_region_reference:Byte Ptr(regionPtr:Byte Ptr)
 	Function cairo_region_status:Int(regionPtr:Byte Ptr)
 	Function cairo_region_contains_point:Int(regionPtr:Byte Ptr, x:Int, y:Int)
-	Function cairo_region_contains_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_contains_rectangle:Int(regionPtr:Byte Ptr, rect:Byte Ptr)
 	Function cairo_region_is_empty:Int(regionPtr:Byte Ptr)
 	Function cairo_region_translate(regionPtr:Byte Ptr, dx:Int, dy:Int)
 	Function cairo_region_xor:Int(regionPtr:Byte Ptr, other:Byte Ptr)
 	Function cairo_region_union:Int(regionPtr:Byte Ptr, other:Byte Ptr)
-	Function cairo_region_get_extents(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_get_extents(regionPtr:Byte Ptr, rect:Byte Ptr)
 	Function cairo_region_num_rectangles:Int(regionPtr:Byte Ptr)
-	Function cairo_region_get_rectangle(regionPtr:Byte Ptr, index:Int, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_get_rectangle(regionPtr:Byte Ptr, index:Int, rect:Byte Ptr)
 	Function cairo_region_destroy(regionPtr:Byte Ptr)
 	Function cairo_region_intersect:Int(regionPtr:Byte Ptr, other:Byte Ptr)
 	Function cairo_region_subtract:Int(regionPtr:Byte Ptr, other:Byte Ptr)
-	Function cairo_region_subtract_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
-	Function cairo_region_union_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
-	Function cairo_region_xor_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_subtract_rectangle:Int(regionPtr:Byte Ptr, rect:Byte Ptr)
+	Function cairo_region_union_rectangle:Int(regionPtr:Byte Ptr, rect:Byte Ptr)
+	Function cairo_region_xor_rectangle:Int(regionPtr:Byte Ptr, rect:Byte Ptr)
 	
 	Function cairo_pattern_create_mesh:Byte Ptr()
 	Function cairo_mesh_pattern_begin_patch(patternPtr:Byte Ptr)
@@ -296,13 +299,15 @@ Extern
 	'Function cairo_gl_surface_create:Byte Ptr(context:Byte Ptr, content:Int, width:Int, height:Int)
 	'Function bmx_cairo_glcontext_create:Byte Ptr(context:Int)
 	
-	Type TCairoRectangleInt
-		Field x:Int
-		Field y:Int
-		Field width:Int
-		Field height:Int
-	End Type
-	
+	Function bmx_cairo_rectangleint_new:Byte Ptr()
+	Function bmx_cairo_rectangleint_dimensions(handle:Byte Ptr, x:Int Ptr, y:Int Ptr, w:Int Ptr, h:Int Ptr)
+	Function bmx_cairo_rectangleint_free(handle:Byte Ptr)
+	Function bmx_cairo_rectangleint_setdimensions(handle:Byte Ptr, x:Int, y:Int, w:Int, h:Int)
+	Function bmx_cairo_rectangleint_setx(handle:Byte Ptr, x:Int)
+	Function bmx_cairo_rectangleint_sety(handle:Byte Ptr, y:Int)
+	Function bmx_cairo_rectangleint_setwidth(handle:Byte Ptr, w:Int)
+	Function bmx_cairo_rectangleint_setheight(handle:Byte Ptr, h:Int)
+
 End Extern
 
 

@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2013 Bruce A Henderson
+' Copyright (c) 2006-2015 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -22,12 +22,14 @@ bbdoc: Cairo Vector Graphics Library
 End Rem
 Module BaH.cairo
 
-ModuleInfo "Version: 1.25"
+ModuleInfo "Version: 1.26"
 ModuleInfo "License: MPL / LGPL"
 ModuleInfo "Copyright: Cairo -  University of Southern California and Carl D. Worth"
 ModuleInfo "Copyright: Wrapper - Bruce A Henderson, based on initial work by Duncan Cross."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.26"
+ModuleInfo "History: Updated for bmx-ng."
 ModuleInfo "History: 1.25"
 ModuleInfo "History: Cairo update to 1.12.14."
 ModuleInfo "History: Pixman update to 0.28.2."
@@ -3015,7 +3017,7 @@ Mesh patterns consist of one or more tensor-product patches, which should be def
 defined patch as source or mask will put the context in an error status with a status of CAIRO_STATUS_INVALID_MESH_CONSTRUCTION.
 </p>
 <p>
-A tensor-product patch is defined by 4 Bézier curves (side 0, 1, 2, 3) and by 4 additional control points (P0, P1, P2, P3) that provide further control over the
+A tensor-product patch is defined by 4 Bezier curves (side 0, 1, 2, 3) and by 4 additional control points (P0, P1, P2, P3) that provide further control over the
 patch and complete the definition of the tensor-product patch. The corner C0 is the first point of the patch.
 </p>
 <p>
@@ -3129,7 +3131,7 @@ Type TCairoMeshPattern Extends TCairoPattern
 	End Method
 	
 	Rem
-	bbdoc: Adds a cubic Bézier spline to the current patch from the current point to position (x3, y3) in pattern-space coordinates, using (x1, y1) and (x2, y2) as the control points.
+	bbdoc: Adds a cubic Bezier spline to the current patch from the current point to position (x3, y3) in pattern-space coordinates, using (x1, y1) and (x2, y2) as the control points.
 	about: If the current patch has no current point before the call to CurveTo(), this function will behave as if preceded by a call to MoveTo(x1, y1).
 	<p>
 	After this call the current point will be (x3, y3).
@@ -4261,7 +4263,7 @@ Type TCairoRegion
 	bbdoc: 
 	End Rem	
 	Function CreateRectangle:TCairoRegion(rect:TCairoRectangleInt)
-		Return TCairoRegion._create(cairo_region_create_rectangle(Varptr rect))
+		Return TCairoRegion._create(cairo_region_create_rectangle(rect.rectPtr))
 	End Function
 	
 	Rem
@@ -4286,7 +4288,7 @@ Type TCairoRegion
 	about: 
 	End Rem
 	Method ContainsRectangle:Int(rect:TCairoRectangleInt)
-		Return cairo_region_contains_rectangle(regionPtr, Varptr rect)
+		Return cairo_region_contains_rectangle(regionPtr, rect.rectPtr)
 	End Method
 	
 	Rem
@@ -4315,9 +4317,9 @@ Type TCairoRegion
 	bbdoc: Gets the bounding rectangle of the region.
 	End Rem
 	Method GetExtents:TCairoRectangleInt()
-		Local rect:TCairoRectangleInt
-		
-		cairo_region_get_extents(regionPtr, Varptr rect)
+		Local rect:TCairoRectangleInt = New TCairoRectangleInt
+
+		cairo_region_get_extents(regionPtr, rect.rectPtr)
 		
 		Return rect
 	End Method
@@ -4326,9 +4328,9 @@ Type TCairoRegion
 	bbdoc: Returns the nth rectangle from the region.
 	End Rem
 	Method GetRectangle:TCairoRectangleInt(index:Int)
-		Local rect:TCairoRectangleInt
+		Local rect:TCairoRectangleInt = New TCairoRectangleInt
 
-		cairo_region_get_rectangle(regionPtr, index, Varptr rect)
+		cairo_region_get_rectangle(regionPtr, index, rect.rectPtr)
 		
 		Return rect
 	End Method
@@ -4384,7 +4386,7 @@ Type TCairoRegion
 	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
 	End Rem
 	Method SubtractRectangle:Int(rect:TCairoRectangleInt)
-		Return cairo_region_subtract_rectangle(regionPtr, Varptr rect)
+		Return cairo_region_subtract_rectangle(regionPtr,  rect.rectPtr)
 	End Method
 
 	Rem
@@ -4407,7 +4409,7 @@ Type TCairoRegion
 	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
 	End Rem
 	Method UnionRectangle:Int(rect:TCairoRectangleInt)
-		Return cairo_region_union_rectangle(regionPtr, Varptr rect)
+		Return cairo_region_union_rectangle(regionPtr, rect.rectPtr)
 	End Method
 
 	Rem
@@ -4425,7 +4427,7 @@ Type TCairoRegion
 	about: That is, this region will be set to contain all areas that are either in this region or in @rect, but not in both.
 	End Rem
 	Method XorRectangle:Int(rect:TCairoRectangleInt)
-		Return cairo_region_xor_rectangle(regionPtr, Varptr rect)
+		Return cairo_region_xor_rectangle(regionPtr, rect.rectPtr)
 	End Method
 
 	Method Delete()
@@ -4437,6 +4439,68 @@ Type TCairoRegion
 
 End Type
 
+Rem
+bbdoc: A structure for holding a rectangle with integer coordinates.
+about: The x and y coordinates represent the top-left corner of the rectangle.
+End Rem
+Type TCairoRectangleInt
+	Field rectPtr:Byte Ptr
+	
+	Method New()
+		rectPtr = bmx_cairo_rectangleint_new()
+	End Method
+	
+	Rem
+	bbdoc: Gets the rectangle dimensions.
+	End Rem
+	Method Dimensions(x:Int Var, y:Int Var, w:Int Var, h:Int Var)
+		bmx_cairo_rectangleint_dimensions(rectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
+	End Method
+	
+	Rem
+	bbdoc: Sets the rectangle dimensions.
+	End Rem
+	Method SetDimensions(x:Int, y:Int, w:Int, h:Int)
+		bmx_cairo_rectangleint_setdimensions(rectPtr, x, y, w, h)
+	End Method
+	
+	Rem
+	bbdoc: Sets the X coordinate.
+	End Rem
+	Method SetX(x:Int)
+		bmx_cairo_rectangleint_setx(rectPtr, x)
+	End Method
+
+	Rem
+	bbdoc: Sets the Y coordinate.
+	End Rem
+	Method SetY(y:Int)
+		bmx_cairo_rectangleint_sety(rectPtr, y)
+	End Method
+		
+	Rem
+	bbdoc: Sets the rectangle width.
+	End Rem
+	Method SetWidth(w:Int)
+		bmx_cairo_rectangleint_setwidth(rectPtr, w)
+	End Method
+
+	Rem
+	bbdoc: Sets the rectangle height.
+	End Rem
+	Method SetHeight(h:Int)
+		bmx_cairo_rectangleint_setheight(rectPtr, h)
+	End Method
+	
+	Method Delete()
+		If rectPtr Then
+			bmx_cairo_rectangleint_free(rectPtr)
+			rectPtr = Null
+		End If
+	End Method
+	
+End Type
+	
 Rem
 bbdoc: 
 End Rem
