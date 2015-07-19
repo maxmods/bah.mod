@@ -37,6 +37,7 @@ ModuleInfo "History: Initial Release."
 ?linux
 
 Import BRL.System
+Import Pub.FreeProcess
 
 Import "common.bmx"
 
@@ -136,6 +137,12 @@ Type TXCBSystemDriver Extends TSystemDriver
 
 	Field xcbPtr:Byte Ptr
 	Field screenCount:Int
+	
+	Field _platform:Int
+	
+	Const _GNOME:Int = 1
+	Const _KDE:Int = 2
+	Const _UNKNOWN:Int = 3
 
 	Method New()
 		xcbPtr = bmx_xcb_system_startup(Varptr screenCount)
@@ -154,40 +161,84 @@ Type TXCBSystemDriver Extends TSystemDriver
 	End Method
 
 	Method SetMouseVisible:Int( visible:Int )
-		'bbSetMouseVisible(visible)
+		' TODO
 	End Method
 
 	Method MoveMouse:Int( x:Int,y:Int )
-		'bbMoveMouse x,y
+		' TODO
 	End Method
 
 	Method Notify:Int( text$,serious:Int )
-		'WriteStdout text+"~r~n"
+		_checkPlatform()
+		Select _platform
+			Case _GNOME
+				Local info:String = "--info"
+				If serious Then
+					info = "--error"
+				End If
+				system_("zenity " + info + " --title=~q" + AppTitle + "~q --text=~q" + text + "~q")
+		End Select
 	End Method
 	
 	Method Confirm:Int( text$,serious:Int )
-		'WriteStdout text+" (Yes/No)?"
-		'Local t$=ReadStdin().ToLower()
-		'If t[..1]="y" Return 1
+		_checkPlatform()
+		Select _platform
+			Case _GNOME
+				Local question:String = "--question"
+				If serious Then
+					question = "--error"
+				End If
+				If Not system_("zenity " + question + " --title=~q" + AppTitle + "~q --text=~q" + text + "~q")
+					Return True
+				Else
+					Return False
+				End If
+		End Select
 		Return 0
 	End Method
 	
 	Method Proceed:Int( text$,serious:Int )
-		'WriteStdout text+" (Yes/No/Cancel)?"
-		'Local t$=ReadStdin().ToLower()
-		'If t[..1]="y" Return 1
-		'If t[..1]="n" Return 0
+		_checkPlatform()
+		Select _platform
+			Case _GNOME
+				Local question:String = "--question"
+				If serious Then
+					question = "--error"
+				End If
+				If Not system_("zenity " + question + " --title=~q" + AppTitle + "~q --text=~q" + text + "~q")
+					Return True
+				Else
+					Return False
+				End If
+		End Select
 		Return -1
 	End Method
 
 	Method RequestFile$( text$,exts$,save:Int,file$ )
-		'WriteStdout "Enter a filename:"
-		'Return ReadStdin()
+		_checkPlatform()
+		Select _platform
+			Case _GNOME
+				Local cmd:String = "zenity --file-selection --title=~q" + text + "~q "
+				If save Then
+					cmd :+ "--save "
+				End If
+				If file Then
+					cmd :+ "--filename=~q" + file + "~q "
+				End If
+				Return _runCommand(cmd)
+		End Select
 	End Method
 	
 	Method RequestDir$( text$,path$ )
-		'WriteStdout "Enter a directory name:"
-		'Return ReadStdin()
+		_checkPlatform()
+		Select _platform
+			Case _GNOME
+				Local cmd:String = "zenity --file-selection --directory --title=~q" + text + "~q "
+				If path Then
+					cmd :+ "--filename=~q" + path + "~q "
+				End If
+				Return _runCommand(cmd)
+		End Select
 	End Method
 
 	Method OpenURL:Int( url$ )
@@ -214,6 +265,28 @@ Type TXCBSystemDriver Extends TSystemDriver
 		Return 60 ' until we find something better
 	End Method
 
+	Method _checkPlatform()
+		If _platform Then
+			Return
+		End If
+		
+		If Not system_("type zenity 1>/dev/null") Then
+			_platform = _GNOME
+			Return
+		End If
+		
+		_platform = _UNKNOWN
+	End Method
+	
+	Method _runCommand:String(cmd:String)
+		Local process:TProcess = CreateProcess(cmd)
+		While process.Status()
+			Delay 10
+		Wend
+
+		Return process.pipe.ReadLine()
+	End Method
+	
 End Type
 
 _xcbDriver=New TXCBSystemDriver
