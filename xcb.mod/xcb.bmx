@@ -45,18 +45,24 @@ Private
 Global _xcbDriver:TXCBSystemDriver
 Public
 
-Type TXCBWindow
+Type TXCBDrawable
 
-	Field winId:Int
+	Field id:Int
 	
-	Field x:Int, y:Int
 	Field width:Int, height:Int
+	
+End Type
+
+Type TXCBWindow Extends TXCBDrawable
+
+	Field x:Int, y:Int
+	
 
 	Method Create:TXCBWindow(title:String, parent:TXCBWindow = Null, x:Int = 0, y:Int = 0, width:Int = 100, height:Int = 100, flags:Int = 0)
 		If parent Then
-			winId = bmx_xcb_window_create(Self, _xcbDriver.xcbPtr, title, parent.winId, x, y, width, height, flags)
+			id = bmx_xcb_window_create(Self, _xcbDriver.xcbPtr, title, parent.id, x, y, width, height, flags)
 		Else
-			winId = bmx_xcb_window_create(Self, _xcbDriver.xcbPtr, title, 0, x, y, width, height, flags)
+			id = bmx_xcb_window_create(Self, _xcbDriver.xcbPtr, title, 0, x, y, width, height, flags)
 		End If
 		
 		Self.x = x
@@ -74,14 +80,14 @@ Type TXCBWindow
 	bbdoc: Shows the window.
 	End Rem
 	Method Show()
-		bmx_xcb_window_show(_xcbDriver.xcbPtr, winId)
+		bmx_xcb_window_show(_xcbDriver.xcbPtr, id)
 	End Method
 
 	Rem
 	bbdoc: Hides the window.
 	End Rem
 	Method Hide()
-		bmx_xcb_window_hide(_xcbDriver.xcbPtr, winId)
+		bmx_xcb_window_hide(_xcbDriver.xcbPtr, id)
 	End Method
 	
 	Rem
@@ -104,6 +110,13 @@ Type TXCBWindow
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method CopyPixmap(pix:TXCBPixmap, srcX:Int, srcY:Int, dstX:Int, dstY:Int, width:Int, height:Int)
+		bmx_xcb_copy_area(_xcbDriver.xcbPtr, id, pix.id, pix.gc, srcX, srcY, dstX, dstY, width, height)
+	End Method
+	
+	Rem
 	bbdoc: Flushes changes to the display.
 	about: Usually required at the end of an OnPaint().
 	End Rem
@@ -122,14 +135,41 @@ Type TXCBWindow
 				Case EVENT_GADGETPAINT ' window needs a repaint
 					win.OnPaint()
 				Case EVENT_WINDOWSIZE ' window was resized
+					win.OnSize(ev.x, ev.y)
 					win.width = ev.x
 					win.height = ev.y
-					win.OnSize(ev.x, ev.y)
 			End Select
 		End If
 	
 		Return data
 	End Function
+	
+End Type
+
+Type TXCBPixmap Extends TXCBDrawable
+
+	Field gc:Int
+
+	Method Create:TXCBPixmap(width:Int, height:Int)
+		id = bmx_xcb_create_pixmap(_xcbDriver.xcbPtr, width, height)
+		gc = bmx_xcb_create_drawable_gc(_xcbDriver.xcbPtr, id)
+		Self.width = width
+		Self.height = height
+		Return Self
+	End Method
+	
+	Method Free()
+		If id Then
+			bmx_xcb_pixmap_free(_xcbDriver.xcbPtr, id)
+			bmx_xcb_gc_free(_xcbDriver.xcbPtr, gc)
+			id = 0
+			gc = 0
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
 	
 End Type
 

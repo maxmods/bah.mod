@@ -39,5 +39,11 @@ Extern
 	
 	Function bmx_xcb_connection_flush(conn:Byte Ptr)
 	
+	Function bmx_xcb_create_pixmap:Int(conn:Byte Ptr, width:Int, height:Int)
+	Function bmx_xcb_create_drawable_gc:Int(conn:Byte Ptr, id:Int)
+	Function bmx_xcb_copy_area(conn:Byte Ptr, dstId:Int, srcId:Int, gc:Int, srcX:Int, srcY:Int, dstX:Int, dstY:Int, width:Int, height:Int)
+	Function bmx_xcb_pixmap_free(conn:Byte Ptr, id:Int)
+	Function bmx_xcb_gc_free(conn:Byte Ptr, id:Int)
+
 End Extern
 

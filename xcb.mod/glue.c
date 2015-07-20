@@ -252,16 +252,28 @@ void bmx_xcb_system_emit_event(struct MaxXcb * xcb, xcb_generic_event_t * event,
 		case XCB_MOTION_NOTIFY:
 		{
 			xcb_motion_notify_event_t *ev = (xcb_motion_notify_event_t *)event;
+			BBObject * obj = bmx_winobj_find(ev->event);
+			if (obj != &bbNullObject) {
+				bbXCBSystemEmitEvent(BBEVENT_MOUSEMOVE, obj, 0, 0, ev->event_x, ev->event_y, &bbNullObject);
+			}
 			return;
 		}
 		case XCB_ENTER_NOTIFY:
 		{
 			xcb_enter_notify_event_t *ev = (xcb_enter_notify_event_t *)event;
+			BBObject * obj = bmx_winobj_find(ev->event);
+			if (obj != &bbNullObject) {
+				bbXCBSystemEmitEvent(BBEVENT_MOUSEENTER, obj, 0, 0, ev->event_x, ev->event_y, &bbNullObject);
+			}
 			return;
 		}
 		case XCB_LEAVE_NOTIFY:
 		{
 			xcb_leave_notify_event_t *ev = (xcb_leave_notify_event_t *)event;
+			BBObject * obj = bmx_winobj_find(ev->event);
+			if (obj != &bbNullObject) {
+				bbXCBSystemEmitEvent(BBEVENT_MOUSELEAVE, obj, 0, 0, ev->event_x, ev->event_y, &bbNullObject);
+			}
 			return;
 		}
 		case XCB_KEY_PRESS:
@@ -307,6 +319,7 @@ void bmx_xcb_system_emit_event(struct MaxXcb * xcb, xcb_generic_event_t * event,
 			xcb_configure_notify_event_t *ev = (xcb_configure_notify_event_t *)event;
 			BBObject * obj = bmx_winobj_find(ev->window);
 			if (obj != &bbNullObject) {
+				bbXCBSystemEmitEvent(BBEVENT_WINDOWMOVE, obj, 0, 0, ev->x, ev->y, &bbNullObject);
 				bbXCBSystemEmitEvent(BBEVENT_WINDOWSIZE, obj, 0, 0, ev->width, ev->height, &bbNullObject);
 			}
 			return;
@@ -391,5 +404,39 @@ void bmx_xcb_window_hide(struct MaxXcb * xcb, xcb_window_t winId) {
 
 void bmx_xcb_connection_flush(struct MaxXcb * xcb) {
 	xcb_flush(xcb->conn);
+}
+
+/* ---------------------------------------------- */
+
+xcb_pixmap_t bmx_xcb_create_pixmap(struct MaxXcb * xcb, int width, int height) {
+	xcb_pixmap_t id = xcb_generate_id(xcb->conn);
+	xcb_screen_t * screen = xcb_setup_roots_iterator(xcb_get_setup(xcb->conn)).data;
+	
+	xcb_create_pixmap(xcb->conn, screen->root_depth, id, screen->root, width, height);
+	
+	return id;
+}
+
+xcb_gcontext_t bmx_xcb_create_drawable_gc(struct MaxXcb * xcb, xcb_drawable_t id) {
+	xcb_gcontext_t gc = xcb_generate_id(xcb->conn);
+	xcb_screen_t * screen = xcb_setup_roots_iterator(xcb_get_setup(xcb->conn)).data;
+	
+	uint32_t attributes[2] = { screen->black_pixel, screen->white_pixel };
+
+    xcb_create_gc(xcb->conn, gc, id, XCB_GC_FOREGROUND | XCB_GC_BACKGROUND, attributes);
+
+	return gc;
+}
+
+void bmx_xcb_copy_area(struct MaxXcb * xcb, xcb_drawable_t dstId, xcb_drawable_t srcId, xcb_gcontext_t gc, int srcX, int srcY, int dstX, int dstY, int width, int height) {
+	xcb_copy_area(xcb->conn, srcId, dstId, gc, srcX, srcY, dstX, dstY, width, height);
+}
+
+void bmx_xcb_pixmap_free(struct MaxXcb * xcb, xcb_drawable_t id) {
+	xcb_free_pixmap(xcb->conn, id);
+}
+
+void bmx_xcb_gc_free(struct MaxXcb * xcb, xcb_gcontext_t id) {
+	xcb_free_gc(xcb->conn, id);
 }
 
