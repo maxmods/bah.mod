@@ -22,7 +22,7 @@ Module BaH.CairoXcb
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MPL / LGPL"
-ModuleInfo "Copyright: 2015 Bruce A Henderson
+ModuleInfo "Copyright: 2015 Bruce A Henderson"
 
 ?linux
 
@@ -44,10 +44,10 @@ Type TCairoXCBSurface Extends TCairoSurface
 	<li><b>window</b> : </li>
 	</ul>
 	End Rem
-	Function CreateForXCB:TCairoXCBSurface(window:TXCBWindow)
+	Function CreateForXCB:TCairoXCBSurface(drawable:TXCBDrawable)
 		Local surf:TCairoXCBSurface = New TCairoXCBSurface
 		
-		surf.surfacePtr = bmx_cairo_xcb_surface_create(TXCBSystemDriver(Driver).xcbPtr, window.winId)
+		surf.surfacePtr = bmx_cairo_xcb_surface_create(TXCBSystemDriver(Driver).xcbPtr, drawable.id)
 		
 		Return surf
 	End Function
@@ -57,6 +57,10 @@ Type TCairoXCBSurface Extends TCairoSurface
 	End Rem
 	Method SetSize(width:Int, height:Int)
 		bmx_cairo_xcb_surface_set_size(surfacePtr, width, height)
+	End Method
+	
+	Method SetDrawable(drawable:TXCBDrawable, width:Int, height:Int)
+		bmx_cairo_xcb_surface_set_drawable(surfacePtr, drawable.id, width, height)
 	End Method
 	
 End Type

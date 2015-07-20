@@ -20,5 +20,7 @@ Extern
 
 	Function bmx_cairo_xcb_surface_create:Byte Ptr(xcb:Byte Ptr, window:Int)
 	Function bmx_cairo_xcb_surface_set_size(handle:Byte Ptr, width:Int, height:Int)
+	Function bmx_cairo_xcb_surface_set_drawable(handle:Byte Ptr, id:Int, width:Int, height:Int)
+
 End Extern
 

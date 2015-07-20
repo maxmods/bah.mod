@@ -16,15 +16,15 @@
 #include "bah.mod/xcb.mod/glue.h"
 #include <cairo/cairo.h>
 
-cairo_surface_t * bmx_cairo_xcb_surface_create(struct MaxXcb * xcb, xcb_window_t winId) {
+cairo_surface_t * bmx_cairo_xcb_surface_create(struct MaxXcb * xcb, xcb_drawable_t id) {
 
 	xcb_screen_t * screen = xcb_setup_roots_iterator(xcb_get_setup(xcb->conn)).data;
 	xcb_visualtype_t * visual_type = xcb_depth_visuals_iterator((xcb_screen_allowed_depths_iterator (screen)).data).data;
 
-	xcb_get_geometry_cookie_t cookie = xcb_get_geometry(xcb->conn, winId);
+	xcb_get_geometry_cookie_t cookie = xcb_get_geometry(xcb->conn, id);
     xcb_get_geometry_reply_t * geom = xcb_get_geometry_reply(xcb->conn, cookie, NULL);
 
-	cairo_surface_t * surf = cairo_xcb_surface_create(xcb->conn, winId, visual_type, geom->width, geom->height);
+	cairo_surface_t * surf = cairo_xcb_surface_create(xcb->conn, id, visual_type, geom->width, geom->height);
 	
 	free(geom);
 
@@ -33,5 +33,9 @@ cairo_surface_t * bmx_cairo_xcb_surface_create(struct MaxXcb * xcb, xcb_window_t
 
 void bmx_cairo_xcb_surface_set_size(cairo_surface_t * surf, int width, int height) {
 	cairo_xcb_surface_set_size(surf, width, height);
+}
+
+void bmx_cairo_xcb_surface_set_drawable(cairo_surface_t * surf, xcb_drawable_t id, int width, int height) {
+	cairo_xcb_surface_set_drawable(surf, id, width, height);
 }
 
