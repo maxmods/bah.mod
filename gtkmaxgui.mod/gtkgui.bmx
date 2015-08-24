@@ -66,6 +66,8 @@ End Type
 Type TGTKSystemDriver Extends TSystemDriver
 
 	Field NativeDriver:TSystemDriver
+	
+	Field _desktop:TGTKDesktop
 
 	Method New()
 		NativeDriver=brl.System.Driver
@@ -333,6 +335,39 @@ Type TGTKSystemDriver Extends TSystemDriver
 	Method OpenURL:Int( url:String )
 		Return NativeDriver.OpenURL(url)
 	End Method
+
+	Method DesktopWidth:Int()
+		If Not _desktop Then
+			_desktop = TGTKDesktop.CreateDesktop()
+		End If
+		
+		Return _desktop.ClientWidth()
+	End Method
+	
+	Method DesktopHeight:Int()
+		If Not _desktop Then
+			_desktop = TGTKDesktop.CreateDesktop()
+		End If
+
+		Return _desktop.ClientHeight()
+	End Method
+
+	Method DesktopDepth:Int()
+		If Not _desktop Then
+			_desktop = TGTKDesktop.CreateDesktop()
+		End If
+		
+		Return _desktop.GetDepth()
+	End Method
+
+	Method DesktopHertz:Int()
+		If Not _desktop Then
+			_desktop = TGTKDesktop.CreateDesktop()
+		End If
+
+		Return _desktop.GetHertz()
+	End Method
+
 End Type
 
 

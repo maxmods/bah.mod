@@ -497,6 +497,21 @@ Type TGTKDesktop Extends TGTKGadget
 	Method ClientHeight:Int()
 		Return height
 	End Method
+	
+	Rem
+	bbdoc: Returns the desktop depth.
+	End Rem
+	Method GetDepth:Int()
+		Local visual:Byte Ptr = gdk_screen_get_system_visual(handle)
+		Return gdk_visual_get_depth(visual)
+	End Method
+	
+	Rem
+	bbdoc: Returns the desktop hertz.
+	End Rem
+	Method GetHertz:Int()
+		Return 60 ' some generic default since we aren't using gdk3
+	End Method
 
 End Type
 

@@ -375,6 +375,8 @@ Extern
 	Function gdk_screen_get_height:Int(handle:Byte Ptr)
 	Function gdk_screen_get_root_window:Byte Ptr(screen:Byte Ptr)
 	Function gdk_screen_get_display:Byte Ptr(screen:Byte Ptr)
+	Function gdk_screen_get_system_visual:Byte Ptr(screen:Byte Ptr)
+	Function gdk_visual_get_depth:Int(visual:Byte Ptr)
 
 	Function gdk_pixbuf_new_from_data:Byte Ptr(data:Byte Ptr, colorspace:Int, ..
 					has_alpha:Int, bits_per_sample:Int, width:Int, height:Int, ..
