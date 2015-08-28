@@ -131,7 +131,7 @@ void bmx_serial_listports(BBObject * list) {
 				}
 
 				BBObject * info = CB_PREF(bah_serial_TSerialPortInfo__create)(bbPortName, bbPhysicalName, bbProductName, bbEnumeratorName, bbVendorId, bbProductId);
-				if (info) {
+				if (info && (info != &bbNullObject)) {
 					CB_PREF(bah_serial_TSerialPortInfo__addInfo)(list, info);
 				}
 
