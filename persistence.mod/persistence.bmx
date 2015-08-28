@@ -652,7 +652,15 @@ Type TPersist
 											Select arrayElementType
 												Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
 												
-													Local arrayList:String[] = fieldNode.GetContent().Split(" ")
+													Local arrayList:String[]
+													Local content:String = fieldNode.GetContent().Trim()
+
+													If content Then
+														arrayList = content.Split(" ")
+													Else
+														arrayList = New String[0]
+													End If
+													
 													Local arrayObj:Object = arrayType.NewArray(arrayList.length, scalesi)
 													fieldObj.Set(obj, arrayObj)
 													
