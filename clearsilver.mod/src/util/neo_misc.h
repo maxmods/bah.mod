@@ -179,7 +179,7 @@ void ne_set_log (int level);
  */
 #if defined(USE_C99_VARARG_MACROS)
 #define ne_log(l,f,...) \
-   ne_logf(__PRETTY_FUNCTION__,__FILE__,__LINE__,l,f,__VA_ARGS__)
+   ne_logf(__PRETTY_FUNCTION__,__FILE__,__LINE__,l,f,##__VA_ARGS__)
 #elif defined(USE_GNUC_VARARG_MACROS)
 #define ne_log(l,f,a...) \
    ne_logf(__PRETTY_FUNCTION__,__FILE__,__LINE__,l,f,##a)
@@ -213,7 +213,7 @@ void ne_logf(const char *func, const char *file, int lineno, int level,
  */
 #if defined(USE_C99_VARARG_MACROS)
 #define ne_warn(f,...) \
-   ne_logf(__PRETTY_FUNCTION__,__FILE__,__LINE__,NE_LOG_WARN,f,__VA_ARGS__)
+   ne_logf(__PRETTY_FUNCTION__,__FILE__,__LINE__,NE_LOG_WARN,f,##__VA_ARGS__)
 #elif defined(USE_GNUC_VARARG_MACROS)
 #define ne_warn(f,a...) \
    ne_logf(__PRETTY_FUNCTION__,__FILE__,__LINE__,NE_LOG_WARN,f,##a)
