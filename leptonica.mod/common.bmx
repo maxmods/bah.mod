@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2013 Bruce A Henderson
+' Copyright (c) 2009-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ Extern
 	Function pixInitAccumulate:Byte Ptr(w:Int, h:Int, offset:Int)
 	Function pixFinalAccumulate:Byte Ptr(handle:Byte Ptr, offset:Int, depth:Int)
 	Function pixFinalAccumulateThreshold:Byte Ptr(handle:Byte Ptr, offset:Int, threshold:Int)
-	Function pixAccumulate(handle:Byte Ptr, source:Byte Ptr, op:Int)
+	Function pixAccumulate:Int(handle:Byte Ptr, source:Byte Ptr, op:Int)
 	Function pixMultConstAccumulate:Int(handle:Byte Ptr, factor:Float, offset:Int)
 	Function pixAbsDifference:Byte Ptr(handle:Byte Ptr, pix:Byte Ptr)
 	Function pixMinOrMax:Byte Ptr(pix:Byte Ptr, pix1:Byte Ptr, pix2:Byte Ptr, minMax:Int)
@@ -135,7 +135,7 @@ Extern
 	Function bmx_boxFree(handle:Byte Ptr)
 
 	Function ptaCreate:Byte Ptr(size:Int)
-	Function ptaAddPt(handle:Byte Ptr, x:Float, y:Float)
+	Function ptaAddPt:Int(handle:Byte Ptr, x:Float, y:Float)
 	Function ptaExtendArrays:Int(handle:Byte Ptr)
 	Function ptaJoin:Int(handle:Byte Ptr, source:Byte Ptr, iStart:Int, iEnd:Int)
 	Function ptaReverse:Byte Ptr(handle:Byte Ptr, pointType:Int)
