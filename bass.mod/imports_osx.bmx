@@ -1,0 +1,6 @@
+SuperStrict
+
+?macos
+Import "-lbass"
+?
+

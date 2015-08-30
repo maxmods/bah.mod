@@ -5,8 +5,11 @@
 SuperStrict
 
 Framework BaH.Bass
+?Not bmxng
 Import BRL.GLMax2D
-
+?bmxng
+Import sdl.gl2sdlmax2d
+?
 
 If Not TBass.Init(-1,44100,0,Null,Null) Then
 	DebugLog "Can't initialize device : " + TBass.ErrorGetCode()
@@ -19,12 +22,14 @@ BASS_SetConfig(BASS_CONFIG_NET_PREBUF,0) ' minimize automatic pre-buffering, so 
 
 Local isMod:Int = False
 
-' rocking!
-Local url:String = "http://www.sky.fm/mp3/soundtracks.pls"
+' cinemix.us
+Local url:String = "http://209.9.238.4:6046/listen.pls"
 
 Local syncData:TBassSyncData = New TBassSyncData
 
 Local channel:TBassChannel = New TBassStream.StreamCreateURL(url, 0, BASS_SAMPLE_FLOAT|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE, Null, Null)
+
+Local messageList:String[20]
 
 If channel Then
 
@@ -43,7 +48,7 @@ If channel Then
 		Next
 
 	
-	Graphics 640, 480, 0
+	Graphics 1024, 768, 0
 
 	Local active:Int = channel.IsActive()
 	
@@ -55,7 +60,8 @@ If channel Then
 		If syncData.IsSet() Then
 			tags = channel.getTags(BASS_TAG_META)
 			For Local s:String = EachIn tags
-				DebugLog "meta : " + s
+				addMessage(s, messageList)
+				'DebugLog "meta : " + s
 			Next
 		End If
 
@@ -85,6 +91,10 @@ If channel Then
 			DrawRect 100 - lwidth, 100, lwidth, 20
 			DrawRect 110, 100, _right / 410.0, 20
 		End If
+		
+		For Local i:Int = 0 Until messageList.length
+			DrawText "* " + messageList[i], 10, 200 + i * 12
+		Next
 
 		DrawText "CPU - " + TBass.GetCPU(), 240, 50
 
@@ -105,4 +115,15 @@ TBass.Free()
 
 End
 
+Function addMessage(text:String, messages:String[])
+
+	Local i:Int = messages.length - 1
+	While i
+		messages[i] = messages[i - 1]
+		i :- 1
+	Wend
+	
+	messages[0] = text
+
+End Function
 

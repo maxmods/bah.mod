@@ -25,7 +25,7 @@ Import BRL.Blitz
 ?win32
 Import "lib/win32/bass.lib"
 ?macos
-Import "-lbass"
+Import "imports_macos.bmx"
 ?linux
 Import "-lbass"
 Import "-pthread"
