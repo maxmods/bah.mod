@@ -39,7 +39,8 @@ ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the 
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.14"
-ModuleInfo "History: Update to SQLite 3.8.8.2."
+ModuleInfo "History: Update to SQLite 3.8.11.1."
+ModuleInfo "History: Added user authentication support."
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Update to SQLite 3.8.2."
 ModuleInfo "History: 1.12"
@@ -79,6 +80,7 @@ ModuleInfo "History: Added hasPrepareSupport() and hasTransactionSupport() metho
 ModuleInfo "History: 1.00 Initial Release"
 ModuleInfo "History: Includes SQLite 3.3.13 source."
 
+ModuleInfo "CC_OPTS: -DSQLITE_USER_AUTHENTICATION"
 
 Import BaH.Database
 
@@ -238,9 +240,29 @@ Type TDBSQLite Extends TDBConnection
 			close()
 		End If
 		
-		Local ret:Int = sqlite3_open(convertISO8859toUTF8(_dbname), Varptr handle)
+		Local s:Byte Ptr = _dbname.ToUTF8String()
+		Local flags:Int = _options.ToInt()
+		If Not flags Then
+			flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+		End If
+		Local ret:Int = sqlite3_open_v2(s, Varptr handle, flags, Null)
+		MemFree(s)
+		
 		If ret = SQLITE_OK Then
 			_isOpen = True
+			
+			' authenticate
+			If _user Then
+				Local u:Byte Ptr = _user.ToUTF8String()
+				Local p:Byte Ptr = _password.ToUTF8String()
+				ret = sqlite3_user_authenticate(handle, u, p, _strlen(p))
+				MemFree(p)
+				MemFree(u)
+				
+				If ret <> SQLITE_OK Then
+					setError("Error authenticating user", Null, TDatabaseError.ERROR_CONNECTION, ret)
+				End If
+			End If
 
 			Return True
 		Else
@@ -328,9 +350,14 @@ Type TDBSQLite Extends TDBConnection
 			Case 21 Return "Library used incorrectly"
 			Case 22 Return "Uses OS features Not supported on host"
 			Case 23 Return "Authorization denied"
+			Case 24 Return "Auxiliary database format error"
+			Case 25 Return "2nd parameter to sqlite3_bind out of range"
+			Case 26 Return "File opened that is not a database file"
+			Case 27 Return "Notifications from sqlite3_log()"
+			Case 28 Return "Warnings from sqlite3_log()"
 			Case 100 Return "sqlite_step() has another row ready"
 			Case 101 Return "sqlite_step() has finished executing"
-			Default Return ""
+			Default Return "Error " + err
 		End Select
 	End Method
 
@@ -343,7 +370,7 @@ Type TDBSQLite Extends TDBConnection
 	End Method
 
 	Method clearQueries()
-		For Local q:TSQLiteResultSet = EachIn queries
+		For Local q:TSQLiteResultSet = EachIn queries.Copy()
 			q.free()
 		Next
 		queries.clear()
@@ -363,6 +390,68 @@ Type TDBSQLite Extends TDBConnection
 	
 	Method removeQuery(query:TSQLiteResultSet)
 		queries.remove(query)
+	End Method
+	
+	Method addUser(username:String, password:String, isAdmin:Int = False)
+		If username Then
+			Local n:Byte Ptr = username.ToUTF8String()
+			Local p:Byte Ptr
+			Local plen:Int
+			If password Then
+				p = password.ToUTF8String()
+				plen = _strlen(p)
+			End If
+		
+			Local res:Int = sqlite3_user_add(handle, n, p, plen, isAdmin)
+			
+			If p Then
+				MemFree(p)
+			End If
+			MemFree(n)
+
+			If res <> SQLITE_OK Then
+				setError("Error adding user", Null, TDatabaseError.ERROR_CONNECTION, res)
+			End If
+		
+		End If
+	End Method
+	
+	Method modifyUser(username:String, password:String, isAdmin:Int = False)
+		If username Then
+			Local n:Byte Ptr = username.ToUTF8String()
+			Local p:Byte Ptr
+			Local plen:Int
+			If password Then
+				p = password.ToUTF8String()
+				plen = _strlen(p)
+			End If
+		
+			Local res:Int = sqlite3_user_change(handle, n, p, plen, isAdmin)
+			
+			If p Then
+				MemFree(p)
+			End If
+			MemFree(n)
+
+			If res <> SQLITE_OK Then
+				setError("Error changing user", Null, TDatabaseError.ERROR_CONNECTION, res)
+			End If
+		
+		End If
+	End Method
+	
+	Method deleteUser(username:String)
+		If username Then
+			Local n:Byte Ptr = username.ToUTF8String()
+
+			Local res:Int = sqlite3_user_delete(handle, n)
+			
+			MemFree(n)
+
+			If res <> SQLITE_OK Then
+				setError("Error deleting user", Null, TDatabaseError.ERROR_CONNECTION, res)
+			End If
+		EndIf
 	End Method
 	
 End Type
@@ -434,9 +523,10 @@ Type TSQLiteResultSet Extends TQueryResultSet
 			query = stmt
 		End If
 		
-		Local q:String = convertISO8859toUTF8(query)
+		Local q:Byte Ptr = query.ToUTF8String()
 		
-		Local result:Int = sqlite3_prepare_v2(TDBSQLite(conn).handle, q, q.length , Varptr stmtHandle, 0)
+		Local result:Int = sqlite3_prepare_v2(TDBSQLite(conn).handle, q, _strlen(q) , Varptr stmtHandle, 0)
+		MemFree(q)
 		If result <> SQLITE_OK Then
 			conn.setError("Error preparing statement", convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
 		
@@ -485,13 +575,15 @@ Type TSQLiteResultSet Extends TQueryResultSet
 						Case DBTYPE_LONG
 							result = sqlite3_bind_int64(stmtHandle, i + 1, values[i].getLong())
 						Case DBTYPE_STRING
-							Local s:String = convertISO8859toUTF8(values[i].getString())
-							result = sqlite3_bind_text(stmtHandle, i + 1, s, s.length, -1)
+							Local s:Byte Ptr = values[i].getString().ToUTF8String()
+							result = sqlite3_bind_text(stmtHandle, i + 1, s, _strlen(s), -1)
+							MemFree(s)
 						Case DBTYPE_BLOB
 							result = sqlite3_bind_blob(stmtHandle, i + 1, values[i].getBlob(), values[i].size(), 0)
 						Case DBTYPE_DATE, DBTYPE_DATETIME, DBTYPE_TIME
-							Local s:String = convertISO8859toUTF8(values[i].getString())
-							result = sqlite3_bind_text(stmtHandle, i + 1, s, s.length, -1)
+							Local s:Byte Ptr = values[i].getString().ToUTF8String()
+							result = sqlite3_bind_text(stmtHandle, i + 1, s, _strlen(s), -1)
+							MemFree(s)
 					End Select
 					
 				End If

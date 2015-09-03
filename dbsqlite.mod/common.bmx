@@ -72,10 +72,20 @@ Const SQLITE_TEXT:Int =     3
 Const SQLITE_BLOB:Int =     4
 Const SQLITE_NULL:Int =     5
 
+Const SQLITE_OPEN_READONLY:Int = $00000001
+Const SQLITE_OPEN_READWRITE:Int = $00000002
+Const SQLITE_OPEN_CREATE:Int = $00000004
+Const SQLITE_OPEN_URI:Int = $00000040
+Const SQLITE_OPEN_MEMORY:Int = $00000080
+Const SQLITE_OPEN_NOMUTEX:Int = $00008000
+Const SQLITE_OPEN_FULLMUTEX:Int = $00010000
+Const SQLITE_OPEN_SHAREDCACHE:Int = $00020000
+Const SQLITE_OPEN_PRIVATECACHE:Int = $00040000
+
 ' Externs
 Extern
 	Function sqlite3_close:Int(handle:Byte Ptr)
-	Function sqlite3_open:Int(dbname:Byte Ptr, handle:Byte Ptr)
+	Function sqlite3_open_v2:Int(dhname:Byte Ptr, handle:Byte Ptr, flags:Int, fvs:Byte Ptr)
 	Function sqlite3_prepare_v2:Int(dbhandle:Byte Ptr, sql:Byte Ptr, size:Int, stmtHandle:Byte Ptr Ptr, pzTail:Int)
 	Function sqlite3_finalize(stmtHandle:Byte Ptr)
 	Function sqlite3_reset:Int(stmtHandle:Byte Ptr)
@@ -107,5 +117,10 @@ Extern
 	Function bmx_sqlite3_column_int64(stmtHandle:Byte Ptr, index:Int, value:Long Ptr)
 	Function bmx_sqlite3_last_insert_rowid(handle:Byte Ptr, id:Long Ptr)
 
+	Function sqlite3_user_authenticate:Int(dbhandle:Byte Ptr, username:Byte Ptr, password:Byte Ptr, passlen:Int)
+	Function sqlite3_user_add:Int(dbhandle:Byte Ptr, username:Byte Ptr, password:Byte Ptr, passlen:Int, isAdmin:Int)
+	Function sqlite3_user_change:Int(dbhandle:Byte Ptr, username:Byte Ptr, password:Byte Ptr, passlen:Int, isAdmin:Int)
+	Function sqlite3_user_delete:Int(dbhandle:Byte Ptr, username:Byte Ptr)
+	
 End Extern
 
