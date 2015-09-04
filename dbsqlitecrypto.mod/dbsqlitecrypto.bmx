@@ -84,6 +84,10 @@ ModuleInfo "History: Includes SQLite 3.3.13 source."
 
 ModuleInfo "CC_OPTS: -DSQLITE_USER_AUTHENTICATION -DSQLITE_HAS_CODEC"
 
+?win32x86
+ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
+?
+
 Import BaH.Database
 
 Import "common.bmx"
