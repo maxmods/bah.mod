@@ -35,7 +35,7 @@ ModuleInfo "Version: 1.14"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007-2015 Bruce A Henderson"
-ModuleInfo "Copyright: SQLCipher - 2008, ZETETIC LLC
+ModuleInfo "Copyright: SQLCipher - 2008, ZETETIC LLC"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
