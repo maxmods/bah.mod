@@ -2,17 +2,23 @@
 
 class MaxSSHSession;
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include "blitz.h"
 
-	void _bah_libssh2_TSSHSession__kbdCallback(BBObject * session, BBString * name, BBString * instruction, 
+	void CB_PREF(bah_libssh2_TSSHSession__kbdCallback)(BBObject * session, BBString * name, BBString * instruction, 
 		BBArray * prompts, BBArray * responses);
 
-	BBArray * _bah_libssh2_TSSHSession__newPrompts(int size);
-	void _bah_libssh2_TSSHSession__setPrompt(BBArray * array, int index, const LIBSSH2_USERAUTH_KBDINT_PROMPT * prompt);
-	BBArray * _bah_libssh2_TSSHSession__newResponses(int size);
-	void _bah_libssh2_TSSHSession__setResponse(BBArray * array, int index, LIBSSH2_USERAUTH_KBDINT_RESPONSE * response);
+	BBArray * CB_PREF(bah_libssh2_TSSHSession__newPrompts)(int size);
+	void CB_PREF(bah_libssh2_TSSHSession__setPrompt)(BBArray * array, int index, const LIBSSH2_USERAUTH_KBDINT_PROMPT * prompt);
+	BBArray * CB_PREF(bah_libssh2_TSSHSession__newResponses)(int size);
+	void CB_PREF(bah_libssh2_TSSHSession__setResponse)(BBArray * array, int index, LIBSSH2_USERAUTH_KBDINT_RESPONSE * response);
 	int bmx_libssh2_session_disconnect(MaxSSHSession * session, BBString * description);
 
 	MaxSSHSession * bmx_libssh2_session_create(BBObject * handle);
@@ -87,15 +93,15 @@ void _interactive_callback(const char *name, int name_len,
              LIBSSH2_USERAUTH_KBDINT_RESPONSE *responses,
              void **abstract) {
 
-	BBArray * _prompts = _bah_libssh2_TSSHSession__newPrompts(num_prompts);
-	BBArray * _responses = _bah_libssh2_TSSHSession__newResponses(num_prompts);
+	BBArray * _prompts = CB_PREF(bah_libssh2_TSSHSession__newPrompts)(num_prompts);
+	BBArray * _responses = CB_PREF(bah_libssh2_TSSHSession__newResponses)(num_prompts);
 	
 	for (int i = 0; i < num_prompts; i++) {
-		_bah_libssh2_TSSHSession__setPrompt(_prompts, i, prompts + i);
-		_bah_libssh2_TSSHSession__setResponse(_responses, i, responses + i);
+		CB_PREF(bah_libssh2_TSSHSession__setPrompt)(_prompts, i, prompts + i);
+		CB_PREF(bah_libssh2_TSSHSession__setResponse)(_responses, i, responses + i);
 	}
 
-	_bah_libssh2_TSSHSession__kbdCallback(((MaxSSHSession*)*abstract)->Handle(), bbStringFromBytes(name, name_len),
+	CB_PREF(bah_libssh2_TSSHSession__kbdCallback)(((MaxSSHSession*)*abstract)->Handle(), bbStringFromBytes(name, name_len),
 		bbStringFromBytes(instruction, instruction_len), _prompts, _responses);
 
 }

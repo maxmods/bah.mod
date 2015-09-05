@@ -1014,7 +1014,7 @@ struct _LIBSSH2_MAC_METHOD
 void _libssh2_debug(LIBSSH2_SESSION * session, int context, const char *format,
                     ...);
 #else
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) && !defined(__llvm__)
 /* C99 style */
 #define _libssh2_debug(x,y,z, __VA_ARGS__) do {} while (0)
 #elif defined(__GNUC__)

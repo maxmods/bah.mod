@@ -50,7 +50,7 @@ Extern
 
 	Function curl_global_init:Int(flags:Int)
 	Function curl_easy_init:Byte Ptr()
-	Function curl_easy_setopt(handle:Byte Ptr, option:Int, param:Byte Ptr)
+	Function curl_easy_setopt:Int(handle:Byte Ptr, option:Int, param:Byte Ptr)
 	Function curl_easy_perform:Int(handle:Byte Ptr)
 	Function curl_easy_cleanup(handle:Byte Ptr)
 	Function curl_easy_reset(handle:Byte Ptr)
