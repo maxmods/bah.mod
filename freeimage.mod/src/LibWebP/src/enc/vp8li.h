@@ -1,8 +1,10 @@
 // Copyright 2012 Google Inc. All Rights Reserved.
 //
-// This code is licensed under the same terms as WebM:
-//  Software License Agreement:  http://www.webmproject.org/license/software/
-//  Additional IP Rights Grant:  http://www.webmproject.org/license/additional/
+// Use of this source code is governed by a BSD-style license
+// that can be found in the COPYING file in the root of the source
+// tree. An additional intellectual property rights grant can be found
+// in the file PATENTS. All contributing project authors may
+// be found in the AUTHORS file in the root of the source tree.
 // -----------------------------------------------------------------------------
 //
 // Lossless encoder: internal header.
@@ -12,12 +14,13 @@
 #ifndef WEBP_ENC_VP8LI_H_
 #define WEBP_ENC_VP8LI_H_
 
+#include "./backward_references.h"
 #include "./histogram.h"
 #include "../utils/bit_writer.h"
 #include "../webp/encode.h"
 #include "../webp/format_constants.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -43,6 +46,12 @@ typedef struct {
   int use_palette_;
   int palette_size_;
   uint32_t palette_[MAX_PALETTE_SIZE];
+
+  // Some 'scratch' (potentially large) objects.
+  struct VP8LBackwardRefs refs_[2];  // Backward Refs array corresponding to
+                                     // LZ77 & RLE coding.
+  VP8LHashChain hash_chain_;         // HashChain data for constructing
+                                     // backward references.
 } VP8LEncoder;
 
 //------------------------------------------------------------------------------
@@ -55,13 +64,14 @@ int VP8LEncodeImage(const WebPConfig* const config,
                     const WebPPicture* const picture);
 
 // Encodes the main image stream using the supplied bit writer.
+// If 'use_cache' is false, disables the use of color cache.
 WebPEncodingError VP8LEncodeStream(const WebPConfig* const config,
                                    const WebPPicture* const picture,
-                                   VP8LBitWriter* const bw);
+                                   VP8LBitWriter* const bw, int use_cache);
 
 //------------------------------------------------------------------------------
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 }    // extern "C"
 #endif
 

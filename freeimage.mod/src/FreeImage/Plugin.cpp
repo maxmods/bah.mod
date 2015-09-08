@@ -219,6 +219,11 @@ void DLL_CALLCONV
 FreeImage_Initialise(BOOL load_local_plugins_only) {
 	if (s_plugin_reference_count++ == 0) {
 		
+		/*
+		Note: initialize all singletons here 
+		in order to avoid race conditions with multi-threading
+		*/
+
 		// initialise the TagLib singleton
 		TagLib& s = TagLib::instance();
 
@@ -267,6 +272,9 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			s_plugins->AddNode(InitPICT);
 			s_plugins->AddNode(InitRAW);
 			s_plugins->AddNode(InitWEBP);
+#if !(defined(_MSC_VER) && (_MSC_VER <= 1310))
+			s_plugins->AddNode(InitJXR);
+#endif // unsupported by MS Visual Studio 2003 !!!
 			
 			// external plugin initialization
 
@@ -274,19 +282,19 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			if (!load_local_plugins_only) {
 				int count = 0;
 				char buffer[MAX_PATH + 200];
-				char current_dir[2 * _MAX_PATH], module[2 * _MAX_PATH];
+				wchar_t current_dir[2 * _MAX_PATH], module[2 * _MAX_PATH];
 				BOOL bOk = FALSE;
 
 				// store the current directory. then set the directory to the application location
 
-				if (GetCurrentDirectory(2 * _MAX_PATH, current_dir) != 0) {
-					if (GetModuleFileName(NULL, module, 2 * _MAX_PATH) != 0) {
-						char *last_point = strrchr(module, '\\');
+				if (GetCurrentDirectoryW(2 * _MAX_PATH, current_dir) != 0) {
+					if (GetModuleFileNameW(NULL, module, 2 * _MAX_PATH) != 0) {
+						wchar_t *last_point = wcsrchr(module, L'\\');
 
 						if (last_point) {
-							*last_point = '\0';
+							*last_point = L'\0';
 
-							bOk = SetCurrentDirectory(module);
+							bOk = SetCurrentDirectoryW(module);
 						}
 					}
 				}
@@ -327,7 +335,7 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 				// restore the current directory
 
 				if (bOk) {
-					SetCurrentDirectory(current_dir);
+					SetCurrentDirectoryW(current_dir);
 				}
 			}
 #endif // _WIN32

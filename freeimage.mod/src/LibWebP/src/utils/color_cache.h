@@ -1,8 +1,10 @@
 // Copyright 2012 Google Inc. All Rights Reserved.
 //
-// This code is licensed under the same terms as WebM:
-//  Software License Agreement:  http://www.webmproject.org/license/software/
-//  Additional IP Rights Grant:  http://www.webmproject.org/license/additional/
+// Use of this source code is governed by a BSD-style license
+// that can be found in the COPYING file in the root of the source
+// tree. An additional intellectual property rights grant can be found
+// in the file PATENTS. All contributing project authors may
+// be found in the AUTHORS file in the root of the source tree.
 // -----------------------------------------------------------------------------
 //
 // Color Cache for WebP Lossless
@@ -15,14 +17,15 @@
 
 #include "../webp/types.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 // Main color cache struct.
 typedef struct {
   uint32_t *colors_;  // color entries
-  int hash_shift_;    // Hash shift: 32 - hash_bits.
+  int hash_shift_;    // Hash shift: 32 - hash_bits_.
+  int hash_bits_;
 } VP8LColorCache;
 
 static const uint32_t kHashMul = 0x1e35a7bd;
@@ -56,12 +59,15 @@ static WEBP_INLINE int VP8LColorCacheContains(const VP8LColorCache* const cc,
 // Returns false in case of memory error.
 int VP8LColorCacheInit(VP8LColorCache* const color_cache, int hash_bits);
 
+void VP8LColorCacheCopy(const VP8LColorCache* const src,
+                        VP8LColorCache* const dst);
+
 // Delete the memory associated to color cache.
 void VP8LColorCacheClear(VP8LColorCache* const color_cache);
 
 //------------------------------------------------------------------------------
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 }
 #endif
 

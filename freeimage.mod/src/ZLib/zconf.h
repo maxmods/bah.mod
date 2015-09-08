@@ -54,9 +54,9 @@
 #  define deflate_copyright     fi_deflate_copyright
 #  define get_crc_table         fi_get_crc_table
 #  ifndef Z_SOLO
-#    define gz_error              fi_gz_error
-#    define gz_intmax             fi_gz_intmax
-#    define gz_strwinerror        fi_gz_strwinerror
+#    define gfi_error              fi_gfi_error
+#    define gfi_intmax             fi_gfi_intmax
+#    define gfi_strwinerror        fi_gfi_strwinerror
 #    define gzbuffer              fi_gzbuffer
 #    define gzclearerr            fi_gzclearerr
 #    define gzclose               fi_gzclose
@@ -133,8 +133,8 @@
 #  ifndef Z_SOLO
 #    define gzFile                fi_gzFile
 #  endif
-#  define gz_header             fi_gz_header
-#  define gz_headerp            fi_gz_headerp
+#  define gfi_header             fi_gfi_header
+#  define gfi_headerp            fi_gfi_headerp
 #  define in_func               fi_in_func
 #  define intf                  fi_intf
 #  define out_func              fi_out_func
@@ -147,12 +147,13 @@
 #  define voidpf                fi_voidpf
 
 /* all zlib structs in zlib.h and zconf.h */
-#  define gz_header_s           fi_gz_header_s
+#  define gfi_header_s           fi_gfi_header_s
 #  define internal_state        fi_internal_state
 
 /* BaH */
 #  define z_errmsg				fi_z_errmsg
 #endif
+
 
 #if defined(__MSDOS__) && !defined(MSDOS)
 #  define MSDOS

@@ -62,15 +62,17 @@
 //	string of bytes is compressed with zlib.
 //
 //-----------------------------------------------------------------------------
-//#define ZLIB_WINAPI 
 
-#include <ImfPxr24Compressor.h>
-#include <ImfHeader.h>
-#include <ImfChannelList.h>
-#include <ImfMisc.h>
-#include <ImfCheckedArithmetic.h>
+#include "ImfPxr24Compressor.h"
+#include "ImfHeader.h"
+#include "ImfChannelList.h"
+#include "ImfMisc.h"
+#include "ImfCheckedArithmetic.h"
+#include "ImfNamespace.h"
+
 #include <ImathFun.h>
 #include <Iex.h>
+
 #include <half.h>
 #include <zlib.h>
 #include <assert.h>
@@ -83,9 +85,10 @@
 #endif
 
 using namespace std;
-using namespace Imath;
+using namespace IMATH_NAMESPACE;
 
-namespace Imf {
+OPENEXR_IMF_INTERNAL_NAMESPACE_SOURCE_ENTER
+
 namespace {
 
 //
@@ -167,7 +170,7 @@ floatToFloat24 (float f)
 void
 notEnoughData ()
 {
-    throw Iex::InputExc ("Error decompressing data "
+    throw IEX_NAMESPACE::InputExc ("Error decompressing data "
 			 "(input data are shorter than expected).");
 }
 
@@ -175,7 +178,7 @@ notEnoughData ()
 void
 tooMuchData ()
 {
-    throw Iex::InputExc ("Error decompressing data "
+    throw IEX_NAMESPACE::InputExc ("Error decompressing data "
 			 "(input data are longer than expected).");
 }
 
@@ -318,7 +321,7 @@ Pxr24Compressor::compress (const char *inPtr,
 
 	    switch (c.type)
 	    {
-	      case UINT:
+	      case OPENEXR_IMF_INTERNAL_NAMESPACE::UINT:
 
 		ptr[0] = tmpBufferEnd;
 		ptr[1] = ptr[0] + n;
@@ -331,7 +334,7 @@ Pxr24Compressor::compress (const char *inPtr,
 		    unsigned int pixel;
 		    char *pPtr = (char *) &pixel;
 
-		    for (int k = 0; k < sizeof (pixel); ++k)
+		    for (size_t k = 0; k < sizeof (pixel); ++k)
 			*pPtr++ = *inPtr++;
 
 		    unsigned int diff = pixel - previousPixel;
@@ -345,7 +348,7 @@ Pxr24Compressor::compress (const char *inPtr,
 
 		break;
 
-	      case HALF:
+	      case OPENEXR_IMF_INTERNAL_NAMESPACE::HALF:
 
 		ptr[0] = tmpBufferEnd;
 		ptr[1] = ptr[0] + n;
@@ -367,7 +370,7 @@ Pxr24Compressor::compress (const char *inPtr,
 
 		break;
 
-	      case FLOAT:
+	      case OPENEXR_IMF_INTERNAL_NAMESPACE::FLOAT:
 
 		ptr[0] = tmpBufferEnd;
 		ptr[1] = ptr[0] + n;
@@ -379,7 +382,7 @@ Pxr24Compressor::compress (const char *inPtr,
 		    float pixel;
 		    char *pPtr = (char *) &pixel;
 
-		    for (int k = 0; k < sizeof (pixel); ++k)
+		    for (size_t k = 0; k < sizeof (pixel); ++k)
 			*pPtr++ = *inPtr++;
 
 		    unsigned int pixel24 = floatToFloat24 (pixel);
@@ -407,7 +410,7 @@ Pxr24Compressor::compress (const char *inPtr,
 			    (const Bytef *) _tmpBuffer,
 			    tmpBufferEnd - _tmpBuffer))
     {
-	throw Iex::BaseExc ("Data compression (zlib) failed.");
+	throw IEX_NAMESPACE::BaseExc ("Data compression (zlib) failed.");
     }
 
     outPtr = _outBuffer;
@@ -434,7 +437,7 @@ Pxr24Compressor::uncompress (const char *inPtr,
 			      (const Bytef *) inPtr,
 			      inSize))
     {
-	throw Iex::InputExc ("Data decompression (zlib) failed.");
+	throw IEX_NAMESPACE::InputExc ("Data decompression (zlib) failed.");
     }
 
     int minX = range.min.x;
@@ -463,7 +466,7 @@ Pxr24Compressor::uncompress (const char *inPtr,
 
 	    switch (c.type)
 	    {
-	      case UINT:
+	      case OPENEXR_IMF_INTERNAL_NAMESPACE::UINT:
 
 		ptr[0] = tmpBufferEnd;
 		ptr[1] = ptr[0] + n;
@@ -471,7 +474,7 @@ Pxr24Compressor::uncompress (const char *inPtr,
 		ptr[3] = ptr[2] + n;
 		tmpBufferEnd = ptr[3] + n;
 
-		if (tmpBufferEnd - _tmpBuffer > tmpSize)
+		if ( (uLongf)(tmpBufferEnd - _tmpBuffer) > tmpSize)
 		    notEnoughData();
 
 		for (int j = 0; j < n; ++j)
@@ -485,19 +488,19 @@ Pxr24Compressor::uncompress (const char *inPtr,
 
 		    char *pPtr = (char *) &pixel;
 
-		    for (int k = 0; k < sizeof (pixel); ++k)
+		    for (size_t k = 0; k < sizeof (pixel); ++k)
 			*writePtr++ = *pPtr++;
 		}
 
 		break;
 
-	      case HALF:
+	      case OPENEXR_IMF_INTERNAL_NAMESPACE::HALF:
 
 		ptr[0] = tmpBufferEnd;
 		ptr[1] = ptr[0] + n;
 		tmpBufferEnd = ptr[1] + n;
 
-		if (tmpBufferEnd - _tmpBuffer > tmpSize)
+        if ( (uLongf)(tmpBufferEnd - _tmpBuffer) > tmpSize)
 		    notEnoughData();
 
 		for (int j = 0; j < n; ++j)
@@ -514,14 +517,14 @@ Pxr24Compressor::uncompress (const char *inPtr,
 
 		break;
 
-	      case FLOAT:
+	      case OPENEXR_IMF_INTERNAL_NAMESPACE::FLOAT:
 
 		ptr[0] = tmpBufferEnd;
 		ptr[1] = ptr[0] + n;
 		ptr[2] = ptr[1] + n;
 		tmpBufferEnd = ptr[2] + n;
 
-		if (tmpBufferEnd - _tmpBuffer > tmpSize)
+        if ( (uLongf) (tmpBufferEnd - _tmpBuffer) > tmpSize)
 		    notEnoughData();
 
 		for (int j = 0; j < n; ++j)
@@ -533,7 +536,7 @@ Pxr24Compressor::uncompress (const char *inPtr,
 
 		    char *pPtr = (char *) &pixel;
 
-		    for (int k = 0; k < sizeof (pixel); ++k)
+		    for (size_t k = 0; k < sizeof (pixel); ++k)
 			*writePtr++ = *pPtr++;
 		}
 
@@ -546,11 +549,11 @@ Pxr24Compressor::uncompress (const char *inPtr,
 	}
     }
 
-    if (tmpBufferEnd - _tmpBuffer < tmpSize)
+    if ((uLongf) (tmpBufferEnd - _tmpBuffer) < tmpSize)
 	tooMuchData();
 
     outPtr = _outBuffer;
     return writePtr - _outBuffer;
 }
 
-} // namespace Imf
+OPENEXR_IMF_INTERNAL_NAMESPACE_SOURCE_EXIT

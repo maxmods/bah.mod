@@ -1,57 +1,65 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 //
-// This code is licensed under the same terms as WebM:
-//  Software License Agreement:  http://www.webmproject.org/license/software/
-//  Additional IP Rights Grant:  http://www.webmproject.org/license/additional/
+// Use of this source code is governed by a BSD-style license
+// that can be found in the COPYING file in the root of the source
+// tree. An additional intellectual property rights grant can be found
+// in the file PATENTS. All contributing project authors may
+// be found in the AUTHORS file in the root of the source tree.
 // -----------------------------------------------------------------------------
 //
-//  RIFF container manipulation for WEBP images.
+//  RIFF container manipulation and encoding for WebP images.
 //
 // Authors: Urvang (urvang@google.com)
 //          Vikas (vikasa@google.com)
 
-// This API allows manipulation of WebP container images containing features
-// like color profile, metadata, animation and fragmented images.
-//
-// Code Example#1: Creating a MUX with image data, color profile and XMP
-// metadata.
-//
-//   int copy_data = 0;
-//   WebPMux* mux = WebPMuxNew();
-//   // ... (Prepare image data).
-//   WebPMuxSetImage(mux, &image, copy_data);
-//   // ... (Prepare ICCP color profile data).
-//   WebPMuxSetChunk(mux, "ICCP", &icc_profile, copy_data);
-//   // ... (Prepare XMP metadata).
-//   WebPMuxSetChunk(mux, "XMP ", &xmp, copy_data);
-//   // Get data from mux in WebP RIFF format.
-//   WebPMuxAssemble(mux, &output_data);
-//   WebPMuxDelete(mux);
-//   // ... (Consume output_data; e.g. write output_data.bytes to file).
-//   WebPDataClear(&output_data);
-//
-// Code Example#2: Get image and color profile data from a WebP file.
-//
-//   int copy_data = 0;
-//   // ... (Read data from file).
-//   WebPMux* mux = WebPMuxCreate(&data, copy_data);
-//   WebPMuxGetFrame(mux, 1, &image);
-//   // ... (Consume image; e.g. call WebPDecode() to decode the data).
-//   WebPMuxGetChunk(mux, "ICCP", &icc_profile);
-//   // ... (Consume icc_data).
-//   WebPMuxDelete(mux);
-//   free(data);
-
 #ifndef WEBP_WEBP_MUX_H_
 #define WEBP_WEBP_MUX_H_
 
+#include "./encode.h"
 #include "./mux_types.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#define WEBP_MUX_ABI_VERSION 0x0101        // MAJOR(8b) + MINOR(8b)
+#define WEBP_MUX_ABI_VERSION 0x0103        // MAJOR(8b) + MINOR(8b)
+
+//------------------------------------------------------------------------------
+// Mux API
+//
+// This API allows manipulation of WebP container images containing features
+// like color profile, metadata, animation and fragmented images.
+//
+// Code Example#1: Create a WebPMux object with image data, color profile and
+// XMP metadata.
+/*
+  int copy_data = 0;
+  WebPMux* mux = WebPMuxNew();
+  // ... (Prepare image data).
+  WebPMuxSetImage(mux, &image, copy_data);
+  // ... (Prepare ICCP color profile data).
+  WebPMuxSetChunk(mux, "ICCP", &icc_profile, copy_data);
+  // ... (Prepare XMP metadata).
+  WebPMuxSetChunk(mux, "XMP ", &xmp, copy_data);
+  // Get data from mux in WebP RIFF format.
+  WebPMuxAssemble(mux, &output_data);
+  WebPMuxDelete(mux);
+  // ... (Consume output_data; e.g. write output_data.bytes to file).
+  WebPDataClear(&output_data);
+*/
+
+// Code Example#2: Get image and color profile data from a WebP file.
+/*
+  int copy_data = 0;
+  // ... (Read data from file).
+  WebPMux* mux = WebPMuxCreate(&data, copy_data);
+  WebPMuxGetFrame(mux, 1, &image);
+  // ... (Consume image; e.g. call WebPDecode() to decode the data).
+  WebPMuxGetChunk(mux, "ICCP", &icc_profile);
+  // ... (Consume icc_data).
+  WebPMuxDelete(mux);
+  free(data);
+*/
 
 // Note: forward declaring enumerations is not allowed in (strict) C and C++,
 // the types are left here for reference.
@@ -89,7 +97,7 @@ typedef enum WebPChunkId {
 //------------------------------------------------------------------------------
 
 // Returns the version number of the mux library, packed in hexadecimal using
-// 8bits or each of major/minor/revision. E.g: v2.5.7 is 0x020507.
+// 8bits for each of major/minor/revision. E.g: v2.5.7 is 0x020507.
 WEBP_EXTERN(int) WebPGetMuxVersion(void);
 
 //------------------------------------------------------------------------------
@@ -101,6 +109,7 @@ WEBP_EXTERN(WebPMux*) WebPNewInternal(int);
 // Creates an empty mux object.
 // Returns:
 //   A pointer to the newly created empty mux object.
+//   Or NULL in case of memory error.
 static WEBP_INLINE WebPMux* WebPMuxNew(void) {
   return WebPNewInternal(WEBP_MUX_ABI_VERSION);
 }
@@ -120,7 +129,7 @@ WEBP_EXTERN(WebPMux*) WebPMuxCreateInternal(const WebPData*, int, int);
 // Parameters:
 //   bitstream - (in) the bitstream data in WebP RIFF format
 //   copy_data - (in) value 1 indicates given data WILL be copied to the mux
-//               and value 0 indicates data will NOT be copied.
+//               object and value 0 indicates data will NOT be copied.
 // Returns:
 //   A pointer to the mux object created from given data - on success.
 //   NULL - In case of invalid data or memory error.
@@ -134,8 +143,8 @@ static WEBP_INLINE WebPMux* WebPMuxCreate(const WebPData* bitstream,
 
 // Note: Only non-image related chunks should be managed through chunk APIs.
 // (Image related chunks are: "ANMF", "FRGM", "VP8 ", "VP8L" and "ALPH").
-// To add, get and delete images, use APIs WebPMuxSetImage(),
-// WebPMuxPushFrame(), WebPMuxGetFrame() and WebPMuxDeleteFrame().
+// To add, get and delete images, use WebPMuxSetImage(), WebPMuxPushFrame(),
+// WebPMuxGetFrame() and WebPMuxDeleteFrame().
 
 // Adds a chunk with id 'fourcc' and data 'chunk_data' in the mux object.
 // Any existing chunk(s) with the same id will be removed.
@@ -145,7 +154,7 @@ static WEBP_INLINE WebPMux* WebPMuxCreate(const WebPData* bitstream,
 //                 e.g., "ICCP", "XMP ", "EXIF" etc.
 //   chunk_data - (in) the chunk data to be added
 //   copy_data - (in) value 1 indicates given data WILL be copied to the mux
-//               and value 0 indicates data will NOT be copied.
+//               object and value 0 indicates data will NOT be copied.
 // Returns:
 //   WEBP_MUX_INVALID_ARGUMENT - if mux, fourcc or chunk_data is NULL
 //                               or if fourcc corresponds to an image chunk.
@@ -197,7 +206,8 @@ struct WebPMuxFrameInfo {
   WebPChunkId id;         // frame type: should be one of WEBP_CHUNK_ANMF,
                           // WEBP_CHUNK_FRGM or WEBP_CHUNK_IMAGE
   WebPMuxAnimDispose dispose_method;  // Disposal method for the frame.
-  uint32_t    pad[2];     // padding for later use
+  WebPMuxAnimBlend   blend_method;    // Blend operation for the frame.
+  uint32_t    pad[1];     // padding for later use
 };
 
 // Sets the (non-animated and non-fragmented) image in the mux object.
@@ -207,7 +217,7 @@ struct WebPMuxFrameInfo {
 //   bitstream - (in) can be a raw VP8/VP8L bitstream or a single-image
 //               WebP file (non-animated and non-fragmented)
 //   copy_data - (in) value 1 indicates given data WILL be copied to the mux
-//               and value 0 indicates data will NOT be copied.
+//               object and value 0 indicates data will NOT be copied.
 // Returns:
 //   WEBP_MUX_INVALID_ARGUMENT - if mux is NULL or bitstream is NULL.
 //   WEBP_MUX_MEMORY_ERROR - on memory allocation error.
@@ -226,7 +236,7 @@ WEBP_EXTERN(WebPMuxError) WebPMuxSetImage(
 //   mux - (in/out) object to which the frame is to be added
 //   frame - (in) frame data.
 //   copy_data - (in) value 1 indicates given data WILL be copied to the mux
-//               and value 0 indicates data will NOT be copied.
+//               object and value 0 indicates data will NOT be copied.
 // Returns:
 //   WEBP_MUX_INVALID_ARGUMENT - if mux or frame is NULL
 //                               or if content of 'frame' is invalid.
@@ -248,6 +258,7 @@ WEBP_EXTERN(WebPMuxError) WebPMuxPushFrame(
 //   WEBP_MUX_INVALID_ARGUMENT - if mux or frame is NULL.
 //   WEBP_MUX_NOT_FOUND - if there are less than nth frames in the mux object.
 //   WEBP_MUX_BAD_DATA - if nth frame chunk in mux is invalid.
+//   WEBP_MUX_MEMORY_ERROR - on memory allocation error.
 //   WEBP_MUX_OK - on success.
 WEBP_EXTERN(WebPMuxError) WebPMuxGetFrame(
     const WebPMux* mux, uint32_t nth, WebPMuxFrameInfo* frame);
@@ -303,10 +314,28 @@ WEBP_EXTERN(WebPMuxError) WebPMuxGetAnimationParams(
 //------------------------------------------------------------------------------
 // Misc Utilities.
 
+// Sets the canvas size for the mux object. The width and height can be
+// specified explicitly or left as zero (0, 0).
+// * When width and height are specified explicitly, then this frame bound is
+//   enforced during subsequent calls to WebPMuxAssemble() and an error is
+//   reported if any animated frame does not completely fit within the canvas.
+// * When unspecified (0, 0), the constructed canvas will get the frame bounds
+//   from the bounding-box over all frames after calling WebPMuxAssemble().
+// Parameters:
+//   mux - (in) object to which the canvas size is to be set
+//   width - (in) canvas width
+//   height - (in) canvas height
+// Returns:
+//   WEBP_MUX_INVALID_ARGUMENT - if mux is NULL; or
+//                               width or height are invalid or out of bounds
+//   WEBP_MUX_OK - on success.
+WEBP_EXTERN(WebPMuxError) WebPMuxSetCanvasSize(WebPMux* mux,
+                                               int width, int height);
+
 // Gets the canvas size from the mux object.
-// Note: This method assumes that VP8X chunk, if present, is up-to-date. That
-// is, the mux object hasn't been modified since the last call to
-// WebPMuxAssemble() or WebMuxCreate().
+// Note: This method assumes that the VP8X chunk, if present, is up-to-date.
+// That is, the mux object hasn't been modified since the last call to
+// WebPMuxAssemble() or WebPMuxCreate().
 // Parameters:
 //   mux - (in) object from which the canvas size is to be fetched
 //   width - (out) canvas width
@@ -319,9 +348,9 @@ WEBP_EXTERN(WebPMuxError) WebPMuxGetCanvasSize(const WebPMux* mux,
                                                int* width, int* height);
 
 // Gets the feature flags from the mux object.
-// Note: This method assumes that VP8X chunk, if present, is up-to-date. That
-// is, the mux object hasn't been modified since the last call to
-// WebPMuxAssemble() or WebMuxCreate().
+// Note: This method assumes that the VP8X chunk, if present, is up-to-date.
+// That is, the mux object hasn't been modified since the last call to
+// WebPMuxAssemble() or WebPMuxCreate().
 // Parameters:
 //   mux - (in) object from which the features are to be fetched
 //   flags - (out) the flags specifying which features are present in the
@@ -334,7 +363,7 @@ WEBP_EXTERN(WebPMuxError) WebPMuxGetCanvasSize(const WebPMux* mux,
 WEBP_EXTERN(WebPMuxError) WebPMuxGetFeatures(const WebPMux* mux,
                                              uint32_t* flags);
 
-// Gets number of chunks having tag value tag in the mux object.
+// Gets number of chunks with the given 'id' in the mux object.
 // Parameters:
 //   mux - (in) object from which the info is to be fetched
 //   id - (in) chunk id specifying the type of chunk
@@ -350,7 +379,8 @@ WEBP_EXTERN(WebPMuxError) WebPMuxNumChunks(const WebPMux* mux,
 // Note: The content of 'assembled_data' will be ignored and overwritten.
 // Also, the content of 'assembled_data' is allocated using malloc(), and NOT
 // owned by the 'mux' object. It MUST be deallocated by the caller by calling
-// WebPDataClear().
+// WebPDataClear(). It's always safe to call WebPDataClear() upon return,
+// even in case of error.
 // Parameters:
 //   mux - (in/out) object whose chunks are to be assembled
 //   assembled_data - (out) assembled WebP data
@@ -363,8 +393,114 @@ WEBP_EXTERN(WebPMuxError) WebPMuxAssemble(WebPMux* mux,
                                           WebPData* assembled_data);
 
 //------------------------------------------------------------------------------
+// WebPAnimEncoder API
+//
+// This API allows encoding (possibly) animated WebP images.
+//
+// Code Example:
+/*
+  WebPAnimEncoderOptions enc_options;
+  WebPAnimEncoderOptionsInit(&enc_options);
+  // Tune 'enc_options' as needed.
+  WebPAnimEncoder* enc = WebPAnimEncoderNew(width, height, &enc_options);
+  while(<there are more frames>) {
+    WebPConfig config;
+    WebPConfigInit(&config);
+    // Tune 'config' as needed.
+    WebPAnimEncoderAdd(enc, frame, duration, &config);
+  }
+  WebPAnimEncoderAssemble(enc, webp_data);
+  WebPAnimEncoderDelete(enc);
+  // Write the 'webp_data' to a file, or re-mux it further.
+*/
 
-#if defined(__cplusplus) || defined(c_plusplus)
+typedef struct WebPAnimEncoder WebPAnimEncoder;  // Main opaque object.
+
+// Global options.
+typedef struct {
+  WebPMuxAnimParams anim_params;  // Animation parameters.
+  int minimize_size;    // If true, minimize the output size (slow). Implicitly
+                        // disables key-frame insertion.
+  int kmin;
+  int kmax;             // Minimum and maximum distance between consecutive key
+                        // frames in the output. The library may insert some key
+                        // frames as needed to satisfy this criteria.
+                        // Note that these conditions should hold: kmax > kmin
+                        // and kmin >= kmax / 2 + 1. Also, if kmin == 0, then
+                        // key-frame insertion is disabled; and if kmax == 0,
+                        // then all frames will be key-frames.
+  int allow_mixed;      // If true, use mixed compression mode; may choose
+                        // either lossy and lossless for each frame.
+
+  // TODO(urvang): Instead of printing errors to STDERR, we should have an error
+  // string attached to the encoder.
+  int verbose;          // If true, print encoding info.
+  uint32_t padding[4];  // Padding for later use.
+} WebPAnimEncoderOptions;
+
+// Internal, version-checked, entry point.
+WEBP_EXTERN(int) WebPAnimEncoderOptionsInitInternal(
+    WebPAnimEncoderOptions*, int);
+
+// Should always be called, to initialize a fresh WebPAnimEncoderOptions
+// structure before modification. Returns false in case of version mismatch.
+// WebPAnimEncoderOptionsInit() must have succeeded before using the 'options'
+// object.
+static WEBP_INLINE int WebPAnimEncoderOptionsInit(
+    WebPAnimEncoderOptions* enc_options) {
+  return WebPAnimEncoderOptionsInitInternal(enc_options, WEBP_MUX_ABI_VERSION);
+}
+
+// Internal, version-checked, entry point.
+WEBP_EXTERN(WebPAnimEncoder*) WebPAnimEncoderNewInternal(
+    int, int, const WebPAnimEncoderOptions*, int);
+
+// Creates and initializes a WebPAnimEncoder object.
+// Parameters:
+//   width/height - (in) canvas width and height of the animation.
+//   encoder_options - (in) encoding options; can be passed NULL to pick
+//                     reasonable defaults.
+// Returns:
+//   A pointer to the newly created WebPAnimEncoder object.
+//   Or NULL in case of memory error.
+static WEBP_INLINE WebPAnimEncoder* WebPAnimEncoderNew(
+    int width, int height, const WebPAnimEncoderOptions* enc_options) {
+  return WebPAnimEncoderNewInternal(width, height, enc_options,
+                                    WEBP_MUX_ABI_VERSION);
+}
+
+// Optimize the given frame for WebP, encode it and add it to the
+// WebPAnimEncoder object.
+// Parameters:
+//   enc - (in/out) object to which the frame is to be added.
+//   frame - (in/out) frame data in ARGB or YUVA format.
+//   duration - (in) frame duration
+//   config - (in) encoding options; can be passed NULL to pick
+//            reasonable defaults.
+// Returns:
+//   On error, returns false and frame->error_code is set appropriately.
+//   Otherwise, returns true.
+WEBP_EXTERN(int) WebPAnimEncoderAdd(
+    WebPAnimEncoder* enc, WebPPicture* frame, int duration,
+    const WebPConfig* config);
+
+// Assemble all frames added so far into a WebP bitstream.
+// Parameters:
+//   enc - (in/out) object from which the frames are to be assembled.
+//   webp_data - (out) generated WebP bitstream.
+// Returns:
+//   True on success.
+WEBP_EXTERN(int) WebPAnimEncoderAssemble(WebPAnimEncoder* enc,
+                                         WebPData* webp_data);
+
+// Deletes the WebPAnimEncoder object.
+// Parameters:
+//   anim_enc - (in/out) object to be deleted
+WEBP_EXTERN(void) WebPAnimEncoderDelete(WebPAnimEncoder* anim_enc);
+
+//------------------------------------------------------------------------------
+
+#ifdef __cplusplus
 }    // extern "C"
 #endif
 

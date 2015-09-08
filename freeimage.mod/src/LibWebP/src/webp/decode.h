@@ -1,8 +1,10 @@
 // Copyright 2010 Google Inc. All Rights Reserved.
 //
-// This code is licensed under the same terms as WebM:
-//  Software License Agreement:  http://www.webmproject.org/license/software/
-//  Additional IP Rights Grant:  http://www.webmproject.org/license/additional/
+// Use of this source code is governed by a BSD-style license
+// that can be found in the COPYING file in the root of the source
+// tree. An additional intellectual property rights grant can be found
+// in the file PATENTS. All contributing project authors may
+// be found in the AUTHORS file in the root of the source tree.
 // -----------------------------------------------------------------------------
 //
 //  Main decoding functions for WebP images.
@@ -14,11 +16,11 @@
 
 #include "./types.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#define WEBP_DECODER_ABI_VERSION 0x0201    // MAJOR(8b) + MINOR(8b)
+#define WEBP_DECODER_ABI_VERSION 0x0205    // MAJOR(8b) + MINOR(8b)
 
 // Note: forward declaring enumerations is not allowed in (strict) C and C++,
 // the types are left here for reference.
@@ -402,9 +404,9 @@ struct WebPBitstreamFeatures {
   int height;         // Height in pixels, as read from the bitstream.
   int has_alpha;      // True if the bitstream contains an alpha channel.
   int has_animation;  // True if the bitstream is an animation.
+  int format;         // 0 = undefined (/mixed), 1 = lossy, 2 = lossless
 
   // Unused for now:
-  int bitstream_version;        // should be 0 for now. TODO(later)
   int no_incremental_decoding;  // if true, using incremental decoding is not
                                 // recommended.
   int rotate;                   // TODO(later)
@@ -439,11 +441,14 @@ struct WebPDecoderOptions {
   int use_scaling;                    // if true, scaling is applied _afterward_
   int scaled_width, scaled_height;    // final resolution
   int use_threads;                    // if true, use multi-threaded decoding
+  int dithering_strength;             // dithering strength (0=Off, 100=full)
+  int flip;                           // flip output vertically
+  int alpha_dithering_strength;       // alpha dithering strength in [0..100]
 
   // Unused for now:
   int force_rotation;                 // forced rotation (to be applied _last_)
   int no_enhancement;                 // if true, discard enhancement layer
-  uint32_t pad[6];                    // padding for later use
+  uint32_t pad[3];                    // padding for later use
 };
 
 // Main object storing the configuration for advanced decoding.
@@ -481,7 +486,7 @@ WEBP_EXTERN(WebPIDecoder*) WebPIDecode(const uint8_t* data, size_t data_size,
 WEBP_EXTERN(VP8StatusCode) WebPDecode(const uint8_t* data, size_t data_size,
                                       WebPDecoderConfig* config);
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 }    // extern "C"
 #endif
 

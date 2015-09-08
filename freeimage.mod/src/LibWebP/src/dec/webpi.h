@@ -1,8 +1,10 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 //
-// This code is licensed under the same terms as WebM:
-//  Software License Agreement:  http://www.webmproject.org/license/software/
-//  Additional IP Rights Grant:  http://www.webmproject.org/license/additional/
+// Use of this source code is governed by a BSD-style license
+// that can be found in the COPYING file in the root of the source
+// tree. An additional intellectual property rights grant can be found
+// in the file PATENTS. All contributing project authors may
+// be found in the AUTHORS file in the root of the source tree.
 // -----------------------------------------------------------------------------
 //
 // Internal header: WebP decoding parameters and custom IO on buffer
@@ -12,7 +14,7 @@
 #ifndef WEBP_DEC_WEBPI_H_
 #define WEBP_DEC_WEBPI_H_
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -52,6 +54,7 @@ void WebPResetDecParams(WebPDecParams* const params);
 typedef struct {
   const uint8_t* data;         // input buffer
   size_t data_size;            // input buffer size
+  int have_all_data;           // true if all data is known to be available
   size_t offset;               // offset to main data chunk (VP8 or VP8L)
   const uint8_t* alpha_data;   // points to alpha chunk (if present)
   size_t alpha_data_size;      // alpha chunk size
@@ -91,9 +94,14 @@ int WebPIoInitFromOptions(const WebPDecoderOptions* const options,
 // dimension / etc.). If *options is not NULL, also verify that the options'
 // parameters are valid and apply them to the width/height dimensions of the
 // output buffer. This takes cropping / scaling / rotation into account.
+// Also incorporates the options->flip flag to flip the buffer parameters if
+// needed.
 VP8StatusCode WebPAllocateDecBuffer(int width, int height,
                                     const WebPDecoderOptions* const options,
                                     WebPDecBuffer* const buffer);
+
+// Flip buffer vertically by negating the various strides.
+VP8StatusCode WebPFlipBuffer(WebPDecBuffer* const buffer);
 
 // Copy 'src' into 'dst' buffer, making sure 'dst' is not marked as owner of the
 // memory (still held by 'src').
@@ -103,11 +111,9 @@ void WebPCopyDecBuffer(const WebPDecBuffer* const src,
 // Copy and transfer ownership from src to dst (beware of parameter order!)
 void WebPGrabDecBuffer(WebPDecBuffer* const src, WebPDecBuffer* const dst);
 
-
-
 //------------------------------------------------------------------------------
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 }    // extern "C"
 #endif
 
