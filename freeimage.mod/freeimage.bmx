@@ -33,6 +33,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Updated to FreeImage 3.17. Adds JXR support."
+ModuleInfo "History: Added rescaleRect(), tmoReinhard05Ex(), tmoFattal02(), convertToRGBAF() and convertToRGBA16() methods."
 ModuleInfo "History: 1.08"
 ModuleInfo "History: Updated to FreeImage 3.16. Adds WebP format."
 ModuleInfo "History: Added GetFormatFromName() and FormatSupportsNoPixels() functions."
@@ -832,19 +833,45 @@ Type TFreeImage
 		Return handler.stream.write(c, n)
 
 	End Function
-	
+
+?Not ptr64
 	Function tell:Int(handler:TFreeImage)
 		Return handler.stream.pos()
 	End Function
-
+?ptr64
+	Function tell:Long(handler:TFreeImage)
+		Return handler.stream.pos()
+	End Function
+?
 	Function seek(handler:TFreeImage, pos:Int)
 		handler.stream.seek(pos)
 	End Function
 	
+?Not ptr64
 	Function size:Int(handler:TFreeImage, pos:Int)
 		Return handler.stream.size()
 	End Function
+?ptr64
+	Function size:Long(handler:TFreeImage, pos:Int)
+		Return handler.stream.size()
+	End Function
+?	
+	Rem
+	bbdoc: Returns the size of the DIB-element of a FIBITMAP in memory
+	about: The BITMAPINFOHEADER + palette + data bits (note that this is not the real size of a FIBITMAP, only the size of its DIB-element).
+	End Rem
+	Method getDIBSize:Int()
+		Return bmx_freeimage_GetDIBSize(freeImagePtr)
+	End Method
 	
+	Rem
+	bbdoc: Calculates (or at least estimates) the total memory usage of a FreeImage bitmap.
+	about: This includes the ICC profile size, the size of the embedded thumbnail (if any), the memory required for
+	all the metadata, as well as any FreeImage internal (housekeeping) memory.
+	End Rem
+	Method getMemorySize:Int()
+		Return bmx_freeimage_GetMemorySize(freeImagePtr)
+	End Method
 	
 	Rem
 	bbdoc: Gets the @current pixmap for the image.
@@ -896,6 +923,15 @@ Type TFreeImage
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method rescaleRect:TFreeImage(destWidth:Int, destHeight:Int, srcleft:Int, srcTop:Int, srcRight:Int, srcBottom:Int, filter:Int = FILTER_CATMULLROM, flags:Int = 0)
+	
+		Return TFreeImage.CreateFromBitmap(bmx_freeimage_RescaleRect(freeImagePtr, destWidth, destHeight, srcleft, srcTop, srcRight, srcBottom, filter, flags))
+	
+	End Method
+	
+	Rem
 	bbdoc: Creates a thumbnail so that the output fits inside a square of @maxPixelSize, keeping aspect ratio.
 	about: Downsampling is done using a bilinear filter (see #rescale).
 	End Rem
@@ -904,7 +940,7 @@ Type TFreeImage
 		Return TFreeImage.CreateFromBitmap(bmx_freeimage_MakeThumbnail(freeImagePtr, maxPixelSize))
 	
 	End Method
-	
+
 	Rem
 	bbdoc: Retrieves a link to the thumbnail that may be available in the image.
 	about: Some image formats allow a thumbnail image to be embedded together with the output image file.
@@ -1160,11 +1196,32 @@ Type TFreeImage
 	End Method
 	
 	Rem
+	bbdoc: Converts a 24- or 32-bit RGB(A) standard image or a 48- or 64-bit RGB(A) image to a FIT_RGBAF type image.
+	returns: The converted image.
+	about: Conversion is done by copying the source integer pixel values into the destination float pixel values, and
+	dividing by the maximum source pixel value (i.e. 255 or 65535) so that the output image is in the range [0..1].
+	For 128-bit RGBAF input images, a clone of the input is returned.
+	End Rem
+	Method convertToRGBAF:TFreeImage()
+		Return TFreeImage.CreateFromBitmap(bmx_freeimage_ConvertToRGBAF(freeImagePtr))
+	End Method
+	
+	Rem
 	bbdoc: Converts a bitmap to an unsigned 16-bit RGB image.
 	returns: The converted image.
 	End Rem
 	Method convertToRGB16:TFreeImage()
 		Return TFreeImage.CreateFromBitmap(bmx_freeimage_ConvertToRGB16(freeImagePtr))
+	End Method
+	
+	Rem
+	bbdoc: Converts a bitmap to an unsigned 16-bit RGBA image (i.e. image whose type is FIT_RGBA16).
+	returns: The converted image.
+	about: Standard bitmaps are first converted (if needed) to 32-bit RGBA images and then conversion is done by
+	multiplying the 8-bit channel by 256. For 16-bit FIT_RGBA16 images, a clone of the input is returned.
+	End Rem
+	Method convertToRGBA16:TFreeImage()
+		Return TFreeImage.CreateFromBitmap(bmx_freeimage_ConvertToRGBA16(freeImagePtr))
 	End Method
 	
 	Rem
@@ -1202,6 +1259,7 @@ Type TFreeImage
 	<tr><th>Constant</th><th>Description</th></tr>
 	<tr><td>FIQ_WUQUANT</td><td>Xiaolin Wu color quantization algorithm</td></tr>
 	<tr><td>FIQ_NNQUANT</td><td>NeuQuant neural-net quantization algorithm by Anthony Dekker</td></tr>
+	<tr><td>FIQ_LFPQUANT</td><td> Lossless Fast Pseudo-Quantization Algorithm by Carsten Klein </td></tr>
 	</table>
 	End Rem
 	Method colorQuantize:TFreeImage(quantize:Int)
@@ -1326,10 +1384,10 @@ Type TFreeImage
 	Rem
 	bbdoc: Converts a High Dynamic Range image to a 24-bit RGB image using a global operator based on logarithmic compression of luminance values, imitating the human response to light.
 	about: A bias power function is introduced to adaptively vary logarithmic bases, resulting in good preservation
-	of details and contrast.<br>
+	of details and contrast.<br/>
 	Upon entry, @gamma (where @gamma > 0) is a gamma correction that is applied after the tone mapping.
 	A value of 1 means no correction. The default 2.2 value, used in the original author's paper, is
-	recommended as a good starting value.<br>
+	recommended as a good starting value.<br/>
 	The @exposure parameter is an exposure scale factor allowing users to adjust the brightness
 	of the output image to their displaying conditions. The default value (0) means that no correction
 	is applied. Higher values will make the image lighter whereas lower values make the image darker.
@@ -1342,17 +1400,47 @@ Type TFreeImage
 	bbdoc: Converts a High Dynamic Range image to a 24-bit RGB image using a global operator inspired by photoreceptor physiology of the human visual system.
 	about: Upon entry, the @intensity parameter, in the range [-8, 8], controls the overall image intensity
 	The default value 0 means no correction. Higher values will make the image lighter whereas lower values
-	make the image darker.<br>
+	make the image darker.<br/>
 	The contrast parameter, in the range [0.3, 1.0], controls the overall image contrast. When using the default
 	value (0), this parameter is calculated automatically.
 	End Rem
 	Method tmoReinhard05:TFreeImage(intensity:Double = 0, contrast:Double = 0)
 		Return TFreeImage.CreateFromBitmap(bmx_freeimage_TmoReinhard05(freeImagePtr, intensity, contrast))
 	End Method
+
+	Rem
+	bbdoc: Converts a High Dynamic Range image to a 24-bit RGB image using a global / local operator inspired by photoreceptor physiology of the human visual system.
+	about: User parameters control intensity, contrast, and level of adaptation.
+	Upon entry, the intensity parameter, in the range [-8, 8], controls the overall image intensity. The
+	default value 0 means no correction. Higher values will make the image lighter whereas lower values
+	make the image darker.<br/>
+	The contrast parameter, in the range [0.3, 1.0[, controls the overall image contrast. When using the
+	default value (0), this parameter is calculated automatically.<br/>
+	The adaptation parameter, in range [0:1], controls the level of light adaptation. When using the default
+	value (1), adaptation is local and is based on the pixel intensity. When using a value 0, the adaptation is
+	global and is based on the average channel intensity.<br/>
+	The color_correction parameter, in range [0:1], controls the level of chromatic adaptation. Using the default value
+	(0) means no chromatic adaptation, i.e. the adaptation level is the same for all 3 color channels. Setting this
+	value to 1 means that each R, G, B channel is treated independently.
+	End Rem
+	Method tmoReinhard05Ex:TFreeImage(intensity:Double = 0, contrast:Double = 0, adaptation:Double = 1, colorCorrection:Double = 0)
+		Return TFreeImage.CreateFromBitmap(bmx_freeimage_TmoReinhard05Ex(freeImagePtr, intensity, contrast, adaptation, colorCorrection))
+	End Method
+
+	Rem
+	bbdoc: Converts a High Dynamic Range image to a 24-bit RGB image using a local operator that manipulate the gradient field of the luminance image by attenuating the magnitudes of large gradients.
+	about: A new, low dynamic range image is then obtained by solving a Poisson equation on the modified gradient field.<br/>
+	Upon entry, the color_saturation parameter, in the range [0.4, 0.6], controls color saturation in the resulting image.<br/>
+	The attenuation parameter, in the range [0.8, 0.9], controls the amount of attenuation.<br/>
+	NOTE : The algorithm works by solving as many Partial Differential Equations as there are pixels in the image, using
+	a Poisson solver based on a multigrid algorithm. Thus, the algorithm may take many minutes (up to 5 or more) before to complete.
+	End Rem
+	Method tmoFattal02:TFreeImage(colorSaturation:Double = 0.5, attenuation:Double = 0.85)
+		Return TFreeImage.CreateFromBitmap(bmx_freeimage_TmoFattal02(freeImagePtr, colorSaturation, attenuation))
+	End Method
 	
 	Rem
-
-	bbdoc: Retrieves a metadata attached to the image.
+	bbdoc: Retrieves a metadata attached To the image.
 	returns: A TFreeImageTag object on success, or Null if the searched tag doesn't exist.
 	about: Upon entry, @model is the metadata model to look for and @key is the metadata field name (unique inside a metadata model).
 	End Rem

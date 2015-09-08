@@ -55,8 +55,11 @@ Extern
 	Function bmx_freeimage_GetBPP:Int(handle:Byte Ptr)
 	Function bmx_freeimage_GetColorsUsed:Int(handle:Byte Ptr)
 	Function bmx_freeimage_GetPitch:Int(handle:Byte Ptr)
+	Function bmx_freeimage_GetDIBSize:Int(handle:Byte Ptr)
+	Function bmx_freeimage_GetMemorySize:Int(handle:Byte Ptr)
 	
 	Function bmx_freeimage_Rescale:Byte Ptr(handle:Byte Ptr, width:Int, height:Int, filter:Int)
+	Function bmx_freeimage_RescaleRect:Byte Ptr(handle:Byte Ptr, destWidth:Int, destHeight:Int, srcleft:Int, srcTop:Int, srcRight:Int, srcBottom:Int, filter:Int, flags:Int)
 	Function bmx_freeimage_setBitmap(handle:Byte Ptr, bitmap:Byte Ptr)
 	Function bmx_freeimage_getBitmap:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_MakeThumbnail:Byte Ptr(handle:Byte Ptr, size:Int)
@@ -67,6 +70,7 @@ Extern
 	Function bmx_freeimage_self_convertTo8Bits(handle:Byte Ptr)
 	Function bmx_freeimage_isTransparent:Int(handle:Byte Ptr)
 	Function bmx_freeimage_convertToRGBF:Byte Ptr(handle:Byte Ptr)
+	Function bmx_freeimage_convertToRGBAF:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_convertTo32Bits:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_convertTo24Bits:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_convertTo8Bits:Byte Ptr(handle:Byte Ptr)
@@ -77,6 +81,7 @@ Extern
 	Function bmx_freeimage_ColorQuantize:Byte Ptr(handle:Byte Ptr, quantize:Int)
 	Function bmx_freeimage_ConvertToType:Byte Ptr(handle:Byte Ptr, dstType:Int, scaleLinear:Int)
 	Function bmx_freeimage_convertToRGB16:Byte Ptr(handle:Byte Ptr)
+	Function bmx_freeimage_convertToRGBA16:Byte Ptr(handle:Byte Ptr)
 	
 	Function bmx_freeimage_Rotate:Byte Ptr(handle:Byte Ptr, angle:Double, color:Byte Ptr)
 	Function bmx_freeimage_RotateEx:Byte Ptr(handle:Byte Ptr, angle:Double, xShift:Double, yShift:Double, xOrigin:Double, yOrigin:Double, useMask:Int)
@@ -102,7 +107,7 @@ Extern
 	Function bmx_freeimage_Save:Int(handle:Byte Ptr, format:Int, flags:Int)
 	
 	Function bmx_freeimage_Dither:Byte Ptr(handle:Byte Ptr, algo:Int)
-	Function bmx_freeimage_Threshold:Byte Ptr(handle:Byte Ptr, t:Byte)
+	Function bmx_freeimage_Threshold:Byte Ptr(handle:Byte Ptr, t:Int)
 	
 	Function bmx_freeimage_ConvertFromRawBits:Byte Ptr(pixels:Byte Ptr, width:Int, height:Int, pitch:Int, ..
 		bpp:Int, redMask:Int, greenMask:Int, blueMask:Int)
@@ -110,6 +115,8 @@ Extern
 	Function bmx_freeimage_ToneMapping:Byte Ptr(handle:Byte Ptr, algorithm:Int, param1:Double, param2:Double)
 	Function bmx_freeimage_TmoDrago03:Byte Ptr(handle:Byte Ptr, Gamma:Double, exposure:Double)
 	Function bmx_freeimage_TmoReinhard05:Byte Ptr(handle:Byte Ptr, intensity:Double, contrast:Double)
+	Function bmx_freeimage_TmoReinhard05Ex:Byte Ptr(handle:Byte Ptr, intensity:Double, contrast:Double, adaptation:Double, colorCorrection:Double)
+	Function bmx_freeimage_TmoFattal02:Byte Ptr(handle:Byte Ptr, colorSaturation:Double, attenuation:Double)
 	
 	Function bmx_freeimage_GetMetadata:Byte Ptr(handle:Byte Ptr, model:Int, tag:String)
 	Function bmx_freeimage_GetMetadataCount:Int(handle:Byte Ptr, model:Int)
@@ -242,6 +249,7 @@ Const FIF_PFM:Int = 32
 Const FIF_PICT:Int = 33
 Const FIF_RAW:Int = 34
 Const FIF_WEBP:Int = 35
+Const FIF_JXR:Int = 36
 
 Const FILTER_BOX:Int = 0	' Box, pulse, Fourier window, 1st order (constant) b-spline
 Const FILTER_BICUBIC:Int = 1	' Mitchell & Netravali's two-param cubic filter
@@ -620,6 +628,18 @@ Rem
 bbdoc: save in lossless mode
 End Rem
 Const WEBP_LOSSLESS:Int = $100
+Rem
+bbdoc: Save with quality 80 and no chroma subsampling (4:4:4) - quality is between [1..100), 100 means lossless compression
+End Rem
+Const JXR_DEFAULT:Int = 0
+Rem
+bbdoc: Save lossless (quality = 100)
+End Rem
+Const JXR_LOSSLESS:Int = $0064
+Rem
+bbdoc: Saves as a progressive JPEG-XR file (use | to combine with JPEG_XR quality flags)
+End Rem
+Const JXR_PROGRESSIVE:Int = $2000
 
 Const FID_FS:Int = 0
 Const FID_BAYER4x4	:Int = 1
@@ -629,8 +649,18 @@ Const FID_CLUSTER8x8:Int = 4
 Const FID_CLUSTER16x16:Int = 5
 Const FID_BAYER16x16:Int = 6
 
+Rem
+bbdoc: Xiaolin Wu color quantization algorithm
+End Rem
 Const FIQ_WUQUANT:Int = 0
+Rem
+bbdoc: NeuQuant neural-net quantization algorithm
+End Rem
 Const FIQ_NNQUANT:Int = 1
+Rem
+bbdoc: Lossless Fast Pseudo-Quantization Algorithm
+End Rem
+Const FIQ_LFPQUANT:Int = 2
 
 Const FITMO_DRAGO03:Int = 0
 Const FITMO_REINHARD05:Int = 1
@@ -697,3 +727,15 @@ Const FI_COLOR_FIND_EQUAL_COLOR:Int = $02	' For palettized images: lookup equal 
 Const FI_COLOR_ALPHA_IS_INDEX:Int = $04	' The color's rgbReserved member (alpha) contains the palette index to be used
 Const FI_COLOR_PALETTE_SEARCH_MASK:Int = (FI_COLOR_FIND_EQUAL_COLOR | FI_COLOR_ALPHA_IS_INDEX)	' No color lookup is performed
 
+Rem
+bbdoc: Default options; none of the following other options apply.
+End Rem
+Const FI_RESCALE_DEFAULT:Int = $00
+Rem
+bbdoc: For non-transparent greyscale images, convert to 24-bit if src bitdepth <= 8 (Default is a 8-bit greyscale image). 
+End Rem
+Const FI_RESCALE_TRUE_COLOR:Int = $01
+Rem
+bbdoc: Do not copy metadata to the rescaled image.
+End Rem
+Const FI_RESCALE_OMIT_METADATA:Int = $02
