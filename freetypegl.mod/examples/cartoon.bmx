@@ -6,10 +6,10 @@ Import bah.freetypegl
 AppTitle = "FreeType-GL Cartoon"
 
 
-Local fontPath:String = "../freetype-gl/fonts/ObelixPro.ttf"
+Local fontPath:String = "../freetype-gl/fonts/LuckiestGuy.ttf"
 
 
-Graphics 800, 600, 0
+Graphics 1024, 768, 0
 
 SetClsColor 0, 0, 0
 SetBlend AlphaBlend

@@ -32,17 +32,15 @@
  * ============================================================================ */
 /* ------------------------------------ */
 #include "freetype-gl.h"
-#if defined(__APPLE__)
-    #include <Glut/glut.h>
-#elif defined(_WIN32) || defined(_WIN64)
-    #include <GLUT/glut.h>
-#else
-    #include <GL/glut.h>
-#endif
+
+#include <assert.h>
+
 #include "mat4.h"
 #include "shader.h"
 #include "vertex-buffer.h"
 #include "texture-font.h"
+
+#include <GLFW/glfw3.h>
 
 
 /* ------------------------------------ */
@@ -77,9 +75,9 @@ const hb_script_t scripts[NUM_EXAMPLES] = {
 };
 
 const char *fonts[NUM_EXAMPLES] = {
-    "fonts/DejaVuSerif.ttf",
-    "fonts/amiri-0.104/amiri-regular.ttf",
-    "fonts/fireflysung-1.3.0/fireflysung.ttf",
+    "fonts/Liberastika-Regular.ttf",
+    "fonts/amiri-regular.ttf",
+    "fonts/fireflysung.ttf",
 };
 
 enum {
@@ -134,13 +132,13 @@ mat4 model, view, projection;
 
 
 // ---------------------------------------------------------------- display ---
-void display( void )
+void display( GLFWwindow* window )
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glUseProgram( shader );
     {
         glUniform1i( glGetUniformLocation( shader, "texture" ), 0 );
-        glUniform2f( glGetUniformLocation( shader, "pixel" ), 1/512., 1/512. );
+        glUniform3f( glGetUniformLocation( shader, "pixel" ), 1/512., 1/512., 1.0f );
 
         glUniformMatrix4fv( glGetUniformLocation( shader, "model" ),
                             1, 0, model.data);
@@ -151,12 +149,12 @@ void display( void )
         vertex_buffer_render( buffer, GL_TRIANGLES );
     }
 
-    glutSwapBuffers( );
+    glfwSwapBuffers( window );
 }
 
 
 // ---------------------------------------------------------------- reshape ---
-void reshape( int width, int height )
+void reshape( GLFWwindow* window, int width, int height )
 {
     glViewport(0, 0, width, height);
     mat4_set_orthographic( &projection, 0, width, 0, height, -1, 1);
@@ -164,32 +162,59 @@ void reshape( int width, int height )
 
 
 // --------------------------------------------------------------- keyboard ---
-void keyboard( unsigned char key, int x, int y )
+void keyboard( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
-    if ( key == 27 )
+    if ( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
     {
-        exit( 1 );
+        glfwSetWindowShouldClose( window, GL_TRUE );
     }
+}
+
+
+/* -------------------------------------------------------- error-callback - */
+void error_callback( int error, const char* description )
+{
+    fputs( description, stderr );
 }
 
 
 // ------------------------------------------------------------------- main ---
 int main( int argc, char **argv )
 {
+    GLFWwindow* window;
     size_t i, j;
     int ptSize = 50*64;
     int device_hdpi = 72;
     int device_vdpi = 72;
 
 
-    glutInit( &argc, argv );
-    glutInitWindowSize( 512, 512 );
-    glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
-    glutCreateWindow( argv[0] );
-    glutReshapeFunc( reshape );
-    glutDisplayFunc( display );
-    glutKeyboardFunc( keyboard );
+    glfwSetErrorCallback( error_callback );
 
+    if (!glfwInit( ))
+    {
+        exit( EXIT_FAILURE );
+    }
+
+    glfwWindowHint( GLFW_VISIBLE, GL_TRUE );
+    glfwWindowHint( GLFW_RESIZABLE, GL_FALSE );
+
+    window = glfwCreateWindow( 1, 1, argv[0], NULL, NULL );
+
+    if (!window)
+    {
+        glfwTerminate( );
+        exit( EXIT_FAILURE );
+    }
+
+    glfwMakeContextCurrent( window );
+    glfwSwapInterval( 1 );
+
+    glfwSetFramebufferSizeCallback( window, reshape );
+    glfwSetWindowRefreshCallback( window, display );
+    glfwSetKeyCallback( window, keyboard );
+
+#ifndef __APPLE__
+    glewExperimental = GL_TRUE;
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
@@ -198,6 +223,7 @@ int main( int argc, char **argv )
         exit( EXIT_FAILURE );
     }
     fprintf( stderr, "Using GLEW %s\n", glewGetString(GLEW_VERSION) );
+#endif
 
     texture_atlas_t * atlas = texture_atlas_new( 512, 512, 3 );
 
@@ -240,14 +266,14 @@ int main( int argc, char **argv )
                                 hb_language_from_string(languages[i], strlen(languages[i])) );
 
         /* Layout the text */
-        hb_buffer_add_utf8( buf, texts[i], strlen(texts[i]), 0, strlen(texts[i]) ); 
+        hb_buffer_add_utf8( buf, texts[i], strlen(texts[i]), 0, strlen(texts[i]) );
         hb_shape( hb_ft_font[i], buf, NULL, 0 );
 
         unsigned int         glyph_count;
         hb_glyph_info_t     *glyph_info   = hb_buffer_get_glyph_infos(buf, &glyph_count);
         hb_glyph_position_t *glyph_pos    = hb_buffer_get_glyph_positions(buf, &glyph_count);
 
-        
+
         FT_GlyphSlot slot;
         FT_Bitmap ft_bitmap;
         float size = 24;
@@ -329,21 +355,21 @@ int main( int argc, char **argv )
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glEnable( GL_TEXTURE_2D );
-
     glBindTexture( GL_TEXTURE_2D, atlas->id );
     texture_atlas_upload( atlas );
 
-    typedef struct { float x,y,z, u,v, r,g,b,a; } vertex_t;
+    typedef struct { float x,y,z, u,v, r,g,b,a, shift, gamma; } vertex_t;
     vertex_t vertices[4] =  {
-        {  0, 0,  0,1, 1, 0,0,0,1},
-        {  0,512, 0,0, 1, 0,0,0,1},
-        {512,512, 1,0, 1, 0,0,0,1},
-        {512,  0, 1,1, 1, 0,0,0,1} };
+        {  0,  0,0, 0,1, 0,0,0,1, 0, 1},
+        {  0,512,0, 0,0, 0,0,0,1, 0, 1},
+        {512,512,0, 1,0, 0,0,0,1, 0, 1},
+        {512,  0,0, 1,1, 0,0,0,1, 0, 1} };
     GLuint indices[6] = { 0, 1, 2, 0,2,3 };
-    buffer = vertex_buffer_new( "a_vertex:2f,"
-                                "a_texcoord:2f,"
-                                "a_gamma:1f,"
-                                "a_color:4f" );
+    buffer = vertex_buffer_new( "vertex:3f,"
+                                "tex_coord:2f,"
+                                "color:4f,"
+                                "ashift:1f,"
+                                "agamma:1f" );
 
 
 
@@ -355,6 +381,18 @@ int main( int argc, char **argv )
     mat4_set_identity( &projection );
     mat4_set_identity( &model );
     mat4_set_identity( &view );
-    glutMainLoop( );
+
+    glfwSetWindowSize( window, 512, 512 );
+    glfwShowWindow( window );
+
+    while(!glfwWindowShouldClose( window ))
+    {
+        display( window );
+        glfwPollEvents( );
+    }
+
+    glfwDestroyWindow( window );
+    glfwTerminate( );
+
     return 0;
 }

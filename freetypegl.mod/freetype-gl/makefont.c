@@ -41,32 +41,23 @@
 #include <string.h>
 #include <wchar.h>
 
-#if defined(__APPLE__)
-    #include <Glut/glut.h>
-#elif defined(_WIN32) || defined(_WIN64)
-    #include <GLUT/glut.h>
-#else
-    #include <GL/glut.h>
-#endif
+#include <GLFW/glfw3.h>
 
-// ---------------------------------------------------------------- display ---
-void display( void )
-{}
-
-// ---------------------------------------------------------------- reshape ---
-void reshape(int width, int height)
-{}
-
-// --------------------------------------------------------------- keyboard ---
-void keyboard( unsigned char key, int x, int y )
-{}
 
 // ------------------------------------------------------------- print help ---
 void print_help()
 {
     fprintf( stderr, "Usage: makefont [--help] --font <font file> "
-             "--header <header file> --size <font size> --variable <variable name>\n" );
+             "--header <header file> --size <font size> --variable <variable name> --texture <texture size>\n" );
 }
+
+
+/* -------------------------------------------------------- error-callback - */
+void error_callback( int error, const char* description )
+{
+    fputs( description, stderr );
+}
+
 
 // ------------------------------------------------------------------- main ---
 int main( int argc, char **argv )
@@ -75,7 +66,7 @@ int main( int argc, char **argv )
     size_t i, j;
     int arg;
 
-    wchar_t * font_cache = 
+    wchar_t * font_cache =
         L" !\"#$%&'()*+,-./0123456789:;<=>?"
         L"@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"
         L"`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -85,6 +76,9 @@ int main( int argc, char **argv )
     const char * header_filename = NULL;
     const char * variable_name   = "font";
     int show_help = 0;
+    size_t texture_width = 128;
+
+    GLFWwindow* window;
 
     for ( arg = 1; arg < argc; ++arg )
     {
@@ -192,6 +186,38 @@ int main( int argc, char **argv )
             continue;
         }
 
+        if ( 0 == strcmp( "--texture", argv[arg] ) || 0 == strcmp( "-t", argv[arg] ) )
+        {
+            ++arg;
+
+            if ( 128.0 != texture_width )
+            {
+                fprintf( stderr, "Multiple --texture parameters.\n" );
+                print_help();
+                exit( 1 );
+            }
+
+            if ( arg >= argc )
+            {
+                fprintf( stderr, "No texture size given.\n" );
+                print_help();
+                exit( 1 );
+            }
+
+            errno = 0;
+
+            texture_width = atof( argv[arg] );
+
+            if ( errno )
+            {
+                fprintf( stderr, "No valid texture size given.\n" );
+                print_help();
+                exit( 1 );
+            }
+
+            continue;
+        }
+
         fprintf( stderr, "Unknown parameter %s\n", argv[arg] );
         print_help();
         exit( 1 );
@@ -231,16 +257,28 @@ int main( int argc, char **argv )
         exit( 1 );
     }
 
-    texture_atlas_t * atlas = texture_atlas_new( 128, 128, 1 );
+    texture_atlas_t * atlas = texture_atlas_new( texture_width, texture_width, 1 );
     texture_font_t  * font  = texture_font_new_from_file( atlas, font_size, font_filename );
 
-    glutInit( &argc, argv );
-    glutInitWindowSize( atlas->width, atlas->height );
-    glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
-    glutCreateWindow( "Freetype OpenGL" );
-    glutReshapeFunc( reshape );
-    glutDisplayFunc( display );
-    glutKeyboardFunc( keyboard );
+    glfwSetErrorCallback( error_callback );
+
+    if (!glfwInit( ))
+    {
+        exit( EXIT_FAILURE );
+    }
+
+    glfwWindowHint( GLFW_VISIBLE, GL_TRUE );
+    glfwWindowHint( GLFW_RESIZABLE, GL_FALSE );
+
+    window = glfwCreateWindow( atlas->width, atlas->height, argv[0], NULL, NULL );
+
+    if (!window)
+    {
+        glfwTerminate( );
+        exit( EXIT_FAILURE );
+    }
+
+    glfwMakeContextCurrent( window );
 
     size_t missed = texture_font_load_glyphs( font, font_cache );
 
@@ -250,7 +288,7 @@ int main( int argc, char **argv )
     wprintf( L"Number of missed glyphs    : %ld\n", missed );
     wprintf( L"Texture size               : %ldx%ldx%ld\n",
              atlas->width, atlas->height, atlas->depth );
-    wprintf( L"Texture occupancy          : %.2f%%\n", 
+    wprintf( L"Texture occupancy          : %.2f%%\n",
             100.0*atlas->used/(float)(atlas->width*atlas->height) );
     wprintf( L"\n" );
     wprintf( L"Header filename            : %s\n", header_filename );
@@ -277,7 +315,7 @@ int main( int argc, char **argv )
     // -------------
     // Header
     // -------------
-    fwprintf( file, 
+    fwprintf( file,
         L"/* ============================================================================\n"
         L" * Freetype GL - A C OpenGL Freetype engine\n"
         L" * Platform:    Any\n"
@@ -357,7 +395,7 @@ int main( int argc, char **argv )
         L"} texture_font_t;\n\n", texture_size, glyph_count );
 
 
-    
+
     fwprintf( file, L"texture_font_t %s = {\n", variable_name );
 
 
@@ -390,7 +428,7 @@ int main( int argc, char **argv )
     // -------------------
     // Texture information
     // -------------------
-    fwprintf( file, L" %ff, %ff, %ff, %ff, %ff, %d, \n", 
+    fwprintf( file, L" %ff, %ff, %ff, %ff, %ff, %d, \n",
              font->size, font->height,
              font->linegap,font->ascender, font->descender,
              glyph_count );
@@ -413,7 +451,7 @@ int main( int argc, char **argv )
                  glyph->offset_x, glyph->offset_y );
         wprintf( L"  advance    : %ff, %ff\n",
                  glyph->advance_x, glyph->advance_y );
-        wprintf( L"  tex coords.: %ff, %ff, %ff, %ff\n", 
+        wprintf( L"  tex coords.: %ff, %ff, %ff, %ff\n",
                  glyph->u0, glyph->v0, glyph->u1, glyph->v1 );
 
         wprintf( L"  kerning    : " );
@@ -421,7 +459,7 @@ int main( int argc, char **argv )
         {
             for( j=0; j < glyph->kerning_count; ++j )
             {
-                wprintf( L"('%lc', %ff)", 
+                wprintf( L"('%lc', %ff)",
                          glyph->kerning[j].charcode, glyph->kerning[j].kerning );
                 if( j < (glyph->kerning_count-1) )
                 {
@@ -485,6 +523,9 @@ int main( int argc, char **argv )
         L"#ifdef __cplusplus\n"
         L"}\n"
         L"#endif\n" );
+
+    glfwDestroyWindow( window );
+    glfwTerminate( );
 
     return 0;
 }
