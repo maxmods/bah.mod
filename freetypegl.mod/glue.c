@@ -81,8 +81,9 @@ int bmx_freetypegl_texture_font_load_glyphs(struct bmx_font_buffer * buf, BBStri
 }
 
 struct bmx_font_buffer * bmx_freetypegl_font_buffer_new(font_manager_t * manager, BBString * fontPath, float size, BBString * vertSource, BBString *fragSource, void * mem, int len) {
-
+#if !defined(TARGET_OS_IPHONE) && !defined(TARGET_IPHONE_SIMULATOR)
 	glewInit();
+#endif
 
 	struct bmx_font_buffer * buf = malloc(sizeof(struct bmx_font_buffer));
 
