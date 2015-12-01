@@ -30,13 +30,15 @@ bbdoc: Regular Expressions
 End Rem
 Module BaH.RegEx
 
-ModuleInfo "Version: 1.06"
+ModuleInfo "Version: 1.07"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: PCRE - 1997-2015 University of Cambridge"
 ModuleInfo "Copyright: Wrapper - 2007-2015 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.07"
+ModuleInfo "History: Updated for 64-bit."
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Updated to PCRE 10.00"
 ModuleInfo "History: Changed TRegExMatch to get data as required, rather than cache it."
@@ -92,7 +94,11 @@ Type TRegEx
 	Field pcre:Byte Ptr
 	
 	' pointer to the offsets vector, owned by pcre2
+?ptr64
+	Field offsets:Long Ptr
+?Not ptr64
 	Field offsets:Int Ptr
+?
 	' number of offsets
 	Field sizeOffsets:Int
 	
@@ -328,8 +334,11 @@ Type TRegEx
 		
 		Local pat:Short Ptr = lastPattern.ToWString()
 		Local errorcode:Int
+?ptr64
+		Local erroffset:Long
+?Not ptr64
 		Local erroffset:Int
-
+?
 		Local bptr:Byte Ptr = pcre2_compile_16(pat, lastPattern.length, getCompileOpt(), Varptr errorcode, ..
  				Varptr erroffset, Null)
 
@@ -479,13 +488,17 @@ Type TRegExMatch
 		
 		If matchNumber >= 0 And matchNumber < pcre2_get_ovector_count_16(matchPtr) Then
 			Local sPtr:Short Ptr
+?ptr64
+			Local sLen:Long
+?Not ptr64
 			Local sLen:Int
+?
 			Local result:Int = pcre2_substring_get_bynumber_16(matchPtr, matchNumber, Varptr sPtr, Varptr sLen)
 
 			If Not result Then
 
 				_subExpr = String.FromShorts(sPtr, sLen)
-				
+
 				pcre2_substring_free_16(sPtr)
 			End If
 		End If	
@@ -502,7 +515,11 @@ Type TRegExMatch
 	End Rem
 	Method SubStart:Int(matchNumber:Int = 0)
 		If matchNumber >= 0 And matchNumber <  pcre2_get_ovector_count_16(matchPtr) Then
+?ptr64
+			Local offsets:Long Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+?Not ptr64
 			Local offsets:Int Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+?
 			Return offsets[matchNumber]
 		End If
 		Return -1
@@ -516,7 +533,11 @@ Type TRegExMatch
 	End Rem
 	Method SubEnd:Int(matchNumber:Int = 0)
 		If matchNumber >= 0 And matchNumber <  pcre2_get_ovector_count_16(matchPtr) Then
+?ptr64
+			Local offsets:Long Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+?Not ptr64
 			Local offsets:Int Ptr = pcre2_get_ovector_pointer_16(matchPtr)
+?
 			Return offsets[matchNumber + 1] - 1
 		End If
 		Return -1
@@ -530,7 +551,11 @@ Type TRegExMatch
 
 		If name Then
 			Local sPtr:Short Ptr
+?ptr64
+			Local sLen:Long
+?Not ptr64
 			Local sLen:Int
+?
 			Local n:Short Ptr = name.ToWString()
 			Local result:Int = pcre2_substring_get_byname_16(matchPtr, n, Varptr sPtr, Varptr sLen)
 			MemFree(n)

@@ -240,19 +240,29 @@ Extern
 	Function _strlen:Int(s:Byte Ptr) = "strlen"
 
 	Function pcre2_config_16:Int(what:Int, where:Int Ptr)
-	
+
+?ptr64
+	Function pcre2_compile_16:Byte Ptr(pattern:Short Ptr, patternLength:Long, options:Int, errorcodeptr:Int Ptr, ..
+		erroffset:Long Ptr, contextptr:Byte Ptr)
+	Function pcre2_match_16:Int(pattern:Byte Ptr, subject:Byte Ptr, subjectLength:Long, startOffset:Long, ..
+		options:Int, matchPtr:Byte Ptr, context:Byte Ptr)
+	Function pcre2_substring_get_bynumber_16:Int(matchPtr:Byte Ptr, stringnumber:Int, ..
+		stringptr:Short Ptr Ptr, stringlength:Long Ptr)
+	Function pcre2_substring_get_byname_16:Int(matchPtr:Byte Ptr, name:Short Ptr, stringptr:Short Ptr Ptr, stringlength:Long Ptr)
+	Function pcre2_get_error_message_16:Int(errorcode:Int, buffer:Short Ptr, length:Long)
+	Function pcre2_get_ovector_pointer_16:Long Ptr(matchPtr:Byte Ptr)
+?Not ptr64
 	Function pcre2_compile_16:Byte Ptr(pattern:Short Ptr, patternLength:Int, options:Int, errorcodeptr:Int Ptr, ..
 		erroffset:Int Ptr, contextptr:Byte Ptr)
-	
-	'Function pcre16_exec:Int(pcre:Byte Ptr, extra:Byte Ptr, subject:Byte Ptr, ..
-	'	length:Int, startoffset:Int, options:Int, ovector:Byte Ptr, ovecsize:Int)
 	Function pcre2_match_16:Int(pattern:Byte Ptr, subject:Byte Ptr, subjectLength:Int, startOffset:Int, ..
 		options:Int, matchPtr:Byte Ptr, context:Byte Ptr)
-	
 	Function pcre2_substring_get_bynumber_16:Int(matchPtr:Byte Ptr, stringnumber:Int, ..
 		stringptr:Short Ptr Ptr, stringlength:Int Ptr)
-	Function pcre2_substring_length_bynumber_16:Int(matchPtr:Byte Ptr, stringnumber:Int, length:Int Ptr)
-	
+	Function pcre2_substring_get_byname_16:Int(matchPtr:Byte Ptr, name:Short Ptr, stringptr:Short Ptr Ptr, stringlength:Int Ptr)
+	Function pcre2_get_error_message_16:Int(errorcode:Int, buffer:Short Ptr, length:Int)
+	Function pcre2_get_ovector_pointer_16:Int Ptr(matchPtr:Byte Ptr)
+?
+
 	Function pcre2_substring_free_16(strinptr:Short Ptr)
 	
 	Function pcre2_match_data_create_from_pattern_16:Byte Ptr(pcre:Byte Ptr, context:Byte Ptr)
@@ -260,14 +270,10 @@ Extern
 	
 	Function pcre2_pattern_info_16:Int(pcre:Byte Ptr, what:Int, where:Int Ptr)
 	
-	Function pcre2_get_error_message_16:Int(errorcode:Int, buffer:Short Ptr, length:Int)
-	
 	Function pcre2_get_ovector_count_16:Int(matchPtr:Byte Ptr)
-	Function pcre2_get_ovector_pointer_16:Int Ptr(matchPtr:Byte Ptr)
 	
 	Function pcre2_jit_compile_16:Int(pcre:Byte Ptr, options:Int)
 	
-	Function pcre2_substring_get_byname_16:Int(matchPtr:Byte Ptr, name:Short Ptr, stringptr:Short Ptr Ptr, stringlength:Int Ptr)
 	Function pcre2_substring_number_from_name_16:Int(pcre:Byte Ptr, name:Short Ptr)
 	
 End Extern
