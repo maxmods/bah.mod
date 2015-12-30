@@ -37,8 +37,10 @@ ModuleInfo "History: Re-synchronised consts to match header values."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (FMOD 4.44.06)"
 
-?win32
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/win32x64"
 ?macos
 ' -bind_at_load removes linker warnings on 10.4
 ModuleInfo "LD_OPTS: -bind_at_load -L%PWD%/lib/macos"

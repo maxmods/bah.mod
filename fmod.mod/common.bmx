@@ -22,7 +22,11 @@ SuperStrict
 
 Import BRL.Blitz
 
+?Not win32x64
 Import "-lfmodex"
+?win32x64
+Import "-lfmodex64"
+?
 
 Import "include/*.h"
 
