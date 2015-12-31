@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2013 Bruce A Henderson
+' Copyright (c) 2008-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,15 @@ about: FMOD Ex sound system.
 End Rem
 Module BaH.FMOD
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FMOD - See http://www.fmod.org"
-ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
-ModuleInfo "Copyright: FMOD - 2004-2011 Firelight Technologies, Pty, Ltd"
+ModuleInfo "Copyright: Wrapper - 2008-2015 Bruce A Henderson"
+ModuleInfo "Copyright: FMOD - 2004-2014 Firelight Technologies, Pty, Ltd"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated to FMOD 4.44.59."
+ModuleInfo "History: Added 64-bit support."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Re-synchronised consts to match header values."
 ModuleInfo "History: 1.00"
@@ -44,8 +47,10 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/win32x64"
 ?macos
 ' -bind_at_load removes linker warnings on 10.4
 ModuleInfo "LD_OPTS: -bind_at_load -L%PWD%/lib/macos"
-?linux
+?linuxx86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/linux"
+?linuxx64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/linuxx64"
 ?
 
 Import "common.bmx"

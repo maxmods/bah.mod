@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2013 Bruce A Henderson
+' Copyright (c) 2008-2015 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,14 @@ SuperStrict
 
 Import BRL.Blitz
 
-?Not win32x64
+?macos
 Import "-lfmodex"
+?linuxx86
+Import "-lfmodex"
+?win32x86
+Import "-lfmodex"
+?linuxx64
+Import "-lfmodex64"
 ?win32x64
 Import "-lfmodex64"
 ?
