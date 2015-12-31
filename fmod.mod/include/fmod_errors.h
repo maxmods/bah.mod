@@ -1,7 +1,6 @@
-/*$ preserve start $*/
 
 /* ============================================================================================== */
-/* FMOD Ex - Error string header file. Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011. */
+/* FMOD Ex - Error string header file. Copyright (c), Firelight Technologies Pty, Ltd. 2004-2014. */
 /*                                                                                                */
 /* Use this header if you want to store or display a string version / english explanation of      */
 /* the FMOD error codes.                                                                          */
@@ -21,7 +20,6 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
 {
     switch (errcode)
     {
-/*$ preserve end $*/
         case FMOD_ERR_ALREADYLOCKED:          return "Tried to call lock a second time before unlock was called. ";
         case FMOD_ERR_BADCOMMAND:             return "Tried to call a function on a data type that does not allow this type of functionality (ie calling Sound::lock on a streaming sound). ";
         case FMOD_ERR_CDDA_DRIVERS:           return "Neither NTSCSI nor ASPI could be initialised. ";
@@ -101,7 +99,7 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
         case FMOD_ERR_PLUGIN:                 return "An unspecified error has been returned from a 3rd party plugin. ";
         case FMOD_ERR_PLUGIN_INSTANCES:       return "The number of allowed instances of a plugin has been exceeded. ";
         case FMOD_ERR_PLUGIN_MISSING:         return "A requested output, dsp unit type or codec was not available. ";
-        case FMOD_ERR_PLUGIN_RESOURCE:        return "A resource that the plugin requires cannot be found. (ie the DLS file for MIDI playback) ";
+        case FMOD_ERR_PLUGIN_RESOURCE:        return "A resource that the plugin requires cannot be found. (ie the DLS file for MIDI playback or other DLLs that it needs to load) ";
         case FMOD_ERR_PRELOADED:              return "The specified sound is still in use by the event system, call EventSystem::unloadFSB before trying to release it. ";
         case FMOD_ERR_PROGRAMMERSOUND:        return "The specified sound is still in use by the event system, wait for the event which is using it finish with it. ";
         case FMOD_ERR_RECORD:                 return "An error occured trying to initialize the recording device. ";
@@ -119,9 +117,7 @@ static const char *FMOD_ErrorString(FMOD_RESULT errcode)
         case FMOD_ERR_VERSION:                return "The version number of this file format is not supported. ";
         case FMOD_OK:                         return "No errors.";
         default :                             return "Unknown error.";
-/*$ preserve start $*/
     };
 }
 
 #endif
-/*$ preserve end $*/
