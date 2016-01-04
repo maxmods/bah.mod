@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2012 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -242,8 +242,8 @@ Extern
 	Function bmx_odbc_deleteHandle(handle:Byte Ptr)
 	
 	Function bmx_odbc_SQLAllocHandle:Int(_type:Int, a:Byte Ptr, handle:Byte Ptr)
-	Function bmx_odbc_freeEnvHandle(handle:Byte Ptr)
-	Function bmx_odbc_freeStmtHandle(handle:Byte Ptr)
+	Function bmx_odbc_freeEnvHandle:Int(handle:Byte Ptr)
+	Function bmx_odbc_freeStmtHandle:Int(handle:Byte Ptr)
 
 	Function bmx_odbc_envError:Byte Ptr(envHandle:Byte Ptr, code:Int Ptr, size:Int Ptr)
 	Function bmx_odbc_connError:Byte Ptr(envHandle:Byte Ptr, code:Int Ptr, size:Int Ptr)

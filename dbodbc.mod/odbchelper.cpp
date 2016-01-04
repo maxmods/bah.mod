@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007-2012 Bruce A Henderson
+  Copyright (c) 2007-2016 Bruce A Henderson
   All rights reserved.
  
   Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 #endif
 #include <stdio.h>
 
-#include <blitz.h>
+#include <brl.mod/blitz.mod/blitz.h>
 
 extern "C" {
 
@@ -194,8 +194,9 @@ int bmx_odbc_freeStmtHandle(SQLHANDLE * handle) {
 
 
 int bmx_odbc_SQLRowCount(SQLHSTMT * handle, int * num) {
-
-	int result = SQLRowCount(handle, (SQLINTEGER *)num);
+	SQLLEN len;
+	int result = SQLRowCount(handle, &len);
+	*num = len;
 	return result;
 }
 
@@ -226,15 +227,17 @@ int bmx_odbc_SQLDescribeCol(SQLHSTMT * handle, int column, char * columnName, in
 	SQLSMALLINT sDataType;
 	SQLSMALLINT sDecimalDigits;
 	SQLSMALLINT sNullable;
+	SQLULEN csize;
 
 	int result = SQLDescribeCol(handle, column, (SQLCHAR *)columnName, bufferLength, 
 		&sNameLength, &sDataType,
-		(SQLUINTEGER *)columnSize, &sDecimalDigits, &sNullable);
+		&csize, &sDecimalDigits, &sNullable);
 		
 	*nameLength = (int)sNameLength;
 	*dataType = (int)sDataType;
 	*decimalDigits = (int)sDecimalDigits;
 	*nullable = (int)sNullable;
+	*columnSize = csize;
 	
 	return result;
 		
@@ -246,58 +249,71 @@ int bmx_odbc_SQLFetchScroll(SQLHSTMT * handle) {
 	return result;
 }
 
-int bmx_odbc_SQLGetData_int(SQLHSTMT * handle, int index, int * value, long * indicator) {
+int bmx_odbc_SQLGetData_int(SQLHSTMT * handle, int index, int * value, int * indicator) {
 
-	int result = SQLGetData(handle, index, SQL_C_SLONG, value, 0, indicator);
+	SQLLEN ind;
+	int result = SQLGetData(handle, index, SQL_C_SLONG, value, 0, &ind);
+	*indicator = ind;
 	return result;
 }
 
-int bmx_odbc_SQLGetData_long(SQLHSTMT * handle, int index, BBInt64 * value, long * indicator) {
+int bmx_odbc_SQLGetData_long(SQLHSTMT * handle, int index, BBInt64 * value, int * indicator) {
 
-	int result = SQLGetData(handle, index, SQL_C_SBIGINT, value, 0, indicator);
+	SQLLEN ind;
+	int result = SQLGetData(handle, index, SQL_C_SBIGINT, value, 0, &ind);
+	*indicator = ind;
 	return result;
 }
 
-int bmx_odbc_SQLGetData_double(SQLHSTMT * handle, int index, double * value, long * indicator) {
+int bmx_odbc_SQLGetData_double(SQLHSTMT * handle, int index, double * value, int * indicator) {
 
-	int result = SQLGetData(handle, index, SQL_C_DOUBLE, value, 0, indicator);
+	SQLLEN ind;
+	int result = SQLGetData(handle, index, SQL_C_DOUBLE, value, 0, &ind);
+	*indicator = ind;
 	return result;
 }
 
-int bmx_odbc_SQLGetData_string(SQLHSTMT * handle, int index, char * buffer, int bufferLength, long * indicator) {
+int bmx_odbc_SQLGetData_string(SQLHSTMT * handle, int index, char * buffer, int bufferLength, int * indicator) {
 
-	int result = SQLGetData(handle, index, SQL_C_CHAR, buffer, bufferLength, indicator);
+	SQLLEN ind;
+	int result = SQLGetData(handle, index, SQL_C_CHAR, buffer, bufferLength, &ind);
+	*indicator = ind;
 	return result;
 }
 
-int bmx_odbc_SQLGetData_date(SQLHSTMT * handle, int index, int * y, int * m, int * d, long * indicator) {
+int bmx_odbc_SQLGetData_date(SQLHSTMT * handle, int index, int * y, int * m, int * d, int * indicator) {
 
+	SQLLEN ind;
 	DATE_STRUCT date;
-	int result = SQLGetData(handle, index, SQL_C_TYPE_DATE, &date, 0, indicator);
+	int result = SQLGetData(handle, index, SQL_C_TYPE_DATE, &date, 0, &ind);
 
 	*y = static_cast<int>(date.year);
 	*m = static_cast<int>(date.month);
 	*d = static_cast<int>(date.day);
-
+	*indicator = ind;
+	
 	return result;
 }
 
-int bmx_odbc_SQLGetData_time(SQLHSTMT * handle, int index, int * hh, int * mm, int * ss, long * indicator) {
+int bmx_odbc_SQLGetData_time(SQLHSTMT * handle, int index, int * hh, int * mm, int * ss, int * indicator) {
 
+	SQLLEN ind;
 	SQL_TIME_STRUCT time;
-	int result = SQLGetData(handle, index, SQL_C_TYPE_TIMESTAMP, &time, 0, indicator);
+	int result = SQLGetData(handle, index, SQL_C_TYPE_TIMESTAMP, &time, 0, &ind);
 
 	*hh = static_cast<int>(time.hour);
 	*mm = static_cast<int>(time.minute);
 	*ss = static_cast<int>(time.second);
+	*indicator = ind;
 	return result;
 }
 
 int bmx_odbc_SQLGetData_datetime(SQLHSTMT * handle, int index, int * y, int * m, int * d,
-		int * hh, int * mm, int * ss, long * indicator) {
+		int * hh, int * mm, int * ss, int * indicator) {
 
+	SQLLEN ind;
 	SQL_TIMESTAMP_STRUCT datetime;
-	int result = SQLGetData(handle, index, SQL_C_TYPE_TIMESTAMP, &datetime, 0, indicator);
+	int result = SQLGetData(handle, index, SQL_C_TYPE_TIMESTAMP, &datetime, 0, &ind);
 
 	*y = static_cast<int>(datetime.year);
 	*m = static_cast<int>(datetime.month);
@@ -305,6 +321,7 @@ int bmx_odbc_SQLGetData_datetime(SQLHSTMT * handle, int index, int * y, int * m,
 	*hh = static_cast<int>(datetime.hour);
 	*mm = static_cast<int>(datetime.minute);
 	*ss = static_cast<int>(datetime.second);
+	*indicator = ind;
 	return result;
 }
 
@@ -320,31 +337,39 @@ int bmx_odbc_executePrepared(SQLHSTMT * handle) {
 	return result;
 }
 
-int bmx_odbc_SQLBindParameter_int(SQLHSTMT * handle, int index, int * paramValue, long * isNull) {
+int bmx_odbc_SQLBindParameter_int(SQLHSTMT * handle, int index, int * paramValue, int * isNull) {
 
+	SQLLEN in;
 	int result = SQLBindParameter(handle, index, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-			paramValue, 0, *isNull == SQL_NULL_DATA ? isNull : NULL);
+			paramValue, 0, *isNull == SQL_NULL_DATA ? &in : NULL);
+	*isNull = in;
 	return result;
 }
 
-int bmx_odbc_SQLBindParameter_double(SQLHSTMT * handle, int index, double * paramValue, long * isNull) {
+int bmx_odbc_SQLBindParameter_double(SQLHSTMT * handle, int index, double * paramValue, int * isNull) {
 
+	SQLLEN in;
 	int result = SQLBindParameter(handle, index, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-			paramValue, 0, *isNull == SQL_NULL_DATA ? isNull : NULL);
+			paramValue, 0, *isNull == SQL_NULL_DATA ? &in : NULL);
+	*isNull = in;
 	return result;
 }
 
-int bmx_odbc_SQLBindParameter_long(SQLHSTMT * handle, int index, BBInt64 * paramValue, long * isNull) {
+int bmx_odbc_SQLBindParameter_long(SQLHSTMT * handle, int index, BBInt64 * paramValue, int * isNull) {
 
+	SQLLEN in;
 	int result = SQLBindParameter(handle, index, SQL_PARAM_INPUT, SQL_C_SBIGINT, SQL_BIGINT, 0, 0,
-			paramValue, 0, *isNull == SQL_NULL_DATA ? isNull : NULL);
+			paramValue, 0, *isNull == SQL_NULL_DATA ? &in : NULL);
+	*isNull = in;
 	return result;
 }
 
-int bmx_odbc_SQLBindParameter_string(SQLHSTMT * handle, int index, char * paramValue, int length, long * isNull) {
+int bmx_odbc_SQLBindParameter_string(SQLHSTMT * handle, int index, char * paramValue, int length, int * isNull) {
 
+	SQLLEN in;
 	int result = SQLBindParameter(handle, index, SQL_PARAM_INPUT, SQL_C_CHAR, (length > 4000) ? SQL_LONGVARCHAR : SQL_VARCHAR,
-		 length + 1, 0, paramValue, length + 1, isNull);
+		 length + 1, 0, paramValue, length + 1, &in);
+	*isNull = in;
 	return result;
 }
 
