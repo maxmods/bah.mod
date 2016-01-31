@@ -12,7 +12,7 @@
 #include <stdlib.h>  /* for size_t */
 #include <stdarg.h>
 
-#include <jansson_config.h>
+#include "jansson_config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -152,6 +152,13 @@ int json_object_iter_set_new(json_t *object, void *iter, json_t *value);
         key && (value = json_object_iter_value(json_object_key_to_iter(key))); \
         key = json_object_iter_key(json_object_iter_next(object, json_object_key_to_iter(key))))
 
+#define json_object_foreach_safe(object, n, key, value)     \
+    for(key = json_object_iter_key(json_object_iter(object)), \
+            n = json_object_iter_next(object, json_object_key_to_iter(key)); \
+        key && (value = json_object_iter_value(json_object_key_to_iter(key))); \
+        key = json_object_iter_key(n), \
+            n = json_object_iter_next(object, json_object_key_to_iter(key)))
+
 #define json_array_foreach(array, index, value) \
 	for(index = 0; \
 		index < json_array_size(array) && (value = json_array_get(array, index)); \
@@ -282,6 +289,7 @@ typedef void *(*json_malloc_t)(size_t);
 typedef void (*json_free_t)(void *);
 
 void json_set_alloc_funcs(json_malloc_t malloc_fn, json_free_t free_fn);
+void json_get_alloc_funcs(json_malloc_t *malloc_fn, json_free_t *free_fn);
 
 #ifdef __cplusplus
 }

@@ -139,6 +139,32 @@ static void test_update()
     json_decref(object);
 }
 
+static void test_set_many_keys()
+{
+    json_t *object, *value;
+    const char *keys = "abcdefghijklmnopqrstuvwxyz";
+    char buf[2];
+    size_t i;
+
+    object = json_object();
+    if (!object)
+        fail("unable to create object");
+
+    value = json_string("a");
+    if (!value)
+        fail("unable to create string");
+
+    buf[1] = '\0';
+    for (i = 0; i < strlen(keys); i++) {
+        buf[0] = keys[i];
+        if (json_object_set(object, buf, value))
+            fail("unable to set object key");
+    }
+
+    json_decref(object);
+    json_decref(value);
+}
+
 static void test_conditional_updates()
 {
     json_t *object, *other;
@@ -266,7 +292,7 @@ static void test_iterators()
     foo = json_string("foo");
     bar = json_string("bar");
     baz = json_string("baz");
-    if(!object || !foo || !bar || !bar)
+    if(!object || !foo || !bar || !baz)
         fail("unable to create values");
 
     if(json_object_iter_next(object, NULL))
@@ -373,6 +399,12 @@ static void test_misc()
 
     if(!json_object_set(object, NULL, string))
         fail("able to set NULL key");
+
+    if(json_object_del(object, "a"))
+        fail("unable to del the only key");
+
+    if(json_object_set(object, "a", string))
+        fail("unable to set value");
 
     if(!json_object_set(object, "a", NULL))
         fail("able to set NULL value");
@@ -513,15 +545,35 @@ static void test_object_foreach()
     json_decref(object2);
 }
 
+static void test_object_foreach_safe()
+{
+    const char *key;
+    void *tmp;
+    json_t *object, *value;
+
+    object = json_pack("{sisisi}", "foo", 1, "bar", 2, "baz", 3);
+
+    json_object_foreach_safe(object, tmp, key, value) {
+        json_object_del(object, key);
+    }
+
+    if(json_object_size(object) != 0)
+        fail("json_object_foreach_safe failed to iterate all key-value pairs");
+
+    json_decref(object);
+}
+
 static void run_tests()
 {
     test_misc();
     test_clear();
     test_update();
+    test_set_many_keys();
     test_conditional_updates();
     test_circular();
     test_set_nocheck();
     test_iterators();
     test_preserve_order();
     test_object_foreach();
+    test_object_foreach_safe();
 }

@@ -1,3 +1,25 @@
+/*
+  Copyright (c) 2014-2016 Bruce A Henderson
+ 
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/ 
+
 #include "jansson.h"
 
 extern "C" {
@@ -27,6 +49,7 @@ extern "C" {
 
 	BBString * bmx_json_dumps(json_t * handle, int flags, int indent, int precision);
 	BBObject * bmx_json_loads(BBString * text, int flags);
+	BBObject * bmx_json_load_callback(json_load_callback_t callback, BBObject * stream, int flags);
 
 	json_t * bmx_json_integer(BBInt64 v);
 	void bmx_json_integer_value(json_t * handle, BBInt64 * v);
@@ -100,6 +123,20 @@ BBObject * bmx_json_loads(BBString * text, int flags) {
 	
 	json_error_t error;
 	json_t * js = json_loads(t, flags, &error);
+	
+	if (!js) {
+		return CB_PREF(bah_jansson_TJSONError__createError)(bbStringFromUTF8String(error.text), bbStringFromUTF8String(error.source),
+				error.line, error.column, error.position);
+	}
+	
+	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js));
+	return CB_PREF(bah_jansson_TJSONError__createNoError)(ref);	
+}
+
+BBObject * bmx_json_load_callback(json_load_callback_t callback, BBObject * stream, int flags) {
+
+	json_error_t error;
+	json_t * js = json_load_callback(callback, (void *)stream, flags, &error);
 	
 	if (!js) {
 		return CB_PREF(bah_jansson_TJSONError__createError)(bbStringFromUTF8String(error.text), bbStringFromUTF8String(error.source),

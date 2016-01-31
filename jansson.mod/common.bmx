@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ Extern
 	
 	Function bmx_json_decref(handle:Byte Ptr)
 
-	Function bmx_json_string_nocheck:Byte Ptr(text:String)
+	Function bmx_json_string_nocheck:Byte Ptr(Text:String)
 	Function bmx_json_string_value:String(handle:Byte Ptr)
 	
 	Function bmx_json_array_get:Object(handle:Byte Ptr, index:Int)
@@ -43,7 +43,12 @@ Extern
 	Function bmx_json_array_insert:Int(handle:Byte Ptr, index:Int, value:Byte Ptr)
 	
 	Function bmx_json_dumps:String(handle:Byte Ptr, flags:Int, indent:Int, precision:Int)
-	Function bmx_json_loads:Object(text:String, flags:Int)
+	Function bmx_json_loads:Object(Text:String, flags:Int)
+?bmxng
+	Function bmx_json_load_callback:Object(callback:size_t(buffer:Byte Ptr, size:size_t, data:TStream), Text:TStream, flags:Int)
+?Not bmxng
+	Function bmx_json_load_callback:Object(callback:Int(buffer:Byte Ptr, size:Int, data:TStream), Text:TStream, flags:Int)
+?
 	
 	Function bmx_json_integer:Byte Ptr(v:Long)
 	Function bmx_json_integer_value(handle:Byte Ptr, v:Long Ptr)
@@ -78,3 +83,20 @@ Const JSON_TYPE_REAL:Int = 4
 Const JSON_TYPE_TRUE:Int = 5
 Const JSON_TYPE_FALSE:Int = 6
 Const JSON_TYPE_NULL:Int = 7
+
+
+Const JSON_MAX_INDENT:Int = $1F
+Const JSON_COMPACT:Int = $20
+Const JSON_ENSURE_ASCII:Int = $40
+Const JSON_SORT_KEYS:Int = $80
+Const JSON_PRESERVE_ORDER:Int = $100
+Const JSON_ENCODE_ANY:Int = $200
+Const JSON_ESCAPE_SLASH:Int = $400
+
+Function JSON_INDENT:Int(n:Int)
+	Return n & JSON_MAX_INDENT
+End Function
+
+Function JSON_REAL_PRECISION:Int(n:Int)
+	Return (n & $1F) Shl 11
+End Function

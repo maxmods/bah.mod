@@ -61,17 +61,25 @@ if (MSVC)
 	option(JANSSON_STATIC_CRT "Link the static CRT libraries" OFF )
 endif ()
 
+option(JANSSON_EXAMPLES "Compile example applications" ON)
+
+if (UNIX)
+   option(JANSSON_COVERAGE "(GCC Only! Requires gcov/lcov to be installed). Include target for doing coverage analysis for the test suite. Note that -DCMAKE_BUILD_TYPE=Debug must be set" OFF)
+   option(JANSSON_COVERALLS "Generate coverage info for Coveralls" OFF)
+   option(JANSSON_COVERALLS_UPLOAD "Upload coverage info to Coveralls (Only works via Travis)" ON)
+endif ()
+
 # Set some nicer output dirs.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(JANSSON_TEMP_DIR ${PROJECT_BINARY_DIR}/tmp)
 
 # Give the debug version a different postfix for windows,
 # so both the debug and release version can be built in the
 # same build-tree on Windows (MSVC).
 if (WIN32)
    set(CMAKE_DEBUG_POSTFIX "_d")
-else (WIN32)
 endif (WIN32)
 
 # This is how I thought it should go
@@ -97,15 +105,30 @@ if (MSVC)
    # Turn off Microsofts "security" warnings.
    add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /nologo" )
    
-   if (STATIC_CRT)
-      set(CMAKE_C_FLAGS_RELEASE "/MT")
-      set(CMAKE_C_FLAGS_DEBUG "/MTd")
+   if (JANSSON_STATIC_CRT)
+      set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
+      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
    endif()
    
 endif()
 
 if (NOT WIN32 AND (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX))
    add_definitions("-fPIC")
+endif()
+
+message("C compiler: ${CMAKE_C_COMPILER_ID}")
+
+# Coverage only works with GCC for a debug build.
+if (JANSSON_COVERALLS)
+   set(JANSSON_COVERAGE ON)
+endif()
+
+if (JANSSON_COVERAGE)
+   include(CodeCoverage)
+   include(Coveralls)
+
+   # This adds coverage arguments to gcc/clang.
+   coveralls_turn_on_coverage()
 endif()
 
 check_include_files (endian.h HAVE_ENDIAN_H)
@@ -293,6 +316,8 @@ endif ()
 check_c_source_compiles ("int main() { unsigned long val; __sync_bool_compare_and_swap(&val, 0, 1); return 0; } " HAVE_SYNC_BUILTINS)
 check_c_source_compiles ("int main() { char l; unsigned long v; __atomic_test_and_set(&l, __ATOMIC_RELAXED); __atomic_store_n(&v, 1, __ATOMIC_RELEASE); __atomic_load_n(&v, __ATOMIC_ACQUIRE); return 0; }" HAVE_ATOMIC_BUILTINS)
 
+set (JANSSON_INITIAL_HASHTABLE_ORDER 3 CACHE STRING "Number of buckets new object hashtables contain is 2 raised to this power. The default is 3, so empty hashtables contain 2^3 = 8 buckets.")
+
 # Create pkg-conf file.
 # (We use the same files as ./configure does, so we
 #  have to defined the same variables used there).
@@ -361,6 +386,10 @@ else()
       ${JANSSON_HDR_PUBLIC})
 endif()
 
+if (JANSSON_EXAMPLES)
+	add_executable(simple_parse "${PROJECT_SOURCE_DIR}/examples/simple_parse.c")
+	target_link_libraries(simple_parse jansson)
+endif()
 
 # For building Documentation (uses Sphinx)
 option(JANSSON_BUILD_DOCS "Build documentation (uses python-sphinx)." ON)
@@ -511,15 +540,19 @@ if (NOT JANSSON_WITHOUT_TESTS)
 
       if (JANSSON_TEST_WITH_VALGRIND)
          add_test(memcheck__${test}
-                  ${MEMCHECK_COMMAND} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test})
+             ${MEMCHECK_COMMAND} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test}
+             WORKING_DIRECTORY ${JANSSON_TEMP_DIR})
       else()
-         add_test(${test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test})
+         add_test(${test}
+             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test}
+             WORKING_DIRECTORY ${JANSSON_TEMP_DIR})
       endif ()
    endforeach ()
 
    # Test harness for the suites tests.
    build_testprog(json_process ${PROJECT_SOURCE_DIR}/test/bin)
 
+   set(SUITE_TEST_CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/json_process)
    set(SUITES encoding-flags valid invalid invalid-unicode)
    foreach (SUITE ${SUITES})
        file(GLOB TESTDIRS ${jansson_SOURCE_DIR}/test/suites/${SUITE}/*)
@@ -527,8 +560,6 @@ if (NOT JANSSON_WITHOUT_TESTS)
        foreach (TESTDIR ${TESTDIRS})
          if (IS_DIRECTORY ${TESTDIR})
             get_filename_component(TNAME ${TESTDIR} NAME)
-
-            set(SUITE_TEST_CMD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/json_process)
 
             if (JANSSON_TEST_WITH_VALGRIND)
                add_test(memcheck__${SUITE}__${TNAME}
@@ -551,6 +582,21 @@ if (NOT JANSSON_WITHOUT_TESTS)
        endforeach ()
    endforeach ()
 
+   if (JANSSON_COVERAGE)
+      setup_target_for_coverage(
+            coverage             # Coverage make target "make coverage".
+            coverage             # Name of output directory.
+            make                 # Name of test runner executable.
+            test)                # Arguments to the test runner above (make test).
+
+      if (JANSSON_COVERALLS)
+         set(COVERAGE_SRCS ${JANSSON_SRC})
+         coveralls_setup("${COVERAGE_SRCS}" ${JANSSON_COVERALLS_UPLOAD})
+      endif ()
+   endif ()
+
+   # Enable using "make check" just like the autotools project.
+   # By default cmake creates a target "make test"
    add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} 
                      DEPENDS json_process ${api_tests})
 endif ()

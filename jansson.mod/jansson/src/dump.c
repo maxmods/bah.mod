@@ -50,15 +50,19 @@ static int dump_indent(size_t flags, int depth, int space, json_dump_callback_t 
 {
     if(FLAGS_TO_INDENT(flags) > 0)
     {
-        int i, ws_count = FLAGS_TO_INDENT(flags);
+        unsigned int ws_count = FLAGS_TO_INDENT(flags), n_spaces = depth * ws_count;
 
         if(dump("\n", 1, data))
             return -1;
 
-        for(i = 0; i < depth; i++)
+        while(n_spaces > 0)
         {
-            if(dump(whitespace, ws_count, data))
+            int cur_n = n_spaces < sizeof whitespace - 1 ? n_spaces : sizeof whitespace - 1;
+
+            if(dump(whitespace, cur_n, data))
                 return -1;
+
+            n_spaces -= cur_n;
         }
     }
     else if(space && !(flags & JSON_COMPACT))
@@ -130,7 +134,7 @@ static int dump_string(const char *str, size_t len, json_dump_callback_t dump, v
                 /* codepoint is in BMP */
                 if(codepoint < 0x10000)
                 {
-                    sprintf(seq, "\\u%04X", codepoint);
+                    snprintf(seq, sizeof(seq), "\\u%04X", (unsigned int)codepoint);
                     length = 6;
                 }
 
@@ -143,7 +147,7 @@ static int dump_string(const char *str, size_t len, json_dump_callback_t dump, v
                     first = 0xD800 | ((codepoint & 0xffc00) >> 10);
                     last = 0xDC00 | (codepoint & 0x003ff);
 
-                    sprintf(seq, "\\u%04X\\u%04X", first, last);
+                    snprintf(seq, sizeof(seq), "\\u%04X\\u%04X", (unsigned int)first, (unsigned int)last);
                     length = 12;
                 }
 
@@ -224,8 +228,9 @@ static int do_dump(const json_t *json, size_t flags, int depth,
 
         case JSON_ARRAY:
         {
-            int i;
-            int n;
+            size_t n;
+            size_t i;
+
             json_array_t *array;
 
             /* detect circular references */

@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.Jansson
 ModuleInfo "Version: 1.00"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2014 Bruce A Henderson"
+ModuleInfo "Copyright: 2014-2016 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
@@ -93,22 +93,36 @@ Type TJSON
 	End Rem
 	Function Load:TJSON(data:Object, flags:Int = 0, error:TJSONError Var)
 	
+		Local err:TJSONError
+		
 		If String(data) Then
 			' load as text
-			Local err:TJSONError = TJSONError(bmx_json_loads(String(data), flags))
+			err = TJSONError(bmx_json_loads(String(data), flags))
+			
+		Else If TStream(data) Then
+			' load as stream
+			err = TJSONError(bmx_json_load_callback(_loadCallback, TStream(data), flags))
+			
+		End If
 
+		If err 
 			If err._js Then
 				Return err._js
 			End If
 			
 			error = err
-			
-		Else If TStream(data) Then
-			' load as stream
-			' TODO
+		
 		End If
 		
 		Return Null
+	End Function
+
+?bmxng
+	Function _loadCallback:size_t(buffer:Byte Ptr, buflen:size_t, data:TStream)
+?Not bmxng
+	Function _loadCallback:Int(buffer:Byte Ptr, buflen:Int, data:TStream)
+?
+		Return data.Read(buffer, buflen)
 	End Function
 
 	Method Delete()
@@ -331,8 +345,8 @@ Type TJSONString Extends TJSON
 	Rem
 	bbdoc: Creates a new TJSONString.
 	End Rem
-	Method Create:TJSONString(text:String)
-		jsonPtr = bmx_json_string_nocheck(text)
+	Method Create:TJSONString(Text:String)
+		jsonPtr = bmx_json_string_nocheck(Text)
 		Return Self
 	End Method
 	
@@ -424,7 +438,7 @@ Type TJSONError
 	Rem
 	bbdoc: The error message, or an empty string if a message is not available.
 	End Rem
-	Field text:String
+	Field Text:String
 	Rem
 	bbdoc: Source of the error.
 	about: This can be (a part of) the file name or a special identifier in angle brackers (e.g. &lt;string&gt;).
@@ -447,9 +461,9 @@ Type TJSONError
 	
 	Field _js:TJSON
 	
-	Function _createError:TJSONError(text:String, source:String, line:Int, column:Int, position:Int)
+	Function _createError:TJSONError(Text:String, source:String, line:Int, column:Int, position:Int)
 		Local this:TJSONError = New TJSONError
-		this.text = text
+		this.Text = Text
 		this.source = source
 		this.line = line
 		this.column = column
