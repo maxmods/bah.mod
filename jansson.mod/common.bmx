@@ -86,17 +86,88 @@ Const JSON_TYPE_NULL:Int = 7
 
 
 Const JSON_MAX_INDENT:Int = $1F
+Rem
+bbdoc: Enables a compact representation, i.e. sets the separator between array and object items to "," and between object keys and values to ":".
+about: Without this flag, the corresponding separators are ", " and ": " for more readable output.
+End Rem
 Const JSON_COMPACT:Int = $20
+Rem
+bbdoc: Guarantees the output to consist only of ASCII characters.
+about: This is achived by escaping all Unicode characters outside the ASCII range.
+End Rem
 Const JSON_ENSURE_ASCII:Int = $40
+Rem
+bbdoc: All the objects in output are sorted by key.
+about: This is useful e.g. if two JSON texts are diffed or visually compared.
+End Rem
 Const JSON_SORT_KEYS:Int = $80
+Rem
+bbdoc: Object keys in the output are sorted into the same order in which they were first inserted to the object.
+about: For example, decoding a JSON text and then encoding with this flag preserves the order of object keys.
+End Rem
 Const JSON_PRESERVE_ORDER:Int = $100
+Rem
+bbdoc: Makes it possible to encode any JSON value on its own.
+about: Without it, only objects and arrays can be passed as the root value to the encoding functions.
+Note: Encoding any value may be useful in some scenarios, but it's generally discouraged as it violates strict compatiblity with
+RFC 4627. If you use this flag, don't expect interoperatibility with other JSON systems.
+End Rem
 Const JSON_ENCODE_ANY:Int = $200
+Rem
+bbdoc: Escapes the / characters in strings with \/.
+End Rem
 Const JSON_ESCAPE_SLASH:Int = $400
 
+Rem
+bbdoc: Pretty-prints the result, using newlines between array and object items, and indenting with n spaces.
+about: The valid range for n is between 0 and 31 (inclusive), other values result in an undefined output. If JSON_INDENT is not used or n is 0,
+no newlines are inserted between array and object items.
+End Rem
 Function JSON_INDENT:Int(n:Int)
 	Return n & JSON_MAX_INDENT
 End Function
 
+Rem
+bbdoc: Outputs all real numbers with at most n digits of precision.
+about: The valid range for n is between 0 and 31 (inclusive), and other values result in an undefined behavior.
+By default, the precision is 17, to correctly and losslessly encode all IEEE 754 double precision floating point numbers.
+End Rem
 Function JSON_REAL_PRECISION:Int(n:Int)
 	Return (n & $1F) Shl 11
 End Function
+
+Rem
+bbdoc: Issues a decoding error if any JSON object in the input text contains duplicate keys.
+about: Without this flag, the value of the last occurence of each key ends up in the result.
+Key equivalence is checked byte-by-byte, without special Unicode comparison algorithms.
+End Rem
+Const JSON_REJECT_DUPLICATES:Int = $1
+Rem
+bbdoc: With this flag enabled, the decoder stops after decoding a valid JSON array or object, and thus allows extra data after the JSON text. 
+about: By default, the decoder expects that its whole input constitutes a valid JSON text, and issues an error if there's extra data after the otherwise valid JSON input.
+Normally, reading will stop when the last ] or } in the JSON input is encountered. If both JSON_DISABLE_EOF_CHECK and JSON_DECODE_ANY flags
+are used, the decoder may read one extra UTF-8 code unit (up to 4 bytes of input). For example, decoding 4true correctly decodes
+the integer 4, but also reads the t. For this reason, if reading multiple consecutive values that are not arrays or objects,
+they should be separated by at least one whitespace character.
+End Rem
+Const JSON_DISABLE_EOF_CHECK:Int = $2
+Rem
+bbdoc: With this flag enabled, the decoder accepts any valid JSON value.
+about: By default, the decoder expects an array or object as the input.
+Note: Decoding any value may be useful in some scenarios, but it's generally discouraged as it violates strict compatiblity
+with RFC 4627. If you use this flag, don't expect interoperatibility with other JSON systems.
+End Rem
+Const JSON_DECODE_ANY:Int = $4
+Rem
+bbdoc: With this flag enabled the decoder interprets all numbers as real values. 
+about: JSON defines only one number type. Jansson distinguishes between ints and reals. For more information see Real vs. Integer. Integers that do
+not have an exact double representation will silently result in a loss of precision. Integers that cause a double overflow will cause an error.
+End Rem
+Const JSON_DECODE_INT_AS_REAL:Int = $8
+Rem
+bbdoc: Allows \u0000 escape inside string values.
+about: This is a safety measure; If you know your input can contain NUL bytes, use this flag. If you don't use this flag, you don't have
+to worry about NUL bytes inside strings.
+Object keys cannot have embedded NUL bytes even if this flag is used.
+End Rem
+Const JSON_ALLOW_NUL:Int = $10

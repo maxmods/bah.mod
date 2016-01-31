@@ -75,6 +75,8 @@ Type TJSON
 	
 	Rem
 	bbdoc: Returns the JSON representation of the object as a String, or NULL on error. 
+	about: Valid flags include #JSON_COMPACT, #JSON_ENSURE_ASCII, #JSON_SORT_KEYS, #JSON_PRESERVE_ORDER, #JSON_ENCODE_ANY and #JSON_ESCAPE_SLASH,
+	and values from #JSON_INDENT and #JSON_REAL_PRECISION.
 	End Rem
 	Method SaveString:String(flags:Int = 0, indent:Int = 0, precision:Int = 17)
 		Return bmx_json_dumps(jsonPtr, flags, indent, precision)
@@ -83,13 +85,17 @@ Type TJSON
 	Rem
 	bbdoc: Writes the JSON representation of the object to the stream output.
 	about: The stream should already be open for writing.
+	Valid flags include #JSON_COMPACT, #JSON_ENSURE_ASCII, #JSON_SORT_KEYS, #JSON_PRESERVE_ORDER, #JSON_ENCODE_ANY and #JSON_ESCAPE_SLASH,
+	and values from #JSON_INDENT and #JSON_REAL_PRECISION.
 	End Rem
 	Method SaveStream:Int(stream:TStream, flags:Int = 0, indent:Int = 0, precision:Int = 17)
 		' TODO
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Loads JSON text from a String or TStream.
+	about: The stream should already be open for reading.
+	Valid flags include #JSON_REJECT_DUPLICATES, #JSON_DISABLE_EOF_CHECK, #JSON_DECODE_ANY, #JSON_DECODE_INT_AS_REAL and #JSON_ALLOW_NUL.
 	End Rem
 	Function Load:TJSON(data:Object, flags:Int = 0, error:TJSONError Var)
 	
