@@ -32,7 +32,7 @@ extern "C" {
 #define CB_PREF(func) _##func
 #endif
 
-	BBObject * CB_PREF(bah_jansson_TJSON__create)(json_t * handle, int jsonType);
+	BBObject * CB_PREF(bah_jansson_TJSON__create)(json_t * handle, int jsonType, BBString * key);
 	BBObject * CB_PREF(bah_jansson_TJSONError__createError)(BBString * text, BBString * source, int line, int column, int position);
 	BBObject * CB_PREF(bah_jansson_TJSONError__createNoError)(BBObject * js);
 
@@ -48,6 +48,7 @@ extern "C" {
 	int bmx_json_array_insert(json_t * handle, int index, json_t * value);
 
 	BBString * bmx_json_dumps(json_t * handle, int flags, int indent, int precision);
+	int bmx_json_dump_callback(json_t * handle, json_dump_callback_t callback, BBObject * stream, int flags, int indent, int precision);
 	BBObject * bmx_json_loads(BBString * text, int flags);
 	BBObject * bmx_json_load_callback(json_load_callback_t callback, BBObject * stream, int flags);
 
@@ -84,7 +85,7 @@ BBString * bmx_json_string_value(json_t * handle) {
 BBObject * bmx_json_array_get(json_t * handle, int index) {
 	json_t * value = json_array_get(handle, index);
 	if (value) {
-		return CB_PREF(bah_jansson_TJSON__create)(json_incref(value), json_typeof(value));
+		return CB_PREF(bah_jansson_TJSON__create)(json_incref(value), json_typeof(value), &bbEmptyString);
 	} else {
 		return &bbNullObject;
 	}
@@ -118,6 +119,10 @@ BBString * bmx_json_dumps(json_t * handle, int flags, int indent, int precision)
 	}
 }
 
+int bmx_json_dump_callback(json_t * handle, json_dump_callback_t callback, BBObject * stream, int flags, int indent, int precision) {
+	return json_dump_callback(handle, callback, (void *)stream, flags | JSON_INDENT(indent) | JSON_REAL_PRECISION(precision));
+}
+
 BBObject * bmx_json_loads(BBString * text, int flags) {
 	char * t = bbStringToUTF8String(text);
 	
@@ -129,7 +134,7 @@ BBObject * bmx_json_loads(BBString * text, int flags) {
 				error.line, error.column, error.position);
 	}
 	
-	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js));
+	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js), &bbEmptyString);
 	return CB_PREF(bah_jansson_TJSONError__createNoError)(ref);	
 }
 
@@ -143,7 +148,7 @@ BBObject * bmx_json_load_callback(json_load_callback_t callback, BBObject * stre
 				error.line, error.column, error.position);
 	}
 	
-	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js));
+	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js), &bbEmptyString);
 	return CB_PREF(bah_jansson_TJSONError__createNoError)(ref);	
 }
 
@@ -168,7 +173,7 @@ BBObject * bmx_json_object_get(json_t * handle, BBString * key) {
 	json_t * obj = json_object_get(handle, k);
 	bbMemFree(k);
 	if (obj) {
-		return CB_PREF(bah_jansson_TJSON__create)(json_incref(obj), json_typeof(obj));
+		return CB_PREF(bah_jansson_TJSON__create)(json_incref(obj), json_typeof(obj), key);
 	} else {
 		return &bbNullObject;
 	}
@@ -189,9 +194,10 @@ int bmx_json_object_del(json_t * handle, BBString * key) {
 }
 
 BBObject * bmx_json_object_iter_value(void * iter) {
-	json_t * value = json_object_iter_value(iter);
+	const char * key = json_object_iter_key(iter);
+	json_t * value = json_object_iter_value(json_object_key_to_iter(key));
 	if (value) {
-		return CB_PREF(bah_jansson_TJSON__create)(json_incref(value), json_typeof(value));
+		return CB_PREF(bah_jansson_TJSON__create)(json_incref(value), json_typeof(value), bbStringFromUTF8String(key));
 	} else {
 		return &bbNullObject;
 	}

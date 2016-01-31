@@ -43,12 +43,14 @@ Extern
 	Function bmx_json_array_insert:Int(handle:Byte Ptr, index:Int, value:Byte Ptr)
 	
 	Function bmx_json_dumps:String(handle:Byte Ptr, flags:Int, indent:Int, precision:Int)
-	Function bmx_json_loads:Object(Text:String, flags:Int)
 ?bmxng
+	Function bmx_json_dump_callback:Int(handle:Byte Ptr, callback:Int(buffer:Byte Ptr, size:size_t, data:TStream), stream:TStream, flags:Int, indent:Int, precision:Int)
 	Function bmx_json_load_callback:Object(callback:size_t(buffer:Byte Ptr, size:size_t, data:TStream), Text:TStream, flags:Int)
 ?Not bmxng
+	Function bmx_json_dump_callback:Int(handle:Byte Ptr, callback:Int(buffer:Byte Ptr, size:Int, data:TStream), stream:TStream, flags:Int, indent:Int, precision:Int)
 	Function bmx_json_load_callback:Object(callback:Int(buffer:Byte Ptr, size:Int, data:TStream), Text:TStream, flags:Int)
 ?
+	Function bmx_json_loads:Object(Text:String, flags:Int)
 	
 	Function bmx_json_integer:Byte Ptr(v:Long)
 	Function bmx_json_integer_value(handle:Byte Ptr, v:Long Ptr)
