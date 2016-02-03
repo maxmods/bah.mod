@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ Import BRL.Stream
 
 ?macos
 Import "-lcrypto"
+Import "ssl/include/*.h"
 ?linux
 Import "-lcrypto"
 ?win32
@@ -121,13 +122,6 @@ End Rem
 	Function EVP_cast5_cfb:Byte Ptr() = "EVP_cast5_cfb64"
 ?
 	Function EVP_cast5_ofb:Byte Ptr()
-	
-?MacOS
-	Function EVP_rc5_32_12_16_cbc:Byte Ptr()
-	Function EVP_rc5_32_12_16_ecb:Byte Ptr()
-	Function EVP_rc5_32_12_16_cfb:Byte Ptr()
-	Function EVP_rc5_32_12_16_ofb:Byte Ptr()
-?
 
 	Function EVP_DigestInit_ex:Int(handle:Byte Ptr, md:Byte Ptr, eng:Byte Ptr)
 	Function EVP_DigestFinal_ex:Int(handle:Byte Ptr, out:Byte Ptr, outl:Int Ptr)
@@ -183,10 +177,10 @@ End Function
 Rem
 bbdoc: Helper function for converting a String to a Byte[].
 End Rem
-Function StringToByteArray:Byte[](text:String)
-	Local arr:Byte[] = New Byte[text.length]
-	For Local i:Int = 0 Until text.length
-		arr[i] = text[i]
+Function StringToByteArray:Byte[](Text:String)
+	Local arr:Byte[] = New Byte[Text.length]
+	For Local i:Int = 0 Until Text.length
+		arr[i] = Text[i]
 	Next
 	Return arr
 End Function

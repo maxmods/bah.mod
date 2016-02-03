@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Include static lib for osx."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
 ModuleInfo "History: Removed support for MD2. (deprecated)"
@@ -43,6 +45,10 @@ ModuleInfo "History: Initial Release"
 
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
+?macosx86
+ModuleInfo "LD_OPTS: -L%PWD%/ssl/libmacosx86"
+?macosx64
+ModuleInfo "LD_OPTS: -L%PWD%/ssl/libmacosx64"
 ?
 
 Import "common.bmx"
@@ -593,56 +599,6 @@ End Rem
 		Return this
 	End Function
 
-?MacOS
-	Rem
-	bbdoc: RC5 encryption algorithm, using CBC (Cipher-block chaining) mode.
-	about: This is a variable key length cipher with an
-           additional "number of rounds" parameter. By default the key length
-           is set to 128 bits and 12 rounds.
-	End Rem
-	Function rc5_32_12_16_cbc:EVP_CIPHER()
-		Local this:EVP_CIPHER = New EVP_CIPHER
-		this.cipherPtr = EVP_rc5_32_12_16_cbc()
-		Return this
-	End Function
-
-	Rem
-	bbdoc: RC5 encryption algorithm, using ECB (Electronic codebook) mode.
-	about: This is a variable key length cipher with an
-           additional "number of rounds" parameter. By default the key length
-           is set to 128 bits and 12 rounds.
-	End Rem
-	Function rc5_32_12_16_ecb:EVP_CIPHER()
-		Local this:EVP_CIPHER = New EVP_CIPHER
-		this.cipherPtr = EVP_rc5_32_12_16_ecb()
-		Return this
-	End Function
-
-	Rem
-	bbdoc: RC5 encryption algorithm, using CFB (Cipher feedback) mode.
-	about: This is a variable key length cipher with an
-           additional "number of rounds" parameter. By default the key length
-           is set to 128 bits and 12 rounds.
-	End Rem
-	Function rc5_32_12_16_cfb:EVP_CIPHER()
-		Local this:EVP_CIPHER = New EVP_CIPHER
-		this.cipherPtr = EVP_rc5_32_12_16_cfb()
-		Return this
-	End Function
-
-	Rem
-	bbdoc: RC5 encryption algorithm, using OFB (Output feedback) mode.
-	about: This is a variable key length cipher with an
-           additional "number of rounds" parameter. By default the key length
-           is set to 128 bits and 12 rounds.
-	End Rem
-	Function rc5_32_12_16_ofb:EVP_CIPHER()
-		Local this:EVP_CIPHER = New EVP_CIPHER
-		this.cipherPtr = EVP_rc5_32_12_16_ofb()
-		Return this
-	End Function
-?
-
 	Rem
 	bbdoc: AES encryption algorithm, using ECB (Electronic codebook) mode.
 	End Rem
@@ -1024,19 +980,19 @@ Function RIPEMD160:String(data:Object)
 	Return _processDigest(EVP_MD.RIPEMD160(), data)
 End Function
 
-Function _processDigest:String(digestType:EVP_MD, text:Object)
+Function _processDigest:String(digestType:EVP_MD, Text:Object)
 	Local ctx:EVP_MD_CTX = New EVP_MD_CTX.Create()
 	ctx.DigestInit(digestType)
 
-	If String(text) Then
+	If String(Text) Then
 	
-		If Not ctx.DigestUpdate(String(text), String(text).length) Then
+		If Not ctx.DigestUpdate(String(Text), String(Text).length) Then
 			Return Null
 		End If
 		
-	ElseIf TStream(text) Then
+	ElseIf TStream(Text) Then
 	
-		Local stream:TStream = TStream(text)
+		Local stream:TStream = TStream(Text)
 	
 		Local data:Byte[2048]
 		Local length:Int
