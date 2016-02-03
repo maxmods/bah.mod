@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2015 Bruce A Henderson
+' Copyright (c) 2008-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ Module BaH.FMOD
 ModuleInfo "Version: 1.02"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FMOD - See http://www.fmod.org"
-ModuleInfo "Copyright: Wrapper - 2008-2015 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2016 Bruce A Henderson"
 ModuleInfo "Copyright: FMOD - 2004-2014 Firelight Technologies, Pty, Ltd"
 
 ModuleInfo "History: 1.02"
@@ -2165,8 +2165,12 @@ Type TFMODCreateSoundCallbackHandler
 	Field pcmReadCallback:Int(sound:TFMODSound, data:Byte Ptr, dataLen:Int)
 	Field pcmSetPosCallback:Int(sound:TFMODSound, subsound:Int, position:Int, posType:Int)
 	Field nonBlockCallback:Int(sound:TFMODSound, result:Int)
-	
+
+?win32
+	Function _PCMReadCallback:Int(sound:Byte Ptr, data:Byte Ptr, dataLen:Int) "win32"
+?Not win32	
 	Function _PCMReadCallback:Int(sound:Byte Ptr, data:Byte Ptr, dataLen:Int)
+?
 		Local snd:TFMODSound = TFMODSound._create(sound)
 		Local obj:TFMODCreateSoundCallbackHandler = TFMODCreateSoundCallbackHandler(snd.GetUserData())
 		If obj Then
@@ -2175,7 +2179,11 @@ Type TFMODCreateSoundCallbackHandler
 		Return FMOD_OK
 	End Function
 
+?win32
+	Function _PCMSetPosCallback:Int(sound:Byte Ptr, subsound:Int, position:Int, posType:Int) "win32"
+?Not win32	
 	Function _PCMSetPosCallback:Int(sound:Byte Ptr, subsound:Int, position:Int, posType:Int)
+?
 		Local snd:TFMODSound = TFMODSound._create(sound)
 		Local obj:TFMODCreateSoundCallbackHandler = TFMODCreateSoundCallbackHandler(snd.GetUserData())
 		If obj Then
@@ -2184,7 +2192,11 @@ Type TFMODCreateSoundCallbackHandler
 		Return FMOD_OK
 	End Function
 
+?win32
+	Function _NonBlockCallback:Int(sound:Byte Ptr, result:Int) "win32"
+?Not win32	
 	Function _NonBlockCallback:Int(sound:Byte Ptr, result:Int)
+?
 		Local snd:TFMODSound = TFMODSound._create(sound)
 		Local obj:TFMODCreateSoundCallbackHandler = TFMODCreateSoundCallbackHandler(snd.GetUserData())
 		If obj Then
