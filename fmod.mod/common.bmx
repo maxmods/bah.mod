@@ -220,7 +220,11 @@ Extern
 	Function FMOD_System_GetWaveData:Int(handle:Byte Ptr, waveArray:Float Ptr, numValues:Int, channelOffset:Int)
 	Function FMOD_System_IsRecording:Int(handle:Byte Ptr, id:Int, recording:Int Ptr)
 	Function FMOD_System_RecordStop:Int(handle:Byte Ptr, id:Int)
+?bmxng
+	Function FMOD_System_Set3DListenerAttributes:Int(handle:Byte Ptr, listener:Int, pos:TFMODVector Var, vel:TFMODVector Var, forward:TFMODVector Var, up:TFMODVector Var)
+?Not bmxng
 	Function FMOD_System_Set3DListenerAttributes:Int(handle:Byte Ptr, listener:Int, pos:Byte Ptr, vel:Byte Ptr, forward:Byte Ptr, up:Byte Ptr)
+?
 	Function FMOD_System_Set3DNumListeners:Int(handle:Byte Ptr, numListeners:Int)
 	Function FMOD_System_Set3DSettings:Int(handle:Byte Ptr, dopplerScale:Float, distanceFactor:Float, rolloffScale:Float)
 	Function FMOD_System_Set3DSpeakerPosition:Int(handle:Byte Ptr, speaker:Int, x:Float, y:Float, active:Int)
@@ -344,7 +348,11 @@ Extern
 	To use a right handed co-ordinate system specify FMOD_INIT_3D_RIGHTHANDED from FMOD_INITFLAGS in System::init. 
 	</p>
 	End Rem
+?bmxng
+	Struct TFMODVector
+?Not bmxng
 	Type TFMODVector
+?
 		Rem
 		bbdoc: X co-ordinate in 3D spa
 		End Rem
@@ -357,12 +365,19 @@ Extern
 		bbdoc: Z co-ordinate in 3D spa
 		End Rem
 		Field z:Float
+?bmxng
+	End Struct
+?Not bmxng
 	End Type
-
+?
 	Rem
 	bbdoc: Structure defining a reverb environment.
 	End Rem
+?bmxng
+	Struct TFMODReverbProperties
+?Not bmxng
 	Type TFMODReverbProperties
+?
 		Rem
 		bbdoc: Instance
 		about: 0 , 3 , 0 , Environment Instance.
@@ -531,12 +546,20 @@ Extern
 		about: 
 		End Rem
 		Field Flags:Int
+?bmxng
+	End Struct
+?Not bmxng
 	End Type
+?
 	
 	Rem
 	bbdoc: 
 	End Rem
+?bmxng
+	Struct TFMODReverbChannelProperties
+?Not bmxng
 	Type TFMODReverbChannelProperties
+?
 		Field Direct:Int
 		Field DirectHF:Int
 		Field Room:Int
@@ -555,7 +578,11 @@ Extern
 		Field RoomRolloffFactor:Float
 		Field AirAbsorptionFactor:Float
 		Field Flags:Int
+?bmxng
+	End Struct
+?Not bmxng
 	End Type
+?
 	
 End Extern
 
