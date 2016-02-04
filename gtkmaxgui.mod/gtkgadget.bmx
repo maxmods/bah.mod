@@ -3859,12 +3859,16 @@ Type TGTKComboBox Extends TGTKList
 
 	Method ItemText:String(index:Int)
 		If index < 0 Or index >= items.length Then
-			Local s:Byte Ptr = gtk_combo_box_get_active_text(handle)
-			Local st:String = String.FromUTF8String(s)
-			g_free(s)
-			Return st
+			Return GetText()
 		End If
 		Return items[index].text
+	End Method
+
+	Method GetText:String()
+		Local s:Byte Ptr = gtk_combo_box_get_active_text(handle)
+		Local st:String = String.FromUTF8String(s)
+		g_free(s)
+		Return st
 	End Method
 
 	Method Free()
