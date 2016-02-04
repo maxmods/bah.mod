@@ -8,5 +8,5 @@ Import BRL.Math
 
 Local value:TMAPM = New TMAPM.Create("45")
 
-Print value.Sin(32).ToFixtPtString(32)
+Print value.Sin(32).ToFixPtString(32)
 Print (Sin(45))
