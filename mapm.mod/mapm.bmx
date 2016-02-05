@@ -1,4 +1,4 @@
-' Copyright (c) 2015 Bruce A Henderson
+' Copyright (c) 2008-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.MAPM
 ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: MAPM - 1999-2007 Michael C. Ring"
-ModuleInfo "Copyright: BlitzMax port - 2008-2015 Bruce A Henderson"
+ModuleInfo "Copyright: BlitzMax port - 2008-2016 Bruce A Henderson"
 
 ModuleInfo "History: 1.02"
 ModuleInfo "Hisotry: Fixed strings for larger numbers."
@@ -170,20 +170,20 @@ Type TMAPM
 	<pre>
 	    If value is = 3.6487451E+2 :
 
-	    1)  ToFixtPtString(10)
+	    1)  ToFixPtString(10)
 	        string -&gt; "364.8745100000"
 
-	    2)  ToFixtPtString(1)
+	    2)  ToFixPtString(1)
 	        string -&gt; "364.9"
 
-	    3)  ToFixtPtString(0)
+	    3)  ToFixPtString(0)
 	        string -&gt; "365"
 
-	    4)  ToFixtPtString(-1)
+	    4)  ToFixPtString(-1)
 	        string -&gt; "364.87451"
 	</pre>
 	End Rem
-	Method ToFixtPtString:String(decimalPlaces:Int)
+	Method ToFixPtString:String(decimalPlaces:Int)
 		Local buf:Byte[MAPM_MAX_DIGITS + SignificantDigits()]
 		m_apm_to_fixpt_string(buf, decimalPlaces, mapmPtr)
 		Return String.FromCString(buf)
@@ -191,14 +191,14 @@ Type TMAPM
 	
 	Rem
 	bbdoc: Converts a MAPM value into a string, outputting all significant digits.
-	about: This is equivalent to  ToFixtPtString(-1)
+	about: This is equivalent to  ToFixPtString(-1)
 	End Rem
 	Method ToString:String()
-		Return ToFixtPtString(-1)
+		Return ToFixPtString(-1)
 	End Method
 
 	Rem
-	bbdoc: This method is an extended version of ToFixtPtString which includes 3 additional function parameters:
+	bbdoc: This method is an extended version of ToFixPtString which includes 3 additional function parameters:
 	about:
 	<ul>
 	<li>@radix -  Specify the radix character desired. For example, use ',' to set the radix char to a comma.</li>
@@ -222,7 +222,7 @@ Type TMAPM
 	    when it is only desired to change the radix character.
 	</p>
 	End Rem
-	Method ToFixtPtStringEx:String(decimalPlaces:Int, radix:String, separator:String, separatorCount:Int)
+	Method ToFixPtStringEx:String(decimalPlaces:Int, radix:String, separator:String, separatorCount:Int)
 		Local buf:Byte[MAPM_MAX_DIGITS + SignificantDigits()]
 		m_apm_to_fixpt_stringex(buf, decimalPlaces, mapmPtr, radix[0], separator[0], separatorCount)
 		Return String.FromCString(buf)
