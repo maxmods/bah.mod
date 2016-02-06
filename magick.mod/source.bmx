@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2013 Bruce A Henderson
+' Copyright (c) 2008-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -320,20 +320,20 @@ Import "src/delegates/jasper/ras/ras_enc.c"
 
 ' bzip2
 Import "src/delegates/bzip2/blocksort.c"
-Import "src/delegates/bzip2/unzcrash.c"
-Import "src/delegates/bzip2/bzip2.c"
-Import "src/delegates/bzip2/bzip2recover.c"
+'Import "src/delegates/bzip2/unzcrash.c"
+'Import "src/delegates/bzip2/bzip2.c"
+'Import "src/delegates/bzip2/bzip2recover.c"
 Import "src/delegates/bzip2/bzlib.c"
 Import "src/delegates/bzip2/bmx_compress.c"
 Import "src/delegates/bzip2/crctable.c"
 Import "src/delegates/bzip2/decompress.c"
 Import "src/delegates/bzip2/huffman.c"
-Import "src/delegates/bzip2/mk251.c"
+'Import "src/delegates/bzip2/mk251.c"
 Import "src/delegates/bzip2/randtable.c"
-Import "src/delegates/bzip2/spewG.c"
+'Import "src/delegates/bzip2/spewG.c"
 
 ' libtiff
-Import "src/delegates/libtiff/mkg3states.c"
+'Import "src/delegates/libtiff/mkg3states.c"
 Import "src/delegates/libtiff/tif_aux.c"
 Import "src/delegates/libtiff/tif_close.c"
 Import "src/delegates/libtiff/tif_codec.c"

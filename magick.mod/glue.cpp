@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2008-2013 Bruce A Henderson
+ Copyright (c) 2008-2016 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,30 +31,58 @@ using namespace Magick;
 
 extern "C" {
 
-#include "blitz.h"
+#include "brl.mod/blitz.mod/blitz.h"
 
-	BBObject * _bah_magick_TMException__create(BBString * message);
-	BBObject * _bah_magick_TMErrorUndefined__create(BBString * message);
-	BBObject * _bah_magick_TMErrorBlob__create(BBString * message);
-	BBObject * _bah_magick_TMErrorCache__create(BBString * message);
-	BBObject * _bah_magick_TMErrorCoder__create(BBString * message);
-	BBObject * _bah_magick_TMErrorConfigure__create(BBString * message);
-	BBObject * _bah_magick_TMErrorCorruptImage__create(BBString * message);
-	BBObject * _bah_magick_TMErrorDelegate__create(BBString * message);
-	BBObject * _bah_magick_TMErrorDraw__create(BBString * message);
-	BBObject * _bah_magick_TMErrorFileOpen__create(BBString * message);
-	BBObject * _bah_magick_TMErrorImage__create(BBString * message);
-	BBObject * _bah_magick_TMErrorMissingDelegate__create(BBString * message);
-	BBObject * _bah_magick_TMErrorModule__create(BBString * message);
-	BBObject * _bah_magick_TMErrorOption__create(BBString * message);
-	BBObject * _bah_magick_TMErrorRegistry__create(BBString * message);
-	BBObject * _bah_magick_TMErrorResourceLimit__create(BBString * message);
-	BBObject * _bah_magick_TMErrorStream__create(BBString * message);
-	BBObject * _bah_magick_TMErrorType__create(BBString * message);
-	BBObject * _bah_magick_TMErrorXServer__create(BBString * message);
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
 
-	BBObject * _bah_magick_TMCoderInfo__create(BBString * name, BBString * description, int isReadable, int isWritable, int isMultiFrame);
-	void _bah_magick_TMCoderInfo__addToList(BBObject * tlist, BBObject * info);
+#ifdef BMX_NG
+	#define bah_magick_TMException__create bah_magick_common_TMException__create
+	#define bah_magick_TMErrorUndefined__create bah_magick_common_TMErrorUndefined__create
+	#define bah_magick_TMErrorBlob__create bah_magick_common_TMErrorBlob__create
+	#define bah_magick_TMErrorCache__create bah_magick_common_TMErrorCache__create
+	#define bah_magick_TMErrorCoder__create bah_magick_common_TMErrorCoder__create
+	#define bah_magick_TMErrorConfigure__create bah_magick_common_TMErrorConfigure__create
+	#define bah_magick_TMErrorCorruptImage__create bah_magick_common_TMErrorCorruptImage__create
+	#define bah_magick_TMErrorDelegate__create bah_magick_common_TMErrorDelegate__create
+	#define bah_magick_TMErrorDraw__create bah_magick_common_TMErrorDraw__create
+	#define bah_magick_TMErrorFileOpen__create bah_magick_common_TMErrorFileOpen__create
+	#define bah_magick_TMErrorImage__create bah_magick_common_TMErrorImage__create
+	#define bah_magick_TMErrorMissingDelegate__create bah_magick_common_TMErrorMissingDelegate__create
+	#define bah_magick_TMErrorModule__create bah_magick_common_TMErrorModule__create
+	#define bah_magick_TMErrorOption__create bah_magick_common_TMErrorOption__create
+	#define bah_magick_TMErrorRegistry__create bah_magick_common_TMErrorRegistry__create
+	#define bah_magick_TMErrorResourceLimit__create bah_magick_common_TMErrorResourceLimit__create
+	#define bah_magick_TMErrorStream__create bah_magick_common_TMErrorStream__create
+	#define bah_magick_TMErrorType__create bah_magick_common_TMErrorType__create
+	#define bah_magick_TMErrorXServer__create bah_magick_common_TMErrorXServer__create
+#endif
+
+	BBObject * CB_PREF(bah_magick_TMException__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorUndefined__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorBlob__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorCache__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorCoder__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorConfigure__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorCorruptImage__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorDelegate__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorDraw__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorFileOpen__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorImage__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorMissingDelegate__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorModule__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorOption__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorRegistry__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorResourceLimit__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorStream__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorType__create)(BBString * message);
+	BBObject * CB_PREF(bah_magick_TMErrorXServer__create)(BBString * message);
+
+	BBObject * CB_PREF(bah_magick_TMCoderInfo__create)(BBString * name, BBString * description, int isReadable, int isWritable, int isMultiFrame);
+	void CB_PREF(bah_magick_TMCoderInfo__addToList)(BBObject * tlist, BBObject * info);
 
 	MaxMImage * bmx_magick_createfromspec(BBString * imageSpec);
 	MaxMImage * bmx_magick_image_createfromblob(Blob * blob);
@@ -442,62 +470,62 @@ void bmx_magick_InitializeMagick(const char *path) {
 
 void bmx_magick_throw_exception(Magick::Exception &e) {
 	if (dynamic_cast<Magick::ErrorUndefined*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorUndefined__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorUndefined__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorBlob*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorBlob__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorBlob__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorCache*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorCache__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorCache__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorCoder*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorCoder__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorCoder__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorConfigure*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorConfigure__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorConfigure__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorCorruptImage*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorCorruptImage__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorCorruptImage__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorDelegate*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorDelegate__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorDelegate__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorDraw*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorDraw__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorDraw__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorFileOpen*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorFileOpen__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorFileOpen__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorImage*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorImage__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorImage__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorMissingDelegate*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorMissingDelegate__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorMissingDelegate__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorModule*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorModule__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorModule__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorOption*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorOption__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorOption__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorRegistry*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorRegistry__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorRegistry__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorResourceLimit*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorResourceLimit__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorResourceLimit__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorStream*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorStream__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorStream__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorType*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorType__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorType__create)(bbStringFromCString(e.what())));
 	}
 	if (dynamic_cast<Magick::ErrorXServer*>(&e)) {
-		bbExThrow(_bah_magick_TMErrorXServer__create(bbStringFromCString(e.what())));
+		bbExThrow(CB_PREF(bah_magick_TMErrorXServer__create)(bbStringFromCString(e.what())));
 	}
 
 	// unknown exception...
-	bbExThrow(_bah_magick_TMException__create(bbStringFromCString(e.what())));
+	bbExThrow(CB_PREF(bah_magick_TMException__create)(bbStringFromCString(e.what())));
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2670,10 +2698,10 @@ void bmx_magick_coderinfolist(BBObject * tlist, CoderInfo::MatchType isReadable,
 		
 		std::list<CoderInfo>::iterator entry = coderList.begin(); 
 		while( entry != coderList.end() ) {
-			BBObject * info = _bah_magick_TMCoderInfo__create(
+			BBObject * info = CB_PREF(bah_magick_TMCoderInfo__create)(
 					bbStringFromCString(entry->name().c_str()), bbStringFromCString(entry->description().c_str()),
 					entry->isReadable(), entry->isWritable(), entry->isMultiFrame());
-			_bah_magick_TMCoderInfo__addToList(tlist, info);
+			CB_PREF(bah_magick_TMCoderInfo__addToList)(tlist, info);
 			entry++;
 		}
 	} catch (Magick::Exception & e) {
@@ -2686,7 +2714,7 @@ BBObject * bmx_magick_coderinfo_info(BBString * format) {
 	try {
 		t = bbStringToCString( format );
 		CoderInfo info(t);
-		BBObject * obj = _bah_magick_TMCoderInfo__create(bbStringFromCString(info.name().c_str()),
+		BBObject * obj = CB_PREF(bah_magick_TMCoderInfo__create)(bbStringFromCString(info.name().c_str()),
 					bbStringFromCString(info.description().c_str()), info.isReadable(), info.isWritable(),
 					info.isMultiFrame());
 		bbMemFree(t);
