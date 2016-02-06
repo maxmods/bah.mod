@@ -37,7 +37,7 @@ ModuleInfo "History: Initial Release."
 ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC"
 ModuleInfo "CC_OPTS: -DMAGICK_JPEG_EXTERNAL_NAMES"
 ?Not win32
-ModuleInfo "CC_OPTS: -std=c99"
+ModuleInfo "C_OPTS: -std=c99"
 ?win32
 ModuleInfo "CC_OPTS: -DWIN32 -D_MAX_PATH=260 -DHAVE_UNSIGNED_CHAR -DHAVE_UNSIGNED_SHORT -D_LIB"
 ?
@@ -283,12 +283,12 @@ Type TMImage
 	Rem
 	bbdoc: Annotates using specified @text, and placement @location.
 	End Rem
-	Method annotate(text:String, location:Object )
+	Method annotate(Text:String, location:Object )
 		If TMGeometry(location) Then
-			bmx_magick_image_annotate(imagePtr, text, TMGeometry(location).geometryPtr)
+			bmx_magick_image_annotate(imagePtr, Text, TMGeometry(location).geometryPtr)
 			imageChanged = True
 		Else If String(location) Then
-			bmx_magick_image_annotatetxt(imagePtr, text, String(location))
+			bmx_magick_image_annotatetxt(imagePtr, Text, String(location))
 			imageChanged = True
 		End If
 	End Method
@@ -666,8 +666,8 @@ Type TMImage
 	string is @, the image label is read from a file titled by the remaining characters in the string. When converting to
 	Postscript, use this  option to specify a header string to print above the image.
 	End Rem
-	Method label(text:String)
-		bmx_magick_image_label(imagePtr, text)
+	Method label(Text:String)
+		bmx_magick_image_label(imagePtr, Text)
 	End Method
 	
 	Rem

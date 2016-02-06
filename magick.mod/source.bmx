@@ -299,7 +299,7 @@ Import "src/delegates/jasper/jpc/jpc_tsfb.c"
 
 Import "src/delegates/jasper/jpg/jpg_dec.c"
 ?macos
-Import "src/delegates/jasper/jpg/jpg_dummy.c"
+'Import "src/delegates/jasper/jpg/jpg_dummy.c"
 ?
 Import "src/delegates/jasper/jpg/jpg_enc.c"
 Import "src/delegates/jasper/jpg/jpg_val.c"
