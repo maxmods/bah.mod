@@ -391,6 +391,7 @@ Type TJSONInteger Extends JSONNumber
 	Method Value:Long()
 		Local v:Long
 		bmx_json_integer_value(jsonPtr, Varptr v)
+		Return v
 	End Method
 	
 	Rem
