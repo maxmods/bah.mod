@@ -88,6 +88,7 @@ extern "C" {
 	MaxMImage * bmx_magick_image_createfromblob(Blob * blob);
 	MaxMImage * bmx_magick_create();
 	void bmx_magick_InitializeMagick(const char *path);
+	void bmx_magick_image_free(MaxMImage * image);
 
 	void bmx_magick_image_adaptivethreshold(MaxMImage * image, const unsigned int width, const unsigned int height, unsigned offset);
 	void bmx_magick_image_addnoise(MaxMImage * image, const NoiseType noiseType);
@@ -135,6 +136,7 @@ extern "C" {
 	void bmx_magick_image_read(MaxMImage * image, BBString * imageSpec);
 	void bmx_magick_image_readgeom(MaxMImage * image, MaxMGeometry * geometry, BBString * imageSpec);
 	void bmx_magick_image_readgeomtxt(MaxMImage * image, BBString * geometry, BBString * imageSpec);
+	void bmx_magick_image_readblob(MaxMImage * image, Blob * blob);
 	void bmx_magick_image_zoom(MaxMImage * image, MaxMGeometry * geometry);
 	void bmx_magick_image_zoomtxt(MaxMImage * image, BBString * geometry);
 	void bmx_magick_image_pixelcolor(MaxMImage * image, unsigned int x, unsigned int y, MaxMColor * color);
@@ -328,6 +330,9 @@ extern "C" {
 	ColorspaceType bmx_magick_image_getcolorspace(MaxMImage * image);
 
 	Blob * bmx_magick_blob_createfromdata(void * data, int size);
+	void bmx_magick_blob_free(Blob * blob);
+	const void * bmx_magick_blob_data(Blob * blob);
+	int bmx_magick_blob_length(Blob * blob);
 
 	void bmx_magick_coderinfolist(BBObject * tlist, CoderInfo::MatchType isReadable, CoderInfo::MatchType isWritable, CoderInfo::MatchType isMultiFrame);
 	BBObject * bmx_magick_coderinfo_info(BBString * format);
@@ -557,6 +562,10 @@ MaxMImage * bmx_magick_image_createfromblob(Blob * blob) {
 
 MaxMImage * bmx_magick_create() {
 	return new MaxMImage();
+}
+
+void bmx_magick_image_free(MaxMImage * image) {
+	delete image;
 }
 
 void bmx_magick_image_adaptivethreshold(MaxMImage * image, const unsigned int width, const unsigned int height, unsigned offset ) {
@@ -971,6 +980,14 @@ void bmx_magick_image_readgeomtxt(MaxMImage * image, BBString * geometry, BBStri
 	} catch (Magick::Exception & e) {
 		if (g) bbMemFree(g);
 		if (i) bbMemFree(i);
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_readblob(MaxMImage * image, Blob * blob) {
+	try {
+		image->image().read(*blob);
+	} catch (Magick::Exception & e) {
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -2687,6 +2704,18 @@ Blob * bmx_magick_blob_createfromdata(void * data, int size) {
 	} catch (Magick::Exception & e) {
 		bmx_magick_throw_exception(e);
 	}
+}
+
+void bmx_magick_blob_free(Blob * blob) {
+	delete blob;
+}
+
+const void * bmx_magick_blob_data(Blob * blob) {
+	return blob->data();
+}
+
+int bmx_magick_blob_length(Blob * blob) {
+	return blob->length();
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

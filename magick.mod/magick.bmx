@@ -186,6 +186,7 @@ Type TMImage
 		
 		Local image:TMImage = TMImage.CreateFromBlob(blob)
 		
+		blob.Free()
 		MemFree(buffer)
 		
 		Return image
@@ -864,7 +865,8 @@ Type TMImage
 	End Method
 
 	Method readBlob(blob:TMBlob)
-	' TODO
+		bmx_magick_image_readblob(imagePtr, blob.blobPtr)
+		imageChanged = True
 	End Method
 	
 	Method readBlobGeom(geometry:Object, blob:TMBlob)
@@ -1263,7 +1265,8 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Pixel cache threshold in megabytes.
+	about: Once this memory threshold is exceeded, all subsequent pixels cache operations are to/from disk. This setting is shared by all Image objects
 	End Rem
 	Function cacheThreshold(threshold:Int)
 		bmx_magick_image_cachethreshold(threshold)
@@ -2392,6 +2395,20 @@ Type TMImage
 		Return bmx_magick_image_getyresolution(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Frees image resources.
+	End Rem
+	Method Free()
+		If imagePtr Then
+			bmx_magick_image_free(imagePtr)
+			imagePtr = Null
+		End If
+	End Method
+
+	Method Delete()
+		Free()
+	End Method
+	
 End Type
 
 Rem
@@ -2621,12 +2638,43 @@ Type TMBlob
 		_init_magick()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function CreateFromData:TMBlob(data:Byte Ptr, size:Int)
 		Local this:TMBlob = New TMBlob
 		this.blobPtr = bmx_magick_blob_createfromdata(data, size)
 		Return this
 	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method data:Byte Ptr()
+		Return bmx_magick_blob_data(blobPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method length:Int()
+		Return bmx_magick_blob_length(blobPtr)
+	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If blobPtr
+			bmx_magick_blob_free(blobPtr)
+			blobPtr = Null
+		End If
+	End Method
+
+	Method Delete()
+		Free()
+	End Method
+	
 End Type
 
 Rem
