@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013 Bruce A Henderson
+  Copyright (c) 2013-2016 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -26,18 +26,24 @@
 
 extern "C" {
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 #include "blitz.h"
 
-	BBObject * _bah_libsmbclient_TSMBCAuth__new(BBObject * context, BBString * server, BBString * share);
-	BBString * _bah_libsmbclient_TSMBCAuth__workgroup(BBObject * auth);
-	BBString * _bah_libsmbclient_TSMBCAuth__username(BBObject * auth);
-	BBString * _bah_libsmbclient_TSMBCAuth__password(BBObject * auth);
+	BBObject * CB_PREF(bah_libsmbclient_TSMBCAuth__new)(BBObject * context, BBString * server, BBString * share);
+	BBString * CB_PREF(bah_libsmbclient_TSMBCAuth__workgroup)(BBObject * auth);
+	BBString * CB_PREF(bah_libsmbclient_TSMBCAuth__username)(BBObject * auth);
+	BBString * CB_PREF(bah_libsmbclient_TSMBCAuth__password)(BBObject * auth);
 	
-	BBObject * _bah_libsmbclient_TSMBCDirHandle__new(SMBCFILE * fd);
-	BBObject * _bah_libsmbclient_TSMBCDirent__new(BBString * name, int type);
+	BBObject * CB_PREF(bah_libsmbclient_TSMBCDirHandle__new)(SMBCFILE * fd);
+	BBObject * CB_PREF(bah_libsmbclient_TSMBCDirent__new)(BBString * name, int type);
 	
 	
-	void _bah_libsmbclient_TSMBC__authDataCallback(BBObject * auth);
+	void CB_PREF(bah_libsmbclient_TSMBC__authDataCallback)(BBObject * auth);
 	
 
 	void bmx_smbc_get_auth_data_fn(const char *srv, const char *shr, char *wg, int wglen, 
@@ -64,9 +70,16 @@ extern "C" {
 	void bmx_smbc_setoptioncasesensitive(SMBCCTX * context, int value);
 
 	SMBCFILE * bmx_smbc_open(SMBCCTX * context, BBString * path, int readable, int writeable);
+
+#ifdef BMX_NG
+	BBInt64 bmx_smbc_seek(SMBCCTX * context, SMBCFILE * file, BBInt64 pos, int whence);
+	BBInt64 bmx_smbc_read(SMBCCTX * context, SMBCFILE * file, char * buf, BBInt64 count);
+	BBInt64 bmx_smbc_write(SMBCCTX * context, SMBCFILE * file, char * buf, BBInt64 count);
+#else
 	int bmx_smbc_seek(SMBCCTX * context, SMBCFILE * file, int pos);
 	int bmx_smbc_read(SMBCCTX * context, SMBCFILE * file, char * buf, int count);
 	int bmx_smbc_write(SMBCCTX * context, SMBCFILE * file, char * buf, int count);
+#endif
 	void bmx_smbc_close(SMBCCTX * context, SMBCFILE * file);
 
 }
@@ -103,32 +116,32 @@ void cxunbind(SMBCCTX *obj) {
 void bmx_smbc_get_auth_data_fn(SMBCCTX * context, const char *srv, const char *shr, char *wg, int wglen, 
 		char *un, int unlen, char *pw, int pwlen) {
 
-	BBObject * auth = _bah_libsmbclient_TSMBCAuth__new((BBObject*)smbc_getOptionUserData(context), bbStringFromUTF8String(srv),
+	BBObject * auth = CB_PREF(bah_libsmbclient_TSMBCAuth__new)((BBObject*)smbc_getOptionUserData(context), bbStringFromUTF8String(srv),
 			bbStringFromUTF8String(shr));
 
 	// callback	and populate
-	_bah_libsmbclient_TSMBC__authDataCallback(auth);
+	CB_PREF(bah_libsmbclient_TSMBC__authDataCallback)(auth);
 	
-	BBString * w = _bah_libsmbclient_TSMBCAuth__workgroup(auth);
-	BBString * u = _bah_libsmbclient_TSMBCAuth__username(auth);
-	BBString * p = _bah_libsmbclient_TSMBCAuth__password(auth);
+	BBString * w = CB_PREF(bah_libsmbclient_TSMBCAuth__workgroup)(auth);
+	BBString * u = CB_PREF(bah_libsmbclient_TSMBCAuth__username)(auth);
+	BBString * p = CB_PREF(bah_libsmbclient_TSMBCAuth__password)(auth);
 	
 	// fill char buffers
 	
 	if (w != &bbEmptyString) {
-		char * workgroup = bbStringToUTF8String(_bah_libsmbclient_TSMBCAuth__workgroup(auth));
+		char * workgroup = bbStringToUTF8String(CB_PREF(bah_libsmbclient_TSMBCAuth__workgroup)(auth));
 		strncpy(wg, workgroup, wglen - 1);
 		bbMemFree(workgroup);
 	}
 	
 	if (u != &bbEmptyString) {
-		char * username = bbStringToUTF8String(_bah_libsmbclient_TSMBCAuth__username(auth));
+		char * username = bbStringToUTF8String(CB_PREF(bah_libsmbclient_TSMBCAuth__username)(auth));
 		strncpy(un, username, unlen - 1);
 		bbMemFree(username);
 	}
 
 	if (p != &bbEmptyString) {
-		char * password = bbStringToUTF8String(_bah_libsmbclient_TSMBCAuth__password(auth));
+		char * password = bbStringToUTF8String(CB_PREF(bah_libsmbclient_TSMBCAuth__password)(auth));
 		strncpy(pw, password, pwlen - 1);
 		bbMemFree(password);
 	}
@@ -161,7 +174,7 @@ void bmx_smbc_free_context(SMBCCTX * context) {
 BBObject * bmx_smbc_opendir(SMBCCTX * context, BBString * path) {
 	char * p = bbStringToUTF8String(path);
 
-	BBObject * dir = _bah_libsmbclient_TSMBCDirHandle__new(smbc_getFunctionOpendir(context)(context, p));
+	BBObject * dir = CB_PREF(bah_libsmbclient_TSMBCDirHandle__new)(smbc_getFunctionOpendir(context)(context, p));
 	
 	bbMemFree(p);
 	
@@ -173,7 +186,7 @@ BBObject * bmx_smbc_readdir(SMBCCTX * context, SMBCFILE * dir) {
 	struct smbc_dirent * dirent = smbc_getFunctionReaddir(context)(context, dir);
 	
 	if (dirent) {
-		BBObject * file = _bah_libsmbclient_TSMBCDirent__new(bbStringFromUTF8String(dirent->name), dirent->smbc_type);
+		BBObject * file = CB_PREF(bah_libsmbclient_TSMBCDirent__new)(bbStringFromUTF8String(dirent->name), dirent->smbc_type);
 		return file;
 	}
 	
@@ -294,20 +307,31 @@ SMBCFILE * bmx_smbc_open(SMBCCTX * context, BBString * path, int readable, int w
 	} else {
 		flags = O_WRONLY | O_CREAT | O_TRUNC;
 	}
-printf("flags = %d : %s\n", flags, p);
+
 	SMBCFILE * file = smbc_getFunctionOpen(context)(context, p, flags, (mode_t)0);
 	
 	bbMemFree(p);
 	
 	if (file) {
-printf("got file handle\n");fflush(stdout);
 		return file;
 	}
 
-printf("errno = %d", errno);
 	return 0;
 }
 
+#ifdef BMX_NG
+BBInt64 bmx_smbc_seek(SMBCCTX * context, SMBCFILE * file, BBInt64 pos, int whence) {
+	return static_cast<BBInt64>(smbc_getFunctionLseek(context)(context, file, static_cast<off_t>(pos), whence));
+}
+
+BBInt64 bmx_smbc_read(SMBCCTX * context, SMBCFILE * file, char * buf, BBInt64 count) {
+	return static_cast<BBInt64>(smbc_getFunctionRead(context)(context, file, buf, static_cast<size_t>(count)));
+}
+
+BBInt64 bmx_smbc_write(SMBCCTX * context, SMBCFILE * file, char * buf, BBInt64 count) {
+	return static_cast<BBInt64>(smbc_getFunctionWrite(context)(context, file, buf, static_cast<size_t>(count)));
+}
+#else
 int bmx_smbc_seek(SMBCCTX * context, SMBCFILE * file, int pos) {
 	return static_cast<int>(smbc_getFunctionLseek(context)(context, file, static_cast<off_t>(pos), SEEK_SET));
 }
@@ -319,6 +343,7 @@ int bmx_smbc_read(SMBCCTX * context, SMBCFILE * file, char * buf, int count) {
 int bmx_smbc_write(SMBCCTX * context, SMBCFILE * file, char * buf, int count) {
 	return static_cast<int>(smbc_getFunctionWrite(context)(context, file, buf, static_cast<size_t>(count)));
 }
+#endif
 
 void bmx_smbc_close(SMBCCTX * context, SMBCFILE * file) {
 	smbc_getFunctionClose(context)(context, file);

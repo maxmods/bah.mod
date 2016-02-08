@@ -1,4 +1,4 @@
-' Copyright (c) 2013 Bruce A Henderson
+' Copyright (c) 2013-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -56,9 +56,15 @@ Extern
 	Function bmx_smbc_setoptioncasesensitive(handle:Byte Ptr, value:Int)
 
 	Function bmx_smbc_open:Byte Ptr(context:Byte Ptr, path:String, readable:Int, writeable:Int)
+?bmxng
+	Function bmx_smbc_seek:Long(context:Byte Ptr, file:Byte Ptr, pos:Long, whence:Int)
+	Function bmx_smbc_read:Long(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Long)
+	Function bmx_smbc_write:Long(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Long)
+?Not bmxng
 	Function bmx_smbc_seek:Int(context:Byte Ptr, file:Byte Ptr, pos:Int)
 	Function bmx_smbc_read:Int(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Int)
 	Function bmx_smbc_write:Int(context:Byte Ptr, file:Byte Ptr, buf:Byte Ptr, count:Int)
+?
 	Function bmx_smbc_close(context:Byte Ptr, file:Byte Ptr)
 	
 End Extern

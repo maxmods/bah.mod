@@ -1,4 +1,4 @@
-' Copyright (c) 2013 Bruce A Henderson
+' Copyright (c) 2013-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,18 @@ bbdoc: Linux Samba Client
 End Rem
 Module BaH.LibSMBClient
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2013 Bruce A Henderson"
+ModuleInfo "Copyright: 2013-2016 Bruce A Henderson"
 
 ModuleInfo "History: 1.00 Initial Release"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Updated for NG"
+
 ?linux
+
+ModuleInfo "CC_OPTS: -I/usr/include/samba-4.0"
 
 Import "common.bmx"
 
@@ -371,6 +376,91 @@ Type TSMBC
 	
 End Type
 
+?bmxng
+Type TSMBCStream Extends TStream
+
+	Const MODE_READ:Int = $1
+	Const MODE_WRITE:Int = $2
+
+	Field context:TSMBC
+	Field filePtr:Byte Ptr
+	
+	Field _pos:Long
+	Field _size:Long
+	Field _mode:Int
+
+	Method Pos:Long()
+		Return _pos
+	End Method
+
+	Method Size:Long()
+		Return _size
+	End Method
+
+	Method Seek:Long( pos:Long, whence:Int = SEEK_SET_)
+		Assert filePtr Else "Attempt to seek closed stream"
+		_pos = bmx_smbc_seek(context.contextPtr, filePtr, pos, whence)
+		Return _pos
+	End Method
+
+	Method Read:Long( buf:Byte Ptr,count:Long )
+		Assert filePtr Else "Attempt to read from closed stream"
+		Assert _mode & MODE_READ Else "Attempt to read from write-only stream"
+		count = bmx_smbc_read(context.contextPtr, filePtr, buf, count)	
+		_pos :+ count
+		Return count
+	End Method
+
+	Method Write:Long( buf:Byte Ptr,count:Long )
+		Assert filePtr Else "Attempt to write to closed stream"
+		Assert _mode & MODE_WRITE Else "Attempt to write to read-only stream"
+		count = bmx_smbc_write(context.contextPtr, filePtr, buf, count)
+		_pos :+ count
+		If _pos > _size Then
+			_size=_pos
+		End If
+		Return count
+	End Method
+
+	Method Close:Int()
+		If filePtr Then
+			bmx_smbc_close(context.contextPtr, filePtr)
+			_pos=0
+			_size=0
+			filePtr = Null
+		End If		
+	End Method
+	
+	Method Delete()
+		Close()
+	End Method
+
+	Function Create:TSMBCStream(context:TSMBC, path:String, readable:Int, writeable:Int)
+		Local stream:TSMBCStream = New TSMBCStream
+		stream.context = context
+		stream._pos = 0
+		stream._size = 0
+		
+		If readable Then
+			stream._mode :| MODE_READ
+		End If
+		If writeable Then
+			stream._mode :| MODE_WRITE
+		End If
+		
+		stream.filePtr = bmx_smbc_open(context.contextPtr, path, readable, writeable)
+		
+		If stream.filePtr Then
+			stream._size = context.FileSize(path)
+			
+			Return stream
+		End If
+		
+		Return Null
+	End Function
+
+End Type
+?Not bmxng
 Type TSMBCStream Extends TStream
 
 	Const MODE_READ:Int = $1
@@ -454,6 +544,7 @@ Type TSMBCStream Extends TStream
 	End Function
 
 End Type
+?
 
 Type TSMBCStreamFactory Extends TStreamFactory
 
