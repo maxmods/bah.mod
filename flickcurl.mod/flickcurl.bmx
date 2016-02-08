@@ -29,6 +29,8 @@ ModuleInfo "History: Initial Release. (flickcurl 1.20)"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DFLICKCURL_STATIC -DCURL_STATICLIB -DLIBXML_STATIC"
 
+?disabled
+
 Import "common.bmx"
 
 
@@ -431,8 +433,8 @@ Type TFlickcurl
 	</ul>
 	</p>
 	End Rem
-	Method EditNote:Int(noteID:String, x:Int, y:Int, w:Int, h:Int, text:String)
-		Return bmx_flickcurl_notes_editnote(fcPtr, noteID, x, y, w, h, text)
+	Method EditNote:Int(noteID:String, x:Int, y:Int, w:Int, h:Int, Text:String)
+		Return bmx_flickcurl_notes_editnote(fcPtr, noteID, x, y, w, h, Text)
 	End Method
 	
 	Rem
@@ -719,7 +721,7 @@ Type TFCActivityEvent
 	' TODO
 	End Method
 	
-	Method GetUsername:String()
+	Method GetUserName:String()
 	' TODO
 	End Method
 	
@@ -789,18 +791,18 @@ Type TFCComment
 	Field authorname:String
 	Field datecreate:Int
 	Field permalink:String
-	Field text:String
+	Field Text:String
 	
 	Field fcPtr:Byte Ptr
 
-	Function _create:TFCComment(id:String, author:String, authorname:String, datecreate:Int, permalink:String, text:String, fcPtr:Byte Ptr)
+	Function _create:TFCComment(id:String, author:String, authorname:String, datecreate:Int, permalink:String, Text:String, fcPtr:Byte Ptr)
 		Local this:TFCComment = New TFCComment
 		this.id = id
 		this.author = author
 		this.authorname = authorname
 		this.datecreate = datecreate
 		this.permalink = permalink
-		this.text = text
+		this.Text = Text
 		this.fcPtr = fcPtr
 		Return this
 	End Function
@@ -844,7 +846,7 @@ Type TFCComment
 	bbdoc: Gets the comment text.
 	End Rem
 	Method GetText:String()
-		Return text
+		Return Text
 	End Method
 	
 	Rem
@@ -1172,8 +1174,8 @@ Type TFCPhoto
 	returns: The note ID, or Null on failure.
 	about: Coordinates and sizes are in pixels, based on the 500px image size shown on individual photo pages.
 	End Rem
-	Method AddNote:String(x:Int, y:Int, w:Int, h:Int, text:String)
-		Return bmx_flickcurl_photo_addnote(fcPtr, photoPtr, x, y, w, h, text)
+	Method AddNote:String(x:Int, y:Int, w:Int, h:Int, Text:String)
+		Return bmx_flickcurl_photo_addnote(fcPtr, photoPtr, x, y, w, h, Text)
 	End Method
 	
 	Rem
@@ -2828,3 +2830,4 @@ Type TFCContactList
 
 End Type
 
+?
