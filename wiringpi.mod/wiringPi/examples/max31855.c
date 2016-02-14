@@ -1,8 +1,8 @@
 /*
- * piglow.h:
- *	Easy access to the Pimoroni PiGlow board.
+ * max31855.c:
+ *	SPI Thermocouple interface chip
  *
- * Copyright (c) 2013 Gordon Henderson.
+ * Copyright (c) 2015 Gordon Henderson.
  ***********************************************************************
  * This file is part of wiringPi:
  *	https://projects.drogon.net/raspberry-pi/wiringpi/
@@ -22,24 +22,39 @@
  ***********************************************************************
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <time.h>
 
-#define	PIGLOW_RED	0
-#define	PIGLOW_ORANGE	1
-#define	PIGLOW_YELLOW	2
-#define	PIGLOW_GREEN	3
-#define	PIGLOW_BLUE	4
-#define	PIGLOW_WHITE	5
+#include <wiringPi.h>
+#include <max31855.h>
 
+int main (int argc, char *argv [])
+{
+  int i = 0 ;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+  wiringPiSetup () ;
+  max31855Setup (200, 0) ;
+  max31855Setup (400, 1) ;
 
-extern void piGlow1     (const int leg,  const int ring, const int intensity) ;
-extern void piGlowLeg   (const int leg,  const int intensity) ;
-extern void piGlowRing  (const int ring, const int intensity) ;
-extern void piGlowSetup (int clear) ;
+  for (;;)
+  {
+    if (i == 0)
+    {
+      printf ("+------+------+------+------++------+------+------+------+\n") ;
+      printf ("| Raw  | Err  |  C   |   F  || Raw  | Err  |  C   |  F   |\n") ;
+      printf ("+------+------+------+------++------+------+------+------+\n") ;
+    }
 
-#ifdef __cplusplus
+    printf ("| %4d | %4d | %4d | %4d |",   analogRead (200), analogRead (201), analogRead (202), analogRead (203)) ;
+    printf ("| %4d | %4d | %4d | %4d |\n", analogRead (400), analogRead (401), analogRead (402), analogRead (403)) ;
+    delay (500) ;
+
+    if (++i == 10)
+      i = 0 ;
+
+  }
+
 }
-#endif

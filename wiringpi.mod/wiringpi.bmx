@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.wiringPi
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: wiringPi - LGPL"
-ModuleInfo "Copyright: Wrapper - 2014 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2014-2016 Bruce A Henderson"
 ModuleInfo "Copyright: wiringPi - 2012 Gordon Henderson (no relation :-p)"
 
 ModuleInfo "History: 1.00 Initial Release"
