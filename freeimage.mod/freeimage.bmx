@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,14 @@ bbdoc: FreeImage Library
 End Rem
 Module BaH.FreeImage
 
-ModuleInfo "Version: 1.09"
+ModuleInfo "Version: 1.10"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
-ModuleInfo "Copyright: Wrapper - 2007-2015 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.10"
+ModuleInfo "History: Split out some plugins source to fix Win32 build on new MinGW."
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Updated to FreeImage 3.17. Adds JXR support."
 ModuleInfo "History: Added rescaleRect(), tmoReinhard05Ex(), tmoFattal02(), convertToRGBAF() and convertToRGBA16() methods."
@@ -117,6 +119,19 @@ Import "common.bmx"
 '
 ' Changed jpeglib.h
 '    Use fi_ prefix
+'
+' Changed strcodec.c
+'    mingw gcc 5+ already defines byteswap_ulong
+'
+' Changed strcodec.h
+'    Commented out CT_ASSERT lines for MinGW 5.1
+'
+' Changed ImfOptimizedPixelReading.h
+'    Changed unsigned long to size_t, to support 64-bit casts.
+'
+' Changed ImfSystemSpecific.h
+'    Don't use posix function for win32
+'
 
 Rem
 bbdoc: Loads an image into a #TFreeImage object.
