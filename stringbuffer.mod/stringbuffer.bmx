@@ -1,4 +1,4 @@
-' Copyright (c) 2015 Bruce A Henderson
+' Copyright (c) 2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: A string buffer.
 End Rem	
 Module BaH.StringBuffer
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2015 Bruce A Henderson"
+ModuleInfo "Copyright: 2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Added CharAt(), SetCharAt() and RemoveCharAt() methods."
 ModuleInfo "History: 1.00 Initial Release"
 
 
@@ -51,11 +53,11 @@ Type TStringBuffer
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Constructs a string buffer initialized to the contents of the specified string.
 	End Rem	
-	Function Create:TStringBuffer(text:String)
+	Function Create:TStringBuffer(Text:String)
 		Local this:TStringBuffer = New TStringBuffer
-		Return this.Append(text)
+		Return this.Append(Text)
 	End Function
 
 	Rem
@@ -150,6 +152,15 @@ Type TStringBuffer
 	End Method
 	
 	Rem
+	bbdoc: Returns the char value in the buffer at the specified index.
+	about: The first char value is at index 0, the next at index 1, and so on, as in array indexing.
+	@index must be greater than or equal to 0, and less than the length of the buffer.
+	End Rem
+	Method CharAt:Int(index:Int)
+		Return bmx_stringbuffer_charat(buffer, index)
+	End Method
+	
+	Rem
 	bbdoc: Returns true if string contains @subString.
 	End Rem
 	Method Contains:Int(subString:String)
@@ -167,7 +178,7 @@ Type TStringBuffer
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Converts all of the characters in the buffer to lower case.
 	End Rem	
 	Method ToLower:TStringBuffer()
 		bmx_stringbuffer_tolower(buffer)
@@ -175,7 +186,7 @@ Type TStringBuffer
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Converts all of the characters in the buffer to upper case.
 	End Rem	
 	Method ToUpper:TStringBuffer()
 		bmx_stringbuffer_toupper(buffer)
@@ -188,6 +199,15 @@ Type TStringBuffer
 	End Rem
 	Method Remove:TStringBuffer(startIndex:Int, endIndex:Int)
 		bmx_stringbuffer_remove(buffer, startIndex, endIndex)
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Removes the character at the specified position in the buffer.
+	about: The buffer is shortened by one character.
+	End Rem
+	Method RemoveCharAt:TStringBuffer(index:Int)
+		bmx_stringbuffer_removecharat(buffer, index)
 		Return Self
 	End Method
 	
@@ -205,6 +225,14 @@ Type TStringBuffer
 	Method Reverse:TStringBuffer()
 		bmx_stringbuffer_reverse(buffer)
 		Return Self
+	End Method
+	
+	Rem
+	bbdoc: The character at the specified index is set to @char.
+	about: @index must be greater than or equal to 0, and less than the length of the buffer.
+	End Rem
+	Method SetCharAt(index:Int, char:Int)
+		bmx_stringbuffer_setcharat(buffer, index, char)
 	End Method
 	
 	Rem

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 Bruce A Henderson
+  Copyright (c) 2016 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -113,7 +113,7 @@ void bmx_stringbuffer_append_string(struct MaxStringBuffer * buf, BBString * val
 }
 
 void bmx_stringbuffer_remove(struct MaxStringBuffer * buf, int start, int end) {
-	if (start > buf->count || start > end) {
+	if (start < 0 || start > buf->count || start > end) {
 		return;
 	}
 	
@@ -418,6 +418,37 @@ struct MaxSplitBuffer * bmx_stringbuffer_split(struct MaxStringBuffer * buf, BBS
 	return splitBuffer;
 }
 
+void bmx_stringbuffer_setcharat(struct MaxStringBuffer * buf, int index, int ch) {
+	if (index < 0 || index > buf->count) {
+		return;
+	}
+
+	buf->buffer[index] = ch;
+}
+
+int bmx_stringbuffer_charat(struct MaxStringBuffer * buf, int index) {
+	if (index < 0 || index > buf->count) {
+		return 0;
+	}
+
+	return buf->buffer[index];
+}
+
+void bmx_stringbuffer_removecharat(struct MaxStringBuffer * buf, int index) {
+	if (index < 0 || index >= buf->count) {
+		return;
+	}
+
+	if (index < buf->count - 1) {
+		memcpy(buf->buffer + index, buf->buffer + index + 1, (buf->count - index - 1) * sizeof(BBChar));
+	}
+	
+	buf->count--;
+
+}
+
+/* ----------------------------------------------------- */
+
 int bmx_stringbuffer_splitbuffer_length(struct MaxSplitBuffer * buf) {
 	return buf->count;
 }
@@ -455,4 +486,3 @@ BBArray * bmx_stringbuffer_splitbuffer_toarray(struct MaxSplitBuffer * buf) {
 	}
 	return bits;
 }
-

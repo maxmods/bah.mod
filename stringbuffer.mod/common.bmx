@@ -1,4 +1,4 @@
-' Copyright (c) 2015 Bruce A Henderson
+' Copyright (c) 2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,10 @@ Extern
 	Function bmx_stringbuffer_replace(buffer:Byte Ptr, subString:String, withString:String)
 	Function bmx_stringbuffer_join(buffer:Byte Ptr, bits:String[], newBuffer:Byte Ptr)
 	Function bmx_stringbuffer_split:Byte Ptr(buffer:Byte Ptr, separator:String)
-	
+	Function bmx_stringbuffer_setcharat(buffer:Byte Ptr, index:Int, char:Int)
+	Function bmx_stringbuffer_charat:Int(buffer:Byte Ptr, index:Int)
+	Function bmx_stringbuffer_removecharat(buffer:Byte Ptr, index:Int)
+
 	Function bmx_stringbuffer_splitbuffer_length:Int(splitPtr:Byte Ptr)
 	Function bmx_stringbuffer_splitbuffer_text:String(splitPtr:Byte Ptr, index:Int)
 	Function bmx_stringbuffer_splitbuffer_free(splitPtr:Byte Ptr)
