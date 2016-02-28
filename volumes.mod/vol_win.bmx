@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ Import "-lkernel32"
 Import "-lshell32"
 
 Extern "win32"
+?Not bmxng
 	Function GetDiskFreeSpaceEx:Int(lpDirectoryName:Short Ptr, lpFreeBytesAvailableToCaller:Long Var, lpTotalNumberOfBytes:Long Var, lpTotalNumberOfFreeBytes:Long Var) = "GetDiskFreeSpaceExW@16"
 	Function GetVolumeInformation:Int(lpRootPathName:Short Ptr, lpVolumeNameBuffer:Short Ptr, nVolumeNameSize:Int, ..
 		lpVolumeSerialNumber:Int Var, lpMaximumComponentLength:Int Var, lpFileSystemFlags:Int Var, lpFileSystemNameBuffer:Short Ptr, nFileSystemNameSize:Int) = "GetVolumeInformationW@32"
@@ -46,6 +47,23 @@ Extern "win32"
 	Function GetVolumePathNamesForVolumeName:Int(volumeName:Short Ptr, volumePaths:Short Ptr, bufferSize:Int, copiedSize:Int Ptr) = "GetVolumePathNamesForVolumeNameW@16"
 	
 	Function SHGetFolderPath:Int(hwndOwner:Byte Ptr, nFolder:Int, hToken:Byte Ptr, dwFlags:Int, pszPath:Short Ptr) = "SHGetFolderPathW@20"
+?bmxng
+	Function GetDiskFreeSpaceEx:Int(lpDirectoryName:Short Ptr, lpFreeBytesAvailableToCaller:ULong Var, lpTotalNumberOfBytes:ULong Var, lpTotalNumberOfFreeBytes:ULong Var) = "GetDiskFreeSpaceExW"
+	Function GetVolumeInformation:Int(lpRootPathName:Short Ptr, lpVolumeNameBuffer:Short Ptr, nVolumeNameSize:Int, ..
+		lpVolumeSerialNumber:Int Var, lpMaximumComponentLength:Int Var, lpFileSystemFlags:Int Var, lpFileSystemNameBuffer:Short Ptr, nFileSystemNameSize:Int) = "GetVolumeInformationW"
+	Function GetLogicalDrives:Int() = "GetLogicalDrives"
+	Function SetErrorMode:Int(Mode:Int) = "SetErrorMode"
+
+	' volumes
+	Function FindFirstVolume:Int(volumeName:Short Ptr, bufferSize:Int) = "FindFirstVolumeW"
+	Function FindNextVolume:Int(handle:Int, volumeName:Short Ptr, bufferSize:Int) = "FindNextVolumeW"
+	Function FindVolumeClose:Int(handle:Int) = "FindVolumeClose"
+	
+	' volume paths
+	Function GetVolumePathNamesForVolumeName:Int(volumeName:Short Ptr, volumePaths:Short Ptr, bufferSize:Int, copiedSize:Int Ptr) = "GetVolumePathNamesForVolumeNameW"
+	
+	Function SHGetFolderPath:Int(hwndOwner:Byte Ptr, nFolder:Int, hToken:Byte Ptr, dwFlags:Int, pszPath:Short Ptr) = "SHGetFolderPathW"
+?
 End Extern
 
 Const CSIDL_ADMINTOOLS:Int = $0030
@@ -204,8 +222,13 @@ Global _FOLDERID_OriginalImages:Int[]=[$2C36C0AA,$4B875812,$D04CD0BF,$399BB1DF]
 
 Private
 
+?bmxng
+Global _shell32:Byte Ptr = LoadLibraryA("shell32")
+Global _ole32:Byte Ptr = LoadLibraryA("ole32")
+?Not bmxng
 Global _shell32:Int = LoadLibraryA("shell32")
 Global _ole32:Int = LoadLibraryA("ole32")
+?
 
 Public
 
@@ -260,7 +283,7 @@ Type TWinVolume Extends TVolume
 
 					paths = String.FromShorts(pathsBuffer, bufferSize).Trim().split("~0")
 
-				' Some error occured – if the buffer was too small we will set it to the
+				' Some error occured - if the buffer was too small we will set it to the
 				' right size and try it again
 				Else If bufferSize > PATH_MAX Then
 
@@ -336,10 +359,11 @@ Type TWinVolume Extends TVolume
 	End Method
 	
 	Method GetVolumeInfo:TVolume(vol:String)
+
 		Local Mode:Int = SetErrorMode(SEM_FAILCRITICALERRORS)
 
 		Local volume:TWinVolume = New TWinVolume
-		
+
 		volume.volumeDevice = vol
 
 		Local volname:Short[PATH_MAX]
@@ -562,10 +586,15 @@ End Type
 
 Type TVolSpace
 	Field vol:String
-	
+?bmxng
+	Field fbc:ULong
+	Field tb:ULong
+	Field fb:ULong
+?Not bmxng	
 	Field fbc:Long
 	Field tb:Long
 	Field fb:Long
+?
 	
 	Function GetDiskSpace:TVolSpace(vol:String)
 		Local this:TVolSpace = New TVolSpace

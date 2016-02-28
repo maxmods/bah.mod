@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2015 Bruce A Henderson
+' Copyright (c) 2006-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Volumes
 End Rem
 Module BaH.Volumes
 
-ModuleInfo "Version: 1.09"
+ModuleInfo "Version: 1.10"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
-ModuleInfo "Copyright: (c) 2006-2015 Bruce A Henderson"
+ModuleInfo "Copyright: (c) 2006-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.10"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Use BlitzMax UTF8 functions."
 ModuleInfo "History: 1.08"
