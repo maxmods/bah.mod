@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Box2D
 End Rem
 Module BaH.Box2D
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
-ModuleInfo "Copyright: BlitzMax port - 2008-2009 Bruce A Henderson"
+ModuleInfo "Copyright: Box2D (c) 2006-2016 Erin Catto http://www.gphysics.com"
+ModuleInfo "Copyright: BlitzMax port - 2008-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Updated for NG"
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Updated to box2d svn (rev 207)"
 ModuleInfo "History: Added b2LineJoint type."
@@ -2243,7 +2245,7 @@ Type b2FilterData
 	Zero means no collision group. Non-zero group filtering always wins against the mask bits. 
 	</p>
 	End Rem
-	Method SetGroupIndex(index:Short)
+	Method SetGroupIndex(index:Int)
 		bmx_b2filterdata_setgroupindex(b2ObjectPtr, index)
 	End Method
 
@@ -3680,7 +3682,7 @@ Type b2RevoluteJoint Extends b2Joint
 	Rem
 	bbdoc: Is the joint limit enabled?
 	end rem
-	Method IsLimitEnabled:Float()
+	Method IsLimitEnabled:Int()
 		Return bmx_b2revolutejoint_islimitenabled(b2ObjectPtr)
 	End Method
 	

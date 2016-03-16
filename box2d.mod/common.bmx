@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Extern
 	Function bmx_b2aabb_delete(handle:Byte Ptr)
 	Function bmx_b2abb_setlowerbound(handle:Byte Ptr, lowerBound:Byte Ptr)
 	Function bmx_b2abb_setupperbound(handle:Byte Ptr, upperBound:Byte Ptr)
-	Function bmx_b2abb_isvalid(handle:Byte Ptr)
+	Function bmx_b2abb_isvalid:Int(handle:Byte Ptr)
 
 	Function bmx_b2vec2_create:Byte Ptr(x:Float, y:Float)
 	Function bmx_b2vec2_delete(handle:Byte Ptr)
@@ -366,7 +366,7 @@ Extern
 	Function bmx_b2filterdata_getmaskbits:Short(handle:Byte Ptr)
 	Function bmx_b2filterdata_setmaskbits(handle:Byte Ptr, maskBits:Short)
 	Function bmx_b2filterdata_getgroupindex:Short(handle:Byte Ptr)
-	Function bmx_b2filterdata_setgroupindex(handle:Byte Ptr, index:Short)
+	Function bmx_b2filterdata_setgroupindex(handle:Byte Ptr, index:Int)
 	Function bmx_b2filterdata_delete(handle:Byte Ptr)
 
 	Function bmx_b2gearjointdef_new:Byte Ptr()

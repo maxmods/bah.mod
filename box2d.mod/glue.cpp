@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2009 Bruce A Henderson
+  Copyright (c) 2008-2016 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -40,30 +40,36 @@ enum b2ControllerType
 	e_constantForceController
 };
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
-	BBArray * _bah_box2d_b2Vec2__newVecArray(int count);
-	void _bah_box2d_b2Vec2__setVec(BBArray * array, int index, b2Vec2 * vec);
-	b2Vec2 * _bah_box2d_b2Vec2__getVec(BBArray * array, int index);
-	void _bah_box2d_b2World__setShape(BBArray * shapes, int index, b2Shape * shape);
+	BBArray * CB_PREF(bah_box2d_b2Vec2__newVecArray)(int count);
+	void CB_PREF(bah_box2d_b2Vec2__setVec)(BBArray * array, int index, b2Vec2 * vec);
+	b2Vec2 * CB_PREF(bah_box2d_b2Vec2__getVec)(BBArray * array, int index);
+	void CB_PREF(bah_box2d_b2World__setShape)(BBArray * shapes, int index, b2Shape * shape);
 
-	void _bah_box2d_b2DebugDraw__DrawPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
-	void _bah_box2d_b2DebugDraw__DrawSolidPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
-	void _bah_box2d_b2DebugDraw__DrawSegment(BBObject * maxHandle, b2Vec2 * p1, b2Vec2 * p2, int r, int g, int b);
-	void _bah_box2d_b2DebugDraw__DrawSolidCircle(BBObject * maxHandle, b2Vec2 * center, float32 radius, b2Vec2 * axis, int r, int g, int b);
-	BBObject * _bah_box2d_b2World__createJoint(b2JointType type);
-	int _bah_box2d_b2ContactFilter__ShouldCollide(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
-	void _bah_box2d_b2ContactListener__Add(BBObject * maxHandle, const b2ContactPoint* point);
-	void _bah_box2d_b2ContactListener__Persist(BBObject * maxHandle, const b2ContactPoint* point);
-	void _bah_box2d_b2ContactListener__Remove(BBObject * maxHandle, const b2ContactPoint* point);
-	void _bah_box2d_b2ContactListener__Result(BBObject * maxHandle, const b2ContactResult* result);
-	void _bah_box2d_b2BoundaryListener__Violation(BBObject * maxHandle, b2Body * body);
+	void CB_PREF(bah_box2d_b2DebugDraw__DrawPolygon)(BBObject * maxHandle, BBArray * array, int r, int g, int b);
+	void CB_PREF(bah_box2d_b2DebugDraw__DrawSolidPolygon)(BBObject * maxHandle, BBArray * array, int r, int g, int b);
+	void CB_PREF(bah_box2d_b2DebugDraw__DrawSegment)(BBObject * maxHandle, b2Vec2 * p1, b2Vec2 * p2, int r, int g, int b);
+	void CB_PREF(bah_box2d_b2DebugDraw__DrawSolidCircle)(BBObject * maxHandle, b2Vec2 * center, float32 radius, b2Vec2 * axis, int r, int g, int b);
+	BBObject * CB_PREF(bah_box2d_b2World__createJoint)(b2JointType type);
+	int CB_PREF(bah_box2d_b2ContactFilter__ShouldCollide)(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
+	void CB_PREF(bah_box2d_b2ContactListener__Add)(BBObject * maxHandle, const b2ContactPoint* point);
+	void CB_PREF(bah_box2d_b2ContactListener__Persist)(BBObject * maxHandle, const b2ContactPoint* point);
+	void CB_PREF(bah_box2d_b2ContactListener__Remove)(BBObject * maxHandle, const b2ContactPoint* point);
+	void CB_PREF(bah_box2d_b2ContactListener__Result)(BBObject * maxHandle, const b2ContactResult* result);
+	void CB_PREF(bah_box2d_b2BoundaryListener__Violation)(BBObject * maxHandle, b2Body * body);
 
-	BBObject * _bah_box2d_b2World___createController(b2ControllerType type);
+	BBObject * CB_PREF(bah_box2d_b2World___createController)(b2ControllerType type);
 
-	void _bah_box2d_b2DestructionListener__SayGoodbyeJoint(BBObject * maxHandle, b2Joint * joint);
-	void _bah_box2d_b2DestructionListener__SayGoodbyeShape(BBObject * maxHandle, b2Shape * shape);
-	BBObject * _bah_box2d_b2Body__createShape(b2ShapeType type);
+	void CB_PREF(bah_box2d_b2DestructionListener__SayGoodbyeJoint)(BBObject * maxHandle, b2Joint * joint);
+	void CB_PREF(bah_box2d_b2DestructionListener__SayGoodbyeShape)(BBObject * maxHandle, b2Shape * shape);
+	BBObject * CB_PREF(bah_box2d_b2Body__createShape)(b2ShapeType type);
 
 	b2AABB * bmx_b2aabb_create(b2Vec2 * lowerBound, b2Vec2 * upperBound);
 	void bmx_b2aabb_delete(b2AABB * aabb);
@@ -409,7 +415,7 @@ extern "C" {
 	uint16  bmx_b2filterdata_getmaskbits(MaxFilterData * filterData);
 	void bmx_b2filterdata_setmaskbits(MaxFilterData * filterData, uint16 maskBits);
 	int16 bmx_b2filterdata_getgroupindex(MaxFilterData * filterData);
-	void bmx_b2filterdata_setgroupindex(MaxFilterData * filterData, int16 index);
+	void bmx_b2filterdata_setgroupindex(MaxFilterData * filterData, int index);
 	void bmx_b2filterdata_delete(MaxFilterData * filterData);
 
 	b2GearJointDef * bmx_b2gearjointdef_new();
@@ -853,9 +859,9 @@ float32 bmx_b2vec2_lengthsquared(b2Vec2 * vec) {
 }
 
 BBArray * bmx_b2vec2_getvertexarray(const b2Vec2* vertices, int32 vertexCount) {
-	BBArray * array = _bah_box2d_b2Vec2__newVecArray(vertexCount);
+	BBArray * array = CB_PREF(bah_box2d_b2Vec2__newVecArray)(vertexCount);
 	for (int i = 0; i < vertexCount; i++) {
-		_bah_box2d_b2Vec2__setVec(array, i, bmx_b2vec2_new(vertices[i]));
+		CB_PREF(bah_box2d_b2Vec2__setVec)(array, i, bmx_b2vec2_new(vertices[i]));
 	}
 	
 	return array;
@@ -906,7 +912,7 @@ void bmx_b2world_setdebugDraw(b2World * world, b2DebugDraw * debugDraw) {
 }
 
 b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def) {
-	BBObject * joint = _bah_box2d_b2World__createJoint(def->type);
+	BBObject * joint = CB_PREF(bah_box2d_b2World__createJoint)(def->type);
 	def->userData = joint;
 	BBRETAIN(joint);
 	return world->CreateJoint(def);
@@ -969,7 +975,7 @@ int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes) {
 	int32 count = (ret < n) ? ret : n;
 
 	for (int i = 0; i < count; i++) {
-		_bah_box2d_b2World__setShape(shapes, i, _shapes[i]);
+		CB_PREF(bah_box2d_b2World__setShape)(shapes, i, _shapes[i]);
 	}
 
 	return ret;
@@ -996,7 +1002,7 @@ int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes
 	int32 count = (ret < n) ? ret : n;
 
 	for (int i = 0; i < count; i++) {
-		_bah_box2d_b2World__setShape(shapes, i, _shapes[i]);
+		CB_PREF(bah_box2d_b2World__setShape)(shapes, i, _shapes[i]);
 	}
 
 	return ret;
@@ -1011,7 +1017,7 @@ int bmx_b2world_inrange(b2World * world, b2AABB * aabb) {
 }
 
 b2Controller * bmx_b2world_createcontroller(b2World * world, b2ControllerDef * def, b2ControllerType type) {
-	BBObject * bbController = _bah_box2d_b2World___createController(type);
+	BBObject * bbController = CB_PREF(bah_box2d_b2World___createController)(type);
 	BBRETAIN(bbController);
 
 	b2Controller * controller =  world->CreateController(def);
@@ -1191,7 +1197,7 @@ void bmx_b2polygondef_setvertices(b2PolygonDef * def, BBArray * vertices) {
 	def->vertexCount = n;
 	
 	for (int i = 0; i < n; i++) {
-		def->vertices[i] = *_bah_box2d_b2Vec2__getVec(vertices, i);
+		def->vertices[i] = *CB_PREF(bah_box2d_b2Vec2__getVec)(vertices, i);
 
 	}
 }
@@ -1199,7 +1205,7 @@ void bmx_b2polygondef_setvertices(b2PolygonDef * def, BBArray * vertices) {
 // *****************************************************
 
 b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def) {
-	BBObject * shape  = _bah_box2d_b2Body__createShape(def->type);
+	BBObject * shape  = CB_PREF(bah_box2d_b2Body__createShape)(def->type);
 	def->userData = shape;
 	BBRETAIN(shape);
 	b2Shape * theShape = body->CreateShape(def);
@@ -1208,7 +1214,7 @@ b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def) {
 	if (def->type == e_edgeShape) {
 		b2EdgeShape * edge = ((b2EdgeShape*)theShape)->GetNextEdge();
 		while ((edge != theShape) && (edge != NULL)) {
-			shape = _bah_box2d_b2Body__createShape(def->type);
+			shape = CB_PREF(bah_box2d_b2Body__createShape)(def->type);
 			edge->SetUserData(shape);
 			BBRETAIN(shape);
 			
@@ -1386,7 +1392,7 @@ public:
 
 	void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
 		BBArray * array = bmx_b2vec2_getvertexarray(vertices, vertexCount);
-		_bah_box2d_b2DebugDraw__DrawPolygon(maxHandle, array, 
+		CB_PREF(bah_box2d_b2DebugDraw__DrawPolygon)(maxHandle, array, 
 			static_cast<int>(color.r * 255.0f),
 			static_cast<int>(color.g * 255.0f),
 			static_cast<int>(color.b * 255.0f));
@@ -1394,7 +1400,7 @@ public:
 
 	void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
 		BBArray * array = bmx_b2vec2_getvertexarray(vertices, vertexCount);
-		_bah_box2d_b2DebugDraw__DrawSolidPolygon(maxHandle, array, 
+		CB_PREF(bah_box2d_b2DebugDraw__DrawSolidPolygon)(maxHandle, array, 
 			static_cast<int>(color.r * 255.0f),
 			static_cast<int>(color.g * 255.0f),
 			static_cast<int>(color.b * 255.0f));
@@ -1404,7 +1410,7 @@ public:
 	}
 
 	void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) {
-		_bah_box2d_b2DebugDraw__DrawSolidCircle(maxHandle, bmx_b2vec2_new(center), radius, 
+		CB_PREF(bah_box2d_b2DebugDraw__DrawSolidCircle)(maxHandle, bmx_b2vec2_new(center), radius, 
 			bmx_b2vec2_new(axis), 
 			static_cast<int>(color.r * 255.0f),
 			static_cast<int>(color.g * 255.0f),
@@ -1412,7 +1418,7 @@ public:
 	}
 
 	void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color) {
-		_bah_box2d_b2DebugDraw__DrawSegment(maxHandle, bmx_b2vec2_new(p1), bmx_b2vec2_new(p2), 
+		CB_PREF(bah_box2d_b2DebugDraw__DrawSegment)(maxHandle, bmx_b2vec2_new(p1), bmx_b2vec2_new(p2), 
 			static_cast<int>(color.r * 255.0f),
 			static_cast<int>(color.g * 255.0f),
 			static_cast<int>(color.b * 255.0f));
@@ -1714,7 +1720,7 @@ public:
 	}
 	
 	bool ShouldCollide(b2Shape* shape1, b2Shape* shape2) {
-		return _bah_box2d_b2ContactFilter__ShouldCollide(maxHandle, shape1, shape2);
+		return CB_PREF(bah_box2d_b2ContactFilter__ShouldCollide)(maxHandle, shape1, shape2);
 	}
 
 
@@ -1742,19 +1748,19 @@ public:
 	}
 	
 	void Add(const b2ContactPoint* point) {
-		_bah_box2d_b2ContactListener__Add(maxHandle, point);
+		CB_PREF(bah_box2d_b2ContactListener__Add)(maxHandle, point);
 	}
 
 	void Persist(const b2ContactPoint* point) {
-		_bah_box2d_b2ContactListener__Persist(maxHandle, point);
+		CB_PREF(bah_box2d_b2ContactListener__Persist)(maxHandle, point);
 	}
 
 	void Remove(const b2ContactPoint* point) {
-		_bah_box2d_b2ContactListener__Remove(maxHandle, point);
+		CB_PREF(bah_box2d_b2ContactListener__Remove)(maxHandle, point);
 	}
 
 	void Result(const b2ContactResult* result) {
-		_bah_box2d_b2ContactListener__Result(maxHandle, result);
+		CB_PREF(bah_box2d_b2ContactListener__Result)(maxHandle, result);
 	}
 
 private:
@@ -1780,7 +1786,7 @@ public:
 	}
 	
 	void Violation(b2Body* body) {
-		_bah_box2d_b2BoundaryListener__Violation(maxHandle, body);
+		CB_PREF(bah_box2d_b2BoundaryListener__Violation)(maxHandle, body);
 	}
 	
 private:
@@ -2315,7 +2321,7 @@ int16 bmx_b2filterdata_getgroupindex(MaxFilterData * filterData) {
 	return filterData->getData().groupIndex;
 }
 
-void bmx_b2filterdata_setgroupindex(MaxFilterData * filterData, int16 index) {
+void bmx_b2filterdata_setgroupindex(MaxFilterData * filterData, int index) {
 	filterData->setGroupIndex(index);
 }
 
@@ -2594,7 +2600,7 @@ public:
 	}
 	
 	void SayGoodbye(b2Joint * joint) {
-		_bah_box2d_b2DestructionListener__SayGoodbyeJoint(maxHandle, joint);
+		CB_PREF(bah_box2d_b2DestructionListener__SayGoodbyeJoint)(maxHandle, joint);
 		void * data = joint->GetUserData();
 		if (data && data != &bbNullObject) {
 			BBRELEASE((BBObject*)data);
@@ -2603,7 +2609,7 @@ public:
 	}
 
 	void SayGoodbye(b2Shape * shape) {
-		_bah_box2d_b2DestructionListener__SayGoodbyeShape(maxHandle, shape);
+		CB_PREF(bah_box2d_b2DestructionListener__SayGoodbyeShape)(maxHandle, shape);
 		void * data = shape->GetUserData();
 		if (data && data != &bbNullObject) {
 			BBRELEASE((BBObject*)data);
@@ -2912,7 +2918,7 @@ void bmx_b2edgechaindef_setvertices(Maxb2EdgeChainDef * def, BBArray * vertices)
 	def->initVertices(n);
 	
 	for (int i = 0; i < n; i++) {
-		def->vertices[i] = *_bah_box2d_b2Vec2__getVec(vertices, i);
+		def->vertices[i] = *CB_PREF(bah_box2d_b2Vec2__getVec)(vertices, i);
 	}
 }
 
