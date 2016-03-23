@@ -46,7 +46,7 @@ Type TJSON
 	
 	Field key:String
 
-	Function _create:TJSON(jsonPtr:Byte Ptr, jsonType:Int, key:String)
+	Function _create:TJSON(jsonPtr:Byte Ptr, jsonType:Int, key:String) { nomangle }
 		Local this:TJSON
 		Select jsonType
 			Case JSON_TYPE_OBJECT
@@ -477,7 +477,7 @@ Type TJSONError
 	
 	Field _js:TJSON
 	
-	Function _createError:TJSONError(Text:String, source:String, line:Int, column:Int, position:Int)
+	Function _createError:TJSONError(Text:String, source:String, line:Int, column:Int, position:Int) { nomangle }
 		Local this:TJSONError = New TJSONError
 		this.Text = Text
 		this.source = source
@@ -487,7 +487,7 @@ Type TJSONError
 		Return this
 	End Function
 
-	Function _createNoError:TJSONError(_js:TJSON)
+	Function _createNoError:TJSONError(_js:TJSON) { nomangle }
 		Local this:TJSONError = New TJSONError
 		this._js = _js
 		Return this
