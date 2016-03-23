@@ -1229,7 +1229,7 @@ Type TBassStream Extends TBassChannel
 		Return Self
 	End Method
 	
-	Function _dlstreamcallback(buffer:Byte Ptr, length:Int, data:Object)
+	Function _dlstreamcallback(buffer:Byte Ptr, length:Int, data:Object) { nomangle }
 		TBassStream(data).dlcallback(buffer, length, TBassStream(data).userData)
 	End Function
 
@@ -1253,22 +1253,22 @@ Type TBassStream Extends TBassChannel
 	End Method
 	
 	' callback wrapper for TStream
-	Function _fileCloseProc(stream:TBassStream)
+	Function _fileCloseProc(stream:TBassStream) { nomangle }
 		stream._stream.Close()
 	End Function
 	
 	' callback wrapper for TStream
-	Function _fileLenProc(stream:TBassStream, length:Long Ptr)
+	Function _fileLenProc(stream:TBassStream, length:Long Ptr) { nomangle }
 		length[0] = Long(stream._stream.Size())
 	End Function
 	
 	' callback wrapper for TStream
-	Function _fileReadProc:Int(buffer:Byte Ptr, length:Int, stream:TBassStream)
+	Function _fileReadProc:Int(buffer:Byte Ptr, length:Int, stream:TBassStream) { nomangle }
 		Return stream._stream.Read(buffer, length)
 	End Function
 	
 	' callback wrapper for TStream
-	Function _fileSeekProc:Int(offset:Long, stream:TBassStream)
+	Function _fileSeekProc:Int(offset:Long, stream:TBassStream) { nomangle }
 		stream._stream.Seek(Int(offset))
 		Return 1 ' TODO for now, we always return true...
 	End Function
