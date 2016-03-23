@@ -212,7 +212,7 @@ Type b2World
 	End Method
 	
 	' 
-	Function _createJoint:b2Joint(jointType:Int)
+	Function _createJoint:b2Joint(jointType:Int) { nomangle }
 		Local joint:b2Joint
 		Select jointType
 			Case e_unknownJoint
@@ -258,7 +258,7 @@ Type b2World
 		Return controller
 	End Method
 	' 
-	Function __createController:b2Controller(controllerType:Int)
+	Function __createController:b2Controller(controllerType:Int) { nomangle }
 		Local controller:b2Controller
 		Select controllerType
 			Case e_buoyancyController
@@ -424,7 +424,7 @@ Type b2World
 		Return bmx_b2world_inrange(b2ObjectPtr, aabb.b2ObjectPtr)
 	End Method
 	
-	Function _setShape(shapes:b2Shape[], index:Int, shape:Byte Ptr)
+	Function _setShape(shapes:b2Shape[], index:Int, shape:Byte Ptr) { nomangle }
 		shapes[index] = b2Shape._create(shape)
 	End Function
 	
@@ -652,15 +652,15 @@ Type b2Vec2
 		End If
 	End Method
 	
-	Function _newVecArray:b2Vec2[](count:Int)
+	Function _newVecArray:b2Vec2[](count:Int) { nomangle }
 		Return New b2Vec2[count]
 	End Function
 	
-	Function _setVec(array:b2Vec2[], index:Int, vec:Byte Ptr)
+	Function _setVec(array:b2Vec2[], index:Int, vec:Byte Ptr) { nomangle }
 		array[index] = _create(vec)
 	End Function
 
-	Function _getVec:Byte Ptr(array:b2Vec2[], index:Int)
+	Function _getVec:Byte Ptr(array:b2Vec2[], index:Int) { nomangle }
 		Return array[index].b2ObjectPtr
 	End Function
 	
@@ -696,7 +696,7 @@ Type b2DestructionListener
 	Method SayGoodbyeJoint(joint:b2Joint)
 	End Method
 
-	Function _SayGoodbyeJoint(listener:b2DestructionListener, joint:Byte Ptr)
+	Function _SayGoodbyeJoint(listener:b2DestructionListener, joint:Byte Ptr) { nomangle }
 		listener.SayGoodbyeJoint(b2Joint._create(joint))
 	End Function
 	
@@ -706,7 +706,7 @@ Type b2DestructionListener
 	Method SayGoodbyeShape(shape:b2Shape)
 	End Method
 	
-	Function _SayGoodbyeShape(listener:b2DestructionListener, shape:Byte Ptr)
+	Function _SayGoodbyeShape(listener:b2DestructionListener, shape:Byte Ptr) { nomangle }
 		listener.SayGoodbyeShape(b2Shape._create(shape))
 	End Function
 
@@ -738,7 +738,7 @@ Type b2BoundaryListener
 	Method Violation(body:b2Body)
 	End Method
 
-	Function _Violation(listener:b2BoundaryListener, body:Byte Ptr)
+	Function _Violation(listener:b2BoundaryListener, body:Byte Ptr) { nomangle }
 		listener.Violation(b2Body._create(body))
 	End Function
 
@@ -773,7 +773,7 @@ Type b2ContactListener
 	Method Add(point:b2ContactPoint)
 	End Method
 	
-	Function _Add(listener:b2ContactListener, point:Byte Ptr)
+	Function _Add(listener:b2ContactListener, point:Byte Ptr) { nomangle }
 		listener.Add(b2ContactPoint._create(point))
 	End Function
 
@@ -784,7 +784,7 @@ Type b2ContactListener
 	Method Persist(point:b2ContactPoint)
 	End Method
 	
-	Function _Persist(listener:b2ContactListener, point:Byte Ptr)
+	Function _Persist(listener:b2ContactListener, point:Byte Ptr) { nomangle }
 		listener.Persist(b2ContactPoint._create(point))
 	End Function
 
@@ -795,7 +795,7 @@ Type b2ContactListener
 	Method Remove(point:b2ContactPoint)
 	End Method
 
-	Function _Remove(listener:b2ContactListener, point:Byte Ptr)
+	Function _Remove(listener:b2ContactListener, point:Byte Ptr) { nomangle }
 		listener.Remove(b2ContactPoint._create(point))
 	End Function
 
@@ -805,7 +805,7 @@ Type b2ContactListener
 	Method Result(result:b2ContactResult)
 	End Method
 	
-	Function _Result(listener:b2ContactListener, result:Byte Ptr)
+	Function _Result(listener:b2ContactListener, result:Byte Ptr) { nomangle }
 		listener.Result(b2ContactResult._create(result))
 	End Function
 
@@ -838,7 +838,7 @@ Type b2ContactFilter
 		Return True
 	End Method
 
-	Function _ShouldCollide:Int(filter:b2ContactFilter, shape1:Byte Ptr, shape2:Byte Ptr)
+	Function _ShouldCollide:Int(filter:b2ContactFilter, shape1:Byte Ptr, shape2:Byte Ptr) { nomangle }
 		Return filter.ShouldCollide(b2Shape._create(shape1), b2Shape._create(shape2))
 	End Function
 	
@@ -1137,7 +1137,7 @@ Type b2Body
 		Return shape
 	End Method
 
-	Function _createShape:b2Shape(shapeType:Int)
+	Function _createShape:b2Shape(shapeType:Int) { nomangle }
 		Local shape:b2Shape
 		Select shapeType
 			Case e_unknownShape
@@ -1686,7 +1686,7 @@ Type b2DebugDraw
 	Method DrawPolygon(vertices:b2Vec2[], color:b2Color) Abstract
 
 
-	Function _DrawPolygon(obj:b2DebugDraw , vertices:b2Vec2[], r:Int, g:Int, b:Int)
+	Function _DrawPolygon(obj:b2DebugDraw , vertices:b2Vec2[], r:Int, g:Int, b:Int) { nomangle }
 		obj.DrawPolygon(vertices, b2Color.Set(r, g, b))
 	End Function
 	
@@ -1695,7 +1695,7 @@ Type b2DebugDraw
 	End Rem
 	Method DrawSolidPolygon(vertices:b2Vec2[], color:b2Color) Abstract
 
-	Function _DrawSolidPolygon(obj:b2DebugDraw , vertices:b2Vec2[], r:Int, g:Int, b:Int)
+	Function _DrawSolidPolygon(obj:b2DebugDraw , vertices:b2Vec2[], r:Int, g:Int, b:Int) { nomangle }
 		obj.DrawSolidPolygon(vertices, b2Color.Set(r, g, b))
 	End Function
 
@@ -1709,7 +1709,7 @@ Type b2DebugDraw
 	End Rem
 	Method DrawSolidCircle(center:b2Vec2, radius:Float, axis:b2Vec2, color:b2Color) Abstract
 	
-	Function _DrawSolidCircle(obj:b2DebugDraw, center:Byte Ptr, radius:Float, axis:Byte Ptr, r:Int, g:Int, b:Int)
+	Function _DrawSolidCircle(obj:b2DebugDraw, center:Byte Ptr, radius:Float, axis:Byte Ptr, r:Int, g:Int, b:Int) { nomangle }
 		obj.DrawSolidCircle(b2Vec2._create(center), radius, b2Vec2._create(axis), b2Color.Set(r, g, b))
 	End Function
 	
@@ -1718,7 +1718,7 @@ Type b2DebugDraw
 	End Rem
 	Method DrawSegment(p1:b2Vec2, p2:b2Vec2, color:b2Color) Abstract
 
-	Function _DrawSegment(obj:b2DebugDraw, p1:Byte Ptr, p2:Byte Ptr, r:Int, g:Int, b:Int)
+	Function _DrawSegment(obj:b2DebugDraw, p1:Byte Ptr, p2:Byte Ptr, r:Int, g:Int, b:Int) { nomangle }
 		obj.DrawSegment(b2Vec2._create(p1), b2Vec2._create(p2), b2Color.Set(r, g, b))
 	End Function
 	
