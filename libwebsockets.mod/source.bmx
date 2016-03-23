@@ -1,4 +1,4 @@
-' Copyright (c) 2013 Bruce A Henderson
+' Copyright (c) 2013-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ Import "libwebsockets/lib/getifaddrs.c"
 ?
 Import "libwebsockets/lib/handshake.c"
 Import "libwebsockets/lib/libwebsockets.c"
-Import "libwebsockets/lib/minilex.c"
 Import "libwebsockets/lib/output.c"
 Import "libwebsockets/lib/parsers.c"
 Import "libwebsockets/lib/server-handshake.c"

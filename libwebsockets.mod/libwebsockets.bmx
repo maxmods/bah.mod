@@ -1,4 +1,4 @@
-' Copyright (c) 2013 Bruce A Henderson
+' Copyright (c) 2013-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: libwebsockets
 End Rem
 Module BaH.libwebsockets
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libwebsockets) 2010-2013 Andy Green. LGPL with static linking exception."
-ModuleInfo "Copyright: (wrapper) 2013 Bruce A Henderson"
+ModuleInfo "Copyright: (wrapper) 2013-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: NG overload support."
 ModuleInfo "History: 1.00 Initial Release (libwebsockets 1.3)"
 
 
@@ -84,12 +86,12 @@ Type TLWSContextCreationInfo
 	End Method
 	
 	' private
-	Function _initProtocols(info:TLWSContextCreationInfo, protocolsPtr:Byte Ptr)
+	Function _initProtocols(info:TLWSContextCreationInfo, protocolsPtr:Byte Ptr) { nomangle }
 		info.protocolsPtr = protocolsPtr
 	End Function
 	
 	' private
-	Function _getProtocol:Byte Ptr(info:TLWSContextCreationInfo, index:Int, offsetPtr:Byte Ptr)
+	Function _getProtocol:Byte Ptr(info:TLWSContextCreationInfo, index:Int, offsetPtr:Byte Ptr) { nomangle }
 		info.protocols[index].offsetPtr = offsetPtr
 		Return info.protocols[index].protocolPtr
 	End Function
@@ -224,14 +226,14 @@ Type TLWSProtocol
 		Return TLWSProtocol(protocolMap.ValueForKey(name))
 	End Function
 
-	Function _callback:Int(name:String, contextPtr:Byte Ptr, wsiPtr:Byte Ptr, reason:Int, user:Object, in:Byte Ptr, length:Int)
+	Function _callback:Int(name:String, contextPtr:Byte Ptr, wsiPtr:Byte Ptr, reason:Int, user:Object, in:Byte Ptr, length:Int) { nomangle }
 		Local proto:TLWSProtocol = getProtocol(name)
 
 		Return proto.callback(TLWSContext(TLWSContext.contexts.ValueForKey(String(Int(contextPtr)))), ..
 				TLWSWebSocket._create(wsiPtr, proto), reason, user, in, length)
 	End Function
 	
-	Function _objectCallback:Object(name:String)
+	Function _objectCallback:Object(name:String) { nomangle }
 		Local proto:TLWSProtocol = getProtocol(name)
 
 		If proto.objectCB Then
@@ -264,8 +266,8 @@ Type TLWSWebSocket
 	Rem
 	bbdoc: Write text to the client.
 	End Rem
-	Method writeText:Int(text:String)
-		Local s:Byte Ptr = text.ToUTF8String()
+	Method writeText:Int(Text:String)
+		Local s:Byte Ptr = Text.ToUTF8String()
 		Local n:Int = _strlen(s)
 	
 		Local data:Byte[LWS_SEND_BUFFER_PRE_PADDING + n + LWS_SEND_BUFFER_POST_PADDING]
