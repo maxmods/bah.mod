@@ -25,12 +25,14 @@ bbdoc: FreeImage Library
 End Rem
 Module BaH.FreeImage
 
-ModuleInfo "Version: 1.10"
+ModuleInfo "Version: 1.11"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
 ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.11"
+ModuleInfo "History: NG overload support."
 ModuleInfo "History: 1.10"
 ModuleInfo "History: Split out some plugins source to fix Win32 build on new MinGW."
 ModuleInfo "History: 1.09"
@@ -334,7 +336,7 @@ Type TMultiFreeImage
 	
 	End Method
 	
-	Function error(format:Int, message:Byte Ptr)
+	Function error(format:Int, message:Byte Ptr) { nomangle }
 	
 		hasError = True
 		
@@ -820,7 +822,7 @@ Type TFreeImage
 		bmx_freeimage_setBitmap(freeImagePtr, bitmap)
 	End Method
 	
-	Function error(format:Int, message:Byte Ptr)
+	Function error(format:Int, message:Byte Ptr) { nomangle }
 	
 		Local t:String = String.fromCString(message)
 
@@ -838,37 +840,37 @@ Type TFreeImage
 	End Function
 	
 	
-	Function read:Int(handler:TFreeImage, c:Byte Ptr, n:Int)
+	Function read:Int(handler:TFreeImage, c:Byte Ptr, n:Int) { nomangle }
 
 		Return handler.stream.read(c, n)
 	
 	End Function
 	
-	Function write:Int(handler:TFreeImage, c:Byte Ptr, n:Int)
+	Function write:Int(handler:TFreeImage, c:Byte Ptr, n:Int) { nomangle }
 
 		Return handler.stream.write(c, n)
 
 	End Function
 
 ?Not ptr64
-	Function tell:Int(handler:TFreeImage)
+	Function tell:Int(handler:TFreeImage) { nomangle }
 		Return handler.stream.pos()
 	End Function
 ?ptr64
-	Function tell:Long(handler:TFreeImage)
+	Function tell:Long(handler:TFreeImage) { nomangle }
 		Return handler.stream.pos()
 	End Function
 ?
-	Function seek(handler:TFreeImage, pos:Int)
+	Function seek(handler:TFreeImage, pos:Int) { nomangle }
 		handler.stream.seek(pos)
 	End Function
 	
 ?Not ptr64
-	Function size:Int(handler:TFreeImage, pos:Int)
+	Function size:Int(handler:TFreeImage, pos:Int) { nomangle }
 		Return handler.stream.size()
 	End Function
 ?ptr64
-	Function size:Long(handler:TFreeImage, pos:Int)
+	Function size:Long(handler:TFreeImage, pos:Int) { nomangle }
 		Return handler.stream.size()
 	End Function
 ?	
