@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2011 Bruce A Henderson
+' Copyright (c) 2009-2016 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -615,7 +615,7 @@ Type TOverflowException Extends TRuntimeException
 		Return Self
 	End Method
 
-	Function _create:TOverflowException()
+	Function _create:TOverflowException() { nomangle }
 		Return New TOverflowException.CreateException()
 	End Function
 	
@@ -631,7 +631,7 @@ Type TDomainException Extends TRuntimeException
 		Return Self
 	End Method
 
-	Function _create:TDomainException()
+	Function _create:TDomainException() { nomangle }
 		Return New TDomainException.CreateException()
 	End Function
 	

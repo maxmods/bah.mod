@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2011 Bruce A Henderson
+' Copyright (c) 2009-2016 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,12 @@ bbdoc: Math Toolkit
 End Rem
 Module BaH.MathToolkit
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to Boost 1.46"
 ModuleInfo "History: Added TInverseChiSquaredDistribution and TInverseGammaDistribution."

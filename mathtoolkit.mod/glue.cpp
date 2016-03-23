@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009-2011 Bruce A Henderson
+ Copyright (c) 2009-2016 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -59,12 +59,23 @@
 #include <boost/math/distributions/gamma.hpp>
 #include <boost/math/distributions/inverse_gamma.hpp>
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_mathtoolkit_TOverflowException__create();
-	BBObject * _bah_mathtoolkit_TDomainException__create();
+#ifdef BMX_NG
+#define bah_mathtoolkit_TOverflowException__create bah_mathtoolkit_common_TOverflowException__create
+#define bah_mathtoolkit_TDomainException__create bah_mathtoolkit_common_TDomainException__create
+#endif
+
+	BBObject * CB_PREF(bah_mathtoolkit_TOverflowException__create)();
+	BBObject * CB_PREF(bah_mathtoolkit_TDomainException__create)();
 
 
 	double bmx_boost_math_factorial(unsigned int i);
@@ -641,11 +652,11 @@ extern "C" {
 
 
 void bmx_throw_overflow_exception() {
-	bbExThrow(_bah_mathtoolkit_TOverflowException__create());
+	bbExThrow(CB_PREF(bah_mathtoolkit_TOverflowException__create)());
 }
 
 void bmx_throw_domain_exception() {
-	bbExThrow(_bah_mathtoolkit_TDomainException__create());
+	bbExThrow(CB_PREF(bah_mathtoolkit_TDomainException__create)());
 }
 
 
