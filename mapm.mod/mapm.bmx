@@ -224,7 +224,7 @@ Type TMAPM
 	End Rem
 	Method ToFixPtStringEx:String(decimalPlaces:Int, radix:String, separator:String, separatorCount:Int)
 		Local buf:Byte[MAPM_MAX_DIGITS + SignificantDigits()]
-		m_apm_to_fixpt_stringex(buf, decimalPlaces, mapmPtr, radix[0], separator[0], separatorCount)
+		m_apm_to_fixpt_stringex(buf, decimalPlaces, mapmPtr, Byte(radix[0]), Byte(separator[0]), separatorCount)
 		Return String.FromCString(buf)
 	End Method
 	
