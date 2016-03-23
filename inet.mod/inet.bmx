@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2015 Bruce A Henderson
+' Copyright (c) 2010-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: Network Interfaces.
 End Rem
 Module BaH.Inet
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2010-2015 Bruce A Henderson"
+ModuleInfo "Copyright: 2010-2016 Bruce A Henderson"
 
+ModuleInfo "Version: 1.02"
+ModuleInfo "History: NG overload support."
 ModuleInfo "Version: 1.01"
 ModuleInfo "History: Updated for bmx-ng."
 ModuleInfo "Version: 1.00"
@@ -86,43 +88,43 @@ Type TInet
 	End Rem
 	Field flags:Int
 	
-	Function _create:TInet(name:String)
+	Function _create:TInet(name:String) { nomangle }
 		Local this:TInet = New TInet
 		this.name = name
 		Return this
 	End Function
 	
-	Function _setMACAddress(inet:TInet, address:Int[], addressString:String)
+	Function _setMACAddress(inet:TInet, address:Int[], addressString:String) { nomangle }
 		inet.MACAddress = address
 		inet.MACAddressString = addressString
 	End Function
 	
-	Function _setAddress(inet:TInet, address:Int)
+	Function _setAddress(inet:TInet, address:Int) { nomangle }
 		inet.address = _swap(address)
 	End Function
 
-	Function _setNetmask(inet:TInet, netmask:Int)
+	Function _setNetmask(inet:TInet, netmask:Int) { nomangle }
 		inet.netmask = _swap(netmask)
 		inet.broadcast = inet.address | ~inet.netmask
 	End Function
 	
-	Function _setBroadcast(inet:TInet, broadcast:Int)
+	Function _setBroadcast(inet:TInet, broadcast:Int) { nomangle }
 		inet.broadcast = broadcast
 	End Function
 
-	Function _newArray:TInet[](size:Int)
+	Function _newArray:TInet[](size:Int) { nomangle }
 		Return New TInet[size]
 	End Function
 	
-	Function _newEntry(arr:TInet[], index:Int, entry:TInet)
+	Function _newEntry(arr:TInet[], index:Int, entry:TInet) { nomangle }
 		arr[index] = entry
 	End Function
 	
-	Function _swap:Int(value:Int)
+	Function _swap:Int(value:Int) { nomangle }
 		Return value Shl 24 | ((value Shl 8) & $FF0000) | ((value Shr 8) & $FF00) | value Shr 24
 	End Function
 	
-	Function _setFlags(inet:TInet, flags:Int)
+	Function _setFlags(inet:TInet, flags:Int) { nomangle }
 		inet.flags = flags
 	End Function
 
