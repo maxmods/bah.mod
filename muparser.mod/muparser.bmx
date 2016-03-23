@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2013 Bruce A Henderson
+' Copyright (c) 2008-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Mathematical expressions parser.
 End Rem
 Module BaH.muParser
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2016 Bruce A Henderson"
 ModuleInfo "Copyright: muParser - 2004-2012 Ingo Berg"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added -fpermissive for Mac build."
 ModuleInfo "History: 1.01"
@@ -283,7 +285,7 @@ Type TmuParserBase
 		bmx_muparser_parserbase_setvarfactory(parserPtr, _vfCallback, Self)
 	End Method
 	
-	Function _vfCallback:Double Ptr(name:Byte Ptr, userData:Object)
+	Function _vfCallback:Double Ptr(name:Byte Ptr, userData:Object) { nomangle }
 		Return TmuParserBase(userData).varFactoryCallback(String.FromCString(name), TmuParserBase(userData).vfUserData)
 	End Function
 	
@@ -301,11 +303,11 @@ Type TmuParserBase
 		Return bmx_muparser_parserbase_getusedvar(parserPtr)
 	End Method
 	
-	Function _newVarArray:TmuParserVariable[](size:Int)
+	Function _newVarArray:TmuParserVariable[](size:Int) { nomangle }
 		Return New TmuParserVariable[size]
 	End Function
 	
-	Function _setVarArray(vars:TmuParserVariable[], index:Int, name:String, variable:Double Ptr)
+	Function _setVarArray(vars:TmuParserVariable[], index:Int, name:String, variable:Double Ptr) { nomangle }
 		vars[index] = TmuParserVariable._create(name, variable)
 	End Function
 
@@ -316,11 +318,11 @@ Type TmuParserBase
 		Return bmx_muparser_parserbase_getconst(parserPtr)
 	End Method
 
-	Function _newConstArray:TmuParserConstant[](size:Int)
+	Function _newConstArray:TmuParserConstant[](size:Int) { nomangle }
 		Return New TmuParserConstant[size]
 	End Function
 	
-	Function _setConstArray(consts:TmuParserConstant[], index:Int, name:String, value:Double)
+	Function _setConstArray(consts:TmuParserConstant[], index:Int, name:String, value:Double) { nomangle }
 		consts[index] = TmuParserConstant._create(name, value)
 	End Function
 
@@ -401,7 +403,7 @@ Type TmuParserException Extends TRuntimeException
 	End Rem
 	Field pos:Int
 	
-	Function _create:TmuParserException(errorCode:Int, message:String, expression:String, pos:Int)
+	Function _create:TmuParserException(errorCode:Int, message:String, expression:String, pos:Int) { nomangle }
 		Local this:TmuParserException = New TmuParserException
 		this.errorCode = errorCode
 		this.message = message

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2013 Bruce A Henderson
+  Copyright (c) 2008-2016 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,21 @@
 */ 
 #include "muParser.h"
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_muparser_TmuParserException__create(mu::EErrorCodes code, BBString * msg, BBString * expr, int pos);
-	BBArray * _bah_muparser_TmuParserBase__newVarArray(int size);
-	void _bah_muparser_TmuParserBase__setVarArray(BBArray * vars, int index, BBString * name, double * variable);
-	BBArray * _bah_muparser_TmuParserBase__newConstArray(int size);
-	void _bah_muparser_TmuParserBase__setConstArray(BBArray * consts, int index, BBString * name, double value);
+	BBObject * CB_PREF(bah_muparser_TmuParserException__create)(mu::EErrorCodes code, BBString * msg, BBString * expr, int pos);
+	BBArray * CB_PREF(bah_muparser_TmuParserBase__newVarArray)(int size);
+	void CB_PREF(bah_muparser_TmuParserBase__setVarArray)(BBArray * vars, int index, BBString * name, double * variable);
+	BBArray * CB_PREF(bah_muparser_TmuParserBase__newConstArray)(int size);
+	void CB_PREF(bah_muparser_TmuParserBase__setConstArray)(BBArray * consts, int index, BBString * name, double value);
 
 	mu::Parser * bmx_muparser_parser_new();
 	void bmx_muparser_parser_delete(mu::Parser * par);
@@ -78,7 +84,7 @@ mu::string_type bbStringToStringType(BBString * s) {
 }
 
 void bmx_muparser_throw(mu::Parser::exception_type &e) {
-	bbExThrow(_bah_muparser_TmuParserException__create(e.GetCode(), bbStringFromCString(e.GetMsg().c_str()), 
+	bbExThrow(CB_PREF(bah_muparser_TmuParserException__create)(e.GetCode(), bbStringFromCString(e.GetMsg().c_str()), 
 		bbStringFromCString(e.GetExpr().c_str()), e.GetPos()));
 }
 
@@ -359,13 +365,13 @@ void bmx_muparser_parserbase_setvarfactory(mu::ParserBase * par, mu::facfun_type
 BBArray * bmx_muparser_getvariables(const mu::varmap_type & variables) {
 	int size = (int)variables.size();
 	
-	BBArray * varArray = _bah_muparser_TmuParserBase__newVarArray(size);
+	BBArray * varArray = CB_PREF(bah_muparser_TmuParserBase__newVarArray)(size);
 	
 	mu::varmap_type::const_iterator var = variables.begin();
 	int index = 0;
 
 	for (; var != variables.end(); ++var) {
-		_bah_muparser_TmuParserBase__setVarArray(varArray, index++, bbStringFromCString(var->first.c_str()), var->second);
+		CB_PREF(bah_muparser_TmuParserBase__setVarArray)(varArray, index++, bbStringFromCString(var->first.c_str()), var->second);
 	}
 	
 	return varArray;
@@ -399,13 +405,13 @@ BBArray * bmx_muparser_parserbase_getconst(mu::ParserBase * par) {
 		mu::valmap_type consts = par->GetConst();
 		int size = (int)consts.size();
 		
-		BBArray * constArray = _bah_muparser_TmuParserBase__newConstArray(size);
+		BBArray * constArray = CB_PREF(bah_muparser_TmuParserBase__newConstArray)(size);
 		
 		mu::valmap_type::const_iterator var = consts.begin();
 		int index = 0;
 	
 		for (; var != consts.end(); ++var) {
-			_bah_muparser_TmuParserBase__setConstArray(constArray, index++, bbStringFromCString(var->first.c_str()), var->second);
+			CB_PREF(bah_muparser_TmuParserBase__setConstArray)(constArray, index++, bbStringFromCString(var->first.c_str()), var->second);
 		}
 		
 		return constArray;
