@@ -447,6 +447,60 @@ void bmx_stringbuffer_removecharat(struct MaxStringBuffer * buf, int index) {
 
 }
 
+void bmx_stringbuffer_append_cstring(struct MaxStringBuffer * buf, const char * chars) {
+	int length = strlen(chars);
+	if (length > 0) {
+		int count = length;
+		
+		bmx_stringbuffer_resize(buf, buf->count + length);
+		
+		char * p = chars;
+		BBChar * b = buf->buffer + buf->count;
+		while (length--) {
+			*b++ = *p++;
+		}
+		
+		buf->count += count;
+	}
+}
+
+void bmx_stringbuffer_append_utf8string(struct MaxStringBuffer * buf, const char * chars) {
+	int length = strlen(chars);
+	if (length > 0) {
+		int count = 0;
+		
+		bmx_stringbuffer_resize(buf, buf->count + length);
+		
+		int c;
+		char * p = chars;
+		BBChar * b = buf->buffer + buf->count;
+		
+		while( c=*p++ & 0xff ){
+			if( c<0x80 ){
+				*b++=c;
+			}else{
+				int d=*p++ & 0x3f;
+				if( c<0xe0 ){
+					*b++=((c&31)<<6) | d;
+				}else{
+					int e=*p++ & 0x3f;
+					if( c<0xf0 ){
+						*b++=((c&15)<<12) | (d<<6) | e;
+					}else{
+						int f=*p++ & 0x3f;
+						int v=((c&7)<<18) | (d<<12) | (e<<6) | f;
+						if( v & 0xffff0000 ) bbExThrowCString( "Unicode character out of UCS-2 range" );
+						*b++=v;
+					}
+				}
+			}
+			count++;
+		}
+
+		buf->count += count;
+	}
+}
+
 /* ----------------------------------------------------- */
 
 int bmx_stringbuffer_splitbuffer_length(struct MaxSplitBuffer * buf) {

@@ -25,10 +25,12 @@ bbdoc: A string buffer.
 End Rem	
 Module BaH.StringBuffer
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Added AppendCString() and AppendUTF8String() methods."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Added CharAt(), SetCharAt() and RemoveCharAt() methods."
 ModuleInfo "History: 1.00 Initial Release"
@@ -102,6 +104,22 @@ Type TStringBuffer
 		Else
 			bmx_stringbuffer_append_string(buffer, obj.ToString())
 		End If
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Appends a null-terminated C string onto the string buffer.
+	End Rem
+	Method AppendCString:TStringBuffer(chars:Byte Ptr)
+		bmx_stringbuffer_append_cstring(buffer, chars)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Appends a null-terminated UTF-8 string onto the string buffer.
+	End Rem
+	Method AppendUTF8String:TStringBuffer(chars:Byte Ptr)
+		bmx_stringbuffer_append_utf8string(buffer, chars)
 		Return Self
 	End Method
 	
