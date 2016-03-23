@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009-2012 Bruce A Henderson
+ Copyright (c) 2009-2016 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,21 @@ using namespace boost::posix_time;
 class MaxScopedLock;
 class MaxNamedMutex;
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_interprocess_TInterprocessException__create(BBString * message, int errorCode, int nativeError);
+#ifdef BMX_NG
+	BBObject * CB_PREF(bah_interprocess_common_TInterprocessException__create)(BBString * message, int errorCode, int nativeError);
+#else
+	BBObject * CB_PREF(bah_interprocess_TInterprocessException__create)(BBString * message, int errorCode, int nativeError);
+#endif
 
 	shared_memory_object * bmx_sharedmemoryobject_create(int access, BBString * name, boost::interprocess::mode_t mode);
 	void bmx_sharedmemoryobject_free(shared_memory_object * shm);
@@ -149,7 +159,11 @@ private:
 // ********************************************
 
 void bmx_throw_interprocess_exception(interprocess_exception &e) {
-	bbExThrow(_bah_interprocess_TInterprocessException__create(bbStringFromCString(e.what()), e.get_error_code(), 		e.get_native_error()));
+#ifdef BMX_NG
+	bbExThrow(CB_PREF(bah_interprocess_common_TInterprocessException__create)(bbStringFromCString(e.what()), e.get_error_code(), e.get_native_error()));
+#else
+	bbExThrow(CB_PREF(bah_interprocess_TInterprocessException__create)(bbStringFromCString(e.what()), e.get_error_code(), e.get_native_error()));
+#endif
 }
 
 shared_memory_object * bmx_sharedmemoryobject_create(int access, BBString * name, boost::interprocess::mode_t mode) {

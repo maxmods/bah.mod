@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2012 Bruce A Henderson
+' Copyright (c) 2009-2016 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,12 @@ bbdoc: Interprocess Communication
 End Rem
 Module BaH.Interprocess
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009-2012 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated to boost 1.52"
 ModuleInfo "History: Removed region GetOffset(). Added ShrinkBy()."
