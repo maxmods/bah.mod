@@ -30,17 +30,17 @@ Function drawPolyShape(shape:CPPolyShape)
 		End If
 		
 		If last Then
-			DrawLine last.x, last.y, v.x, v.y
+			DrawLine Float(last.x), Float(last.y), Float(v.x), Float(v.y)
 		End If
 		
 		last = v
 	Next
 	
-	DrawLine last.x, last.y, First.x, First.y
+	DrawLine Float(last.x), Float(last.y), Float(First.x), Float(First.y)
 
 	If toggleMode Then
-		SetRotation body.GetAngle()
-		DrawText Chr(ExtraShape(shape).letter + 64), pos.x, pos.y
+		SetRotation Float(body.GetAngle())
+		DrawText Chr(ExtraShape(shape).letter + 64), Float(pos.x), Float(pos.y)
 		SetRotation 0
 	End If
 
@@ -55,7 +55,7 @@ Function drawCircleShape(shape:CPCircleShape)
 
 	Local radius:Float = shape.GetRadius()
 
-	DrawOval center.x - radius, center.y - radius, radius * 2, radius * 2
+	DrawOval Float(center.x - radius), Float(center.y - radius), radius * 2, radius * 2
 End Function
 
 Function drawSegmentShape(shape:CPSegmentShape)
@@ -69,7 +69,7 @@ Function drawSegmentShape(shape:CPSegmentShape)
 	Local a:CPVect = pos.Add(shape.GetEndPointA().Rotate(body.GetRot()))
 	Local b:CPVect = pos.Add(shape.GetEndPointB().Rotate(body.GetRot()))
 	
-	DrawLine a.x, a.y, b.x, b.y
+	DrawLine Float(a.x), Float(a.y), Float(b.x), Float(b.y)
 
 End Function
 

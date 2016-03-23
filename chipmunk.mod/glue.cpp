@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007-2010 Bruce A Henderson
+  Copyright (c) 2007-2016 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,20 @@
 #include "chipmunk.h"
 #include "blitz.h"
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
-	cpVect * _bah_chipmunk_CPVect__getVectForIndex(BBArray * verts, int index);
+	cpVect * CB_PREF(bah_chipmunk_CPVect__getVectForIndex)(BBArray * verts, int index);
 	BBObject *cpfind( void *obj );
 	void cpbind( void *obj, BBObject *peer );
-	void _bah_chipmunk_CPPolyShape__setVert(BBArray * verts, int index, cpVect * vec);
-	void _bah_chipmunk_CPContact__setContact(BBArray * conts, int index, cpContact * contact);
-	void _bah_chipmunk_CPBody__velocityFunction(BBObject * body, cpVect * gravity, cpFloat damping, cpFloat dt);
-	void _bah_chipmunk_CPBody__positionFunction(BBObject * body, cpFloat dt);
+	void CB_PREF(bah_chipmunk_CPPolyShape__setVert)(BBArray * verts, int index, cpVect * vec);
+	void CB_PREF(bah_chipmunk_CPContact__setContact)(BBArray * conts, int index, cpContact * contact);
+	void CB_PREF(bah_chipmunk_CPBody__velocityFunction)(BBObject * body, cpVect * gravity, cpFloat damping, cpFloat dt);
+	void CB_PREF(bah_chipmunk_CPBody__positionFunction)(BBObject * body, cpFloat dt);
 	
 	void bmx_velocity_function(cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt);
 	void bmx_position_function(cpBody *body, cpFloat dt);
@@ -312,11 +318,11 @@ void bmx_cpbody_velfunc(cpBody * body, cpBodyVelocityFunc  func) {
 }
 
 void bmx_velocity_function(cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt) {
-	return _bah_chipmunk_CPBody__velocityFunction(cpfind(body), bmx_cpvect_new(gravity), damping, dt);
+	return CB_PREF(bah_chipmunk_CPBody__velocityFunction)(cpfind(body), bmx_cpvect_new(gravity), damping, dt);
 }
 
 void bmx_position_function(cpBody *body, cpFloat dt) {
-	return _bah_chipmunk_CPBody__positionFunction(cpfind(body), dt);
+	return CB_PREF(bah_chipmunk_CPBody__positionFunction)(cpfind(body), dt);
 }
 
 void bmx_cpbody_setdata(cpBody * body, BBObject * data) {
@@ -620,7 +626,7 @@ BBObject * bmx_cpshape_getdata(cpShape * shape) {
 cpFloat bmx_momentforpoly(cpFloat m, BBArray * verts, int count, cpVect * offset) {
 	cpVect tVerts[count];
 	for (int i = 0; i<count; i++) {
-		tVerts[i] = *_bah_chipmunk_CPVect__getVectForIndex(verts, i);
+		tVerts[i] = *CB_PREF(bah_chipmunk_CPVect__getVectForIndex)(verts, i);
 	}
 	return cpMomentForPoly(m, count, tVerts, *offset);
 }
@@ -638,7 +644,7 @@ cpFloat bmx_momentforcircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect * offset) 
 cpShape * bmx_cppolyshape_create(BBObject * handle, cpBody * body, BBArray *verts, int count, cpVect * offset) {
 	cpVect tVerts[count];
 	for (int i = 0; i<count; i++) {
-		tVerts[i] = *_bah_chipmunk_CPVect__getVectForIndex(verts, i);
+		tVerts[i] = *CB_PREF(bah_chipmunk_CPVect__getVectForIndex)(verts, i);
 	}
 	cpShape * shape = cpPolyShapeNew(body, count, tVerts, *offset);
 	cpbind(shape, handle);
@@ -655,7 +661,7 @@ int bmx_cppolyshape_numverts(cpPolyShape * shape) {
 
 void bmx_cppolyshape_getverts(cpPolyShape * shape, BBArray * verts) {
 	for (int i = 0; i< shape->numVerts; i++) {
-		_bah_chipmunk_CPPolyShape__setVert(verts, i, bmx_cpvect_new(shape->verts[i]));
+		CB_PREF(bah_chipmunk_CPPolyShape__setVert)(verts, i, bmx_cpvect_new(shape->verts[i]));
 	}
 }
 
@@ -790,7 +796,7 @@ cpFloat bmx_cpcontact_getjtacc(cpContact * contact) {
 
 void bmx_cpcontact_fill(BBArray * conts, cpContact * contacts, int numContacts) {
 	for (int i = 0; i< numContacts; i++) {
-		_bah_chipmunk_CPContact__setContact(conts, i, &contacts[i]);
+		CB_PREF(bah_chipmunk_CPContact__setContact)(conts, i, &contacts[i]);
 	}
 }
 

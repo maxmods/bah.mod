@@ -46,8 +46,8 @@ Rem
 	DrawLine last.x, last.y, First.x, First.y
 End Rem
 'DebugLog "drawpoly at " + pos.x + ", " + pos.y
-	SetRotation body.GetAngle()
-	DrawImage crate, pos.x, pos.y
+	SetRotation Float(body.GetAngle())
+	DrawImage crate, Float(pos.x), Float(pos.y)
 
 End Function
 
@@ -58,8 +58,8 @@ Function drawCircleShape(shape:CPCircleShape)
 	Local pos:CPVect = body.GetPosition()
 	Local center:CPVect = shape.GetTransformedCenter()
 
-SetRotation body.GetAngle()
-DrawImage ball, pos.x, pos.y
+SetRotation Float(body.GetAngle())
+DrawImage ball, Float(pos.x), Float(pos.y)
 '	Local radius:Float = shape.GetRadius()
 'DebugLog "radius = " + radius + " cx = " + center.x + " : cy = " + center.y
 '	DrawOval center.x - radius, center.y - radius, radius * 2, radius * 2
@@ -76,7 +76,7 @@ Function drawSegmentShape(shape:CPSegmentShape)
 	Local a:CPVect = pos.Add(shape.GetEndPointA().Rotate(body.GetRot()))
 	Local b:CPVect = pos.Add(shape.GetEndPointB().Rotate(body.GetRot()))
 	
-	DrawLine a.x, a.y, b.x, b.y
+	DrawLine Float(a.x), Float(a.y), Float(b.x), Float(b.y)
 
 End Function
 

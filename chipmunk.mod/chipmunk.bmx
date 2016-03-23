@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2010 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Chipmunk 2D Physics
 End Rem
 Module BaH.Chipmunk
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Updated to latest v5 source."
 ModuleInfo "History: Changed CPJoint to CPConstraint."
@@ -46,7 +48,7 @@ ModuleInfo "History: Fixes problem where Free'ing wasn't removing the objects fr
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial release."
 
-ModuleInfo "CC_OPTS: -std=gnu99"
+ModuleInfo "C_OPTS: -std=gnu99"
 
 
 Import BRL.Map
@@ -292,7 +294,7 @@ Type CPBody Extends CPObject
 		bmx_cpbody_posfunc(cpObjectPtr, bmx_position_function)
 	End Method
 	
-	Function _positionFunction(body:CPBody, dt:Double)
+	Function _positionFunction(body:CPBody, dt:Double) { nomangle }
 		body.posFunction(body, dt)
 	End Function
 
@@ -304,7 +306,7 @@ Type CPBody Extends CPObject
 		bmx_cpbody_velfunc(cpObjectPtr, bmx_velocity_function)
 	End Method
 	
-	Function _velocityFunction(body:CPBody, gravity:Byte Ptr, damping:Double, dt:Double)
+	Function _velocityFunction(body:CPBody, gravity:Byte Ptr, damping:Double, dt:Double) { nomangle }
 		body.velFunction(body, CPVect._create(gravity), damping, dt)
 	End Function
 	
@@ -700,7 +702,7 @@ Type CPContact
 		Return bmx_cpcontact_getjtacc(contactPtr)
 	End Method
 	
-	Function _setContact(contacts:CPContact[], index:Int, contactPtr:Byte Ptr)
+	Function _setContact(contacts:CPContact[], index:Int, contactPtr:Byte Ptr) { nomangle }
 		contacts[index] = _create(contactPtr)
 	End Function
 	
@@ -861,7 +863,7 @@ Type CPVect
 		Return bmx_cpvect_toangle(vecPtr)
 	End Method
 
-	Function _getVectForIndex:Byte Ptr(verts:CPVect[], index:Int)
+	Function _getVectForIndex:Byte Ptr(verts:CPVect[], index:Int) { nomangle }
 		Return verts[index].vecPtr
 	End Function
 
@@ -1156,7 +1158,7 @@ Type CPPolyShape Extends CPShape
 		Return verts
 	End Method
 	
-	Function _setVert(verts:CPVect[], index:Int, vec:Byte Ptr)
+	Function _setVert(verts:CPVect[], index:Int, vec:Byte Ptr) { nomangle }
 		verts[index] = CPVect._create(vec)
 	End Function
 	
