@@ -497,7 +497,7 @@ Type TRegExMatch
 
 			If Not result Then
 
-				_subExpr = String.FromShorts(sPtr, sLen)
+				_subExpr = String.FromShorts(sPtr, Int(sLen))
 
 				pcre2_substring_free_16(sPtr)
 			End If
@@ -562,7 +562,7 @@ Type TRegExMatch
 
 			If Not result Then
 
-				_subExpr = String.FromShorts(sPtr, sLen)
+				_subExpr = String.FromShorts(sPtr, Int(sLen))
 				
 				pcre2_substring_free_16(sPtr)
 			End If
