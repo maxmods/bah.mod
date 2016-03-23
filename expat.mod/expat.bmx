@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2014 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: Expat XML Parser
 End Rem
 Module BaH.Expat
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007-2014 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: NG overload updates."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: bmx ng updates."
 ModuleInfo "History: 1.02"
@@ -65,13 +67,13 @@ Type TXMLParser
 	' callbacks
 	Field userStartElementHandler(userData:Object, name:String, attribs:String[])
 	Field userEndElementHandler(userData:Object, name:String)
-	Field userCharacterDataHandler(userData:Object, text:String)
+	Field userCharacterDataHandler(userData:Object, Text:String)
 	Field userProcessingInstructionHandler(userData:Object, target:String, data:String)
 	Field userCommentHandler(userData:Object, data:String)
 	Field userStartCdataSectionHandler(userData:Object)
 	Field userEndCdataSectionHandler(userData:Object)
 	Field userDefaultHandler(userData:Object, data:String)
-	Field userDefaultHandlerExpand(userData:Object, text:String)
+	Field userDefaultHandlerExpand(userData:Object, Text:String)
 	Field userSkippedEntityHandler(userData:Object, name:String, isParameterEntity:Int)
 	Field userStartNamespaceDeclHandler(userData:Object, prefix:String, uri:String)
 	Field userEndNamespaceDeclHandler(userData:Object, prefix:String)
@@ -108,14 +110,14 @@ Type TXMLParser
 	Frequently, the last piece is empty (i.e. len is zero.) If a parse error occurred, it
 	returns XML_STATUS_ERROR. Otherwise it returns XML_STATUS_OK value. 
 	End Rem
-	Method Parse:Int(text:Object, isFinal:Int = True)
-		If String(text) Then
+	Method Parse:Int(Text:Object, isFinal:Int = True)
+		If String(Text) Then
 		
-			Return bmx_expat_XML_Parse(parserPtr, String(text), isFinal)
+			Return bmx_expat_XML_Parse(parserPtr, String(Text), isFinal)
 			
-		Else If TStream(text) Then
+		Else If TStream(Text) Then
 		
-			Local stream:TStream = TStream(text)
+			Local stream:TStream = TStream(Text)
 			Local res:Int = XML_STATUS_OK
 		
 			While True
@@ -256,7 +258,7 @@ Type TXMLParser
 	End Method
 	
 	' internal callback
-	Function _StartElementHandler(parser:TXMLParser, name:String, attrs:String[])
+	Function _StartElementHandler(parser:TXMLParser, name:String, attrs:String[]) { nomangle }
 		parser.userStartElementHandler(parser.userData, name, attrs)
 	End Function
 	
@@ -274,7 +276,7 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _EndElementHandler(parser:TXMLParser, name:String)
+	Function _EndElementHandler(parser:TXMLParser, name:String) { nomangle }
 		parser.userEndElementHandler(parser.userData, name)
 	End Function
 
@@ -304,7 +306,7 @@ Type TXMLParser
 	about: A single block of contiguous text free of markup may still result in a sequence of calls to this handler.
 	In other words, if you're searching for a pattern in the text, it may be split across calls to this handler.
 	End Rem
-	Method SetCharacterDataHandler(handler(userData:Object, text:String))
+	Method SetCharacterDataHandler(handler(userData:Object, Text:String))
 		userCharacterDataHandler = handler
 		If handler Then
 			bmx_expat_XML_SetCharacterDataHandler(parserPtr)
@@ -314,9 +316,9 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _CharacterDataHandler(parser:TXMLParser, text:String)
+	Function _CharacterDataHandler(parser:TXMLParser, Text:String) { nomangle }
 		If parser.userCharacterDataHandler Then
-			parser.userCharacterDataHandler(parser.userData, text)
+			parser.userCharacterDataHandler(parser.userData, Text)
 		End If
 	End Function
 	
@@ -335,7 +337,7 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _ProcessingInstructionHandler(parser:TXMLParser, target:String, data:String)
+	Function _ProcessingInstructionHandler(parser:TXMLParser, target:String, data:String) { nomangle }
 		parser.userProcessingInstructionHandler(parser.userData, target, data)
 	End Function
 
@@ -353,7 +355,7 @@ Type TXMLParser
 	End Method
 	
 	' internal callback
-	Function _CommentHandler(parser:TXMLParser, data:String)
+	Function _CommentHandler(parser:TXMLParser, data:String) { nomangle }
 		parser.userCommentHandler(parser.userData, data)
 	End Function
 	
@@ -370,7 +372,7 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _StartCdataSectionHandler(parser:TXMLParser)
+	Function _StartCdataSectionHandler(parser:TXMLParser) { nomangle }
 		parser.userStartCdataSectionHandler(parser.userData)
 	End Function
 	
@@ -387,7 +389,7 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _EndCdataSectionHandler(parser:TXMLParser)
+	Function _EndCdataSectionHandler(parser:TXMLParser) { nomangle }
 		parser.userEndCdataSectionHandler(parser.userData)
 	End Function
 	
@@ -422,7 +424,7 @@ Type TXMLParser
 	has the side effect of turning off expansion of references to internally defined general entities. Instead these references
 	are passed to the default handler.
 	End Rem
-	Method SetDefaultHandler(handler(userData:Object, text:String))
+	Method SetDefaultHandler(handler(userData:Object, Text:String))
 		userDefaultHandler = handler
 		If handler Then
 			bmx_expat_XML_SetDefaultHandler(parserPtr)
@@ -432,15 +434,15 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _DefaultHandler(parser:TXMLParser, text:String)
-		parser.userDefaultHandler(parser.userData, text)
+	Function _DefaultHandler(parser:TXMLParser, Text:String) { nomangle }
+		parser.userDefaultHandler(parser.userData, Text)
 	End Function
 	
 	Rem
 	bbdoc: Sets a default handler, but doesn't inhibit the expansion of internal entity references.
 	about: The entity reference will not be passed to the default handler.
 	End Rem
-	Method SetDefaultHandlerExpand(handler(userData:Object, text:String))
+	Method SetDefaultHandlerExpand(handler(userData:Object, Text:String))
 		userDefaultHandlerExpand = handler
 		If handler Then
 			bmx_expat_XML_SetDefaultHandlerExpand(parserPtr)
@@ -450,8 +452,8 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _DefaultHandlerExpand(parser:TXMLParser, text:String)
-		parser.userDefaultHandlerExpand(parser.userData, text)
+	Function _DefaultHandlerExpand(parser:TXMLParser, Text:String) { nomangle }
+		parser.userDefaultHandlerExpand(parser.userData, Text)
 	End Function
 	
 	Rem
@@ -477,7 +479,7 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _SkippedEntityHandler(parser:TXMLParser, name:String, isParameterEntity:Int)
+	Function _SkippedEntityHandler(parser:TXMLParser, name:String, isParameterEntity:Int) { nomangle }
 		parser.userSkippedEntityHandler(parser.userData, name, isParameterEntity)
 	End Function
 	
@@ -496,7 +498,7 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _StartNamespaceDeclHandler(parser:TXMLParser, prefix:String, uri:String)
+	Function _StartNamespaceDeclHandler(parser:TXMLParser, prefix:String, uri:String) { nomangle }
 		parser.userStartNamespaceDeclHandler(parser.userData, prefix, uri)
 	End Function
 	
@@ -515,7 +517,7 @@ Type TXMLParser
 	End Method
 	
 	' internal callback
-	Function _EndNamespaceDeclHandler(parser:TXMLParser, prefix:String)
+	Function _EndNamespaceDeclHandler(parser:TXMLParser, prefix:String) { nomangle }
 		parser.userEndNamespaceDeclHandler(parser.userData, prefix)
 	End Function
 	
@@ -556,7 +558,7 @@ Type TXMLParser
 	End Method
 
 	' internal callback
-	Function _XmlDeclHandler(parser:TXMLParser, version:String, encoding:String, standalone:Int)
+	Function _XmlDeclHandler(parser:TXMLParser, version:String, encoding:String, standalone:Int) { nomangle }
 		parser.userXmlDeclHandler(parser.userData, version, encoding, standalone)
 	End Function
 	
@@ -575,7 +577,7 @@ Type TXMLParser
 	End Method
 	
 	' internal callback
-	Function _StartDoctypeDeclHandler(parser:TXMLParser, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int)
+	Function _StartDoctypeDeclHandler(parser:TXMLParser, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int) { nomangle }
 		parser.userStartDoctypeDeclHandler(parser.userData, docTypeName, sysid, pubid, hasInternalSubset)
 	End Function
 	
@@ -592,7 +594,7 @@ Type TXMLParser
 	End Method
 	
 	' internal callback
-	Function _EndDoctypeDeclHandler(parser:TXMLParser)
+	Function _EndDoctypeDeclHandler(parser:TXMLParser) { nomangle }
 		parser.userEndDoctypeDeclHandler(parser.userData)
 	End Function
 
@@ -647,7 +649,7 @@ Type TXMLParser
 	
 	' internal callback
 	Function _AttlistDeclHandler(parser:TXMLParser, elname:String, attname:String, attType:String, ..
-			dflt:String, isRequired:Int)
+			dflt:String, isRequired:Int) { nomangle }
 		parser.userAttlistDeclHandler(parser.userData, elname, attname, attType, dflt, isRequired)
 	End Function
 
@@ -674,7 +676,7 @@ Type TXMLParser
 	
 	' internal callback
 	Function _EntityDeclHandler(parser:TXMLParser, _entityName:String, isParameterEntity:Int, value:String, ..
-			base:String, systemId:String, publicId:String, notationName:String)
+			base:String, systemId:String, publicId:String, notationName:String) { nomangle }
 		parser.userEntityDeclHandler(parser.userData, _entityName, isParameterEntity, value, base, systemId, publicId, notationName)
 	End Function
 
@@ -692,7 +694,7 @@ Type TXMLParser
 	End Method
 	
 	' internal callback
-	Function _NotationDeclHandler(parser:TXMLParser, notationName:String, base:String, systemId:String, publicId:String)
+	Function _NotationDeclHandler(parser:TXMLParser, notationName:String, base:String, systemId:String, publicId:String) { nomangle }
 		parser.userNotationDeclHandler(parser.userData, notationName, base, systemId, publicId)
 	End Function
 
@@ -712,7 +714,7 @@ Type TXMLParser
 	End Method
 	
 	' internal callback
-	Function _NotStandaloneHandler:Int(parser:TXMLParser)
+	Function _NotStandaloneHandler:Int(parser:TXMLParser) { nomangle }
 		Return parser.userNotStandaloneHandler(parser.userData)
 	End Function
 

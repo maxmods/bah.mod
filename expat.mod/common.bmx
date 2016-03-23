@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2014 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ Import "glue.cpp"
 Extern
 
 	Function bmx_expat_XML_ParserCreate:Byte Ptr(encoding:String)
-	Function bmx_expat_XML_Parse:Int(handle:Byte Ptr, text:String, isFinal:Int)
+	Function bmx_expat_XML_Parse:Int(handle:Byte Ptr, Text:String, isFinal:Int)
 	Function bmx_expat_XML_SetStartElementHandler(handle:Byte Ptr)
 	Function bmx_expat_XML_SetEndElementHandler(handle:Byte Ptr)
 	Function bmx_expat_XML_GetParsingStatus(handle:Byte Ptr, parsing:Int Ptr, finalBuffer:Int Ptr)
@@ -79,7 +79,7 @@ Extern
 	Function XML_SetEndElementHandler(handle:Byte Ptr, cb(data:Byte Ptr, name:Byte Ptr))
 	Function XML_SetElementHandler(handle:Byte Ptr, cb1(data:Byte Ptr, name:Byte Ptr, attr:Byte Ptr Ptr), ..
 			cb2(data:Byte Ptr, name:Byte Ptr))
-	Function XML_SetCharacterDataHandler(handle:Byte Ptr, cb(data:Byte Ptr, text:Byte Ptr))
+	Function XML_SetCharacterDataHandler(handle:Byte Ptr, cb(data:Byte Ptr, Text:Byte Ptr))
 	Function XML_SetProcessingInstructionHandler(handle:Byte Ptr, cb(userdata:Byte Ptr, target:Byte Ptr, data:Byte Ptr))
 	Function XML_SetCommentHandler(handle:Byte Ptr, cb(userData:Byte Ptr, data:Byte Ptr))
 	Function XML_SetStartCdataSectionHandler(handle:Byte Ptr, cb(userData:Byte Ptr))
