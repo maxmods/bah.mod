@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2008, Bruce A Henderson
+ Copyright (c) 2007-2016, Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,42 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-extern "C" {
 
 #include "blitz.h"
-#include <SFMT.h>
+#include "SFMT.h"
 
-	double bmx_genrand_real1();
-	double bmx_genrand_real2();
-	double bmx_genrand_real3();
-	void bmx_gen_rand64(BBInt64 * r);
-	double bmx_genrand_res53();
+sfmt_t * bmx_sfmt_init_gen_rand(int seed) {
+	sfmt_t * fmt = malloc(sizeof(sfmt_t));
+	sfmt_init_gen_rand(fmt, seed);
+	return fmt;
 }
 
-
-double bmx_genrand_real1() {
-	return genrand_real1();
+void bmx_sfmt_free(sfmt_t * fmt) {
+	free(fmt);
 }
 
-double bmx_genrand_real2() {
-	return genrand_real2();
+double bmx_genrand_real1(sfmt_t * fmt) {
+	return sfmt_genrand_real1(fmt);
 }
 
-double bmx_genrand_real3() {
-	return genrand_real3();
+double bmx_genrand_real2(sfmt_t * fmt) {
+	return sfmt_genrand_real2(fmt);
 }
 
-
-void bmx_gen_rand64(BBInt64 * r) {
-	*r = gen_rand64();
+double bmx_genrand_real3(sfmt_t * fmt) {
+	return sfmt_genrand_real3(fmt);
 }
 
-double bmx_genrand_res53() {
-    return to_res53(gen_rand64());
+#ifdef BMX_NG
+void bmx_gen_rand64(sfmt_t * fmt, BBUInt64 * r) {
+	*r = sfmt_genrand_uint64(fmt);
+}
+#else
+void bmx_gen_rand64(sfmt_t * fmt, BBInt64 * r) {
+	*r = sfmt_genrand_uint64(fmt);
+}
+#endif
+
+double bmx_genrand_res53(sfmt_t * fmt) {
+    return sfmt_genrand_res53(fmt);
 }

@@ -1,20 +1,20 @@
 #pragma once
-#ifndef SFMT_PARAMS19937_H
-#define SFMT_PARAMS19937_H
+#ifndef SFMT_PARAMS132049_H
+#define SFMT_PARAMS132049_H
 
-#define SFMT_POS1	122
-#define SFMT_SL1	18
+#define SFMT_POS1	110
+#define SFMT_SL1	19
 #define SFMT_SL2	1
-#define SFMT_SR1	11
+#define SFMT_SR1	21
 #define SFMT_SR2	1
-#define SFMT_MSK1	0xdfffffefU
-#define SFMT_MSK2	0xddfecb7fU
-#define SFMT_MSK3	0xbffaffffU
-#define SFMT_MSK4	0xbffffff6U
+#define SFMT_MSK1	0xffffbb5fU
+#define SFMT_MSK2	0xfb6ebf95U
+#define SFMT_MSK3	0xfffefffaU
+#define SFMT_MSK4	0xcff77fffU
 #define SFMT_PARITY1	0x00000001U
 #define SFMT_PARITY2	0x00000000U
-#define SFMT_PARITY3	0x00000000U
-#define SFMT_PARITY4	0x13c9e684U
+#define SFMT_PARITY3	0xcb520000U
+#define SFMT_PARITY4	0xc7e91c7dU
 
 
 /* PARAMETERS FOR ALTIVEC */
@@ -45,6 +45,6 @@
     #define SFMT_ALTI_SR2_PERM	{7,0,1,2,11,4,5,6,15,8,9,10,17,12,13,14}
     #define SFMT_ALTI_SR2_PERM64 {15,0,1,2,3,4,5,6,17,8,9,10,11,12,13,14}
 #endif	/* For OSX */
-#define SFMT_IDSTR	"SFMT-19937:122-18-1-11-1:dfffffef-ddfecb7f-bffaffff-bffffff6"
+#define SFMT_IDSTR	"SFMT-132049:110-19-1-21-1:ffffbb5f-fb6ebf95-fffefffa-cff77fff"
 
-#endif /* SFMT_PARAMS19937_H */
+#endif /* SFMT_PARAMS132049_H */

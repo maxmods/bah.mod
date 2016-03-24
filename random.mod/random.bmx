@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2016, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,15 @@ bbdoc: Random Numbers - SFMT
 End Rem
 Module BaH.Random
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: SFMT - 2006,2007 Mutsuo Saito, Makoto Matsumoto and Hiroshima"
-ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
+ModuleInfo "Copyright: SFMT - 2006-2013 Mutsuo Saito, Makoto Matsumoto and Hiroshima"
+ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Update to SFMT 1.4.1"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Fix for PPC Mac compile."
 ModuleInfo "History: 1.01"
@@ -47,22 +50,29 @@ ModuleInfo "CC_OPTS: -DMEXP=19937"
 ModuleInfo "CC_OPTS: -fno-strict-aliasing"
 
 ?x86
-ModuleInfo "CC_OPTS: -msse2"
-?macosppc
-ModuleInfo "CC_OPTS: -DALTIVEC=1"
-ModuleInfo "CC_OPTS: -faltivec -maltivec"
+ModuleInfo "CC_OPTS: -msse2 -DHAVE_SSE2"
+?x64
+ModuleInfo "CC_OPTS: -msse2 -DHAVE_SSE2"
 ?
 
 Import "common.bmx"
 
+Private
+
 Global kRndInitialized:Int = False
 
+Global sfmtPtr:Byte Ptr
+
+Public
 Rem
 bbdoc: This function initializes the internal state array with a 32-bit integer seed.
 End Rem
 Function SeedRnd(seed:Int)
+	If sfmtPtr Then
+		bmx_sfmt_free(sfmtPtr)
+	End If
 	kRndInitialized = True
-	init_gen_rand(seed)
+	sfmtPtr = bmx_sfmt_init_gen_rand(seed)
 End Function
 
 Rem
@@ -80,9 +90,9 @@ The optional parameter allows you to use #Rand32 in 2 ways:<br>
 End Rem
 Function Rand:Int( min_value:Int, max_value:Int = 1 )
 	If Not kRndInitialized SeedRnd(0)
-	Local range:Double = max_value - min_value
-	If range > 0 Return Int( bmx_genrand_res53()*(1:Double+range) )+min_value
-	Return Int( bmx_genrand_res53()*(1-range) )+max_value
+	Local Range:Double = max_value - min_value
+	If Range > 0 Return Int( bmx_genrand_res53(sfmtPtr)*(1:Double+Range) )+min_value
+	Return Int( bmx_genrand_res53(sfmtPtr)*(1-Range) )+max_value
 End Function
 
 Rem
@@ -118,9 +128,9 @@ The optional parameter allows you to use #Rand64 in 2 ways:<br>
 End Rem
 Function Rand64:Long( min_value:Long, max_value:Long = 1 )
 	If Not kRndInitialized SeedRnd(0)
-	Local range:Long = max_value - min_value
-	If range > 0 Return Long( bmx_genrand_res53() * (1:Long + range) ) + min_value
-	Return Long( bmx_genrand_res53() * (1:Long - range) ) + max_value
+	Local Range:Long = max_value - min_value
+	If Range > 0 Return Long( bmx_genrand_res53(sfmtPtr) * (1:Long + Range) ) + min_value
+	Return Long( bmx_genrand_res53(sfmtPtr) * (1:Long - Range) ) + max_value
 End Function
 
 Rem
@@ -129,7 +139,7 @@ returns: A random float in the range 0 (inclusive) to 1 (exclusive)
 End Rem
 Function RndFloat:Float()
 	If Not kRndInitialized SeedRnd(0)
-	Return Float(bmx_genrand_real3())
+	Return Float(bmx_genrand_real3(sfmtPtr))
 End Function
 
 Rem
@@ -138,6 +148,6 @@ returns: A random double in the range 0 (inclusive) to 1 (exclusive)
 End Rem
 Function RndDouble:Double()
 	If Not kRndInitialized SeedRnd(0)
-	Return bmx_genrand_res53()
+	Return bmx_genrand_res53(sfmtPtr)
 End Function
 

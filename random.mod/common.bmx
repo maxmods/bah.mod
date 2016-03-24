@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2016, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,28 @@ SuperStrict
 
 Import BRL.Blitz
 
-?MacOSPPC
-Import "src/ppc/*.h"
-?MacOSX86
-'Import "src/x86/*.h"
-'Import "src/x86/SFMT-sse2.c"
-?
 
 Import "src/*.h"
 Import "src/SFMT.c"
 
-?MacOSPPC
-Import "src/ppc/SFMT-alti.c"
-?
 
-Import "sfmtglue.cpp"
+Import "sfmtglue.c"
 
 Extern
-	Function init_gen_rand(seed:Int)
-	Function gen_rand32:Int()
-	Function bmx_gen_rand64(v:Long Ptr)
+	Function bmx_sfmt_init_gen_rand:Byte Ptr(seed:Int)
+	Function bmx_sfmt_free(fmt:Byte Ptr)
+?bmxng
+	Function sfmt_genrand_uint32:UInt(fmt:Byte Ptr)
+	Function bmx_gen_rand64(fmt:Byte Ptr, v:ULong Ptr)
+?Not bmxng
+	Function sfmt_genrand_uint32:Int(fmt:Byte Ptr)
+	Function bmx_gen_rand64(fmt:Byte Ptr, v:Long Ptr)
+?
 	
-	Function bmx_genrand_real1:Double()
-	Function bmx_genrand_real2:Double()
-	Function bmx_genrand_real3:Double()
-	Function bmx_genrand_res53:Double()
+	Function bmx_genrand_real1:Double(fmt:Byte Ptr)
+	Function bmx_genrand_real2:Double(fmt:Byte Ptr)
+	Function bmx_genrand_real3:Double(fmt:Byte Ptr)
+	Function bmx_genrand_res53:Double(fmt:Byte Ptr)
 	
 End Extern
 
