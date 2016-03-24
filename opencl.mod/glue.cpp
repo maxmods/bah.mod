@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009-2010 Bruce A Henderson
+ Copyright (c) 2009-2016 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -123,7 +123,7 @@ BBObject * MaxCLDevice::GetInfo() {
 		s[i] = static_cast<int>(maxWorkItemSizes[i]);
 	}
 	
-	BBObject * device = _bah_opencl_TCLDeviceInfo__create(bbStringFromCString((char*)vendorName), bbStringFromCString((char*)deviceName), 
+	BBObject * device = CB_PREF(bah_opencl_TCLDeviceInfo__create)(bbStringFromCString((char*)vendorName), bbStringFromCString((char*)deviceName), 
 		bbStringFromCString((char*)driverVersion), bbStringFromCString((char*)deviceVersion), static_cast<int>(maxComputeUnits), static_cast<int>(maxWorkItemDimensions),
 		sizes, static_cast<int>(maxWorkGroupSize), static_cast<int>(maxClockFrequency), static_cast<BBInt64>(maxMemAllocSize),
 		static_cast<int>(imageSupport), static_cast<int>(maxReadImageArgs), static_cast<int>(maxWriteImageArgs), static_cast<int>(image2dMaxWidth),
@@ -133,6 +133,7 @@ BBObject * MaxCLDevice::GetInfo() {
 		static_cast<int>(profilingTimerResolution), static_cast<int>(endianLittle), bbStringFromCString((char*)profile), bbStringFromCString((char*)extensions),
 		static_cast<int>(deviceAddressBits), static_cast<int>(deviceAvailable), static_cast<int>(singleFPConfig));
 
+	return device;
 }
 
 // --------------------------------------------------------
@@ -373,7 +374,7 @@ BBArray * bmx_ocl_platform_getdevices(int deviceType) {
 	
 	err = clGetDeviceIDs(NULL, deviceType, 10, devices, &size);
 
-	BBArray * list = _bah_opencl_TCLDevice__newDeviceList(size);
+	BBArray * list = CB_PREF(bah_opencl_TCLDevice__newDeviceList)(size);
 	
 	for (int n = 0; n < size; n++) {
 		cl_device_id device = devices[n];
@@ -383,7 +384,7 @@ BBArray * bmx_ocl_platform_getdevices(int deviceType) {
 		err = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(type), &type, &s);
 	
 		MaxCLDevice * dev = new MaxCLDevice(device);
-		BBObject * obj = _bah_opencl_TCLDevice__setDevice(list, n, dev, type);
+		BBObject * obj = CB_PREF(bah_opencl_TCLDevice__setDevice)(list, n, dev, type);
 		dev->SetHandle(obj);
 	}
 	

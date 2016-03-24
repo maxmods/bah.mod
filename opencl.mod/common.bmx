@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2010 Bruce A Henderson
+' Copyright (c) 2009-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ Extern
 	Function bmx_ocl_device_getinfo:Object(handle:Byte Ptr)
 	Function bmx_ocl_device_free(handle:Byte Ptr)
 
-	Function bmx_ocl_program_create:Byte Ptr(handle:Object, platform:Byte Ptr, text:String)
+	Function bmx_ocl_program_create:Byte Ptr(handle:Object, platform:Byte Ptr, Text:String)
 	Function bmx_ocl_program_free(handle:Byte Ptr)
 
 	Function bmx_ocl_kernel_create:Byte Ptr(handle:Object, name:String, program:Byte Ptr)

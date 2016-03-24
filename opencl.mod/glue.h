@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009-2010 Bruce A Henderson
+ Copyright (c) 2009-2016 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,15 @@
 
 #ifdef __APPLE__
 #include <OpenCL/Opencl.h>
-#elifdef WIN32
+#else
+#ifdef WIN32
 #define _MSC_VER
 #include <windows.h>
 #include <stdint.h>
 #include <CL/cl.h>
 #else
 #include <CL/cl.h>
+#endif
 #endif
 
 class MaxCLKernel;
@@ -38,14 +40,20 @@ class MaxCLDevice;
 class MaxCLBuffer;
 class MaxCLImage;
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include "blitz.h"
 
-	BBArray * _bah_opencl_TCLDevice__newDeviceList(int size);
-	BBObject * _bah_opencl_TCLDevice__setDevice(BBArray * list, int index, MaxCLDevice * device, int deviceType);
+	BBArray * CB_PREF(bah_opencl_TCLDevice__newDeviceList)(int size);
+	BBObject * CB_PREF(bah_opencl_TCLDevice__setDevice)(BBArray * list, int index, MaxCLDevice * device, int deviceType);
 
-	BBObject * _bah_opencl_TCLDeviceInfo__create(BBString * vendorName, BBString * deviceName, BBString * driverVersion, BBString * deviceVersion,
+	BBObject * CB_PREF(bah_opencl_TCLDeviceInfo__create)(BBString * vendorName, BBString * deviceName, BBString * driverVersion, BBString * deviceVersion,
 		int maxComputeUnits, int maxWorkItemDimensions, BBArray * maxWorkItemSizes, int maxWorkGroupSize, int maxClockFrequency,
 		BBInt64 maxMemAllocSize, int imageSupport, int maxReadImageArgs, int maxWriteImageArgs, int image2dMaxWidth,
 		int image2dMaxHeight, int image3dMaxWidth, int image3dMaxHeight, int image3dMaxDepth, int maxSamplers, int maxParameterSize,
