@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2013 Bruce A Henderson
+' Copyright (c) 2009-2016 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -146,16 +146,16 @@ Extern
 	Function bmx_taglib_id3v2attachedpictureframe_description:String(handle:Byte Ptr)
 	Function bmx_taglib_id3v2attachedpictureframe_picture:Byte Ptr(handle:Byte Ptr)
 
-	Function bmx_taglib_id3v2textidentificationframe_settext(handle:Byte Ptr, text:String)
-	Function bmx_taglib_id3v2textidentificationframe_settextlist(handle:Byte Ptr, text:String[])
+	Function bmx_taglib_id3v2textidentificationframe_settext(handle:Byte Ptr, Text:String)
+	Function bmx_taglib_id3v2textidentificationframe_settextlist(handle:Byte Ptr, Text:String[])
 	Function bmx_taglib_id3v2textidentificationframe_tostring:String(handle:Byte Ptr)
 	Function bmx_taglib_id3v2textidentificationframe_textencoding:Int(handle:Byte Ptr)
 	Function bmx_taglib_id3v2textidentificationframe_settextencoding(handle:Byte Ptr, encoding:Int)
 	Function bmx_taglib_id3v2textidentificationframe_fieldlist:String[](handle:Byte Ptr)
 
 	Function bmx_taglib_id3v2urllinkframe_url:String(handle:Byte Ptr)
-	Function bmx_taglib_id3v2urllinkframe_seturl(handle:Byte Ptr, text:String)
-	Function bmx_taglib_id3v2urllinkframe_settext(handle:Byte Ptr, text:String)
+	Function bmx_taglib_id3v2urllinkframe_seturl(handle:Byte Ptr, Text:String)
+	Function bmx_taglib_id3v2urllinkframe_settext(handle:Byte Ptr, Text:String)
 	Function bmx_taglib_id3v2urllinkframe_tostring:String(handle:Byte Ptr)
 
 	Function bmx_taglib_id3v2commentsframe_tostring:String(handle:Byte Ptr)
@@ -164,7 +164,7 @@ Extern
 	Function bmx_taglib_id3v2commentsframe_textencoding:Int(handle:Byte Ptr)
 	Function bmx_taglib_id3v2commentsframe_settextencoding(handle:Byte Ptr, encoding:Int)
 	Function bmx_taglib_id3v2commentsframe_setdescription(handle:Byte Ptr, description:String)
-	Function bmx_taglib_id3v2commentsframe_settext(handle:Byte Ptr, text:String)
+	Function bmx_taglib_id3v2commentsframe_settext(handle:Byte Ptr, Text:String)
 
 	Function bmx_taglib_mp4file_create:Byte Ptr(filename:String, readProperties:Int, propertiesStyle:Int)
 	Function bmx_taglib_mp4file_audioproperties:Byte Ptr(handle:Byte Ptr)

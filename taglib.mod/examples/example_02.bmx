@@ -11,7 +11,11 @@ Import BRL.FileSystem
 Local path:String = "/Volumes/media/Music/Pink Floyd/Dark Side Of The Moon/"
 ChangeDir(path)
 
+?bmxng
+Local dir:Byte Ptr = ReadDir(path)
+?Not bmxng
 Local dir:Int = ReadDir(path)
+?
 
 If dir Then
 	Local file:String = NextFile(dir)

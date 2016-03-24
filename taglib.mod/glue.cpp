@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2009-2013 Bruce A Henderson
+   Copyright (c) 2009-2016 Bruce A Henderson
  
    The contents of this file are subject to the Mozilla Public License
    Version 1.1 (the "License"); you may not use this file except in
@@ -47,29 +47,35 @@ class MaxPropertyMap;
 class MaxAPEItemListMap;
 class MaxFLACPictureList;
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_taglib_TTLID3v2UserTextIdentificationFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2UserUrlLinkFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2TextIdentificationFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2AttachedPictureFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2CommentsFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2GeneralEncapsulatedObjectFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2RelativeVolumeFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2UniqueFileIdentifierFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2UnknownFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2Frame__create(TagLib::ID3v2::Header * header);
-	BBObject * _bah_taglib_TTLID3v2Header__create(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2UserTextIdentificationFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2UserUrlLinkFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2TextIdentificationFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2AttachedPictureFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2CommentsFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2GeneralEncapsulatedObjectFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2RelativeVolumeFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2UniqueFileIdentifierFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2UnknownFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2Frame__create)(TagLib::ID3v2::Header * header);
+	BBObject * CB_PREF(bah_taglib_TTLID3v2Header__create)(TagLib::ID3v2::Header * header);
 	
-	BBObject * _bah_taglib_TTLMP4Item__create(const TagLib::MP4::Item * item);
-	BBObject * _bah_taglib_TTLMP4CoverArt__create(const TagLib::MP4::CoverArt * art);
+	BBObject * CB_PREF(bah_taglib_TTLMP4Item__create)(const TagLib::MP4::Item * item);
+	BBObject * CB_PREF(bah_taglib_TTLMP4CoverArt__create)(const TagLib::MP4::CoverArt * art);
 
-	BBObject * _bah_taglib_TTLAPEItem__create(const TagLib::APE::Item * item);
+	BBObject * CB_PREF(bah_taglib_TTLAPEItem__create)(const TagLib::APE::Item * item);
 
-	BBObject * _bah_taglib_TTLFLACPicture__create(const TagLib::FLAC::Picture * picture);
+	BBObject * CB_PREF(bah_taglib_TTLFLACPicture__create)(const TagLib::FLAC::Picture * picture);
 	
 	BBObject * getID3v2Header(TagLib::ID3v2::Header * header);
 	BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header);
@@ -404,7 +410,7 @@ public:
 	
 	BBObject * nextItem() {
 		if (it != itemList.end()) {
-			return _bah_taglib_TTLMP4Item__create(&(*it++).second);
+			return CB_PREF(bah_taglib_TTLMP4Item__create)(&(*it++).second);
 		} else {
 			return &bbNullObject;
 		}
@@ -440,7 +446,7 @@ public:
 	
 	BBObject * nextItem() {
 		if (it != coverArtList.end()) {
-			return _bah_taglib_TTLMP4CoverArt__create(&(*it++));
+			return CB_PREF(bah_taglib_TTLMP4CoverArt__create)(&(*it++));
 		} else {
 			return &bbNullObject;
 		}
@@ -534,7 +540,7 @@ public:
 	
 	BBObject * nextItem() {
 		if (it != itemList.end()) {
-			return _bah_taglib_TTLAPEItem__create(&(*it++).second);
+			return CB_PREF(bah_taglib_TTLAPEItem__create)(&(*it++).second);
 		} else {
 			return &bbNullObject;
 		}
@@ -570,7 +576,7 @@ public:
 	
 	BBObject * nextItem() {
 		if (it != pictureList.end()) {
-			return _bah_taglib_TTLFLACPicture__create(*it++);
+			return CB_PREF(bah_taglib_TTLFLACPicture__create)(*it++);
 		} else {
 			return &bbNullObject;
 		}
@@ -598,51 +604,51 @@ BBObject * getID3v2Header(TagLib::ID3v2::Header * header) {
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UserTextIdentificationFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2UserTextIdentificationFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::UserUrlLinkFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UserUrlLinkFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2UserUrlLinkFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::TextIdentificationFrame*>(header)) {
-		return _bah_taglib_TTLID3v2TextIdentificationFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2TextIdentificationFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(header)) {
-		return _bah_taglib_TTLID3v2AttachedPictureFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2AttachedPictureFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::CommentsFrame*>(header)) {
-		return _bah_taglib_TTLID3v2CommentsFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2CommentsFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::GeneralEncapsulatedObjectFrame*>(header)) {
-		return _bah_taglib_TTLID3v2GeneralEncapsulatedObjectFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2GeneralEncapsulatedObjectFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::RelativeVolumeFrame*>(header)) {
-		return _bah_taglib_TTLID3v2RelativeVolumeFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2RelativeVolumeFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::UniqueFileIdentifierFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UniqueFileIdentifierFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2UniqueFileIdentifierFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::UnknownFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UnknownFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2UnknownFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::UnsynchronizedLyricsFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::Frame*>(header)) {
-		return _bah_taglib_TTLID3v2Frame__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2Frame__create)(header);
 	}
 
 	if (dynamic_cast<TagLib::ID3v2::Header*>(header)) {
-		return _bah_taglib_TTLID3v2Header__create(header);
+		return CB_PREF(bah_taglib_TTLID3v2Header__create)(header);
 	}
 
 }
@@ -654,47 +660,47 @@ BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header) {
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::UserTextIdentificationFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UserTextIdentificationFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2UserTextIdentificationFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::UserUrlLinkFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UserUrlLinkFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2UserUrlLinkFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::TextIdentificationFrame*>(header)) {
-		return _bah_taglib_TTLID3v2TextIdentificationFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2TextIdentificationFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::AttachedPictureFrame*>(header)) {
-		return _bah_taglib_TTLID3v2AttachedPictureFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2AttachedPictureFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::CommentsFrame*>(header)) {
-		return _bah_taglib_TTLID3v2CommentsFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2CommentsFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::GeneralEncapsulatedObjectFrame*>(header)) {
-		return _bah_taglib_TTLID3v2GeneralEncapsulatedObjectFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2GeneralEncapsulatedObjectFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::RelativeVolumeFrame*>(header)) {
-		return _bah_taglib_TTLID3v2RelativeVolumeFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2RelativeVolumeFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::UniqueFileIdentifierFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UniqueFileIdentifierFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2UniqueFileIdentifierFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::UnknownFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UnknownFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2UnknownFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::UnsynchronizedLyricsFrame*>(header)) {
-		return _bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 	if (dynamic_cast<const TagLib::ID3v2::Frame*>(header)) {
-		return _bah_taglib_TTLID3v2Frame__create((TagLib::ID3v2::Header*)header);
+		return CB_PREF(bah_taglib_TTLID3v2Frame__create)((TagLib::ID3v2::Header*)header);
 	}
 
 }
@@ -1341,7 +1347,7 @@ BBObject * bmx_taglib_mp4itemlistmap_item(MaxMP4ItemListMap * list, BBString * k
 	}
 	
 	if (k) {
-		BBObject * obj = _bah_taglib_TTLMP4Item__create(&list->List()[TagLib::String(k, TagLib::String::UTF8)]);
+		BBObject * obj = CB_PREF(bah_taglib_TTLMP4Item__create)(&list->List()[TagLib::String(k, TagLib::String::UTF8)]);
 		bbMemFree(k);
 		return obj;
 	} else {
@@ -1374,7 +1380,7 @@ BBObject * bmx_taglib_mp4itemlistmap_nextitem(MaxMP4ItemListMap * list) {
 // ****************************************
 
 BBObject * bmx_taglib_mp4coverartlist_coverart(MaxMP4CoverArtList * list, int index) {
-	return _bah_taglib_TTLMP4CoverArt__create(&list->List()[index]);
+	return CB_PREF(bah_taglib_TTLMP4CoverArt__create)(&list->List()[index]);
 }
 
 int bmx_taglib_mp4coverartlist_isempty(MaxMP4CoverArtList * list) {
@@ -1625,7 +1631,7 @@ BBObject * bmx_taglib_apeitemlistmap_item(MaxAPEItemListMap * list, BBString * k
 	}
 	
 	if (k) {
-		BBObject * obj = _bah_taglib_TTLAPEItem__create(&list->List()[TagLib::String(k, TagLib::String::UTF8)]);
+		BBObject * obj = CB_PREF(bah_taglib_TTLAPEItem__create)(&list->List()[TagLib::String(k, TagLib::String::UTF8)]);
 		bbMemFree(k);
 		return obj;
 	} else {
@@ -1745,7 +1751,7 @@ MaxByteVector * bmx_taglib_flacproperties_signature(TagLib::FLAC::Properties * p
 // ****************************************
 
 BBObject * bmx_taglib_flacpicturelist_picture(MaxFLACPictureList * list, int index) {
-	return _bah_taglib_TTLFLACPicture__create(list->List()[index]);
+	return CB_PREF(bah_taglib_TTLFLACPicture__create)(list->List()[index]);
 }
 
 int bmx_taglib_flacpicturelist_isempty(MaxFLACPictureList * list) {
