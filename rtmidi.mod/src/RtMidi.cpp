@@ -8,7 +8,7 @@
     RtMidi WWW site: http://music.mcgill.ca/~gary/rtmidi/
 
     RtMidi: realtime MIDI i/o C++ classes
-    Copyright (c) 2003-2014 Gary P. Scavone
+    Copyright (c) 2003-2016 Gary P. Scavone
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation files
@@ -38,6 +38,13 @@
 
 #include "RtMidi.h"
 #include <sstream>
+
+#if defined(__MACOSX_CORE__)
+  #if TARGET_OS_IPHONE
+    #define AudioGetCurrentHostTime CAHostTimeBase::GetCurrentTime
+    #define AudioConvertHostTimeToNanos CAHostTimeBase::ConvertToNanos
+  #endif
+#endif
 
 //*********************************************************************//
 //  RtMidi Definitions
@@ -667,11 +674,17 @@ void MidiInCore :: openVirtualPort( const std::string portName )
 
 void MidiInCore :: closePort( void )
 {
-  if ( connected_ ) {
-    CoreMidiData *data = static_cast<CoreMidiData *> (apiData_);
-    MIDIPortDispose( data->port );
-    connected_ = false;
+  CoreMidiData *data = static_cast<CoreMidiData *> (apiData_);
+
+  if ( data->endpoint ) {
+    MIDIEndpointDispose( data->endpoint );
   }
+
+  if ( data->port ) {
+    MIDIPortDispose( data->port );
+  }
+
+  connected_ = false;
 }
 
 unsigned int MidiInCore :: getPortCount()
@@ -956,11 +969,17 @@ void MidiOutCore :: openPort( unsigned int portNumber, const std::string portNam
 
 void MidiOutCore :: closePort( void )
 {
-  if ( connected_ ) {
-    CoreMidiData *data = static_cast<CoreMidiData *> (apiData_);
-    MIDIPortDispose( data->port );
-    connected_ = false;
+  CoreMidiData *data = static_cast<CoreMidiData *> (apiData_);
+
+  if ( data->endpoint ) {
+    MIDIEndpointDispose( data->endpoint );
   }
+
+  if ( data->port ) {
+    MIDIPortDispose( data->port );
+  }
+
+  connected_ = false;
 }
 
 void MidiOutCore :: openVirtualPort( std::string portName )
@@ -2678,6 +2697,10 @@ void MidiOutJack :: connect()
   JackMidiData *data = static_cast<JackMidiData *> (apiData_);
   if ( data->client )
     return;
+  
+  // Initialize output ringbuffers  
+  data->buffSize = jack_ringbuffer_create( JACK_RINGBUFFER_SIZE );
+  data->buffMessage = jack_ringbuffer_create( JACK_RINGBUFFER_SIZE );
 
   // Initialize JACK client
   if (( data->client = jack_client_open( clientName.c_str(), JackNoStartServer, NULL )) == 0) {
@@ -2687,8 +2710,6 @@ void MidiOutJack :: connect()
   }
 
   jack_set_process_callback( data->client, jackProcessOut, data );
-  data->buffSize = jack_ringbuffer_create( JACK_RINGBUFFER_SIZE );
-  data->buffMessage = jack_ringbuffer_create( JACK_RINGBUFFER_SIZE );
   jack_activate( data->client );
 }
 
@@ -2696,12 +2717,12 @@ MidiOutJack :: ~MidiOutJack()
 {
   JackMidiData *data = static_cast<JackMidiData *> (apiData_);
   closePort();
-
+  
+  // Cleanup
+  jack_ringbuffer_free( data->buffSize );
+  jack_ringbuffer_free( data->buffMessage );
   if ( data->client ) {
-    // Cleanup
     jack_client_close( data->client );
-    jack_ringbuffer_free( data->buffSize );
-    jack_ringbuffer_free( data->buffMessage );
   }
 
   delete data;

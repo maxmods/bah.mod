@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2015 Bruce A Henderson
+' Copyright (c) 2010-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,14 @@ bbdoc: RTMidi
 End Rem
 Module BaH.RTMidi
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: RtMidi - 2003-2014 Gary P. Scavone"
-ModuleInfo "Copyright: Wrapper - 2010-2015 Bruce A Henderson"
+ModuleInfo "Copyright: RtMidi - 2003-2016 Gary P. Scavone"
+ModuleInfo "Copyright: Wrapper - 2010-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Update to RTMidi 2.1.1"
+ModuleInfo "History: NG overload support."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to RTMidi 2.1.0.28321c051e"
 ModuleInfo "History: Added isPortOpen() method."
@@ -362,7 +365,7 @@ Type TRtError Extends TRuntimeException
 	Const THREAD_ERROR:Int = 10
 
 	
-	Function _create:TRtError(message:String, kind:Int)
+	Function _create:TRtError(message:String, kind:Int) { nomangle }
 		Local e:TRtError = New TRtError
 		e.message = message
 		e.kind = kind
