@@ -330,7 +330,7 @@ Type TMException  Extends TRuntimeException
 		Return Self
 	End Method
 
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMException.CreateException(message)
 	End Function
 
@@ -343,7 +343,7 @@ Rem
 bbdoc: 
 End Rem
 Type TMWarning Extends TMException
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMWarning.CreateException(message)
 	End Function
 End Type
@@ -352,7 +352,7 @@ Rem
 bbdoc: 
 End Rem
 Type TMWarningUndefined Extends TMWarning
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMWarningUndefined.CreateException(message)
 	End Function
 End Type
@@ -361,7 +361,7 @@ Rem
 bbdoc: 
 End Rem
 Type TMError Extends TMException
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMError.CreateException(message)
 	End Function
 End Type
@@ -370,7 +370,7 @@ Rem
 bbdoc: Unspecified error type.
 End Rem
 Type TMErrorUndefined Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorUndefined.CreateException(message)
 	End Function
 End Type
@@ -379,7 +379,7 @@ Rem
 bbdoc: Error reported by BLOB I/O subsystem.
 End Rem
 Type TMErrorBlob Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorBlob.CreateException(message)
 	End Function
 End Type
@@ -388,7 +388,7 @@ Rem
 bbdoc: Error reported by the pixel cache subsystem.
 End Rem
 Type TMErrorCache Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorCache.CreateException(message)
 	End Function
 End Type
@@ -397,7 +397,7 @@ Rem
 bbdoc: Error reported by coders (image format support).
 End Rem
 Type TMErrorCoder Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorCoder.CreateException(message)
 	End Function
 End Type
@@ -406,7 +406,7 @@ Rem
 bbdoc: Errors reported while loading configuration files.
 End Rem
 Type TMErrorConfigure Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorConfigure.CreateException(message)
 	End Function
 End Type
@@ -415,7 +415,7 @@ Rem
 bbdoc: Error reported when the image file is corrupt.
 End Rem
 Type TMErrorCorruptImage Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorCorruptImage.CreateException(message)
 	End Function
 End Type
@@ -424,7 +424,7 @@ Rem
 bbdoc: Errors reported by the delegate (interface to external programs) subsystem.
 End Rem
 Type TMErrorDelegate Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorDelegate.CreateException(message)
 	End Function
 End Type
@@ -433,7 +433,7 @@ Rem
 bbdoc: Error reported while drawing on image.
 End Rem
 Type TMErrorDraw Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorDraw.CreateException(message)
 	End Function
 End Type
@@ -442,7 +442,7 @@ Rem
 bbdoc: Error reported when the image file can not be opened.
 End Rem
 Type TMErrorFileOpen Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorFileOpen.CreateException(message)
 	End Function
 End Type
@@ -451,7 +451,7 @@ Rem
 bbdoc: Errors reported while drawing.
 End Rem
 Type TMErrorImage Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorImage.CreateException(message)
 	End Function
 End Type
@@ -460,7 +460,7 @@ Rem
 bbdoc: Error reported when an add-on library or program is necessary in order to support the requested operation.
 End Rem
 Type TMErrorMissingDelegate Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorMissingDelegate.CreateException(message)
 	End Function
 End Type
@@ -469,7 +469,7 @@ Rem
 bbdoc: Errors reported by the module loader subsystem.
 End Rem
 Type TMErrorModule Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorModule.CreateException(message)
 	End Function
 End Type
@@ -478,7 +478,7 @@ Rem
 bbdoc: Error reported when an option is malformed or out of range.
 End Rem
 Type TMErrorOption Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorOption.CreateException(message)
 	End Function
 End Type
@@ -487,7 +487,7 @@ Rem
 bbdoc: Errors reported by the image/BLOB registry subsystem.
 End Rem
 Type TMErrorRegistry Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorRegistry.CreateException(message)
 	End Function
 End Type
@@ -496,7 +496,7 @@ Rem
 bbdoc: Error reported when a program resource is exhausted (e.g. not enough memory).
 End Rem
 Type TMErrorResourceLimit Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorResourceLimit.CreateException(message)
 	End Function
 End Type
@@ -505,7 +505,7 @@ Rem
 bbdoc: Errors reported by the pixel stream subsystem.
 End Rem
 Type TMErrorStream Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorStream.CreateException(message)
 	End Function
 End Type
@@ -514,7 +514,7 @@ Rem
 bbdoc: Errors reported by the type (font) rendering subsystem.
 End Rem
 Type TMErrorType Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorType.CreateException(message)
 	End Function
 End Type
@@ -523,7 +523,7 @@ Rem
 bbdoc: Errors reported by the X11 subsystem.
 End Rem
 Type TMErrorXServer Extends TMError
-	Function _create:TMException(message:String)
+	Function _create:TMException(message:String) { nomangle }
 		Return New TMErrorXServer.CreateException(message)
 	End Function
 End Type

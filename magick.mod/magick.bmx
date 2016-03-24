@@ -2728,7 +2728,7 @@ Type TMCoderInfo
 	End Rem
 	Field isMultiFrame:Int
 	
-	Function _create:TMCoderInfo(name:String, description:String, isReadable:Int, isWritable:Int, isMultiFrame:Int)
+	Function _create:TMCoderInfo(name:String, description:String, isReadable:Int, isWritable:Int, isMultiFrame:Int) { nomangle }
 		Local this:TMCoderInfo = New TMCoderInfo
 		this.name = name
 		this.description = description
@@ -2738,7 +2738,7 @@ Type TMCoderInfo
 		Return this
 	End Function
 	
-	Function _addToList(list:TList, coderInfo:TMCoderInfo)
+	Function _addToList(list:TList, coderInfo:TMCoderInfo) { nomangle }
 		list.AddLast(coderInfo)
 	End Function
 
