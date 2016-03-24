@@ -1,4 +1,4 @@
-' Copyright 2008-2014 Bruce A Henderson
+' Copyright 2008-2016 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ Import "src/win32/strtok.cpp"
 ?
 
 Import "src/api/baseapi.cpp"
-Import "src/api/tesseractmain.cpp"
 
 Import "src/ccmain/adaptions.cpp"
 Import "src/ccmain/applybox.cpp"
@@ -291,7 +290,6 @@ Import "src/textord/workingpartset.cpp"
 Import "src/viewer/scrollview.cpp"
 Import "src/viewer/svutil.cpp"
 Import "src/viewer/svmnode.cpp"
-Import "src/viewer/svpaint.cpp"
 
 Import "src/wordrec/associate.cpp"
 Import "src/wordrec/bestfirst.cpp"

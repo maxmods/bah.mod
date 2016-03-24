@@ -1,4 +1,4 @@
-' Copyright 2008-2014 Bruce A Henderson
+' Copyright 2008-2016 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -21,10 +21,12 @@ End Rem
 Module BaH.Tesseract
 
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: Wrapper - 2008-2014 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Removed some unnecessary source files."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to Tesseract-3.02.02."
 ModuleInfo "History: Renamed Tess type to Tesseract. Tesseract can now use multiple instances instead of one global instance."
