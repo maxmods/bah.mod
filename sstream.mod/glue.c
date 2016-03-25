@@ -8,9 +8,9 @@
 
 extern int _bbusew;
 
-int fopen64_( BBString *file,BBString *mode ){
+FILE * fopen64_( BBString *file,BBString *mode ){
 	if( _bbusew ) return (int)_wfopen( bbTmpWString(file),bbTmpWString(mode) );
-	return (int)fopen( bbTmpCString(file),bbTmpCString(mode) );
+	return fopen( bbTmpCString(file),bbTmpCString(mode) );
 }
 
 void ftell64_( FILE *stream, BBInt64 * pos) {
@@ -18,7 +18,7 @@ void ftell64_( FILE *stream, BBInt64 * pos) {
 }
 #else
 
-int fopen64_( BBString *file,BBString *mode ){
+FILE * fopen64_( BBString *file,BBString *mode ){
 #ifdef __APPLE__
 	return fopen( bbTmpUTF8String(file),bbTmpUTF8String(mode) );
 #else

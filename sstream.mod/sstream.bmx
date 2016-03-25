@@ -571,7 +571,7 @@ Type TCSStream Extends TSStream
 	Const MODE_READ:Int=1
 	Const MODE_WRITE:Int=2
 	
-	Field _pos:Long,_size:Long,_cstream:Int,_mode:Int
+	Field _pos:Long,_size:Long,_cstream:Byte Ptr,_mode:Int
 
 	Method Pos:Long()
 		Return _pos
@@ -591,7 +591,11 @@ Type TCSStream Extends TSStream
 	Method Read:Long( buf:Byte Ptr,count:Long )
 		Assert _cstream Else "Attempt to read from closed stream"
 		Assert _mode & MODE_READ Else "Attempt to read from write-only stream"
+?bmxng
+		count=fread64_( buf,1:size_t,size_t(count),_cstream )	
+?Not bmxng
 		count=fread64_( buf,1,count,_cstream )	
+?
 		_pos:+count
 		Return count
 	End Method
@@ -599,7 +603,11 @@ Type TCSStream Extends TSStream
 	Method Write:Long( buf:Byte Ptr,count:Long )
 		Assert _cstream Else "Attempt to write to closed stream"
 		Assert _mode & MODE_WRITE Else "Attempt to write to read-only stream"
+?bmxng
+		count=fwrite64_( buf,1:size_t,size_t(count),_cstream )
+?Not bmxng
 		count=fwrite64_( buf,1,count,_cstream )
+?
 		_pos:+count
 		If _pos>_size _size=_pos
 		Return count
@@ -638,7 +646,7 @@ Type TCSStream Extends TSStream
 			_mode=MODE_READ
 		EndIf
 		path=path.Replace( "\","/" )
-		Local cstream:Int=fopen64_( path,Mode )
+		Local cstream:Byte Ptr=fopen64_( path,Mode )
 ?Linux
 		If (Not cstream) And (Not writeable)
 			path=CasedFileName(path)
@@ -651,7 +659,7 @@ Type TCSStream Extends TSStream
 	Rem
 	bbdoc: Create a TCStream from a 'C' stream handle
 	end rem
-	Function CreateWithCStream:TCSStream( cstream:Int,Mode:Int )
+	Function CreateWithCStream:TCSStream( cstream:Byte Ptr,Mode:Int )
 		Local stream:TCSStream=New TCSStream
 		stream._cstream=cstream
 		ftell64_( cstream, Varptr stream._pos )
@@ -1091,10 +1099,18 @@ Rem
 bbdoc: Returns a case sensitive filename if it exists from a case insensitive file path.
 End Rem
 Function CasedFileName$(path$)
-	Local	dir:Int,sub$,s$,f$,folder$,p:Int
-	Local	Mode:Int,size:Int,mtime:Int,ctime:Int
+?bmxng
+	Local dir:Byte Ptr
+	Local size:Long
+?Not bmxng
+	Local dir:Int
+	Local size:Int
+?
+	Local sub$,s$,f$,folder$,p:Int
+	Local Mode:Int,mtime:Int,ctime:Int
+	
         
-	If stat_( path,Mode,size:Int,mtime,ctime )=0
+	If stat_( path,Mode,size,mtime,ctime )=0
 		Mode:&S_IFMT_
 		If Mode=S_IFREG_ Or Mode=S_IFDIR_ Return path
 	EndIf
@@ -1128,26 +1144,35 @@ End Function
 
 Extern "c"
 
-Function fopen64_:Int( file$,Mode$ )
-Function fclose64_:Int( c_stream:Int )="fclose"
-Function fread64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Int )="fread"
-Function fwrite64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Int )="fwrite"
-Function fflush64_:Int( c_stream:Int )="fflush"
-?win32
-Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="fseeko64"
-Function ftell64_( c_stream:Int, pos:Long Ptr )
-?linux
-Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="fseeko64"
-?macos
-Function fseek64_:Int( c_stream:Int,offset:Long,origin:Int )="fseeko"
-?Not win32
-Function ftell64_( c_stream:Int, pos:Long Ptr )
+Function fopen64_:Byte Ptr( file$,Mode$ )
+Function fclose64_:Int( c_stream:Byte Ptr )="fclose"
+?bmxng
+Function fread64_:size_t( buf:Byte Ptr,size:size_t,count:size_t,c_stream:Byte Ptr )="fread"
+Function fwrite64_:size_t( buf:Byte Ptr,size:size_t,count:size_t,c_stream:Byte Ptr )="fwrite"
+?Not bmxng
+Function fread64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Byte Ptr )="fread"
+Function fwrite64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Byte Ptr )="fwrite"
 ?
-Function feof64_:Int( c_stream:Int )="feof"
-Function fgetc64_:Int( c_stream:Int )="fgetc"
-Function ungetc64_:Int( char:Int,c_stream:Int )="ungetc"
-Function fputs64_:Int( str$,c_stream:Int )
+Function fflush64_:Int( c_stream:Byte Ptr )="fflush"
+?win32
+Function fseek64_:Int( c_stream:Byte Ptr,offset:Long,origin:Int )="fseeko64"
+Function ftell64_( c_stream:Byte Ptr, pos:Long Ptr )
+?linux
+Function fseek64_:Int( c_stream:Byte Ptr,offset:Long,origin:Int )="fseeko64"
+?macos
+Function fseek64_:Int( c_stream:Byte Ptr,offset:Long,origin:Int )="fseeko"
+?Not win32
+Function ftell64_( c_stream:Byte Ptr, pos:Long Ptr )
+?
+Function feof64_:Int( c_stream:Byte Ptr )="feof"
+Function fgetc64_:Int( c_stream:Byte Ptr )="fgetc"
+Function ungetc64_:Int( char:Int,c_stream:Byte Ptr )="ungetc"
+Function fputs64_:Int( str$,c_stream:Byte Ptr )
 
-Function stat_( path$,st_mode:Int Var,st_size:Int Var,st_mtime:Int Var,st_ctime:Int Var )
+'bmxng
+'Function stat_:Int( path$,st_mode:Int Var,st_size:Int Var,st_mtime:Int Var,st_ctime:Int Var )
+?Not bmxng
+Function stat_:Int( path$,st_mode:Int Var,st_size:Int Var,st_mtime:Int Var,st_ctime:Int Var )
+?
 
 End Extern

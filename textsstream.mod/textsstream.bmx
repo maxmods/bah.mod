@@ -150,7 +150,7 @@ Type TTextSStream Extends TSStreamWrapper
 		Return String.FromShorts( buf,i )
 	End Method
 	
-	Method WriteLine( str$ )
+	Method WriteLine:Int( str$ )
 		_FlushWrite
 		WriteString str
 		WriteString "~r~n"
