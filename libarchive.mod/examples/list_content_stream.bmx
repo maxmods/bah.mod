@@ -8,7 +8,11 @@ Import BRL.StandardIO
 Local archive:TReadArchive = New TReadArchive.Create()
 Local entry:TArchiveEntry = New TArchiveEntry.Create()
 
+?bmxng
+Local stream:TStream = ReadStream("verne.tar")
+?Not bmxng
 Local stream:TSStream = BaH.SStream.ReadStream("verne.tar")
+?
 
 
 archive.SupportFilterAll()
@@ -27,6 +31,6 @@ While archive.ReadNextHeader(entry) = ARCHIVE_OK
 	archive.DataSkip()
 Wend
 
-result = archive.Free()
+archive.Free()
 
 

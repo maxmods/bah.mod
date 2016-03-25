@@ -5,7 +5,6 @@
 SuperStrict
 
 Framework BaH.LibArchive
-Import BaH.SStream
 Import BRL.StandardIO
 Import brl.FileSystem
 
@@ -48,13 +47,17 @@ For Local file:String = EachIn filelist
 	End If
 	
 	' load the data for the archive
+?bmxng
+	Local stream:TStream = ReadStream(path)
+?Not bmxng
 	Local stream:TSStream = BaH.SStream.ReadStream(path)
+?
 
 	bytesRead = stream.Read(buf, 8192)
 	
 	While bytesRead
 		' write into the archive
-		archive.WriteData(buf, bytesRead)
+		archive.WriteData(buf, Int(bytesRead))
 		
 		bytesRead = stream.Read(buf, 8192)
 	Wend

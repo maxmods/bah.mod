@@ -23,5 +23,5 @@ While archive.ReadNextHeader(entry) = ARCHIVE_OK
 	archive.DataSkip()
 Wend
 
-result = archive.Free()
+archive.Free()
 

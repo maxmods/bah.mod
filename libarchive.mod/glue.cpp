@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013 Bruce A Henderson
+ Copyright (c) 2013-2016 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,18 @@
 #include "archive.h"
 #include "archive_entry.h"
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include "blitz.h"
 
-	void * _bah_libarchive_TArchiveCallbackData__read(BBObject * data, int * count);
-	void _bah_libarchive_TArchiveCallbackData__seek(BBObject * data, BBInt64 offset, int whence, BBInt64 * count);
+	void * CB_PREF(bah_libarchive_TArchiveCallbackData__read)(BBObject * data, int * count);
+	void CB_PREF(bah_libarchive_TArchiveCallbackData__seek)(BBObject * data, BBInt64 offset, int whence, BBInt64 * count);
 
 	struct archive * bmx_libarchive_read_archive_new();
 
@@ -167,13 +173,13 @@ extern "C" {
 
 __LA_SSIZE_T bmx_libarchive_read_cb(struct archive *, void *data, const void **_buffer) {
 	int count;
-	*_buffer = _bah_libarchive_TArchiveCallbackData__read((BBObject*)data, &count);
+	*_buffer = CB_PREF(bah_libarchive_TArchiveCallbackData__read)((BBObject*)data, &count);
 	return count;
 }
 
 __LA_INT64_T bmx_libarchive_seek_cb(struct archive *, void *data, __LA_INT64_T offset, int whence) {
 	__LA_INT64_T ret;
-	_bah_libarchive_TArchiveCallbackData__seek((BBObject*)data, offset, whence, &ret);
+	CB_PREF(bah_libarchive_TArchiveCallbackData__seek)((BBObject*)data, offset, whence, &ret);
 	return ret;
 }
 

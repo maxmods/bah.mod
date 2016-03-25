@@ -1,4 +1,4 @@
-' Copyright (c) 2013 Bruce A Henderson
+' Copyright (c) 2013-2016 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,13 @@ Module BaH.LibArchive
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: libarchive - 2003-2010 Tim Kientzle"
-ModuleInfo "Copyright: Wrapper - 2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2013-2016 Bruce A Henderson"
 
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -D_FILE_OFFSET_BITS=64"
 ?win32
 ModuleInfo "CC_OPTS: -DLIBARCHIVE_STATIC"
+?
 
 Import "common.bmx"
 
@@ -372,7 +373,11 @@ Type TReadArchive Extends TArchive
 	Rem
 	bbdoc: 
 	End Rem
+?bmxng
+	Method OpenStream:Int(stream:TStream, blockSize:Int = 10240)
+?Not bmxng
 	Method OpenStream:Int(stream:TSStream, blockSize:Int = 10240)
+?
 		If Not callbackData Then
 			callbackData = TArchiveCallbackData.Create(stream, blockSize)
 		Else
@@ -422,7 +427,11 @@ Type TReadArchive Extends TArchive
 	Rem
 	bbdoc: 
 	End Rem
+?bmxng
+	Method DataStream:TStream()
+?Not bmxng
 	Method DataStream:TSStream()
+?
 		Return TArchiveStream.Create(Self)
 	End Method
 	
@@ -438,7 +447,11 @@ End Type
 Rem
 bbdoc: Data from a TReadArchive entry as a stream.
 End Rem
+?bmxng
+Type TArchiveStream Extends TStream
+?Not bmxng
 Type TArchiveStream Extends TSStream
+?
 
 	Field archive:TReadArchive
 	
@@ -451,7 +464,7 @@ Type TArchiveStream Extends TSStream
 	End Function
 
 	Method Read:Long( buf:Byte Ptr,count:Long )
-		Local size:Long = archive.Data(buf, count)
+		Local size:Long = archive.Data(buf, Int(count))
 		If Not size Then
 			_eof = True
 		End If
@@ -479,10 +492,18 @@ End Type
 Type TArchiveCallbackData
 
 	Field data:Byte Ptr
+?bmxng
+	Field stream:TStream
+?Not bmxng
 	Field stream:TSStream
+?
 	Field size:Int
 
+?bmxng
+	Function Create:TArchiveCallbackData(stream:TStream, size:Int)
+?Not bmxng
 	Function Create:TArchiveCallbackData(stream:TSStream, size:Int)
+?
 		Local this:TArchiveCallbackData = New TArchiveCallbackData
 		this.data = MemAlloc(size)
 		this.stream = stream
@@ -490,7 +511,7 @@ Type TArchiveCallbackData
 		Return this
 	End Function
 	
-	Function _read:Byte Ptr(cbData:Object, count:Int Var)
+	Function _read:Byte Ptr(cbData:Object, count:Int Var) { nomangle }
 		Local data:TArchiveCallbackData = TArchiveCallbackData(cbData)
 		
 		Local buf:Byte Ptr = data.data
@@ -511,7 +532,7 @@ Type TArchiveCallbackData
 	End Function
 	
 	
-	Function _seek(cbData:Object, offset:Long, whence:Int, count:Long Var)
+	Function _seek(cbData:Object, offset:Long, whence:Int, count:Long Var) { nomangle }
 		Local data:TArchiveCallbackData = TArchiveCallbackData(cbData)
 
 		Select whence
@@ -807,7 +828,11 @@ Type TWriteArchive Extends TArchive
 	Rem
 	bbdoc: 
 	End Rem
+?bmxng
+	Method OpenStream:Int(stream:TStream, blockSize:Int = 10240)
+?Not bmxng
 	Method OpenStream:Int(stream:TSStream, blockSize:Int = 10240)
+?
 	End Method
 	
 	Rem

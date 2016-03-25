@@ -4,7 +4,11 @@
 SuperStrict
 
 Framework BaH.LibArchive
+?bmxng
+Import BRL.TextStream
+?Not bmxng
 Import BaH.TextSStream
+?
 Import BRL.StandardIO
 
 
@@ -24,13 +28,17 @@ End If
 While archive.ReadNextHeader(entry) = ARCHIVE_OK
 	Print entry.Pathname()
 	If entry.Pathname() = "verne/center_of_the_earth.txt" Then
-		Local text:String = BaH.TextSStream.LoadText(archive.DataStream())
-		Print "  text = " + text.length + " chars"
+?bmxng
+		Local Text:String = LoadText(archive.DataStream())
+?Not bmxng
+		Local Text:String = BaH.TextSStream.LoadText(archive.DataStream())
+?
+		Print "  text = " + Text.length + " chars"
 	Else
 		archive.DataSkip()
 	End If
 Wend
 
-result = archive.Free()
+archive.Free()
 
 
