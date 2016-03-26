@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2011 Bruce A Henderson
+' Copyright (c) 2010-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ Import "glue.cpp"
 
 
 Type TSpeechBase
-	Method speak:Int(text:String) Abstract
+	Method speak:Int(Text:String) Abstract
 	Method isSpeaking:Int() Abstract
 	Function availableVoices:String[]() Abstract
 	Method setVoice(voice:String) Abstract
@@ -55,10 +55,10 @@ End Type
 
 
 
-?macosx
+?macos
 Extern
 	Function bmx_speech_new:Byte Ptr()
-	Function bmx_speech_speak:Int(handle:Byte Ptr, text:String)
+	Function bmx_speech_speak:Int(handle:Byte Ptr, Text:String)
 	Function bmx_speech_isSpeaking:Int(handle:Byte Ptr)
 	Function bmx_speech_free(handle:Byte Ptr)
 	Function bmx_speech_availableVoices:String[]()

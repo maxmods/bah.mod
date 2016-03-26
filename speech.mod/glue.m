@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010-2011 Bruce A Henderson
+  Copyright (c) 2010-2016 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 #import <AppKit/AppKit.h>
 
 #include <blitz.h>
-
+#include "pub.mod/macos.mod/macos.h"
 
 // --------------------------------------------------------
 
