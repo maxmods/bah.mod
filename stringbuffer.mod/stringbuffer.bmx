@@ -25,10 +25,12 @@ bbdoc: A string buffer.
 End Rem	
 Module BaH.StringBuffer
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Added overloaded constructor for providing instance specific initial capacity."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added AppendCString() and AppendUTF8String() methods."
 ModuleInfo "History: 1.01"
@@ -53,12 +55,25 @@ Type TStringBuffer
 	Method New()
 		buffer = bmx_stringbuffer_new(initialCapacity)
 	End Method
-	
+?bmxng
+	Method New(initialCapacity:Int)
+		buffer = bmx_stringbuffer_new(initialCapacity)
+	End Method
+?
 	Rem
 	bbdoc: Constructs a string buffer initialized to the contents of the specified string.
 	End Rem	
 	Function Create:TStringBuffer(Text:String)
+?Not bmxng
 		Local this:TStringBuffer = New TStringBuffer
+?bmxng
+		Local this:TStringBuffer
+		If text.length > initialCapacity Then
+			this = New TStringBuffer(text.length)
+		Else
+			this = New TStringBuffer
+		End If
+?
 		Return this.Append(Text)
 	End Function
 
