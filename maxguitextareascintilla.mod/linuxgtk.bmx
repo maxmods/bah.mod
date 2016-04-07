@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -419,6 +419,14 @@ Type TGTKScintillaTextArea Extends TGTKTextArea
 
 	End Function
 
+	Method SetCaretWidth(width:Int)
+		bmx_mgta_scintilla_setcaretwidth(sciPtr, width)
+	End Method
+	
+	Method SetCaretColor(r:Int, g:Int, b:Int)
+		bmx_mgta_scintilla_setcaretcolor(sciPtr, r, g, b)
+	End Method
+	
 End Type
 
 

@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,8 @@ Extern
 	Function bmx_mgta_scintilla_textwidth:Int(handle:Byte Ptr, text:String)
 	Function bmx_mgta_scintilla_setlinedigits(handle:Byte Ptr, lineDigits:Int Ptr)
 	Function bmx_mgta_scintilla_setmarginleft(handle:Byte Ptr, leftmargin:Int)
+	Function bmx_mgta_scintilla_setcaretwidth(handle:Byte Ptr, width:Int)
+	Function bmx_mgta_scintilla_setcaretcolor(handle:Byte Ptr, r:Int, g:Int, b:Int)
 
 	Function bmx_mgta_scintilla_notifcation_update(obj:Object, handle:Byte Ptr)
 End Extern
