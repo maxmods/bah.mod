@@ -38,14 +38,14 @@ Extern
 	Function bmx_mgta_scintilla_getsci:Byte Ptr(handle:Byte Ptr, id:Int)
 
 	Function bmx_mgta_scintilla_gettext:String(handle:Byte Ptr)
-	Function bmx_mgta_scintilla_settext(handle:Byte Ptr, text:String)
+	Function bmx_mgta_scintilla_settext(handle:Byte Ptr, Text:String)
 	Function bmx_mgta_scintilla_setfont(handle:Byte Ptr, name:String, size:Int)
 	Function bmx_mgta_scintilla_positionfromline:Int(handle:Byte Ptr, line:Int, valueInBytes:Int)
 	Function bmx_mgta_scintilla_setselectionstart(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_setselectionend(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_scrollcaret(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_setsel(handle:Byte Ptr, startPos:Int, endPos:Int)
-	Function bmx_mgta_scintilla_replacesel(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_mgta_scintilla_replacesel(handle:Byte Ptr, Text:Byte Ptr)
 	Function bmx_mgta_scintilla_stylesetback(handle:Byte Ptr, col:Int)
 	Function bmx_mgta_scintilla_stylesetfore(handle:Byte Ptr, style:Int, color:Int)
 	Function bmx_mgta_scintilla_stylesetitalic(handle:Byte Ptr, style:Int, value:Int)
@@ -61,17 +61,17 @@ Extern
 	Function bmx_mgta_scintilla_settabwidth(handle:Byte Ptr, tabs:Int)
 	Function bmx_mgta_scintilla_settargetstart(handle:Byte Ptr, pos:Int)
 	Function bmx_mgta_scintilla_settargetend(handle:Byte Ptr, pos:Int)
-	Function bmx_mgta_scintilla_replacetarget(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_mgta_scintilla_replacetarget(handle:Byte Ptr, Text:Byte Ptr)
 	Function bmx_mgta_scintilla_cut(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_copy(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_paste(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_linefromposition:Int(handle:Byte Ptr, index:Int)
-	Function bmx_mgta_scintilla_appendtext(handle:Byte Ptr, text:String)
+	Function bmx_mgta_scintilla_appendtext(handle:Byte Ptr, Text:String)
 	Function bmx_mgta_scintilla_scrolltoend(handle:Byte Ptr)
 	Function bmx_mgta_scintilla_bytefromchar:Int(handle:Byte Ptr, charPos:Int, startBytePos:Int, startCharPos:Int)
 	Function bmx_mgta_scintilla_getselectionlength:Int(handle:Byte Ptr, units:Int)
-	Function bmx_mgta_scintilla_addtext(handle:Byte Ptr, text:Byte Ptr)
-	Function bmx_mgta_scintilla_textwidth:Int(handle:Byte Ptr, text:String)
+	Function bmx_mgta_scintilla_addtext(handle:Byte Ptr, Text:Byte Ptr)
+	Function bmx_mgta_scintilla_textwidth:Int(handle:Byte Ptr, Text:String)
 	Function bmx_mgta_scintilla_setlinedigits(handle:Byte Ptr, lineDigits:Int Ptr)
 	Function bmx_mgta_scintilla_setmarginleft(handle:Byte Ptr, leftmargin:Int)
 	Function bmx_mgta_scintilla_setcaretwidth(handle:Byte Ptr, width:Int)
@@ -85,7 +85,7 @@ Type TSCNotification
 	Field modificationType:Int
 	Field updated:Int
 	
-	Function _update(n:TSCNotification, code:Int, modificationType:Int, updated:Int)
+	Function _update(n:TSCNotification, code:Int, modificationType:Int, updated:Int) { nomangle }
 		n.code = code
 		n.modificationType = modificationType
 		n.updated = updated
