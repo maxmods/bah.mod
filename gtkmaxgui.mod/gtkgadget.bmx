@@ -3635,7 +3635,7 @@ Type TGTKPanel Extends TGTKContainer
 					Local wpart:Int = w Mod panelPixmap.width
 					Local hpart:Int = h Mod panelPixmap.height
 					
-					visualpixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, w, h)
+					visualpixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, Int(w), Int(h))
 					
 					For Local x:Int = 0 Until wfull
 					
@@ -3865,10 +3865,10 @@ Type TGTKComboBox Extends TGTKList
 	End Method
 
 	Method GetText:String()
-		Local s:Byte Ptr = gtk_combo_box_get_active_text(handle)
-		Local st:String = String.FromUTF8String(s)
-		g_free(s)
-		Return st
+			Local s:Byte Ptr = gtk_combo_box_get_active_text(handle)
+			Local st:String = String.FromUTF8String(s)
+			g_free(s)
+			Return st
 	End Method
 
 	Method Free()
@@ -4900,7 +4900,7 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 			Local row:Int = -1
 			
 		     ' Get tree path For row that was clicked
-			If gtk_tree_view_get_path_at_pos(widget, x, y, Varptr treePath, Null, Null, Null) Then
+			If gtk_tree_view_get_path_at_pos(widget, Int(x), Int(y), Varptr treePath, Null, Null, Null) Then
 				Local p:Byte Ptr = gtk_tree_path_to_string(treePath)
 
 				
@@ -5353,7 +5353,7 @@ Type TGTKTreeView Extends TGTKTreeViewNode
 			Local treePath:Byte Ptr
 			
 		     ' Get tree path For row that was clicked
-			If gtk_tree_view_get_path_at_pos(widget, x, y, Varptr treePath, Null, Null, Null) Then
+			If gtk_tree_view_get_path_at_pos(widget, Int(x), Int(y), Varptr treePath, Null, Null, Null) Then
 				Local p:Byte Ptr = gtk_tree_path_to_string(treePath)
 				node = TGTKTreeViewNode(obj).findNodeFromPath(String.FromCString(p))
 				

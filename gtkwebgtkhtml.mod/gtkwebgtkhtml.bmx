@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2014 Bruce A Henderson
+' Copyright (c) 2006-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -333,7 +333,7 @@ End Rem
 
 			banks.addlast b
 
-			gtk_html_write(handle, html_stream, LockBank(b), BankSize(b))
+			gtk_html_write(handle, html_stream, LockBank(b), Int(BankSize(b)))
 			
 			status = GTK_HTML_STREAM_OK
 		Else

@@ -456,8 +456,11 @@ Extern
 	Function bmx_gtk_gvalue_free(_value:Byte Ptr)
 
 	Function gtk_accel_group_new:Byte Ptr()
-
+?bmxng
+	Function gdk_x11_drawable_get_xid:Byte Ptr(handle:Byte Ptr)
+?Not bmxng
 	Function gdk_x11_drawable_get_xid:Int(handle:Byte Ptr)
+?
 
 	Function gdk_atom_intern:Byte Ptr(name:Byte Ptr, bool:Int)
 	Function gtk_clipboard_get:Byte Ptr(atom:Byte Ptr)
