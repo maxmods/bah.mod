@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2011-2014 Bruce A Henderson
+ Copyright (c) 2011-2016 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -114,10 +114,7 @@ public:
 	}
 
 	int read(void * output, int nBytes) {
-printf("read - %d - ", nBytes);
-		int ret = CB_PREF(bah_theoraplayer_TTheoraDataSource__read)(maxHandle, output, nBytes);
-printf("(%d)\n", ret);fflush(stdout);
-return ret;
+		return CB_PREF(bah_theoraplayer_TTheoraDataSource__read)(maxHandle, output, nBytes);
 	}
 	
 	std::string repr() {

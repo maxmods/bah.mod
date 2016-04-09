@@ -1,4 +1,4 @@
-' Copyright (c) 2011-2014 Bruce A Henderson
+' Copyright (c) 2011-2016 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ Extern
 
 	Function bmx_TheoraVideoFrame_getBuffer:Byte Ptr(handle:Byte Ptr)
 	
-	Function bmx_TheoraVideoManager_setLogFunction(func(text:String))
+	Function bmx_TheoraVideoManager_setLogFunction(func(Text:String))
 
 	Function bmx_TheoraDataSource_create:Byte Ptr(handle:Object)
 	Function bmx_TheoraDataSource_free(handle:Byte Ptr)
@@ -85,7 +85,7 @@ Type TTheoraGenericException Extends TRuntimeException
 	Field mFile:String
 	Field mType:String
 	
-	Function _create:TTheoraGenericException(mErrText:String, mFile:String, mType:String)
+	Function _create:TTheoraGenericException(mErrText:String, mFile:String, mType:String) { nomangle }
 		Local this:TTheoraGenericException = New TTheoraGenericException
 		this.mErrText = mErrText
 		this.mFile = mFile
