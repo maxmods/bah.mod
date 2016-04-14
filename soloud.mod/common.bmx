@@ -23,6 +23,8 @@ SuperStrict
 
 ?macos
 Import "-framework AudioToolbox"
+?linux
+Import "-ldl"
 ?
 
 Import "source.bmx"

@@ -63,9 +63,12 @@ Import "soloud/src/backend/coreaudio/soloud_coreaudio.cpp"
 Import "soloud/src/backend/openal/soloud_openal_dll.c"
 Import "soloud/src/backend/openal/soloud_openal.cpp"
 
+' backend - portaudio
+Import "soloud/src/backend/portaudio/soloud_portaudio_dll.c"
+Import "soloud/src/backend/portaudio/soloud_portaudio.cpp"
+
 ' backend - wasapi
 Import "soloud/src/backend/wasapi/soloud_wasapi.cpp"
-
 
 ' backend - winmm
 Import "soloud/src/backend/winmm/soloud_winmm.cpp"

@@ -38,8 +38,10 @@ ModuleInfo "History: Initial Release."
 ModuleInfo "CC_OPTS: -DWITH_COREAUDIO"
 ?win32
 ModuleInfo "CC_OPTS: -DWITH_WASAPI -DWITH_WINMM -DWITH_OPENAL"
-?linux
-ModuleInfo "CC_OPTS: -DWITH_OPENAL"
+?linuxx86
+ModuleInfo "CC_OPTS: -msse2 -DWITH_OPENAL -DWITH_PORTAUDIO"
+?linuxx64
+ModuleInfo "CC_OPTS: -msse3 -DWITH_OPENAL -DWITH_PORTAUDIO"
 ?
 
 
