@@ -24,6 +24,8 @@ freely, subject to the following restrictions:
 #include <stdlib.h>
 #include <math.h>
 
+#if defined(WITH_PORTAUDIO)
+
 #if defined(_MSC_VER)
 #define WINDOWS_VERSION
 #endif
@@ -172,3 +174,4 @@ PaError dll_Pa_OpenDefaultStream( PaStream** stream,
 	return paNotInitialized;
 }
 
+#endif

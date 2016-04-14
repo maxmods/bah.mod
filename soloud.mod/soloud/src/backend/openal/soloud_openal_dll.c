@@ -24,6 +24,8 @@ freely, subject to the following restrictions:
 #include <stdlib.h>
 #include <math.h>
 
+#if defined(WITH_OPENAL)
+
 #ifdef __APPLE__
 #include "OpenAL/al.h"
 #include "OpenAL/alc.h"
@@ -276,5 +278,7 @@ void dll_al_DeleteSources(ALsizei n, ALuint *sources)
 	if (load_dll())
 		dAlDeleteSources(n, sources);
 }
+
+#endif
 
 #endif
