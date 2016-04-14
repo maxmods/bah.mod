@@ -37,11 +37,11 @@ namespace SoLoud
 
 #else
 
-#if defined(_MSC_VER)
+//#if defined(_MSC_VER)
 #include "SDL.h"
-#else
-#include "SDL2/SDL.h"
-#endif
+//#else
+//#include "SDL2/SDL.h"
+//#endif
 #include <math.h>
 
 

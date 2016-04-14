@@ -37,13 +37,14 @@ ModuleInfo "History: Initial Release."
 ?macos
 ModuleInfo "CC_OPTS: -DWITH_COREAUDIO"
 ?win32
-ModuleInfo "CC_OPTS: -DWITH_WASAPI -DWITH_WINMM -DWITH_OPENAL"
+ModuleInfo "CC_OPTS: -DWITH_WASAPI -DWITH_WINMM"
 ?linuxx86
-ModuleInfo "CC_OPTS: -msse2 -DWITH_OPENAL -DWITH_PORTAUDIO"
+ModuleInfo "CC_OPTS: -msse2"
 ?linuxx64
-ModuleInfo "CC_OPTS: -msse3 -DWITH_OPENAL -DWITH_PORTAUDIO"
+ModuleInfo "CC_OPTS: -msse3"
+?linux
+ModuleInfo "CC_OPTS: -DWITH_SDL2_STATIC"
 ?
-
 
 Import "common.bmx"
 

@@ -21,6 +21,9 @@
 '
 SuperStrict
 
+?linux
+Import "../../sdl.mod/sdl.mod/SDL/include/*.h"
+?
 
 Import "soloud/include/*.h"
 
@@ -56,6 +59,9 @@ Import "soloud/src/filter/soloud_lofifilter.cpp"
 ' c api
 Import "soloud/src/c_api/soloud_c.cpp"
 
+' backend - alsa
+Import "soloud/src/backend/alsa/soloud_alsa.cpp"
+
 ' backend - coreaudio
 Import "soloud/src/backend/coreaudio/soloud_coreaudio.cpp"
 
@@ -66,6 +72,9 @@ Import "soloud/src/backend/openal/soloud_openal.cpp"
 ' backend - portaudio
 Import "soloud/src/backend/portaudio/soloud_portaudio_dll.c"
 Import "soloud/src/backend/portaudio/soloud_portaudio.cpp"
+
+' backend - sdl2_static
+Import "soloud/src/backend/sdl2_static/soloud_sdl2_static.cpp"
 
 ' backend - wasapi
 Import "soloud/src/backend/wasapi/soloud_wasapi.cpp"
