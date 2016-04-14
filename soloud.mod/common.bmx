@@ -25,6 +25,8 @@ SuperStrict
 Import "-framework AudioToolbox"
 ?linux
 Import sdl.sdl
+?win32
+Import "-lole32"
 ?
 
 Import "source.bmx"
