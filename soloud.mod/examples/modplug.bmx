@@ -16,7 +16,7 @@ End If
 soloud.init()
 
 soloud.play(m)
-Delay 100 ' wait a wee bit for it to start playing, otherwise we might skip the while loop
+Delay 500 ' wait a wee bit for it to start playing, otherwise we might skip the while loop
 
 While soloud.getActiveVoiceCount()
 	Delay 100
