@@ -46,6 +46,11 @@ ModuleInfo "CC_OPTS: -msse3"
 ModuleInfo "CC_OPTS: -DWITH_SDL2_STATIC"
 ?
 
+' comment out the following lines if you don't want modplug support.
+ModuleInfo "CC_OPTS: -DWITH_MODPLUG"
+Import BaH.SoloudLibmodplug
+
+
 Import "common.bmx"
 
 
@@ -284,139 +289,167 @@ Type TSoloud
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets current maximum active voice setting.
 	End Rem
 	Method setMaxActiveVoiceCount:Int(voiceCount:Int)
 		Return Soloud_setMaxActiveVoiceCount(slPtr, voiceCount)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets behavior for inaudible sounds.
 	End Rem
 	Method setInaudibleBehavior(voiceHandle:Int, mustTick:Int, kill:Int)
 		Soloud_setInaudibleBehavior(slPtr, voiceHandle, mustTick, kill)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the global volume.
 	End Rem
 	Method setGlobalVolume(volume:Float)
 		Soloud_setGlobalVolume(slPtr, volume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the post clip scaler value.
 	End Rem
 	Method setPostClipScaler(scaler:Float)
 		Soloud_setPostClipScaler(slPtr, scaler)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the pause state.
 	End Rem
 	Method setPause(voiceHandle:Int, pause:Int)
 		Soloud_setPause(slPtr, voiceHandle, pause)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Pauses all voices.
 	End Rem
 	Method setPauseAll(pause:Int)
 		Soloud_setPauseAll(slPtr, pause)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the relative play speed.
 	End Rem
 	Method setRelativePlaySpeed:Int(voiceHandle:Int, speed:Float)
 		Return Soloud_setRelativePlaySpeed(slPtr, voiceHandle, speed)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the voice protection state.
 	End Rem
 	Method setProtectVoice(voiceHandle:Int, protect:Int)
 		Soloud_setProtectVoice(slPtr, voiceHandle, protect)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the sample rate.
 	End Rem
 	Method setSamplerate(voiceHandle:Int, samplerate:Float)
 		Soloud_setSamplerate(slPtr, voiceHandle, samplerate)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets panning value
+	about:  -1 is left, 0 is center, 1 is right
 	End Rem
 	Method setPan(voiceHandle:Int, pan:Float)
 		Soloud_setPan(slPtr, voiceHandle, pan)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets absolute left/right volumes.
 	End Rem
 	Method setPanAbsolute(voiceHandle:Int, lVolume:Float, rVolume:Float, lBVolume:Float = 0, rBVolume:Float = 0, cVolume:Float = 0, sVolume:Float = 0)
 		Soloud_setPanAbsoluteEx(slPtr, voiceHandle, lVolume, rVolume, lBVolume, rBVolume, cVolume, sVolume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets overall volume.
 	End Rem
 	Method setVolume(voiceHandle:Int, volume:Float)
 		Soloud_setVolume(slPtr, voiceHandle, volume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets delay, in samples, before starting to play samples.
+	about: Calling this on a live sound will cause glitches
 	End Rem
 	Method setDelaySamples(voiceHandle:Int, samples:Int)
 		Soloud_setDelaySamples(slPtr, voiceHandle, samples)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets up volume fader.
 	End Rem
 	Method fadeVolume(voiceHandle:Int, _to:Float, time:Double)
 		Soloud_fadeVolume(slPtr, voiceHandle, _to, time)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets up panning fader.
 	End Rem
 	Method fadePan(voiceHandle:Int, _to:Float, time:Double)
 		Soloud_fadePan(slPtr, voiceHandle, _to, time)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets up relative play speed fader.
 	End Rem
 	Method fadeRelativePlaySpeed(voiceHandle:Int, _to:Float, time:Double)
 		Soloud_fadeRelativePlaySpeed(slPtr, voiceHandle, _to, time)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets up global volume fader.
 	End Rem
 	Method fadeGlobalVolume(_to:Float, time:Double)
 		Soloud_fadeGlobalVolume(slPtr, _to, time)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Schedules a stream to pause.
 	End Rem
 	Method schedulePause(voiceHandle:Int, time:Double)
 		Soloud_schedulePause(slPtr, voiceHandle, time)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Schedules a stream to stop.
 	End Rem
 	Method scheduleStop(voiceHandle:Int, time:Double)
 		Soloud_scheduleStop(slPtr, voiceHandle, time)
 	End Method
 	
+	Rem
+	bbdoc: Sets up volume oscillator.
+	End Rem
+	Method oscillateVolume(voiceHandle:Int, _from:Float, _to:Float, time:Double)
+		Soloud_oscillateVolume(slPtr, voiceHandle, _from, _to, time)
+	End Method
 	
+	Rem
+	bbdoc: Sets up panning oscillator.
+	End Rem
+	Method oscillatePan(voiceHandle:Int, _from:Float, _to:Float, time:Double)
+		Soloud_oscillatePan(slPtr, voiceHandle, _from, _to, time)
+	End Method
+	
+	Rem
+	bbdoc: Sets up relative play speed oscillator.
+	End Rem
+	Method oscillateRelativePlaySpeed(voiceHandle:Int, _from:Float, _to:Float, time:Double)
+		Soloud_oscillateRelativePlaySpeed(slPtr, voiceHandle, _from, _to, time)
+	End Method
+	
+	Rem
+	bbdoc: Sets up global volume oscillator.
+	End Rem
+	Method oscillateGlobalVolume(_from:Float, _to:Float, time:Double)
+		Soloud_oscillateGlobalVolume(slPtr, _from, _to, time)
+	End Method
 	
 End Type
 
