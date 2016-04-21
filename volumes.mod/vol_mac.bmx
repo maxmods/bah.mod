@@ -24,13 +24,31 @@ Import BRL.LinkedList
 Import BRL.Bank
 
 Import "main.bmx"
+Import "macglue.c"
 
 Extern
-	Function _statfs:Int(path:Byte Ptr, buf:Byte Ptr) = "statfs"
-	Function _getfsstat:Int(structs:Byte Ptr, bufSize:Int, flags:Int) = "getfsstat"
 
 	Function FSFindFolder:Int( vRefNum:Int ,folderType:Int ,createFolder:Int ,foundRef:Byte Ptr )
 	Function FSRefMakePath:Int( ref:Byte Ptr,path:Byte Ptr, maxPath:Int )
+	
+	Function bmx_vol_statfs_new:Byte Ptr()
+	Function bmx_vol_statfs_free(fsPtr:Byte Ptr)
+	Function bmx_vol_statfs:Int(vol:String, fsPtr:Byte Ptr)
+
+	Function bmx_vol_getfsstat:Int(buf:Byte Ptr Ptr)
+	Function bmx_vol_getfsstat_free(buf:Byte Ptr)
+	Function bmx_vol_statfs_array_copy(fsPtr:Byte Ptr, buf:Byte Ptr, index:Int)
+	Function bmx_vol_statfs_bsize:Int(fsPtr:Byte Ptr)
+	Function bmx_vol_statfs_iosize:Int(fsPtr:Byte Ptr)
+	Function bmx_vol_statfs_blocks(fsPtr:Byte Ptr, v:Long Ptr)
+	Function bmx_vol_statfs_bfree(fsPtr:Byte Ptr, v:Long Ptr)
+	Function bmx_vol_statfs_bavail(fsPtr:Byte Ptr, v:Long Ptr)
+	Function bmx_vol_statfs_files(fsPtr:Byte Ptr, v:Long Ptr)
+	Function bmx_vol_statfs_ffree(fsPtr:Byte Ptr, v:Long Ptr)
+	Function bmx_vol_statfs_mntfromname:String(fsPtr:Byte Ptr)
+	Function bmx_vol_statfs_mntonname:String(fsPtr:Byte Ptr)
+	Function bmx_vol_statfs_fstypename:String(fsPtr:Byte Ptr)
+
 End Extern
 
 Rem
@@ -76,80 +94,80 @@ Const kPublicFolderType:Int = Asc("p") Shl 24 | Asc("u") Shl 16 | Asc("b") Shl 8
 
 
 Type Tstatfs
-	Const f_otype:Int = 0    ' Type of file system (reserved: zero) */
-	Const f_oflags:Int = 2   ' copy of mount flags (reserved: zero) */
-	Const f_bsize:Int = 4    ' fundamental file system block size */
-	Const f_iosize:Int = 8   ' optimal transfer block size */
-	Const f_blocks:Int = 12   ' total data blocks in file system */
-	Const f_bfree:Int = 16    ' free blocks in fs */
-	Const f_bavail:Int = 20   ' free blocks avail To non-superuser */
-	Const f_files:Int = 24    ' total file nodes in file system */
-	Const f_ffree:Int = 28    ' free file nodes in fs */
-	Const f_fsid:Int = 32     ' file system id (Super-user only) */
-	Const f_owner:Int = 40    ' user that mounted the file system (uid_t)
-	Const f_reserved1:Int = 44        ' reserved For future use */
-	Const f_type:Int = 46     ' Type of file system (reserved) */
-	Const f_flags:Int = 48    ' copy of mount flags (reserved) */
-	Const f_reserved2a:Int = 52     ' reserved For future use */
-	Const f_reserved2b:Int = 56     ' reserved For future use */
-	Const f_fstypename:Int = 60 ' fs Type name */
-	Const f_mntonname:Int = 75    ' directory on which mounted */
-	Const f_mntfromname:Int = 165  ' mounted file system */
-	Const f_reserved3:Int = 255        ' reserved For future use */
-	Const f_reserved4:Int = 264     ' reserved For future use */
-	
-	Field bank:TBank = CreateBank(272)
 
-	Method makestatic(b:Byte Ptr)
-		bank = CreateStaticBank(b, 272)
+	Field fsPtr:Byte Ptr
+
+	Method New()
+		fsPtr = bmx_vol_statfs_new()
 	End Method
 	
-	Method copy(b:TBank, offset:Int)
-		CopyBank(b, offset, bank, 0, 272)
-	End Method
-	
-	Method free()
-		bank.unlock()
+	Method copy(buf:Byte Ptr, index:Int)
+		bmx_vol_statfs_array_copy(fsPtr, buf, index)
 	End Method
 	
 	Method _bsize:Int()
-		Return bank.PeekInt(f_bsize)
+		Return bmx_vol_statfs_bsize(fsPtr)
 	End Method
 
 	Method _iosize:Int()
-		Return bank.PeekInt(f_iosize)
+		Return bmx_vol_statfs_iosize(fsPtr)
 	End Method
 
-	Method _blocks:Int()
-		Return bank.PeekInt(f_blocks)
+	Method _blocks:Long()
+		Local v:Long
+		bmx_vol_statfs_blocks(fsPtr, Varptr v)
+		Return v
 	End Method
 
-	Method _bfree:Int()
-		Return bank.PeekInt(f_bfree)
+	Method _bfree:Long()
+		Local v:Long
+		bmx_vol_statfs_bfree(fsPtr, Varptr v)
+		Return v
 	End Method
 
-	Method _bavail:Int()
-		Return bank.PeekInt(f_bavail)
+	Method _bavail:Long()
+		Local v:Long
+		bmx_vol_statfs_bavail(fsPtr, Varptr v)
+		Return v
+	End Method
+	
+	Method _files:Long()
+		Local v:Long
+		bmx_vol_statfs_files(fsPtr, Varptr v)
+		Return v
+	End Method
+	
+	Method _ffree:Long()
+		Local v:Long
+		bmx_vol_statfs_ffree(fsPtr, Varptr v)
+		Return v
 	End Method
 	
 	Method size:Long()
-		Return Long(_bsize()) * Long(_blocks())
+		Return _bsize() * _blocks()
 	End Method
 
 	Method sizeFree:Long()
-		Return Long(_bsize()) * Long(_bavail())
+		Return _bsize() * _bavail()
 	End Method
 	
 	Method mountedFileSystem:String()
-		Return String.FromUTF8String(bank.lock() + f_mntfromname)
+		Return bmx_vol_statfs_mntfromname(fsPtr)
 	End Method
 	
 	Method dirOfMount:String()
-		Return String.FromUTF8String(bank.lock() + f_mntonname)
+		Return bmx_vol_statfs_mntonname(fsPtr)
 	End Method
 
 	Method fileSystemType:String()
-		Return String.FromUTF8String(bank.lock() + f_fstypename)
+		Return bmx_vol_statfs_fstypename(fsPtr)
+	End Method
+	
+	Method Delete()
+		If fsPtr Then
+			bmx_vol_statfs_free(fsPtr)
+			fsPtr = Null
+		End If
 	End Method
 	
 End Type
@@ -196,15 +214,11 @@ Type TMacVolume Extends TVolume
 
 	Method ListVolumes:TList()
 		Local volumes:TList
-	
-		' make room for 30 volumes...
-		Local bufSize:Int = 30 * 272
-		Local bank:TBank = CreateBank(bufSize)
-		Local b:Byte Ptr = bank.lock()
+
+		' temp buffer for array of structs
+		Local b:Byte Ptr
 		
-		Local count:Int = _getfsstat(b, bufSize, 0)
-	
-		Local fs:TStatfs = New Tstatfs
+		Local count:Int = bmx_vol_getfsstat(Varptr b)
 	
 		For Local i:Int = 0 Until count
 		
@@ -212,12 +226,10 @@ Type TMacVolume Extends TVolume
 				volumes = New TList
 			End If
 		
-			fs.makestatic(b + i * 272)
-		
 			Local volume:TMacVolume = New TMacVolume
 
 			volume.vs = New TVolSpace
-			volume.vs.fs.copy(fs.bank, 0)
+			volume.vs.fs.copy(b, i)
 			
 			volume.volumeName = volume.vs.fs.dirOfMount()
 			volume.volumeDevice = volume.vs.fs.mountedFileSystem()
@@ -230,6 +242,9 @@ Type TMacVolume Extends TVolume
 			
 			volumes.addLast(volume)
 		Next
+		
+		' free buffer
+		bmx_vol_getfsstat_free(b)
 	
 		Return volumes
 	End Method
@@ -343,7 +358,7 @@ Type TVolSpace
 	End Function
 	
 	Method refresh:Int()
-		Return _statfs(vol, fs.bank.lock())
+		Return bmx_vol_statfs(vol, fs.fsPtr)
 	End Method
 	
 	Method size:Long()

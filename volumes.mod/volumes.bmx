@@ -32,6 +32,7 @@ ModuleInfo "Copyright: (c) 2006-2016 Bruce A Henderson"
 
 ModuleInfo "History: 1.10"
 ModuleInfo "History: Updated for NG."
+ModuleInfo "History: Reworked Mac statfs handling."
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Use BlitzMax UTF8 functions."
 ModuleInfo "History: 1.08"
@@ -62,5 +63,6 @@ Import "vol_linux.bmx"
 ?win32
 Import "vol_win.bmx"
 ?macos
+ModuleInfo "CC_OPTS: -D_DARWIN_FEATURE_64_BIT_INODE"
 Import "vol_mac.bmx"
 ?
