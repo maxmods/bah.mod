@@ -30,6 +30,12 @@ Import "include/macos/*.h"
 Import "include/win32/*.h"
 ?
 
+?android
+Import "config/android/*.h"
+?Not android
+Import "config/all/*.h"
+?
+
 Import "jansson/src/*.h"
 
 Import "jansson/src/dump.c"
