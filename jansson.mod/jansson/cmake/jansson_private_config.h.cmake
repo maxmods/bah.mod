@@ -47,13 +47,7 @@
 #  define ssize_t @JSON_SSIZE@
 #endif
 
-#cmakedefine HAVE_SNPRINTF 1
-
-#ifndef HAVE_SNPRINTF
-#  define snprintf @JSON_SNPRINTF@
-#endif
-
-#cmakedefine HAVE_VSNPRINTF
-
 #cmakedefine USE_URANDOM 1
 #cmakedefine USE_WINDOWS_CRYPTOAPI 1
+
+#define INITIAL_HASHTABLE_ORDER @JANSSON_INITIAL_HASHTABLE_ORDER@
