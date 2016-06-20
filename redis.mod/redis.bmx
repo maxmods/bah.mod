@@ -41,6 +41,10 @@ ModuleInfo "History: Rewritten for NG using Hiredis client library."
 ModuleInfo "History: 0.5a"
 ModuleInfo "History: Original BlitzMax-based API for Redis by Jens Riisom Schultz"
 
+?win32
+ModuleInfo "CC_OPTS: -D_WIN32_WINNT=0x0600"
+?
+
 ?bmxng
 
 Import BaH.StringBuffer

@@ -34,6 +34,7 @@
 
 #include "fmacros.h"
 #include <sys/types.h>
+#ifndef _WIN32
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <sys/un.h>
@@ -44,10 +45,14 @@
 #include <fcntl.h>
 #include <string.h>
 #include <netdb.h>
+#include <poll.h>
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <poll.h>
 #include <limits.h>
 #include <stdlib.h>
 
@@ -425,6 +430,15 @@ int redisContextConnectBindTcp(redisContext *c, const char *addr, int port,
     return _redisContextConnectTcp(c, addr, port, timeout, source_addr);
 }
 
+#ifdef _WIN32
+int redisContextConnectUnix(redisContext *c, const char *path, const struct timeval *timeout) {
+    (void) timeout;
+    __redisSetError(c,REDIS_ERR_IO,
+        sdscatprintf(sdsempty(),"Unix sockets are not suported on Windows platform. (%s)\n", path));
+
+    return REDIS_ERR;
+}
+#else
 int redisContextConnectUnix(redisContext *c, const char *path, const struct timeval *timeout) {
     int blocking = (c->flags & REDIS_BLOCK);
     struct sockaddr_un sa;
@@ -473,3 +487,4 @@ int redisContextConnectUnix(redisContext *c, const char *path, const struct time
     c->flags |= REDIS_CONNECTED;
     return REDIS_OK;
 }
+#endif

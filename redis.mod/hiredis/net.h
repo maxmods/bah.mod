@@ -55,3 +55,12 @@ int redisContextConnectUnix(redisContext *c, const char *path, const struct time
 int redisKeepAlive(redisContext *c, int interval);
 
 #endif
+
+#ifdef _WIN32
+// fcntl flags used in Redis
+#define	F_GETFL		3
+#define	F_SETFL		4
+#define	O_NONBLOCK	0x0004
+
+#endif
+

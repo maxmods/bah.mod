@@ -27,7 +27,9 @@ SuperStrict
 
 Import "source.bmx"
 
-
+?win32
+Import "-lws2_32"
+?
 
 Extern
 
