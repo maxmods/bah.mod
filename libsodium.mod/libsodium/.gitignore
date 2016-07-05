@@ -38,7 +38,6 @@ autom4te.cache
 build
 compile
 confdefs.h
-config.*
 configure
 configure.lineno
 coverage.info
@@ -73,7 +72,6 @@ man/*.html
 man/Makefile.in
 missing
 src/libsodium/*.def
-src/libsodium/include/sodium/version.h
 stamp-*
 test-driver
 test/default/browser
