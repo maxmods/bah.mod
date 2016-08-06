@@ -22,8 +22,10 @@ SuperStrict
 
 Import BRL.Blitz
 
-?win32
-Import "lib/win32/bass.lib"
+?win32x86
+Import "-lbass"
+?win32x64
+Import "-lbass"
 ?macos
 Import "imports_macos.bmx"
 ?linux
