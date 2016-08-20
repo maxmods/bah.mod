@@ -30,10 +30,12 @@ bbdoc: Interprocess Communication
 End Rem
 Module BaH.Interprocess
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2009-2016 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: 'Timed' methods now expect a relative time in milliseconds."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.01"
@@ -272,6 +274,8 @@ Type TNamedMutex
 	
 	Rem
 	bbdoc: 
+	about: 
+	@time represents the relative time, in milliseconds, to wait before timing out.
 	End Rem
 	Method TimedLock:Int(time:Int)
 		Return bmx_named_mutex_timedlock(objectPtr, time)
@@ -345,6 +349,8 @@ Type TNamedCondition
 	
 	Rem
 	bbdoc: 
+	about: 
+	@time represents the relative time, in milliseconds, to wait before timing out.
 	End Rem
 	Method TimedWait:Int(lock:TScopedLock, time:Int)
 		Return bmx_named_condition_timedwait(objectPtr, lock.objectPtr, time)
@@ -377,22 +383,22 @@ Rem
 bbdoc: A semaphore with a global name, so it can be found from different processes.
 about: Allows several resource sharing patterns and efficient acknowledgment mechanisms.
 End Rem
-Type TNamedSempahore
+Type TNamedSemaphore
 
 	Field objectPtr:Byte Ptr
 
 	Rem
 	bbdoc: 
 	End Rem
-	Function CreateNamedSemaphore:TNamedSempahore(access:Int, name:String, initialCount:Int = 1)
-		Return New TNamedSempahore.Create(access, name, initialCount)
+	Function CreateNamedSemaphore:TNamedSemaphore(access:Int, name:String, initialCount:Int = 1)
+		Return New TNamedSemaphore.Create(access, name, initialCount)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method Create:TNamedSempahore(access:Int, name:String, initialCount:Int = 1)
-		objectPtr = bmx_named_semphore_create(access, name, initialCount)
+	Method Create:TNamedSemaphore(access:Int, name:String, initialCount:Int = 1)
+		objectPtr = bmx_named_semaphore_create(access, name, initialCount)
 		Return Self
 	End Method
 
@@ -426,9 +432,10 @@ Type TNamedSempahore
 	
 	Rem
 	bbdoc: Decrements the semaphore if the semaphore's value is greater than zero and returns true.
-	about: Otherwise, waits for the semaphore to the posted or the timeout expires. If the timeout
+	about: Otherwise, waits for the semaphore to be posted or the timeout expires. If the timeout
 	expires, the method returns false. If the semaphore is posted the function returns true.
-	If there is an error throws TSemException
+	If there is an error throws TSemException.
+	@time represents the relative time, in milliseconds, to wait.
 	End Rem
 	Method TimedWait:Int(time:Int)
 		Return bmx_named_semaphore_timedwait(objectPtr, time)
@@ -459,7 +466,7 @@ Type TNamedSempahore
 End Type
 
 Rem
-bbdoc: A scoped llock is meant to carry out the tasks for locking, unlocking, try-locking and timed-locking (recursive or not) for the Mutex.
+bbdoc: A scoped lock is meant to carry out the tasks for locking, unlocking, try-locking and timed-locking (recursive or not) for the Mutex.
 about: 
 End Rem
 Type TScopedLock
@@ -497,6 +504,8 @@ Type TScopedLock
 	
 	Rem
 	bbdoc: 
+	about:
+	@time represents the relative time, in milliseconds, to wait before timing out.
 	End Rem
 	Method TimedLock:Int(time:Int)
 		Return bmx_scoped_lock_timedlock(objectPtr, time)

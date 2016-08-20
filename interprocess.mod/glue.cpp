@@ -75,7 +75,7 @@ extern "C" {
 	int bmx_mapped_region_flush(mapped_region * region, std::size_t mappingOffset, std::size_t numBytes, int async);
 	void bmx_mapped_region_free(mapped_region * region);
 
-	named_semaphore * bmx_named_semphore_create(int access, BBString * name, int initialCount);
+	named_semaphore * bmx_named_semaphore_create(int access, BBString * name, int initialCount);
 	void bmx_named_semaphore_post(named_semaphore * semaphore);
 	void bmx_named_semaphore_wait(named_semaphore * semaphore);
 	int bmx_named_semaphore_trywait(named_semaphore * semaphore);
@@ -261,7 +261,7 @@ void bmx_mapped_region_free(mapped_region * region) {
 
 // ********************************************
 
-named_semaphore * bmx_named_semphore_create(int access, BBString * name, int initialCount) {
+named_semaphore * bmx_named_semaphore_create(int access, BBString * name, int initialCount) {
 	char * p = bbStringToCString(name);
 	named_semaphore * sem = 0;
 	
@@ -301,8 +301,7 @@ int bmx_named_semaphore_trywait(named_semaphore * semaphore) {
 }
 
 int bmx_named_semaphore_timedwait(named_semaphore * semaphore, int time) {
-	std::time_t tt(time);
-	return static_cast<int>(semaphore->timed_wait(from_time_t(tt)));
+	return static_cast<int>(semaphore->timed_wait(boost::posix_time::microsec_clock::local_time() + boost::posix_time::milliseconds(time)));
 }
 
 int bmx_named_semaphore_remove(BBString * name) {
@@ -358,8 +357,7 @@ void bmx_named_condition_wait(named_condition * cond, MaxScopedLock * lock) {
 }
 
 int bmx_named_condition_timedwait(named_condition * cond, MaxScopedLock * lock, int time) {
-	std::time_t tt(time);
-	return static_cast<int>(cond->timed_wait(*lock->GetLock(), from_time_t(tt)));
+	return static_cast<int>(cond->timed_wait(*lock->GetLock(), boost::posix_time::microsec_clock::local_time() + boost::posix_time::milliseconds(time)));
 }
 
 int bmx_named_condition_remove(BBString * name) {
@@ -393,8 +391,7 @@ int bmx_scoped_lock_trylock(MaxScopedLock * lock) {
 }
 
 int bmx_scoped_lock_timedlock(MaxScopedLock * lock, int time) {
-	std::time_t tt(time);
-	return static_cast<int>(lock->GetLock()->timed_lock(from_time_t(tt)));
+	return static_cast<int>(lock->GetLock()->timed_lock(boost::posix_time::microsec_clock::local_time() + boost::posix_time::milliseconds(time)));
 }
 
 void bmx_scoped_lock_unlock(MaxScopedLock * lock) {
@@ -442,8 +439,7 @@ int bmx_named_mutex_trylock(MaxNamedMutex * mutex) {
 }
 
 int bmx_named_mutex_timedlock(MaxNamedMutex * mutex, int time) {
-	std::time_t tt(time);
-	return static_cast<int>(mutex->GetMutex().timed_lock(from_time_t(tt)));
+	return static_cast<int>(mutex->GetMutex().timed_lock(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(time)));
 }
 
 int bmx_named_mutex_remove(BBString * name) {

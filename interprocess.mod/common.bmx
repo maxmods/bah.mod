@@ -56,7 +56,7 @@ Extern
 	Function bmx_mapped_region_flush:Int(handle:Byte Ptr, mappingOffset:Int, numBytes:Int, async:Int)
 	Function bmx_mapped_region_free(handle:Byte Ptr)
 
-	Function bmx_named_semphore_create:Byte Ptr(access:Int, name:String, initialCount:Int)
+	Function bmx_named_semaphore_create:Byte Ptr(access:Int, name:String, initialCount:Int)
 	Function bmx_named_semaphore_post(handle:Byte Ptr)
 	Function bmx_named_semaphore_wait(handle:Byte Ptr)
 	Function bmx_named_semaphore_trywait:Int(handle:Byte Ptr)
