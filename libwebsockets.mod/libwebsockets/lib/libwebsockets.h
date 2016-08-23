@@ -42,7 +42,11 @@ extern "C" {
 #define strcasecmp stricmp
 #define getdtablesize() 30000
 
+#ifdef  __MINGW64__
+typedef long long ssize_t;
+#else
 typedef int ssize_t;
+#endif
 
 #define LWS_VISIBLE
 

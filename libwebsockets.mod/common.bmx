@@ -25,6 +25,10 @@ Import Pub.ZLib
 
 Import "source.bmx"
 
+?win32
+Import "-lws2_32"
+?
+
 
 Extern
 	Function _strlen:Int(s:Byte Ptr) = "strlen"

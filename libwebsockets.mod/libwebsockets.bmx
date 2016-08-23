@@ -35,10 +35,6 @@ ModuleInfo "History: NG overload support."
 ModuleInfo "History: 1.00 Initial Release (libwebsockets 1.3)"
 
 
-?win32
-ModuleInfo "LD_OPTS: -lws2_32"
-?
-
 Import "common.bmx"
 
 '

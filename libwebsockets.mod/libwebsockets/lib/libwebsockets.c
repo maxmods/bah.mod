@@ -27,12 +27,13 @@
 #ifndef __MINGW32__
 #include <mstcpip.h>
 #else
+#include <ws2tcpip.h>
 /* MinGW Fix: Replacement for Mstcpip.h */
-struct tcp_keepalive {
-	ULONG onoff;
-	ULONG keepalivetime;
-	ULONG keepaliveinterval;
-};
+//struct tcp_keepalive {
+//	ULONG onoff;
+//	ULONG keepalivetime;
+//	ULONG keepaliveinterval;
+//};
 
 #define SIO_KEEPALIVE_VALS    _WSAIOW(IOC_VENDOR,4)
 #endif

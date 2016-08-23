@@ -17,7 +17,7 @@
 #define SOL_TCP IPPROTO_TCP
 
 #define random rand
-#define usleep _sleep
+//#define usleep _sleep
 
 #ifdef  __MINGW64__                                                             
 #define DEF_POLL_STUFF
