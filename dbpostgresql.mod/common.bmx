@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009, Bruce A Henderson
+' Copyright (c) 2007-2016, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,12 @@ Import "-lpq"
 Import "-lssl"
 Import "-lcrypto"
 Import "-framework Kerberos"
+Import "-framework LDAP"
 ?
 
 Import "include/*.h"
 
-Import "postgresqlhelper.cpp"
+Import "postgresqlhelper.c"
 
 
 
@@ -109,7 +110,7 @@ Extern
 	Function bmx_pgsql_deleteParamInts(params:Int Ptr)
 	
 	Function bmx_pgsql_setNullParam(params:Byte Ptr, index:Int)
-	Function bmx_pgsql_setParam(params:Byte Ptr, lengths:Int Ptr, formats:Int Ptr, index:Int, text:Byte Ptr, length:Int)
+	Function bmx_pgsql_setParam(params:Byte Ptr, lengths:Int Ptr, formats:Int Ptr, index:Int, Text:Byte Ptr, length:Int)
 	Function bmx_pgsql_setParamBinary(params:Byte Ptr, lengths:Int Ptr, formats:Int Ptr, index:Int, data:Byte Ptr, length:Int)
 	Function bmx_pgsql_PQexecPrepared:Byte Ptr(handle:Byte Ptr, stmtName:Byte Ptr, size:Int, params:Byte Ptr, lengths:Int Ptr, formats:Int Ptr)
 	Function bmx_pgsql_PQunescapeBytea:Byte Ptr(data:Byte Ptr, length:Int Ptr)

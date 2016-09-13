@@ -3,7 +3,7 @@ SuperStrict
 Framework BaH.DBPostgreSQL
 Import BRL.StandardIO
 
-Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "192.168.2.31", 0, "brucey", "brucey")
+Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "localhost", 0, "brucey", "brucey")
 
 If Not db Then
 	Print "Didn't work..."

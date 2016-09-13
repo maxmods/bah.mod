@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009, Bruce A Henderson
+' Copyright (c) 2007-2016, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,15 @@ about: A PostgreSQL database driver for #bah.database.Database
 End Rem
 Module BaH.DBPostgreSQL
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: 2007-2009 Bruce A Henderson"
+ModuleInfo "Copyright: 2007-2016 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Update to latest postgres client library."
+ModuleInfo "History: NG support."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: isOpen() now checks the connection status."
 ModuleInfo "History: Sets active to false when all rows read."
@@ -652,7 +655,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 						values[i].setLong(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength).toLong())
 					Case DBTYPE_FLOAT
 						values[i] = New TDBFloat
-						values[i].setFloat(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength).toFloat())
+						values[i].SetFloat(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength).toFloat())
 					Case DBTYPE_DOUBLE
 						values[i] = New TDBDouble
 						values[i].setDouble(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength).toDouble())

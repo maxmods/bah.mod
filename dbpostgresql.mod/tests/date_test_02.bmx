@@ -3,7 +3,7 @@ SuperStrict
 Framework BaH.DBPostgreSQL
 Import BRL.StandardIO
 
-Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "192.168.2.31", 0, "brucey", "brucey")
+Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "localhost", 0, "brucey", "brucey")
 
 If db.hasError() Then
 	errorAndClose(db)
@@ -65,7 +65,7 @@ If db.isOpen() Then
 	While query.nextRow()
 		Local record:TQueryRecord = query.rowRecord()
 		
-		DebugLog("Name = " + record.getString(1) + " " + record.getString(2) + " - " + ..
+		Print("Name = " + record.getString(1) + " " + record.getString(2) + " - " + ..
 			TDBDate(record.value(3)).getString() + " - " + ..
 			TDBTime(record.value(4)).getString() + " - " + ..
 			TDBDateTime(record.value(5)).getString())

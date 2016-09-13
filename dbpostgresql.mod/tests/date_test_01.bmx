@@ -2,8 +2,9 @@ SuperStrict
 
 Framework BaH.DBPostgreSQL
 Import BRL.filesystem
+Import brl.standardio
 
-Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "192.168.2.31", 0, "brucey", "brucey")
+Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "localhost", 0, "brucey", "brucey")
 
 If db.hasError() Then
 	errorAndClose(db)
@@ -52,7 +53,7 @@ If db.isOpen() Then
 		
 		' displays the String representation of date/times.
 		' You can also get record.value(index) and cast to the appropriate type, and call getDate() to retrieve the real Long value.
-		DebugLog("Name = " + record.getString(1) + " " + record.getString(2) + " - " + ..
+		Print("Name = " + record.getString(1) + " " + record.getString(2) + " - " + ..
 			record.getString(3) + " - " + record.getString(4) + " - " + record.getString(5))
 	Wend
 	
@@ -61,7 +62,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print(db.error().toString())
 	db.close()
 	End
 End Function
