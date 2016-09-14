@@ -56,8 +56,10 @@ ModuleInfo "History: 1.00 Initial Release"
 
 ?macos
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
-?win32
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/win32x64"
 ?
 
 Import BaH.Database
