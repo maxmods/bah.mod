@@ -28,6 +28,7 @@ SuperStrict
 ?linux
 Import "-L/usr/lib"
 Import "-lpq"
+Import "-lcom_err"
 ?win32
 Import "-lpq"
 ?macos
