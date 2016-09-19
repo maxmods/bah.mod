@@ -594,15 +594,15 @@ Type TxmlDoc Extends TxmlBase
 	<li><b>text</b> : the string to be parsed.</li>
 	</ul>
 	End Rem
-	Function parseDoc:TxmlDoc(text:String)
-		Assert text, XML_ERROR_PARAM
+	Function parseDoc:TxmlDoc(Text:String)
+		Assert Text, XML_ERROR_PARAM
 
 		' strip utf8 BOM		
-		If text[..3] = BOM_UTF8 Then
-			text = text[3..]
+		If Text[..3] = BOM_UTF8 Then
+			Text = Text[3..]
 		End If
 		
-		Return TxmlDoc._create(bmx_libxml_xmlParseDoc(text))
+		Return TxmlDoc._create(bmx_libxml_xmlParseDoc(Text))
 	End Function
 	
 	Rem
@@ -719,14 +719,14 @@ Type TxmlDoc Extends TxmlBase
 		Assert doc, XML_ERROR_PARAM
 		
 		If String(doc) Then
-			Local text:String = String(doc)
+			Local Text:String = String(doc)
 	
 			' strip utf8 BOM		
-			If text[..3] = BOM_UTF8 Then
-				text = text[3..]
+			If Text[..3] = BOM_UTF8 Then
+				Text = Text[3..]
 			End If
 			
-			Return TxmlDoc._create(bmx_libxml_xmlReadDoc(text, url, encoding, options))
+			Return TxmlDoc._create(bmx_libxml_xmlReadDoc(Text, url, encoding, options))
 		
 		Else If TStream(doc) Then
 		
@@ -974,10 +974,9 @@ Type TxmlDoc Extends TxmlBase
 		Else If TStream(file) Then
 			Local stream:TStream = TStream(file)
 			
-			TxmlOutputStreamHandler.stream = stream
-			TxmlOutputStreamHandler.autoClose = autoClose
+			Local handler:TxmlOutputStreamHandler = New TxmlOutputStreamHandler.Create(stream, autoClose)
 			
-			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO()
+			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO(handler)
 			ret = bmx_libxml_xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, basePtr, encoding, True)
 		End If
 		
@@ -1012,12 +1011,14 @@ Type TxmlDoc Extends TxmlBase
 			ret = bmx_libxml_xmlSaveFormatFile(filename, basePtr, encoding, format)
 	
 		Else If TStream(file) Then
-			Local stream:TStream = TStream(file)
+			'Local stream:TStream = TStream(file)
 			
-			TxmlOutputStreamHandler.stream = stream
-			TxmlOutputStreamHandler.autoClose = autoClose
+			Local handler:TxmlOutputStreamHandler = New TxmlOutputStreamHandler.Create(TStream(file), autoClose)
 			
-			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO()
+			'TxmlOutputStreamHandler.stream = stream
+			'TxmlOutputStreamHandler.autoClose = autoClose
+			
+			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO(handler)
 			ret = bmx_libxml_xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, basePtr, encoding, format)
 		End If
 
@@ -1066,10 +1067,10 @@ Type TxmlDoc Extends TxmlBase
 	</ul>
 	</p>
 	End Rem
-	Method encodeEntities:String(text:String)
-		Assert text, XML_ERROR_PARAM
+	Method encodeEntities:String(Text:String)
+		Assert Text, XML_ERROR_PARAM
 		
-		Return encodeEntitiesReentrant(text)
+		Return encodeEntitiesReentrant(Text)
 	End Method
 	
 	Rem
@@ -2290,9 +2291,9 @@ Type TxmlOutputBuffer
 		Return TxmlOutputBuffer._create(xmlOutputBufferCreateBuffer(buffer.xmlBufferPtr, Null))
 	End Function
 
-	Function createIO:TxmlOutputBuffer()
-		Return TxmlOutputBuffer._create(xmlOutputBufferCreateIO(TxmlOutputStreamHandler.writeCallback, ..
-				TxmlOutputStreamHandler.closeCallback, Null, Null))
+	Function createIO:TxmlOutputBuffer(handler:TxmlOutputStreamHandler)
+		Return TxmlOutputBuffer._create(xmlOutputBufferCreateIO(TxmlOutputStreamHandler._writeCallback, ..
+				TxmlOutputStreamHandler._closeCallback, handler, Null))
 	End Function
 	
 End Type
@@ -2863,10 +2864,10 @@ Type TxmlXPathContext
 	<li><b>text</b> : the XPath expression</li>
 	</ul>
 	End Rem
-	Method evalExpression:TxmlXPathObject(text:String)
-		Assert text, XML_ERROR_PARAM
+	Method evalExpression:TxmlXPathObject(Text:String)
+		Assert Text, XML_ERROR_PARAM
 		
-		Return TxmlXPathObject._create(bmx_libxml_xmlXPathEvalExpression(text, xmlXPathContextPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathEvalExpression(Text, xmlXPathContextPtr))
 	End Method
 	
 	Rem
@@ -2877,10 +2878,10 @@ Type TxmlXPathContext
 	<li><b>text</b> : the XPath expression</li>
 	</ul>
 	End Rem
-	Method eval:TxmlXPathObject(text:String)
-		Assert text, XML_ERROR_PARAM
+	Method eval:TxmlXPathObject(Text:String)
+		Assert Text, XML_ERROR_PARAM
 		
-		Return TxmlXPathObject._create(bmx_libxml_xmlXPathEval(text, xmlXPathContextPtr))
+		Return TxmlXPathObject._create(bmx_libxml_xmlXPathEval(Text, xmlXPathContextPtr))
 	End Method
 	
 	'Rem
@@ -3409,11 +3410,11 @@ Type TxmlTextReader
 	</ul>
 	</p>
 	End Rem
-	Function fromDoc:TxmlTextReader(text:String, url:String, encoding:String, options:Int)
-		Assert text, XML_ERROR_PARAM
+	Function fromDoc:TxmlTextReader(Text:String, url:String, encoding:String, options:Int)
+		Assert Text, XML_ERROR_PARAM
 		Assert url, XML_ERROR_PARAM
 		
-		Local docTextPtr:Byte Ptr = text.ToUTF8String()
+		Local docTextPtr:Byte Ptr = Text.ToUTF8String()
 
 		Local t:TxmlTextReader = TxmlTextReader._create(bmx_libxml_xmlReaderForDoc(docTextPtr, url, encoding, options))
 		
@@ -4603,7 +4604,7 @@ Type TxmlURI
 	Rem
 	bbdoc: Returns the path string.
 	End Rem
-	Method getPath:String()
+	Method GetPath:String()
 		Return bmx_libxml_xmluri_path(xmlURIPtr)
 	End Method
 

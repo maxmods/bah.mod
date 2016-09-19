@@ -37,8 +37,8 @@ Extern
 	Function xmlSetStructuredErrorFunc(data:Object, callback(data:Object, error:Byte Ptr))
 	
 	Function xmlOutputBufferCreateBuffer:Byte Ptr(buffer:Byte Ptr, encoder:Byte Ptr)
-	Function xmlOutputBufferCreateIO:Byte Ptr(writeCallback:Int(context:TStream, buffer:Byte Ptr, length:Int), ..
-		closeCallback:Int(context:TStream), context:TStream, encoder:Byte Ptr)
+	Function xmlOutputBufferCreateIO:Byte Ptr(writeCallback:Int(context:TxmlOutputStreamHandler, buffer:Byte Ptr, length:Int), ..
+		closeCallback:Int(context:TxmlOutputStreamHandler), context:TxmlOutputStreamHandler, encoder:Byte Ptr)
 		
 	
 End Extern
@@ -107,11 +107,11 @@ Extern
 	Function bmx_libxml_xmlUnlinkNode(handle:Byte Ptr)
 	Function bmx_libxml_xmlFreeNode(handle:Byte Ptr)
 	
-	Function bmx_libxml_xmlReadDoc:Byte Ptr(text:String, url:String, encoding:String, options:Int)
+	Function bmx_libxml_xmlReadDoc:Byte Ptr(Text:String, url:String, encoding:String, options:Int)
 	Function bmx_libxml_xmlNewDoc:Byte Ptr(version:String)
 	Function bmx_libxml_xmlParseFile:Byte Ptr(filename:String)
 	Function bmx_libxml_xmlParseMemory:Byte Ptr(buf:Byte Ptr, size:Int)
-	Function bmx_libxml_xmlParseDoc:Byte Ptr(text:String)
+	Function bmx_libxml_xmlParseDoc:Byte Ptr(Text:String)
 	Function bmx_libxml_xmlReadFile:Byte Ptr(filename:String, encoding:String, options:Int)
 	Function bmx_libxml_xmlParseCatalogFile:Byte Ptr(filename:String)
 	Function bmx_libxml_xmldoc_url:String(handle:Byte Ptr)
@@ -136,8 +136,8 @@ Extern
 	Function bmx_libxml_xmlNewDtd:Byte Ptr(handle:Byte Ptr, name:String, externalID:String, systemID:String)
 	Function bmx_libxml_xmlXPathOrderDocElems(handle:Byte Ptr, value:Long Ptr)
 	Function bmx_libxml_xmlCopyDoc:Byte Ptr(handle:Byte Ptr, recursive:Int)
-	Function bmx_libxml_xmlAddDocEntity:Byte Ptr(handle:Byte Ptr, name:String, entityType:Int, externalID:String, systemID:String, content:String)
-	Function bmx_libxml_xmlAddDtdEntity:Byte Ptr(handle:Byte Ptr, name:String, entityType:Int, externalID:String, systemID:String, content:String)
+	Function bmx_libxml_xmlAddDocEntity:Byte Ptr(handle:Byte Ptr, name:String, EntityType:Int, externalID:String, systemID:String, content:String)
+	Function bmx_libxml_xmlAddDtdEntity:Byte Ptr(handle:Byte Ptr, name:String, EntityType:Int, externalID:String, systemID:String, content:String)
 	Function bmx_libxml_xmlEncodeEntitiesReentrant:String(handle:Byte Ptr, inp:String)
 	Function bmx_libxml_xmlEncodeSpecialChars:String(handle:Byte Ptr, inp:String)
 	Function bmx_libxml_xmlGetDocEntity:Byte Ptr(handle:Byte Ptr, name:String)
@@ -194,8 +194,8 @@ Extern
 	Function bmx_libxml_xmlFreeValidCtxt(handle:Byte Ptr)
 	
 	Function bmx_libxml_xmlXPtrNewContext:Byte Ptr(doc:Byte Ptr, here:Byte Ptr, origin:Byte Ptr)
-	Function bmx_libxml_xmlXPathEvalExpression:Byte Ptr(text:String, handle:Byte Ptr)
-	Function bmx_libxml_xmlXPathEval:Byte Ptr(text:String, handle:Byte Ptr)
+	Function bmx_libxml_xmlXPathEvalExpression:Byte Ptr(Text:String, handle:Byte Ptr)
+	Function bmx_libxml_xmlXPathEval:Byte Ptr(Text:String, handle:Byte Ptr)
 	Function bmx_libxml_xmlxpathcontext_doc:Byte Ptr(handle:Byte Ptr)
 	Function bmx_libxml_xmlxpathcontext_node:Byte Ptr(handle:Byte Ptr)
 	Function bmx_libxml_xmlXPathRegisterNs:Int(handle:Byte Ptr, prefix:String, uri:String)
@@ -287,7 +287,7 @@ Extern
 	Function bmx_libxml_xmlNormalizeURIPath:String(path:String)
 	Function bmx_libxml_xmlURIEscape:String(uri:String)
 	Function bmx_libxml_xmlURIEscapeStr:String(uri:String, list:String)
-	Function bmx_libxml_xmlURIUnescapeString:String(text:String)
+	Function bmx_libxml_xmlURIUnescapeString:String(Text:String)
 	Function bmx_libxml_xmlParseURIReference:Int(handle:Byte Ptr, uri:String)
 	Function bmx_libxml_xmlSaveUri:String(handle:Byte Ptr)
 	Function bmx_libxml_xmluri_scheme:String(handle:Byte Ptr)
@@ -605,29 +605,34 @@ Const BOM_UTF8:String = Chr(239) + Chr(187) + Chr(191)
 
 Type TxmlOutputStreamHandler
 
-	Global stream:TStream
-	Global autoClose:Int
+	Field stream:TStream
+	Field autoClose:Int
 	
-	Function writeCallback:Int(context:TStream, buffer:Byte Ptr, length:Int)
-		If Not stream Then
-			Return -1
-		End If
+	Method Create:TxmlOutputStreamHandler(stream:TStream, autoClose:Int)
+		Self.stream = stream
+		Self.autoClose = autoClose
+		Return Self
+	End Method
 	
-		Local count:Int = stream.WriteBytes(buffer, length)
+	Function _writeCallback:Int(context:TxmlOutputStreamHandler, buffer:Byte Ptr, length:Int)
+		Return context.writeCallback(buffer, length)
 	End Function
+	
+	Method writeCallback:Int(buffer:Byte Ptr, length:Int)
+		Return stream.WriteBytes(buffer, length)
+	End Method
 
-	Function closeCallback:Int(context:TStream)
-		If Not stream Then
-			Return -1
-		End If
+	Function _closeCallback:Int(context:TxmlOutputStreamHandler)
+		Return context.closeCallback()
+	End Function
+		
+	Method closeCallback:Int()
 		
 		If autoClose Then
 			stream.Close()
 		End If
 		
-		stream = Null
 		Return 0
-	End Function
-
+	End Method
 
 End Type
