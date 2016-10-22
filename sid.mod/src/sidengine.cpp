@@ -178,7 +178,7 @@ void SIDEngine::synth_render (word *buffer, dword len)
   }
 
 #ifdef USE_FILTER
-  filter.freq  = (4 * sid.ffreqhi + (sid.ffreqlo&0x7)) * filtmul;
+  filter.freq  = (8 * sid.ffreqhi + (sid.ffreqlo&0x7)) * filtmul;
   
  if (filter.freq>pfloat_ConvertFromInt(1))
      filter.freq=pfloat_ConvertFromInt(1);
