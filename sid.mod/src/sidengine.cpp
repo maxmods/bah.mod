@@ -30,7 +30,7 @@ static inline byte get_bit(dword val, byte b)
 static int opcodes[256]= {
   brk,ora,xxx,xxx,xxx,ora,asl,xxx,php,ora,asl,xxx,xxx,ora,asl,xxx,
   bpl,ora,xxx,xxx,xxx,ora,asl,xxx,clc,ora,xxx,xxx,xxx,ora,asl,xxx,
-  jsr,_and,xxx,xxx,bit,_and,rol,xxx,plp,_and,rol,xxx,bit,_and,rol,xxx,
+  jsr,_and,slo,xxx,bit,_and,rol,xxx,plp,_and,rol,xxx,bit,_and,rol,xxx,
   bmi,_and,xxx,xxx,xxx,_and,rol,xxx,sec,_and,xxx,xxx,xxx,_and,rol,xxx,
   rti,eor,xxx,xxx,xxx,eor,lsr,xxx,pha,eor,lsr,xxx,jmp,eor,lsr,xxx,
   bvc,eor,xxx,xxx,xxx,eor,lsr,xxx,cli,eor,xxx,xxx,xxx,eor,lsr,xxx,
@@ -38,9 +38,9 @@ static int opcodes[256]= {
   bvs,adc,xxx,xxx,xxx,adc,ror,xxx,sei,adc,xxx,xxx,xxx,adc,ror,xxx,
   xxx,sta,xxx,xxx,sty,sta,stx,xxx,dey,xxx,txa,xxx,sty,sta,stx,xxx,
   bcc,sta,xxx,xxx,sty,sta,stx,xxx,tya,sta,txs,xxx,xxx,sta,xxx,xxx,
-  ldy,lda,ldx,xxx,ldy,lda,ldx,xxx,tay,lda,tax,xxx,ldy,lda,ldx,xxx,
+  ldy,lda,ldx,xxx,ldy,lda,ldx,xxx,tay,lda,tax,xxx,ldy,lda,ldx,lax,
   bcs,lda,xxx,xxx,ldy,lda,ldx,xxx,clv,lda,tsx,xxx,ldy,lda,ldx,xxx,
-  cpy,cmp,xxx,xxx,cpy,cmp,dec,xxx,iny,cmp,dex,xxx,cpy,cmp,dec,xxx,
+  cpy,cmp,xxx,xxx,cpy,cmp,dec,xxx,iny,cmp,dex,axs,cpy,cmp,dec,xxx,
   bne,cmp,xxx,xxx,xxx,cmp,dec,xxx,cld,cmp,xxx,xxx,xxx,cmp,dec,xxx,
   cpx,sbc,xxx,xxx,cpx,sbc,inc,xxx,inx,sbc,nop,xxx,cpx,sbc,inc,xxx,
   beq,sbc,xxx,xxx,xxx,sbc,inc,xxx,sed,sbc,xxx,xxx,xxx,sbc,inc,xxx
@@ -997,6 +997,25 @@ inline void SIDEngine::cpuParse()
             setflags(FLAG_Z, !a);
             setflags(FLAG_N, a&0x80);
             break;  
+        case slo:
+            bval = getaddr(addr);
+            setflags(FLAG_C, bval >> 7);
+            bval <<= 1;
+            setaddr(addr, bval);
+            a |= bval;
+            setflags(FLAG_Z, !a);
+            setflags(FLAG_N, a&0x80);
+            break;
+        case axs:
+            x = (x & a) - getaddr(addr);
+            setflags(FLAG_Z, a == 0);
+            setflags(FLAG_N, a > 127);
+            break;
+        case lax:
+            a = x = getaddr(addr);
+            setflags(FLAG_Z, a == 0);
+            setflags(FLAG_N, a & 0x80);
+            break;
     }        
 }
 
