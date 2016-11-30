@@ -2064,8 +2064,8 @@ Type TxmlNode Extends TxmlBase
 	bbdoc: Get the last child.
 	returns: The last child or Null if none.
 	End Rem
-	Method getLastChild:TxmlNode(nodeType:Int = XML_ELEMENT_NODE)
-		Return TxmlNode(Super.getLastChild(nodeType))
+	Method getLastChild:TxmlBase(nodeType:Int = XML_ELEMENT_NODE)
+		Return TxmlBase(Super.getLastChild(nodeType))
 	End Method
 	
 	Rem
@@ -2073,7 +2073,7 @@ Type TxmlNode Extends TxmlBase
 	returns: The first child or Null if none.
 	End Rem
 	Method getFirstChild:TxmlBase(nodeType:Int = XML_ELEMENT_NODE)
-		Return TxmlNode(Super.getFirstChild(nodeType))
+		Return TxmlBase(Super.getFirstChild(nodeType))
 	End Method
 
 	Rem
