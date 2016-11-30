@@ -22,7 +22,11 @@ SuperStrict
 
 Import BRL.Blitz
 
+?x64
+Import "-lgmex64"
+?Not x64
 Import "-lgme"
+?
 
 Import "gme/src/*.h"
 

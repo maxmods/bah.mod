@@ -6,6 +6,7 @@
 @define copydll
 	local ext
 	local pre
+	local arch = ""
 
 	if bmk.Platform() == "win32" then
 		ext = "dll"
@@ -22,8 +23,12 @@
 		pre = "lib"
 	end
 
+	if bmk.CPU() == "x64" and arg1 == "gme" then
+		arch = bmk.CPU()
+	end
+
 	local path = utils.ModulePath("bah." .. arg1) .. "/lib/" .. bmk.Platform() .. "/"
-	local file = pre .. arg1 .. "." .. ext
+	local file = pre .. arg1 .. arch .. "." .. ext
 
 	sys.CopyFile(path .. file, %exepath% .. "/" .. file)
 @end
@@ -31,3 +36,4 @@
 # do the copy
 copydll bass
 copydll gme
+
