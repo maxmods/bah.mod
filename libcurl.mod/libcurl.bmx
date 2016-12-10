@@ -55,7 +55,7 @@ ModuleInfo "History: Added c-ares (1.4.0) for asynchronous DNS resolving."
 ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4)"
 
 ?Not win32
-ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DSIZEOF_INT=4 -DSIZEOF_SHORT=2 -DSIZEOF_SIZE_T=4"
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
 ?win32
 ModuleInfo "CC_OPTS: -DHAVE_GETTIMEOFDAY -DCURL_DISABLE_LDAP"
 ?
