@@ -10,8 +10,17 @@
 /* when building as static part of libcurl */
 /* #undef BUILDING_LIBCURL */
 
+/* Defined for build that exposes internal static functions for testing. */
+/* #undef CARES_EXPOSE_STATICS */
+
+/* Defined for build with symbol hiding. */
+#define CARES_SYMBOL_HIDING 1
+
 /* Definition to make a library symbol externally visible. */
 #define CARES_SYMBOL_SCOPE_EXTERN __attribute__ ((__visibility__ ("default")))
+
+/* Use resolver library to configure cares */
+/* #undef CARES_USE_LIBRESOLV */
 
 /* if a /etc/inet dir is being used */
 /* #undef ETC_INET */
@@ -73,6 +82,9 @@
 /* Define to 1 if you have the connect function. */
 #define HAVE_CONNECT 1
 
+/* define if the compiler supports basic C++11 syntax */
+#define HAVE_CXX11 1
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
 
@@ -121,10 +133,8 @@
 /* Define to 1 if you have the `if_indextoname' function. */
 #define HAVE_IF_INDEXTONAME 1
 
-#ifdef __APPLE__
 /* Define to 1 if you have a IPv6 capable working inet_net_pton function. */
 #define HAVE_INET_NET_PTON 1
-#endif
 
 /* Define to 1 if you have a IPv6 capable working inet_ntop function. */
 #define HAVE_INET_NTOP 1
@@ -325,8 +335,7 @@
 /* Define to 1 if you have the ws2tcpip.h header file. */
 /* #undef HAVE_WS2TCPIP_H */
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Define to 1 if you need the malloc.h header file even with stdlib.h */
@@ -341,11 +350,8 @@
 /* Define to 1 if _THREAD_SAFE preprocessor symbol must be defined. */
 /* #undef NEED_THREAD_SAFE */
 
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-/* #undef NO_MINUS_C_MINUS_O */
-
 /* cpu-machine-OS */
-#define OS "i386-apple-darwin9.6.0"
+#define OS "x86_64-apple-darwin15.6.0"
 
 /* Name of package */
 #define PACKAGE "c-ares"
@@ -357,7 +363,7 @@
 #define PACKAGE_NAME "c-ares"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "c-ares 1.10.0"
+#define PACKAGE_STRING "c-ares 1.12.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "c-ares"
@@ -366,7 +372,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.10.0"
+#define PACKAGE_VERSION "1.12.0"
 
 /* a suitable file/device to read random data from */
 #define RANDOM_FILE "/dev/urandom"
@@ -440,27 +446,6 @@
 /* Define to the function return type for send. */
 #define SEND_TYPE_RETV ssize_t
 
-/* The size of `int', as computed by sizeof. */
-#define SIZEOF_INT 4
-
-/* The size of `long', as computed by sizeof. */
-#define SIZEOF_LONG 4
-
-/* The size of `short', as computed by sizeof. */
-#define SIZEOF_SHORT 2
-
-/* The size of `size_t', as computed by sizeof. */
-#define SIZEOF_SIZE_T 4
-
-/* The size of `struct in6_addr', as computed by sizeof. */
-#define SIZEOF_STRUCT_IN6_ADDR 16
-
-/* The size of `struct in_addr', as computed by sizeof. */
-#define SIZEOF_STRUCT_IN_ADDR 4
-
-/* The size of `time_t', as computed by sizeof. */
-#define SIZEOF_TIME_T 4
-
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
@@ -471,7 +456,7 @@
 /* #undef USE_BLOCKING_SOCKETS */
 
 /* Version number of package */
-#define VERSION "1.10.0"
+#define VERSION "1.12.0"
 
 /* Define to avoid automatic inclusion of winsock.h */
 /* #undef WIN32_LEAN_AND_MEAN */

@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -667,27 +667,27 @@ Type TCurlEasy Extends TCurlHasLists
 	about: All input characters that are not a-z, A-Z or 0-9 are converted to their "URL escaped" version
 	(%NN where NN is a two-digit hexadecimal number).
 	End Rem
-	Method escape:String(text:String)
+	Method escape:String(Text:String)
 		If easyHandlePtr Then
-			If Not text Then
-				text = ""
+			If Not Text Then
+				Text = ""
 			End If
 			
-			Local s:Byte Ptr = text.toCString()
+			Local s:Byte Ptr = Text.toCString()
 			
-			Local s2:Byte Ptr = curl_easy_escape(easyHandlePtr, s, text.length)
+			Local s2:Byte Ptr = curl_easy_escape(easyHandlePtr, s, Text.length)
 			
 			' free c string
 			MemFree(s)
 
 			If s2 Then
 
-				text = String.fromCString(s2)
+				Text = String.fromCString(s2)
 
 				' free curl string
 				curl_free(s2)
 				
-				Return text
+				Return Text
 			End If
 		
 		End If	
@@ -700,28 +700,28 @@ Type TCurlEasy Extends TCurlHasLists
 	about: All input characters that are URL encoded (%XX where XX is a two-digit hexadecimal number)
 	are converted to their binary versions.
 	End Rem
-	Method unEscape:String(text:String)
+	Method unEscape:String(Text:String)
 		If easyHandlePtr Then
-			If Not text Then
-				text = ""
+			If Not Text Then
+				Text = ""
 			End If
 			
-			Local s:Byte Ptr = text.toCString()
+			Local s:Byte Ptr = Text.toCString()
 			Local out:Int
 			
-			Local s2:Byte Ptr = curl_easy_unescape(easyHandlePtr, s, text.length, Varptr out)
+			Local s2:Byte Ptr = curl_easy_unescape(easyHandlePtr, s, Text.length, Varptr out)
 
 			' free c string
 			MemFree(s)
 			
 			If s2 Then
 
-				text = String.fromBytes(s2, out)
+				Text = String.fromBytes(s2, out)
 
 				' free curl string
 				curl_free(s2)
 				
-				Return text
+				Return Text
 			End If
 		
 		End If	

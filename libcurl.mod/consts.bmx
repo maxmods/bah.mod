@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -46,12 +46,13 @@ Const CURL_GLOBAL_NOTHING:Int = 0
 Const CURL_GLOBAL_DEFAULT:Int = CURL_GLOBAL_ALL
 
 Const CURLOPTTYPE_LONG:Int = 0
-Const OBJECTPOINT:Int = 10000
-Const FUNCTIONPOINT:Int = 20000
-Const OFF_T:Int = 30000
+Const CURLOPTTYPE_OBJECTPOINT:Int = 10000
+Const CURLOPTTYPE_STRINGPOINT:Int = 10000
+Const CURLOPTTYPE_FUNCTIONPOINT:Int = 20000
+Const CURLOPTTYPE_OFF_T:Int = 30000
 
 ' see CURLOPT_WRITEDATA
-Const CURLOPT_FILE:Int = OBJECTPOINT + 1
+Const CURLOPT_FILE:Int = CURLOPTTYPE_OBJECTPOINT + 1
 
 Rem
 bbdoc: The actual URL to deal with.
@@ -60,7 +61,7 @@ protocol to use based on the given host name. If the given protocol of the set U
 libcurl will return on error (#CURLE_UNSUPPORTED_PROTOCOL) when you call #perform.<br>
 Use #VersionInfo for detailed info on which protocols that are supported.
 End Rem
-Const CURLOPT_URL:Int =  OBJECTPOINT + 2
+Const CURLOPT_URL:Int =  CURLOPTTYPE_OBJECTPOINT + 2
 
 Rem
 bbdoc: Port number to connect, if other than default.
@@ -93,7 +94,7 @@ The proxy host string given in environment variables can be specified the exact 
 can be set with #CURLOPT_PROXY, include protocol prefix (http://) and embedded user + password.
 </p>
 End Rem
-Const CURLOPT_PROXY:Int = OBJECTPOINT + 4
+Const CURLOPT_PROXY:Int = CURLOPTTYPE_OBJECTPOINT + 4
 
 Rem
 bbdoc: A String which should be [user name]:[password] to use for the connection.
@@ -110,13 +111,13 @@ libcurl will only send this user and password information to hosts using the ini
 not send the user and password to those. This is enforced to prevent accidental information leakage.
 </p>
 End Rem
-Const CURLOPT_USERPWD:Int = OBJECTPOINT + 5
+Const CURLOPT_USERPWD:Int = CURLOPTTYPE_OBJECTPOINT + 5
 
 Rem
 bbdoc: A String which should be [user name]:[password] to use for the connection to the HTTP proxy.
 about: Use #CURLOPT_PROXYAUTH to decide authentication method.
 End Rem
-Const CURLOPT_PROXYUSERPWD:Int = OBJECTPOINT + 6
+Const CURLOPT_PROXYUSERPWD:Int = CURLOPTTYPE_OBJECTPOINT + 6
 
 Rem
 bbdoc: A String which should contain the specified range you want.
@@ -125,28 +126,28 @@ separated with commas as in "X-Y,N-M". Using this kind of multiple intervals wil
 server to send the response document in pieces (using standard MIME separation techniques).
 Pass a Null to this option to disable the use of ranges.
 End Rem
-Const CURLOPT_RANGE:Int = OBJECTPOINT + 7
+Const CURLOPT_RANGE:Int = CURLOPTTYPE_OBJECTPOINT + 7
 
 Rem
 bbdoc: Specified file stream to upload from (use as Input).
 about: See also #CURLOPT_READDATA.
 End Rem
-Const CURLOPT_INFILE:Int = OBJECTPOINT + 9
+Const CURLOPT_INFILE:Int = CURLOPTTYPE_OBJECTPOINT + 9
 
 Rem
 bbdoc: See instead #setDebugCallback.
 End Rem
-Const CURLOPT_ERRORBUFFER:Int = OBJECTPOINT + 10
+Const CURLOPT_ERRORBUFFER:Int = CURLOPTTYPE_OBJECTPOINT + 10
 
 Rem
 bbdoc: See instead #setWriteCallback.
 End Rem
-Const CURLOPT_WRITEFUNCTION:Int = FUNCTIONPOINT + 11
+Const CURLOPT_WRITEFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 11
 
 Rem
 bbdoc: See instead #setReadCallback.
 End Rem
-Const CURLOPT_READFUNCTION:Int = FUNCTIONPOINT + 12
+Const CURLOPT_READFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 12
 
 Rem
 bbdoc: The maximum time in seconds that you allow the libcurl transfer operation to take.
@@ -190,14 +191,14 @@ header with #httpHeader as usual.
 To make multipart/formdata posts (aka rfc1867-posts), check out the #CURLOPT_HTTPPOST option. 
 </p>
 End Rem
-Const CURLOPT_POSTFIELDS:Int = OBJECTPOINT + 15
+Const CURLOPT_POSTFIELDS:Int = CURLOPTTYPE_OBJECTPOINT + 15
 
 Rem
 bbdoc: A String used to set the Referer: header in the http request sent to the remote server.
 about: This can be used to fool servers or scripts. You can also set any custom header with
 #httpHeader.
 End Rem
-Const CURLOPT_REFERER:Int = OBJECTPOINT + 16
+Const CURLOPT_REFERER:Int = CURLOPTTYPE_OBJECTPOINT + 16
 
 Rem
 bbdoc: A String used to get the IP address to use for the ftp PORT instruction.
@@ -208,14 +209,14 @@ systems default IP address. Default FTP operations are passive, and thus won't u
 You disable PORT again and go back to using the passive version by setting this option to Null. 
 </p>
 End Rem
-Const CURLOPT_FTPPORT:Int = OBJECTPOINT + 17
+Const CURLOPT_FTPPORT:Int = CURLOPTTYPE_OBJECTPOINT + 17
 
 Rem
 bbdoc: A String used to set the User-Agent: header in the http request sent to the remote server.
 about: This can be used to fool servers or scripts. You can also set any custom header
 with #httpHeader.
 End Rem
-Const CURLOPT_USERAGENT:Int = OBJECTPOINT + 18
+Const CURLOPT_USERAGENT:Int = CURLOPTTYPE_OBJECTPOINT + 18
 
 Rem
 bbdoc: A number, which contains the transfer speed in bytes per second that the transfer should be below during #CURLOPT_LOW_SPEED_TIME seconds for the library to consider it too slow and abort.
@@ -248,17 +249,17 @@ concatenate them all in one single string. Set multiple cookies in one string li
 Using this option multiple times will only make the latest string override the previously ones.
 </p>
 End Rem
-Const CURLOPT_COOKIE:Int = OBJECTPOINT + 22
+Const CURLOPT_COOKIE:Int = CURLOPTTYPE_OBJECTPOINT + 22
 
 Rem
 bbdoc: See the #httpHeader method for details.
 End Rem
-Const CURLOPT_HTTPHEADER:Int = OBJECTPOINT + 23
+Const CURLOPT_HTTPHEADER:Int = CURLOPTTYPE_OBJECTPOINT + 23
 
 Rem
 bbdoc: See the #httpPost method for details.
 End Rem
-Const CURLOPT_HTTPPOST:Int = OBJECTPOINT + 24
+Const CURLOPT_HTTPPOST:Int = CURLOPTTYPE_OBJECTPOINT + 24
 
 Rem
 bbdoc: The file name of your certificate.
@@ -267,15 +268,15 @@ about: The default format is "PEM" and can be changed with #CURLOPT_SSLCERTTYPE.
 With NSS this is the nickname of the certificate you wish to authenticate with. 
 </p>
 End Rem
-Const CURLOPT_SSLCERT:Int = OBJECTPOINT + 25
+Const CURLOPT_SSLCERT:Int = CURLOPTTYPE_OBJECTPOINT + 25
 
 ' see CURLOPT_SSLKEYPASSWD
-Const CURLOPT_SSLCERTPASSWD:Int = OBJECTPOINT + 26
+Const CURLOPT_SSLCERTPASSWD:Int = CURLOPTTYPE_OBJECTPOINT + 26
 
 Rem
 bbdoc: String to be used as the password required to use the #CURLOPT_SSLKEY or #CURLOPT_SSH_PRIVATE_KEYFILE private key.
 End Rem
-Const CURLOPT_SSLKEYPASSWD:Int = OBJECTPOINT + 26
+Const CURLOPT_SSLKEYPASSWD:Int = CURLOPTTYPE_OBJECTPOINT + 26
 
 Rem
 bbdoc: Convert Unix newlines to CRLF newlines on transfers.
@@ -285,10 +286,10 @@ Const CURLOPT_CRLF:Int = CURLOPTTYPE_LONG + 27
 Rem
 bbdoc: See the #quote method for details.
 End Rem
-Const CURLOPT_QUOTE:Int = OBJECTPOINT + 28
+Const CURLOPT_QUOTE:Int = CURLOPTTYPE_OBJECTPOINT + 28
 
 ' see setHeaderCallback()
-Const CURLOPT_WRITEHEADER:Int = OBJECTPOINT + 29
+Const CURLOPT_WRITEHEADER:Int = CURLOPTTYPE_OBJECTPOINT + 29
 
 ' see setWriteCallback()
 Const CURLOPT_WRITEDATA:Int = CURLOPT_FILE
@@ -313,7 +314,7 @@ If you use this option multiple times, you just add more files to read. Subseque
 cookies.
 </p>
 End Rem
-Const CURLOPT_COOKIEFILE:Int = OBJECTPOINT + 31
+Const CURLOPT_COOKIEFILE:Int = CURLOPTTYPE_OBJECTPOINT + 31
 
 Rem
 bbdoc: An option to control what version of SSL/TLS to attempt to use.
@@ -361,18 +362,18 @@ data. Use #httpHeader to replace or extend the set of headers sent by libcurl. U
 to change HTTP version.
 </p>
 End Rem
-Const CURLOPT_CUSTOMREQUEST:Int = OBJECTPOINT + 36
+Const CURLOPT_CUSTOMREQUEST:Int = CURLOPTTYPE_OBJECTPOINT + 36
 
 '
-Const CURLOPT_STDERR:Int = OBJECTPOINT + 37
+Const CURLOPT_STDERR:Int = CURLOPTTYPE_OBJECTPOINT + 37
 
 Rem
 bbdoc: For details see #postQuote.
 End Rem
-Const CURLOPT_POSTQUOTE:Int = OBJECTPOINT + 39
+Const CURLOPT_POSTQUOTE:Int = CURLOPTTYPE_OBJECTPOINT + 39
 
 '
-Const CURLOPT_WRITEINFO:Int = OBJECTPOINT + 40
+Const CURLOPT_WRITEINFO:Int = CURLOPTTYPE_OBJECTPOINT + 40
 
 Rem
 bbdoc: Set to non-zero to get the library to display a lot of verbose information about its operations.
@@ -524,12 +525,12 @@ Const CURLOPT_PUT:Int = CURLOPTTYPE_LONG + 54
 Rem
 bbdoc: For details see #setProgressCallback
 End Rem
-Const CURLOPT_PROGRESSFUNCTION:Int = FUNCTIONPOINT + 56
+Const CURLOPT_PROGRESSFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 56
 
 Rem
 bbdoc: For details see #setProgressCallback
 End Rem
-Const CURLOPT_PROGRESSDATA:Int = OBJECTPOINT + 57
+Const CURLOPT_PROGRESSDATA:Int = CURLOPTTYPE_OBJECTPOINT + 57
 
 Rem
 bbdoc: Pass a non-zero parameter to enable this. 
@@ -561,14 +562,14 @@ Rem
 bbdoc: This sets the interface name to use as outgoing network interface.
 about: The name can be an interface name, an IP address or a host name.
 End Rem
-Const CURLOPT_INTERFACE:Int = OBJECTPOINT + 62
+Const CURLOPT_INTERFACE:Int = CURLOPTTYPE_OBJECTPOINT + 62
 
 Rem
 bbdoc: Set the kerberos security level for FTP; this also enables kerberos awareness.
 anout: This is a string, 'clear', 'safe', 'confidential' or 'private'. If the string is set but doesn't
 match one of these, 'private' will be used. Set the string to Null to disable kerberos support for FTP.
 End Rem
-Const CURLOPT_KRBLEVEL:Int = OBJECTPOINT + 63
+Const CURLOPT_KRBLEVEL:Int = CURLOPTTYPE_OBJECTPOINT + 63
 
 Rem
 bbdoc: This option determines whether curl verifies the authenticity of the peer's certificate.
@@ -601,7 +602,7 @@ Note that option is by default set to the system path where libcurl's cacert bun
 as established at build time.
 </p>
 End Rem
-Const CURLOPT_CAINFO:Int = OBJECTPOINT + 65
+Const CURLOPT_CAINFO:Int = CURLOPTTYPE_OBJECTPOINT + 65
 
 Rem
 bbdoc: The set number will be the redirection limit.
@@ -623,7 +624,7 @@ Const CURLOPT_FILETIME:Int = CURLOPTTYPE_LONG + 69
 Rem
 bbdoc: For details see #telnetOptions
 End Rem
-Const CURLOPT_TELNETOPTIONS:Int = OBJECTPOINT + 70
+Const CURLOPT_TELNETOPTIONS:Int = CURLOPTTYPE_OBJECTPOINT + 70
 
 Rem
 bbdoc: The set amount will be the maximum amount of simultaneously open connections that libcurl may cache in this easy handle.
@@ -667,13 +668,13 @@ bbdoc: Set to a file name that contains random data.
 about: The file will be used to read from to seed the random engine for SSL. The more random the specified
 file is, the more secure the SSL connection will become.
 End Rem
-Const CURLOPT_RANDOM_FILE:Int = OBJECTPOINT + 76
+Const CURLOPT_RANDOM_FILE:Int = CURLOPTTYPE_OBJECTPOINT + 76
 
 Rem
 bbdoc: A path name to the Entropy Gathering Daemon socket.
 about: It will be used to seed the random engine for SSL.
 End Rem
-Const CURLOPT_EGDSOCKET:Int = OBJECTPOINT + 77
+Const CURLOPT_EGDSOCKET:Int = CURLOPTTYPE_OBJECTPOINT + 77
 
 Rem
 bbdoc: It should contain the maximum time in seconds that you allow the connection to the server to take.
@@ -689,7 +690,7 @@ Const CURLOPT_CONNECTTIMEOUT:Int = CURLOPTTYPE_LONG + 78
 Rem
 bbdoc: For details see #setHeaderCallback
 End Rem
-Const CURLOPT_HEADERFUNCTION:Int = FUNCTIONPOINT + 79
+Const CURLOPT_HEADERFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 79
 
 Rem
 bbdoc: A number for changing the HTTP request back to get.
@@ -740,7 +741,7 @@ report an error for this. Using #CURLOPT_VERBOSE or #setDebugCallback will get a
 is the only visible feedback you get about this possibly lethal situation. 
 </p>
 End Rem
-Const CURLOPT_COOKIEJAR:Int = OBJECTPOINT + 82
+Const CURLOPT_COOKIEJAR:Int = CURLOPTTYPE_OBJECTPOINT + 82
 
 Rem
 bbdoc: A String holding the list of ciphers to use for the SSL connection.
@@ -754,7 +755,7 @@ The default list is normally set when you compile OpenSSL.
 You'll find more details about cipher lists on this URL: http://www.openssl.org/docs/apps/ciphers.html
 </p>
 End Rem
-Const CURLOPT_SSL_CIPHER_LIST:Int = OBJECTPOINT + 83
+Const CURLOPT_SSL_CIPHER_LIST:Int = CURLOPTTYPE_OBJECTPOINT + 83
 
 Rem
 bbdoc: A number set to one of the values described below to force libcurl to use the specific HTTP versions.
@@ -782,13 +783,13 @@ Rem
 bbdoc: A String in the format of your certificate.
 about: Supported formats are "PEM" and "DER".
 End Rem
-Const CURLOPT_SSLCERTTYPE:Int = OBJECTPOINT + 86
+Const CURLOPT_SSLCERTTYPE:Int = CURLOPTTYPE_OBJECTPOINT + 86
 
 Rem
 bbdoc: The String should be the file name of your private key.
 about: The default format is "PEM" and can be changed with #CURLOPT_SSLKEYTYPE.
 End Rem
-Const CURLOPT_SSLKEY:Int = OBJECTPOINT + 87
+Const CURLOPT_SSLKEY:Int = CURLOPTTYPE_OBJECTPOINT + 87
 
 Rem
 bbdoc: The String should be the format of your private key.
@@ -799,13 +800,13 @@ as an identifier passed to the engine. You have to set the crypto engine with #C
 file currently does not work because of a bug in OpenSSL. 
 </p>
 End Rem
-Const CURLOPT_SSLKEYTYPE:Int = OBJECTPOINT + 88
+Const CURLOPT_SSLKEYTYPE:Int = CURLOPTTYPE_OBJECTPOINT + 88
 
 Rem
 bbdoc: A String to be used as the identifier for the crypto engine you want to use for your private key.
 about: If the crypto device cannot be loaded, #CURLE_SSL_ENGINE_NOTFOUND is returned. 
 End Rem
-Const CURLOPT_SSLENGINE:Int = OBJECTPOINT + 89
+Const CURLOPT_SSLENGINE:Int = CURLOPTTYPE_OBJECTPOINT + 89
 
 Rem
 bbdoc: A String which sets the actual crypto engine as the default for (asymmetric) crypto operations.
@@ -824,15 +825,15 @@ Const CURLOPT_DNS_CACHE_TIMEOUT:Int = CURLOPTTYPE_LONG + 92
 Rem
 bbdoc: See the #preQuote method for details.
 End Rem
-Const CURLOPT_PREQUOTE:Int = OBJECTPOINT + 93
+Const CURLOPT_PREQUOTE:Int = CURLOPTTYPE_OBJECTPOINT + 93
 
 Rem
 bbdoc: For details see #setDebugCallback
 End Rem
-Const CURLOPT_DEBUGFUNCTION:Int = FUNCTIONPOINT + 94
+Const CURLOPT_DEBUGFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 94
 
 ' used with #setDebugCallback
-Const CURLOPT_DEBUGDATA:Int = OBJECTPOINT + 95
+Const CURLOPT_DEBUGDATA:Int = CURLOPTTYPE_OBJECTPOINT + 95
 
 Rem
 bbdoc: Set to non-zero to mark this as a new cookie "session".
@@ -847,7 +848,7 @@ Rem
 bbdoc: The CApath directory used To validate the peer certificate
 about: This option is used only If #SSL_VERIFYPEER is True
 End Rem
-Const CURLOPT_CAPATH:Int = OBJECTPOINT + 97
+Const CURLOPT_CAPATH:Int = CURLOPTTYPE_OBJECTPOINT + 97
 
 Rem
 bbdoc: Specifies your preferred size (in bytes) for the receive buffer in libcurl.
@@ -873,7 +874,7 @@ End Rem
 Const CURLOPT_NOSIGNAL:Int = CURLOPTTYPE_LONG + 99
 
 ' not required for the module
-Const CURLOPT_SHARE:Int = OBJECTPOINT + 100
+Const CURLOPT_SHARE:Int = CURLOPTTYPE_OBJECTPOINT + 100
 
 Rem
 bbdoc: Indicates yype of proxy.
@@ -929,17 +930,17 @@ content (despite not having been asked), the data is returned in its raw form
 and the Content-Encoding type is not checked.
 </p>
 End Rem
-Const CURLOPT_ENCODING:Int = OBJECTPOINT + 102
+Const CURLOPT_ENCODING:Int = CURLOPTTYPE_OBJECTPOINT + 102
 
 Rem
 bbdoc: See the #setPrivate method for details.
 End Rem
-Const CURLOPT_PRIVATE:Int = OBJECTPOINT + 103
+Const CURLOPT_PRIVATE:Int = CURLOPTTYPE_OBJECTPOINT + 103
 
 Rem
 bbdoc: See the #http200Aliases method for details.
 End Rem
-Const CURLOPT_HTTP200ALIASES:Int = OBJECTPOINT + 104
+Const CURLOPT_HTTP200ALIASES:Int = CURLOPTTYPE_OBJECTPOINT + 104
 
 Rem
 bbdoc: A non-zero value tells the library it can continue to send authentication (user+password) when following locations, even when hostname changed.
@@ -968,10 +969,10 @@ End Rem
 Const CURLOPT_HTTPAUTH:Int = CURLOPTTYPE_LONG + 107
 
 ' not using this... yet.
-Const CURLOPT_SSL_CTX_FUNCTION:Int = FUNCTIONPOINT + 108
+Const CURLOPT_SSL_CTX_FUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 108
 
 ' not using this... yet.
-Const CURLOPT_SSL_CTX_DATA:Int = OBJECTPOINT + 109
+Const CURLOPT_SSL_CTX_DATA:Int = CURLOPTTYPE_OBJECTPOINT + 109
 
 Rem
 bbdoc: If the value is non-zero, curl will attempt to create any remote directory that it fails to CWD into.
@@ -1033,13 +1034,13 @@ Note that this option does not limit how much data libcurl will actually send, a
 by what the read callback returns. 
 </p>
 End Rem
-Const CURLOPT_INFILESIZE_LARGE:Int = OFF_T + 115
+Const CURLOPT_INFILESIZE_LARGE:Int = CURLOPTTYPE_OFF_T + 115
 
 Rem
 bbdoc: It contains the offset in number of bytes that you want the transfer to start from.
 about: This is a Long value.
 End Rem
-Const CURLOPT_RESUME_FROM_LARGE:Int = OFF_T + 116
+Const CURLOPT_RESUME_FROM_LARGE:Int = CURLOPTTYPE_OFF_T + 116
 
 Rem
 bbdoc: This allows you to specify a Long value for the maximum size (in bytes) of a file to download.
@@ -1051,14 +1052,14 @@ even if the file transfer ends up being larger than this given limit. This conce
 transfers. 
 </p>
 End Rem
-Const CURLOPT_MAXFILESIZE_LARGE:Int = OFF_T + 117
+Const CURLOPT_MAXFILESIZE_LARGE:Int = CURLOPTTYPE_OFF_T + 117
 
 Rem
 bbdoc: A string containing the full path name to the file you want libcurl to use as .netrc file.
 about: If this option is omitted, and #CURLOPT_NETRC is set, libcurl will attempt to find the a .netrc
 file in the current user's home directory.
 End Rem
-Const CURLOPT_NETRC_FILE:Int = OBJECTPOINT + 118
+Const CURLOPT_NETRC_FILE:Int = CURLOPTTYPE_OBJECTPOINT + 118
 
 Rem
 bbdoc: If enabled, this option makes libcurl use CCC (Clear Command Channel).
@@ -1076,7 +1077,7 @@ Const CURLOPT_FTP_SSL:Int = CURLOPTTYPE_LONG + 119
 Rem
 bbdoc: The large-file version of the standard #CURLOPT_POSTFIELDSIZE option.
 End Rem
-Const CURLOPT_POSTFIELDSIZE_LARGE:Int = OFF_T + 120
+Const CURLOPT_POSTFIELDSIZE_LARGE:Int = CURLOPTTYPE_OFF_T + 120
 
 Rem
 bbdoc: A number specifying whether the TCP_NODELAY option should be set or cleared (1 = set, 0 = clear).
@@ -1107,15 +1108,15 @@ about: See also #CURLOPT_FTP_SSL.
 End Rem
 Const CURLOPT_FTPSSLAUTH:Int = CURLOPTTYPE_LONG + 129
 
-Const CURLOPT_IOCTLFUNCTION:Int = FUNCTIONPOINT + 130
-Const CURLOPT_IOCTLDATA:Int = OBJECTPOINT + 131
+Const CURLOPT_IOCTLFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 130
+Const CURLOPT_IOCTLDATA:Int = CURLOPTTYPE_OBJECTPOINT + 131
 
 Rem
 bbdoc: A String, or Null to disable.
 about: When an FTP server asks for "account data" after user name and password has been provided,
 this data is sent off using the ACCT command.
 End Rem
-Const CURLOPT_FTP_ACCOUNT:Int = OBJECTPOINT + 134
+Const CURLOPT_FTP_ACCOUNT:Int = CURLOPTTYPE_OBJECTPOINT + 134
 
 Rem
 bbdoc: Add a cookie String.
@@ -1124,7 +1125,7 @@ format. If cURL cookie engine was not enabled it will enable its cookie engine. 
 string "ALL" will erase all cookies known by cURL. Passing the special string "SESS" will only erase
 all session cookies known by cURL.
 End Rem
-Const CURLOPT_COOKIELIST:Int = OBJECTPOINT + 135
+Const CURLOPT_COOKIELIST:Int = CURLOPTTYPE_OBJECTPOINT + 135
 
 Rem
 bbdoc: Ignore the Content-Length header.
@@ -1187,42 +1188,42 @@ Const CURLOPT_CONNECT_ONLY:Int = CURLOPTTYPE_LONG + 141
 Rem
 bbdoc: Function that will be called To convert from the network encoding (instead of using the iconv calls in libcurl)
 End Rem
-Const CURLOPT_CONV_FROM_NETWORK_FUNCTION:Int = FUNCTIONPOINT + 142
+Const CURLOPT_CONV_FROM_NETWORK_FUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 142
 
 Rem
 bbdoc: Function that will be called To convert To the network encoding (instead of using the iconv calls in libcurl)
 End Rem
-Const CURLOPT_CONV_TO_NETWORK_FUNCTION:Int = FUNCTIONPOINT + 143
+Const CURLOPT_CONV_TO_NETWORK_FUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 143
 
 Rem
 bbdoc: Function that will be called To convert from UTF8
 about: (instead of using the iconv calls in libcurl) Note that this is used only For SSL certificate processing
 End Rem
-Const CURLOPT_CONV_FROM_UTF8_FUNCTION:Int = FUNCTIONPOINT + 144
+Const CURLOPT_CONV_FROM_UTF8_FUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 144
 
 Rem
 bbdoc: If an upload exceeds this speed on cumulative average during the transfer, the transfer will pause to keep the average rate less than or equal to this Long value.
 about: Defaults to unlimited speed.
 End Rem
-Const CURLOPT_MAX_SEND_SPEED_LARGE:Int = OFF_T + 145
+Const CURLOPT_MAX_SEND_SPEED_LARGE:Int = CURLOPTTYPE_OFF_T + 145
 
 Rem
 bbdoc: If a download exceeds this speed on cumulative average during the transfer, the transfer will pause to keep the average rate less than or equal to this Long value.
 about: Defaults to unlimited speed.
 End Rem
-Const CURLOPT_MAX_RECV_SPEED_LARGE:Int = OFF_T + 146
+Const CURLOPT_MAX_RECV_SPEED_LARGE:Int = CURLOPTTYPE_OFF_T + 146
 
 Rem
 bbdoc: A string which will be used to authenticate if the usual FTP "USER user" and "PASS password" negotiation fails.
 about: This is currently only known to be required when connecting to Tumbleweed's Secure Transport
 FTPS server using client certificates for authentication.
 End Rem
-Const CURLOPT_FTP_ALTERNATIVE_TO_USER:Int = OBJECTPOINT + 147
+Const CURLOPT_FTP_ALTERNATIVE_TO_USER:Int = CURLOPTTYPE_OBJECTPOINT + 147
 
 ' 
-Const CURLOPT_SOCKOPTFUNCTION:Int = FUNCTIONPOINT + 148
+Const CURLOPT_SOCKOPTFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 148
 ' 
-Const CURLOPT_SOCKOPTDATA:Int = OBJECTPOINT + 149
+Const CURLOPT_SOCKOPTDATA:Int = CURLOPTTYPE_OBJECTPOINT + 149
 
 Rem
 bbdoc: Set to 0 to disable libcurl's use of SSL session-ID caching.
@@ -1242,14 +1243,14 @@ Rem
 bbdoc: A file name for your public key.
 about: If not used, libcurl defaults to using ~/.ssh/id_dsa.pub.
 End Rem
-Const CURLOPT_SSH_PUBLIC_KEYFILE:Int = OBJECTPOINT + 152
+Const CURLOPT_SSH_PUBLIC_KEYFILE:Int = CURLOPTTYPE_OBJECTPOINT + 152
 
 Rem
 bbdoc: A file name for your private key.
 about: If not used, libcurl defaults to using ~/.ssh/id_dsa. If the file is password-protected,
 set the password with #CURLOPT_SSLKEYPASSWD.
 End Rem
-Const CURLOPT_SSH_PRIVATE_KEYFILE:Int = OBJECTPOINT + 153
+Const CURLOPT_SSH_PRIVATE_KEYFILE:Int = CURLOPTTYPE_OBJECTPOINT + 153
 
 Rem
 bbdoc: If enabled, this option makes libcurl use CCC (Clear Command Channel).
@@ -1317,20 +1318,20 @@ Const CURLOPT_POSTREDIR:Int = CURLOPTTYPE_LONG + 161
 Rem
 bbdoc: used by scp/sftp to verify the host's public key 
 End Rem
-Const CURLOPT_SSH_HOST_PUBLIC_KEY_MD5:Int = OBJECTPOINT + 162
+Const CURLOPT_SSH_HOST_PUBLIC_KEY_MD5:Int = CURLOPTTYPE_OBJECTPOINT + 162
 
 Rem
 bbdoc: Callback function for opening socket (instead of socket(2)).
 about: Optionally, callback is able change the address or refuse to connect returning CURL_SOCKET_BAD.
 The callback should have type curl_opensocket_callback 
 End Rem
-Const CURLOPT_OPENSOCKETFUNCTION:Int = FUNCTIONPOINT + 163
-Const CURLOPT_OPENSOCKETDATA:Int = OBJECTPOINT + 164
+Const CURLOPT_OPENSOCKETFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 163
+Const CURLOPT_OPENSOCKETDATA:Int = CURLOPTTYPE_OBJECTPOINT + 164
 
 Rem
 bbdoc: POST volatile input fields. 
 End Rem
-Const CURLOPT_COPYPOSTFIELDS:Int = OBJECTPOINT + 165
+Const CURLOPT_COPYPOSTFIELDS:Int = CURLOPTTYPE_OBJECTPOINT + 165
 
 Rem
 bbdoc: Set transfer mode (;type=&lt;a|i&gt;) when doing FTP via an HTTP proxy 
@@ -1340,18 +1341,18 @@ Const CURLOPT_PROXY_TRANSFER_MODE:Int = CURLOPTTYPE_LONG + 166
 Rem
 bbdoc: Callback function for seeking in the input stream 
 End Rem
-Const CURLOPT_SEEKFUNCTION:Int = FUNCTIONPOINT + 167
-Const CURLOPT_SEEKDATA:Int = OBJECTPOINT + 168
+Const CURLOPT_SEEKFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 167
+Const CURLOPT_SEEKDATA:Int = CURLOPTTYPE_OBJECTPOINT + 168
 
 Rem
 bbdoc: CRL file 
 End Rem
-Const CURLOPT_CRLFILE:Int = OBJECTPOINT + 169
+Const CURLOPT_CRLFILE:Int = CURLOPTTYPE_OBJECTPOINT + 169
 
 Rem
 bbdoc: Issuer certificate 
 End Rem
-Const CURLOPT_ISSUERCERT:Int = OBJECTPOINT + 170
+Const CURLOPT_ISSUERCERT:Int = CURLOPTTYPE_OBJECTPOINT + 170
 
 Rem
 bbdoc: (IPv6) Address scope 
@@ -1367,14 +1368,14 @@ Const CURLOPT_CERTINFO:Int = CURLOPTTYPE_LONG + 172
 Rem
 bbdoc: "name" and "pwd" to use when fetching. 
 End Rem
-Const CURLOPT_USERNAME:Int = OBJECTPOINT + 173
-Const CURLOPT_PASSWORD:Int = OBJECTPOINT + 174
+Const CURLOPT_USERNAME:Int = CURLOPTTYPE_OBJECTPOINT + 173
+Const CURLOPT_PASSWORD:Int = CURLOPTTYPE_OBJECTPOINT + 174
 
 Rem
 bbdoc: "name" and "pwd" to use with Proxy when fetching. 
 End Rem
-Const CURLOPT_PROXYUSERNAME:Int = OBJECTPOINT + 175
-Const CURLOPT_PROXYPASSWORD:Int = OBJECTPOINT + 176
+Const CURLOPT_PROXYUSERNAME:Int = CURLOPTTYPE_OBJECTPOINT + 175
+Const CURLOPT_PROXYPASSWORD:Int = CURLOPTTYPE_OBJECTPOINT + 176
 
 Rem
 bbdoc: Comma separated list of hostnames defining no-proxy zones.
@@ -1382,7 +1383,7 @@ about: These should match both hostnames directly, and hostnames within a domain
 notlocal.com or www.notlocal.com. For compatibility with other implementations of this, .local.com will be considered to be the same as
 local.com. A single * is the only valid wildcard, and effectively disables the use of proxy. 
 End Rem
-Const CURLOPT_NOPROXY:Int = OBJECTPOINT + 177
+Const CURLOPT_NOPROXY:Int = CURLOPTTYPE_OBJECTPOINT + 177
 
 Rem
 bbdoc: block size for TFTP transfers 
@@ -1392,7 +1393,7 @@ Const CURLOPT_TFTP_BLKSIZE:Int = CURLOPTTYPE_LONG + 178
 Rem
 bbdoc: Socks Service 
 End Rem
-Const CURLOPT_SOCKS5_GSSAPI_SERVICE:Int = OBJECTPOINT + 179
+Const CURLOPT_SOCKS5_GSSAPI_SERVICE:Int = CURLOPTTYPE_OBJECTPOINT + 179
 
 Rem
 bbdoc: Socks Service 
@@ -1414,27 +1415,27 @@ Const CURLOPT_REDIR_PROTOCOLS:Int = CURLOPTTYPE_LONG + 182
 Rem
 bbdoc: set the SSH knownhost file name to use 
 End Rem
-Const CURLOPT_SSH_KNOWNHOSTS:Int = OBJECTPOINT + 183
+Const CURLOPT_SSH_KNOWNHOSTS:Int = CURLOPTTYPE_OBJECTPOINT + 183
 
 Rem
 bbdoc: set the SSH host key callback, must point to a curl_sshkeycallback function 
 End Rem
-Const CURLOPT_SSH_KEYFUNCTION:Int = FUNCTIONPOINT + 184
+Const CURLOPT_SSH_KEYFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 184
 
 Rem
 bbdoc: set the SSH host key callback custom pointer 
 End Rem
-Const CURLOPT_SSH_KEYDATA:Int = OBJECTPOINT + 185
+Const CURLOPT_SSH_KEYDATA:Int = CURLOPTTYPE_OBJECTPOINT + 185
 
 Rem
 bbdoc: set the SMTP mail originator 
 End Rem
-Const CURLOPT_MAIL_FROM:Int = OBJECTPOINT + 186
+Const CURLOPT_MAIL_FROM:Int = CURLOPTTYPE_OBJECTPOINT + 186
 
 Rem
 bbdoc: set the SMTP mail receiver(s) 
 End Rem
-Const CURLOPT_MAIL_RCPT:Int = OBJECTPOINT + 187
+Const CURLOPT_MAIL_RCPT:Int = CURLOPTTYPE_OBJECTPOINT + 187
 
 Rem
 bbdoc: FTP: send PRET before PASV 
@@ -1449,17 +1450,17 @@ Const CURLOPT_RTSP_REQUEST:Int = CURLOPTTYPE_LONG + 189
 Rem
 bbdoc: The RTSP session identifier 
 End Rem
-Const CURLOPT_RTSP_SESSION_ID:Int = OBJECTPOINT + 190
+Const CURLOPT_RTSP_SESSION_ID:Int = CURLOPTTYPE_OBJECTPOINT + 190
 
 Rem
 bbdoc: The RTSP stream URI 
 End Rem
-Const CURLOPT_RTSP_STREAM_URI:Int = OBJECTPOINT + 191
+Const CURLOPT_RTSP_STREAM_URI:Int = CURLOPTTYPE_OBJECTPOINT + 191
 
 Rem
 bbdoc: The Transport: header to use in RTSP requests 
 End Rem
-Const CURLOPT_RTSP_TRANSPORT:Int = OBJECTPOINT + 192
+Const CURLOPT_RTSP_TRANSPORT:Int = CURLOPTTYPE_OBJECTPOINT + 192
 
 Rem
 bbdoc: Manually initialize the client RTSP CSeq for this handle 
@@ -1474,12 +1475,12 @@ Const CURLOPT_RTSP_SERVER_CSEQ:Int = CURLOPTTYPE_LONG + 194
 Rem
 bbdoc: The stream to pass to INTERLEAVEFUNCTION. 
 End Rem
-Const CURLOPT_INTERLEAVEDATA:Int = OBJECTPOINT + 195
+Const CURLOPT_INTERLEAVEDATA:Int = CURLOPTTYPE_OBJECTPOINT + 195
 
 Rem
 bbdoc: Let the application define a custom write method for RTP data 
 End Rem
-Const CURLOPT_INTERLEAVEFUNCTION:Int = FUNCTIONPOINT + 196
+Const CURLOPT_INTERLEAVEFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 196
 
 Rem
 bbdoc: Turn on wildcard matching 
@@ -1489,48 +1490,48 @@ Const CURLOPT_WILDCARDMATCH:Int = CURLOPTTYPE_LONG + 197
 Rem
 bbdoc: Directory matching callback called before downloading of an individual file (chunk) started 
 End Rem
-Const CURLOPT_CHUNK_BGN_FUNCTION:Int = FUNCTIONPOINT + 198
+Const CURLOPT_CHUNK_BGN_FUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 198
 
 Rem
 bbdoc: Directory matching callback called after the file (chunk)
      was downloaded, or skipped 
 End Rem
-Const CURLOPT_CHUNK_END_FUNCTION:Int = FUNCTIONPOINT + 199
+Const CURLOPT_CHUNK_END_FUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 199
 
 Rem
 bbdoc: Change match (fnmatch-like) callback for wildcard matching 
 End Rem
-Const CURLOPT_FNMATCH_FUNCTION:Int = FUNCTIONPOINT + 200
+Const CURLOPT_FNMATCH_FUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 200
 
 Rem
 bbdoc: Let the application define custom chunk data pointer 
 End Rem
-Const CURLOPT_CHUNK_DATA:Int = OBJECTPOINT + 201
+Const CURLOPT_CHUNK_DATA:Int = CURLOPTTYPE_OBJECTPOINT + 201
 
 Rem
 bbdoc: FNMATCH_FUNCTION user pointer 
 End Rem
-Const CURLOPT_FNMATCH_DATA:Int = OBJECTPOINT + 202
+Const CURLOPT_FNMATCH_DATA:Int = CURLOPTTYPE_OBJECTPOINT + 202
 
 Rem
 bbdoc: send linked-list of name:port:address sets 
 End Rem
-Const CURLOPT_RESOLVE:Int = OBJECTPOINT + 203
+Const CURLOPT_RESOLVE:Int = CURLOPTTYPE_OBJECTPOINT + 203
 
 Rem
 bbdoc: Set a username for authenticated TLS 
 End Rem
-Const CURLOPT_TLSAUTH_USERNAME:Int = OBJECTPOINT + 204
+Const CURLOPT_TLSAUTH_USERNAME:Int = CURLOPTTYPE_OBJECTPOINT + 204
 
 Rem
 bbdoc: Set a password for authenticated TLS 
 End Rem
-Const CURLOPT_TLSAUTH_PASSWORD:Int = OBJECTPOINT + 205
+Const CURLOPT_TLSAUTH_PASSWORD:Int = CURLOPTTYPE_OBJECTPOINT + 205
 
 Rem
 bbdoc: Set authentication type for authenticated TLS 
 End Rem
-Const CURLOPT_TLSAUTH_TYPE:Int = OBJECTPOINT + 206
+Const CURLOPT_TLSAUTH_TYPE:Int = CURLOPTTYPE_OBJECTPOINT + 206
 
 Rem
 bbdoc: Set to 1 to enable the "TE:" header in HTTP requests to ask for compressed transfer-encoded responses. Set to 0 to disable the use of TE: in outgoing requests.
@@ -1545,8 +1546,189 @@ Rem
 bbdoc: Callback function for closing socket (instead of close(2)).
 about: The callback should have type curl_closesocket_callback 
 End Rem
-Const CURLOPT_CLOSESOCKETFUNCTION:Int = FUNCTIONPOINT + 208
-Const CURLOPT_CLOSESOCKETDATA:Int = OBJECTPOINT + 209
+Const CURLOPT_CLOSESOCKETFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 208
+Const CURLOPT_CLOSESOCKETDATA:Int = CURLOPTTYPE_OBJECTPOINT + 209
+
+Rem
+bbdoc: allow GSSAPI credential delegation
+End Rem
+Const CURLOPT_GSSAPI_DELEGATION:Int = CURLOPTTYPE_LONG + 210
+
+Rem
+bbdoc: Set the name servers to use for DNS resolution
+End Rem
+Const CURLOPT_DNS_SERVERS:Int = CURLOPTTYPE_STRINGPOINT + 211
+
+Rem
+bbdoc: Time-out accept operations (currently for FTP only) after this amount of miliseconds.
+End Rem
+Const CURLOPT_ACCEPTTIMEOUT_MS:Int = CURLOPTTYPE_LONG + 212
+
+Rem
+bbdoc: Set TCP keepalive
+End Rem
+Const CURLOPT_TCP_KEEPALIVE:Int = CURLOPTTYPE_LONG + 213
+
+Rem
+bbdoc: non-universal keepalive knobs (Linux, AIX, HP-UX, more)
+End Rem
+Const CURLOPT_TCP_KEEPIDLE:Int = CURLOPTTYPE_LONG + 214
+Const CURLOPT_TCP_KEEPINTVL:Int = CURLOPTTYPE_LONG + 215
+
+Rem
+bbdoc: Enable/disable specific SSL features with a bitmask, see CURLSSLOPT_*
+End Rem
+Const CURLOPT_SSL_OPTIONS:Int = CURLOPTTYPE_LONG + 216
+
+Rem
+bbdoc: Set the SMTP auth originator
+End Rem
+Const CURLOPT_MAIL_AUTH:Int = CURLOPTTYPE_STRINGPOINT + 217
+
+Rem
+bbdoc: Enable/disable SASL initial response
+End Rem
+Const CURLOPT_SASL_IR:Int = CURLOPTTYPE_LONG + 218
+
+Rem
+bbdoc: Function that will be called instead of the internal progress display function.
+about: This function should be defined as the curl_xferinfo_callback prototype defines. (Deprecates CURLOPT_PROGRESSFUNCTION)
+End Rem
+Const CURLOPT_XFERINFOFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 219
+
+Rem
+bbdoc: The XOAUTH2 bearer token
+End Rem
+Const CURLOPT_XOAUTH2_BEARER:Int = CURLOPTTYPE_STRINGPOINT + 220
+
+Rem
+bbdoc: Set the interface string to use as outgoing network interface for DNS requests.
+about: Only supported by the c-ares DNS backend
+End Rem
+Const CURLOPT_DNS_INTERFACE:Int = CURLOPTTYPE_STRINGPOINT + 221
+
+Rem
+bbdoc: Set the local IPv4 address to use for outgoing DNS requests.
+about: Only supported by the c-ares DNS backend
+End Rem
+Const CURLOPT_DNS_LOCAL_IP4:Int = CURLOPTTYPE_STRINGPOINT + 222
+
+Rem
+bbdoc: Set the local IPv4 address to use for outgoing DNS requests.
+about: Only supported by the c-ares DNS backend
+End Rem
+Const CURLOPT_DNS_LOCAL_IP6:Int = CURLOPTTYPE_STRINGPOINT + 223
+
+Rem
+bbdoc: Set authentication options directly
+End Rem
+Const CURLOPT_LOGIN_OPTIONS:Int = CURLOPTTYPE_STRINGPOINT + 224
+
+Rem
+bbdoc: Enable/disable TLS NPN extension (http2 over ssl might fail without)
+End Rem
+Const CURLOPT_SSL_ENABLE_NPN:Int = CURLOPTTYPE_LONG + 225
+
+Rem
+bbdoc: Enable/disable TLS ALPN extension (http2 over ssl might fail without)
+End Rem
+Const CURLOPT_SSL_ENABLE_ALPN:Int = CURLOPTTYPE_LONG + 226
+
+Rem
+bbdoc: Time to wait for a response to a HTTP request containing an Expect: 100-continue header before sending the data anyway.
+End Rem
+Const CURLOPT_EXPECT_100_TIMEOUT_MS:Int = CURLOPTTYPE_LONG + 227
+
+Rem
+bbdoc: This points to a linked list of headers used for proxy requests only, struct curl_slist kind
+End Rem
+Const CURLOPT_PROXYHEADER:Int = CURLOPTTYPE_OBJECTPOINT + 228
+
+Rem
+bbdoc: Pass in a bitmask of "header options"
+End Rem
+Const CURLOPT_HEADEROPT:Int = CURLOPTTYPE_LONG + 229
+
+Rem
+bbdoc: The public key in DER form used to validate the peer public key this option is used only if SSL_VERIFYPEER is true
+End Rem
+Const CURLOPT_PINNEDPUBLICKEY:Int = CURLOPTTYPE_STRINGPOINT + 230
+
+Rem
+bbdoc: Path to Unix domain socket
+End Rem
+Const CURLOPT_UNIX_SOCKET_PATH:Int = CURLOPTTYPE_STRINGPOINT + 231
+
+Rem
+bbdoc: Set if we should verify the certificate status.
+End Rem
+Const CURLOPT_SSL_VERIFYSTATUS:Int = CURLOPTTYPE_LONG + 232
+
+Rem
+bbdoc: Set if we should enable TLS false start.
+End Rem
+Const CURLOPT_SSL_FALSESTART:Int = CURLOPTTYPE_LONG + 233
+
+Rem
+bbdoc: Do not squash dot-dot sequences
+End Rem
+Const CURLOPT_PATH_AS_IS:Int = CURLOPTTYPE_LONG + 234
+
+Rem
+bbdoc: Proxy Service Name
+End Rem
+Const CURLOPT_PROXY_SERVICE_NAME:Int = CURLOPTTYPE_STRINGPOINT + 235
+
+Rem
+bbdoc: Service Name
+End Rem
+Const CURLOPT_SERVICE_NAME:Int = CURLOPTTYPE_STRINGPOINT + 236
+
+Rem
+bbdoc: Wait/don't wait for pipe/mutex to clarify
+End Rem
+Const CURLOPT_PIPEWAIT:Int = CURLOPTTYPE_LONG + 237
+
+Rem
+bbdoc: Set the protocol used when curl is given a URL without a protocol
+End Rem
+Const CURLOPT_DEFAULT_PROTOCOL:Int = CURLOPTTYPE_STRINGPOINT + 238
+
+Rem
+bbdoc: Set stream weight, 1 - 256 (default is 16)
+End Rem
+Const CURLOPT_STREAM_WEIGHT:Int = CURLOPTTYPE_LONG + 239
+
+Rem
+bbdoc: Set stream dependency on another CURL handle
+End Rem
+Const CURLOPT_STREAM_DEPENDS:Int = CURLOPTTYPE_OBJECTPOINT + 240
+
+Rem
+bbdoc: Set E-xclusive stream dependency on another CURL handle
+End Rem
+Const CURLOPT_STREAM_DEPENDS_E:Int = CURLOPTTYPE_OBJECTPOINT + 241
+
+Rem
+bbdoc: Do not send any tftp option requests to the server
+End Rem
+Const CURLOPT_TFTP_NO_OPTIONS:Int = CURLOPTTYPE_LONG + 242
+
+Rem
+bbdoc: Linked-list of host:port:connect-to-host:connect-to-port, overrides the URL's host:port (only for the network layer)
+End Rem
+Const CURLOPT_CONNECT_TO:Int = CURLOPTTYPE_OBJECTPOINT + 243
+
+Rem
+bbdoc: Set TCP Fast Open
+End Rem
+Const CURLOPT_TCP_FASTOPEN:Int = CURLOPTTYPE_LONG + 244
+
+Rem
+bbdoc: Continue to send data if the server responds early with an HTTP status code >= 300
+End Rem
+Const CURLOPT_KEEP_SENDING_ON_ERROR:Int = CURLOPTTYPE_LONG + 245
+
 
 Rem
 bbdoc: No authentication
@@ -1567,7 +1749,7 @@ networks than the regular old-fashioned Basic method.
 End Rem
 Const CURLAUTH_DIGEST:Int = 1 Shl 1
 
-Const CURLAUTH_GSSNEGOTIATE:Int = 1 Shl 2
+Const CURLAUTH_NEGOTIATE:Int = 1 Shl 2
 
 Rem
 bbdoc: HTTP NTLM authentication.
@@ -1579,47 +1761,59 @@ You need to use libcurlssl for this option to work, or use libcurl on Windows.
 End Rem
 Const CURLAUTH_NTLM:Int = 1 Shl 3
 
+Const CURLAUTH_DIGEST_IE:Int = 1 Shl 4
+
+Const CURLAUTH_NTLM_WB:Int = 1 Shl 5
+
+Const CURLAUTH_ONLY:Int = 1 Shl 31
+
 Rem
 bbdoc: This is a convenience setting that sets all bits and thus makes libcurl pick any it finds suitable.
 about: libcurl will automatically select the one it finds most secure.
 End Rem
-Const CURLAUTH_ANY:Int = ~0
+Const CURLAUTH_ANY:Int = ~CURLAUTH_DIGEST_IE
 
 Rem
 bbdoc: This is a convenience setting that sets all bits except Basic and thus makes libcurl pick any it finds suitable.
 about: libcurl will automatically select the one it finds most secure.
 End Rem
-Const CURLAUTH_ANYSAFE:Int = ~CURLAUTH_BASIC
+Const CURLAUTH_ANYSAFE:Int = ~(CURLAUTH_BASIC|CURLAUTH_DIGEST_IE)
+
 
 Rem
-bbdoc: 
+bbdoc: all types supported by the server
 End Rem
 Const CURLSSH_AUTH_ANY:Int = ~0
 
 Rem
-bbdoc: 
+bbdoc: none allowed, silly but complete
 End Rem
 Const CURLSSH_AUTH_NONE:Int = 0
 
 Rem
-bbdoc: 
+bbdoc: public/private key files
 End Rem
 Const CURLSSH_AUTH_PUBLICKEY:Int = 1 Shl 0
 
 Rem
-bbdoc: 
+bbdoc: password
 End Rem
 Const CURLSSH_AUTH_PASSWORD:Int = 1 Shl 1
 
 Rem
-bbdoc: 
+bbdoc: host key files
 End Rem
 Const CURLSSH_AUTH_HOST:Int = 1 Shl 2
 
 Rem
-bbdoc: 
+bbdoc: keyboard interactive
 End Rem
 Const CURLSSH_AUTH_KEYBOARD:Int = 1 Shl 3
+
+Rem
+bbdoc: agent (ssh-agent, pageant...)
+End Rem
+Const CURLSSH_AUTH_AGENT:Int = 1 Shl 4
 
 Rem
 bbdoc: 
@@ -1679,6 +1873,10 @@ bbdoc: Error code - The URL was not properly formatted.
 End Rem
 Const CURLE_URL_MALFORMAT:Int = 3
 Rem
+bbdoc: 
+End Rem
+Const CURLE_NOT_BUILT_IN:Int = 4
+Rem
 bbdoc: Error code - Couldn't resolve proxy.
 about: The given proxy host could not be resolved.
 End Rem
@@ -1704,15 +1902,18 @@ working directory to the one given in the URL.
 End Rem
 Const CURLE_FTP_ACCESS_DENIED:Int = 9
 Rem
+bbdoc: 
+End Rem
+Const CURLE_FTP_ACCEPT_FAILED:Int = 10
+Rem
 bbdoc: Error code - After having sent the FTP password to the server, libcurl expects a proper reply.
 about: This error code indicates that an unexpected code was returned.
 End Rem
 Const CURLE_FTP_WEIRD_PASS_REPLY:Int = 11
 Rem
-bbdoc: Error code - After having sent user name to the FTP server, libcurl expects a proper reply.
-about: This error code indicates that an unexpected code was returned.
+bbdoc: 
 End Rem
-Const CURLE_FTP_WEIRD_USER_REPLY:Int = 12
+Const CURLE_FTP_ACCEPT_TIMEOUT:Int = 12
 Rem
 bbdoc: Error code - libcurl failed to get a sensible result back from the server as a response to either a PASV or a EPSV command.
 about: The server is flawed.
@@ -1728,9 +1929,9 @@ bbdoc: Error code - An internal failure to lookup the host used for the new conn
 End Rem
 Const CURLE_FTP_CANT_GET_HOST:Int = 15
 Rem
-bbdoc: Error code - A bad return code on either PASV or EPSV was sent by the FTP server, preventing libcurl from being able to continue.
+bbdoc: 
 End Rem
-Const CURLE_FTP_CANT_RECONNECT:Int = 16
+Const CURLE_HTTP2:Int = 16
 Rem
 bbdoc: Error code - Received an error when trying to set the transfer mode to binary.
 End Rem
@@ -1744,10 +1945,6 @@ Rem
 bbdoc: Error code - This was either a weird reply to a 'RETR' command or a zero byte transfer complete.
 End Rem
 Const CURLE_FTP_COULDNT_RETR_FILE:Int = 19
-Rem
-bbdoc: Error code - After a completed file transfer, the FTP server did not respond a proper "transfer successful" code.
-End Rem
-Const CURLE_FTP_WRITE_ERROR:Int = 20
 Rem
 bbdoc: Error code - When sending custom "QUOTE" commands to the remote server, one of the commands returned an error code that was 400 or higher.
 End Rem
@@ -1783,10 +1980,6 @@ about: The specified time-out period was reached according to the conditions.
 End Rem
 Const CURLE_OPERATION_TIMEOUTED:Int = 28
 Rem
-bbdoc: Error code - libcurl failed to set ASCII transfer type (TYPE A).
-End Rem
-Const CURLE_FTP_COULDNT_SET_ASCII:Int = 29
-Rem
 bbdoc: Error code - The FTP PORT command returned error.
 about: This mostly happen when you haven't specified a good enough address for libcurl to use.
 See #CURLOPT_FTPPORT.
@@ -1797,12 +1990,6 @@ bbdoc: Error code - The FTP REST command returned error.
 about: This should never happen if the server is sane.
 End Rem
 Const CURLE_FTP_COULDNT_USE_REST:Int = 31
-Rem
-bbdoc: Error code - The FTP SIZE command returned error.
-about: SIZE is not a kosher FTP command, it is an extension and not all servers support it.
-This is not a surprising error.
-End Rem
-Const CURLE_FTP_COULDNT_GET_SIZE:Int = 32
 Rem
 bbdoc: Error code - The HTTP server does not support or accept range requests.
 End Rem
@@ -1835,11 +2022,6 @@ Rem
 bbdoc: Error code - LDAP search failed.
 End Rem
 Const CURLE_LDAP_SEARCH_FAILED:Int = 39
-Rem
-bbdoc: Error code - Library not found.
-about: The LDAP library was not found.
-End Rem
-Const CURLE_LIBRARY_NOT_FOUND:Int = 40
 Rem
 bbdoc: Error code - Function not found.
 about: A required LDAP function was not found.
@@ -1900,10 +2082,6 @@ Rem
 bbdoc: Error code - Failure with receiving network data.
 End Rem
 Const CURLE_RECV_ERROR:Int = 56
-Rem
-bbdoc: Error code - Share is in use.
-End Rem
-Const CURLE_SHARE_IN_USE:Int = 57
 Rem
 bbdoc: Error code - Problem with the local client certificate
 End Rem
@@ -2029,6 +2207,22 @@ Rem
 bbdoc: Error code - Chunk callback reported error.
 End Rem
 Const CURLE_CHUNK_FAILED:Int = 88
+Rem
+bbdoc: Error code - No connection available, the session will be queued.
+End Rem
+Const CURLE_NO_CONNECTION_AVAILABLE:Int = 89
+Rem
+bbdoc: Error code - Specified pinned public key did not match.
+End Rem
+Const CURLE_SSL_PINNEDPUBKEYNOTMATCH:Int = 90
+Rem
+bbdoc: Error code - Invalid certificate status.
+End Rem
+Const CURLE_SSL_INVALIDCERTSTATUS:Int = 91
+Rem
+bbdoc: Error code - Stream error in HTTP/2 framing layer.
+End Rem
+Const CURLE_HTTP2_STREAM:Int = 92
 
 Rem
 bbdoc: The library will ignore the file and use only the information in the URL.
@@ -2067,7 +2261,6 @@ Const CURLFORM_PTRCONTENTS:Int = 5
 Const CURLFORM_CONTENTSLENGTH:Int = 6
 Const CURLFORM_FILECONTENT:Int = 7
 Const CURLFORM_ARRAY:Int = 8
-'Const CURLFORM_OBSOLETE:Int = 9
 Const CURLFORM_FILE:Int = 10
 Const CURLFORM_BUFFER:Int = 11
 Const CURLFORM_BUFFERPTR:Int = 12
@@ -2075,14 +2268,17 @@ Const CURLFORM_BUFFERLENGTH:Int = 13
 Const CURLFORM_CONTENTTYPE:Int = 14
 Const CURLFORM_CONTENTHEADER:Int = 15
 Const CURLFORM_FILENAME:Int = 16
-'Const CURLFORM_END:Int = 17
+Const CURLFORM_END:Int = 17
 'Const CURLFORM_OBSOLETE2:Int = 18
+Const CURLFORM_STREAM:Int = 19
+Const CURLFORM_CONTENTLEN:Int = 20
 
 
 Const CURLINFO_STRING:Int = $100000
 Const CURLINFO_LONG:Int = $200000
 Const CURLINFO_DOUBLE:Int = $300000
 Const CURLINFO_SLIST:Int = $400000
+Const CURLINFO_SOCKET:Int = $500000
 Const CURLINFO_MASK:Int = $0fffff
 Const CURLINFO_TYPEMASK:Int = $f00000
 
@@ -2129,6 +2325,10 @@ Const CURLINFO_RTSP_CSEQ_RECV:Int = CURLINFO_LONG   + 39
 Const CURLINFO_PRIMARY_PORT:Int = CURLINFO_LONG   + 40
 Const CURLINFO_LOCAL_IP:Int = CURLINFO_STRING + 41
 Const CURLINFO_LOCAL_PORT:Int = CURLINFO_LONG   + 42
+Const CURLINFO_TLS_SESSION:Int = CURLINFO_SLIST  + 43
+Const CURLINFO_ACTIVESOCKET:Int = CURLINFO_SOCKET + 44
+Const CURLINFO_TLS_SSL_PTR:Int = CURLINFO_SLIST  + 45
+Const CURLINFO_HTTP_VERSION:Int = CURLINFO_LONG   + 46
 
 Const CURLFTPSSL_CCC_NONE:Int = 0
 Const CURLFTPSSL_CCC_PASSIVE:Int = 1

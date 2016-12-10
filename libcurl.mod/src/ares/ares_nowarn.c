@@ -1,5 +1,5 @@
 
-/* Copyright (C) 2010-2012 by Daniel Stenberg
+/* Copyright (C) 2010-2013 by Daniel Stenberg
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -21,6 +21,10 @@
 #  include <assert.h>
 #endif
 
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+
 #if defined(__INTEL_COMPILER) && defined(__unix__)
 
 #ifdef HAVE_NETINET_IN_H
@@ -36,49 +40,22 @@
 
 #include "ares_nowarn.h"
 
-#if (SIZEOF_SHORT == 2)
+#ifndef HAVE_LIMITS_H
+/* systems without <limits.h> we guess have 16 bit shorts, 32bit ints and
+   32bit longs */
 #  define CARES_MASK_SSHORT  0x7FFF
 #  define CARES_MASK_USHORT  0xFFFF
-#elif (SIZEOF_SHORT == 4)
-#  define CARES_MASK_SSHORT  0x7FFFFFFF
-#  define CARES_MASK_USHORT  0xFFFFFFFF
-#elif (SIZEOF_SHORT == 8)
-#  define CARES_MASK_SSHORT  0x7FFFFFFFFFFFFFFF
-#  define CARES_MASK_USHORT  0xFFFFFFFFFFFFFFFF
+#  define CARES_MASK_SINT    0x7FFFFFFF
+#  define CARES_MASK_UINT    0xFFFFFFFF
+#  define CARES_MASK_SLONG   0x7FFFFFFFL
+#  define CARES_MASK_ULONG   0xFFFFFFFFUL
 #else
-#  error "SIZEOF_SHORT not defined"
-#endif
-
-#if (SIZEOF_INT == 2)
-#  define CARES_MASK_SINT  0x7FFF
-#  define CARES_MASK_UINT  0xFFFF
-#elif (SIZEOF_INT == 4)
-#  define CARES_MASK_SINT  0x7FFFFFFF
-#  define CARES_MASK_UINT  0xFFFFFFFF
-#elif (SIZEOF_INT == 8)
-#  define CARES_MASK_SINT  0x7FFFFFFFFFFFFFFF
-#  define CARES_MASK_UINT  0xFFFFFFFFFFFFFFFF
-#elif (SIZEOF_INT == 16)
-#  define CARES_MASK_SINT  0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-#  define CARES_MASK_UINT  0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-#else
-#  error "SIZEOF_INT not defined"
-#endif
-
-#if (CARES_SIZEOF_LONG == 2)
-#  define CARES_MASK_SLONG  0x7FFFL
-#  define CARES_MASK_ULONG  0xFFFFUL
-#elif (CARES_SIZEOF_LONG == 4)
-#  define CARES_MASK_SLONG  0x7FFFFFFFL
-#  define CARES_MASK_ULONG  0xFFFFFFFFUL
-#elif (CARES_SIZEOF_LONG == 8)
-#  define CARES_MASK_SLONG  0x7FFFFFFFFFFFFFFFL
-#  define CARES_MASK_ULONG  0xFFFFFFFFFFFFFFFFUL
-#elif (CARES_SIZEOF_LONG == 16)
-#  define CARES_MASK_SLONG  0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFL
-#  define CARES_MASK_ULONG  0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFUL
-#else
-#  error "CARES_SIZEOF_LONG not defined"
+#  define CARES_MASK_SSHORT  SHRT_MAX
+#  define CARES_MASK_USHORT  USHRT_MAX
+#  define CARES_MASK_SINT    INT_MAX
+#  define CARES_MASK_UINT    UINT_MAX
+#  define CARES_MASK_SLONG   LONG_MAX
+#  define CARES_MASK_ULONG   ULONG_MAX
 #endif
 
 /*
