@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -38,8 +38,7 @@ Import "-lws2_32"
 Import "-leay32"
 Import "-lssleay32"
 ?macos
-Import "-lssl"
-Import "-lcrypto"
+Import "-framework Security"
 ?
 
 
@@ -59,7 +58,7 @@ Extern
 	Function curl_easy_escape:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, length:Int)
 	Function curl_free(handle:Byte Ptr)
 	Function curl_easy_unescape:Byte Ptr(handle:Byte Ptr, txt:Byte Ptr, inlength:Int, outlength:Int Ptr)
-	Function curl_slist_append:Byte Ptr(slist:Byte Ptr, text:Byte Ptr)
+	Function curl_slist_append:Byte Ptr(slist:Byte Ptr, Text:Byte Ptr)
 	
 	Function curl_multi_init:Byte Ptr()
 	Function curl_multi_cleanup(handle:Byte Ptr)
@@ -116,13 +115,13 @@ Function curlProcessSlist:String[](slistPtr:Byte Ptr)
 		Local count:Int = bmx_curl_slist_count(slistPtr)
 		Local list:String[] = New String[count]
 		
-		Local struct:Byte Ptr = bmx_curl_get_slist(slistPtr)
+		Local _struct:Byte Ptr = bmx_curl_get_slist(slistPtr)
 		
 		For Local i:Int = 0 Until count
 		
 			Local s:Byte Ptr
 			
-			s = bmx_curl_get_slist_data(struct)
+			s = bmx_curl_get_slist_data(_struct)
 		
 			If s Then
 			
@@ -130,7 +129,7 @@ Function curlProcessSlist:String[](slistPtr:Byte Ptr)
 				
 			End If
 			
-			struct = bmx_curl_get_slist_next(struct)
+			_struct = bmx_curl_get_slist_next(_struct)
 			
 		Next
 		

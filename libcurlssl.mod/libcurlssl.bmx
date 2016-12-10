@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2016 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,17 @@ bbdoc: libcurlSSL
 End Rem
 Module BaH.libcurlSSL
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: (libcurl) 1996 - 2013, Daniel Stenberg"
-ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology, 2004 - 2011 by Daniel Stenberg et al"
-ModuleInfo "Copyright: (Wrapper) 2007-2013 Bruce A Henderson"
+ModuleInfo "Copyright: (libcurl) 1996 - 2016, Daniel Stenberg"
+ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology, 2004 - 2013 by Daniel Stenberg et al"
+ModuleInfo "Copyright: (Wrapper) 2007-2016 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Update to libcurl 7.51.0"
+ModuleInfo "History: Update to c-ares 1.12.0"
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Update to libcurl 7.31.0"
 ModuleInfo "History: Update to c-ares 1.10.0"
@@ -54,12 +57,12 @@ ModuleInfo "History: Now nulls internal slist."
 ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4, c-ares 1.4.0)"
 
 ?Not win32
-ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DSIZEOF_INT=4 -DSIZEOF_SHORT=2 -DSIZEOF_SIZE_T=4"
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
 ModuleInfo "CC_OPTS: -DHAVE_GETTIMEOFDAY -DCURL_DISABLE_LDAP"
 ?
-ModuleInfo "CC_OPTS: -DCURL_STATICLIB -DCARES_STATICLIB"
+ModuleInfo "CC_OPTS: -DCURL_STATICLIB -DCARES_STATICLIB -DCURL_STRICTER"
 
 ' NOTES :
 '
