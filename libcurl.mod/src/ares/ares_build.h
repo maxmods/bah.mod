@@ -62,6 +62,9 @@
 
 /* Configure process defines this to 1 when it finds out that system  */
 /* header file ws2tcpip.h must be included by the external interface. */
+#ifdef __WIN32__
+#define CARES_PULL_WS2TCPIP_H 1
+#endif
 /* #undef CARES_PULL_WS2TCPIP_H */
 #ifdef CARES_PULL_WS2TCPIP_H
 #  ifndef WIN32_LEAN_AND_MEAN
@@ -81,7 +84,9 @@
 
 /* Configure process defines this to 1 when it finds out that system    */
 /* header file sys/socket.h must be included by the external interface. */
+#ifndef __WIN32__
 #define CARES_PULL_SYS_SOCKET_H 1
+#endif
 #ifdef CARES_PULL_SYS_SOCKET_H
 #  include <sys/socket.h>
 #endif

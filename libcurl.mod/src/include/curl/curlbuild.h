@@ -115,6 +115,9 @@
 /* Configure process defines this to 1 when it finds out that system  */
 /* header file ws2tcpip.h must be included by the external interface. */
 /* #undef CURL_PULL_WS2TCPIP_H */
+#ifdef __WIN32__
+#define CURL_PULL_WS2TCPIP_H 1
+#endif
 #ifdef CURL_PULL_WS2TCPIP_H
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
@@ -147,7 +150,9 @@
 
 /* Configure process defines this to 1 when it finds out that system    */
 /* header file sys/socket.h must be included by the external interface. */
+#ifndef __WIN32__
 #define CURL_PULL_SYS_SOCKET_H 1
+#endif
 #ifdef CURL_PULL_SYS_SOCKET_H
 #  include <sys/socket.h>
 #endif
@@ -160,7 +165,12 @@
 #endif
 
 /* The size of `long', as computed by sizeof. */
+#include <stdint.h>
+#if UINTPTR_MAX == 0xffffffff || defined(__WIN32__)
+#define CURL_SIZEOF_LONG 4
+#else
 #define CURL_SIZEOF_LONG 8
+#endif
 
 /* Integral data type used for curl_socklen_t. */
 #define CURL_TYPEOF_CURL_SOCKLEN_T socklen_t
@@ -172,7 +182,15 @@
 typedef CURL_TYPEOF_CURL_SOCKLEN_T curl_socklen_t;
 
 /* Signed integral data type used for curl_off_t. */
+#ifdef __WIN32__
+#if UINTPTR_MAX == 0xffffffff
 #define CURL_TYPEOF_CURL_OFF_T long
+#else
+#define CURL_TYPEOF_CURL_OFF_T long long
+#endif
+#else
+#define CURL_TYPEOF_CURL_OFF_T long
+#endif
 
 /* Data type definition of curl_off_t. */
 typedef CURL_TYPEOF_CURL_OFF_T curl_off_t;
@@ -187,7 +205,11 @@ typedef CURL_TYPEOF_CURL_OFF_T curl_off_t;
 #define CURL_FORMAT_OFF_T "%ld"
 
 /* The size of `curl_off_t', as computed by sizeof. */
+#if UINTPTR_MAX == 0xffffffff
+#define CURL_SIZEOF_CURL_OFF_T 4
+#else
 #define CURL_SIZEOF_CURL_OFF_T 8
+#endif
 
 /* curl_off_t constant suffix. */
 #define CURL_SUFFIX_CURL_OFF_T L
