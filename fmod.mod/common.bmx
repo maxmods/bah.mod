@@ -80,15 +80,24 @@ Extern
 	Function bmx_FMOD_Channel_Get3DOcclusion:Int(handle:Byte Ptr, directOcclusion:Float Ptr, reverbOcclusion:Float Ptr)
 	Function bmx_FMOD_Channel_Get3DPanLevel:Int(handle:Byte Ptr, level:Float Ptr)
 	Function bmx_FMOD_Channel_Get3DSpread:Int(handle:Byte Ptr, angle:Float Ptr)
+?Not bmxng
 	Function bmx_FMOD_Channel_Get3DAttributes:Int(handle:Byte Ptr, pos:Byte Ptr, vel:Byte Ptr)
 	Function bmx_FMOD_Channel_Get3DConeOrientation:Int(handle:Byte Ptr, orientation:Byte Ptr)
+?bmxng
+	Function bmx_FMOD_Channel_Get3DAttributes:Int(handle:Byte Ptr, pos:TFMODVector Var, vel:TFMODVector Var)
+	Function bmx_FMOD_Channel_Get3DConeOrientation:Int(handle:Byte Ptr, orientation:TFMODVector Var)
+?
 	Function bmx_FMOD_Channel_SetChannelGroup:Int(handle:Byte Ptr, group:Byte Ptr)
 	Function bmx_FMOD_Channel_Get3DConeSettings:Int(handle:Byte Ptr, insideConeAngle:Float Ptr, outsideConeAngle:Float Ptr, outsideVolume:Float Ptr)
 	Function bmx_FMOD_Channel_GetChannelGroup:Byte Ptr(handle:Byte Ptr)
 	Function bmx_FMOD_Channel_GetMode:Int(handle:Byte Ptr, Mode:Int Ptr)
 	Function bmx_FMOD_Channel_GetMute:Int(handle:Byte Ptr, mute:Int Ptr)
 	Function bmx_FMOD_Channel_GetPriority:Int(handle:Byte Ptr, priority:Int Ptr)
+?Not bmxng
 	Function bmx_FMOD_Channel_GetReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+?bmxng
+	Function bmx_FMOD_Channel_GetReverbProperties:Int(handle:Byte Ptr, properties:TFMODReverbChannelProperties Ptr)
+?
 	Function bmx_FMOD_Channel_SetReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
 	Function bmx_FMOD_Channel_SetPriority:Int(handle:Byte Ptr, priority:Int)
 	Function bmx_FMOD_Channel_GetLowPassGain:Int(handle:Byte Ptr, gain:Float Ptr)
@@ -196,7 +205,11 @@ Extern
 	Function FMOD_System_Init:Int(handle:Byte Ptr, maxChannels:Int, flags:Int, extraDriverData:Byte Ptr)
 	Function FMOD_System_Update:Int(handle:Byte Ptr)
 	Function FMOD_System_GetChannelsPlaying:Int(handle:Byte Ptr, channels:Int Ptr)
+?Not bmxng
 	Function FMOD_System_Get3DListenerAttributes:Int(handle:Byte Ptr, listener:Int, pos:Byte Ptr, vel:Byte Ptr, forward:Byte Ptr, up:Byte Ptr)
+?bmxng
+	Function FMOD_System_Get3DListenerAttributes:Int(handle:Byte Ptr, listener:Int, pos:TFMODVector Ptr, vel:TFMODVector Ptr, forward:TFMODVector Ptr, up:TFMODVector Ptr)
+?
 	Function FMOD_System_Get3DNumListeners:Int(handle:Byte Ptr, listeners:Int Ptr)
 	Function FMOD_System_Get3DSettings:Int(handle:Byte Ptr, dopplerScale:Float Ptr, distanceFactor:Float Ptr, rollOffScale:Float Ptr)
 	Function FMOD_System_Get3DSpeakerPosition:Int(handle:Byte Ptr, speaker:Int, x:Float Ptr, y:Float Ptr, active:Int Ptr)
@@ -306,10 +319,17 @@ Extern
 	Function FMOD_Reverb_GetActive:Int(handle:Byte Ptr, active:Int Ptr)
 	Function FMOD_Reverb_SetActive:Int(handle:Byte Ptr, active:Int)
 	Function FMOD_Reverb_Release:Int(handle:Byte Ptr)
+?Not bmxng
 	Function FMOD_Reverb_Get3DAttributes:Int(handle:Byte Ptr, position:Byte Ptr, minDistance:Float Ptr, maxDistance:Float Ptr)
 	Function FMOD_Reverb_Set3DAttributes:Int(handle:Byte Ptr, position:Byte Ptr, minDistance:Float, maxDistance:Float)
 	Function FMOD_Reverb_GetProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
 	Function FMOD_Reverb_SetProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+?bmxng
+	Function FMOD_Reverb_Get3DAttributes:Int(handle:Byte Ptr, position:TFMODVector Ptr, minDistance:Float Ptr, maxDistance:Float Ptr)
+	Function FMOD_Reverb_Set3DAttributes:Int(handle:Byte Ptr, position:TFMODVector Ptr, minDistance:Float, maxDistance:Float)
+	Function FMOD_Reverb_GetProperties:Int(handle:Byte Ptr, properties:TFMODReverbProperties Ptr)
+	Function FMOD_Reverb_SetProperties:Int(handle:Byte Ptr, properties:TFMODReverbProperties Ptr)
+?
 
 	Function FMOD_ChannelGroup_GetVolume:Int(handle:Byte Ptr, volume:Float Ptr)
 	Function FMOD_ChannelGroup_SetVolume:Int(handle:Byte Ptr, volume:Float)
@@ -324,7 +344,11 @@ Extern
 	Function FMOD_ChannelGroup_GetNumGroups:Int(handle:Byte Ptr, numGroups:Int Ptr)
 	Function FMOD_ChannelGroup_Get3DOcclusion:Int(handle:Byte Ptr, directOcclusion:Float Ptr, reverbOcclusion:Float Ptr)
 	Function FMOD_ChannelGroup_Set3DOcclusion:Int(handle:Byte Ptr, directOcclusion:Float, reverbOcclusion:Float)
+?Not bmxng
 	Function FMOD_ChannelGroup_Override3DAttributes:Int(handle:Byte Ptr, pos:Byte Ptr, vel:Byte Ptr)
+?bmxng
+	Function FMOD_ChannelGroup_Override3DAttributes:Int(handle:Byte Ptr, pos:TFMODVector Ptr, vel:TFMODVector Ptr)
+?
 	Function FMOD_ChannelGroup_OverrideFrequency:Int(handle:Byte Ptr, frequency:Float)
 	Function FMOD_ChannelGroup_OverridePan:Int(handle:Byte Ptr, pan:Float)
 	Function FMOD_ChannelGroup_OverrideSpeakerMix:Int(handle:Byte Ptr, frontleft:Float, frontright:Float, center:Float, ..
@@ -333,7 +357,11 @@ Extern
 	Function FMOD_ChannelGroup_Release:Int(handle:Byte Ptr)
 	Function FMOD_ChannelGroup_AddGroup:Int(handle:Byte Ptr, group:Byte Ptr)
 	Function FMOD_ChannelGroup_AddDSP:Int(handle:Byte Ptr, dsp:Byte Ptr, connection:Byte Ptr)
+?Not bmxng
 	Function FMOD_ChannelGroup_OverrideReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+?bmxng
+	Function FMOD_ChannelGroup_OverrideReverbProperties:Int(handle:Byte Ptr, properties:TFMODReverbChannelProperties Ptr)
+?
 
 	Function FMOD_File_SetDiskBusy:Int(busy:Int)
 	Function FMOD_File_GetDiskBusy:Int(busy:Int Ptr)
@@ -452,21 +480,6 @@ Extern
 		End Rem
 		Field ReflectionsDelay:Float
 		Rem
-		bbdoc: ReflectionsPan1
-		about: 
-		End Rem
-		Field ReflectionsPan1:Float
-		Rem
-		bbdoc: ReflectionsPan2
-		about: 
-		End Rem
-		Field ReflectionsPan2:Float
-		Rem
-		bbdoc: ReflectionsPan3
-		about: 
-		End Rem
-		Field ReflectionsPan3:Float
-		Rem
 		bbdoc: Reverb
 		about: 
 		End Rem
@@ -476,31 +489,6 @@ Extern
 		about: 
 		End Rem
 		Field ReverbDelay:Float
-		Rem
-		bbdoc: ReverbPan1
-		about: 
-		End Rem
-		Field ReverbPan1:Float
-		Rem
-		bbdoc: ReverbPan2
-		about: 
-		End Rem
-		Field ReverbPan2:Float
-		Rem
-		bbdoc: ReverbPan3
-		about: 
-		End Rem
-		Field ReverbPan3:Float
-		Rem
-		bbdoc: EchoTime
-		about: 
-		End Rem
-		Field EchoTime:Float
-		Rem
-		bbdoc: EchoDepth
-		about: 
-		End Rem
-		Field EchoDepth:Float
 		Rem
 		bbdoc: ModulationTime
 		about: 
@@ -512,11 +500,6 @@ Extern
 		End Rem
 		Field ModulationDepth:Float
 		Rem
-		bbdoc: AirAbsorptionHF
-		about: 
-		End Rem
-		Field AirAbsorptionHF:Float
-		Rem
 		bbdoc: HFReference
 		about: 
 		End Rem
@@ -526,11 +509,6 @@ Extern
 		about: 
 		End Rem
 		Field LFReference:Float
-		Rem
-		bbdoc: RoomRolloffFactor
-		about: 
-		End Rem
-		Field RoomRolloffFactor:Float
 		Rem
 		bbdoc: Diffusion
 		about: 

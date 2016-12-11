@@ -472,11 +472,32 @@ Type TFMODSystem
 	<li><b>up</b> : A variable that receives the upwards orientation of the listener. Optional. Specify Null to ignore.</li>
 	</ul>
 	End Rem
+?Not bmxng
 	Method Get3DListenerAttributes:Int(listener:Int, pos:TFMODVector = Null, vel:TFMODVector = Null, ..
 			forward:TFMODVector = Null, up:TFMODVector = Null)
 		Return FMOD_System_Get3DListenerAttributes(systemPtr, listener, Varptr pos, Varptr vel, Varptr forward, Varptr up)
 	End Method
-	
+?bmxng
+	Method Get3DListenerAttributes:Int(listener:Int)
+		Return FMOD_System_Get3DListenerAttributes(systemPtr, listener, Null, Null, Null, Null)
+	End Method
+
+	Method Get3DListenerAttributes:Int(listener:Int, pos:TFMODVector Var)
+		Return FMOD_System_Get3DListenerAttributes(systemPtr, listener, Varptr pos, Null, Null, Null)
+	End Method
+
+	Method Get3DListenerAttributes:Int(listener:Int, pos:TFMODVector Var, vel:TFMODVector Var)
+		Return FMOD_System_Get3DListenerAttributes(systemPtr, listener, Varptr pos, Varptr vel, Null, Null)
+	End Method
+
+	Method Get3DListenerAttributes:Int(listener:Int, pos:TFMODVector Var, vel:TFMODVector Var, forward:TFMODVector Var)
+		Return FMOD_System_Get3DListenerAttributes(systemPtr, listener, Varptr pos, Varptr vel, Varptr forward, Null)
+	End Method
+
+	Method Get3DListenerAttributes:Int(listener:Int, pos:TFMODVector Var, vel:TFMODVector Var, forward:TFMODVector Var, up:TFMODVector Var)
+		Return FMOD_System_Get3DListenerAttributes(systemPtr, listener, Varptr pos, Varptr vel, Varptr forward, Varptr up)
+	End Method
+?
 	Rem
 	bbdoc: Retrieves the number of 3D listeners.
 	about: Parameters: 
@@ -1929,10 +1950,15 @@ Type TFMODChannel
 	Rem
 	bbdoc: Retrieves the current reverb properties for this channel.
 	End Rem
+?Not bmxng
 	Method GetReverbProperties:Int(properties:TFMODReverbChannelProperties)
 		Return bmx_FMOD_Channel_GetReverbProperties(channelPtr, Varptr properties)
 	End Method
-
+?bmxng
+	Method GetReverbProperties:Int(properties:TFMODReverbChannelProperties Var)
+		Return bmx_FMOD_Channel_GetReverbProperties(channelPtr, Varptr properties)
+	End Method
+?
 	Rem
 	bbdoc: Sets the channel specific reverb properties, including things like wet/dry mix.  
 	End Rem
@@ -2553,10 +2579,15 @@ Type TFMODReverb
 	Rem
 	bbdoc: 
 	End Rem
+?Not bmxng
 	Method Get3DAttributes:Int(position:TFMODVector, minDistance:Float Var, maxDistance:Float Var)
 		Return FMOD_Reverb_Get3DAttributes(reverbPtr, Varptr position, Varptr minDistance, Varptr maxDistance)
 	End Method
-	
+?bmxng
+	Method Get3DAttributes:Int(position:TFMODVector Var, minDistance:Float Var, maxDistance:Float Var)
+		Return FMOD_Reverb_Get3DAttributes(reverbPtr, Varptr position, Varptr minDistance, Varptr maxDistance)
+	End Method
+?
 	Rem
 	bbdoc: 
 	End Rem
@@ -2567,10 +2598,15 @@ Type TFMODReverb
 	Rem
 	bbdoc: 
 	End Rem
+?Not bmxng
 	Method GetProperties:Int(properties:TFMODReverbProperties)
 		Return FMOD_Reverb_GetProperties(reverbPtr, Varptr properties)
 	End Method
-	
+?bmxng
+	Method GetProperties:Int(properties:TFMODReverbProperties Var)
+		Return FMOD_Reverb_GetProperties(reverbPtr, Varptr properties)
+	End Method
+?
 	Rem
 	bbdoc: 
 	End Rem
