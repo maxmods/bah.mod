@@ -58,9 +58,12 @@ ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4, c-ares 1.4.0)"
 
 ?Not win32
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
-?win32
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
-ModuleInfo "CC_OPTS: -DHAVE_GETTIMEOFDAY -DCURL_DISABLE_LDAP"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib64"
+?win32
+ModuleInfo "CC_OPTS: -DHAVE_GETTIMEOFDAY -DCURL_DISABLE_LDAP -DUSE_OPENSSL"
 ?
 ModuleInfo "CC_OPTS: -DCURL_STATICLIB -DCARES_STATICLIB -DCURL_STRICTER"
 
