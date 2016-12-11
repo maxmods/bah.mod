@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2010 Bruce A Henderson
+' Copyright (c) 2009-2016 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,25 @@ bbdoc: Libssh2
 End Rem
 Module BaH.libssh2
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009-2010 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2016 Bruce A Henderson"
 
-?win32
+
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to libssh2 1.8.0"
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release."
+
+
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/ssl/libx64"
 ?
+
+?Not macos
+ModuleInfo "CC_OPTS: -DLIBSSH2_OPENSSL"
 
 Import BRL.Socket
 Import "common.bmx"
@@ -126,23 +138,23 @@ Type TSSHSession
 	End Method
 	
 	Function _kbdCallback(session:TSSHSession, name:String, instruction:String, ..
-			prompts:TSSHKeyboardPrompt[], responses:TSSHKeyboardResponse[])
+			prompts:TSSHKeyboardPrompt[], responses:TSSHKeyboardResponse[]) { nomangle }
 		session.interactiveCallback(name, instruction, prompts, responses)
 	End Function
 	
-	Function _newPrompts:TSSHKeyboardPrompt[](size:Int)
+	Function _newPrompts:TSSHKeyboardPrompt[](size:Int) { nomangle }
 		Return New TSSHKeyboardPrompt[size]
 	End Function
 	
-	Function _setPrompt(prompts:TSSHKeyboardPrompt[], index:Int, promptPtr:Byte Ptr)
+	Function _setPrompt(prompts:TSSHKeyboardPrompt[], index:Int, promptPtr:Byte Ptr) { nomangle }
 		prompts[index] = TSSHKeyboardPrompt._create(promptPtr)
 	End Function
 
-	Function _newResponses:TSSHKeyboardResponse[](size:Int)
+	Function _newResponses:TSSHKeyboardResponse[](size:Int) { nomangle }
 		Return New TSSHKeyboardResponse[size]
 	End Function
 
-	Function _setResponse(responses:TSSHKeyboardResponse[], index:Int, responsePtr:Byte Ptr)
+	Function _setResponse(responses:TSSHKeyboardResponse[], index:Int, responsePtr:Byte Ptr) { nomangle }
 		responses[index] = TSSHKeyboardResponse._create(responsePtr)
 	End Function
 	
@@ -197,7 +209,7 @@ Type TSSHChannel
 	Rem
 	bbdoc: Initiates a shell request.
 	End Rem
-	Method Shell:Int()
+	Method shell:Int()
 		Return bmx_libssh2_channel_shell(channelPtr)
 	End Method
 	
@@ -384,5 +396,5 @@ Type TSSHKeyboardPrompt
 	End Method
 	
 End Type
-
+?
 

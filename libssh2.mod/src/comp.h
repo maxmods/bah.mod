@@ -1,10 +1,7 @@
-/* Copyright (c) 2004-2007 Sara Golemon <sarag@libssh2.org>
- * Copyright (c) 2005,2006 Mikhail Gusarov <dottedmag@dottedmag.net>
- * Copyright (c) 2006-2007 The Written Word, Inc.
- * Copyright (c) 2007 Eli Fant <elifantu@mail.ru>
- * Copyright (c) 2009-2014 Daniel Stenberg
- * Copyright (C) 2008, 2009 Simon Josefsson
- * All rights reserved.
+#ifndef __LIBSSH2_COMP_H
+#define __LIBSSH2_COMP_H
+
+/* Copyright (C) 2009-2010 by Daniel Stenberg
  *
  * Redistribution and use in source and binary forms,
  * with or without modification, are permitted provided
@@ -38,5 +35,11 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
+ *
  */
 
+#include "libssh2_priv.h"
+
+const LIBSSH2_COMP_METHOD **_libssh2_comp_methods(LIBSSH2_SESSION *session);
+
+#endif /* __LIBSSH2_COMP_H */

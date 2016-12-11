@@ -1,4 +1,5 @@
 /* Copyright (c) 2004-2007, Sara Golemon <sarag@libssh2.org>
+ * Copyright (c) 2010-2014, Daniel Stenberg <daniel@haxx.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms,
@@ -40,56 +41,80 @@
 # include <zlib.h>
 #endif
 
-/* ********
-   * none *
-   ******** */
+#include "comp.h"
 
-/* {{{ libssh2_comp_method_none_comp
+/* ********
+ * none *
+ ******** */
+
+/*
+ * comp_method_none_comp
+ *
  * Minimalist compression: Absolutely none
  */
 static int
-libssh2_comp_method_none_comp(LIBSSH2_SESSION * session,
-                              int compress,
-                              unsigned char **dest,
-                              unsigned long *dest_len,
-                              unsigned long payload_limit,
-                              int *free_dest,
-                              const unsigned char *src,
-                              unsigned long src_len, void **abstract)
+comp_method_none_comp(LIBSSH2_SESSION *session,
+                      unsigned char *dest,
+                      size_t *dest_len,
+                      const unsigned char *src,
+                      size_t src_len,
+                      void **abstract)
 {
     (void) session;
-    (void) compress;
-    (void) payload_limit;
     (void) abstract;
-    *dest = (unsigned char *) src;
-    *dest_len = src_len;
-
-    *free_dest = 0;
+    (void) dest;
+    (void) dest_len;
+    (void) src;
+    (void) src_len;
 
     return 0;
 }
 
-/* }}} */
+/*
+ * comp_method_none_decomp
+ *
+ * Minimalist decompression: Absolutely none
+ */
+static int
+comp_method_none_decomp(LIBSSH2_SESSION * session,
+                        unsigned char **dest,
+                        size_t *dest_len,
+                        size_t payload_limit,
+                        const unsigned char *src,
+                        size_t src_len, void **abstract)
+{
+    (void) session;
+    (void) payload_limit;
+    (void) abstract;
+    *dest = (unsigned char *) src;
+    *dest_len = src_len;
+    return 0;
+}
 
-static const LIBSSH2_COMP_METHOD libssh2_comp_method_none = {
+
+
+static const LIBSSH2_COMP_METHOD comp_method_none = {
     "none",
+    0, /* not really compressing */
+    0, /* isn't used in userauth, go figure */
     NULL,
-    libssh2_comp_method_none_comp,
+    comp_method_none_comp,
+    comp_method_none_decomp,
     NULL
 };
 
 #ifdef LIBSSH2_HAVE_ZLIB
 /* ********
-   * zlib *
-   ******** */
+ * zlib *
+ ******** */
 
-/* {{{ Memory management wrappers
+/* Memory management wrappers
  * Yes, I realize we're doing a callback to a callback,
  * Deal...
  */
 
 static voidpf
-libssh2_comp_method_zlib_alloc(voidpf opaque, uInt items, uInt size)
+comp_method_zlib_alloc(voidpf opaque, uInt items, uInt size)
 {
     LIBSSH2_SESSION *session = (LIBSSH2_SESSION *) opaque;
 
@@ -97,38 +122,36 @@ libssh2_comp_method_zlib_alloc(voidpf opaque, uInt items, uInt size)
 }
 
 static void
-libssh2_comp_method_zlib_free(voidpf opaque, voidpf address)
+comp_method_zlib_free(voidpf opaque, voidpf address)
 {
     LIBSSH2_SESSION *session = (LIBSSH2_SESSION *) opaque;
 
     LIBSSH2_FREE(session, address);
 }
 
-/* }}} */
 
-/* {{{ libssh2_comp_method_zlib_init
+
+/* libssh2_comp_method_zlib_init
  * All your bandwidth are belong to us (so save some)
  */
 static int
-libssh2_comp_method_zlib_init(LIBSSH2_SESSION * session, int compress,
-                              void **abstract)
+comp_method_zlib_init(LIBSSH2_SESSION * session, int compr,
+                      void **abstract)
 {
     z_stream *strm;
     int status;
 
-    strm = LIBSSH2_ALLOC(session, sizeof(z_stream));
+    strm = LIBSSH2_CALLOC(session, sizeof(z_stream));
     if (!strm) {
-        libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                      "Unable to allocate memory for zlib compression/decompression",
-                      0);
-        return -1;
+        return _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                              "Unable to allocate memory for "
+                              "zlib compression/decompression");
     }
-    memset(strm, 0, sizeof(z_stream));
 
     strm->opaque = (voidpf) session;
-    strm->zalloc = (alloc_func) libssh2_comp_method_zlib_alloc;
-    strm->zfree = (free_func) libssh2_comp_method_zlib_free;
-    if (compress) {
+    strm->zalloc = (alloc_func) comp_method_zlib_alloc;
+    strm->zfree = (free_func) comp_method_zlib_free;
+    if (compr) {
         /* deflate */
         status = deflateInit(strm, Z_DEFAULT_COMPRESSION);
     } else {
@@ -138,203 +161,206 @@ libssh2_comp_method_zlib_init(LIBSSH2_SESSION * session, int compress,
 
     if (status != Z_OK) {
         LIBSSH2_FREE(session, strm);
-        return -1;
+        _libssh2_debug(session, LIBSSH2_TRACE_TRANS,
+                       "unhandled zlib error %d", status);
+        return LIBSSH2_ERROR_COMPRESS;
     }
     *abstract = strm;
 
-    return 0;
+    return LIBSSH2_ERROR_NONE;
 }
 
-/* }}} */
-
-/* {{{ libssh2_comp_method_zlib_comp
- * zlib, a compression standard for all occasions
+/*
+ * libssh2_comp_method_zlib_comp
+ *
+ * Compresses source to destination. Without allocation.
  */
 static int
-libssh2_comp_method_zlib_comp(LIBSSH2_SESSION * session,
-                              int compress,
-                              unsigned char **dest,
-                              unsigned long *dest_len,
-                              unsigned long payload_limit,
-                              int *free_dest,
-                              const unsigned char *src,
-                              unsigned long src_len, void **abstract)
+comp_method_zlib_comp(LIBSSH2_SESSION *session,
+                      unsigned char *dest,
+
+                      /* dest_len is a pointer to allow this function to
+                         update it with the final actual size used */
+                      size_t *dest_len,
+                      const unsigned char *src,
+                      size_t src_len,
+                      void **abstract)
+{
+    z_stream *strm = *abstract;
+    int out_maxlen = *dest_len;
+    int status;
+
+    strm->next_in = (unsigned char *) src;
+    strm->avail_in = src_len;
+    strm->next_out = dest;
+    strm->avail_out = out_maxlen;
+
+    status = deflate(strm, Z_PARTIAL_FLUSH);
+
+    if ((status == Z_OK) && (strm->avail_out > 0)) {
+        *dest_len = out_maxlen - strm->avail_out;
+        return 0;
+    }
+
+    _libssh2_debug(session, LIBSSH2_TRACE_TRANS,
+                   "unhandled zlib compression error %d, avail_out", status, strm->avail_out);
+    return _libssh2_error(session, LIBSSH2_ERROR_ZLIB, "compression failure");
+}
+
+/*
+ * libssh2_comp_method_zlib_decomp
+ *
+ * Decompresses source to destination. Allocates the output memory.
+ */
+static int
+comp_method_zlib_decomp(LIBSSH2_SESSION * session,
+                        unsigned char **dest,
+                        size_t *dest_len,
+                        size_t payload_limit,
+                        const unsigned char *src,
+                        size_t src_len, void **abstract)
 {
     z_stream *strm = *abstract;
     /* A short-term alloc of a full data chunk is better than a series of
        reallocs */
     char *out;
-    int out_maxlen = compress ? (src_len + 4) : (2 * src_len);
-    int limiter = 0;
+    int out_maxlen = 4 * src_len;
+
+    /* If strm is null, then we have not yet been initialized. */
+    if (strm == NULL)
+        return _libssh2_error(session, LIBSSH2_ERROR_COMPRESS,
+                              "decompression uninitialized");;
 
     /* In practice they never come smaller than this */
-    if (out_maxlen < 25) {
+    if (out_maxlen < 25)
         out_maxlen = 25;
-    }
 
-    if (out_maxlen > (int) payload_limit) {
+    if (out_maxlen > (int) payload_limit)
         out_maxlen = payload_limit;
-    }
 
     strm->next_in = (unsigned char *) src;
     strm->avail_in = src_len;
     strm->next_out = (unsigned char *) LIBSSH2_ALLOC(session, out_maxlen);
     out = (char *) strm->next_out;
     strm->avail_out = out_maxlen;
-    if (!strm->next_out) {
-        libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                      "Unable to allocate compression/decompression buffer",
-                      0);
-        return -1;
-    }
-    while (strm->avail_in) {
+    if (!strm->next_out)
+        return _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                              "Unable to allocate decompression buffer");
+
+    /* Loop until it's all inflated or hit error */
+    for (;;) {
         int status;
+        size_t out_ofs;
+        char *newout;
 
-        if (compress) {
-            status = deflate(strm, Z_PARTIAL_FLUSH);
+        status = inflate(strm, Z_PARTIAL_FLUSH);
+
+        if (status == Z_OK) {
+            if (strm->avail_out > 0)
+                /* status is OK and the output buffer has not been exhausted so we're done */
+                break;
+        } else if (status == Z_BUF_ERROR) {
+            /* the input data has been exhausted so we are done */
+            break;
         } else {
-            status = inflate(strm, Z_PARTIAL_FLUSH);
-        }
-        if (status != Z_OK) {
-            libssh2_error(session, LIBSSH2_ERROR_ZLIB,
-                          "compress/decompression failure", 0);
+            /* error state */
             LIBSSH2_FREE(session, out);
-            return -1;
+            _libssh2_debug(session, LIBSSH2_TRACE_TRANS,
+                           "unhandled zlib error %d", status);
+            return _libssh2_error(session, LIBSSH2_ERROR_ZLIB,
+                                  "decompression failure");
         }
-        if (strm->avail_in) {
-            unsigned long out_ofs = out_maxlen - strm->avail_out;
-            char *newout;
 
-            out_maxlen +=
-                compress ? (strm->avail_in + 4) : (2 * strm->avail_in);
+        if (out_maxlen >= (int) payload_limit) {
+            LIBSSH2_FREE(session, out);
+            return _libssh2_error(session, LIBSSH2_ERROR_ZLIB,
+                                  "Excessive growth in decompression phase");
+        }
 
-            if ((out_maxlen > (int) payload_limit) && !compress && limiter++) {
-                libssh2_error(session, LIBSSH2_ERROR_ZLIB,
-                              "Excessive growth in decompression phase", 0);
-                LIBSSH2_FREE(session, out);
-                return -1;
-            }
-
-            newout = LIBSSH2_REALLOC(session, out, out_maxlen);
-            if (!newout) {
-                libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                              "Unable to expand compress/decompression buffer",
-                              0);
-                LIBSSH2_FREE(session, out);
-                return -1;
-            }
-            out = newout;
-            strm->next_out = (unsigned char *) out + out_ofs;
-            strm->avail_out +=
-                compress ? (strm->avail_in + 4) : (2 * strm->avail_in);
-        } else
-            while (!strm->avail_out) {
-                /* Done with input, might be a byte or two in internal buffer during compress
-                 * Or potentially many bytes if it's a decompress
-                 */
-                int grow_size = compress ? 8 : 1024;
-                char *newout;
-
-                if (out_maxlen >= (int) payload_limit) {
-                    libssh2_error(session, LIBSSH2_ERROR_ZLIB,
-                                  "Excessive growth in decompression phase",
-                                  0);
-                    LIBSSH2_FREE(session, out);
-                    return -1;
-                }
-
-                if (grow_size > (int) (payload_limit - out_maxlen)) {
-                    grow_size = payload_limit - out_maxlen;
-                }
-
-                out_maxlen += grow_size;
-                strm->avail_out = grow_size;
-
-                newout = LIBSSH2_REALLOC(session, out, out_maxlen);
-                if (!newout) {
-                    libssh2_error(session, LIBSSH2_ERROR_ALLOC,
-                                  "Unable to expand final compress/decompress buffer",
-                                  0);
-                    LIBSSH2_FREE(session, out);
-                    return -1;
-                }
-                out = newout;
-                strm->next_out = (unsigned char *) out + out_maxlen -
-                    grow_size;
-
-                if (compress) {
-                    status = deflate(strm, Z_PARTIAL_FLUSH);
-                } else {
-                    status = inflate(strm, Z_PARTIAL_FLUSH);
-                }
-                if (status != Z_OK) {
-                    libssh2_error(session, LIBSSH2_ERROR_ZLIB,
-                                  "compress/decompression failure", 0);
-                    LIBSSH2_FREE(session, out);
-                    return -1;
-                }
-            }
+        /* If we get here we need to grow the output buffer and try again */
+        out_ofs = out_maxlen - strm->avail_out;
+        out_maxlen *= 2;
+        newout = LIBSSH2_REALLOC(session, out, out_maxlen);
+        if (!newout) {
+            LIBSSH2_FREE(session, out);
+            return _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                                  "Unable to expand decompression buffer");
+        }
+        out = newout;
+        strm->next_out = (unsigned char *) out + out_ofs;
+        strm->avail_out = out_maxlen - out_ofs;
     }
 
     *dest = (unsigned char *) out;
     *dest_len = out_maxlen - strm->avail_out;
-    *free_dest = 1;
 
     return 0;
 }
 
-/* }}} */
 
-/* {{{ libssh2_comp_method_zlib_dtor
+/* libssh2_comp_method_zlib_dtor
  * All done, no more compression for you
  */
 static int
-libssh2_comp_method_zlib_dtor(LIBSSH2_SESSION * session, int compress,
-                              void **abstract)
+comp_method_zlib_dtor(LIBSSH2_SESSION *session, int compr, void **abstract)
 {
     z_stream *strm = *abstract;
 
     if (strm) {
-        if (compress) {
-            /* deflate */
+        if (compr)
             deflateEnd(strm);
-        } else {
-            /* inflate */
+        else
             inflateEnd(strm);
-        }
-
         LIBSSH2_FREE(session, strm);
     }
 
     *abstract = NULL;
-
     return 0;
 }
 
-/* }}} */
-
-static const LIBSSH2_COMP_METHOD libssh2_comp_method_zlib = {
+static const LIBSSH2_COMP_METHOD comp_method_zlib = {
     "zlib",
-    libssh2_comp_method_zlib_init,
-    libssh2_comp_method_zlib_comp,
-    libssh2_comp_method_zlib_dtor,
+    1, /* yes, this compresses */
+    1, /* do compression during userauth */
+    comp_method_zlib_init,
+    comp_method_zlib_comp,
+    comp_method_zlib_decomp,
+    comp_method_zlib_dtor,
+};
+
+static const LIBSSH2_COMP_METHOD comp_method_zlib_openssh = {
+    "zlib@openssh.com",
+    1, /* yes, this compresses */
+    0, /* don't use compression during userauth */
+    comp_method_zlib_init,
+    comp_method_zlib_comp,
+    comp_method_zlib_decomp,
+    comp_method_zlib_dtor,
 };
 #endif /* LIBSSH2_HAVE_ZLIB */
 
-/* ***********************
-   * Compression Methods *
-   *********************** */
-
-static const LIBSSH2_COMP_METHOD *_libssh2_comp_methods[] = {
-    &libssh2_comp_method_none,
+/* If compression is enabled by the API, then this array is used which then
+   may allow compression if zlib is available at build time */
+static const LIBSSH2_COMP_METHOD *comp_methods[] = {
 #ifdef LIBSSH2_HAVE_ZLIB
-    &libssh2_comp_method_zlib,
+    &comp_method_zlib,
+    &comp_method_zlib_openssh,
 #endif /* LIBSSH2_HAVE_ZLIB */
+    &comp_method_none,
+    NULL
+};
+
+/* If compression is disabled by the API, then this array is used */
+static const LIBSSH2_COMP_METHOD *no_comp_methods[] = {
+    &comp_method_none,
     NULL
 };
 
 const LIBSSH2_COMP_METHOD **
-libssh2_comp_methods(void)
+_libssh2_comp_methods(LIBSSH2_SESSION *session)
 {
-    return _libssh2_comp_methods;
+    if(session->flag.compress)
+        return comp_methods;
+    else
+        return no_comp_methods;
 }
