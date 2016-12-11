@@ -72,7 +72,7 @@ Type TSoloudAudioDriver Extends TAudioDriver
 		Return True
 	End Method
 	
-	Method Shutdown:Int()
+	Method Shutdown()
 		Local soloud:TSoloud = _soloud
 		_soloud = Null
 		
@@ -129,7 +129,7 @@ Type TSoloudSound Extends TSound
 		Else If loopFlag & SOLOUD_SOUND_SFXR Then
 			sound = New TSLSfxr
 		Else If loopFlag & SOLOUD_SOUND_MODPLUG Then
-			sound = New TSLModPlug
+			sound = New TSLModplug
 		Else If loopFlag & SOLOUD_SOUND_MONOTONE Then
 			sound = New TSLMonotone
 		Else If loopFlag & SOLOUD_SOUND_TEDSID Then
@@ -249,13 +249,13 @@ Type TSoloudChannel Extends TChannel
 		End If
 	End Method
 
-	Method Stop:Int()
+	Method Stop()
 		If _voiceHandle Then
 			_soloud.stop(_voiceHandle)
 		End If
 	End Method
 
-	Method SetPaused:Int( paused:Int )
+	Method SetPaused( paused:Int )
 		If _voiceHandle Then
 			_soloud.setPause(_voiceHandle, paused)
 		Else
@@ -264,7 +264,7 @@ Type TSoloudChannel Extends TChannel
 		End If
 	End Method
 
-	Method SetVolume:Int( volume:Float )
+	Method SetVolume( volume:Float )
 		If _voiceHandle Then
 			_soloud.setVolume(_voiceHandle, volume)
 		Else
@@ -273,7 +273,7 @@ Type TSoloudChannel Extends TChannel
 		End If
 	End Method
 
-	Method SetPan:Int( pan:Float )
+	Method SetPan( pan:Float )
 		If _voiceHandle Then
 			_soloud.setPan(_voiceHandle, pan)
 		Else
@@ -282,11 +282,11 @@ Type TSoloudChannel Extends TChannel
 		End If
 	End Method
 
-	Method SetDepth:Int( depth:Float )
+	Method SetDepth( depth:Float )
 		' TODO ?
 	End Method
 
-	Method SetRate:Int( rate:Float )
+	Method SetRate( rate:Float )
 		If _voiceHandle Then
 			_soloud.setSamplerate(_voiceHandle, rate)
 		Else
