@@ -27,7 +27,7 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-/* SoLoud C-Api Code Generator (c)2013-2015 Jari Komppa http://iki.fi/sol/ */
+/* SoLoud C-Api Code Generator (c)2013-2016 Jari Komppa http://iki.fi/sol/ */
 
 #include "../include/soloud.h"
 #include "../include/soloud_audiosource.h"
@@ -1004,7 +1004,7 @@ void Wav_destroy(void * aClassPtr)
 
 void * Wav_create()
 {
-  return (void *)new Wav();
+  return (void *)new Wav;
 }
 
 int Wav_load(void * aClassPtr, const char * aFilename)

@@ -21,6 +21,7 @@
 '
 SuperStrict
 
+Import BRL.Stream
 ?macos
 Import "-framework AudioToolbox"
 ?linux
@@ -369,6 +370,10 @@ Extern
 	Function TedSid_setInaudibleBehavior(aTedSid:Byte Ptr, aMustTick:Int, aKill:Int)
 	Function TedSid_setFilter(aTedSid:Byte Ptr, aFilterId:Int, aFilter:Byte Ptr)
 	Function TedSid_stop(aTedSid:Byte Ptr)
+
+
+	Function bmx_soloud_streamfile_new:Byte Ptr()
+	Function bmx_soloud_streamfile_free(handle:Byte Ptr)
 	
 End Extern
 

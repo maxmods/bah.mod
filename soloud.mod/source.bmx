@@ -113,3 +113,6 @@ Import "soloud/src/audiosource/wav/soloud_wav.cpp"
 Import "soloud/src/audiosource/wav/soloud_wavstream.cpp"
 Import "soloud/src/audiosource/wav/stb_vorbis.c"
 
+
+Import "glue.cpp"
+

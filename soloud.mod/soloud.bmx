@@ -482,7 +482,7 @@ Type TSLLoadableAudioSource Extends TSLAudioSource
 
 	Method Load:Int(filename:String) Abstract
 	Method loadMem:Int(mem:Byte Ptr, length:Int, copy:Int = False, takeOwnership:Int = True) Abstract
-	Method loadStream:Int(filename:String) Abstract
+	Method loadStream:Int(stream:TStream) Abstract
 
 End Type
 
@@ -642,7 +642,11 @@ Type TSLWav Extends TSLLoadableAudioSource
 	Rem
 	bbdoc: 
 	End Rem
-	Method loadStream:Int(filename:String)
+	Method loadStream:Int(stream:TStream)
+		Local sf:TStreamFile = New TStreamFile.Create(stream)
+		Local res:Int = Wav_loadFile(asPtr, sf.filePtr)
+		sf.Free()
+		Return res
 	End Method
 
 	Rem
@@ -782,7 +786,9 @@ Type TSLWavStream Extends TSLLoadableAudioSource
 	Rem
 	bbdoc: 
 	End Rem
-	Method loadStream:Int(filename:String)
+	Method loadStream:Int(stream:TStream)
+		Local sf:TStreamFile = New TStreamFile.Create(stream)
+		Return WavStream_loadFile(asPtr, sf.filePtr)
 	End Method
 
 	Rem
@@ -922,7 +928,7 @@ Type TSLSfxr Extends TSLLoadableAudioSource
 	Rem
 	bbdoc: 
 	End Rem
-	Method loadStream:Int(filename:String)
+	Method loadStream:Int(stream:TStream)
 	End Method
 
 	Rem
@@ -1062,7 +1068,7 @@ Type TSLModplug Extends TSLLoadableAudioSource
 	Rem
 	bbdoc: 
 	End Rem
-	Method loadStream:Int(filename:String)
+	Method loadStream:Int(stream:TStream)
 	End Method
 
 	Rem
@@ -1202,7 +1208,7 @@ Type TSLMonotone Extends TSLLoadableAudioSource
 	Rem
 	bbdoc: 
 	End Rem
-	Method loadStream:Int(filename:String)
+	Method loadStream:Int(stream:TStream)
 	End Method
 
 	Rem
@@ -1342,7 +1348,7 @@ Type TSLTedSid Extends TSLLoadableAudioSource
 	Rem
 	bbdoc: 
 	End Rem
-	Method loadStream:Int(filename:String)
+	Method loadStream:Int(stream:TStream)
 	End Method
 
 	Rem
@@ -1461,5 +1467,50 @@ Type TSLAudioAttenuator
 End Type
 
 Type TSLFilter
+End Type
+
+
+Type TStreamFile
+
+	Field filePtr:Byte Ptr
+	Field stream:TStream
+	
+	Method Create:TStreamFile(stream:TStream)
+		filePtr = bmx_soloud_streamfile_new()
+		Self.stream = stream
+		Return Self
+	End Method
+	
+	Function _eof:Int(sf:TStreamFile) { nomangle }
+		Return sf.stream.Eof()
+	End Function
+
+	Function _seek(sf:TStreamFile, offset:Int) { nomangle }
+		sf.stream.Seek(offset)
+	End Function
+	
+	Function _length:Int(sf:TStreamFile) { nomangle }
+		Return sf.stream.Size()
+	End Function
+	
+	Function _pos:Int(sf:TStreamFile) { nomangle }
+		Return sf.stream.Pos()
+	End Function
+	
+	Function _read:Int(sf:TStreamFile, dst:Byte Ptr, size:Int) { nomangle }
+		Return sf.stream.Read(dst, size)
+	End Function
+
+	Method Free()
+		If filePtr Then
+			bmx_soloud_streamfile_free(filePtr)
+			filePtr = Null
+		End If
+	End Method
+	
+	'Method Delete()
+	'	Free()
+	'End Method
+	
 End Type
 
