@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Added Win32 64-bit support."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Include static lib for osx."
 ModuleInfo "History: 1.03"
@@ -43,8 +45,10 @@ ModuleInfo "History: Added digest functions."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
 
-?win32
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/ssl/libx64"
 ?macosx86
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/libmacosx86"
 ?macosx64
