@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ Import "-lcrypto"
 Import "-leay32"
 Import "-lssleay32"
 ?macos
-Import "-lcrypto"
+Import "-framework Security"
 ?
 
 Import "sqlitehelper.cpp"

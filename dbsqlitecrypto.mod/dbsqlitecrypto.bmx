@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,16 @@ about: An Cipher-enabled SQLite database driver for #bah.database.Database
 End Rem
 Module BaH.DBSQLiteCrypto
 
-ModuleInfo "Version: 1.14"
+ModuleInfo "Version: 1.15"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2015 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 ModuleInfo "Copyright: SQLCipher - 2008, ZETETIC LLC"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.15"
+ModuleInfo "History: Update to SQLite 3.11.0."
 ModuleInfo "History: 1.14"
 ModuleInfo "History: Update to SQLite 3.8.10.2."
 ModuleInfo "History: Added user authentication support."
@@ -83,6 +85,10 @@ ModuleInfo "History: 1.00 Initial Release"
 ModuleInfo "History: Includes SQLite 3.3.13 source."
 
 ModuleInfo "CC_OPTS: -DSQLITE_USER_AUTHENTICATION -DSQLITE_HAS_CODEC"
+
+?macos
+ModuleInfo "CC_OPTS: -DSQLCIPHER_CRYPTO_CC"
+?
 
 ?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
