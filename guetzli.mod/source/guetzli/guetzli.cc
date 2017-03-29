@@ -34,7 +34,7 @@ constexpr int kDefaultJPEGQuality = 95;
 
 // An upper estimate of memory usage of Guetzli. The bound is
 // max(kLowerMemusaeMB * 1<<20, pixel_count * kBytesPerPixel)
-constexpr int kBytesPerPixel = 300;
+constexpr int kBytesPerPixel = 200;
 constexpr int kLowestMemusageMB = 100; // in MB
 
 constexpr int kDefaultMemlimitMB = 6000; // in MB
@@ -243,9 +243,13 @@ int main(int argc, char** argv) {
       verbose = 1;
     } else if (!strcmp(argv[opt_idx], "--quality")) {
       opt_idx++;
+      if (opt_idx >= argc)
+        Usage();
       quality = atoi(argv[opt_idx]);
     } else if (!strcmp(argv[opt_idx], "--memlimit")) {
       opt_idx++;
+      if (opt_idx >= argc)
+        Usage();
       memlimit_mb = atoi(argv[opt_idx]);
     } else if (!strcmp(argv[opt_idx], "--nomemlimit")) {
       memlimit_mb = -1;
@@ -286,7 +290,7 @@ int main(int argc, char** argv) {
       fprintf(stderr, "Error reading PNG data from input file\n");
       return 1;
     }
-    int pixels = xsize * ysize;
+    double pixels = static_cast<double>(xsize) * ysize;
     if (memlimit_mb != -1
         && (pixels * kBytesPerPixel / (1 << 20) > memlimit_mb
             || memlimit_mb < kLowestMemusageMB)) {
@@ -303,7 +307,7 @@ int main(int argc, char** argv) {
       fprintf(stderr, "Error reading JPG data from input file\n");
       return 1;
     }
-    int pixels = jpg_header.width * jpg_header.height;
+    double pixels = static_cast<double>(jpg_header.width) * jpg_header.height;
     if (memlimit_mb != -1
         && (pixels * kBytesPerPixel / (1 << 20) > memlimit_mb
             || memlimit_mb < kLowestMemusageMB)) {
