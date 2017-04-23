@@ -25,6 +25,7 @@
 '
 SuperStrict
 
+Import BaH.Cairo
 Import "source.bmx"
 
 Extern
@@ -42,6 +43,8 @@ Extern
 	Function bmx_zint_setborderwidth(handle:Byte Ptr, width:Int)
 	Function bmx_zint_setfgcolour(handle:Byte Ptr, r:Int, g:Int, b:Int)
 	Function bmx_zint_setbgcolour(handle:Byte Ptr, r:Int, g:Int, b:Int)
+	
+	Function bmx_zint_cairoencode:Int(handle:Byte Ptr, ctx:Byte Ptr, inp:Byte Ptr, length:Int, rotateAngle:Int)
 	
 End Extern
 

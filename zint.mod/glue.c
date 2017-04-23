@@ -26,6 +26,7 @@
 */
 #include "zint.h"
 #include "brl.mod/blitz.mod/blitz.h"
+#include "cairo.h"
 
 void bmx_zint_setsymbology(struct zint_symbol *symbol, int symbology) {
 	symbol->symbology = symbology;
@@ -62,5 +63,11 @@ void bmx_zint_setbgcolour(struct zint_symbol *symbol, int r, int g, int b) {
 	char buf[7];
 	sprintf(buf, "%02x%02x%02x", r % 0xff, g % 0xff, b % 0xff);
 	strcpy(symbol->bgcolour, buf);
+}
+
+int bmx_zint_cairoencode(struct zint_symbol *symbol, cairo_t * ctx, char * inp, int length, int rotateAngle) {
+	symbol->context = ctx;
+	strcpy(symbol->outfile, ".CGR");
+	return ZBarcode_Encode_and_Print(symbol, inp, length, rotateAngle);
 }
 

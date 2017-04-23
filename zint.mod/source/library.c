@@ -209,6 +209,7 @@ extern int plot_raster(struct zint_symbol *symbol, int rotate_angle, int file_ty
 extern int render_plot(struct zint_symbol *symbol, float width, float height); /* Plot to gLabels */
 extern int ps_plot(struct zint_symbol *symbol); /* Plot to EPS */
 extern int svg_plot(struct zint_symbol *symbol); /* Plot to SVG */
+extern int cairo_plot(struct zint_symbol *symbol); /* Plot to Cairo */
 
 void error_tag(char error_string[], int error_number) {
     char error_buffer[100];
@@ -1130,6 +1131,9 @@ int ZBarcode_Print(struct zint_symbol *symbol, int rotate_angle) {
         } else
             if (!(strcmp(output, "SVG"))) {
             error_number = svg_plot(symbol);
+        } else
+            if (!(strcmp(output, "CGR"))) {
+            error_number = cairo_plot(symbol);
         } else {
             strcpy(symbol->errtxt, "Unknown output format (B25)");
             error_tag(symbol->errtxt, ZINT_ERROR_INVALID_OPTION);

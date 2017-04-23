@@ -30,19 +30,30 @@ bbdoc: Barcode Generator
 End Rem
 Module BaH.Zint
 
+ModuleInfo "Version: 1.01"
+ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2017 Bruce A Henderson"
 ModuleInfo "Copyright: libzint - 2009-2016 Robin Stuart"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Implemented Zint/Cairo renderer."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (libzint 2.5.1)"
 
-ModuleInfo "CC_OPTS: -DNO_PNG"
+ModuleInfo "CC_OPTS: -DNO_PNG -DCAIRO_RENDER"
 
 Import "common.bmx"
 
 Import BRL.Pixmap
 
-
+'
+' Notes :
+'
+'  Cairo renderer changes :
+'     zint.h     (modified) - added context to symbol struct
+'     library.c  (modified) - added CGR extension to call into cairo_plot()
+'     cairo.c    (added)
+'
 
 Rem
 bbdoc: 
@@ -118,6 +129,13 @@ Type TZBarcode
 			
 			Return pix
 		End If
+	End Method
+	
+	Method CairoEncode(ctx:TCairo, txt:String, rotateAngle:Int = 0)
+		error = 0
+		Local s:Byte Ptr = txt.ToUTF8String()
+		error = bmx_zint_cairoencode(zbPtr, ctx.contextPtr, s, 0, rotateAngle)
+		MemFree(s)
 	End Method
 
 	Method Free()

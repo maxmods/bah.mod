@@ -27,6 +27,7 @@ SuperStrict
 
 
 Import "source/*.h"
+Import "../cairo.mod/src/*.h"
 
 Import "source/common.c"
 Import "source/render.c"
@@ -66,5 +67,6 @@ Import "source/bmp.c"
 Import "source/gif.c"
 Import "source/pcx.c"
 Import "source/hanxin.c"
+Import "source/cairo.c"
 
 Import "glue.c"
