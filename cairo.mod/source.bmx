@@ -51,7 +51,7 @@ Import "src/pixman/pixman-edge-accessors.c"
 Import "src/pixman/pixman-trap.c"
 Import "src/pixman/pixman-timer.c"
 Import "src/pixman/pixman-matrix.c"
-?macosx86
+?macos
 Import "src/pixman/pixman-mmx.c"
 Import "src/pixman/pixman-sse2.c"
 ?

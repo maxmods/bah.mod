@@ -104,7 +104,7 @@ ModuleInfo "History: Fixed Delete() method for Linux to prevent memory exception
 ModuleInfo "History: 1.00 Initial Release (Cairo 1.0.4)"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
-?macosx86
+?macos
 ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX -DHAVE_PTHREAD_SETSPECIFIC"
 ?
 
@@ -1757,9 +1757,9 @@ Close_path()
 	</ul>
 	</p>
 	End Rem
-	Method SetOperator(operator:Int)
+	Method SetOperator(op:Int)
 		NoContextError()
-		cairo_set_operator(contextPtr, operator)
+		cairo_set_operator(contextPtr, op)
 	End Method
 	
 	Rem
@@ -1892,9 +1892,9 @@ Close_path()
 	</ul>
 	</p>
 	End Rem
-	Method ShowText(text:String)
+	Method ShowText(Text:String)
 		NoContextError()
-		cairo_show_text(contextPtr, _cairo_ISO8859toUTF8(text))
+		cairo_show_text(contextPtr, _cairo_ISO8859toUTF8(Text))
 	End Method	
 	
 	Rem
@@ -2025,9 +2025,9 @@ Close_path()
 	</ul>
 	</p>
 	End Rem
-	Method TextExtents:TCairoTextExtents(text:String)
+	Method TextExtents:TCairoTextExtents(Text:String)
 		Local extents:TCairoTextExtents = New TCairoTextExtents
-		cairo_text_extents(contextPtr, _cairo_ISO8859toUTF8(text), extents)
+		cairo_text_extents(contextPtr, _cairo_ISO8859toUTF8(Text), extents)
 		Return extents
 	End Method
 
@@ -2040,9 +2040,9 @@ Close_path()
 	</ul>
 	</p>
 	End Rem
-	Method TextPath(text:String)
+	Method TextPath(Text:String)
 		NoContextError()
-		cairo_text_path(contextPtr, _cairo_ISO8859toUTF8(text))
+		cairo_text_path(contextPtr, _cairo_ISO8859toUTF8(Text))
 	End Method
 	
 	Rem
@@ -4054,9 +4054,9 @@ Type TCairoScaledFont
 	</ul>
 	</p>
 	End Rem
-	Method TextExtents:TCairoTextExtents(text:String)
+	Method TextExtents:TCairoTextExtents(Text:String)
 		Local extents:TCairoTextExtents = New TCairoTextExtents
-		cairo_scaled_font_text_extents(scaledfontPtr, _cairo_ISO8859toUTF8(text), extents)
+		cairo_scaled_font_text_extents(scaledfontPtr, _cairo_ISO8859toUTF8(Text), extents)
 		Return extents
 	End Method
 	
