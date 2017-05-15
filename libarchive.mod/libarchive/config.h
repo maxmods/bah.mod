@@ -383,10 +383,12 @@
 #endif
 
 /* Define if you have the iconv() function and it works. */
+#ifndef WIN32
 #define HAVE_ICONV 1
 
 /* Define to 1 if you have the <iconv.h> header file. */
 #define HAVE_ICONV_H 1
+#endif
 
 /* Define to 1 if the system has the type `intmax_t'. */
 #define HAVE_INTMAX_T 1
@@ -512,10 +514,10 @@
 #ifndef WIN32
 /* Define to 1 if you have the <localcharset.h> header file. */
 #define HAVE_LOCALCHARSET_H 1
-#endif
 
 /* Define to 1 if you have the `locale_charset' function. */
 #define HAVE_LOCALE_CHARSET 1
+#endif
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1

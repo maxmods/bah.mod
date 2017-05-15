@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2016 Bruce A Henderson
+' Copyright (c) 2013-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,9 @@ SuperStrict
 Import BaH.SStream
 ?
 Import BaH.LibXML
+?Not win32
 Import BaH.Libiconv
+?
 Import BaH.xz
 
 Import "source.bmx"

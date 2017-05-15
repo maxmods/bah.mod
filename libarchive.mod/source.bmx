@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2016 Bruce A Henderson
+' Copyright (c) 2013-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ Import BRL.Blitz
 Import "../libxml.mod/src/*.h"
 Import "../xz.mod/src/liblzma/api/*.h"
 ?win32
-Import "../libiconv.mod/include/*.h"
+'Import "../libiconv.mod/include/*.h"
 ?
 
 Import "bzip2/*.h"
