@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2014 Petri Lehtinen <petri@digip.org>
+ * Copyright (c) 2009-2016 Petri Lehtinen <petri@digip.org>
  * Copyright (c) 2011-2012 Graeme Smecher <graeme.smecher@mail.mcgill.ca>
  *
  * Jansson is free software; you can redistribute it and/or modify
@@ -235,6 +235,12 @@ static json_t *pack_object(scanner_t *s, va_list *ap)
             if(ours)
                 jsonp_free(key);
 
+            if(strchr("soO", token(s)) && s->next_token.token == '*') {
+                next_token(s);
+                next_token(s);
+                continue;
+            }
+
             goto error;
         }
 
@@ -249,6 +255,8 @@ static json_t *pack_object(scanner_t *s, va_list *ap)
         if(ours)
             jsonp_free(key);
 
+        if(strchr("soO", token(s)) && s->next_token.token == '*')
+            next_token(s);
         next_token(s);
     }
 
@@ -273,14 +281,23 @@ static json_t *pack_array(scanner_t *s, va_list *ap)
         }
 
         value = pack(s, ap);
-        if(!value)
+        if(!value) {
+            if(strchr("soO", token(s)) && s->next_token.token == '*') {
+                next_token(s);
+                next_token(s);
+                continue;
+            }
+
             goto error;
+        }
 
         if(json_array_append_new(array, value)) {
             set_error(s, "<internal>", "Unable to append to array");
             goto error;
         }
 
+        if(strchr("soO", token(s)) && s->next_token.token == '*')
+            next_token(s);
         next_token(s);
     }
     return array;
@@ -464,7 +481,7 @@ static int unpack_object(scanner_t *s, json_t *root, va_list *ap)
         if(unpack(s, value, ap))
             goto out;
 
-        hashtable_set(&key_set, key, 0, json_null());
+        hashtable_set(&key_set, key, json_null());
         next_token(s);
     }
 

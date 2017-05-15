@@ -1,4 +1,4 @@
-' Copyright (c) 2014-2016 Bruce A Henderson
+' Copyright (c) 2014-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.Jansson
 ModuleInfo "Version: 1.00"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2014-2016 Bruce A Henderson"
+ModuleInfo "Copyright: 2014-2017 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
@@ -125,7 +125,7 @@ Type TJSON
 	End Function
 
 ?bmxng
-	Function _loadCallback:size_t(buffer:Byte Ptr, buflen:size_t, data:TStream)
+	Function _loadCallback:Size_T(buffer:Byte Ptr, buflen:Size_T, data:TStream)
 ?Not bmxng
 	Function _loadCallback:Int(buffer:Byte Ptr, buflen:Int, data:TStream)
 ?
@@ -133,7 +133,7 @@ Type TJSON
 	End Function
 
 ?bmxng
-	Function _dumpCallback:size_t(buffer:Byte Ptr, size:size_t, data:TStream)
+	Function _dumpCallback:Size_T(buffer:Byte Ptr, size:Size_T, data:TStream)
 ?Not bmxng
 	Function _dumpCallback:Int(buffer:Byte Ptr, size:Int, data:TStream)
 ?

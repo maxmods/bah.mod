@@ -1,7 +1,61 @@
-Version 2.8 (in development)
-============================
+Version 2.10
+============
+
+Released 2017-03-02
 
 * New features:
+
+  - Add JSON_EMBED encoding flag allowing arrays and objects to be encoded
+    into existing streams (#329).
+
+  - Add `json_dumpb()` function for dumping to a pre-allocated buffer (#328).
+
+  - Add `json_dumpfd()` and `json_loadfd()` functions for dumping to streaming
+    file descriptors (#328).
+
+  - Add support for parsing buffers larger than 2GB (#309).
+
+* Build:
+
+  - Fix CMake build when LONG_LONG_INT is defined as "" (#321)
+
+* Other:
+
+  - Internal code cleanup (#311, #314)
+
+Version 2.9
+===========
+
+Released 2016-09-18
+
+* New features:
+
+  - Add ``json_auto_t`` to automatically decref a value that goes out
+    of scope. Available only on GCC and Clang. (#301)
+
+* Build:
+
+  - Fix CMake build (at least on Linux) by removing conflicting
+    jansson_config.h from the distribution (#306)
+
+  - Change CMake install target generation to be optional (#305)
+
+* Documentation:
+
+  - Small documentation fixes.
+
+
+Version 2.8
+===========
+
+Released 2016-08-30
+
+* New features:
+
+  - Always preserve insertion order of object items.
+    `json_object_iter()` and friends, `json_object_foreach()` and
+    `json_dumps()` and friends now always work in the insertion order of
+    object items (#293).
 
   - Add `json_object_foreach_safe()` macro that allows
     `json_object_del()` calls during iteration (#230).
@@ -9,7 +63,13 @@ Version 2.8 (in development)
   - Add `json_get_alloc_funcs()` to allow reading the allocation
     functions set by `json_set_alloc_funcs()` (#262, #264).
 
+  - Add `json_pack()` format specifiers s?, o? and O? for values that
+    can be null (#261, #270).
+
 * Bug fixes:
+
+  - Fix a crash when parsing inputs consisting of very deeply nested
+    arrays or objects (#282, #284).
 
   - Never convert numbers to integers in the parser when
     JSON_DECODE_INT_AS_REAL is set. This fixes error messages for
@@ -17,7 +77,17 @@ Version 2.8 (in development)
 
   - Fix a use-after-free in `json_pack()` error handling.
 
+  - Fix subnormal number parsing on mingw32.
+
+  - Handle out-of-memory situations gracefully in the hashtable
+    implementation (#298).
+
 * Build:
+
+  - Fix build with CMake on all versions of Visual Studio up to 2015
+    (#262, #289).
+
+  - Fix pkgconfig libdir when using CMake (#268).
 
   - Fix CMake config for static CRT builds on Windows (#206).
 
@@ -33,8 +103,6 @@ Version 2.8 (in development)
 
   - Use snprintf and strncpy in place of sprintf and strcpy to silence
     linker warnings on OpenBSD (#233).
-
-  - Fix build on MSVC >= 1900 (#262).
 
 * Documentation:
 
@@ -59,7 +127,7 @@ Version 2.8 (in development)
 
   - Other minor fixes (#221, #248).
 
-* Ohter changes:
+* Other changes:
 
   - List all unrecognized object keys when strict unpacking fails
     (#263).

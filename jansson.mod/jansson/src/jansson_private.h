@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2014 Petri Lehtinen <petri@digip.org>
+ * Copyright (c) 2009-2016 Petri Lehtinen <petri@digip.org>
  *
  * Jansson is free software; you can redistribute it and/or modify
  * it under the terms of the MIT license. See LICENSE for details.
@@ -8,6 +8,7 @@
 #ifndef JANSSON_PRIVATE_H
 #define JANSSON_PRIVATE_H
 
+#include "jansson_private_config.h"
 #include <stddef.h>
 #include "jansson.h"
 #include "hashtable.h"
@@ -34,7 +35,6 @@
 typedef struct {
     json_t json;
     hashtable_t hashtable;
-    size_t serial;
     int visited;
 } json_object_t;
 
