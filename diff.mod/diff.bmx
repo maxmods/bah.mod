@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,13 @@ bbdoc: Diff Template Library
 End Rem
 Module BaH.Diff
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: dtl - 2013 Tatsuhiko Kubo <cubicdaiya@gmail.com>"
-ModuleInfo "Copyright: Wrapper - 2014 Bruce A Henderson"
+ModuleInfo "Copyright: dtl - 2015 Tatsuhiko Kubo <cubicdaiya@gmail.com>"
+ModuleInfo "Copyright: Wrapper - 2014-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Updated to dtl 1.19."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 

@@ -3,7 +3,7 @@
    
    In short, Diff Template Library is distributed under so called "BSD license",
    
-   Copyright (c) 2013 Tatsuhiko Kubo <cubicdaiya@gmail.com>
+   Copyright (c) 2015 Tatsuhiko Kubo <cubicdaiya@gmail.com>
    All rights reserved.
    
    Redistribution and use in source and binary forms, with or without modification,

@@ -1,4 +1,4 @@
-' Copyright (c) 2014 Bruce A Henderson
+' Copyright (c) 2014-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@ SuperStrict
 
 Import BRL.Blitz
 
-Import "dtl/*.hpp"
+Import "dtl/dtl/*.hpp"
 
 Import "glue.cpp"
 

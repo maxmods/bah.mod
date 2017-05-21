@@ -3,7 +3,7 @@
    
    In short, Diff Template Library is distributed under so called "BSD license",
    
-   Copyright (c) 2013 Tatsuhiko Kubo <cubicdaiya@gmail.com>
+   Copyright (c) 2015 Tatsuhiko Kubo <cubicdaiya@gmail.com>
    All rights reserved.
    
    Redistribution and use in source and binary forms, with or without modification,
@@ -33,33 +33,15 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* If you use this library, you must include dtl.hpp only. */
+#ifndef DTL_H
+#define DTL_H
 
-#ifndef DTL_SEQUENCE_H
-#define DTL_SEQUENCE_H
+#include "variables.hpp"
+#include "functors.hpp"
+#include "Sequence.hpp"
+#include "Lcs.hpp"
+#include "Ses.hpp"
+#include "Diff.hpp"
+#include "Diff3.hpp"
 
-namespace dtl {
-    
-    /**  
-     * sequence class template
-     */
-    template <typename elem>
-    class Sequence
-    {
-    public :
-        typedef vector< elem > elemVec;
-        Sequence () {}
-        virtual ~Sequence () {}
-        
-        elemVec getSequence () const {
-            return sequence;
-        }
-        void addSequence (elem e) {
-            sequence.push_back(e);
-        }
-    protected :
-        elemVec sequence;
-    };
-}
-
-#endif // DTL_SEQUENCE_H
+#endif // DTL_H
