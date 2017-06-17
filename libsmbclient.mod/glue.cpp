@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2013-2016 Bruce A Henderson
+  Copyright (c) 2013-2017 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,16 @@ extern "C" {
 
 #include "blitz.h"
 
+#ifdef BMX_NG
+#define bah_libsmbclient_TSMBCAuth__new bah_libsmbclient_linux_TSMBCAuth__new
+#define bah_libsmbclient_TSMBCAuth__workgroup bah_libsmbclient_linux_TSMBCAuth__workgroup
+#define bah_libsmbclient_TSMBCAuth__username bah_libsmbclient_linux_TSMBCAuth__username
+#define bah_libsmbclient_TSMBCAuth__password bah_libsmbclient_linux_TSMBCAuth__password
+#define bah_libsmbclient_TSMBCDirHandle__new bah_libsmbclient_linux_TSMBCDirHandle__new
+#define bah_libsmbclient_TSMBCDirent__new bah_libsmbclient_linux_TSMBCDirent__new
+#define bah_libsmbclient_TSMBC__authDataCallback bah_libsmbclient_linux_TSMBC__authDataCallback
+#endif
+
 	BBObject * CB_PREF(bah_libsmbclient_TSMBCAuth__new)(BBObject * context, BBString * server, BBString * share);
 	BBString * CB_PREF(bah_libsmbclient_TSMBCAuth__workgroup)(BBObject * auth);
 	BBString * CB_PREF(bah_libsmbclient_TSMBCAuth__username)(BBObject * auth);
@@ -42,9 +52,7 @@ extern "C" {
 	BBObject * CB_PREF(bah_libsmbclient_TSMBCDirHandle__new)(SMBCFILE * fd);
 	BBObject * CB_PREF(bah_libsmbclient_TSMBCDirent__new)(BBString * name, int type);
 	
-	
 	void CB_PREF(bah_libsmbclient_TSMBC__authDataCallback)(BBObject * auth);
-	
 
 	void bmx_smbc_get_auth_data_fn(const char *srv, const char *shr, char *wg, int wglen, 
 		char *un, int unlen, char *pw, int pwlen);
