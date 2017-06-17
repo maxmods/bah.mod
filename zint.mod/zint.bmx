@@ -125,7 +125,7 @@ Type TZBarcode
 		
 			Local pix:TPixmap = TPixmap.Create(w, h, PF_RGB888, 3)
 
-			MemCopy(pix.pixels, data, w * h * 3)
+			MemCopy(pix.pixels, data, Size_T(w * h * 3))
 			
 			Return pix
 		End If
