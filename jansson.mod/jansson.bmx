@@ -25,11 +25,13 @@ bbdoc: A JSON encoder/decoder.
 End Rem
 Module BaH.Jansson
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2014-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Updated to Jansson 2.10"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
 
@@ -326,6 +328,39 @@ Type TJSONObject Extends TJSON
 		enum.obj = Self
 		enum.objectIter = json_object_iter(jsonPtr)
 		Return enum
+	End Method
+	
+	Rem
+	bbdoc: Gets a String value corresponding to key from the object.
+	returns: Null if key is not found, the value is not a String, or on error.
+	End Rem
+	Method GetString:String(key:String)
+		Local s:TJSONString = TJSONString(bmx_json_object_get(jsonPtr, key))
+		If s Then
+			Return s.Value()
+		End If
+	End Method
+
+	Rem
+	bbdoc: Gets an Integer (Long) value corresponding to key from the object.
+	returns: Null if key is not found, the value is not an Integer, or on error.
+	End Rem
+	Method GetInteger:Long(key:String)
+		Local i:TJSONInteger = TJSONInteger(bmx_json_object_get(jsonPtr, key))
+		If i Then
+			Return i.Value()
+		End If
+	End Method
+
+	Rem
+	bbdoc: Gets a Real (Double) value corresponding to key from the object.
+	returns: Null if key is not found, the value is not a Real, or on error.
+	End Rem
+	Method GetReal:Double(key:String)
+		Local r:TJSONInteger = TJSONInteger(bmx_json_object_get(jsonPtr, key))
+		If r Then
+			Return r.Value()
+		End If
 	End Method
 
 End Type
