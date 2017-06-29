@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: Expat XML Parser
 End Rem
 Module BaH.Expat
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Update to expat 2.2.1."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: NG overload updates."
 ModuleInfo "History: 1.03"

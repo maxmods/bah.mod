@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,13 @@ SuperStrict
 Import BRL.Blitz
 Import BRL.Stream
 
-Import "src/*.h"
+Import "expat/lib/*.h"
 
-Import "src/xmlparse.c"
-Import "src/xmlrole.c"
-Import "src/xmltok.c"
-Import "src/xmltok_impl.c"
-Import "src/xmltok_ns.c"
+Import "expat/lib/xmlparse.c"
+Import "expat/lib/xmlrole.c"
+Import "expat/lib/xmltok.c"
+Import "expat/lib/xmltok_impl.c"
+Import "expat/lib/xmltok_ns.c"
 
 Import "glue.cpp"
 
