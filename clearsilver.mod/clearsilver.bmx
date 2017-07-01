@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,14 @@ bbdoc: ClearSilver Template Engine
 End Rem
 Module BaH.ClearSilver
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: ClearSilver - 2001-2008 Brandon Long"
-ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Fixed for NG."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (ClearSilver 0.10.5)"
 
@@ -592,7 +594,7 @@ Type TCGI
 	Rem
 	bbdoc: Sets the upload callback function.
 	End Rem
-	Method setUploadCB:Int(callback(cgi:TCGI, nread:Int, expected:Int))
+	Method setUploadCB:Int(callback:Int(cgi:TCGI, nread:Int, expected:Int))
 	
 		uploadCallback = callback
 		
@@ -690,8 +692,8 @@ Rem
 bbdoc: URLUnescape will do URL unescaping on the passed in string.
 about: This function will decode any %XX character, and will decode + as space.
 End Rem
-Function URLUnescape:String(text:String)
-	Return String.fromCString(cgi_url_unescape(text))
+Function URLUnescape:String(Text:String)
+	Return String.fromCString(cgi_url_unescape(Text))
 End Function
 
 Rem
@@ -699,11 +701,11 @@ bbdoc: URLEscape will do URL escaping on the passed in string, and return a new 
 about: Characters which are escaped include control characters,
 %, ?, +, space, =, &amp;, /, and "
 End Rem
-Function URLEscape:String(text:String)
+Function URLEscape:String(Text:String)
 	Local ret:String
 	Local s:Byte Ptr
 	
-	cgi_url_escape(text, Varptr s)
+	cgi_url_escape(Text, Varptr s)
 	
 	If s Then
 		ret = String.fromCString(s)
@@ -719,15 +721,15 @@ bbdoc: URLEscapeMore will do URL escaping on the passed in String, And Return a 
 about: Characters which are escaped include control characters,
 %, ?, +, space, =, &, /, and " and any characters in @other.
 End Rem
-Function URLEscapeMore:String(text:String, other:String)
+Function URLEscapeMore:String(Text:String, other:String)
 	
 	Local ret:String
 	Local s:Byte Ptr
 	
 	If other Then
-		cgi_url_escape_more(text, Varptr s, other)
+		cgi_url_escape_more(Text, Varptr s, other)
 	Else
-		cgi_url_escape_more(text, Varptr s, Null)
+		cgi_url_escape_more(Text, Varptr s, Null)
 	End If
 	
 	If s Then

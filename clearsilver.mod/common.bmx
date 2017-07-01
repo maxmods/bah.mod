@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -121,9 +121,9 @@ Extern
 	
 	Function bmx_free(s:Byte Ptr)
 	
-	Function cgi_url_unescape:Byte Ptr(text:Byte Ptr)
-	Function cgi_url_escape(text:Byte Ptr, escaped:Byte Ptr)
-	Function cgi_url_escape_more(text:Byte Ptr, escaped:Byte Ptr, other:Byte Ptr)
+	Function cgi_url_unescape:Byte Ptr(Text:Byte Ptr)
+	Function cgi_url_escape(Text:Byte Ptr, escaped:Byte Ptr)
+	Function cgi_url_escape_more(Text:Byte Ptr, escaped:Byte Ptr, other:Byte Ptr)
 	
 	Function cgi_cookie_clear(cgi:Byte Ptr, name:Byte Ptr, domain:Byte Ptr, path:Byte Ptr)
 	Function cgi_cookie_set(cgi:Byte Ptr, name:Byte Ptr, value:Byte Ptr, path:Byte Ptr, domain:Byte Ptr, ..
