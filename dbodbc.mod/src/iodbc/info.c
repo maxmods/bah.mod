@@ -8,7 +8,7 @@
  *  The iODBC driver manager.
  *
  *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
- *  Copyright (C) 1996-2012 by OpenLink Software <iodbc@openlinksw.com>
+ *  Copyright (C) 1996-2016 by OpenLink Software <iodbc@openlinksw.com>
  *  All Rights Reserved.
  *
  *  This software is released under the terms of either of the following
@@ -727,7 +727,7 @@ SQLGetInfo_Internal (
   void * _InfoValue = NULL;
   void * infoValueOut = rgbInfoValue;
 
-  DWORD dword = 0;
+  SQLPOINTER ptr = 0;
   int size = 0, len = 0, ret = 0;
   wchar_t buf[20] = {'\0'};
 
@@ -759,47 +759,48 @@ SQLGetInfo_Internal (
       else
 #endif
 	sprintf ((char*)buf, "%02d.%02d.0000", SQL_SPEC_MAJOR, SQL_SPEC_MINOR);
-      if(waMode == 'W')
+
+      if (waMode != 'W')
         {
-          SQLWCHAR *prov = dm_SQL_U8toW((SQLCHAR *)buf, SQL_NTS);
-          if(prov)
-            {
-              WCSNCPY(buf, prov, sizeof(buf)/sizeof(wchar_t));
-              free(prov);
-            }
-          else 
-            buf[0] = L'\0';
-        }
-
-
-      if (rgbInfoValue != NULL  && cbInfoValueMax > 0)
-	{
-	  len = (waMode != 'W' ? STRLEN (buf) : WCSLEN(buf));
-
-	  if (len > cbInfoValueMax - 1)
+          if (rgbInfoValue != NULL && cbInfoValueMax > 0)
 	    {
-	      len = cbInfoValueMax - 1;
-	      PUSHSQLERR (pdbc->herr, en_01004);
+	      len = STRLEN (buf);
 
-	      retcode = SQL_SUCCESS_WITH_INFO;
-	    }
+	      if (len > cbInfoValueMax - 1)
+	        {
+	          len = cbInfoValueMax - 1;
+                  ret = -1;
+	        }
+              else
+                {
+                  ret = 0;
+                }
 
-	  if (waMode != 'W')
-	    {
 	      STRNCPY (rgbInfoValue, buf, len);
 	      ((char *) rgbInfoValue)[len] = '\0';
 	    }
-	  else
-	    {
-	      WCSNCPY (rgbInfoValue, buf, len);
-	      ((wchar_t *) rgbInfoValue)[len] = L'\0';
-	    }
-	}
 
-      if (pcbInfoValue != NULL)
-	{
-	  *pcbInfoValue = (SWORD) len;
-	}
+          if (pcbInfoValue != NULL)
+            *pcbInfoValue = (SWORD) len;
+        }
+      else
+        {
+          ret = dm_StrCopyOut2_A2W ((SQLCHAR *) buf,  
+		(SQLWCHAR *) rgbInfoValue, 
+    		cbInfoValueMax / sizeof(wchar_t), pcbInfoValue);
+          if (pcbInfoValue)
+            *pcbInfoValue = *pcbInfoValue * sizeof(wchar_t);
+        }
+
+       if (ret == -1)
+         {
+           PUSHSQLERR (pdbc->herr, en_01004);
+           retcode = SQL_SUCCESS_WITH_INFO;
+         }
+       else
+         {
+           retcode = SQL_SUCCESS;
+         }
 
       return retcode;
     }
@@ -814,20 +815,20 @@ SQLGetInfo_Internal (
   switch (fInfoType)
     {
     case SQL_DRIVER_HDBC:
-      dword = (DWORD) (pdbc->dhdbc);
-      size = sizeof (dword);
+      ptr = (SQLPOINTER) (pdbc->dhdbc);
+      size = sizeof (ptr);
       break;
 
     case SQL_DRIVER_HENV:
       penv = (ENV_t *) (pdbc->henv);
-      dword = (DWORD) (penv->dhenv);
-      size = sizeof (dword);
+      ptr = (SQLPOINTER) (penv->dhenv);
+      size = sizeof (ptr);
       break;
 
     case SQL_DRIVER_HLIB:
       penv = (ENV_t *) (pdbc->henv);
-      dword = (DWORD) (penv->hdll);
-      size = sizeof (dword);
+      ptr = (SQLPOINTER) (penv->hdll);
+      size = sizeof (ptr);
       break;
 
     case SQL_DRIVER_HSTMT:
@@ -853,8 +854,8 @@ SQLGetInfo_Internal (
 	  return SQL_ERROR;
 	}
 
-      dword = (DWORD) (pstmt->dhstmt);
-      size = sizeof (dword);
+      ptr = (SQLPOINTER) (pstmt->dhstmt);
+      size = sizeof (ptr);
       break;
 
     case SQL_DRIVER_NAME:
@@ -876,7 +877,7 @@ SQLGetInfo_Internal (
     {
       if (rgbInfoValue != NULL)
 	{
-	  *((DWORD *) rgbInfoValue) = dword;
+	  rgbInfoValue = ptr;
 	}
 
       if (pcbInfoValue != NULL)
@@ -942,7 +943,7 @@ SQLGetInfo_Internal (
           if (waMode != 'W')  
             {
             /* ansi=>unicode*/
-              if ((_InfoValue = malloc(cbInfoValueMax * sizeof(wchar_t) + 1)) == NULL)
+              if ((_InfoValue = malloc((cbInfoValueMax + 1) * sizeof(wchar_t))) == NULL)
 	        {
                   PUSHSQLERR (pdbc->herr, en_HY001);
                   return SQL_ERROR;

@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,16 @@ about: An ODBC database driver for #bah.database.Database
 End Rem
 Module BaH.DBODBC
 
-ModuleInfo "Version: 1.07"
+ModuleInfo "Version: 1.08"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 ModuleInfo "Copyright: iODBC - 2012 OpenLink Software"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.08"
+ModuleInfo "History: Update to iODBC 3.52.12."
+ModuleInfo "History: Fixed for NG mem changes."
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Fixed for NG and 64-bit."
 ModuleInfo "History: 1.06"
@@ -463,7 +466,11 @@ Type TODBCResultSet Extends TQueryResultSet
 		' this was a select... we can populate the fields with information (column name, size, etc)
 		If fieldCount <> 0 Then
 			Local bufferLength:Int = 256
+?bmxng
+			Local columnName:Byte Ptr = MemAlloc(Size_T(bufferLength))
+?Not bmxng
 			Local columnName:Byte Ptr = MemAlloc(bufferLength)
+?
 			Local nameLength:Int
 			Local dataType:Int
 			Local columnSize:Int
@@ -732,7 +739,11 @@ Type TODBCResultSet Extends TQueryResultSet
 		If fieldCount <> 0 Then
 
 			Local bufferLength:Int = 256
+?bmxng
+			Local columnName:Byte Ptr = MemAlloc(Size_T(bufferLength))
+?Not bmxng
 			Local columnName:Byte Ptr = MemAlloc(bufferLength)
+?
 			Local nameLength:Int
 			Local dataType:Int
 			Local columnSize:Int
@@ -946,7 +957,11 @@ Type TODBCResultSet Extends TQueryResultSet
 		End If
 		
 		Local lenIndicator:Int
+?bmxng
+		Local buffer:Byte Ptr = MemAlloc(Size_T(bufferSize))
+?Not bmxng
 		Local buffer:Byte Ptr = MemAlloc(bufferSize)
+?
 		Local s:String
 		
 		While True
