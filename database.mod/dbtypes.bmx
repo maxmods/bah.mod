@@ -117,7 +117,7 @@ Type TDBType
 		Assert 0, "setInt not supported on this TDBType"
 	End Method
 
-	Method setFloat(v:Float)
+	Method SetFloat(v:Float)
 		Assert 0, "setFloat not supported on this TDBType"
 	End Method
 
@@ -300,7 +300,7 @@ Type TDBFloat Extends TDBType
 	End Rem
 	Function Set:TDBFloat(value:Float)
 		Local this:TDBFloat = New TDBFloat
-		this.setFloat(value)
+		this.SetFloat(value)
 		Return this
 	End Function
 
@@ -321,7 +321,7 @@ Type TDBFloat Extends TDBType
 	Rem
 	bbdoc: Sets the float value.
 	End Rem
-	Method setFloat(v:Float)
+	Method SetFloat(v:Float)
 		value = v
 		_isNull = False
 	End Method
@@ -516,8 +516,13 @@ Type TDBBlob Extends TDBType
 		_size = s
 		If copy And _size > 0 Then
 			_owner = True
+?bmxng
+			value = MemAlloc(Size_T(_size))
+			MemCopy(value, v, Size_T(_size))
+?Not bmxng
 			value = MemAlloc(_size)
 			MemCopy(value, v, _size)
+?
 		Else
 			value = v
 		End If
