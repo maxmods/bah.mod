@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2014 Bruce A Henderson
+' Copyright (c) 2013-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,25 +25,19 @@ bbdoc: Serial port interface.
 End Rem
 Module BaH.Serial
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Serial Library - 2012 William Woodall, John Harrison"
-ModuleInfo "Copyright: BlitzMax wrapper - 2013-2014 Bruce A Henderson"
+ModuleInfo "Copyright: BlitzMax wrapper - 2013-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to latest 1.2.1 rev 827c4a7"
+ModuleInfo "History: Fixes for NG"
 ModuleInfo "History: 1.00 Initial Release"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 
 Import "common.bmx"
-
-' Changes
-'   win.h
-'  Added malloc.h include for alloca
-'
-'   serial.h
-'  Added check for mingw in sterror usage
-'
-
 
 Rem
 bbdoc: A serial port interface.
@@ -386,7 +380,7 @@ Type TTimeout
 		Return bmx_serial_timeout_max()
 	End Function
 	
-	Function _create:TTimeout(timeoutPtr:Byte Ptr)
+	Function _create:TTimeout(timeoutPtr:Byte Ptr) { nomangle }
 		If timeoutPtr Then
 			Local this:TTimeout = New TTimeout
 			this.timeoutPtr = timeoutPtr
@@ -419,7 +413,7 @@ End Rem
 Type TSerialException Extends TRuntimeException
 	Field what:String
 	
-	Function _create:TSerialException(what:String)
+	Function _create:TSerialException(what:String) { nomangle }
 		Return New TSerialException.CreateException(what)
 	End Function
 	
@@ -439,7 +433,7 @@ bbdoc:
 End Rem
 Type TIOException Extends TSerialException
 
-	Function _create:TSerialException(what:String)
+	Function _create:TSerialException(what:String) { nomangle }
 		Return New TIOException.CreateException(what)
 	End Function
 
@@ -450,7 +444,7 @@ bbdoc:
 End Rem
 Type TPortNotOpenedException Extends TSerialException
 
-	Function _create:TSerialException(what:String)
+	Function _create:TSerialException(what:String) { nomangle }
 		Return New TPortNotOpenedException.CreateException(what)
 	End Function
 
@@ -486,7 +480,7 @@ Type TSerialPortInfo
 	Field productId:Int
 	
 	Function _create:TSerialPortInfo(portName:String, physicalName:String, productName:String, enumeratorName:String, ..
-			vendorId:Int, productId:Int)
+			vendorId:Int, productId:Int) { nomangle }
 ?win32
 		If portName.StartsWith("LPT") Then
 			Return Null
@@ -502,11 +496,11 @@ Type TSerialPortInfo
 		Return this
 	End Function
 	
-	Function _addInfo(list:TList, info:TSerialPortInfo)
+	Function _addInfo(list:TList, info:TSerialPortInfo) { nomangle }
 		list.AddLast(info)
 	End Function
 ?win32
-	Function _getIds(hids:String, vendorId:Int Ptr, productId:Int Ptr)
+	Function _getIds(hids:String, vendorId:Int Ptr, productId:Int Ptr) { nomangle }
 		Local regex:TRegEx = TRegEx.Create( "VID_(\w+)&PID_(\w+)")
 		Try
 			Local match:TRegExMatch = regex.Find(hids)
@@ -520,18 +514,18 @@ Type TSerialPortInfo
 		End Try
 	End Function
 	
-	Function hexToInt:Int(text:String)
+	Function hexToInt:Int(Text:String)
 		Local val:Int
-		Local length:Int = text.length
+		Local length:Int = Text.length
 		
 		For Local i:Int = 0 Until length
-			val :+ Int(text[length - i - 1..length - i]) Shl (i * 4)
+			val :+ Int(Text[length - i - 1..length - i]) Shl (i * 4)
 		Next
 
 		Return val
 	End Function
 ?linux
-	Function _listPorts(list:TList)
+	Function _listPorts(list:TList) { nomangle }
 		If FileType("/dev/serial") = FILETYPE_DIR Then
 			If FileType("/dev/serial/by-id") = FILETYPE_DIR Then
 				Local ports:String[] = LoadDir("/dev/serial/by-id")

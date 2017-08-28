@@ -1,5 +1,7 @@
 # Serial Communication Library
 
+[![Build Status](https://travis-ci.org/wjwwood/serial.svg?branch=master)](https://travis-ci.org/wjwwood/serial)*(Linux and OS X)* [![Build Status](https://ci.appveyor.com/api/projects/status/github/wjwwood/serial)](https://ci.appveyor.com/project/wjwwood/serial)*(Windows)*
+
 This is a cross-platform library for interfacing with rs-232 serial like ports written in C++. It provides a modern C++ interface with a workflow designed to look and feel like PySerial, but with the speed and control provided by C++. 
 
 This library is in use in several robotics related projects and can be built and installed to the OS like most unix libraries with make and then sudo make install, but because it is a catkin project it can also be built along side other catkin projects in a catkin workspace.
@@ -14,11 +16,19 @@ API Documentation: http://wjwwood.github.com/serial/doc/1.1.0/index.html
 
 ### Dependencies
 
+Required:
 * [catkin](http://www.ros.org/wiki/catkin) - cmake and Python based buildsystem
- * [cmake](http://www.cmake.org) - buildsystem
- * [Python](http://www.python.org) - scripting language
- * [empy](http://www.alcyone.com/pyos/empy/) - Python templating library
- * [catkin_pkg](http://pypi.python.org/pypi/catkin_pkg/) - Runtime Python library for catkin
+* [cmake](http://www.cmake.org) - buildsystem
+* [Python](http://www.python.org) - scripting language
+  * [empy](http://www.alcyone.com/pyos/empy/) - Python templating library
+  * [catkin_pkg](http://pypi.python.org/pypi/catkin_pkg/) - Runtime Python library for catkin
+
+Optional (for tests): 
+* [Boost](http://www.boost.org/) - Boost C++ librairies
+
+Optional (for documentation):
+* [Doxygen](http://www.doxygen.org/) - Documentation generation tool
+* [graphviz](http://www.graphviz.org/) - Graph visualization software
 
 ### Install
 
@@ -36,7 +46,7 @@ Build and run the tests:
 
 Build the documentation:
 
-    make docs
+    make doc
 
 Install:
 

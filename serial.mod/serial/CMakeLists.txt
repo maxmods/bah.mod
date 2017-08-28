@@ -4,6 +4,11 @@ project(serial)
 # Find catkin
 find_package(catkin REQUIRED)
 
+if(APPLE)
+	find_library(IOKIT_LIBRARY IOKit)
+	find_library(FOUNDATION_LIBRARY Foundation)
+endif()
+
 if(UNIX AND NOT APPLE)
     # If Linux, add rt and pthread
     catkin_package(
@@ -25,18 +30,28 @@ set(serial_SRCS
     include/serial/serial.h
     include/serial/v8stdint.h
 )
-if(UNIX)
+if(APPLE)
+	# If OSX
+	list(APPEND serial_SRCS src/impl/unix.cc)
+	list(APPEND serial_SRCS src/impl/list_ports/list_ports_osx.cc)
+elseif(UNIX)
     # If unix
     list(APPEND serial_SRCS src/impl/unix.cc)
+    list(APPEND serial_SRCS src/impl/list_ports/list_ports_linux.cc)
 else()
     # If windows
     list(APPEND serial_SRCS src/impl/win.cc)
+    list(APPEND serial_SRCS src/impl/list_ports/list_ports_win.cc)
 endif()
 
 ## Add serial library
 add_library(${PROJECT_NAME} ${serial_SRCS})
-if(UNIX AND NOT APPLE)
-    target_link_libraries(${PROJECT_NAME} rt)
+if(APPLE)
+	target_link_libraries(${PROJECT_NAME} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
+elseif(UNIX)
+	target_link_libraries(${PROJECT_NAME} rt pthread)
+else()
+	target_link_libraries(${PROJECT_NAME} setupapi)
 endif()
 
 ## Uncomment for example
@@ -59,9 +74,5 @@ install(FILES include/serial/serial.h include/serial/v8stdint.h
 
 ## Tests
 if(CATKIN_ENABLE_TESTING)
-    catkin_add_gtest(${PROJECT_NAME}-test tests/serial_tests.cc)
-    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} ${Boost_LIBRARIES})
-    if(UNIX AND NOT APPLE)
-        target_link_libraries(${PROJECT_NAME}-test util)
-    endif()
+    add_subdirectory(tests)
 endif()

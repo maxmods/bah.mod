@@ -2,6 +2,45 @@
 Changelog for package serial
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.1 (2015-04-21)
+------------------
+* Removed the use of a C++11 feature for compatibility with older browsers.
+* Fixed an issue with cross compiling with mingw on Windows.
+* Restructured Visual Studio project layout.
+* Added include of ``#include <AvailabilityMacros.h>`` on OS X (listing of ports).
+* Fixed MXE for the listing of ports on Windows.
+* Now closes file device if ``reconfigureDevice`` fails (Windows).
+* Added the MARK/SPACE parity bit option, also made it optional.
+  Adding the enumeration values for MARK and SPACE was the only code change to an API header.
+  It should not affect ABI or API.
+* Added support for 576000 baud on Linux.
+* Now releases iterator properly in listing of ports code for OS X.
+* Fixed the ability to open COM ports over COM10 on Windows.
+* Fixed up some documentation about exceptions in ``serial.h``.
+
+1.2.0 (2014-07-02)
+------------------
+* Removed vestigial ``read_cache_`` private member variable from Serial::Serial
+* Fixed usage of scoped locks
+  Previously they were getting destroyed immediately because they were not stored in a temporary scope variable
+* Added check of return value from close in Serial::SerialImpl::close () in unix.cc and win.cc
+* Added ability to enumerate ports on linux and windows.
+  Updated serial_example.cc to show example of port enumeration.
+* Fixed compile on VS2013
+* Added functions ``waitReadable`` and ``waitByteTimes`` with implemenations for Unix to support high performance reading
+* Contributors: Christopher Baker, Craig Lilley, Konstantina Kastanara, Mike Purvis, William Woodall
+
+1.1.7 (2014-02-20)
+------------------
+* Improved support for mingw (mxe.cc)
+* Fix compilation warning
+  See issue `#53 <https://github.com/wjwwood/serial/issues/53>`_
+* Improved timer handling in unix implementation
+* fix broken ifdef _WIN32
+* Fix broken ioctl calls, add exception handling.
+* Code guards for platform-specific implementations. (when not using cmake / catkin)
+* Contributors: Christopher Baker, Mike Purvis, Nicolas Bigaouette, William Woodall, dawid
+
 1.1.6 (2013-10-17)
 ------------------
 * Move stopbits_one_point_five to the end of the enum, so that it doesn't alias with stopbits_two.

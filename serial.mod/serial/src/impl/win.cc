@@ -1,4 +1,8 @@
+#if defined(_WIN32)
+
 /* Copyright 2012 William Woodall and John Harrison */
+
+#include <sstream>
 
 #include "serial/impl/win.h"
 
@@ -16,6 +20,16 @@ using serial::SerialException;
 using serial::PortNotOpenedException;
 using serial::IOException;
 
+inline wstring
+_prefix_port_if_needed(const wstring &input)
+{
+  static wstring windows_com_port_prefix = L"\\\\.\\";
+  if (input.compare(windows_com_port_prefix) != 0)
+  {
+    return windows_com_port_prefix + input;
+  }
+  return input;
+}
 
 Serial::SerialImpl::SerialImpl (const string &port, unsigned long baudrate,
                                 bytesize_t bytesize,
@@ -25,10 +39,10 @@ Serial::SerialImpl::SerialImpl (const string &port, unsigned long baudrate,
     baudrate_ (baudrate), parity_ (parity),
     bytesize_ (bytesize), stopbits_ (stopbits), flowcontrol_ (flowcontrol)
 {
-  read_mutex = CreateMutex(NULL, false, NULL);
-  write_mutex = CreateMutex(NULL, false, NULL);
   if (port_.empty () == false)
     open ();
+  read_mutex = CreateMutex(NULL, false, NULL);
+  write_mutex = CreateMutex(NULL, false, NULL);
 }
 
 Serial::SerialImpl::~SerialImpl ()
@@ -48,7 +62,9 @@ Serial::SerialImpl::open ()
     throw SerialException ("Serial port already open.");
   }
 
-  LPCWSTR lp_port = port_.c_str();
+  // See: https://github.com/wjwwood/serial/issues/84
+  wstring port_with_prefix = _prefix_port_if_needed(port_);
+  LPCWSTR lp_port = port_with_prefix.c_str();
   fd_ = CreateFileW(lp_port,
                     GENERIC_READ | GENERIC_WRITE,
                     0,
@@ -212,6 +228,10 @@ Serial::SerialImpl::reconfigurePort ()
     dcbSerialParams.Parity = EVENPARITY;
   } else if (parity_ == parity_odd) {
     dcbSerialParams.Parity = ODDPARITY;
+  } else if (parity_ == parity_mark) {
+    dcbSerialParams.Parity = MARKPARITY;
+  } else if (parity_ == parity_space) {
+    dcbSerialParams.Parity = SPACEPARITY;
   } else {
     throw invalid_argument ("invalid parity");
   }
@@ -237,7 +257,8 @@ Serial::SerialImpl::reconfigurePort ()
   }
 
   // activate settings
-  if(!SetCommState(fd_, &dcbSerialParams)){
+  if (!SetCommState(fd_, &dcbSerialParams)){
+    CloseHandle(fd_);
     THROW (IOException, "Error setting serial port settings.");
   }
 
@@ -258,8 +279,15 @@ Serial::SerialImpl::close ()
 {
   if (is_open_ == true) {
     if (fd_ != INVALID_HANDLE_VALUE) {
-      CloseHandle(fd_);
-      fd_ = INVALID_HANDLE_VALUE;
+      int ret;
+      ret = CloseHandle(fd_);
+      if (ret == 0) {
+        stringstream ss;
+        ss << "Error while closing serial port: " << GetLastError();
+        THROW (IOException, ss.str().c_str());
+      } else {
+        fd_ = INVALID_HANDLE_VALUE;
+      }
     }
     is_open_ = false;
   }
@@ -278,12 +306,25 @@ Serial::SerialImpl::available ()
     return 0;
   }
   COMSTAT cs;
-  if(!ClearCommError(fd_, NULL, &cs)) {
+  if (!ClearCommError(fd_, NULL, &cs)) {
     stringstream ss;
     ss << "Error while checking status of the serial port: " << GetLastError();
     THROW (IOException, ss.str().c_str());
   }
   return static_cast<size_t>(cs.cbInQue);
+}
+
+bool
+Serial::SerialImpl::waitReadable (uint32_t /*timeout*/)
+{
+  THROW (IOException, "waitReadable is not implemented on Windows.");
+  return false;
+}
+
+void
+Serial::SerialImpl::waitByteTimes (size_t /*count*/)
+{
+  THROW (IOException, "waitByteTimes is not implemented on Windows.");
 }
 
 size_t
@@ -293,7 +334,7 @@ Serial::SerialImpl::read (uint8_t *buf, size_t size)
     throw PortNotOpenedException ("Serial::read");
   }
   DWORD bytes_read;
-  if (!ReadFile(fd_, buf, size, &bytes_read, NULL)) {
+  if (!ReadFile(fd_, buf, static_cast<DWORD>(size), &bytes_read, NULL)) {
     stringstream ss;
     ss << "Error while reading from the serial port: " << GetLastError();
     THROW (IOException, ss.str().c_str());
@@ -308,7 +349,7 @@ Serial::SerialImpl::write (const uint8_t *data, size_t length)
     throw PortNotOpenedException ("Serial::write");
   }
   DWORD bytes_written;
-  if (!WriteFile(fd_, data, length, &bytes_written, NULL)) {
+  if (!WriteFile(fd_, data, static_cast<DWORD>(length), &bytes_written, NULL)) {
     stringstream ss;
     ss << "Error while writing to the serial port: " << GetLastError();
     THROW (IOException, ss.str().c_str());
@@ -440,7 +481,7 @@ Serial::SerialImpl::flushOutput ()
 }
 
 void
-Serial::SerialImpl::sendBreak (int duration)
+Serial::SerialImpl::sendBreak (int /*duration*/)
 {
   THROW (IOException, "sendBreak is not supported on Windows.");
 }
@@ -594,3 +635,6 @@ Serial::SerialImpl::writeUnlock()
     THROW (IOException, "Error releasing write mutex.");
   }
 }
+
+#endif // #if defined(_WIN32)
+
