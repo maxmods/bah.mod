@@ -74,15 +74,15 @@ Serial::SerialImpl::open ()
                     0);
 
   if (fd_ == INVALID_HANDLE_VALUE) {
-    DWORD errno_ = GetLastError();
+    DWORD create_file_err = GetLastError();
 	stringstream ss;
-    switch (errno_) {
+    switch (create_file_err) {
     case ERROR_FILE_NOT_FOUND:
       // Use this->getPort to convert to a std::string
       ss << "Specified port, " << this->getPort() << ", does not exist.";
       THROW (IOException, ss.str().c_str());
     default:
-      ss << "Unknown error opening the serial port: " << errno;
+      ss << "Unknown error opening the serial port: " << create_file_err;
       THROW (IOException, ss.str().c_str());
     }
   }
@@ -250,10 +250,11 @@ Serial::SerialImpl::reconfigurePort ()
     dcbSerialParams.fInX = true;
   }
   if (flowcontrol_ == flowcontrol_hardware) {
-    dcbSerialParams.fOutxCtsFlow = true;
-    dcbSerialParams.fRtsControl = 0x03;
-    dcbSerialParams.fOutX = false;
-    dcbSerialParams.fInX = false;
+    dcbSerialParams.fOutxCtsFlow = TRUE;
+    dcbSerialParams.fOutxDsrFlow = FALSE;
+    dcbSerialParams.fRtsControl = RTS_CONTROL_HANDSHAKE;
+    dcbSerialParams.fOutX = FALSE;
+    dcbSerialParams.fInX = FALSE;
   }
 
   // activate settings
@@ -471,13 +472,19 @@ Serial::SerialImpl::flush ()
 void
 Serial::SerialImpl::flushInput ()
 {
-  THROW (IOException, "flushInput is not supported on Windows.");
+  if (is_open_ == false) {
+    throw PortNotOpenedException("Serial::flushInput");
+  }
+  PurgeComm(fd_, PURGE_RXCLEAR);
 }
 
 void
 Serial::SerialImpl::flushOutput ()
 {
-  THROW (IOException, "flushOutput is not supported on Windows.");
+  if (is_open_ == false) {
+    throw PortNotOpenedException("Serial::flushOutput");
+  }
+  PurgeComm(fd_, PURGE_TXCLEAR);
 }
 
 void
