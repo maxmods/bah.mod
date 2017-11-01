@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2016 Bruce A Henderson
+' Copyright (c) 2010-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,11 @@ Module BaH.Speech
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2010-2016 Bruce A Henderson"
+ModuleInfo "Copyright: 2010-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Updated for NG"
 ModuleInfo "History: 1.00 Initial Release"
-
-
-?win32
-ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
-?
 
 ?macos
 Import "mac.bmx"
