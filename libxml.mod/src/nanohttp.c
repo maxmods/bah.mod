@@ -11,7 +11,6 @@
  * daniel@veillard.com
  */
 
-#define NEED_SOCKETS
 #define IN_LIBXML
 #include "libxml.h"
 
@@ -74,14 +73,8 @@
 #define XML_SOCKLEN_T unsigned int
 #endif
 
-#if defined(__MINGW32__) || defined(_WIN32_WCE)
-#ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_
-#endif
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <wsockcompat.h>
-#include <winsock2.h>
-#undef XML_SOCKLEN_T
-#define XML_SOCKLEN_T unsigned int
 #endif
 
 #include <libxml/globals.h>
@@ -182,7 +175,21 @@ xmlHTTPErrMemory(const char *extra)
  */
 static int socket_errno(void) {
 #ifdef _WINSOCKAPI_
-    return(WSAGetLastError());
+    int err = WSAGetLastError();
+    switch(err) {
+        case WSAECONNRESET:
+            return(ECONNRESET);
+        case WSAEINPROGRESS:
+            return(EINPROGRESS);
+        case WSAEINTR:
+            return(EINTR);
+        case WSAESHUTDOWN:
+            return(ESHUTDOWN);
+        case WSAEWOULDBLOCK:
+            return(EWOULDBLOCK);
+        default:
+            return(err);
+    }
 #else
     return(errno);
 #endif
@@ -276,6 +283,8 @@ xmlNanoHTTPCleanup(void) {
 static void
 xmlNanoHTTPScanURL(xmlNanoHTTPCtxtPtr ctxt, const char *URL) {
     xmlURIPtr uri;
+    int len;
+
     /*
      * Clear any existing data from the context
      */
@@ -307,7 +316,15 @@ xmlNanoHTTPScanURL(xmlNanoHTTPCtxtPtr ctxt, const char *URL) {
     }
 
     ctxt->protocol = xmlMemStrdup(uri->scheme);
-    ctxt->hostname = xmlMemStrdup(uri->server);
+    /* special case of IPv6 addresses, the [] need to be removed */
+    if ((uri->server != NULL) && (*uri->server == '[')) {
+        len = strlen(uri->server);
+	if ((len > 2) && (uri->server[len - 1] == ']')) {
+	    ctxt->hostname = (char *) xmlCharStrndup(uri->server + 1, len -2);
+	} else
+	    ctxt->hostname = xmlMemStrdup(uri->server);
+    } else
+	ctxt->hostname = xmlMemStrdup(uri->server);
     if (uri->path != NULL)
 	ctxt->path = xmlMemStrdup(uri->path);
     else
@@ -451,7 +468,7 @@ xmlNanoHTTPSend(xmlNanoHTTPCtxtPtr ctxt, const char *xmt_ptr, int outlen)
 
     if ((ctxt->state & XML_NANO_HTTP_WRITE) && (xmt_ptr != NULL)) {
         while (total_sent < outlen) {
-            int nsent = send(ctxt->fd, xmt_ptr + total_sent,
+            int nsent = send(ctxt->fd, SEND_ARG2_CAST (xmt_ptr + total_sent),
                              outlen - total_sent, 0);
 
             if (nsent > 0)
@@ -619,7 +636,7 @@ xmlNanoHTTPRecv(xmlNanoHTTPCtxtPtr ctxt)
 
         if ((select(ctxt->fd + 1, &rfd, NULL, NULL, &tv) < 1)
 #if defined(EINTR)
-            && (errno != EINTR)
+            && (socket_errno() != EINTR)
 #endif
             )
             return (0);
@@ -993,6 +1010,7 @@ xmlNanoHTTPConnectAttempt(struct sockaddr *addr)
             0) {
             /* Solaris error code */
             __xmlIOErr(XML_FROM_HTTP, 0, "getsockopt failed\n");
+            closesocket(s);
             return INVALID_SOCKET;
         }
 #endif
@@ -1027,16 +1045,13 @@ xmlNanoHTTPConnectAttempt(struct sockaddr *addr)
 static SOCKET
 xmlNanoHTTPConnectHost(const char *host, int port)
 {
-    struct hostent *h;
     struct sockaddr *addr = NULL;
-    struct in_addr ia;
     struct sockaddr_in sockin;
 
 #ifdef SUPPORT_IP6
     struct in6_addr ia6;
     struct sockaddr_in6 sockin6;
 #endif
-    int i;
     SOCKET s;
 
     memset (&sockin, 0, sizeof(sockin));
@@ -1073,7 +1088,7 @@ xmlNanoHTTPConnectHost(const char *host, int port)
 
 	for (res = result; res; res = res->ai_next) {
 	    if (res->ai_family == AF_INET) {
-		if (res->ai_addrlen > sizeof(sockin)) {
+		if ((size_t)res->ai_addrlen > sizeof(sockin)) {
 		    __xmlIOErr(XML_FROM_HTTP, 0, "address size mismatch\n");
 		    freeaddrinfo (result);
 		    return INVALID_SOCKET;
@@ -1083,7 +1098,7 @@ xmlNanoHTTPConnectHost(const char *host, int port)
 		addr = (struct sockaddr *)&sockin;
 #ifdef SUPPORT_IP6
 	    } else if (have_ipv6 () && (res->ai_family == AF_INET6)) {
-		if (res->ai_addrlen > sizeof(sockin6)) {
+		if ((size_t)res->ai_addrlen > sizeof(sockin6)) {
 		    __xmlIOErr(XML_FROM_HTTP, 0, "address size mismatch\n");
 		    freeaddrinfo (result);
 		    return INVALID_SOCKET;
@@ -1111,7 +1126,11 @@ xmlNanoHTTPConnectHost(const char *host, int port)
 #endif
 #if !defined(HAVE_GETADDRINFO) || !defined(_WIN32)
     {
-	h = gethostbyname (host);
+        struct hostent *h;
+        struct in_addr ia;
+        int i;
+
+	h = gethostbyname (GETHOSTBYNAME_ARG_CAST host);
 	if (h == NULL) {
 
 /*
@@ -1119,7 +1138,7 @@ xmlNanoHTTPConnectHost(const char *host, int port)
  * extraction code. it work on Linux, if it work on your platform
  * and one want to enable it, send me the defined(foobar) needed
  */
-#if defined(HAVE_NETDB_H) && defined(HOST_NOT_FOUND) && defined(linux)
+#if defined(HAVE_NETDB_H) && defined(HOST_NOT_FOUND) && defined(__linux__)
 	    const char *h_err_txt = "";
 
 	    switch (h_errno) {
@@ -1352,15 +1371,15 @@ xmlNanoHTTPMethodRedir(const char *URL, const char *method, const char *input,
     xmlNanoHTTPInit();
 
 retry:
-    if (redirURL == NULL)
+    if (redirURL == NULL) {
 	ctxt = xmlNanoHTTPNewCtxt(URL);
-    else {
+	if (ctxt == NULL)
+	    return(NULL);
+    } else {
 	ctxt = xmlNanoHTTPNewCtxt(redirURL);
+	if (ctxt == NULL)
+	    return(NULL);
 	ctxt->location = xmlMemStrdup(redirURL);
-    }
-
-    if ( ctxt == NULL ) {
-	return ( NULL );
     }
 
     if ((ctxt->protocol == NULL) || (strcmp(ctxt->protocol, "http"))) {
@@ -1412,9 +1431,9 @@ retry:
     if (ctxt->port != 80) {
 	/* reserve space for ':xxxxx', incl. potential proxy */
 	if (proxy)
-	    blen += 12;
+	    blen += 17;
 	else
-	    blen += 6;
+	    blen += 11;
     }
     bp = (char*)xmlMallocAtomic(blen);
     if ( bp == NULL ) {
@@ -1523,7 +1542,8 @@ retry:
 	xmlGenericError(xmlGenericErrorContext,
 		"\nRedirect to: %s\n", ctxt->location);
 #endif
-	while ( xmlNanoHTTPRecv(ctxt) > 0 ) ;
+	while ( xmlNanoHTTPRecv(ctxt) > 0 )
+            ;
         if (nbRedirects < XML_NANO_HTTP_MAX_REDIR) {
 	    nbRedirects++;
 	    if (redirURL != NULL)

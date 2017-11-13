@@ -1,9 +1,0 @@
-<?xml version="1.0" ?>
-<root>
-	<node attribute="value1" another_attribute="Stuff">
-		<abc att1="100" att2="abccc"/>
-	</node>
-	<node name="a node" detail="Some more details here">
-		<chidnode name="a child"/>
-	</node>
-</root>

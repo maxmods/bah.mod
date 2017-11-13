@@ -547,14 +547,15 @@ xmlC14NPrintNamespaces(const xmlNsPtr ns, xmlC14NCtxPtr ctx)
     if (ns->prefix != NULL) {
         xmlOutputBufferWriteString(ctx->buf, " xmlns:");
         xmlOutputBufferWriteString(ctx->buf, (const char *) ns->prefix);
-        xmlOutputBufferWriteString(ctx->buf, "=\"");
+        xmlOutputBufferWriteString(ctx->buf, "=");
     } else {
-        xmlOutputBufferWriteString(ctx->buf, " xmlns=\"");
+        xmlOutputBufferWriteString(ctx->buf, " xmlns=");
     }
     if(ns->href != NULL) {
-	xmlOutputBufferWriteString(ctx->buf, (const char *) ns->href);
+	xmlBufWriteQuotedString(ctx->buf->buffer, ns->href);
+    } else {
+    	xmlOutputBufferWriteString(ctx->buf, "\"\"");
     }
-    xmlOutputBufferWriteString(ctx->buf, "\"");
     return (1);
 }
 
@@ -1370,13 +1371,6 @@ xmlC14NCheckForRelativeNamespaces(xmlC14NCtxPtr ctx, xmlNodePtr cur)
                 return (-1);
             }
             if (xmlStrlen((const xmlChar *) uri->scheme) == 0) {
-                xmlC14NErrRelativeNamespace(uri->scheme);
-                xmlFreeURI(uri);
-                return (-1);
-            }
-            if ((xmlStrcasecmp((const xmlChar *) uri->scheme, BAD_CAST "urn") != 0)
-                && (xmlStrcasecmp((const xmlChar *) uri->scheme, BAD_CAST "dav") !=0)
-                && (xmlStrlen((const xmlChar *) uri->server) == 0)) {
                 xmlC14NErrRelativeNamespace(uri->scheme);
                 xmlFreeURI(uri);
                 return (-1);

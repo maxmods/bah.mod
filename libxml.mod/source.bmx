@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2012 Bruce A Henderson
+' Copyright (c) 2006-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,13 @@ Import BRL.Blitz
 Import Pub.zlib
 Import BRL.LinkedList
 Import BRL.Stream
+Import BaH.XZ
 
 Import "../../pub.mod/zlib.mod/*.h"
+Import "../xz.mod/src/liblzma/api/*.h"
 
-Import "src/libxml/*.h"
 Import "src/*.h"
+Import "src/libxml/*.h"
 
 Import "src/buf.c"
 Import "src/c14n.c"
@@ -75,6 +77,7 @@ Import "src/xmlstring.c"
 Import "src/xmlunicode.c"
 Import "src/xmlwriter.c"
 Import "src/xpath.c"
+Import "src/xzlib.c"
 
 Import "glue.cpp"
 

@@ -1544,6 +1544,7 @@ static int
 xmlFAGenerateTransitions(xmlRegParserCtxtPtr ctxt, xmlRegStatePtr from,
 	                 xmlRegStatePtr to, xmlRegAtomPtr atom) {
     xmlRegStatePtr end;
+    int nullable = 0;
 
     if (atom == NULL) {
 	ERROR("genrate transition: atom == NULL");
@@ -1730,6 +1731,13 @@ xmlFAGenerateTransitions(xmlRegParserCtxtPtr ctxt, xmlRegStatePtr from,
     if (xmlRegAtomPush(ctxt, atom) < 0) {
 	return(-1);
     }
+    if ((atom->quant == XML_REGEXP_QUANT_RANGE) &&
+        (atom->min == 0) && (atom->max > 0)) {
+	nullable = 1;
+	atom->min = 1;
+        if (atom->max == 1)
+	    atom->quant = XML_REGEXP_QUANT_OPT;
+    }
     xmlRegStateAddTrans(ctxt, from, atom, to, -1, -1);
     ctxt->state = end;
     switch (atom->quant) {
@@ -1747,11 +1755,8 @@ xmlFAGenerateTransitions(xmlRegParserCtxtPtr ctxt, xmlRegStatePtr from,
 	    xmlRegStateAddTrans(ctxt, to, atom, to, -1, -1);
 	    break;
 	case XML_REGEXP_QUANT_RANGE:
-#if DV_test
-	    if (atom->min == 0) {
+	    if (nullable)
 		xmlFAGenerateEpsilonTransition(ctxt, from, to);
-	    }
-#endif
 	    break;
 	default:
 	    break;
@@ -2805,18 +2810,21 @@ xmlRegCheckCharacterRange(xmlRegAtomType type, int codepoint, int neg,
 	    break;
         case XML_REGEXP_NOTSPACE:
 	    neg = !neg;
+            /* Falls through. */
         case XML_REGEXP_ANYSPACE:
 	    ret = ((codepoint == '\n') || (codepoint == '\r') ||
 		   (codepoint == '\t') || (codepoint == ' '));
 	    break;
         case XML_REGEXP_NOTINITNAME:
 	    neg = !neg;
+            /* Falls through. */
         case XML_REGEXP_INITNAME:
 	    ret = (IS_LETTER(codepoint) ||
 		   (codepoint == '_') || (codepoint == ':'));
 	    break;
         case XML_REGEXP_NOTNAMECHAR:
 	    neg = !neg;
+            /* Falls through. */
         case XML_REGEXP_NAMECHAR:
 	    ret = (IS_LETTER(codepoint) || IS_DIGIT(codepoint) ||
 		   (codepoint == '.') || (codepoint == '-') ||
@@ -2825,11 +2833,13 @@ xmlRegCheckCharacterRange(xmlRegAtomType type, int codepoint, int neg,
 	    break;
         case XML_REGEXP_NOTDECIMAL:
 	    neg = !neg;
+            /* Falls through. */
         case XML_REGEXP_DECIMAL:
 	    ret = xmlUCSIsCatNd(codepoint);
 	    break;
         case XML_REGEXP_REALCHAR:
 	    neg = !neg;
+            /* Falls through. */
         case XML_REGEXP_NOTREALCHAR:
 	    ret = xmlUCSIsCatP(codepoint);
 	    if (ret == 0)
@@ -3162,8 +3172,10 @@ xmlFARegExecRollBack(xmlRegExecCtxtPtr exec) {
 	    exec->status = -6;
 	    return;
 	}
-	memcpy(exec->counts, exec->rollbacks[exec->nbRollbacks].counts,
+	if (exec->counts) {
+	    memcpy(exec->counts, exec->rollbacks[exec->nbRollbacks].counts,
 	       exec->comp->nbCounters * sizeof(int));
+	}
     }
 
 #ifdef DEBUG_REGEXP_EXEC
@@ -4082,8 +4094,9 @@ rollback:
 		    xmlFree(exec->errString);
 		exec->errString = xmlStrdup(value);
 		exec->errState = exec->state;
-		memcpy(exec->errCounts, exec->counts,
-		       exec->comp->nbCounters * sizeof(int));
+                if (exec->comp->nbCounters)
+                    memcpy(exec->errCounts, exec->counts,
+                           exec->comp->nbCounters * sizeof(int));
 	    }
 
 	    /*
@@ -4091,7 +4104,7 @@ rollback:
 	     */
 	    exec->determinist = 0;
 	    xmlFARegExecRollBack(exec);
-	    if (exec->status == 0) {
+	    if ((exec->inputStack != NULL ) && (exec->status == 0)) {
 		value = exec->inputStack[exec->index].value;
 		data = exec->inputStack[exec->index].data;
 #ifdef DEBUG_PUSH
@@ -4306,7 +4319,7 @@ xmlRegExecGetValues(xmlRegExecCtxtPtr exec, int err,
 		    (*nbval)++;
 		}
 	    } else {
-                if ((exec->comp->states[trans->to] != NULL) &&
+                if ((exec->comp != NULL) && (exec->comp->states[trans->to] != NULL) &&
 		    (exec->comp->states[trans->to]->type !=
 		     XML_REGEXP_SINK_STATE)) {
 		    if (atom->neg)
@@ -4873,7 +4886,8 @@ xmlFAParseCharClassEsc(xmlRegParserCtxtPtr ctxt) {
 	}
 	NEXT;
 	xmlFAParseCharProp(ctxt);
-	ctxt->atom->neg = 1;
+        if (ctxt->atom != NULL)
+	    ctxt->atom->neg = 1;
 	if (CUR != '}') {
 	    ERROR("Expecting '}'");
 	    return;
@@ -5044,17 +5058,18 @@ xmlFAParseCharRange(xmlRegParserCtxtPtr ctxt) {
 		return;
 	}
         len = 1;
-    } else if ((cur != 0x5B) && (cur != 0x5D)) {
+    } else if ((cur != '\0') && (cur != 0x5B) && (cur != 0x5D)) {
         end = CUR_SCHAR(ctxt->cur, len);
     } else {
 	ERROR("Expecting the end of a char range");
 	return;
     }
-    NEXTL(len);
+
     /* TODO check that the values are acceptable character ranges for XML */
     if (end < start) {
 	ERROR("End of range is before start of range");
     } else {
+        NEXTL(len);
         xmlRegAtomAddRange(ctxt, ctxt->atom, ctxt->neg,
 		           XML_REGEXP_CHARVAL, start, end, NULL);
     }
@@ -5707,8 +5722,6 @@ xmlAutomataNewTransition(xmlAutomataPtr am, xmlAutomataStatePtr from,
     if (atom == NULL)
         return(NULL);
     atom->data = data;
-    if (atom == NULL)
-	return(NULL);
     atom->valuep = xmlStrdup(token);
 
     if (xmlFAGenerateTransitions(am, from, to, atom) < 0) {
@@ -6345,7 +6358,7 @@ struct _xmlExpCtxt {
 /**
  * xmlExpNewCtxt:
  * @maxNodes:  the maximum number of nodes
- * @dict:  optional dictionnary to use internally
+ * @dict:  optional dictionary to use internally
  *
  * Creates a new context for manipulating expressions
  *
@@ -6838,7 +6851,7 @@ xmlExpRef(xmlExpNodePtr exp) {
  * xmlExpNewAtom:
  * @ctxt: the expression context
  * @name: the atom name
- * @len: the atom name lenght in byte (or -1);
+ * @len: the atom name length in byte (or -1);
  *
  * Get the atom associated to this name from that context
  *
@@ -6975,7 +6988,7 @@ tail:
  * @ctxt: the expression context
  * @exp: the expression
  * @langList: where to store the tokens
- * @len: the allocated lenght of @list
+ * @len: the allocated length of @list
  *
  * Find all the strings used in @exp and store them in @list
  *
@@ -7041,7 +7054,7 @@ tail:
  * @ctxt: the expression context
  * @exp: the expression
  * @tokList: where to store the tokens
- * @len: the allocated lenght of @list
+ * @len: the allocated length of @list
  *
  * Find all the strings that appears at the start of the languages
  * accepted by @exp and store them in @list. E.g. for (a, b) | c
@@ -7204,7 +7217,7 @@ xmlExpStringDerive(xmlExpCtxtPtr ctxt, xmlExpNodePtr exp,
         return(NULL);
     }
     /*
-     * check the string is in the dictionnary, if yes use an interned
+     * check the string is in the dictionary, if yes use an interned
      * copy, otherwise we know it's not an acceptable input
      */
     input = xmlDictExists(ctxt->dict, str, len);

@@ -6,6 +6,11 @@
  * daniel@veillard.com
  */
 
+/* To avoid EBCDIC trouble when parsing on zOS */
+#if defined(__MVS__)
+#pragma convert("ISO8859-1")
+#endif
+
 #define IN_LIBXML
 #include "libxml.h"
 
@@ -83,7 +88,7 @@ xmlEntitiesErrMemory(const char *extra)
  *
  * Handle an out of memory condition
  */
-static void
+static void LIBXML_ATTR_FORMAT(2,0)
 xmlEntitiesErr(xmlParserErrors code, const char *msg)
 {
     __xmlSimpleError(XML_FROM_TREE, code, NULL, msg, NULL);
@@ -502,7 +507,7 @@ xmlGetDtdEntity(xmlDocPtr doc, const xmlChar *name) {
  * Returns A pointer to the entity structure or NULL if not found.
  */
 xmlEntityPtr
-xmlGetDocEntity(xmlDocPtr doc, const xmlChar *name) {
+xmlGetDocEntity(const xmlDoc *doc, const xmlChar *name) {
     xmlEntityPtr cur;
     xmlEntitiesTablePtr table;
 
@@ -649,7 +654,7 @@ xmlEncodeEntitiesInternal(xmlDocPtr doc, const xmlChar *input, int attr) {
 	} else if (*cur >= 0x80) {
 	    if (((doc != NULL) && (doc->encoding != NULL)) || (html)) {
 		/*
-		 * Bjørn Reese <br@sseusa.com> provided the patch
+		 * BjÃ¸rn Reese <br@sseusa.com> provided the patch
 	        xmlChar xc;
 	        xc = (*cur & 0x3F) << 6;
 	        if (cur[1] != 0) {
@@ -783,7 +788,7 @@ xmlEncodeEntitiesReentrant(xmlDocPtr doc, const xmlChar *input) {
  * Returns A newly allocated string with the substitution done.
  */
 xmlChar *
-xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
+xmlEncodeSpecialChars(const xmlDoc *doc ATTRIBUTE_UNUSED, const xmlChar *input) {
     const xmlChar *cur = input;
     xmlChar *buffer = NULL;
     xmlChar *out = NULL;

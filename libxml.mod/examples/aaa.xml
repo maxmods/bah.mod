@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<?instruct Yippy!?>
-<?xml version="1.0"?>
-<root>
-	<node attribute="value1">
-		<abc att1="100" att2="abccc"/>
-	</node>
-<!--This is a comment!--><!--This is a comment!--></root>

@@ -9,6 +9,8 @@
 #ifndef __XML_LIBXML_H__
 #define __XML_LIBXML_H__
 
+#include <libxml/xmlstring.h>
+
 #ifndef NO_LARGEFILE_SOURCE
 #ifndef _LARGEFILE_SOURCE
 #define _LARGEFILE_SOURCE
@@ -68,7 +70,7 @@ extern int __xmlRegisterCallbacks;
  * internal error reporting routines, shared but not partof the API.
  */
 void __xmlIOErr(int domain, int code, const char *extra);
-void __xmlLoaderErr(void *ctx, const char *msg, const char *filename);
+void __xmlLoaderErr(void *ctx, const char *msg, const char *filename) LIBXML_ATTR_FORMAT(2,0);
 #ifdef LIBXML_HTML_ENABLED
 /*
  * internal function of HTML parser needed for xmlParseInNodeContext
@@ -84,6 +86,8 @@ void __xmlGlobalInitMutexLock(void);
 void __xmlGlobalInitMutexUnlock(void);
 void __xmlGlobalInitMutexDestroy(void);
 
+int __xmlInitializeDict(void);
+
 #if defined(HAVE_RAND) && defined(HAVE_SRAND) && defined(HAVE_TIME)
 /*
  * internal thread safe random function
@@ -91,10 +95,13 @@ void __xmlGlobalInitMutexDestroy(void);
 int __xmlRandom(void);
 #endif
 
+XMLPUBFUN xmlChar * XMLCALL xmlEscapeFormatString(xmlChar **msg);
+int xmlNop(void);
+
 #ifdef IN_LIBXML
 #ifdef __GNUC__
 #ifdef PIC
-#ifdef linux
+#ifdef __linux__
 #if (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) || (__GNUC__ > 3)
 #include "elfgcchack.h"
 #endif
@@ -102,7 +109,7 @@ int __xmlRandom(void);
 #endif
 #endif
 #endif
-#if !defined(PIC) && !defined(NOLIBTOOL)
+#if !defined(PIC) && !defined(NOLIBTOOL) && !defined(LIBXML_STATIC)
 #  define LIBXML_STATIC
 #endif
 #endif /* ! __XML_LIBXML_H__ */

@@ -47,9 +47,9 @@
 #define MAX_CATAL_DEPTH	50
 
 #ifdef _WIN32
-# define PATH_SEAPARATOR ';'
+# define PATH_SEPARATOR ';'
 #else
-# define PATH_SEAPARATOR ':'
+# define PATH_SEPARATOR ':'
 #endif
 
 /**
@@ -84,8 +84,10 @@ static char XML_XML_DEFAULT_CATALOG[256] = "file:///etc/xml/catalog";
 #define GetModuleHandleA GetModuleHandle
 #define GetModuleFileNameA GetModuleFileName
 #else
+#if !defined(_WINDOWS_)
 void* __stdcall GetModuleHandleA(const char*);
 unsigned long __stdcall GetModuleFileNameA(void*, char*, unsigned long);
+#endif
 #endif
 #endif
 
@@ -236,7 +238,7 @@ xmlCatalogErrMemory(const char *extra)
  *
  * Handle a catalog error
  */
-static void
+static void LIBXML_ATTR_FORMAT(4,0)
 xmlCatalogErr(xmlCatalogEntryPtr catal, xmlNodePtr node, int error,
                const char *msg, const xmlChar *str1, const xmlChar *str2,
 	       const xmlChar *str3)
@@ -989,9 +991,14 @@ xmlLoadFileContent(const char *filename)
         return (NULL);
     }
 #endif
-    content = xmlMallocAtomic(size + 10);
+    content = (xmlChar*)xmlMallocAtomic(size + 10);
     if (content == NULL) {
         xmlCatalogErrMemory("allocating catalog data");
+#ifdef HAVE_STAT
+	close(fd);
+#else
+	fclose(fd);
+#endif
         return (NULL);
     }
 #ifdef HAVE_STAT
@@ -1547,7 +1554,7 @@ xmlAddXMLCatalog(xmlCatalogEntryPtr catal, const xmlChar *type,
 		                       NULL, catal->prefer, NULL);
     if (doregister) {
         catal->type = XML_CATA_CATALOG;
-	cur = xmlHashLookup(xmlCatalogXMLFiles, catal->URL);
+	cur = (xmlCatalogEntryPtr)xmlHashLookup(xmlCatalogXMLFiles, catal->URL);
 	if (cur != NULL)
 	    cur->children = catal->children;
     }
@@ -2389,6 +2396,7 @@ xmlParseSGMLCatalog(xmlCatalogPtr catal, const xmlChar *value,
 		case SGML_CATA_ENTITY:
 		    if (*cur == '%')
 			type = SGML_CATA_PENTITY;
+                    /* Falls through. */
 		case SGML_CATA_PENTITY:
 		case SGML_CATA_DOCTYPE:
 		case SGML_CATA_LINKTYPE:
@@ -3129,7 +3137,7 @@ xmlInitializeCatalog(void) {
 				if (p != buf) {
 					xmlChar* uri;
 					strncpy(p, "\\..\\etc\\catalog", 255 - (p - buf));
-					uri = xmlCanonicPath(buf);
+					uri = xmlCanonicPath((const xmlChar*)buf);
 					if (uri != NULL) {
 						strncpy(XML_XML_DEFAULT_CATALOG, uri, 255);
 						xmlFree(uri);
@@ -3240,11 +3248,11 @@ xmlLoadCatalogs(const char *pathss) {
 	while (xmlIsBlank_ch(*cur)) cur++;
 	if (*cur != 0) {
 	    paths = cur;
-	    while ((*cur != 0) && (*cur != PATH_SEAPARATOR) && (!xmlIsBlank_ch(*cur)))
+	    while ((*cur != 0) && (*cur != PATH_SEPARATOR) && (!xmlIsBlank_ch(*cur)))
 		cur++;
 	    path = xmlStrndup((const xmlChar *)paths, cur - paths);
 #ifdef _WIN32
-        iLen = strlen(path);
+        iLen = strlen((const char*)path);
         for(i = 0; i < iLen; i++) {
             if(path[i] == '\\') {
                 path[i] = '/';
@@ -3256,7 +3264,7 @@ xmlLoadCatalogs(const char *pathss) {
 		xmlFree(path);
 	    }
 	}
-	while (*cur == PATH_SEAPARATOR)
+	while (*cur == PATH_SEPARATOR)
 	    cur++;
     }
 }
@@ -3548,8 +3556,8 @@ xmlCatalogSetDefaultPrefer(xmlCatalogPrefer prefer) {
 		xmlGenericError(xmlGenericErrorContext,
 			"Setting catalog preference to SYSTEM\n");
 		break;
-	    case XML_CATA_PREFER_NONE:
-		break;
+	    default:
+		return(ret);
 	}
     }
     xmlCatalogDefaultPrefer = prefer;

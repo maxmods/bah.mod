@@ -2097,8 +2097,8 @@ xmlBufAttrSerializeTxtContent(xmlBufPtr buf, xmlDocPtr doc,
             xmlBufAdd(buf, BAD_CAST "&amp;", 5);
             cur++;
             base = cur;
-        } else if ((*cur >= 0x80) && ((doc == NULL) ||
-                                      (doc->encoding == NULL))) {
+        } else if ((*cur >= 0x80) && (cur[1] != 0) &&
+	           ((doc == NULL) || (doc->encoding == NULL))) {
             /*
              * We assume we have UTF-8 content.
              */
@@ -2109,8 +2109,6 @@ xmlBufAttrSerializeTxtContent(xmlBufPtr buf, xmlDocPtr doc,
                 xmlBufAdd(buf, base, cur - base);
             if (*cur < 0xC0) {
                 xmlSaveErr(XML_SAVE_NOT_UTF8, (xmlNodePtr) attr, NULL);
-                if (doc != NULL)
-                    doc->encoding = xmlStrdup(BAD_CAST "ISO-8859-1");
 		xmlSerializeHexCharRef(tmp, *cur);
                 xmlBufAdd(buf, (xmlChar *) tmp, -1);
                 cur++;
@@ -2121,14 +2119,14 @@ xmlBufAttrSerializeTxtContent(xmlBufPtr buf, xmlDocPtr doc,
                 val <<= 6;
                 val |= (cur[1]) & 0x3F;
                 l = 2;
-            } else if (*cur < 0xF0) {
+            } else if ((*cur < 0xF0) && (cur [2] != 0)) {
                 val = (cur[0]) & 0x0F;
                 val <<= 6;
                 val |= (cur[1]) & 0x3F;
                 val <<= 6;
                 val |= (cur[2]) & 0x3F;
                 l = 3;
-            } else if (*cur < 0xF8) {
+            } else if ((*cur < 0xF8) && (cur [2] != 0) && (cur[3] != 0)) {
                 val = (cur[0]) & 0x07;
                 val <<= 6;
                 val |= (cur[1]) & 0x3F;
@@ -2140,9 +2138,6 @@ xmlBufAttrSerializeTxtContent(xmlBufPtr buf, xmlDocPtr doc,
             }
             if ((l == 1) || (!IS_CHAR(val))) {
                 xmlSaveErr(XML_SAVE_CHAR_INVALID, (xmlNodePtr) attr, NULL);
-                if (doc != NULL)
-                    doc->encoding = xmlStrdup(BAD_CAST "ISO-8859-1");
-
 		xmlSerializeHexCharRef(tmp, *cur);
                 xmlBufAdd(buf, (xmlChar *) tmp, -1);
                 cur++;
@@ -2247,6 +2242,7 @@ xmlBufNodeDump(xmlBufPtr buf, xmlDocPtr doc, xmlNodePtr cur, int level,
     size_t use;
     int ret;
     xmlOutputBufferPtr outbuf;
+    int oldalloc;
 
     xmlInitParser();
 
@@ -2278,7 +2274,10 @@ xmlBufNodeDump(xmlBufPtr buf, xmlDocPtr doc, xmlNodePtr cur, int level,
     outbuf->written = 0;
 
     use = xmlBufUse(buf);
+    oldalloc = xmlBufGetAllocationScheme(buf);
+    xmlBufSetAllocationScheme(buf, XML_BUFFER_ALLOC_DOUBLEIT);
     xmlNodeDumpOutput(outbuf, doc, cur, level, format, NULL);
+    xmlBufSetAllocationScheme(buf, oldalloc);
     xmlFree(outbuf);
     ret = xmlBufUse(buf) - use;
     return (ret);
