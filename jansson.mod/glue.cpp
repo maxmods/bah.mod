@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 	BBObject * CB_PREF(bah_jansson_TJSON__create)(json_t * handle, int jsonType, BBString * key);
-	BBObject * CB_PREF(bah_jansson_TJSONError__createError)(BBString * text, BBString * source, int line, int column, int position);
+	BBObject * CB_PREF(bah_jansson_TJSONError__createError)(BBString * text, BBString * source, int line, int column, int position, int errorCode);
 	BBObject * CB_PREF(bah_jansson_TJSONError__createNoError)(BBObject * js);
 
 	void bmx_json_decref(json_t * handle);
@@ -130,8 +130,10 @@ BBObject * bmx_json_loads(BBString * text, int flags) {
 	json_t * js = json_loads(t, flags, &error);
 	
 	if (!js) {
+		int errorCode = json_error_code(&error);
+	
 		return CB_PREF(bah_jansson_TJSONError__createError)(bbStringFromUTF8String(error.text), bbStringFromUTF8String(error.source),
-				error.line, error.column, error.position);
+				error.line, error.column, error.position, errorCode);
 	}
 	
 	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js), &bbEmptyString);
@@ -144,8 +146,10 @@ BBObject * bmx_json_load_callback(json_load_callback_t callback, BBObject * stre
 	json_t * js = json_load_callback(callback, (void *)stream, flags, &error);
 	
 	if (!js) {
+		int errorCode = json_error_code(&error);
+		
 		return CB_PREF(bah_jansson_TJSONError__createError)(bbStringFromUTF8String(error.text), bbStringFromUTF8String(error.source),
-				error.line, error.column, error.position);
+				error.line, error.column, error.position, errorCode);
 	}
 	
 	BBObject * ref = CB_PREF(bah_jansson_TJSON__create)(js, json_typeof(js), &bbEmptyString);

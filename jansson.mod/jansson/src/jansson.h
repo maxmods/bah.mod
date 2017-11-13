@@ -139,6 +139,30 @@ typedef struct json_error_t {
     char text[JSON_ERROR_TEXT_LENGTH];
 } json_error_t;
 
+enum json_error_code {
+    json_error_unknown,
+    json_error_out_of_memory,
+    json_error_stack_overflow,
+    json_error_cannot_open_file,
+    json_error_invalid_argument,
+    json_error_invalid_utf8,
+    json_error_premature_end_of_input,
+    json_error_end_of_input_expected,
+    json_error_invalid_syntax,
+    json_error_invalid_format,
+    json_error_wrong_type,
+    json_error_null_character,
+    json_error_null_value,
+    json_error_null_byte_in_key,
+    json_error_duplicate_key,
+    json_error_numeric_overflow,
+    json_error_item_not_found,
+    json_error_index_out_of_range
+};
+
+static JSON_INLINE enum json_error_code json_error_code(const json_error_t *e) {
+    return (enum json_error_code)e->text[JSON_ERROR_TEXT_LENGTH - 1];
+}
 
 /* getters, setters, manipulation */
 
@@ -251,7 +275,7 @@ int json_vunpack_ex(json_t *root, json_error_t *error, size_t flags, const char 
 
 /* equality */
 
-int json_equal(json_t *value1, json_t *value2);
+int json_equal(const json_t *value1, const json_t *value2);
 
 
 /* copying */

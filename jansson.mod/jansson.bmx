@@ -25,11 +25,14 @@ bbdoc: A JSON encoder/decoder.
 End Rem
 Module BaH.Jansson
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2014-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated to Jansson 2.10.009ffa3"
+ModuleInfo "History: Added errorCode field to TJSONError."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated to Jansson 2.10"
 ModuleInfo "History: 1.00"
@@ -509,16 +512,21 @@ Type TJSONError
 	about: This is useful for debugging Unicode encoding problems.
 	End Rem
 	Field position:Int
+	Rem
+	bbdoc: The numeric code for the error.
+	End Rem
+	Field errorCode:Int
 	
 	Field _js:TJSON
 	
-	Function _createError:TJSONError(Text:String, source:String, line:Int, column:Int, position:Int) { nomangle }
+	Function _createError:TJSONError(Text:String, source:String, line:Int, column:Int, position:Int, errorCode:Int) { nomangle }
 		Local this:TJSONError = New TJSONError
 		this.Text = Text
 		this.source = source
 		this.line = line
 		this.column = column
 		this.position = position
+		this.errorCode = errorCode
 		Return this
 	End Function
 
