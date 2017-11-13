@@ -367,8 +367,11 @@ xsltExtModuleRegisterDynamic(const xmlChar * URI)
         i++;
     }
 
-    if (*(i - 1) == '_')
+    /* Strip underscores from end of string. */
+    while (i > ext_name && *(i - 1) == '_') {
+        i--;
         *i = '\0';
+    }
 
     /* determine module directory */
     ext_directory = (xmlChar *) getenv("LIBXSLT_PLUGINS_PATH");
@@ -386,8 +389,7 @@ xsltExtModuleRegisterDynamic(const xmlChar * URI)
 
     /* build the module filename, and confirm the module exists */
     xmlStrPrintf((xmlChar *) module_filename, sizeof(module_filename),
-                 BAD_CAST "%s/%s%s",
-                 ext_directory, ext_name, LIBXML_MODULE_EXTENSION);
+                 "%s/%s%s", ext_directory, ext_name, LIBXML_MODULE_EXTENSION);
 
 #ifdef WITH_XSLT_DEBUG_EXTENSIONS
     xsltGenericDebug(xsltGenericDebugContext,
@@ -1622,7 +1624,7 @@ xsltRegisterExtModuleElement(const xmlChar * name, const xmlChar * URI,
                              xsltPreComputeFunction precomp,
                              xsltTransformFunction transform)
 {
-    int ret;
+    int ret = 0;
 
     xsltExtElementPtr ext;
 
@@ -1648,7 +1650,7 @@ xsltRegisterExtModuleElement(const xmlChar * name, const xmlChar * URI,
 done:
     xmlMutexUnlock(xsltExtMutex);
 
-    return (0);
+    return (ret);
 }
 
 /**

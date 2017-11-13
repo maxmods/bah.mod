@@ -949,6 +949,8 @@ xsltElementComp(xsltStylesheetPtr style, xmlNodePtr inst) {
 #ifdef XSLT_REFACTORED
 		    comp->nsPrefix = prefix;
 		    comp->name = name;
+#else
+                    (void)name; /* Suppress unused variable warning. */
 #endif
 		} else if (prefix != NULL) {
 		    xsltTransformError(NULL, style, inst,
@@ -1074,6 +1076,8 @@ xsltAttributeComp(xsltStylesheetPtr style, xmlNodePtr inst) {
 #ifdef XSLT_REFACTORED
 			comp->nsPrefix = prefix;
 			comp->name = name;
+#else
+                        (void)name; /* Suppress unused variable warning. */
 #endif
 		    } else {
 			xsltTransformError(NULL, style, inst,
@@ -1301,7 +1305,8 @@ xsltGetQNameProperty(xsltStylesheetPtr style, xmlNodePtr inst,
 	    if (prop == NULL) {
 		style->errors++;
 	    } else {
-		*localName = prop;
+		if (localName)
+		    *localName = prop;
 		if (hasProp)
 		    *hasProp = 1;
 		if (URI != NULL) {
@@ -1412,9 +1417,6 @@ xsltNumberComp(xsltStylesheetPtr style, xmlNodePtr cur) {
     if (comp == NULL)
 	return;
     cur->psvi = comp;
-
-    if ((style == NULL) || (cur == NULL))
-	return;
 
     comp->numdata.doc = cur->doc;
     comp->numdata.node = cur;
@@ -2245,7 +2247,8 @@ xsltStylePreCompute(xsltStylesheetPtr style, xmlNodePtr inst) {
 	} else if (IS_XSLT_NAME(inst, "attribute")) {
 	    xmlNodePtr parent = inst->parent;
 
-	    if ((parent == NULL) || (parent->ns == NULL) ||
+	    if ((parent == NULL) ||
+	        (parent->type != XML_ELEMENT_NODE) || (parent->ns == NULL) ||
 		((parent->ns != inst->ns) &&
 		 (!xmlStrEqual(parent->ns->href, inst->ns->href))) ||
 		(!xmlStrEqual(parent->name, BAD_CAST "attribute-set"))) {
@@ -2337,7 +2340,7 @@ xsltStylePreCompute(xsltStylesheetPtr style, xmlNodePtr inst) {
 	    xsltCheckInstructionElement(style, inst);
 	    inst->psvi = (void *) xsltDocumentComp(style, inst,
 				(xsltTransformFunction) xsltDocumentElem);
-	} else {
+	} else if ((style == NULL) || (style->forwards_compatible == 0)) {
 	    xsltTransformError(NULL, style, inst,
 		 "xsltStylePreCompute: unknown xsl:%s\n", inst->name);
 	    if (style != NULL) style->warnings++;

@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2012 Bruce A Henderson
+' Copyright (c) 2006-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,14 @@ bbdoc: Libxslt
 End Rem
 Module BaH.Libxslt
 
-ModuleInfo "Version: 2.00"
+ModuleInfo "Version: 2.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Libxslt - 1998-2012 Daniel Veillard"
-ModuleInfo "Copyright: Wrapper - 2006-2012 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2006-2017 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 2.01"
+ModuleInfo "History: Updated to Libxslt 1.1.32"
 ModuleInfo "History: 2.00"
 ModuleInfo "History: Updated to Libxslt 1.1.28"
 ModuleInfo "History: Complete rewrite of API glue to match standard module layout."

@@ -402,10 +402,13 @@ xsltAddKey(xsltStylesheetPtr style, const xmlChar *name,
 	prev->next = key;
     }
     key->next = NULL;
+    key = NULL;
 
 error:
     if (pattern != NULL)
 	xmlFree(pattern);
+    if (key != NULL)
+        xsltFreeKeyDef(key);
     return(0);
 }
 
@@ -759,6 +762,7 @@ fprintf(stderr, "xsltInitCtxtKey %s : %d\n", keyDef->name, ctxt->keyInitLevel);
 	cur = matchList->nodeTab[i];
 	if (! IS_XSLT_REAL_NODE(cur))
 	    continue;
+        ctxt->node = cur;
 	xpctxt->node = cur;
 	/*
 	* Process the 'use' of the xsl:key.

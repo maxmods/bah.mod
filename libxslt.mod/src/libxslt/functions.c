@@ -180,7 +180,6 @@ xsltDocumentFunctionLoadDocument(xmlXPathParserContextPtr ctxt, xmlChar* URI)
     resObj = xmlXPtrEval(fragment, xptrctxt);
     xmlXPathFreeContext(xptrctxt);
 #endif
-    xmlFree(fragment);
 
     if (resObj == NULL)
 	goto out_fragment;
@@ -204,6 +203,7 @@ xsltDocumentFunctionLoadDocument(xmlXPathParserContextPtr ctxt, xmlChar* URI)
     }
 
     valuePush(ctxt, resObj);
+    xmlFree(fragment);
     return;
 
 out_object:
@@ -211,6 +211,7 @@ out_object:
 
 out_fragment:
     valuePush(ctxt, xmlXPathNewNodeSet(NULL));
+    xmlFree(fragment);
 }
 
 /**
@@ -602,12 +603,15 @@ xsltFormatNumberFunction(xmlXPathParserContextPtr ctxt, int nargs)
     xmlXPathObjectPtr formatObj = NULL;
     xmlXPathObjectPtr decimalObj = NULL;
     xsltStylesheetPtr sheet;
-    xsltDecimalFormatPtr formatValues;
+    xsltDecimalFormatPtr formatValues = NULL;
     xmlChar *result;
+    const xmlChar *ncname;
+    const xmlChar *prefix = NULL;
+    const xmlChar *nsUri = NULL;
     xsltTransformContextPtr tctxt;
 
     tctxt = xsltXPathGetTransformContext(ctxt);
-    if (tctxt == NULL)
+    if ((tctxt == NULL) || (tctxt->inst == NULL))
 	return;
     sheet = tctxt->style;
     if (sheet == NULL)
@@ -618,7 +622,23 @@ xsltFormatNumberFunction(xmlXPathParserContextPtr ctxt, int nargs)
     case 3:
 	CAST_TO_STRING;
 	decimalObj = valuePop(ctxt);
-	formatValues = xsltDecimalFormatGetByName(sheet, decimalObj->stringval);
+        ncname = xsltSplitQName(sheet->dict, decimalObj->stringval, &prefix);
+        if (prefix != NULL) {
+            xmlNsPtr ns = xmlSearchNs(tctxt->inst->doc, tctxt->inst, prefix);
+            if (ns == NULL) {
+                xsltTransformError(tctxt, NULL, NULL,
+                    "format-number : No namespace found for QName '%s:%s'\n",
+                    prefix, ncname);
+                sheet->errors++;
+                ncname = NULL;
+            }
+            else {
+                nsUri = ns->href;
+            }
+        }
+        if (ncname != NULL) {
+	    formatValues = xsltDecimalFormatGetByQName(sheet, nsUri, ncname);
+        }
 	if (formatValues == NULL) {
 	    xsltTransformError(tctxt, NULL, NULL,
 		    "format-number() : undeclared decimal format '%s'\n",
@@ -665,7 +685,6 @@ xsltGenerateIdFunction(xmlXPathParserContextPtr ctxt, int nargs){
     xmlXPathObjectPtr obj = NULL;
     long val;
     xmlChar str[30];
-    xmlDocPtr doc;
 
     if (nargs == 0) {
 	cur = ctxt->context->node;
@@ -698,30 +717,15 @@ xsltGenerateIdFunction(xmlXPathParserContextPtr ctxt, int nargs){
 	ctxt->error = XPATH_INVALID_ARITY;
 	return;
     }
-    /*
-     * Okay this is ugly but should work, use the NodePtr address
-     * to forge the ID
-     */
-    if (cur->type != XML_NAMESPACE_DECL)
-        doc = cur->doc;
-    else {
-        xmlNsPtr ns = (xmlNsPtr) cur;
-
-        if (ns->context != NULL)
-            doc = ns->context;
-        else
-            doc = ctxt->context->doc;
-
-    }
 
     if (obj)
         xmlXPathFreeObject(obj);
 
     val = (long)((char *)cur - (char *)&base_address);
     if (val >= 0) {
-      sprintf((char *)str, "idp%ld", val);
+      snprintf((char *)str, sizeof(str), "idp%ld", val);
     } else {
-      sprintf((char *)str, "idm%ld", -val);
+      snprintf((char *)str, sizeof(str), "idm%ld", -val);
     }
     valuePush(ctxt, xmlXPathNewString(str));
 }
@@ -850,7 +854,7 @@ xsltElementAvailableFunction(xmlXPathParserContextPtr ctxt, int nargs){
     }
     obj = valuePop(ctxt);
     tctxt = xsltXPathGetTransformContext(ctxt);
-    if (tctxt == NULL) {
+    if ((tctxt == NULL) || (tctxt->inst == NULL)) {
 	xsltTransformError(xsltXPathGetTransformContext(ctxt), NULL, NULL,
 		"element-available() : internal error tctxt == NULL\n");
 	xmlXPathFreeObject(obj);
@@ -865,7 +869,7 @@ xsltElementAvailableFunction(xmlXPathParserContextPtr ctxt, int nargs){
 
 	name = xmlStrdup(obj->stringval);
 	ns = xmlSearchNs(tctxt->inst->doc, tctxt->inst, NULL);
-	if (ns != NULL) nsURI = xmlStrdup(ns->href);
+	if (ns != NULL) nsURI = ns->href;
     } else {
 	nsURI = xmlXPathNsLookup(ctxt->context, prefix);
 	if (nsURI == NULL) {

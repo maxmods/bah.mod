@@ -42,16 +42,9 @@
 #include "imports.h"
 #include "transform.h"
 
-/* gettimeofday on Windows ??? */
-#if defined(WIN32) && !defined(__CYGWIN__)
-#ifdef _MSC_VER
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32.lib")
-#define gettimeofday(p1,p2)
-#define HAVE_GETTIMEOFDAY
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #define XSLT_WIN32_PERFORMANCE_COUNTER
-#endif /* _MS_VER */
-#endif /* WIN32 */
+#endif
 
 /************************************************************************
  *									*
@@ -457,9 +450,8 @@ xsltMessage(xsltTransformContextPtr ctxt, xmlNodePtr node, xmlNodePtr inst) {
 	} else if (xmlStrEqual(prop, (const xmlChar *)"no")) {
 	    terminate = 0;
 	} else {
-	    error(errctx,
+	    xsltTransformError(ctxt, NULL, inst,
 		"xsl:message : terminate expecting 'yes' or 'no'\n");
-	    ctxt->state = XSLT_STATE_ERROR;
 	}
 	xmlFree(prop);
     }
@@ -519,7 +511,7 @@ xsltMessage(xsltTransformContextPtr ctxt, xmlNodePtr node, xmlNodePtr inst) {
  *
  * Default handler for out of context error messages.
  */
-static void
+static void LIBXSLT_ATTR_FORMAT(2,3)
 xsltGenericErrorDefaultFunc(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...) {
     va_list args;
 
@@ -565,7 +557,7 @@ xsltSetGenericErrorFunc(void *ctx, xmlGenericErrorFunc handler) {
  *
  * Default handler for out of context error messages.
  */
-static void
+static void LIBXSLT_ATTR_FORMAT(2,3)
 xsltGenericDebugDefaultFunc(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...) {
     va_list args;
 
@@ -622,7 +614,8 @@ xsltPrintErrorContext(xsltTransformContextPtr ctxt,
     void *errctx = xsltGenericErrorContext;
 
     if (ctxt != NULL) {
-	ctxt->state = XSLT_STATE_ERROR;
+        if (ctxt->state == XSLT_STATE_OK)
+	    ctxt->state = XSLT_STATE_ERROR;
 	if (ctxt->error != NULL) {
 	    error = ctxt->error;
 	    errctx = ctxt->errctx;
@@ -715,7 +708,8 @@ xsltTransformError(xsltTransformContextPtr ctxt,
     char * str;
 
     if (ctxt != NULL) {
-	ctxt->state = XSLT_STATE_ERROR;
+        if (ctxt->state == XSLT_STATE_OK)
+	    ctxt->state = XSLT_STATE_ERROR;
 	if (ctxt->error != NULL) {
 	    error = ctxt->error;
 	    errctx = ctxt->errctx;
@@ -1248,6 +1242,8 @@ xsltDefaultSortFunction(xsltTransformContextPtr ctxt, xmlNodePtr *sorts,
 			if (res[j] == NULL) {
 			    if (res[j+incr] != NULL)
 				tst = 1;
+			} else if (res[j+incr] == NULL) {
+			    tst = -1;
 			} else {
 			    if (numb) {
 				/* We make NaN smaller than number in
@@ -1808,6 +1804,8 @@ static long calibration = -1;
  *
  * Returns the number of milliseconds used by xsltTimestamp()
  */
+#if !defined(XSLT_WIN32_PERFORMANCE_COUNTER) && \
+    (defined(HAVE_CLOCK_GETTIME) || defined(HAVE_GETTIMEOFDAY))
 static long
 xsltCalibrateTimestamps(void) {
     register int i;
@@ -1816,6 +1814,7 @@ xsltCalibrateTimestamps(void) {
 	xsltTimestamp();
     return(xsltTimestamp() / 1000);
 }
+#endif
 
 /**
  * xsltCalibrateAdjust:
@@ -1963,7 +1962,7 @@ xsltSaveProfiling(xsltTransformContextPtr ctxt, FILE *output) {
     int nb, i,j,k,l;
     int max;
     int total;
-    long totalt;
+    unsigned long totalt;
     xsltTemplatePtr *templates;
     xsltStylesheetPtr style;
     xsltTemplatePtr templ1,templ2;
@@ -2076,7 +2075,7 @@ xsltSaveProfiling(xsltTransformContextPtr ctxt, FILE *output) {
 
     for (i = 0; i < nb; i++) {
         char ix_str[20], timep_str[20], times_str[20], timec_str[20], called_str[20];
-        int t;
+        unsigned long t;
 
         templ1 = templates[i];
         /* callers */
@@ -2087,9 +2086,9 @@ xsltSaveProfiling(xsltTransformContextPtr ctxt, FILE *output) {
                 break;
             }
             t=templ2?templ2->time:totalt;
-            sprintf(times_str,"%8.3f",(float)t/XSLT_TIMESTAMP_TICS_PER_SEC);
-            sprintf(timec_str,"%8.3f",(float)childt[k]/XSLT_TIMESTAMP_TICS_PER_SEC);
-            sprintf(called_str,"%6d/%d",
+            snprintf(times_str,sizeof(times_str),"%8.3f",(float)t/XSLT_TIMESTAMP_TICS_PER_SEC);
+            snprintf(timec_str,sizeof(timec_str),"%8.3f",(float)childt[k]/XSLT_TIMESTAMP_TICS_PER_SEC);
+            snprintf(called_str,sizeof(called_str),"%6d/%d",
                 templ1->templCountTab[j], /* number of times caller calls 'this' */
                 templ1->nbCalls);         /* total number of calls to 'this' */
 
@@ -2098,10 +2097,10 @@ xsltSaveProfiling(xsltTransformContextPtr ctxt, FILE *output) {
                 (templ2?(templ2->name?(char *)templ2->name:pretty_templ_match(templ2)):"-"),k);
         }
         /* this */
-        sprintf(ix_str,"[%d]",i);
-        sprintf(timep_str,"%6.2f",(float)templ1->time*100.0/totalt);
-        sprintf(times_str,"%8.3f",(float)templ1->time/XSLT_TIMESTAMP_TICS_PER_SEC);
-        sprintf(timec_str,"%8.3f",(float)childt[i]/XSLT_TIMESTAMP_TICS_PER_SEC);
+        snprintf(ix_str,sizeof(ix_str),"[%d]",i);
+        snprintf(timep_str,sizeof(timep_str),"%6.2f",(float)templ1->time*100.0/totalt);
+        snprintf(times_str,sizeof(times_str),"%8.3f",(float)templ1->time/XSLT_TIMESTAMP_TICS_PER_SEC);
+        snprintf(timec_str,sizeof(timec_str),"%8.3f",(float)childt[i]/XSLT_TIMESTAMP_TICS_PER_SEC);
         fprintf(output, "%-5s %-6s %-8s %-8s %6d     %s [%d]\n",
             ix_str, timep_str,times_str,timec_str,
             templ1->nbCalls,
@@ -2123,9 +2122,9 @@ xsltSaveProfiling(xsltTransformContextPtr ctxt, FILE *output) {
             templ2 = templates[k];
             for (l = 0; l < templ2->templNr; l++) {
                 if (templ2->templCalledTab[l] == templ1) {
-                    sprintf(times_str,"%8.3f",(float)templ2->time/XSLT_TIMESTAMP_TICS_PER_SEC);
-                    sprintf(timec_str,"%8.3f",(float)childt[k]/XSLT_TIMESTAMP_TICS_PER_SEC);
-                    sprintf(called_str,"%6d/%d",
+                    snprintf(times_str,sizeof(times_str),"%8.3f",(float)templ2->time/XSLT_TIMESTAMP_TICS_PER_SEC);
+                    snprintf(timec_str,sizeof(timec_str),"%8.3f",(float)childt[k]/XSLT_TIMESTAMP_TICS_PER_SEC);
+                    snprintf(called_str,sizeof(called_str),"%6d/%d",
                         templ2->templCountTab[l], /* number of times 'this' calls callee */
                         total);                   /* total number of calls from 'this' */
                     fprintf(output, "             %-8s %-8s %-12s     %s [%d]\n",
@@ -2245,19 +2244,19 @@ xsltGetProfileInformation(xsltTransformContextPtr ctxt)
 
     for (i = 0; i < nb; i++) {
         child = xmlNewChild(root, NULL, BAD_CAST "template", NULL);
-        sprintf(buf, "%d", i + 1);
+        snprintf(buf, sizeof(buf), "%d", i + 1);
         xmlSetProp(child, BAD_CAST "rank", BAD_CAST buf);
         xmlSetProp(child, BAD_CAST "match", BAD_CAST templates[i]->match);
         xmlSetProp(child, BAD_CAST "name", BAD_CAST templates[i]->name);
         xmlSetProp(child, BAD_CAST "mode", BAD_CAST templates[i]->mode);
 
-        sprintf(buf, "%d", templates[i]->nbCalls);
+        snprintf(buf, sizeof(buf), "%d", templates[i]->nbCalls);
         xmlSetProp(child, BAD_CAST "calls", BAD_CAST buf);
 
-        sprintf(buf, "%ld", templates[i]->time);
+        snprintf(buf, sizeof(buf), "%ld", templates[i]->time);
         xmlSetProp(child, BAD_CAST "time", BAD_CAST buf);
 
-        sprintf(buf, "%ld", templates[i]->time / templates[i]->nbCalls);
+        snprintf(buf, sizeof(buf), "%ld", templates[i]->time / templates[i]->nbCalls);
         xmlSetProp(child, BAD_CAST "average", BAD_CAST buf);
     };
 

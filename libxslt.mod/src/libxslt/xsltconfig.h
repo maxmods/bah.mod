@@ -20,21 +20,21 @@ extern "C" {
  *
  * the version string like "1.2.3"
  */
-#define LIBXSLT_DOTTED_VERSION "1.1.28"
+#define LIBXSLT_DOTTED_VERSION "1.1.34"
 
 /**
  * LIBXSLT_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  */
-#define LIBXSLT_VERSION 10128
+#define LIBXSLT_VERSION 10134
 
 /**
  * LIBXSLT_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  */
-#define LIBXSLT_VERSION_STRING "10128"
+#define LIBXSLT_VERSION_STRING "10134"
 
 /**
  * LIBXSLT_VERSION_EXTRA:
@@ -150,6 +150,17 @@ extern "C" {
 #endif
 #else
 #define ATTRIBUTE_UNUSED
+#endif
+
+/**
+ * LIBXSLT_ATTR_FORMAT:
+ *
+ * This macro is used to indicate to GCC the parameters are printf-like
+ */
+#ifdef __GNUC__
+#define LIBXSLT_ATTR_FORMAT(fmt,args) __attribute__((__format__(__printf__,fmt,args)))
+#else
+#define LIBXSLT_ATTR_FORMAT(fmt,args)
 #endif
 
 /**

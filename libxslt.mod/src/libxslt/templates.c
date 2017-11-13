@@ -63,6 +63,12 @@ xsltEvalXPathPredicate(xsltTransformContextPtr ctxt, xmlXPathCompExprPtr comp,
     xmlNodePtr oldInst;
     int oldProximityPosition, oldContextSize;
 
+    if ((ctxt == NULL) || (ctxt->inst == NULL)) {
+        xsltTransformError(ctxt, NULL, NULL,
+            "xsltEvalXPathPredicate: No context or instruction\n");
+        return(0);
+    }
+
     oldContextSize = ctxt->xpathCtxt->contextSize;
     oldProximityPosition = ctxt->xpathCtxt->proximityPosition;
     oldNsNr = ctxt->xpathCtxt->nsNr;
@@ -123,6 +129,12 @@ xsltEvalXPathStringNs(xsltTransformContextPtr ctxt, xmlXPathCompExprPtr comp,
     int	oldPos, oldSize;
     int oldNsNr;
     xmlNsPtr *oldNamespaces;
+
+    if ((ctxt == NULL) || (ctxt->inst == NULL)) {
+        xsltTransformError(ctxt, NULL, NULL,
+            "xsltEvalXPathStringNs: No context or instruction\n");
+        return(0);
+    }
 
     oldInst = ctxt->inst;
     oldNode = ctxt->node;
@@ -296,12 +308,12 @@ xsltAttrTemplateValueProcessNode(xsltTransformContextPtr ctxt,
 	        xsltTransformError(ctxt, NULL, inst,
 			"xsltAttrTemplateValueProcessNode: unmatched '{'\n");
 		ret = xmlStrncat(ret, str, cur - str);
-		return(ret);
+		goto exit;
 	    }
 	    str++;
 	    expr = xmlStrndup(str, cur - str);
 	    if (expr == NULL)
-		return(ret);
+		goto exit;
 	    else if (*expr == '{') {
 		ret = xmlStrcat(ret, expr);
 		xmlFree(expr);
@@ -349,6 +361,7 @@ xsltAttrTemplateValueProcessNode(xsltTransformContextPtr ctxt,
 	ret = xmlStrncat(ret, str, cur - str);
     }
 
+exit:
     if (nsList != NULL)
 	xmlFree(nsList);
 
