@@ -1,6 +1,6 @@
 //  operations.cpp  --------------------------------------------------------------------//
 
-//  Copyright 2002-2009 Beman Dawes
+//  Copyright 2002-2009, 2014 Beman Dawes
 //  Copyright 2001 Dietmar Kuehl
 
 //  Distributed under the Boost Software License, Version 1.0.
@@ -69,21 +69,22 @@ using std::wstring;
 
 # ifdef BOOST_POSIX_API
 
-    const fs::path dot_path(".");
-    const fs::path dot_dot_path("..");
 #   include <sys/types.h>
 #   include <sys/stat.h>
-#   if !defined(__APPLE__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
+#   if !defined(__APPLE__) && !defined(__OpenBSD__) && !defined(__ANDROID__) \
+ && !defined(__VXWORKS__)
 #     include <sys/statvfs.h>
 #     define BOOST_STATVFS statvfs
 #     define BOOST_STATVFS_F_FRSIZE vfs.f_frsize
 #   else
 #     ifdef __OpenBSD__
-#     include <sys/param.h>
+#       include <sys/param.h>
 #     elif defined(__ANDROID__)
-#     include <sys/vfs.h>
+#       include <sys/vfs.h>
 #     endif
-#     include <sys/mount.h>
+#     if !defined(__VXWORKS__)
+#       include <sys/mount.h>
+#     endif
 #     define BOOST_STATVFS statfs
 #     define BOOST_STATVFS_F_FRSIZE static_cast<boost::uintmax_t>(vfs.f_bsize)
 #   endif
@@ -95,13 +96,12 @@ using std::wstring;
 
 # else // BOOST_WINDOW_API
 
-    const fs::path dot_path(L".");
-    const fs::path dot_dot_path(L"..");
 #   if (defined(__MINGW32__) || defined(__CYGWIN__)) && !defined(WINVER)
       // Versions of MinGW or Cygwin that support Filesystem V3 support at least WINVER 0x501.
       // See MinGW's windef.h
 #     define WINVER 0x501
 #   endif
+#   include <cwchar>
 #   include <io.h>
 #   include <windows.h>
 #   include <winnt.h>
@@ -173,6 +173,17 @@ typedef struct _REPARSE_DATA_BUFFER {
 #   define IO_REPARSE_TAG_SYMLINK (0xA000000CL)       
 # endif
 
+inline std::wstring wgetenv(const wchar_t* name)
+{
+  // use vector since for C++03 basic_string is not required to be contiguous
+  std::vector<wchar_t> buf(::GetEnvironmentVariableW(name, NULL, 0));
+
+  // C++03 vector does not have data() so use &buf[0]
+  return (buf.empty()
+    || ::GetEnvironmentVariableW(name, &buf[0], static_cast<DWORD>(buf.size())) == 0)
+    ? std::wstring() : std::wstring(&buf[0]);
+}
+
 # endif  // BOOST_WINDOWS_API
 
 //  BOOST_FILESYSTEM_STATUS_CACHE enables file_status cache in
@@ -196,6 +207,8 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 # if defined(BOOST_POSIX_API)
 
+typedef int err_t;
+
 //  POSIX uses a 0 return to indicate success
 #   define BOOST_ERRNO    errno 
 #   define BOOST_SET_CURRENT_DIRECTORY(P)(::chdir(P)== 0)
@@ -214,6 +227,8 @@ typedef struct _REPARSE_DATA_BUFFER {
 #   define BOOST_ERROR_ALREADY_EXISTS EEXIST
 
 # else  // BOOST_WINDOWS_API
+
+typedef DWORD err_t;
 
 //  Windows uses a non-0 return to indicate success
 #   define BOOST_ERRNO    ::GetLastError()
@@ -236,7 +251,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 //--------------------------------------------------------------------------------------//
 //                                                                                      //
-//                        helpers (all operating systems)                              //
+//                        helpers (all operating systems)                               //
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
@@ -247,12 +262,22 @@ namespace
 
   boost::filesystem::directory_iterator end_dir_itr;
 
-  const std::size_t buf_size(128);
+  //  error handling helpers  ----------------------------------------------------------//
+
+  bool error(err_t error_num, error_code* ec, const char* message);
+  bool error(err_t error_num, const path& p, error_code* ec, const char* message);
+  bool error(err_t error_num, const path& p1, const path& p2, error_code* ec,
+    const char* message);
+
   const error_code ok;
 
-  bool error(bool was_error, error_code* ec, const string& message)
+  //  error_num is value of errno on POSIX, error code (from ::GetLastError()) on Windows.
+  //  Interface changed 30 Jan 15 to have caller supply error_num as ::SetLastError()
+  //  values were apparently getting cleared before they could be retrieved by error().
+
+  bool error(err_t error_num, error_code* ec, const char* message)
   {
-    if (!was_error)
+    if (!error_num)
     {
       if (ec != 0) ec->clear();
     }
@@ -260,16 +285,16 @@ namespace
     { //  error
       if (ec == 0)
         BOOST_FILESYSTEM_THROW(filesystem_error(message,
-          error_code(BOOST_ERRNO, system_category())));
+          error_code(error_num, system_category())));
       else
-        ec->assign(BOOST_ERRNO, system_category());
+        ec->assign(error_num, system_category());
     }
-    return was_error;
+    return error_num != 0;
   }
 
-  bool error(bool was_error, const path& p, error_code* ec, const string& message)
+  bool error(err_t error_num, const path& p, error_code* ec, const char* message)
   {
-    if (!was_error)
+    if (!error_num)
     {
       if (ec != 0) ec->clear();
     }
@@ -277,17 +302,17 @@ namespace
     { //  error
       if (ec == 0)
         BOOST_FILESYSTEM_THROW(filesystem_error(message,
-          p, error_code(BOOST_ERRNO, system_category())));
+          p, error_code(error_num, system_category())));
       else
-        ec->assign(BOOST_ERRNO, system_category());
+        ec->assign(error_num, system_category());
     }
-    return was_error;
+    return error_num != 0;
   }
 
-  bool error(bool was_error, const path& p1, const path& p2, error_code* ec,
-    const string& message)
+  bool error(err_t error_num, const path& p1, const path& p2, error_code* ec,
+    const char* message)
   {
-    if (!was_error)
+    if (!error_num)
     {
       if (ec != 0) ec->clear();
     }
@@ -295,59 +320,36 @@ namespace
     { //  error
       if (ec == 0)
         BOOST_FILESYSTEM_THROW(filesystem_error(message,
-          p1, p2, error_code(BOOST_ERRNO, system_category())));
+          p1, p2, error_code(error_num, system_category())));
       else
-        ec->assign(BOOST_ERRNO, system_category());
+        ec->assign(error_num, system_category());
     }
-    return was_error;
+    return error_num != 0;
   }
 
-  bool error(bool was_error, const error_code& result,
-    const path& p, error_code* ec, const string& message)
-    //  Overwrites ec if there has already been an error
+  //  general helpers  -----------------------------------------------------------------//
+
+  bool is_empty_directory(const path& p, error_code* ec)
   {
-    if (!was_error)
-    {
-      if (ec != 0) ec->clear();
-    }
-    else  
-    { //  error
-      if (ec == 0)
-        BOOST_FILESYSTEM_THROW(filesystem_error(message, p, result));
-      else
-        *ec = result;
-    }
-    return was_error;
+    return (ec != 0 ? fs::directory_iterator(p, *ec) : fs::directory_iterator(p))
+      == end_dir_itr;
   }
 
-  bool error(bool was_error, const error_code& result,
-    const path& p1, const path& p2, error_code* ec, const string& message)
-    //  Overwrites ec if there has already been an error
-  {
-    if (!was_error)
-    {
-      if (ec != 0) ec->clear();
-    }
-    else  
-    { //  error
-      if (ec == 0)
-        BOOST_FILESYSTEM_THROW(filesystem_error(message, p1, p2, result));
-      else
-        *ec = result;
-    }
-    return was_error;
-  }
+  bool not_found_error(int errval); // forward declaration
 
-  bool is_empty_directory(const path& p)
-  {
-    return fs::directory_iterator(p)== end_dir_itr;
+  // only called if directory exists
+  bool remove_directory(const path& p) // true if succeeds or not found
+  { 
+    return BOOST_REMOVE_DIRECTORY(p.c_str())
+      || not_found_error(BOOST_ERRNO);  // mitigate possible file system race. See #11166
   }
-
-  bool remove_directory(const path& p) // true if succeeds
-    { return BOOST_REMOVE_DIRECTORY(p.c_str()); }
   
-  bool remove_file(const path& p) // true if succeeds
-    { return BOOST_DELETE_FILE(p.c_str()); }
+  // only called if file exists
+  bool remove_file(const path& p) // true if succeeds or not found
+  {
+    return BOOST_DELETE_FILE(p.c_str())
+      || not_found_error(BOOST_ERRNO);  // mitigate possible file system race. See #11166
+  }
   
   // called by remove and remove_all_aux
   bool remove_file_or_directory(const path& p, fs::file_type type, error_code* ec)
@@ -365,13 +367,15 @@ namespace
 #     endif
       )
     {
-      if (error(!remove_directory(p), p, ec, "boost::filesystem::remove"))
-        return false;
+      if (error(!remove_directory(p) ? BOOST_ERRNO : 0, p, ec,
+        "boost::filesystem::remove"))
+          return false;
     }
     else
     {
-      if (error(!remove_file(p), p, ec, "boost::filesystem::remove"))
-        return false;
+      if (error(!remove_file(p) ? BOOST_ERRNO : 0, p, ec,
+        "boost::filesystem::remove"))
+          return false;
     }
     return true;
   }
@@ -380,16 +384,25 @@ namespace
     error_code* ec)
   {
     boost::uintmax_t count = 1;
-
     if (type == fs::directory_file)  // but not a directory symlink
     {
-      for (fs::directory_iterator itr(p);
-            itr != end_dir_itr; ++itr)
+      fs::directory_iterator itr;
+      if (ec != 0)
+      {
+        itr = fs::directory_iterator(p, *ec);
+        if (*ec)
+          return count;
+      }
+      else
+        itr = fs::directory_iterator(p);
+      for (; itr != end_dir_itr; ++itr)
       {
         fs::file_type tmp_type = query_file_type(itr->path(), ec);
         if (ec != 0 && *ec)
           return count;
         count += remove_all_aux(itr->path(), tmp_type, ec);
+        if (ec != 0 && *ec)
+          return count;
       }
     }
     remove_file_or_directory(p, type, ec);
@@ -446,25 +459,33 @@ namespace
 
     ssize_t sz, sz_read=1, sz_write;
     while (sz_read > 0
-      && (sz_read = ::read(infile, buf.get(), buf_sz))> 0)
+      && (sz_read = ::read(infile, buf.get(), buf_sz)) > 0)
     {
       // Allow for partial writes - see Advanced Unix Programming (2nd Ed.),
       // Marc Rochkind, Addison-Wesley, 2004, page 94
       sz_write = 0;
       do
       {
+        BOOST_ASSERT(sz_read - sz_write > 0);  // #1
+          // ticket 4438 claimed possible infinite loop if write returns 0. My analysis
+          // is that POSIX specifies 0 return only if 3rd arg is 0, and that will never
+          // happen due to loop entry and coninuation conditions. BOOST_ASSERT #1 above
+          // and #2 below added to verify that analysis.
         if ((sz = ::write(outfile, buf.get() + sz_write,
-          sz_read - sz_write))< 0)
+          sz_read - sz_write)) < 0)
         { 
           sz_read = sz; // cause read loop termination
-          break;        //  and error to be thrown after closes
+          break;        //  and error reported after closes
         }
+        BOOST_ASSERT(sz > 0);                  // #2
         sz_write += sz;
       } while (sz_write < sz_read);
     }
 
-    if (::close(infile)< 0)sz_read = -1;
-    if (::close(outfile)< 0)sz_read = -1;
+    if (::close(infile)< 0)
+      sz_read = -1;
+    if (::close(outfile)< 0)
+      sz_read = -1;
 
     return sz_read >= 0;
   }
@@ -482,6 +503,8 @@ namespace
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
+  const std::size_t buf_size=128;
+
   const wchar_t dot = L'.';
 
   bool not_found_error(int errval)
@@ -495,25 +518,115 @@ namespace
       || errval == ERROR_BAD_PATHNAME  // "//nosuch" on Win64
       || errval == ERROR_BAD_NETPATH;  // "//nosuch" on Win32
   }
+  
+  // File name case-insensitive comparison needs to be locale- and collation-independent. 
+  // The approach used below follows a combined strategy described in the following
+  // articles:
+  // http://archives.miloush.net/michkap/archive/2005/10/17/481600.html
+  // http://archives.miloush.net/michkap/archive/2007/09/14/4900107.html
+  // http://archives.miloush.net/michkap/archive/2007/10/12/5396685.html
+  // CompareStringOrdinal is only available on newer systems and is just a wrapper of
+  // RtlCompareUnicodeString, but measurements showed that RtlEqualUnicodeString has better
+  // performance. Therefore we use RtlEqualUnicodeString, and if that does not exist 
+  // we perform the equivalent characterwise comparsion using LCMapString and uppercase 
+  // binary equality. Instead of calling RtlInitUnicodeString we use wcslen directly
+  // because that results in better performance as well.
 
-// some distributions of mingw as early as GLIBCXX__ 20110325 have _stricmp, but the
-// offical 4.6.2 release with __GLIBCXX__ 20111026  doesn't. Play it safe for now, and
-// only use _stricmp if _MSC_VER is defined
-#if defined(_MSC_VER) // || (defined(__GLIBCXX__) && __GLIBCXX__ >= 20110325)
-#  define BOOST_FILESYSTEM_STRICMP _stricmp
-#else
-#  define BOOST_FILESYSTEM_STRICMP strcmp
+  //  Windows ntdll.dll functions that may or may not be present
+  //  must be accessed through pointers
+  typedef struct _UNICODE_STRING {
+    USHORT Length;
+    USHORT MaximumLength;
+    PWSTR  Buffer;
+  } UNICODE_STRING;
+
+  typedef const UNICODE_STRING *PCUNICODE_STRING;
+
+  typedef BOOLEAN (WINAPI *PtrRtlEqualUnicodeString)(
+    /*_In_*/ PCUNICODE_STRING String1,
+    /*_In_*/ PCUNICODE_STRING String2,
+    /*_In_*/ BOOLEAN          CaseInSensitive
+  );
+
+  PtrRtlEqualUnicodeString rtl_equal_unicode_string_api = PtrRtlEqualUnicodeString(
+    ::GetProcAddress(
+      ::GetModuleHandleW(L"ntdll.dll"), "RtlEqualUnicodeString"));
+
+#ifndef LOCALE_INVARIANT
+#  define LOCALE_INVARIANT (MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT))
 #endif
 
+  bool equal_string_ordinal_ic_1(const wchar_t* s1, const wchar_t* s2)
+  {
+    std::size_t len1 = std::wcslen(s1);
+    UNICODE_STRING us1;
+    us1.Buffer = const_cast<wchar_t*>(s1);
+    us1.Length = static_cast<USHORT>(sizeof(*s1) * len1);
+    us1.MaximumLength = static_cast<USHORT>(us1.Length + sizeof(*s1));
+    std::size_t len2 = std::wcslen(s2);
+    UNICODE_STRING us2;
+    us2.Buffer = const_cast<wchar_t*>(s2);
+    us2.Length = static_cast<USHORT>(sizeof(*s2) * len2);
+    us2.MaximumLength = static_cast<USHORT>(us2.Length + sizeof(*s2));
+    BOOLEAN res = rtl_equal_unicode_string_api(&us1, &us2, TRUE);
+    return res != FALSE;
+  }
+
+  inline
+  wchar_t to_upper_invariant(wchar_t input)
+  {
+    wchar_t result;
+    // According to 
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/dd318144(v=vs.85).aspx
+    // "When transforming between uppercase and lowercase, the function always maps a 
+    // single character to a single character."
+    int res = ::LCMapStringW(LOCALE_INVARIANT, LCMAP_UPPERCASE, &input, 1, &result, 1); 
+    if (res != 0)
+      return result;
+    assert(!"LCMapStringW failed to convert a character to upper case");
+    return input; // Should never happen, but this is a safe fallback.
+  }
+  
+  bool equal_string_ordinal_ic_2(const wchar_t* s1, const wchar_t* s2)
+  {
+    for (;; ++s1, ++s2)
+    {
+      const wchar_t c1 = *s1;
+      const wchar_t c2 = *s2;
+      if (c1 == c2)
+      {
+        if (!c1)
+          return true; // We have reached the end of both strings, no difference found.
+      }
+      else
+      {
+        if (!c1 || !c2)
+          return false; // We have reached the end of one string
+        // This needs to be upper case to match the behavior of the operating system,
+        // see http://archives.miloush.net/michkap/archive/2005/10/17/481600.html
+        const wchar_t u1 = to_upper_invariant(c1);
+        const wchar_t u2 = to_upper_invariant(c2);
+        if (u1 != u2)
+          return false; // strings are different
+      }
+    }
+  }  
+  
+  typedef bool (*Ptr_equal_string_ordinal_ic)(const wchar_t*, const wchar_t*);
+
+  Ptr_equal_string_ordinal_ic equal_string_ordinal_ic = 
+    rtl_equal_unicode_string_api ? equal_string_ordinal_ic_1 : equal_string_ordinal_ic_2;
+  
   perms make_permissions(const path& p, DWORD attr)
   {
     perms prms = fs::owner_read | fs::group_read | fs::others_read;
     if  ((attr & FILE_ATTRIBUTE_READONLY) == 0)
       prms |= fs::owner_write | fs::group_write | fs::others_write;
-    if (BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".exe") == 0
-      || BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".com") == 0
-      || BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".bat") == 0
-      || BOOST_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".cmd") == 0)
+    path ext = p.extension();
+    if (equal_string_ordinal_ic(ext.c_str(), L".exe")
+      || equal_string_ordinal_ic(ext.c_str(), L".com")
+      || equal_string_ordinal_ic(ext.c_str(), L".bat")
+      || equal_string_ordinal_ic(ext.c_str(), L".cmd"))
       prms |= fs::owner_exe | fs::group_exe | fs::others_exe;
     return prms;
   }
@@ -586,9 +699,18 @@ namespace
     BOOL result = ::DeviceIoControl(h.handle, FSCTL_GET_REPARSE_POINT, NULL, 0, buf.get(),
       MAXIMUM_REPARSE_DATA_BUFFER_SIZE, &dwRetLen, NULL);
     if (!result) return false;
- 
-    return reinterpret_cast<const REPARSE_DATA_BUFFER*>(buf.get())
-      ->ReparseTag == IO_REPARSE_TAG_SYMLINK;
+
+    return reinterpret_cast<const REPARSE_DATA_BUFFER*>(buf.get())->ReparseTag
+        == IO_REPARSE_TAG_SYMLINK
+        // Issue 9016 asked that NTFS directory junctions be recognized as directories.
+        // That is equivalent to recognizing them as symlinks, and then the normal symlink
+        // mechanism will take care of recognizing them as directories.
+        //
+        // Directory junctions are very similar to symlinks, but have some performance
+        // and other advantages over symlinks. They can be created from the command line
+        // with "mklink /j junction-name target-path".
+      || reinterpret_cast<const REPARSE_DATA_BUFFER*>(buf.get())->ReparseTag
+        == IO_REPARSE_TAG_MOUNT_POINT;  // aka "directory junction" or "junction"
   }
 
   inline std::size_t get_full_path_name(
@@ -646,14 +768,13 @@ namespace
 
   BOOL resize_file_api(const wchar_t* p, boost::uintmax_t size)
   {
-    HANDLE handle = CreateFileW(p, GENERIC_WRITE, 0, 0, OPEN_EXISTING,
-                                FILE_ATTRIBUTE_NORMAL, 0);
+    handle_wrapper h(CreateFileW(p, GENERIC_WRITE, 0, 0, OPEN_EXISTING,
+                                FILE_ATTRIBUTE_NORMAL, 0));
     LARGE_INTEGER sz;
     sz.QuadPart = size;
-    return handle != INVALID_HANDLE_VALUE
-      && ::SetFilePointerEx(handle, sz, 0, FILE_BEGIN)
-      && ::SetEndOfFile(handle)
-      && ::CloseHandle(handle);
+    return h.handle != INVALID_HANDLE_VALUE
+      && ::SetFilePointerEx(h.handle, sz, 0, FILE_BEGIN)
+      && ::SetEndOfFile(h.handle);
   }
 
   //  Windows kernel32.dll functions that may or may not be present
@@ -667,7 +788,7 @@ namespace
 
   PtrCreateHardLinkW create_hard_link_api = PtrCreateHardLinkW(
     ::GetProcAddress(
-      ::GetModuleHandle(TEXT("kernel32.dll")), "CreateHardLinkW"));
+      ::GetModuleHandleW(L"kernel32.dll"), "CreateHardLinkW"));
 
   typedef BOOLEAN (WINAPI *PtrCreateSymbolicLinkW)(
     /*__in*/ LPCWSTR lpSymlinkFileName,
@@ -677,7 +798,7 @@ namespace
 
   PtrCreateSymbolicLinkW create_symbolic_link_api = PtrCreateSymbolicLinkW(
     ::GetProcAddress(
-      ::GetModuleHandle(TEXT("kernel32.dll")), "CreateSymbolicLinkW"));
+      ::GetModuleHandleW(L"kernel32.dll"), "CreateSymbolicLinkW"));
 
 #endif
 
@@ -775,6 +896,7 @@ namespace detail
   path canonical(const path& p, const path& base, system::error_code* ec)
   {
     path source (p.is_absolute() ? p : absolute(p, base));
+    path root(source.root_path());
     path result;
 
     system::error_code local_ec;
@@ -805,11 +927,12 @@ namespace detail
       result.clear();
       for (path::iterator itr = source.begin(); itr != source.end(); ++itr)
       {
-        if (*itr == dot_path)
+        if (*itr == dot_path())
           continue;
-        if (*itr == dot_dot_path)
+        if (*itr == dot_dot_path())
         {
-          result.remove_filename();
+          if (result != root)
+            result.remove_filename();
           continue;
         }
 
@@ -867,7 +990,7 @@ namespace detail
     }
     else if(is_regular_file(s))
     {
-      copy_file(from, to, copy_option::fail_if_exists, *ec);
+      copy_file(from, to, fs::copy_option::fail_if_exists, *ec);
     }
     else
     {
@@ -884,17 +1007,15 @@ namespace detail
 #   ifdef BOOST_POSIX_API
     struct stat from_stat;
 #   endif
-    error(!BOOST_COPY_DIRECTORY(from.c_str(), to.c_str()),
+    error(!BOOST_COPY_DIRECTORY(from.c_str(), to.c_str()) ? BOOST_ERRNO : 0,
       from, to, ec, "boost::filesystem::copy_directory");
   }
 
   BOOST_FILESYSTEM_DECL
-  void copy_file(const path& from, const path& to,
-                  BOOST_SCOPED_ENUM(copy_option)option,
-                  error_code* ec)
+  void copy_file(const path& from, const path& to, copy_option option, error_code* ec)
   {
     error(!BOOST_COPY_FILE(from.c_str(), to.c_str(),
-      option == copy_option::fail_if_exists),
+      option == fail_if_exists) ? BOOST_ERRNO : 0,
         from, to, ec, "boost::filesystem::copy_file");
   }
 
@@ -903,8 +1024,7 @@ namespace detail
     system::error_code* ec)
   {
 # if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
-    error(true, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()),
-      new_symlink, existing_symlink, ec,
+    error(BOOST_ERROR_NOT_SUPPORTED, new_symlink, existing_symlink, ec,
       "boost::filesystem::copy_symlink");
 
 # else  // modern Windows or BOOST_POSIX_API 
@@ -918,6 +1038,20 @@ namespace detail
  BOOST_FILESYSTEM_DECL
   bool create_directories(const path& p, system::error_code* ec)
   {
+   if (p.empty())
+   {
+     if (ec == 0)
+       BOOST_FILESYSTEM_THROW(filesystem_error(
+         "boost::filesystem::create_directories", p,
+         system::errc::make_error_code(system::errc::invalid_argument)));
+     else
+       ec->assign(system::errc::invalid_argument, system::generic_category());
+     return false;
+   }
+
+    if (p.filename_is_dot() || p.filename_is_dot_dot())
+      return create_directories(p.parent_path(), ec);
+    
     error_code local_ec;
     file_status p_status = status(p, local_ec);
 
@@ -929,6 +1063,7 @@ namespace detail
     }
 
     path parent = p.parent_path();
+    BOOST_ASSERT_MSG(parent != p, "internal error: p == p.parent_path()");
     if (!parent.empty())
     {
       // determine if the parent exists
@@ -967,7 +1102,8 @@ namespace detail
     //  attempt to create directory failed
     int errval(BOOST_ERRNO);  // save reason for failure
     error_code dummy;
-    if (errval == BOOST_ERROR_ALREADY_EXISTS && is_directory(p, dummy))
+
+    if (is_directory(p, dummy))
     {
       if (ec != 0)
         ec->clear();
@@ -980,6 +1116,7 @@ namespace detail
         p, error_code(errval, system_category())));
     else
       ec->assign(errval, system_category());
+
     return false;
   }
 
@@ -989,20 +1126,19 @@ namespace detail
   {
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
 
-    error(true, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()), to, from, ec,
+    error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
       "boost::filesystem::create_directory_symlink");
 #   else
 
 #     if defined(BOOST_WINDOWS_API) && _WIN32_WINNT >= 0x0600
         // see if actually supported by Windows runtime dll
-        if (error(!create_symbolic_link_api,
-            error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()),
-            to, from, ec,
+        if (error(!create_symbolic_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
             "boost::filesystem::create_directory_symlink"))
           return;
 #     endif
 
-    error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(), SYMBOLIC_LINK_FLAG_DIRECTORY),
+    error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(),
+      SYMBOLIC_LINK_FLAG_DIRECTORY) ? BOOST_ERRNO : 0,
       to, from, ec, "boost::filesystem::create_directory_symlink");
 #   endif
   }
@@ -1013,20 +1149,18 @@ namespace detail
 
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0500  // SDK earlier than Win 2K
 
-    error(true, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()), to, from, ec,
+    error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
       "boost::filesystem::create_hard_link");
 #   else
 
 #     if defined(BOOST_WINDOWS_API) && _WIN32_WINNT >= 0x0500
         // see if actually supported by Windows runtime dll
-        if (error(!create_hard_link_api,
-            error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()),
-            to, from, ec,
+        if (error(!create_hard_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
             "boost::filesystem::create_hard_link"))
           return;
 #     endif
 
-    error(!BOOST_CREATE_HARD_LINK(from.c_str(), to.c_str()), to, from, ec,
+    error(!BOOST_CREATE_HARD_LINK(from.c_str(), to.c_str()) ? BOOST_ERRNO : 0, to, from, ec,
       "boost::filesystem::create_hard_link");
 #   endif
   }
@@ -1035,20 +1169,18 @@ namespace detail
   void create_symlink(const path& to, const path& from, error_code* ec)
   {
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
-    error(true, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()), to, from, ec,
+    error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
       "boost::filesystem::create_directory_symlink");
 #   else
 
 #     if defined(BOOST_WINDOWS_API) && _WIN32_WINNT >= 0x0600
         // see if actually supported by Windows runtime dll
-        if (error(!create_symbolic_link_api,
-            error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()),
-            to, from, ec,
+        if (error(!create_symbolic_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
             "boost::filesystem::create_symlink"))
           return;
 #     endif
 
-    error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(), 0),
+    error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(), 0) ? BOOST_ERRNO : 0,
       to, from, ec, "boost::filesystem::create_symlink");
 #   endif
   }
@@ -1064,7 +1196,7 @@ namespace detail
         buf(new char[static_cast<std::size_t>(path_max)]);
       if (::getcwd(buf.get(), static_cast<std::size_t>(path_max))== 0)
       {
-        if (error(errno != ERANGE
+        if (error(errno != ERANGE ? errno : 0
       // bug in some versions of the Metrowerks C lib on the Mac: wrong errno set 
 #         if defined(__MSL__) && (defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
           && errno != 0
@@ -1085,9 +1217,9 @@ namespace detail
 
 #   else
     DWORD sz;
-    if ((sz = ::GetCurrentDirectoryW(0, NULL))== 0)sz = 1;
+    if ((sz = ::GetCurrentDirectoryW(0, NULL)) == 0)sz = 1;
     boost::scoped_array<path::value_type> buf(new path::value_type[sz]);
-    error(::GetCurrentDirectoryW(sz, buf.get())== 0, ec,
+    error(::GetCurrentDirectoryW(sz, buf.get()) == 0 ? BOOST_ERRNO : 0, ec,
       "boost::filesystem::current_path");
     return path(buf.get());
 #   endif
@@ -1097,7 +1229,7 @@ namespace detail
   BOOST_FILESYSTEM_DECL
   void current_path(const path& p, system::error_code* ec)
   {
-    error(!BOOST_SET_CURRENT_DIRECTORY(p.c_str()),
+    error(!BOOST_SET_CURRENT_DIRECTORY(p.c_str()) ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::current_path");
   }
 
@@ -1159,8 +1291,8 @@ namespace detail
     {
       // if one is invalid and the other isn't, then they aren't equivalent,
       // but if both are invalid then it is an error
-      error(h1.handle == INVALID_HANDLE_VALUE
-        && h2.handle == INVALID_HANDLE_VALUE, p1, p2, ec,
+      error((h1.handle == INVALID_HANDLE_VALUE
+        && h2.handle == INVALID_HANDLE_VALUE) ? BOOST_ERROR_NOT_SUPPORTED : 0, p1, p2, ec,
           "boost::filesystem::equivalent");
       return false;
     }
@@ -1169,11 +1301,11 @@ namespace detail
 
     BY_HANDLE_FILE_INFORMATION info1, info2;
 
-    if (error(!::GetFileInformationByHandle(h1.handle, &info1),
+    if (error(!::GetFileInformationByHandle(h1.handle, &info1) ? BOOST_ERRNO : 0,
       p1, p2, ec, "boost::filesystem::equivalent"))
         return  false;
 
-    if (error(!::GetFileInformationByHandle(h2.handle, &info2),
+    if (error(!::GetFileInformationByHandle(h2.handle, &info2) ? BOOST_ERRNO : 0,
       p1, p2, ec, "boost::filesystem::equivalent"))
         return  false;
 
@@ -1200,11 +1332,10 @@ namespace detail
 #   ifdef BOOST_POSIX_API
 
     struct stat path_stat;
-    if (error(::stat(p.c_str(), &path_stat)!= 0,
+    if (error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
         p, ec, "boost::filesystem::file_size"))
       return static_cast<boost::uintmax_t>(-1);
-   if (error(!S_ISREG(path_stat.st_mode),
-      error_code(EPERM, system_category()),
+   if (error(!S_ISREG(path_stat.st_mode) ? EPERM : 0,
         p, ec, "boost::filesystem::file_size"))
       return static_cast<boost::uintmax_t>(-1);
 
@@ -1216,13 +1347,12 @@ namespace detail
 
     WIN32_FILE_ATTRIBUTE_DATA fad;
 
-    if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0,
-        p, ec, "boost::filesystem::file_size"))
-        return static_cast<boost::uintmax_t>(-1);
+    if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0
+      ? BOOST_ERRNO : 0, p, ec, "boost::filesystem::file_size"))
+          return static_cast<boost::uintmax_t>(-1);
 
-    if (error((fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!= 0,
-      error_code(ERROR_NOT_SUPPORTED, system_category()),
-        p, ec, "boost::filesystem::file_size"))
+    if (error((fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!= 0
+      ? ERROR_NOT_SUPPORTED : 0, p, ec, "boost::filesystem::file_size"))
       return static_cast<boost::uintmax_t>(-1);
 
     return (static_cast<boost::uintmax_t>(fad.nFileSizeHigh)
@@ -1236,7 +1366,7 @@ namespace detail
 #   ifdef BOOST_POSIX_API
 
     struct stat path_stat;
-    return error(::stat(p.c_str(), &path_stat)!= 0,
+    return error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
                   p, ec, "boost::filesystem::hard_link_count")
            ? 0
            : static_cast<boost::uintmax_t>(path_stat.st_nlink);
@@ -1250,9 +1380,9 @@ namespace detail
           FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
           OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0));
     return
-      !error(h.handle == INVALID_HANDLE_VALUE,
+      !error(h.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
               p, ec, "boost::filesystem::hard_link_count")
-      && !error(::GetFileInformationByHandle(h.handle, &info)== 0,
+      && !error(::GetFileInformationByHandle(h.handle, &info)== 0 ? BOOST_ERRNO : 0,
                  p, ec, "boost::filesystem::hard_link_count")
            ? info.nNumberOfLinks
            : 0;
@@ -1279,19 +1409,19 @@ namespace detail
         p, ec, "boost::filesystem::is_empty"))
       return false;        
     return S_ISDIR(path_stat.st_mode)
-      ? is_empty_directory(p)
+      ? is_empty_directory(p, ec)
       : path_stat.st_size == 0;
 #   else
 
     WIN32_FILE_ATTRIBUTE_DATA fad;
-    if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0,
-      p, ec, "boost::filesystem::is_empty"))
+    if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0
+      ? BOOST_ERRNO : 0, p, ec, "boost::filesystem::is_empty"))
         return false;
 
     if (ec != 0) ec->clear();
     return 
       (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        ? is_empty_directory(p)
+        ? is_empty_directory(p, ec)
         : (!fad.nFileSizeHigh && !fad.nFileSizeLow);
 #   endif
   }
@@ -1302,7 +1432,7 @@ namespace detail
 #   ifdef BOOST_POSIX_API
 
     struct stat path_stat;
-    if (error(::stat(p.c_str(), &path_stat)!= 0,
+    if (error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::last_write_time"))
         return std::time_t(-1);
     return path_stat.st_mtime;
@@ -1314,13 +1444,13 @@ namespace detail
         FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
         OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0));
 
-    if (error(hw.handle == INVALID_HANDLE_VALUE,
+    if (error(hw.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::last_write_time"))
         return std::time_t(-1);
 
     FILETIME lwt;
 
-    if (error(::GetFileTime(hw.handle, 0, 0, &lwt)== 0,
+    if (error(::GetFileTime(hw.handle, 0, 0, &lwt)== 0 ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::last_write_time"))
         return std::time_t(-1);
 
@@ -1341,7 +1471,7 @@ namespace detail
     ::utimbuf buf;
     buf.actime = path_stat.st_atime; // utime()updates access time too:-(
     buf.modtime = new_time;
-    error(::utime(p.c_str(), &buf)!= 0,
+    error(::utime(p.c_str(), &buf)!= 0 ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::last_write_time");
 
 #   else
@@ -1351,14 +1481,14 @@ namespace detail
         FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
         OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0));
 
-    if (error(hw.handle == INVALID_HANDLE_VALUE,
+    if (error(hw.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::last_write_time"))
         return;
 
     FILETIME lwt;
     to_FILETIME(new_time, lwt);
 
-    error(::SetFileTime(hw.handle, 0, 0, &lwt)== 0,
+    error(::SetFileTime(hw.handle, 0, 0, &lwt)== 0 ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::last_write_time");
 #   endif
   }
@@ -1397,7 +1527,7 @@ namespace detail
     else if (prms & remove_perms)
       prms = current_status.permissions() & ~prms;
 
-    // Mac OS X Lion and some other platforms don't support fchmodat().
+    // OS X <10.10, iOS <8.0 and some other platforms don't support fchmodat().
     // Solaris (SunPro and gcc) only support fchmodat() on Solaris 11 and higher,
     // and a runtime check is too much trouble.
     // Linux does not support permissions on symbolic links and has no plans to
@@ -1409,8 +1539,12 @@ namespace detail
     //  - See the fchmodat() Linux man page:
     //   "http://man7.org/linux/man-pages/man2/fchmodat.2.html"
 #   if defined(AT_FDCWD) && defined(AT_SYMLINK_NOFOLLOW) \
-      && !(defined(__SUNPRO_CC) || defined(sun)) \
-      && !(defined(linux) || defined(__linux) || defined(__linux__))
+      && !(defined(__SUNPRO_CC) || defined(__sun) || defined(sun)) \
+      && !(defined(linux) || defined(__linux) || defined(__linux__)) \
+      && !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) \
+           && __MAC_OS_X_VERSION_MIN_REQUIRED < 101000) \
+      && !(defined(__IPHONE_OS_VERSION_MIN_REQUIRED) \
+           && __IPHONE_OS_VERSION_MIN_REQUIRED < 80000)
       if (::fchmodat(AT_FDCWD, p.c_str(), mode_cast(prms),
            !(prms & symlink_perms) ? 0 : AT_SYMLINK_NOFOLLOW))
 #   else  // fallback if fchmodat() not supported
@@ -1434,7 +1568,7 @@ namespace detail
 
     DWORD attr = ::GetFileAttributesW(p.c_str());
 
-    if (error(attr == 0, p, ec, "boost::filesystem::permissions"))
+    if (error(attr == 0 ? BOOST_ERRNO : 0, p, ec, "boost::filesystem::permissions"))
       return;
 
     if (prms & add_perms)
@@ -1446,7 +1580,7 @@ namespace detail
     else
       attr |= FILE_ATTRIBUTE_READONLY;
 
-    error(::SetFileAttributesW(p.c_str(), attr) == 0,
+    error(::SetFileAttributesW(p.c_str(), attr) == 0 ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::permissions");
 # endif
   }
@@ -1482,7 +1616,7 @@ namespace detail
     }
 
 #   elif _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
-    error(true, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category()), p, ec,
+    error(BOOST_ERROR_NOT_SUPPORTED, p, ec,
           "boost::filesystem::read_symlink");
 #   else  // Vista and Server 2008 SDK, or later
 
@@ -1496,13 +1630,14 @@ namespace detail
       create_file_handle(p.c_str(), GENERIC_READ, 0, 0, OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, 0));
 
-    if (error(h.handle == INVALID_HANDLE_VALUE, p, ec, "boost::filesystem::read_symlink"))
-      return symlink_path;
+    if (error(h.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
+      p, ec, "boost::filesystem::read_symlink"))
+        return symlink_path;
 
     DWORD sz;
 
     if (!error(::DeviceIoControl(h.handle, FSCTL_GET_REPARSE_POINT,
-          0, 0, info.buf, sizeof(info), &sz, 0) == 0, p, ec,
+          0, 0, info.buf, sizeof(info), &sz, 0) == 0 ? BOOST_ERRNO : 0, p, ec,
           "boost::filesystem::read_symlink" ))
       symlink_path.assign(
         static_cast<wchar_t*>(info.rdb.SymbolicLinkReparseBuffer.PathBuffer)
@@ -1513,20 +1648,33 @@ namespace detail
 #     endif
     return symlink_path;
   }
+
+  BOOST_FILESYSTEM_DECL
+  path relative(const path& p, const path& base, error_code* ec)
+  {
+    error_code tmp_ec;
+    path wc_base(weakly_canonical(base, &tmp_ec));
+    if (error(tmp_ec.value(), base, ec, "boost::filesystem::relative"))
+      return path();
+    path wc_p(weakly_canonical(p, &tmp_ec));
+    if (error(tmp_ec.value(), base, ec, "boost::filesystem::relative"))
+      return path();
+    return wc_p.lexically_relative(wc_base);
+  }
   
   BOOST_FILESYSTEM_DECL
   bool remove(const path& p, error_code* ec)
   {
     error_code tmp_ec;
     file_type type = query_file_type(p, &tmp_ec);
-    if (error(type == status_error, tmp_ec, p, ec,
+    if (error(type == status_error ? tmp_ec.value() : 0, p, ec,
         "boost::filesystem::remove"))
       return false;
 
     // Since POSIX remove() is specified to work with either files or directories, in a
     // perfect world it could just be called. But some important real-world operating
     // systems (Windows, Mac OS X, for example) don't implement the POSIX spec. So
-    // remove_file_or_directory() is always called to kep it simple.
+    // remove_file_or_directory() is always called to keep it simple.
     return remove_file_or_directory(p, type, ec);
   }
 
@@ -1535,7 +1683,7 @@ namespace detail
   {
     error_code tmp_ec;
     file_type type = query_file_type(p, &tmp_ec);
-    if (error(type == status_error, tmp_ec, p, ec,
+    if (error(type == status_error ? tmp_ec.value() : 0, p, ec,
       "boost::filesystem::remove_all"))
       return 0;
 
@@ -1547,14 +1695,15 @@ namespace detail
   BOOST_FILESYSTEM_DECL
   void rename(const path& old_p, const path& new_p, error_code* ec)
   {
-    error(!BOOST_MOVE_FILE(old_p.c_str(), new_p.c_str()), old_p, new_p, ec,
-      "boost::filesystem::rename");
+    error(!BOOST_MOVE_FILE(old_p.c_str(), new_p.c_str()) ? BOOST_ERRNO : 0, old_p, new_p,
+      ec, "boost::filesystem::rename");
   }
 
   BOOST_FILESYSTEM_DECL
   void resize_file(const path& p, uintmax_t size, system::error_code* ec)
   {
-    error(!BOOST_RESIZE_FILE(p.c_str(), size), p, ec, "boost::filesystem::resize_file");
+    error(!BOOST_RESIZE_FILE(p.c_str(), size) ? BOOST_ERRNO : 0, p, ec,
+      "boost::filesystem::resize_file");
   }
 
   BOOST_FILESYSTEM_DECL
@@ -1563,7 +1712,7 @@ namespace detail
 #   ifdef BOOST_POSIX_API
     struct BOOST_STATVFS vfs;
     space_info info;
-    if (!error(::BOOST_STATVFS(p.c_str(), &vfs)!= 0,
+    if (!error(::BOOST_STATVFS(p.c_str(), &vfs) ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::space"))
     {
       info.capacity 
@@ -1759,12 +1908,16 @@ namespace detail
       (val = std::getenv("TEMP"   )) ||
       (val = std::getenv("TEMPDIR"));
       
-      path p((val!=0) ? val : "/tmp");
-      
+#     ifdef __ANDROID__
+        const char* default_tmp = "/data/local/tmp";
+#     else
+        const char* default_tmp = "/tmp";
+#     endif
+      path p((val!=0) ? val : default_tmp);
+       
       if (p.empty() || (ec&&!is_directory(p, *ec))||(!ec&&!is_directory(p)))
       {
-        errno = ENOTDIR;
-        error(true, p, ec, "boost::filesystem::temp_directory_path");
+        error(ENOTDIR, p, ec, "boost::filesystem::temp_directory_path");
         return p;
       }
         
@@ -1772,27 +1925,45 @@ namespace detail
       
 #   else  // Windows
 
-      std::vector<path::value_type> buf(GetTempPathW(0, NULL));
+      const wchar_t* tmp_env = L"TMP";
+      const wchar_t* temp_env = L"TEMP";
+      const wchar_t* localappdata_env = L"LOCALAPPDATA";
+      const wchar_t* userprofile_env = L"USERPROFILE";
+      const wchar_t* env_list[]
+        = {tmp_env, temp_env, localappdata_env, userprofile_env, 0};
 
-      if (buf.empty() || GetTempPathW(buf.size(), &buf[0])==0)
+      path p;
+      for (int i = 0; env_list[i]; ++i)
       {
-        if(!buf.empty()) ::SetLastError(ENOTDIR);
-        error(true, ec, "boost::filesystem::temp_directory_path");
-        return path();
+        std::wstring env = wgetenv(env_list[i]);
+        if (!env.empty())
+        {
+          p = env;
+          if (i >= 2)
+            p /= L"Temp";
+          error_code lcl_ec;
+          if (exists(p, lcl_ec) && !lcl_ec && is_directory(p, lcl_ec) && !lcl_ec)
+            break;
+          p.clear();
+        }
       }
-          
-      buf.pop_back();
-      
-      path p(buf.begin(), buf.end());
-          
-      if ((ec&&!is_directory(p, *ec))||(!ec&&!is_directory(p)))
+
+      if (p.empty())
       {
-        ::SetLastError(ENOTDIR);
-        error(true, p, ec, "boost::filesystem::temp_directory_path");
-        return path();
+        // use vector since in C++03 a string is not required to be contiguous
+        std::vector<wchar_t> buf(::GetWindowsDirectoryW(NULL, 0));
+
+        if (buf.empty()
+          || ::GetWindowsDirectoryW(&buf[0], static_cast<UINT>(buf.size())) == 0)
+        {
+          error(::GetLastError(), ec, "boost::filesystem::temp_directory_path");
+          return path();
+        }
+        p = &*buf.begin();  // do not depend on buf.size(); see ticket #10388
+        p /= L"Temp";
       }
-      
       return p;
+
 #   endif
   }
   
@@ -1813,7 +1984,7 @@ namespace detail
     wchar_t* pfn;
     std::size_t len = get_full_path_name(p, buf_size, buf, &pfn);
 
-    if (error(len == 0, p, ec, "boost::filesystem::system_complete"))
+    if (error(len == 0 ? BOOST_ERRNO : 0, p, ec, "boost::filesystem::system_complete"))
       return path();
 
     if (len < buf_size)// len does not include null termination character
@@ -1821,13 +1992,54 @@ namespace detail
 
     boost::scoped_array<wchar_t> big_buf(new wchar_t[len]);
 
-    return error(get_full_path_name(p, len , big_buf.get(), &pfn)== 0,
+    return error(get_full_path_name(p, len , big_buf.get(), &pfn)== 0 ? BOOST_ERRNO : 0,
       p, ec, "boost::filesystem::system_complete")
       ? path()
       : path(big_buf.get());
 #   endif
   }
 
+  BOOST_FILESYSTEM_DECL
+  path weakly_canonical(const path& p, system::error_code* ec)
+  {
+    path head(p);
+    path tail;
+    system::error_code tmp_ec;
+    path::iterator itr = p.end();
+
+    for (; !head.empty(); --itr)
+    {
+      file_status head_status = status(head, tmp_ec);
+      if (error(head_status.type() == fs::status_error,
+        head, ec, "boost::filesystem::weakly_canonical"))
+        return path();
+      if (head_status.type() != fs::file_not_found)
+        break;
+      head.remove_filename();
+    }
+
+    bool tail_has_dots = false;
+    for (; itr != p.end(); ++itr)
+    { 
+      tail /= *itr;
+      // for a later optimization, track if any dot or dot-dot elements are present
+      if (itr->native().size() <= 2
+        && itr->native()[0] == dot
+        && (itr->native().size() == 1 || itr->native()[1] == dot))
+        tail_has_dots = true;
+    }
+    
+    if (head.empty())
+      return p.lexically_normal();
+    head = canonical(head, tmp_ec);
+    if (error(tmp_ec.value(), head, ec, "boost::filesystem::weakly_canonical"))
+      return path();
+    return tail.empty()
+      ? head
+      : (tail_has_dots  // optimization: only normalize if tail had dot or dot-dot element
+          ? (head/tail).lexically_normal()  
+          : head/tail);
+  }
 }  // namespace detail
 
 //--------------------------------------------------------------------------------------//
@@ -1873,15 +2085,25 @@ namespace path_traits
 {
   void dispatch(const directory_entry & de,
 #                ifdef BOOST_WINDOWS_API
-                 std::wstring& to,
+    std::wstring& to,
 #                else   
-                 std::string& to,
+    std::string& to,
 #                endif
-                 const codecvt_type &)
+    const codecvt_type &)
   {
     to = de.path().native();
   }
 
+  void dispatch(const directory_entry & de,
+#                ifdef BOOST_WINDOWS_API
+    std::wstring& to
+#                else   
+    std::string& to
+#                endif
+    )
+  {
+    to = de.path().native();
+  }
 }  // namespace path_traits
 } // namespace filesystem
 } // namespace boost
@@ -2143,7 +2365,7 @@ namespace detail
   void directory_iterator_construct(directory_iterator& it,
     const path& p, system::error_code* ec)    
   {
-    if (error(p.empty(), not_found_error_code, p, ec,
+    if (error(p.empty() ? not_found_error_code.value() : 0, p, ec,
               "boost::filesystem::directory_iterator::construct"))
       return;
 
@@ -2158,7 +2380,7 @@ namespace detail
     if (result)
     {
       it.m_imp.reset();
-      error(true, result, p,
+      error(result.value(), p,
         ec, "boost::filesystem::directory_iterator::construct");
       return;
     }

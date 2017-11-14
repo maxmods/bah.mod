@@ -69,7 +69,7 @@
 
 # endif
 
-#ifdef __QNX__
+#if defined(__QNX__) && defined(__EXT_QNX) 
 
 // QNX (Dinkumware stdlib) defines these as non-standard names.
 // Reflect to the standard names.
@@ -140,7 +140,7 @@ namespace boost
 
 } // namespace boost
 
-#elif defined(__FreeBSD__) && (__FreeBSD__ <= 4) || defined(__osf__) || defined(__VMS)
+#elif defined(__FreeBSD__) && (__FreeBSD__ <= 4) || defined(__osf__) || defined(__VMS) || defined(__SOLARIS9__) || defined(__NetBSD__)
 // FreeBSD and Tru64 have an <inttypes.h> that contains much of what we need.
 # include <inttypes.h>
 
@@ -374,7 +374,7 @@ namespace boost
     || (defined(_XOPEN_UNIX) && (_XOPEN_UNIX+0 > 0) && !defined(__UCLIBC__)) \
     || defined(__CYGWIN__) \
     || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) \
-    || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+    || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || (defined(sun) && !defined(BOOST_HAS_STDINT_H)) || defined(INTPTR_MAX)
 
 namespace boost {
     using ::intptr_t;
@@ -422,6 +422,20 @@ INT#_C macros if they're not already defined (John Maddock).
 #if defined(__GNUC__) && (__GNUC__ >= 4)
 #pragma GCC system_header
 #endif
+//
+// Undef the macros as a precaution, since we may get here if <stdint.h> has failed
+// to define them all, see https://svn.boost.org/trac/boost/ticket/12786
+//
+#undef INT8_C
+#undef INT16_C
+#undef INT32_C
+#undef INT64_C
+#undef INTMAX_C
+#undef UINT8_C
+#undef UINT16_C
+#undef UINT32_C
+#undef UINT64_C
+#undef UINTMAX_C
 
 #include <limits.h>
 # define BOOST__STDC_CONSTANT_MACROS_DEFINED
@@ -492,7 +506,7 @@ INT#_C macros if they're not already defined (John Maddock).
 //  64-bit types + intmax_t and uintmax_t  ----------------------------------//
 #ifndef INT64_C
 #  if defined(BOOST_HAS_LONG_LONG) && \
-    (defined(ULLONG_MAX) || defined(ULONG_LONG_MAX) || defined(ULONGLONG_MAX) || defined(_LLONG_MAX))
+    (defined(ULLONG_MAX) || defined(ULONG_LONG_MAX) || defined(ULONGLONG_MAX) || defined(_ULLONG_MAX) || defined(_LLONG_MAX))
 
 #    if defined(__hpux)
         // HP-UX's value of ULONG_LONG_MAX is unusable in preprocessor expressions
@@ -501,7 +515,8 @@ INT#_C macros if they're not already defined (John Maddock).
 #    elif (defined(ULLONG_MAX) && ULLONG_MAX == 18446744073709551615ULL) ||  \
         (defined(ULONG_LONG_MAX) && ULONG_LONG_MAX == 18446744073709551615ULL) ||  \
         (defined(ULONGLONG_MAX) && ULONGLONG_MAX == 18446744073709551615ULL) || \
-        (defined(_LLONG_MAX) && _LLONG_MAX == 18446744073709551615ULL)
+        (defined(_ULLONG_MAX) && _ULLONG_MAX == 18446744073709551615ULL) || \
+        (defined(_LLONG_MAX) && _LLONG_MAX == 9223372036854775807LL)
 
 #       define INT64_C(value) value##LL
 #       define UINT64_C(value) value##uLL

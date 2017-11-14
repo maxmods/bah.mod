@@ -11,10 +11,11 @@
 #include <boost/thread/pthread/pthread_mutex_scoped_lock.hpp>
 #include <boost/thread/once.hpp>
 #include <boost/assert.hpp>
+#include <boost/throw_exception.hpp>
 #include <pthread.h>
 #include <stdlib.h>
 #include <memory>
-
+#include <string.h> // memcmp.
 namespace boost
 {
     namespace thread_detail
@@ -52,6 +53,9 @@ namespace boost
                 {
                     if(memcmp(&epoch_tss_key_flag, &pthread_once_init_value, sizeof(pthread_once_t)))
                     {
+                        void* data = pthread_getspecific(epoch_tss_key);
+                        if (data)
+                            delete_epoch_tss_data(data);
                         pthread_key_delete(epoch_tss_key);
                     }
                 }
@@ -67,6 +71,7 @@ namespace boost
             if(!data)
             {
                 data=malloc(sizeof(thread_detail::uintmax_atomic_t));
+                if(!data) BOOST_THROW_EXCEPTION(std::bad_alloc());
                 BOOST_VERIFY(!pthread_setspecific(epoch_tss_key,data));
                 *static_cast<thread_detail::uintmax_atomic_t*>(data)=BOOST_THREAD_DETAIL_UINTMAX_ATOMIC_MAX_C;
             }

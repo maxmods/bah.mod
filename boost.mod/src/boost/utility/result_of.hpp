@@ -68,12 +68,15 @@ namespace boost {
 template<typename F> struct result_of;
 template<typename F> struct tr1_result_of; // a TR1-style implementation of result_of
 
-#if !defined(BOOST_NO_SFINAE) && !defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION)
+#if !defined(BOOST_NO_SFINAE)
 namespace detail {
 
 BOOST_MPL_HAS_XXX_TRAIT_DEF(result_type)
 
+// Work around a nvcc bug by only defining has_result when it's needed.
+#ifdef BOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK
 BOOST_MPL_HAS_XXX_TEMPLATE_DEF(result)
+#endif
 
 template<typename F, typename FArgs, bool HasResultType> struct tr1_result_of_impl;
 
@@ -197,6 +200,11 @@ struct tr1_result_of_impl<F, FArgs, false>
 
 #define BOOST_PP_ITERATION_PARAMS_1 (3,(0,BOOST_RESULT_OF_NUM_ARGS,<boost/utility/detail/result_of_iterate.hpp>))
 #include BOOST_PP_ITERATE()
+
+#if 0
+// inform dependency trackers, as they can't see through macro includes
+#include <boost/utility/detail/result_of_iterate.hpp>
+#endif
 
 #else
 #  define BOOST_NO_RESULT_OF 1

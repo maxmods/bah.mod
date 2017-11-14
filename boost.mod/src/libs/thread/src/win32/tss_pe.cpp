@@ -1,4 +1,4 @@
-// $Id: tss_pe.cpp 84717 2013-06-09 17:18:15Z viboes $
+// $Id$
 // (C) Copyright Aaron W. LaFramboise, Roland Schwarz, Michael Glassford 2004.
 // (C) Copyright 2007 Roland Schwarz
 // (C) Copyright 2007 Anthony Williams
@@ -7,9 +7,10 @@
 // Boost Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <boost/detail/winapi/config.hpp>
 #include <boost/thread/detail/config.hpp>
 
-#if defined(BOOST_HAS_WINTHREADS) && defined(BOOST_THREAD_BUILD_LIB) 
+#if defined(BOOST_HAS_WINTHREADS) && defined(BOOST_THREAD_BUILD_LIB)
 
 #if (defined(__MINGW32__) && !defined(_WIN64)) || defined(__MINGW64__) || (__MINGW64_VERSION_MAJOR)
 
@@ -38,7 +39,7 @@ namespace {
     }
 }
 
-#if defined(__MINGW64__) || (__MINGW64_VERSION_MAJOR) || (__MINGW32_MAJOR_VERSION >3) ||             \
+#if defined(__MINGW64__) || (__MINGW64_VERSION_MAJOR) || (__MINGW32__) || (__MINGW32_MAJOR_VERSION >3) ||   \
     ((__MINGW32_MAJOR_VERSION==3) && (__MINGW32_MINOR_VERSION>=18))
 extern "C"
 {
@@ -77,7 +78,6 @@ extern "C" const IMAGE_TLS_DIRECTORY32 _tls_used __attribute__ ((section(".rdata
 
     #include <stdlib.h>
 
-    #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
 
 
@@ -112,15 +112,9 @@ extern BOOL (WINAPI * const _pDefaultRawDllMainOrig)(HANDLE, DWORD, LPVOID) = NU
 
     //Definitions required by implementation
 
-    #if (_MSC_VER < 1300) // 1300 == VC++ 7.0
-        typedef void (__cdecl *_PVFV)();
-        #define INIRETSUCCESS
-        #define PVAPI void __cdecl
-    #else
-        typedef int (__cdecl *_PVFV)();
-        #define INIRETSUCCESS 0
-        #define PVAPI int __cdecl
-    #endif
+    typedef int (__cdecl *_PVFV)();
+    #define INIRETSUCCESS 0
+    #define PVAPI int __cdecl
 
     typedef void (NTAPI* _TLSCB)(HINSTANCE, DWORD, PVOID);
 
@@ -287,10 +281,10 @@ extern BOOL (WINAPI * const _pDefaultRawDllMainOrig)(HANDLE, DWORD, LPVOID) = NU
             }
 
 #if (_MSC_VER >= 1500)
-			if( _pRawDllMainOrig )
-			{
-				return _pRawDllMainOrig(hInstance, dwReason, lpReserved);
-			}
+            if( _pRawDllMainOrig )
+            {
+                return _pRawDllMainOrig(hInstance, dwReason, lpReserved);
+            }
 #endif
             return true;
         }

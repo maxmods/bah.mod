@@ -2,7 +2,7 @@
 // detail/dev_poll_reactor.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -102,14 +102,20 @@ public:
   BOOST_ASIO_DECL void cancel_ops(socket_type descriptor, per_descriptor_data&);
 
   // Cancel any operations that are running against the descriptor and remove
-  // its registration from the reactor.
+  // its registration from the reactor. The reactor resources associated with
+  // the descriptor must be released by calling cleanup_descriptor_data.
   BOOST_ASIO_DECL void deregister_descriptor(socket_type descriptor,
       per_descriptor_data&, bool closing);
 
-  // Cancel any operations that are running against the descriptor and remove
-  // its registration from the reactor.
+  // Remove the descriptor's registration from the reactor. The reactor
+  // resources associated with the descriptor must be released by calling
+  // cleanup_descriptor_data.
   BOOST_ASIO_DECL void deregister_internal_descriptor(
       socket_type descriptor, per_descriptor_data&);
+
+  // Perform any post-deregistration cleanup tasks associated with the
+  // descriptor data.
+  BOOST_ASIO_DECL void cleanup_descriptor_data(per_descriptor_data&);
 
   // Add a new timer queue to the reactor.
   template <typename Time_Traits>
@@ -160,10 +166,6 @@ private:
   // acquire the dev_poll_reactor's mutex.
   BOOST_ASIO_DECL void cancel_ops_unlocked(socket_type descriptor,
       const boost::system::error_code& ec);
-
-  // Helper class used to reregister descriptors after a fork.
-  class fork_helper;
-  friend class fork_helper;
 
   // Add a pending event entry for the given descriptor.
   BOOST_ASIO_DECL ::pollfd& add_pending_event_change(int descriptor);
