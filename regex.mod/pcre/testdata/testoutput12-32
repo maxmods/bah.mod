@@ -9,76 +9,6 @@
     Ã]
 ** Failed: invalid UTF-8 string cannot be used as input in UTF mode
 
-/X(\C{3})/utf
-    X\x{11234}Y
-No match
-    X\x{11234}YZ
- 0: X\x{11234}YZ
- 1: \x{11234}YZ
-
-/X(\C{4})/utf
-    X\x{11234}YZ
-No match
-    X\x{11234}YZW
- 0: X\x{11234}YZW
- 1: \x{11234}YZW
-
-/X\C*/utf
-    XYZabcdce
- 0: XYZabcdce
-
-/X\C*?/utf
-    XYZabcde
- 0: X
-
-/X\C{3,5}/utf
-    Xabcdefg
- 0: Xabcde
-    X\x{11234}Y
-No match
-    X\x{11234}YZ
- 0: X\x{11234}YZ
-    X\x{11234}\x{512}
-No match
-    X\x{11234}\x{512}YZ
- 0: X\x{11234}\x{512}YZ
-    X\x{11234}\x{512}\x{11234}Z
- 0: X\x{11234}\x{512}\x{11234}Z
-
-/X\C{3,5}?/utf
-    Xabcdefg
- 0: Xabc
-    X\x{11234}Y
-No match
-    X\x{11234}YZ
- 0: X\x{11234}YZ
-    X\x{11234}\x{512}YZ
- 0: X\x{11234}\x{512}Y
-    *** Failers
-No match
-    X\x{11234}
-No match
-
-/a\Cb/utf
-    aXb
- 0: aXb
-    a\nb
- 0: a\x{0a}b
-
-/a\C\Cb/utf
-    a\x{12257}b
-No match
-    a\x{12257}\x{11234}b
- 0: a\x{12257}\x{11234}b
-    ** Failers
-No match
-    a\x{100}b
-No match
-
-/ab\Cde/utf
-    abXde
- 0: abXde
-
 # Check maximum character size 
 
 /\x{ffff}/IB,utf
@@ -303,29 +233,6 @@ Options: utf
 First code unit = \x{212ab}
 Subject length lower bound = 1
 
-# This one is here not because it's different to Perl, but because the way
-# the captured single-byte is displayed. (In Perl it becomes a character, and you
-# can't tell the difference.) 
-
-/X(\C)(.*)/utf
-    X\x{1234}
- 0: X\x{1234}
- 1: \x{1234}
- 2: 
-    X\nabc
- 0: X\x{0a}abc
- 1: \x{0a}
- 2: abc
-
-# This one is here because Perl gives out a grumbly error message (quite
-# correctly, but that messes up comparisons). 
-
-/a\Cb/utf
-    *** Failers
-No match
-    a\x{100}b
- 0: a\x{100}b
-
 /[^ab\xC0-\xF0]/IB,utf
 ------------------------------------------------------------------
         Bra
@@ -355,8 +262,7 @@ Subject length lower bound = 1
  0: \x{100}
     \x{1000}
  0: \x{1000}
-    *** Failers
- 0: *
+\= Expect no match
     \x{c0}
 No match
     \x{f0}
@@ -513,8 +419,6 @@ Subject length lower bound = 1
  0: \x{100}
     \x{100}Z
  0: \x{100}
-    *** Failers
-No match
 
 /[\xff]/IB,utf
 ------------------------------------------------------------------
@@ -600,29 +504,37 @@ Subject length lower bound = 2
 Failed: error 106 at offset 13: missing terminating ] for character class
 
 /X/utf
-    XX\x{d800}
-Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
     XX\x{d800}\=no_utf_check
  0: X
-    XX\x{da00}
-Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
     XX\x{da00}\=no_utf_check
  0: X
-    XX\x{dc00}
-Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
     XX\x{dc00}\=no_utf_check
  0: X
-    XX\x{de00}
-Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
     XX\x{de00}\=no_utf_check
  0: X
-    XX\x{dfff}
-Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
     XX\x{dfff}\=no_utf_check
  0: X
+\= Expect UTF error
+    XX\x{d800}
+Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
+    XX\x{da00}
+Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
+    XX\x{dc00}
+Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
+    XX\x{de00}
+Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
+    XX\x{dfff}
+Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
     XX\x{110000}
 Failed: error -28: UTF-32 error: code points greater than 0x10ffff are not defined at offset 2
     XX\x{d800}\x{1234}
+Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
+\= Expect no match
+    XX\x{d800}\=offset=3
+No match
+    
+/(?<=.)X/utf
+    XX\x{d800}\=offset=3
 Failed: error -27: UTF-32 error: code points 0xd800-0xdfff are not defined at offset 2
 
 /(*UTF16)\x{11234}/
@@ -639,6 +551,10 @@ Subject length lower bound = 1
  0: \x{11234}
 
 /(*UTF-32)\x{11234}/
+Failed: error 160 at offset 5: (*VERB) not recognized or malformed
+  abcd\x{11234}pqr
+
+/(*UTF-32)\x{112}/
 Failed: error 160 at offset 5: (*VERB) not recognized or malformed
   abcd\x{11234}pqr
 
@@ -776,8 +692,10 @@ Subject length lower bound = 3
  0: aa
     a\x{123}aa\=offset=3
  0: a
+\= Expect no match
     a\x{123}aa\=offset=4
 No match
+\= Expect bad offset error     
     a\x{123}aa\=offset=5
 Failed: error -33: bad offset value
     a\x{123}aa\=offset=6
@@ -842,16 +760,21 @@ Subject length lower bound = 1
 # Check bad offset 
 
 /a/utf
+\= Expect bad UTF-16 offset, or no match in 32-bit
     \x{10000}\=offset=1
 No match
     \x{10000}ab\=offset=1
  0: a
+\= Expect 16-bit match, 32-bit no match
     \x{10000}ab\=offset=2
 No match
+\= Expect no match     
     \x{10000}ab\=offset=3
 No match
+\= Expect no match in 16-bit, bad offset in 32-bit    
     \x{10000}ab\=offset=4
 Failed: error -33: bad offset value
+\= Expect bad offset     
     \x{10000}ab\=offset=5
 Failed: error -33: bad offset value
 
@@ -1111,10 +1034,6 @@ Failed: error 134 at offset 9: character code point value in \x{} or \o{} is too
 /\o{4200000}/utf
 Failed: error 134 at offset 10: character code point value in \x{} or \o{} is too large
 
-/\C/utf
-    \x{110000}
-Failed: error -28: UTF-32 error: code points greater than 0x10ffff are not defined at offset 0
-
 /\x{100}*A/IB,utf
 ------------------------------------------------------------------
         Bra
@@ -1162,8 +1081,6 @@ Subject length lower bound = 1
  0: \x{100}
     \x{100}Z
  0: \x{100}
-    *** Failers 
-No match
 
 /[z-\x{100}]/IB,utf
 ------------------------------------------------------------------
@@ -1353,8 +1270,7 @@ Subject length lower bound = 1
  0: \x{105}
     \x{109}  
  0: \x{109}
-    ** Failers
-No match
+\= Expect no match
     \x{100}
 No match
     \x{10a} 
@@ -1398,8 +1314,7 @@ Subject length lower bound = 1
  0: \x{100}
     \x{101} 
  0: \x{101}
-    ** Failers
-No match
+\= Expect no match
     \x{102}
 No match
     Y
@@ -1441,5 +1356,111 @@ Options: caseless utf
 Starting code units: \xff 
 Last code unit = 'B' (caseless)
 Subject length lower bound = 2
+
+/./utf
+    \x{110000}
+Failed: error -28: UTF-32 error: code points greater than 0x10ffff are not defined at offset 0
+
+/(*UTF)abý¿¿¿¿¿z/B
+------------------------------------------------------------------
+        Bra
+        ab\x{fd}\x{bf}\x{bf}\x{bf}\x{bf}\x{bf}z
+        Ket
+        End
+------------------------------------------------------------------
+
+/abý¿¿¿¿¿z/utf
+** Failed: character value greater than 0x10ffff cannot be converted to UTF
+
+/[\W\p{Any}]/B
+------------------------------------------------------------------
+        Bra
+        [\x00-/:-@[-^`{-\xff\p{Any}\x{100}-\x{ffffffff}]
+        Ket
+        End
+------------------------------------------------------------------
+    abc
+ 0: a
+    123 
+ 0: 1
+
+/[\W\pL]/B
+------------------------------------------------------------------
+        Bra
+        [\x00-/:-@[-^`{-\xff\p{L}\x{100}-\x{ffffffff}]
+        Ket
+        End
+------------------------------------------------------------------
+    abc
+ 0: a
+    \x{100}
+ 0: \x{100}
+    \x{308}  
+ 0: \x{308}
+\= Expect no match
+    123     
+No match
+
+/[\s[:^ascii:]]/B,ucp
+------------------------------------------------------------------
+        Bra
+        [\x80-\xff\p{Xsp}\x{100}-\x{ffffffff}]
+        Ket
+        End
+------------------------------------------------------------------
+
+/\pP/ucp
+    \x{7fffffff}
+No match
+
+# A special extra option allows excaped surrogate code points in 32-bit mode,
+# but subjects containing them must not be UTF-checked. These patterns give
+# errors in 16-bit mode.
+
+/\x{d800}/utf,allow_surrogate_escapes
+    \x{d800}\=no_utf_check
+ 0: \x{d800}
+
+/\udfff\o{157401}/utf,alt_bsux,allow_surrogate_escapes
+    \x{dfff}\x{df01}\=no_utf_check
+ 0: \x{dfff}\x{df01}
+
+# This has different starting code units in 8-bit mode. 
+
+/^[^ab]/IB,utf
+------------------------------------------------------------------
+        Bra
+        ^
+        [\x00-`c-\xff] (neg)
+        Ket
+        End
+------------------------------------------------------------------
+Capturing subpattern count = 0
+Compile options: utf
+Overall options: anchored utf
+Starting code units: \x00 \x01 \x02 \x03 \x04 \x05 \x06 \x07 \x08 \x09 \x0a 
+  \x0b \x0c \x0d \x0e \x0f \x10 \x11 \x12 \x13 \x14 \x15 \x16 \x17 \x18 \x19 
+  \x1a \x1b \x1c \x1d \x1e \x1f \x20 ! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 
+  5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y 
+  Z [ \ ] ^ _ ` c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ \x7f 
+  \x80 \x81 \x82 \x83 \x84 \x85 \x86 \x87 \x88 \x89 \x8a \x8b \x8c \x8d \x8e 
+  \x8f \x90 \x91 \x92 \x93 \x94 \x95 \x96 \x97 \x98 \x99 \x9a \x9b \x9c \x9d 
+  \x9e \x9f \xa0 \xa1 \xa2 \xa3 \xa4 \xa5 \xa6 \xa7 \xa8 \xa9 \xaa \xab \xac 
+  \xad \xae \xaf \xb0 \xb1 \xb2 \xb3 \xb4 \xb5 \xb6 \xb7 \xb8 \xb9 \xba \xbb 
+  \xbc \xbd \xbe \xbf \xc0 \xc1 \xc2 \xc3 \xc4 \xc5 \xc6 \xc7 \xc8 \xc9 \xca 
+  \xcb \xcc \xcd \xce \xcf \xd0 \xd1 \xd2 \xd3 \xd4 \xd5 \xd6 \xd7 \xd8 \xd9 
+  \xda \xdb \xdc \xdd \xde \xdf \xe0 \xe1 \xe2 \xe3 \xe4 \xe5 \xe6 \xe7 \xe8 
+  \xe9 \xea \xeb \xec \xed \xee \xef \xf0 \xf1 \xf2 \xf3 \xf4 \xf5 \xf6 \xf7 
+  \xf8 \xf9 \xfa \xfb \xfc \xfd \xfe \xff 
+Subject length lower bound = 1
+    c
+ 0: c
+    \x{ff}
+ 0: \x{ff}
+    \x{100}
+ 0: \x{100}
+\= Expect no match
+    aaa
+No match
 
 # End of testinput12

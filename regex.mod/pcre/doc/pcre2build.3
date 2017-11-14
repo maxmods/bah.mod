@@ -1,4 +1,4 @@
-.TH PCRE2BUILD 3 "23 November 2014" "PCRE2 10.00"
+.TH PCRE2BUILD 3 "18 July 2017" "PCRE2 10.30"
 .SH NAME
 PCRE2 - Perl-compatible regular expressions (revised API)
 .
@@ -55,21 +55,21 @@ running
 .sp
   ./configure --help
 .sp
-The following sections include descriptions of options whose names begin with
---enable or --disable. These settings specify changes to the defaults for the
-\fBconfigure\fP command. Because of the way that \fBconfigure\fP works,
---enable and --disable always come in pairs, so the complementary option always
-exists as well, but as it specifies the default, it is not described.
+The following sections include descriptions of "on/off" options whose names
+begin with --enable or --disable. Because of the way that \fBconfigure\fP
+works, --enable and --disable always come in pairs, so the complementary option
+always exists as well, but as it specifies the default, it is not described.
+Options that specify values have names that start with --with.
 .
 .
 .SH "BUILDING 8-BIT, 16-BIT AND 32-BIT LIBRARIES"
 .rs
 .sp
 By default, a library called \fBlibpcre2-8\fP is built, containing functions
-that take string arguments contained in vectors of bytes, interpreted either as
+that take string arguments contained in arrays of bytes, interpreted either as
 single-byte characters, or UTF-8 strings. You can also build two other
 libraries, called \fBlibpcre2-16\fP and \fBlibpcre2-32\fP, which process
-strings that are contained in vectors of 16-bit and 32-bit code units,
+strings that are contained in arrays of 16-bit and 32-bit code units,
 respectively. These can be interpreted either as single-unit characters or
 UTF-16/UTF-32 strings. To build these additional libraries, add one or both of
 the following to the \fBconfigure\fP command:
@@ -113,30 +113,56 @@ is not possible to build one library with Unicode support, and another without,
 in the same configuration.
 .P
 Of itself, Unicode support does not make PCRE2 treat strings as UTF-8, UTF-16
-or UTF-32. To do that, applications that use the library have to set the
-PCRE2_UTF option when they call \fBpcre2_compile()\fP to compile a pattern.
+or UTF-32. To do that, applications that use the library can set the PCRE2_UTF
+option when they call \fBpcre2_compile()\fP to compile a pattern.
+Alternatively, patterns may be started with (*UTF) unless the application has
+locked this out by setting PCRE2_NEVER_UTF.
 .P
 UTF support allows the libraries to process character code points up to
-0x10ffff in the strings that they handle. It also provides support for
-accessing the Unicode properties of such characters, using pattern escapes such
-as \eP, \ep, and \eX. Only the general category properties such as \fILu\fP and
-\fINd\fP are supported. Details are given in the
+0x10ffff in the strings that they handle. Unicode support also gives access to
+the Unicode properties of characters, using pattern escapes such as \eP, \ep,
+and \eX. Only the general category properties such as \fILu\fP and \fINd\fP are
+supported. Details are given in the
 .\" HREF
 \fBpcre2pattern\fP
 .\"
 documentation.
+.P
+Pattern escapes such as \ed and \ew do not by default make use of Unicode
+properties. The application can request that they do by setting the PCRE2_UCP
+option. Unless the application has set PCRE2_NEVER_UCP, a pattern may also
+request this by starting with (*UCP).
+.
+.
+.SH "DISABLING THE USE OF \eC"
+.rs
+.sp
+The \eC escape sequence, which matches a single code unit, even in a UTF mode,
+can cause unpredictable behaviour because it may leave the current matching
+point in the middle of a multi-code-unit character. The application can lock it
+out by setting the PCRE2_NEVER_BACKSLASH_C option when calling
+\fBpcre2_compile()\fP. There is also a build-time option
+.sp
+  --enable-never-backslash-C
+.sp
+(note the upper case C) which locks out the use of \eC entirely.
 .
 .
 .SH "JUST-IN-TIME COMPILER SUPPORT"
 .rs
 .sp
-Just-in-time compiler support is included in the build by specifying
+Just-in-time (JIT) compiler support is included in the build by specifying
 .sp
   --enable-jit
 .sp
 This support is available only for certain hardware architectures. If this
-option is set for an unsupported architecture, a building error occurs.
-See the
+option is set for an unsupported architecture, a building error occurs. If you
+are running under SELinux you may also want to add
+.sp
+  --enable-jit-sealloc
+.sp
+which enables the use of an execmem allocator in JIT that is compatible with
+SELinux. This has no effect if JIT is not enabled. See the
 .\" HREF
 \fBpcre2jit\fP
 .\"
@@ -171,18 +197,22 @@ to the \fBconfigure\fP command. There is a fourth option, specified by
   --enable-newline-is-anycrlf
 .sp
 which causes PCRE2 to recognize any of the three sequences CR, LF, or CRLF as
-indicating a line ending. Finally, a fifth option, specified by
+indicating a line ending. A fifth option, specified by
 .sp
   --enable-newline-is-any
 .sp
 causes PCRE2 to recognize any Unicode newline sequence. The Unicode newline
 sequences are the three just mentioned, plus the single characters VT (vertical
 tab, U+000B), FF (form feed, U+000C), NEL (next line, U+0085), LS (line
-separator, U+2028), and PS (paragraph separator, U+2029).
+separator, U+2028), and PS (paragraph separator, U+2029). The final option is
+.sp
+  --enable-newline-is-nul
+.sp
+which causes NUL (binary zero) is set as the default line-ending character.
 .P
 Whatever default line ending convention is selected when PCRE2 is built can be
 overridden by applications that use the library. At build time it is
-conventional to use the standard for your operating system.
+recommended to use the standard for your operating system.
 .
 .
 .SH "WHAT \eR MATCHES"
@@ -196,7 +226,7 @@ specify
 .sp
 the default is changed so that \eR matches only CR, LF, or CRLF. Whatever is
 selected when PCRE2 is built can be overridden by applications that use the
-called.
+library.
 .
 .
 .SH "HANDLING VERY LARGE PATTERNS"
@@ -220,41 +250,13 @@ additional data when handling them. For the 32-bit library the value is always
 4 and cannot be overridden; the value of --with-link-size is ignored.
 .
 .
-.SH "AVOIDING EXCESSIVE STACK USAGE"
-.rs
-.sp
-When matching with the \fBpcre2_match()\fP function, PCRE2 implements
-backtracking by making recursive calls to an internal function called
-\fBmatch()\fP. In environments where the size of the stack is limited, this can
-severely limit PCRE2's operation. (The Unix environment does not usually suffer
-from this problem, but it may sometimes be necessary to increase the maximum
-stack size. There is a discussion in the
-.\" HREF
-\fBpcre2stack\fP
-.\"
-documentation.) An alternative approach to recursion that uses memory from the
-heap to remember data, instead of using recursive function calls, has been
-implemented to work round the problem of limited stack size. If you want to
-build a version of PCRE2 that works this way, add
-.sp
-  --disable-stack-for-recursion
-.sp
-to the \fBconfigure\fP command. By default, the system functions \fBmalloc()\fP
-and \fBfree()\fP are called to manage the heap memory that is required, but
-custom memory management functions can be called instead. PCRE2 runs noticeably
-more slowly when built in this way. This option affects only the
-\fBpcre2_match()\fP function; it is not relevant for \fBpcre2_dfa_match()\fP.
-.
-.
 .SH "LIMITING PCRE2 RESOURCE USAGE"
 .rs
 .sp
-Internally, PCRE2 has a function called \fBmatch()\fP, which it calls
-repeatedly (sometimes recursively) when matching a pattern with the
-\fBpcre2_match()\fP function. By controlling the maximum number of times this
-function may be called during a single matching operation, a limit can be
-placed on the resources used by a single call to \fBpcre2_match()\fP. The limit
-can be changed at run time, as described in the
+The \fBpcre2_match()\fP function increments a counter each time it goes round
+its main loop. Putting a limit on this counter controls the amount of computing
+resource used by a single call to \fBpcre2_match()\fP. The limit can be changed
+at run time, as described in the
 .\" HREF
 \fBpcre2api\fP
 .\"
@@ -263,19 +265,47 @@ setting such as
 .sp
   --with-match-limit=500000
 .sp
-to the \fBconfigure\fP command. This setting has no effect on the
-\fBpcre2_dfa_match()\fP matching function.
+to the \fBconfigure\fP command. This setting also applies to the
+\fBpcre2_dfa_match()\fP matching function, and to JIT matching (though the
+counting is done differently).
 .P
-In some environments it is desirable to limit the depth of recursive calls of
-\fBmatch()\fP more strictly than the total number of calls, in order to
-restrict the maximum amount of stack (or heap, if --disable-stack-for-recursion
-is specified) that is used. A second limit controls this; it defaults to the
-value that is set for --with-match-limit, which imposes no additional
-constraints. However, you can set a lower limit by adding, for example,
+The \fBpcre2_match()\fP function starts out using a 20K vector on the system
+stack to record backtracking points. The more nested backtracking points there
+are (that is, the deeper the search tree), the more memory is needed. If the
+initial vector is not large enough, heap memory is used, up to a certain limit,
+which is specified in kilobytes. The limit can be changed at run time, as
+described in the
+.\" HREF
+\fBpcre2api\fP
+.\"
+documentation. The default limit (in effect unlimited) is 20 million. You can
+change this by a setting such as
 .sp
-  --with-match-limit-recursion=10000
+  --with-heap-limit=500
 .sp
-to the \fBconfigure\fP command. This value can also be overridden at run time.
+which limits the amount of heap to 500 kilobytes. This limit applies only to
+interpretive matching in pcre2_match(). It does not apply when JIT (which has
+its own memory arrangements) is used, nor does it apply to
+\fBpcre2_dfa_match()\fP.
+.P
+You can also explicitly limit the depth of nested backtracking in the
+\fBpcre2_match()\fP interpreter. This limit defaults to the value that is set
+for --with-match-limit. You can set a lower default limit by adding, for
+example,
+.sp
+  --with-match-limit_depth=10000
+.sp
+to the \fBconfigure\fP command. This value can be overridden at run time. This
+depth limit indirectly limits the amount of heap memory that is used, but
+because the size of each backtracking "frame" depends on the number of
+capturing parentheses in a pattern, the amount of heap that is used before the
+limit is reached varies from pattern to pattern. This limit was more useful in
+versions before 10.30, where function recursion was used for backtracking.
+.P
+As well as applying to \fBpcre2_match()\fP, the depth limit also controls
+the depth of recursive function calls in \fBpcre2_dfa_match()\fP. These are
+used for lookaround assertions, atomic groups, and recursion within patterns.
+The limit does not apply to JIT matching.
 .
 .
 .SH "CREATING CHARACTER TABLES AT BUILD TIME"
@@ -291,10 +321,10 @@ only. If you add
 to the \fBconfigure\fP command, the distributed tables are no longer used.
 Instead, a program called \fBdftables\fP is compiled and run. This outputs the
 source for new set of tables, created in the default locale of your C run-time
-system. (This method of replacing the tables does not work if you are cross
+system. This method of replacing the tables does not work if you are cross
 compiling, because \fBdftables\fP is run on the local host. If you need to
 create alternative tables when cross compiling, you will have to do so "by
-hand".)
+hand".
 .
 .
 .SH "USING EBCDIC CODE"
@@ -331,6 +361,19 @@ and equivalent run-time options, refer to these character values in an EBCDIC
 environment.
 .
 .
+.SH "PCRE2GREP SUPPORT FOR EXTERNAL SCRIPTS"
+.rs
+.sp
+By default, on non-Windows systems, \fBpcre2grep\fP supports the use of
+callouts with string arguments within the patterns it is matching, in order to
+run external scripts. For details, see the
+.\" HREF
+\fBpcre2grep\fP
+.\"
+documentation. This support can be disabled by adding
+--disable-pcre2grep-callout to the \fBconfigure\fP command.
+.
+.
 .SH "PCRE2GREP OPTIONS FOR COMPRESSED FILE SUPPORT"
 .rs
 .sp
@@ -351,16 +394,19 @@ they are not.
 .sp
 \fBpcre2grep\fP uses an internal buffer to hold a "window" on the file it is
 scanning, in order to be able to output "before" and "after" lines when it
-finds a match. The size of the buffer is controlled by a parameter whose
-default value is 20K. The buffer itself is three times this size, but because
-of the way it is used for holding "before" lines, the longest line that is
-guaranteed to be processable is the parameter size. You can change the default
-parameter value by adding, for example,
+finds a match. The starting size of the buffer is controlled by a parameter
+whose default value is 20K. The buffer itself is three times this size, but
+because of the way it is used for holding "before" lines, the longest line that
+is guaranteed to be processable is the parameter size. If a longer line is
+encountered, \fBpcre2grep\fP automatically expands the buffer, up to a
+specified maximum size, whose default is 1M or the starting size, whichever is
+the larger. You can change the default parameter values by adding, for example,
 .sp
-  --with-pcre2grep-bufsize=50K
+  --with-pcre2grep-bufsize=51200
+  --with-pcre2grep-max-bufsize=2097152
 .sp
-to the \fBconfigure\fP command. The caller of \fPpcre2grep\fP can override this
-value by using --buffer-size on the command line..
+to the \fBconfigure\fP command. The caller of \fPpcre2grep\fP can override
+these values by using --buffer-size and --max-buffer-size on the command line.
 .
 .
 .SH "PCRE2TEST OPTION FOR LIBREADLINE SUPPORT"
@@ -396,6 +442,17 @@ automatically included, you may need to add something like
   LIBS="-ncurses"
 .sp
 immediately before the \fBconfigure\fP command.
+.
+.
+.SH "INCLUDING DEBUGGING CODE"
+.rs
+.sp
+If you add
+.sp
+  --enable-debug
+.sp
+to the \fBconfigure\fP command, additional debugging code is included in the
+build. This feature is intended for use by the PCRE2 maintainers.
 .
 .
 .SH "DEBUGGING WITH VALGRIND SUPPORT"
@@ -467,6 +524,44 @@ information about code coverage, see the \fBgcov\fP and \fBlcov\fP
 documentation.
 .
 .
+.SH "SUPPORT FOR FUZZERS"
+.rs
+.sp
+There is a special option for use by people who want to run fuzzing tests on
+PCRE2:
+.sp
+  --enable-fuzz-support
+.sp
+At present this applies only to the 8-bit library. If set, it causes an extra
+library called libpcre2-fuzzsupport.a to be built, but not installed. This
+contains a single function called LLVMFuzzerTestOneInput() whose arguments are
+a pointer to a string and the length of the string. When called, this function
+tries to compile the string as a pattern, and if that succeeds, to match it.
+This is done both with no options and with some random options bits that are
+generated from the string.
+.P
+Setting --enable-fuzz-support also causes a binary called \fBpcre2fuzzcheck\fP
+to be created. This is normally run under valgrind or used when PCRE2 is
+compiled with address sanitizing enabled. It calls the fuzzing function and
+outputs information about it is doing. The input strings are specified by
+arguments: if an argument starts with "=" the rest of it is a literal input
+string. Otherwise, it is assumed to be a file name, and the contents of the
+file are the test string.
+.
+.
+.SH "OBSOLETE OPTION"
+.rs
+.sp
+In versions of PCRE2 prior to 10.30, there were two ways of handling
+backtracking in the \fBpcre2_match()\fP function. The default was to use the
+system stack, but if
+.sp
+  --disable-stack-for-recursion
+.sp
+was set, memory on the heap was used. From release 10.30 onwards this has
+changed (the stack is no longer used) and this option now does nothing except
+give a warning.
+.
 .SH "SEE ALSO"
 .rs
 .sp
@@ -487,6 +582,6 @@ Cambridge, England.
 .rs
 .sp
 .nf
-Last updated: 23 November 2014
-Copyright (c) 1997-2014 University of Cambridge.
+Last updated: 18 July 2017
+Copyright (c) 1997-2017 University of Cambridge.
 .fi

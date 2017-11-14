@@ -1,14 +1,17 @@
 #! /bin/sh
 
 # Script for testing regular expressions with perl to check that PCRE2 handles
-# them the same. The Perl code has to have "use utf8" and "require Encode" at
-# the start when running UTF-8 tests, but *not* for non-utf8 tests. (The
-# "require" would actually be OK for non-utf8-tests, but is not always
-# installed, so this way the script will always run for these tests.)
+# them the same. If the first argument to this script is "-w", Perl is also
+# called with "-w", which turns on its warning mode.
+#
+# The Perl code has to have "use utf8" and "require Encode" at the start when
+# running UTF-8 tests, but *not* for non-utf8 tests. (The "require" would
+# actually be OK for non-utf8-tests, but is not always installed, so this way
+# the script will always run for these tests.)
 #
 # The desired effect is achieved by making this a shell script that passes the
-# Perl script to Perl through a pipe. If the first argument is "-utf8", a
-# suitable prefix is set up.
+# Perl script to Perl through a pipe. If the first argument (possibly after
+# removing "-w") is "-utf8", a suitable prefix is set up.
 #
 # The remaining arguments, if any, are passed to Perl. They are an input file
 # and an output file. If there is one argument, the output is written to
@@ -17,7 +20,14 @@
 # of the contorted piping input.)
 
 perl=perl
+perlarg=''
 prefix=''
+
+if [ $# -gt 0 -a "$1" = "-w" ] ; then
+  perlarg="-w"
+  shift
+fi
+
 if [ $# -gt 0 -a "$1" = "-utf8" ] ; then
   prefix="use utf8; require Encode;"
   shift
@@ -32,13 +42,16 @@ fi
 #   aftertext          interpreted as "print $' afterwards"
 #   afteralltext       ignored
 #   dupnames           ignored (Perl always allows)
+#   jitstack           ignored
 #   mark               ignored
 #   no_auto_possess    ignored
 #   no_start_optimize  ignored
+#   subject_literal    does not process subjects for escapes
 #   ucp                sets Perl's /u modifier
 #   utf                invoke UTF-8 functionality
 #
-# The data lines must not have any pcre2test modifiers. They are processed as
+# The data lines must not have any pcre2test modifiers. Unless
+# "subject_litersl" is on the pattern, data lines are processed as
 # Perl double-quoted strings, so if they contain " $ or @ characters, these
 # have to be escaped. For this reason, all such characters in the
 # Perl-compatible testinput1 and testinput4 files are escaped so that they can
@@ -139,6 +152,10 @@ for (;;)
 
   $showrest = ($mod =~ s/aftertext,?//);
 
+  # The "subject_literal" modifer disables escapes in subjects.
+
+  $subject_literal = ($mod =~ s/subject_literal,?//);
+
   # "allaftertext" is used by pcre2test to print remainders after captures
 
   $mod =~ s/allaftertext,?//;
@@ -150,6 +167,10 @@ for (;;)
   # Remove "dupnames".
 
   $mod =~ s/dupnames,?//;
+
+  # Remove "jitstack".
+
+  $mod =~ s/jitstack=\d+,?//;
 
   # Remove "mark" (asks pcre2test to check MARK data) */
 
@@ -204,13 +225,22 @@ for (;;)
     printf "data> " if $interact;
     last NEXT_RE if ! ($_ = <$infile>);
     chomp;
-    printf $outfile "$_\n" if ! $interact;
+    printf $outfile "%s", "$_\n" if ! $interact;
 
     s/\s+$//;  # Remove trailing space
     s/^\s+//;  # Remove leading space
 
     last if ($_ eq "");
-    $x = eval "\"$_\"";   # To get escapes processed
+    next if $_ =~ /^\\=(?:\s|$)/;   # Comment line
+
+    if ($subject_literal)
+      {
+      $x = $_;
+      }
+    else
+      {
+      $x = eval "\"$_\"";   # To get escapes processed
+      }
 
     # Empty array for holding results, ensure $REGERROR and $REGMARK are
     # unset, then do the matching.
@@ -290,6 +320,6 @@ for (;;)
 # printf $outfile "\n";
 
 PERLEND
-) | $perl - $@
+) | $perl $perlarg - $@
 
 # End

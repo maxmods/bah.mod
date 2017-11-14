@@ -3,15 +3,17 @@
 # 32-bit PCRE libraries, and also using the perltest.pl script.
     
 #forbid_utf
+#newline_default lf any anycrlf
 #perltest
 
 /the quick brown fox/
     the quick brown fox
  0: the quick brown fox
-    The quick brown FOX
-No match
     What do you know about the quick brown fox?
  0: the quick brown fox
+\= Expect no match
+    The quick brown FOX
+No match
     What do you know about THE QUICK BROWN FOX?
 No match
 
@@ -90,8 +92,7 @@ No match
  0: aaaabxyzpqrrrabbxyyyypqAzz
     >>>>abcxyzpqrrrabbxyyyypqAzz
  0: abcxyzpqrrrabbxyyyypqAzz
-    *** Failers
-No match
+\= Expect no match
     abxyzpqrrabbxyyyypqAzz
 No match
     abxyzpqrrrrabbxyyyypqAzz
@@ -112,8 +113,7 @@ No match
     abcabczz
  0: abcabczz
  1: abc
-    *** Failers
-No match
+\= Expect no match
     zz
 No match
     abcabcabczz
@@ -146,8 +146,7 @@ No match
     bbbbbbbbbbbac
  0: bbbbbbbbbbbac
  1: a
-    *** Failers
-No match
+\= Expect no match
     aaac
 No match
     abbbbbbbbbbbac
@@ -178,33 +177,10 @@ No match
     bbbbbbbbbbbac
  0: bbbbbbbbbbbac
  1: a
-    *** Failers
-No match
+\= Expect no match
     aaac
 No match
     abbbbbbbbbbbac
-No match
-
-/^(b+|a){1,2}?bc/
-    bbc
- 0: bbc
- 1: b
-
-/^(b*|ba){1,2}?bc/
-    babc
- 0: babc
- 1: ba
-    bbabc
- 0: bbabc
- 1: ba
-    bababc
- 0: bababc
- 1: ba
-    *** Failers
-No match
-    bababbc
-No match
-    babababc
 No match
 
 /^(ba|b*){1,2}?bc/
@@ -217,8 +193,7 @@ No match
     bababc
  0: bababc
  1: ba
-    *** Failers
-No match
+\= Expect no match
     bababbc
 No match
     babababc
@@ -241,8 +216,7 @@ No match
  0: d
     ething
  0: e
-    *** Failers
-No match
+\= Expect no match
     fthing
 No match
     [thing
@@ -259,8 +233,7 @@ No match
  0: d
     ething
  0: e
-    *** Failers
-No match
+\= Expect no match
     athing
 No match
     fthing
@@ -273,8 +246,7 @@ No match
  0: [
     \\thing
  0: \
-    *** Failers
- 0: *
+\= Expect no match
     athing
 No match
     bthing
@@ -293,8 +265,7 @@ No match
  0: a
     fthing
  0: f
-    *** Failers
- 0: *
+\= Expect no match
     ]thing
 No match
     cthing
@@ -337,8 +308,7 @@ No match
  0: 10
     100
  0: 100
-    *** Failers
-No match
+\= Expect no match
     abc
 No match
 
@@ -355,46 +325,42 @@ No match
  0: xxx0
     xxx1234
  0: xxx1234
-    *** Failers
-No match
+\= Expect no match
     xxx
 No match
 
 /^.+[0-9][0-9][0-9]$/
     x123
  0: x123
+    x1234
+ 0: x1234
     xx123
  0: xx123
     123456
  0: 123456
-    *** Failers
-No match
+\= Expect no match
     123
 No match
-    x1234
- 0: x1234
 
 /^.+?[0-9][0-9][0-9]$/
     x123
  0: x123
+    x1234
+ 0: x1234
     xx123
  0: xx123
     123456
  0: 123456
-    *** Failers
-No match
+\= Expect no match
     123
 No match
-    x1234
- 0: x1234
 
 /^([^!]+)!(.+)=apquxz\.ixr\.zzz\.ac\.uk$/
     abc!pqr=apquxz.ixr.zzz.ac.uk
  0: abc!pqr=apquxz.ixr.zzz.ac.uk
  1: abc
  2: pqr
-    *** Failers
-No match
+\= Expect no match
     !pqr=apquxz.ixr.zzz.ac.uk
 No match
     abc!=apquxz.ixr.zzz.ac.uk
@@ -407,7 +373,8 @@ No match
 /:/
     Well, we need a colon: somewhere
  0: :
-    *** Fail if we don't
+\= Expect no match
+    Fail without a colon
 No match
 
 /([\da-f:]+)$/i
@@ -435,8 +402,7 @@ No match
     Any old stuff
  0: ff
  1: ff
-    *** Failers
-No match
+\= Expect no match
     0zzz
 No match
     gzzz
@@ -457,8 +423,7 @@ No match
  1: 12
  2: 123
  3: 0
-    *** Failers
-No match
+\= Expect no match
     .1.2.3333
 No match
     1.2.3
@@ -477,8 +442,7 @@ No match
  1: 1
  2: non-sp1
  3: non-sp2
-    *** Failers
-No match
+\= Expect no match
     1IN SOA non-sp1 non-sp2(
 No match
 
@@ -498,8 +462,7 @@ No match
     x-.y-.
  0: x-.y-.
  1: .y-
-    *** Failers
-No match
+\= Expect no match
     -abc.peq.
 No match
 
@@ -518,8 +481,7 @@ No match
  1: -a
  2: .b-c
  3: -c
-    *** Failers
-No match
+\= Expect no match
     *.0
 No match
     *.a-
@@ -570,22 +532,21 @@ No match
     \"\" ; rhubarb
  0: "" ; rhubarb
  1: ; rhubarb
-    *** Failers
-No match
+\= Expect no match
     \"1234\" : things
 No match
 
 /^$/
     \
  0: 
-    *** Failers
+\= Expect no match
+    A non-empty line
 No match
 
 /   ^    a   (?# begins with a)  b\sc (?# then b c) $ (?# then end)/x
     ab c
  0: ab c
-    *** Failers
-No match
+\= Expect no match
     abc
 No match
     ab cde
@@ -594,8 +555,7 @@ No match
 /(?x)   ^    a   (?# begins with a)  b\sc (?# then b c) $ (?# then end)/
     ab c
  0: ab c
-    *** Failers
-No match
+\= Expect no match
     abc
 No match
     ab cde
@@ -606,8 +566,7 @@ No match
  0: a bcd
     a b d
  0: a b d
-    *** Failers
-No match
+\= Expect no match
     abcd
 No match
     ab d
@@ -716,8 +675,7 @@ No match
  0: 12345678ab
     12345678__
  0: 12345678__
-    *** Failers
-No match
+\= Expect no match
     1234567
 No match
 
@@ -730,8 +688,7 @@ No match
  0: 12345
     aaaaa
  0: aaaaa
-    *** Failers
-No match
+\= Expect no match
     123456
 No match
 
@@ -756,8 +713,7 @@ No match
  0: def=defdefdef
  1: def
  2: def
-    *** Failers
-No match
+\= Expect no match
     abc=defdef
 No match
 
@@ -827,8 +783,7 @@ No match
     From abcd  Mon Sep  1 12:33:02 1997
  0: From abcd  Mon Sep  1 12:33
  1: Sep  
-    *** Failers
-No match
+\= Expect no match
     From abcd  Sep 01 12:33:02 1997
 No match
 
@@ -865,8 +820,7 @@ No match
     abc456
  0: abc
  1: abc
-    *** Failers
-No match
+\= Expect no match
     abc123
 No match
 
@@ -910,16 +864,14 @@ No match
 /(?!^)abc/
     the abc
  0: abc
-    *** Failers
-No match
+\= Expect no match
     abc
 No match
 
 /(?=^)abc/
     abc
  0: abc
-    *** Failers
-No match
+\= Expect no match
     the abc
 No match
 
@@ -1151,8 +1103,7 @@ No match
  0: "/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/"@x400-re.lay
     A missing angle <user\@some.where
  0: user@some.where
-    *** Failers
-No match
+\= Expect no match
     The quick brown fox
 No match
 
@@ -1752,8 +1703,7 @@ No match
  0: "/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/"@x400-re.lay
     A missing angle <user\@some.where
  0: user@some.where
-    *** Failers
-No match
+\= Expect no match
     The quick brown fox
 No match
 
@@ -1786,8 +1736,7 @@ No match
  0: A\x00\x00Z
     An A\0\x0\0Z
  0: A\x00\x00\x00Z
-    *** Failers
-No match
+\= Expect no match
     A\0Z
 No match
     A\0\x0\0\x0Z
@@ -1802,8 +1751,7 @@ No match
  0: bell
  1: 
  2: bell
-    *** Failers
-No match
+\= Expect no match
     cowbell
 No match
 
@@ -1818,8 +1766,7 @@ No match
  0: \x0d
     \tabc
  0: \x09
-    *** Failers
-No match
+\= Expect no match
     abc
 No match
 
@@ -1838,8 +1785,7 @@ No match
     b
  0: b
  1: 
-    *** Failers
-No match
+\= Expect no match
     acb
 No match
 
@@ -1853,8 +1799,7 @@ No match
     b
  0: b
  1: 
-    *** Failers
-No match
+\= Expect no match
     ab
 No match
 
@@ -1868,8 +1813,7 @@ No match
     b
  0: b
  1: 
-    *** Failers
-No match
+\= Expect no match
     acb
 No match
 
@@ -1880,8 +1824,7 @@ No match
     b
  0: b
  1: 
-    *** Failers
-No match
+\= Expect no match
     ab
 No match
     aab
@@ -1899,8 +1842,7 @@ No match
     b
  0: b
  1: 
-    *** Failers
-No match
+\= Expect no match
     ab
 No match
     aab
@@ -1915,8 +1857,7 @@ No match
  0: abbbc
     abbc
  0: abbc
-    *** Failers
-No match
+\= Expect no match
     abc
 No match
     abbbbbc
@@ -1946,8 +1887,7 @@ No match
 /^[W-c]+$/
     WXY_^abc
  0: WXY_^abc
-    *** Failers
-No match
+\= Expect no match
     wxy
 No match
 
@@ -1976,8 +1916,7 @@ No match
 /^abc$/
     abc
  0: abc
-    *** Failers
-No match
+\= Expect no match
     qqq\nabc
 No match
     abc\nzzz
@@ -1990,8 +1929,7 @@ No match
  0: abc
     abc\n 
  0: abc
-    *** Failers
-No match
+\= Expect no match
     qqq\nabc
 No match
     abc\nzzz
@@ -2005,9 +1943,7 @@ No match
  1: f
 
 /\A(.)*\Z/m
-    *** Failers
- 0: *** Failers
- 1: s
+\= Expect no match
     abc\ndef
 No match
 
@@ -2020,24 +1956,21 @@ No match
 /[-az]+/
     az-
  0: az-
-    *** Failers
- 0: a
+\= Expect no match
     b
 No match
 
 /[az-]+/
     za-
  0: za-
-    *** Failers
- 0: a
+\= Expect no match
     b
 No match
 
 /[a\-z]+/
     a-z
  0: a-z
-    *** Failers
- 0: a
+\= Expect no match
     b
 No match
 
@@ -2048,16 +1981,7 @@ No match
 /[\d-]+/
     12-34
  0: 12-34
-    *** Failers
-No match
-    aaa
-No match
-
-/[\d-z]+/
-    12-34z
- 0: 12-34z
-    *** Failers
-No match
+\= Expect no match
     aaa
 No match
 
@@ -2068,8 +1992,7 @@ No match
 /\x20Z/
     the Zoo
  0:  Z
-    *** Failers
-No match
+\= Expect no match
     Zulu
 No match
 
@@ -2084,29 +2007,12 @@ No match
  0: abcABC
  1: abc
 
-/ab{3cd/
-    ab{3cd
- 0: ab{3cd
-
-/ab{3,cd/
-    ab{3,cd
- 0: ab{3,cd
-
-/ab{3,4a}cd/
-    ab{3,4a}cd
- 0: ab{3,4a}cd
-
-/{4,5a}bc/
-    {4,5a}bc
- 0: {4,5a}bc
-
 /abc$/
     abc
  0: abc
     abc\n
  0: abc
-    *** Failers
-No match
+\= Expect no match
     abc\ndef
 No match
 
@@ -2169,8 +2075,7 @@ No match
 /^[A\8B\9C]+$/
     A8B9C
  0: A8B9C
-    *** Failers 
-No match
+\= Expect no match 
     A8B9C\x00
 No match
 
@@ -2255,12 +2160,7 @@ No match
  2: a
  3: 
  4: ccc
-    *** Failers
- 0: *** Failers
- 1: *
- 2: *
- 3: * Fail
- 4: ers
+\= Expect no match
     anything
 No match
     b\bc   
@@ -2291,8 +2191,7 @@ No match
 /[^k]$/
     abc
  0: c
-    *** Failers
- 0: s
+\= Expect no match
     abk   
 No match
    
@@ -2303,8 +2202,7 @@ No match
  0: bc
     kabc 
  0: abc
-    *** Failers
- 0: ers
+\= Expect no match
     abk
 No match
     akb
@@ -2317,8 +2215,7 @@ No match
  0: 12345678@a.b.c.d
     123456789\@x.y.z
  0: 123456789@x.y.z
-    *** Failers
-No match
+\= Expect no match
     12345678\@x.y.uk
 No match
     1234567\@a.b.c.d       
@@ -2331,8 +2228,7 @@ No match
     aaaaaaaaaa
  0: aaaaaaaaaa
  1: a
-    *** Failers
-No match
+\= Expect no match
     aaaaaaa   
 No match
 
@@ -2392,8 +2288,7 @@ No match
  0: .875
  1: .875
  2: 5
-    *** Failers 
-No match
+\= Expect no match 
     1.235 
 No match
     
@@ -2473,8 +2368,7 @@ No match
     ABC445
  0: ABC
  1: ABC
-    *** Failers
-No match
+\= Expect no match
     ABC123
 No match
     
@@ -2483,8 +2377,7 @@ No match
  0: W46]
     -46]789
  0: -46]
-    *** Failers
-No match
+\= Expect no match
     Wall
 No match
     Zebra
@@ -2513,8 +2406,7 @@ No match
  0: ]
     \\backslash 
  0: \
-    *** Failers
-No match
+\= Expect no match
     -46]789
 No match
     well
@@ -2525,13 +2417,15 @@ No match
  0: 01/01/2000
 
 /word (?:[a-zA-Z0-9]+ ){0,10}otherword/
-  word cat dog elephant mussel cow horse canary baboon snake shark otherword
+    word cat dog elephant mussel cow horse canary baboon snake shark otherword
  0: word cat dog elephant mussel cow horse canary baboon snake shark otherword
-  word cat dog elephant mussel cow horse canary baboon snake shark
+\= Expect no match
+    word cat dog elephant mussel cow horse canary baboon snake shark
 No match
 
 /word (?:[a-zA-Z0-9]+ ){0,300}otherword/
-  word cat dog elephant mussel cow horse canary baboon snake shark the quick brown fox and the lazy dog and several other words getting close to thirty by now I hope
+\= Expect no match
+    word cat dog elephant mussel cow horse canary baboon snake shark the quick brown fox and the lazy dog and several other words getting close to thirty by now I hope
 No match
 
 /^(a){0,0}/
@@ -2592,28 +2486,28 @@ No match
  1: a
 
 /^(a){1,1}/
-    bcd
-No match
     abc
  0: a
  1: a
     aab  
  0: a
  1: a
-
-/^(a){1,2}/
+\= Expect no match
     bcd
 No match
+
+/^(a){1,2}/
     abc
  0: a
  1: a
     aab  
  0: aa
  1: a
-
-/^(a){1,3}/
+\= Expect no match
     bcd
 No match
+
+/^(a){1,3}/
     abc
  0: a
  1: a
@@ -2623,10 +2517,11 @@ No match
     aaa   
  0: aaa
  1: a
-
-/^(a){1,}/
+\= Expect no match
     bcd
 No match
+
+/^(a){1,}/
     abc
  0: a
  1: a
@@ -2639,6 +2534,9 @@ No match
     aaaaaaaa    
  0: aaaaaaaa
  1: a
+\= Expect no match
+    bcd
+No match
 
 /.*\.gif/
     borfle\nbib.gif\nno
@@ -2699,8 +2597,7 @@ No match
     BarFoo 
  0: B
  1: B
-    *** Failers
-No match
+\= Expect no match
     abcde\nBar  
 No match
 
@@ -2722,8 +2619,7 @@ No match
     BarFoo 
  0: B
  1: B
-    *** Failers
-No match
+\= Expect no match
     abcde\nBar  
 No match
 
@@ -2745,8 +2641,7 @@ No match
     BarFoo 
  0: B
  1: B
-    *** Failers 
-No match
+\= Expect no match 
     abcde\nBar  
 No match
 
@@ -2755,14 +2650,12 @@ No match
  0: abcde\x0a1234X
     BarFoo 
  0: B
-    *** Failers 
-No match
+\= Expect no match 
     abcde\nBar  
 No match
 
 /^.*B/
-    **** Failers
-No match
+\= Expect no match
     abc\nB
 No match
      
@@ -2814,32 +2707,28 @@ No match
 /^[abcdefghijklmnopqrstuvwxy0123456789]/
     n
  0: n
-    *** Failers 
-No match
+\= Expect no match 
     z 
 No match
 
 /abcde{0,0}/
     abcd
  0: abcd
-    *** Failers
-No match
+\= Expect no match
     abce  
 No match
 
 /ab[cd]{0,0}e/
     abe
  0: abe
-    *** Failers
-No match
+\= Expect no match
     abcde 
 No match
     
 /ab(c){0,0}d/
     abd
  0: abd
-    *** Failers
-No match
+\= Expect no match
     abcd   
 No match
 
@@ -2853,17 +2742,14 @@ No match
     abbbb
  0: abbbb
  1: bbbb
-    *** Failers
- 0: a
- 1: 
+\= Expect no match
     bbbbb    
 No match
     
 /ab\d{0}e/
     abe
  0: abe
-    *** Failers
-No match
+\= Expect no match
     ab1e   
 No match
     
@@ -2937,8 +2823,7 @@ No match
 /a.b/
     acb
  0: acb
-    *** Failers 
-No match
+\= Expect no match 
     a\nb   
 No match
     
@@ -2989,15 +2874,14 @@ No match
  1: a
     
 /(?!\A)x/m
+    a\bx\n
+ 0: x
+    a\nx\n
+ 0: x
+\= Expect no match     
     x\nb\n
 No match
-    a\bx\n  
- 0: x
     
-/\x0{ab}/
-    \0{ab} 
- 0: \x00{ab}
-
 /(A|B)*?CD/
     CD 
  0: CD
@@ -3025,8 +2909,7 @@ No match
  0: foo
     rfoosh
  0: foo
-    *** Failers
-No match
+\= Expect no match
     barfoo
 No match
     towbarfoo
@@ -3035,8 +2918,7 @@ No match
 /\w{3}(?<!bar)foo/
     catfood
  0: catfoo
-    *** Failers
-No match
+\= Expect no match
     foo
 No match
     barfoo
@@ -3048,8 +2930,7 @@ No match
     fooabar
  0: bar
  1: foo
-    *** Failers
-No match
+\= Expect no match
     bar
 No match
     foobbar
@@ -3058,8 +2939,7 @@ No match
 /\Aabc\z/m
     abc
  0: abc
-    *** Failers
-No match
+\= Expect no match
     abc\n   
 No match
     qqq\nabc
@@ -3070,12 +2950,11 @@ No match
 No match
 
 "(?>.*/)foo"
-    /this/is/a/very/long/line/in/deed/with/very/many/slashes/in/it/you/see/
-No match
-
-"(?>.*/)foo"
     /this/is/a/very/long/line/in/deed/with/very/many/slashes/in/and/foo
  0: /this/is/a/very/long/line/in/deed/with/very/many/slashes/in/and/foo
+\= Expect no match     
+    /this/is/a/very/long/line/in/deed/with/very/many/slashes/in/it/you/see/
+No match
 
 /(?>(\.\d\d[1-9]?))\d+/
     1.230003938
@@ -3084,8 +2963,7 @@ No match
     1.875000282
  0: .875000282
  1: .875
-    *** Failers 
-No match
+\= Expect no match 
     1.235 
 No match
 
@@ -3093,8 +2971,7 @@ No match
     now is the time for all good men to come to the aid of the party
  0: now is the time for all good men to come to the aid of the party
  1: party
-    *** Failers
-No match
+\= Expect no match
     this is not a line with only words and spaces!
 No match
     
@@ -3113,8 +2990,7 @@ No match
  0: 12345a
  1: 12345
  2: a
-    *** Failers
-No match
+\= Expect no match
     12345+ 
 No match
 
@@ -3152,8 +3028,7 @@ No match
     (abc(def)xyz)
  0: (abc(def)xyz)
  1: xyz
-    *** Failers
-No match
+\= Expect no match
     ((()aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa   
 No match
 
@@ -3162,8 +3037,7 @@ No match
  0: ab
     Ab
  0: Ab
-    *** Failers 
-No match
+\= Expect no match 
     aB
 No match
     AB
@@ -3173,8 +3047,7 @@ No match
     a bcd e
  0: a bcd e
  1: a bc
-    *** Failers
-No match
+\= Expect no match
     a b cd e
 No match
     abcd e   
@@ -3186,8 +3059,7 @@ No match
     a bcde f
  0: a bcde f
  1: a bcde f
-    *** Failers
-No match
+\= Expect no match
     abcdef  
 No match
 
@@ -3198,8 +3070,7 @@ No match
     aBc
  0: aBc
  1: aB
-    *** Failers
-No match
+\= Expect no match
     abC
 No match
     aBC  
@@ -3218,8 +3089,7 @@ No match
  0: abc
     aBc
  0: aBc
-    *** Failers 
-No match
+\= Expect no match 
     ABC
 No match
     abC
@@ -3232,8 +3102,7 @@ No match
  0: aBc
     aBBc
  0: aBBc
-    *** Failers 
-No match
+\= Expect no match 
     aBC
 No match
     aBBC
@@ -3244,8 +3113,7 @@ No match
  0: abcd
     abCd
  0: abCd
-    *** Failers
-No match
+\= Expect no match
     aBCd
 No match
     abcD     
@@ -3258,8 +3126,7 @@ No match
  0: more than MILLION
     more \n than Million 
  0: more \x0a than Million
-    *** Failers
-No match
+\= Expect no match
     MORE THAN MILLION    
 No match
     more \n than \n million 
@@ -3272,8 +3139,7 @@ No match
  0: more than MILLION
     more \n than Million 
  0: more \x0a than Million
-    *** Failers
-No match
+\= Expect no match
     MORE THAN MILLION    
 No match
     more \n than \n million 
@@ -3286,8 +3152,7 @@ No match
  0: aBbc
     aBBc 
  0: aBBc
-    *** Failers
-No match
+\= Expect no match
     Abc
 No match
     abAb    
@@ -3300,8 +3165,7 @@ No match
  0: abc
     aBc
  0: aBc
-    *** Failers
-No match
+\= Expect no match
     Ab 
 No match
     abC
@@ -3316,8 +3180,7 @@ No match
     aBxxc
  0: xxc
  1: xx
-    *** Failers
-No match
+\= Expect no match
     Abxxc
 No match
     ABxxc
@@ -3331,8 +3194,7 @@ No match
  1: a
     bB
  0: bB
-    *** Failers
-No match
+\= Expect no match
     aB
 No match
     bA    
@@ -3346,8 +3208,7 @@ No match
  0: b
     bb  
  0: bb
-    *** Failers
-No match
+\= Expect no match
     ab   
 No match
     
@@ -3361,8 +3222,7 @@ No match
  0: 12
     123
  0: 12
-    *** Failers
-No match
+\= Expect no match
     xyz    
 No match
 
@@ -3371,8 +3231,7 @@ No match
  0: abc:
     12
  0: 12
-    *** Failers
-No match
+\= Expect no match
     123
 No match
     xyz    
@@ -3387,8 +3246,7 @@ No match
  0: cat
     focat   
  0: cat
-    *** Failers
-No match
+\= Expect no match
     foocat  
 No match
 
@@ -3401,8 +3259,7 @@ No match
  0: cat
     focat   
  0: cat
-    *** Failers
-No match
+\= Expect no match
     foocat  
 No match
 
@@ -3441,8 +3298,7 @@ No match
  0: 12aa
  1: 1
  2: 2
-    *** Failers
-No match
+\= Expect no match
     1234    
 No match
 
@@ -3459,8 +3315,7 @@ No match
     blaH blaH
  0: blaH blaH
  1: blaH
-    *** Failers
-No match
+\= Expect no match
     blah BLAH
 No match
     Blah blah      
@@ -3628,8 +3483,7 @@ No match
  0: 12-sep-98
     12-09-98
  0: 12-09-98
-    *** Failers
-No match
+\= Expect no match
     sep-12-98
 No match
         
@@ -3640,8 +3494,7 @@ No match
     foobarfootling 
  0: barfoo
  1: foo
-    *** Failers
-No match
+\= Expect no match
     foobar
 No match
     barfoo   
@@ -3676,8 +3529,7 @@ No match
     BBx
  0: BBx
  1: BB
-    *** Failers
-No match
+\= Expect no match
     abcX
 No match
     aBCX
@@ -3709,8 +3561,7 @@ No match
     France
  0: F
  1: F
-    *** Failers
-No match
+\= Expect no match
     Africa     
 No match
 
@@ -3733,8 +3584,7 @@ No match
     Zambesi
  0: Z
  1: Z
-    *** Failers
-No match
+\= Expect no match
     aCD  
 No match
     XY  
@@ -3743,8 +3593,7 @@ No match
 /(?<=foo\n)^bar/m
     foo\nbar
  0: bar
-    *** Failers
-No match
+\= Expect no match
     bar
 No match
     baz\nbar   
@@ -3757,39 +3606,37 @@ No match
  0: baz
     koobarbaz 
  0: baz
-    *** Failers
-No match
+\= Expect no match
     baz
 No match
     foobarbaz 
 No match
 
-/The cases of aaaa and aaaaaa are missed out below because Perl does things/
-/differently. We know that odd, and maybe incorrect, things happen with/
-No match
-/recursive references in Perl, as far as 5.11.3 - see some stuff in test #2./
-No match
+# The cases of aaaa and aaaaaa are missed out below because Perl does things
+# differently. We know that odd, and maybe incorrect, things happen with
+# recursive references in Perl, as far as 5.11.3 - see some stuff in test #2.
 
 /^(a\1?){4}$/
-    a
-No match
-    aa
-No match
-    aaa
-No match
     aaaaa
  0: aaaaa
  1: a
     aaaaaaa
  0: aaaaaaa
  1: a
+    aaaaaaaaaa
+ 0: aaaaaaaaaa
+ 1: aaaa
+\= Expect no match
+    a
+No match
+    aa
+No match
+    aaa
+No match
     aaaaaaaa
 No match
     aaaaaaaaa
 No match
-    aaaaaaaaaa
- 0: aaaaaaaaaa
- 1: aaaa
     aaaaaaaaaaa
 No match
     aaaaaaaaaaaa
@@ -3800,16 +3647,10 @@ No match
 No match
     aaaaaaaaaaaaaaa
 No match
-    aaaaaaaaaaaaaaaa               
+    aaaaaaaaaaaaaaaa
 No match
 
 /^(a\1?)(a\1?)(a\2?)(a\3?)$/
-    a
-No match
-    aa
-No match
-    aaa
-No match
     aaaa
  0: aaaa
  1: a
@@ -3834,16 +3675,23 @@ No match
  2: aa
  3: aaa
  4: a
-    aaaaaaaa
-No match
-    aaaaaaaaa
-No match
     aaaaaaaaaa
  0: aaaaaaaaaa
  1: a
  2: aa
  3: aaa
  4: aaaa
+\= Expect no match
+    a
+No match
+    aa
+No match
+    aaa
+No match
+    aaaaaaaa
+No match
+    aaaaaaaaa
+No match
     aaaaaaaaaaa
 No match
     aaaaaaaaaaaa
@@ -3857,9 +3705,8 @@ No match
     aaaaaaaaaaaaaaaa               
 No match
 
-/The following tests are taken from the Perl 5.005 test suite; some of them/
-/are compatible with 5.004, but I'd rather not have to sort them out./
-No match
+# The following tests are taken from the Perl 5.005 test suite; some of them
+# are compatible with 5.004, but I'd rather not have to sort them out.
 
 /abc/
     abc
@@ -3868,8 +3715,7 @@ No match
  0: abc
     ababc
  0: abc
-    *** Failers
-No match
+\= Expect no match
     xbc
 No match
     axc
@@ -3904,8 +3750,7 @@ No match
 /ab+bc/
     abbc
  0: abbc
-    *** Failers
-No match
+\= Expect no match
     abc
 No match
     abq
@@ -3930,8 +3775,7 @@ No match
  0: abbbbc
 
 /ab{4,5}bc/
-    *** Failers
-No match
+\= Expect no match
     abq
 No match
     abbbbc
@@ -3960,8 +3804,7 @@ No match
 /^abc$/
     abc
  0: abc
-    *** Failers
-No match
+\= Expect no match
     abbbbc
 No match
     abcc
@@ -3976,10 +3819,7 @@ No match
 /abc$/
     aabc
  0: abc
-    *** Failers
-No match
-    aabc
- 0: abc
+\= Expect no match
     aabcd
 No match
 
@@ -4004,8 +3844,7 @@ No match
 /a[bc]d/
     abd
  0: abd
-    *** Failers
-No match
+\= Expect no match
     axyzd
 No match
     abc
@@ -4038,8 +3877,7 @@ No match
 /a[^bc]d/
     aed
  0: aed
-    *** Failers
-No match
+\= Expect no match
     abd
 No match
     abd
@@ -4052,10 +3890,9 @@ No match
 /a[^]b]c/
     adc
  0: adc
-    *** Failers
-No match
     a-c
  0: a-c
+\= Expect no match
     a]c
 No match
 
@@ -4068,8 +3905,7 @@ No match
  0: a
 
 /\by\b/
-    *** Failers
-No match
+\= Expect no match
     xy
 No match
     yz
@@ -4078,8 +3914,7 @@ No match
 No match
 
 /\Ba\B/
-    *** Failers
- 0: a
+\= Expect no match
     a-
 No match
     -a
@@ -4106,10 +3941,7 @@ No match
 /\W/
     -
  0: -
-    *** Failers
- 0: *
-    -
- 0: -
+\= Expect no match
     a
 No match
 
@@ -4120,10 +3952,7 @@ No match
 /a\Sb/
     a-b
  0: a-b
-    *** Failers
-No match
-    a-b
- 0: a-b
+\= Expect no match
     a b
 No match
 
@@ -4134,10 +3963,7 @@ No match
 /\D/
     -
  0: -
-    *** Failers
- 0: *
-    -
- 0: -
+\= Expect no match
     1
 No match
 
@@ -4148,10 +3974,7 @@ No match
 /[\W]/
     -
  0: -
-    *** Failers
- 0: *
-    -
- 0: -
+\= Expect no match
     a
 No match
 
@@ -4162,10 +3985,7 @@ No match
 /a[\S]b/
     a-b
  0: a-b
-    *** Failers
-No match
-    a-b
- 0: a-b
+\= Expect no match
     a b
 No match
 
@@ -4176,10 +3996,7 @@ No match
 /[\D]/
     -
  0: -
-    *** Failers
- 0: *
-    -
- 0: -
+\= Expect no match
     1
 No match
 
@@ -4269,14 +4086,13 @@ No match
  0: cde
 
 /abc/
-    *** Failers
-No match
+\= Expect no match
     b
 No match
-    
 
 /a*/
-    
+    \
+ 0: 
 
 /([abc])*d/
     abbbcd
@@ -4361,8 +4177,7 @@ No match
  0: adcdcde
 
 /a[bcd]+dcdcde/
-    *** Failers
-No match
+\= Expect no match
     abcde
 No match
     adcdcde
@@ -4400,8 +4215,7 @@ No match
     reffgz
  0: effgz
  1: effgz
-    *** Failers
-No match
+\= Expect no match
     effg
 No match
     bcdd
@@ -4449,8 +4263,7 @@ No match
  9: a
 
 /multiple words of text/
-    *** Failers
-No match
+\= Expect no match
     aa
 No match
     uh-uh
@@ -4501,12 +4314,10 @@ No match
     a
  0: a
  1: a
-    *** Failers
- 0: a
- 1: a
     ab
  0: a
  1: a
+\= Expect no match
     x
 No match
 
@@ -4543,8 +4354,7 @@ No match
  0: ABC
     ABABC
  0: ABC
-    *** Failers
-No match
+\= Expect no match
     aaxabxbaxbbx
 No match
     XBC
@@ -4577,8 +4387,7 @@ No match
  0: ABBC
 
 /ab+bc/i
-    *** Failers
-No match
+\= Expect no match
     ABC
 No match
     ABQ
@@ -4603,8 +4412,7 @@ No match
  0: ABBBBC
 
 /ab{4,5}?bc/i
-    *** Failers
-No match
+\= Expect no match
     ABQ
 No match
     ABBBBC
@@ -4633,8 +4441,7 @@ No match
 /^abc$/i
     ABC
  0: ABC
-    *** Failers
-No match
+\= Expect no match
     ABBBBC
 No match
     ABCC
@@ -4669,10 +4476,9 @@ No match
  0: AXYZC
 
 /a.*c/i
-    *** Failers
-No match
     AABC
  0: AABC
+\= Expect no match
     AXYZD
 No match
 
@@ -4683,8 +4489,7 @@ No match
 /a[b-d]e/i
     ACE
  0: ACE
-    *** Failers
-No match
+\= Expect no match
     ABC
 No match
     ABD
@@ -4717,8 +4522,7 @@ No match
 /a[^-b]c/i
     ADC
  0: ADC
-    *** Failers
-No match
+\= Expect no match
     ABD
 No match
     A-C
@@ -4740,8 +4544,7 @@ No match
  1: 
 
 /$b/i
-    *** Failers
-No match
+\= Expect no match
     A]C
 No match
     B
@@ -4833,11 +4636,6 @@ No match
     CDE
  0: CDE
 
-/abc/i
-
-/a*/i
-    
-
 /([abc])*d/i
     ABBBCD
  0: ABBBCD
@@ -4877,6 +4675,7 @@ No match
  0: HIJ
 
 /^(ab|cd)e/i
+\= Expect no match
     ABCDE
 No match
 
@@ -4956,8 +4755,7 @@ No match
     REFFGZ
  0: EFFGZ
  1: EFFGZ
-    *** Failers
-No match
+\= Expect no match
     ADCDCDE
 No match
     EFFG
@@ -5017,8 +4815,7 @@ No match
  1: C
 
 /multiple words of text/i
-    *** Failers
-No match
+\= Expect no match
     AA
 No match
     UH-UH
@@ -5176,8 +4973,7 @@ No match
     aaaaaaaaaa
  0: aaaaaaaaaa
  1: aaaa
-    *** Failers
-No match
+\= Expect no match
     AB
 No match
     aaaaaaaaa
@@ -5189,8 +4985,7 @@ No match
     aaaaaaaaaa
  0: aaaaaaaaaa
  1: aaaa
-    *** Failers
-No match
+\= Expect no match
     aaaaaaaaa
 No match
     aaaaaaaaaaa
@@ -5209,8 +5004,7 @@ No match
 /(?<=a)b/
     ab
  0: b
-    *** Failers
-No match
+\= Expect no match
     cb
 No match
     b
@@ -5286,8 +5080,7 @@ No match
  1: A
 
 /(?:(?i)a)b/
-    *** Failers
-No match
+\= Expect no match
     cb
 No match
     aB
@@ -5314,8 +5107,7 @@ No match
  1: A
 
 /(?i:a)b/
-    *** Failers
-No match
+\= Expect no match
     aB
 No match
     aB
@@ -5342,33 +5134,13 @@ No match
  1: a
 
 /(?:(?-i)a)b/i
-    *** Failers
-No match
     aB
  0: aB
-    Ab
-No match
-
-/((?-i)a)b/i
-
-/(?:(?-i)a)b/i
-    aB
- 0: aB
-
-/((?-i)a)b/i
-    aB
- 0: aB
- 1: a
-
-/(?:(?-i)a)b/i
-    *** Failers
-No match
+\= Expect no match
     Ab
 No match
     AB
 No match
-
-/((?-i)a)b/i
 
 /(?-i:a)b/i
     ab
@@ -5389,8 +5161,7 @@ No match
  1: a
 
 /(?-i:a)b/i
-    *** Failers
-No match
+\= Expect no match
     AB
 No match
     Ab
@@ -5408,8 +5179,7 @@ No match
  1: a
 
 /(?-i:a)b/i
-    *** Failers
-No match
+\= Expect no match
     Ab
 No match
     AB
@@ -5418,8 +5188,7 @@ No match
 /((?-i:a))b/i
 
 /((?-i:a.))b/i
-    *** Failers
-No match
+\= Expect no match
     AB
 No match
     a\nB
@@ -5464,8 +5233,7 @@ No match
  0: aaac
 
 /(?<![cd])b/
-    *** Failers
-No match
+\= Expect no match
     B\nB
 No match
     dbcb
@@ -5494,8 +5262,7 @@ No match
  0: ab
     aaa   
  0: aaa
-    *** Failers
-No match
+\= Expect no match
     dbcb
 No match
     a--
@@ -5553,8 +5320,7 @@ No match
 /^b/
 
 /()^b/
-    *** Failers
-No match
+\= Expect no match
     a\nb\nc\n
 No match
     a\nb\nc\n
@@ -5566,8 +5332,7 @@ No match
  1: b
 
 /(x)?(?(1)a|b)/
-    *** Failers
-No match
+\= Expect no match
     a
 No match
     a
@@ -5595,8 +5360,7 @@ No match
  2: )
     blah
  0: blah
-    *** Failers
-No match
+\= Expect no match
     a
 No match
     blah)
@@ -5611,8 +5375,7 @@ No match
  2: )
     blah
  0: blah
-    *** Failers
-No match
+\= Expect no match
     blah)
 No match
     (blah
@@ -5625,8 +5388,7 @@ No match
  0: a
 
 /(?(?=a)b|a)/
-    *** Failers
-No match
+\= Expect no match
     a
 No match
     a
@@ -5661,8 +5423,7 @@ No match
  2: aab
 
 /^(?=(a+?))\1ab/
-    *** Failers
-No match
+\= Expect no match
     aaab
 No match
     aaab
@@ -5697,10 +5458,7 @@ No match
  0: xy:z:::abcd
  1: xy:z:::
  2: abcd
-    *** Failers
- 0: Failers
- 1: <unset>
- 2: Failers
+\= Expect no match
     abcd:
 No match
     abcd:
@@ -5748,8 +5506,7 @@ No match
  1: x
 
 /a\Z/
-    *** Failers
-No match
+\= Expect no match
     aaab
 No match
     a\nb\n
@@ -5768,8 +5525,6 @@ No match
 /b\z/
     a\nb
  0: b
-    *** Failers
-No match
     
 /^(?>(?(1)\.|())[^\W_](?>[a-z0-9-]*[^\W_])?)+$/
     a
@@ -5799,8 +5554,7 @@ No match
     12-ab.1245 
  0: 12-ab.1245
  1: 
-    *** Failers
-No match
+\= Expect no match
     \
 No match
     .a
@@ -5835,18 +5589,19 @@ No match
     endingwxyz
  0: endingwxyz
  1: wxyz
-    *** Failers
-No match
+\= Expect no match
     a rather long string that doesn't end with one of them
 No match
 
 /word (?>(?:(?!otherword)[a-zA-Z0-9]+ ){0,30})otherword/
     word cat dog elephant mussel cow horse canary baboon snake shark otherword
  0: word cat dog elephant mussel cow horse canary baboon snake shark otherword
+\= Expect no match
     word cat dog elephant mussel cow horse canary baboon snake shark
 No match
   
 /word (?>[a-zA-Z0-9]+ ){0,30}otherword/
+\= Expect no match
     word cat dog elephant mussel cow horse canary baboon snake shark the quick brown fox and the lazy dog and several other words getting close to thirty by now I hope
 No match
 
@@ -5855,8 +5610,7 @@ No match
  0: foo
     123999foo 
  0: foo
-    *** Failers
-No match
+\= Expect no match
     123abcfoo
 No match
     
@@ -5865,8 +5619,7 @@ No match
  0: foo
     123999foo 
  0: foo
-    *** Failers
-No match
+\= Expect no match
     123abcfoo
 No match
 
@@ -5875,8 +5628,7 @@ No match
  0: foo
     123456foo 
  0: foo
-    *** Failers
-No match
+\= Expect no match
     123999foo  
 No match
     
@@ -5885,8 +5637,7 @@ No match
  0: foo
     123456foo 
  0: foo
-    *** Failers
-No match
+\= Expect no match
     123999foo  
 No match
 
@@ -5985,18 +5736,6 @@ No match
  0: 
  0: 
 
-/^[\d-a]/
-    abcde
- 0: a
-    -things
- 0: -
-    0digit
- 0: 0
-    *** Failers
-No match
-    bcdef    
-No match
-    
 /[[:space:]]+/
     > \x09\x0a\x0c\x0d\x0b<
  0:  \x09\x0a\x0c\x0d\x0b
@@ -6018,11 +5757,12 @@ No match
  0: ab
 
 /(?!\A)x/m
-  a\nxb\n
+    a\nxb\n
  0: x
 
 /(?!^)x/m
-  a\nxb\n
+\= Expect no match
+    a\nxb\n
 No match
 
 /abc\Qabc\Eabc/
@@ -6036,8 +5776,7 @@ No match
 /   abc\Q abc\Eabc/x
     abc abcabc
  0: abc abcabc
-    *** Failers
-No match
+\= Expect no match
     abcabcabc  
 No match
     
@@ -6077,8 +5816,7 @@ No match
 /\Gabc/
     abc
  0: abc
-    *** Failers
-No match
+\= Expect no match
     xyzabc  
 No match
 
@@ -6096,8 +5834,7 @@ No match
 /a(?x: b c )d/
     XabcdY
  0: abcd
-    *** Failers 
-No match
+\= Expect no match 
     Xa b c d Y 
 No match
 
@@ -6112,8 +5849,7 @@ No match
 /(?i)AB(?-i)C/
     XabCY
  0: abC
-    *** Failers
-No match
+\= Expect no match
     XabcY  
 No match
 
@@ -6124,8 +5860,7 @@ No match
     DE
  0: DE
  1: D
-    *** Failers
-No match
+\= Expect no match
     abcE
 No match
     abCe  
@@ -6192,8 +5927,7 @@ No match
     a123:ddde:9999:b342::324e:dcba:abcd
  0: a123:ddde:9999:b342::324e:dcba:abcd
  1: 
-    *** Failers
-No match
+\= Expect no match
     1:2:3:4:5:6:7:8
 No match
     a123:bce:ddde:9999:b342::324e:dcba:abcd
@@ -6222,12 +5956,12 @@ No match
  0: d
     ] 
  0: ]
-    *** Failers
- 0: a
+\= Expect no match
     b     
 No match
 
 /(a+)*b/
+\= Expect no match
     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 
 No match
     
@@ -6262,8 +5996,7 @@ No match
 /ab cd(?x) de fg/
     ab cddefg
  0: ab cddefg
-    ** Failers 
-No match
+\= Expect no match 
     abcddefg
 No match
 
@@ -6271,24 +6004,21 @@ No match
     foobarX 
  0: bar
  1: bar
-    ** Failers 
-No match
+\= Expect no match 
     boobarX
 No match
 
 /(?<![^f])X/
     offX
  0: X
-    ** Failers
-No match
+\= Expect no match
     onyX  
 No match
 
 /(?<=[^f])X/
     onyX
  0: X
-    ** Failers
-No match
+\= Expect no match
     offX 
 No match
 
@@ -6346,16 +6076,14 @@ No match
 "(?x)(?-x: \s*#\s*)"
     A # B
  0:  # 
-    ** Failers
-No match
+\= Expect no match
     #  
 No match
 
 "(?x-is)(?:(?-ixs) \s*#\s*) include"
     A #include
  0:  #include
-    ** Failers
-No match
+\= Expect no match
     A#include  
 No match
     A #Include
@@ -6433,16 +6161,14 @@ No match
 /^[\Eabc]/
     a
  0: a
-    ** Failers 
-No match
+\= Expect no match 
     E 
 No match
     
 /^[a-\Ec]/
     b
  0: b
-    ** Failers
-No match
+\= Expect no match
     -
 No match
     E    
@@ -6451,8 +6177,7 @@ No match
 /^[a\E\E-\Ec]/
     b
  0: b
-    ** Failers
-No match
+\= Expect no match
     -
 No match
     E    
@@ -6461,8 +6186,7 @@ No match
 /^[\E\Qa\E-\Qz\E]+/
     b
  0: b
-    ** Failers
-No match
+\= Expect no match
     -  
 No match
     
@@ -6514,23 +6238,26 @@ No match
  2: 
 
 /(a|)*\d/
-  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-No match
   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
  0: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
  1: 
+\= Expect no match
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+No match
 
 /(?>a|)*\d/
-  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-No match
   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
  0: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+\= Expect no match
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+No match
 
 /(?:a|)*\d/
-  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-No match
   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
  0: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+\= Expect no match
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+No match
 
 /\Z/g
   abc\n
@@ -6540,18 +6267,21 @@ No match
 /^(?s)(?>.*)(?<!\n)/
   abc
  0: abc
+\= Expect no match
   abc\n  
 No match
 
 /^(?![^\n]*\n\z)/
   abc
  0: 
+\= Expect no match
   abc\n 
 No match
   
 /\z(?<!\n)/
   abc
  0: 
+\= Expect no match
   abc\n  
 No match
 
@@ -6596,6 +6326,7 @@ No match
  0: p
 
 /.*[op][xyz]/
+\= Expect no match
     fooabcfoo
 No match
 
@@ -6608,6 +6339,7 @@ No match
 /(?(?=^.*b)b|^)/
    adc
  0: 
+\= Expect no match
    abc 
 No match
 
@@ -6643,8 +6375,7 @@ No match
  0: Ab
     CcC 
  0: c
-    ** Failers
-No match
+\= Expect no match
     XABX   
 No match
 
@@ -6653,10 +6384,12 @@ No match
  0: \x0a\x0b\x0c\x0d
 
 /(abc)\1/i
+\= Expect no match
    abc
 No match
 
 /(abc)\1/
+\= Expect no match
    abc
 No match
 
@@ -6673,16 +6406,14 @@ No match
  0: 12
 
 /[^a]*?X/i
-    ** Failers
-No match
+\= Expect no match
     12abc
 No match
     12ABC
 No match
     
 /[^a]+?X/i
-    ** Failers
-No match
+\= Expect no match
     12abc
 No match
     12ABC
@@ -6807,10 +6538,12 @@ No match
  3: aabab
 
 /(?>a+|ab)+?c/
+\= Expect no match
     aabc
 No match
 
 /(?>a+|ab)+c/
+\= Expect no match
     aabc
 No match
 
@@ -6830,10 +6563,12 @@ No match
  2: b
 
 /^(?:a|ab)++c/
+\= Expect no match
     aaaabc
 No match
 
 /^(?>a|ab)++c/
+\= Expect no match
     aaaabc
 No match
 
@@ -6845,8 +6580,7 @@ No match
     abcabcabc
  0: abc
  0+ abcabc
-    ** Failers
-No match
+\= Expect no match
     xyz  
 No match
     
@@ -6854,8 +6588,7 @@ No match
     abcabcabc
  0: abc
  0+ abcabc
-    ** Failers
-No match
+\= Expect no match
     xyz  
 No match
     
@@ -6863,8 +6596,7 @@ No match
     abcabcabc
  0: abc
  0+ abcabc
-    ** Failers
-No match
+\= Expect no match
     xyz  
 No match
     
@@ -6873,8 +6605,7 @@ No match
  0: xyz
 
 /(?=abc){1}xyz/
-    ** Failers
-No match
+\= Expect no match
     xyz 
 No match
     
@@ -6913,8 +6644,7 @@ No match
 /^[\g<a>]+/
     ggg<<<aaa>>>
  0: ggg<<<aaa>>>
-    ** Failers
-No match
+\= Expect no match
     \\ga  
 No match
     
@@ -6937,16 +6667,14 @@ No match
 /(?<=a{2})b/i
     xaabc
  0: b
-    ** Failers
-No match
+\= Expect no match
     xabc  
 No match
 
 /(?<!a{2})b/i
     xabc
  0: b
-    ** Failers
-No match
+\= Expect no match
     xaabc  
 No match
 
@@ -6959,16 +6687,14 @@ No match
  0: b
     aAAbc 
  0: b
-    ** Failers
-No match
+\= Expect no match
     xaabc    
 No match
 
 /(?<=[^a]{2})b/i
     axxbc  
  0: b
-    ** Failers
-No match
+\= Expect no match
     aAAbc 
 No match
     xaabc    
@@ -6998,40 +6724,28 @@ No match
     aaaaaaa
  0: aaaaaaa
  1: aaa
-    ** Failers
-No match
+\= Expect no match
     aaaaaa
 No match
     aaaaaaaaa 
 No match
 
 /^(a{2,3})++a/
-    ** Failers
-No match
+\= Expect no match
     aaaaaa
 No match
 
 /^(a{2,3})*+a/
-    ** Failers
-No match
+\= Expect no match
     aaaaaa
 No match
-
-/ab\Cde/
-    abXde
- 0: abXde
-    
-/(?<=ab\Cde)X/
-    abZdeX
- 0: X
 
 /\H\h\V\v/
     X X\x0a
  0: X X\x0a
     X\x09X\x0b
  0: X\x09X\x0b
-    ** Failers
-No match
+\= Expect no match
     \xa0 X\x0a   
 No match
     
@@ -7042,8 +6756,7 @@ No match
  0: \x09 \xa0\x0a\x0b\x0c\x0d
     \x09\x20\xa0\x0a\x0b\x0c
  0: \x09 \xa0\x0a\x0b\x0c
-    ** Failers 
-No match
+\= Expect no match 
     \x09\x20\xa0\x0a\x0b
 No match
      
@@ -7062,8 +6775,7 @@ No match
  0: XNNNYZ
     >  X NYQZ
  0:   X NYQZ
-    ** Failers
-No match
+\= Expect no match
     >XYZ   
 No match
     >  X NY Z
@@ -7120,12 +6832,11 @@ No match
     abcdef
  0: 
  0+ def
-    ** Failers
-No match
+\= Expect no match
     defabcxyz   
 No match
 
-/^(a(b))\1\g1\g{1}\g-1\g{-1}\g{-02}Z/
+/^(a(b))\1\g1\g{1}\g-1\g{-1}\g{-2}Z/
     ababababbbabZXXXX
  0: ababababbbabZ
  1: ab
@@ -7140,6 +6851,7 @@ No match
  1: bon
     
 /(^(a|b\g{-1}))/
+\= Expect no match
     bacxxx
 No match
 
@@ -7150,8 +6862,7 @@ No match
     xyzxyz 
  0: xyzxyz
  1: xyz
-    ** Failers
-No match
+\= Expect no match
     abcxyz
 No match
     xyzabc   
@@ -7164,8 +6875,7 @@ No match
     xyzabc 
  0: xyzabc
  1: xyz
-    ** Failers 
-No match
+\= Expect no match 
     xyzxyz 
 No match
  
@@ -7207,8 +6917,7 @@ No match
     ab:ababxyz
  0: ab:abab
  1: ab
-    ** Failers
-No match
+\= Expect no match
     a:axyz
 No match
     ab:abxyz
@@ -7221,8 +6930,7 @@ No match
     ab:ababxyz
  0: ab:abab
  1: ab
-    ** Failers
-No match
+\= Expect no match
     a:axyz
 No match
     ab:abxyz
@@ -7272,8 +6980,7 @@ No match
  0: 10.0.0.0
  1: <unset>
  2: .0
-    ** Failers
-No match
+\= Expect no match
     10.6
 No match
     455.3.4.5
@@ -7289,8 +6996,7 @@ No match
     10.0.0.0
  0: 10.0.0.0
  1: .0
-    ** Failers
-No match
+\= Expect no match
     10.6
 No match
     455.3.4.5
@@ -7300,8 +7006,7 @@ No match
     now is the time for all good men to come to the aid of the party
  0: now is the time for all good men to come to the aid of the party
  1: party
-    *** Failers
-No match
+\= Expect no match
     this is not a line with only words and spaces!
 No match
 
@@ -7310,8 +7015,7 @@ No match
  0: 12345a
  1: 12345
  2: a
-    *** Failers
-No match
+\= Expect no match
     12345+
 No match
 
@@ -7341,8 +7045,7 @@ No match
     (abc(def)xyz)
  0: (abc(def)xyz)
  1: xyz
-    *** Failers
-No match
+\= Expect no match
     ((()aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 No match
 
@@ -7356,8 +7059,7 @@ No match
     a(b(c))d
  0: a(b(c))d
  1: d
-    *** Failers)
-No match
+\= Expect no match)
     a(b(c)d
 No match
 
@@ -7395,8 +7097,7 @@ No match
  2: <unset>
  3: AblewasIereIsawElba
  4: A
-    *** Failers
-No match
+\= Expect no match
     Thequickbrownfox
 No match
 
@@ -7411,8 +7112,7 @@ No match
     -12
  0: -12
  1: -12
-    *** Failers
-No match
+\= Expect no match
     ((2+2)*-3)-7)
 No match
 
@@ -7425,8 +7125,7 @@ No match
  0: xxyzxyzz
  1: xxyzxyzz
  2: xyzxyz
-    *** Failers
-No match
+\= Expect no match
     xxyzz
 No match
     xxyzxyzxyzz
@@ -7457,28 +7156,32 @@ No match
  0: <>
  1: <>
  2: <>
-    *** Failers
-No match
+\= Expect no match
     <abc
 No match
 
 /^a+(*FAIL)/
+\= Expect no match
     aaaaaa
 No match
     
 /a+b?c+(*FAIL)/
+\= Expect no match
     aaabccc
 No match
 
 /a+b?(*PRUNE)c+(*FAIL)/
+\= Expect no match
     aaabccc
 No match
 
 /a+b?(*COMMIT)c+(*FAIL)/
+\= Expect no match
     aaabccc
 No match
     
 /a+b?(*SKIP)c+(*FAIL)/
+\= Expect no match
     aaabcccaaabccc
 No match
 
@@ -7522,6 +7225,7 @@ No match
  1: ddd
 
 /a+b?(*THEN)c+(*FAIL)/
+\= Expect no match
     aaabccc
 No match
 
@@ -7544,8 +7248,7 @@ No match
  1: ACD
  2: C
  3: E
-    ** Failers
-No match
+\= Expect no match
     AD 
 No match
         
@@ -7572,8 +7275,7 @@ No match
  2: <unset>
  3: Able was I ere I saw Elba
  4: A
-    *** Failers
-No match
+\= Expect no match
     The quick brown fox
 No match
 
@@ -7601,6 +7303,7 @@ No match
  0: ablewasiereisawelba
  1: ablewasiereisawelba
  2: a
+\= Expect no match     
     rhubarb
 No match
     the quick brown fox  
@@ -7610,8 +7313,7 @@ No match
     baz
  0: a
  1: a
-    ** Failers
-No match
+\= Expect no match
     caz  
 No match
     
@@ -7619,8 +7321,7 @@ No match
     zbaaz
  0: a
  1: a
-    ** Failers
-No match
+\= Expect no match
     aaa  
 No match
     
@@ -7636,8 +7337,7 @@ No match
     defdef 
  0: defdef
  1: def
-    ** Failers
-No match
+\= Expect no match
     abcdef
 No match
     defabc   
@@ -7650,8 +7350,7 @@ No match
     defabc
  0: defabc
  1: def
-    ** Failers
-No match
+\= Expect no match
     defdef
 No match
     abcdef    
@@ -7671,8 +7370,7 @@ No match
  4: "
  5: <unset>
  6: "
-    ** Failers 
-No match
+\= Expect no match 
     b\"11111
 No match
 
@@ -7683,8 +7381,7 @@ No match
     CCD
  0: CC
  1: C
-    ** Failers
-No match
+\= Expect no match
     CAD   
 No match
 
@@ -7695,8 +7392,7 @@ No match
     BCD 
  0: BC
  1: C
-    ** Failers
-No match
+\= Expect no match
     ABCD
 No match
     CAD
@@ -7720,8 +7416,7 @@ No match
     BAX  
  0: BA
  1: A
-    ** Failers
-No match
+\= Expect no match
     ACX
 No match
     ABC   
@@ -7742,16 +7437,14 @@ No match
  2: ef
 
 /^(?=a(*SKIP)b|ac)/
-    ** Failers
-No match
+\= Expect no match
     ac
 No match
     
 /^(?=a(*PRUNE)b)/
     ab  
  0: 
-    ** Failers 
-No match
+\= Expect no match 
     ac
 No match
 
@@ -7825,14 +7518,14 @@ No match
 # I think is a Perl bug.
 
 /A(*COMMIT)(B|D)/
+\= Expect no match
     ACABX
 No match
 
 # Check the use of names for failure
 
 /^(A(*PRUNE:A)B|C(*PRUNE:B)D)/mark
-    ** Failers
-No match
+\= Expect no match
     AC
 No match, mark = A
     CB    
@@ -7843,20 +7536,22 @@ No match, mark = B
  0: C
  1: C
 MK: A
+\= Expect no match
     D
 No match, mark = A
      
 /^(A(*THEN:A)B|C(*THEN:B)D)/mark
-    ** Failers
-No match
+\= Expect no match
     CB    
 No match, mark = B
 
 /^(?:A(*THEN:A)B|C(*THEN:B)D)/mark
+\= Expect no match
     CB    
 No match, mark = B
     
 /^(?>A(*THEN:A)B|C(*THEN:B)D)/mark
+\= Expect no match
     CB    
 No match, mark = B
     
@@ -7882,6 +7577,7 @@ No match, mark = B
  0: AC
 
 /(*:A)A+(*SKIP:A)(B|Z)/mark
+\= Expect no match
     AAAC
 No match, mark = A
 
@@ -7905,8 +7601,7 @@ MK: B
  1: A
  2: B
  3: C
-    ** Failers
-No match
+\= Expect no match
     DEFGABC  
 No match
 
@@ -7918,6 +7613,7 @@ No match
  1: a
 
 /(\w+)b(*COMMIT)\w{2}/
+\= Expect no match
     abbb
 No match
 
@@ -7930,10 +7626,12 @@ No match
 # COMMIT should override THEN.
 
 /(?>(*COMMIT)(?>yes|no)(*THEN)(*F))?/
+\= Expect no match
   yes
 No match
 
 /(?>(*COMMIT)(yes|no)(*THEN)(*F))?/
+\= Expect no match
   yes
 No match
 
@@ -7944,10 +7642,12 @@ No match
  0: bc
    
 /(*SKIP)bc/
+\= Expect no match
     a
 No match
 
 /(*SKIP)b/
+\= Expect no match
     a 
 No match
 
@@ -7963,9 +7663,7 @@ No match
     aA     
  0: aA
  1: a
-    ** Failers
- 0: **
- 1: *
+\= Expect no match
     ab
 No match
     aB
@@ -7978,8 +7676,7 @@ No match
 /^(?&t)*+(?(DEFINE)(?<t>a))\w$/
     aaaaaaX
  0: aaaaaaX
-    ** Failers 
-No match
+\= Expect no match 
     aaaaaa 
 No match
 
@@ -7998,8 +7695,7 @@ No match
  0: Y
  1: <unset>
  2: Y
-    ** Failers 
-No match
+\= Expect no match 
     aaaa
 No match
 
@@ -8010,8 +7706,7 @@ No match
     YZ 
  0: Y
  1: Y
-    ** Failers 
-No match
+\= Expect no match 
     aaaa
 No match
 
@@ -8020,8 +7715,7 @@ No match
  0: aaaaX
  1: a
  2: X
-    ** Failers 
-No match
+\= Expect no match 
     aaaa
 No match
     YZ 
@@ -8031,8 +7725,7 @@ No match
     aaaaX
  0: aaaaX
  1: X
-    ** Failers 
-No match
+\= Expect no match 
     aaaa
 No match
     YZ 
@@ -8061,8 +7754,7 @@ No match
  0: aaaaX
  1: a
  2: X
-    ** Failers
-No match
+\= Expect no match
     aaa
 No match
     YZ 
@@ -8072,8 +7764,7 @@ No match
     aaaaX
  0: aaaaX
  1: X
-    ** Failers
-No match
+\= Expect no match
     aaa
 No match
     YZ 
@@ -8091,16 +7782,14 @@ No match
  1: 
 
 /(a)++(?1)b/
-    ** Failers
-No match
+\= Expect no match
     ab 
 No match
     aab
 No match
 
 /(a)*+(?1)b/
-    ** Failers
-No match
+\= Expect no match
     ab
 No match
     aab  
@@ -8157,6 +7846,7 @@ No match
  1: a
     
 /^(a)(?1)++ab/
+\= Expect no match
     aaaab
 No match
 
@@ -8229,6 +7919,7 @@ MK: any \x0aname
 # Capture
 
 /^.*? (a(*THEN)b) c/x
+\= Expect no match
     aabc
 No match
 
@@ -8244,12 +7935,14 @@ No match
  2: ab
 
 /^.*? ( (a(*THEN)b) ) c/x
+\= Expect no match
     aabc
 No match
 
 # Non-capture
 
 /^.*? (?:a(*THEN)b) c/x
+\= Expect no match
     aabc
 No match
 
@@ -8262,12 +7955,14 @@ No match
  0: aabc
 
 /^.*? (?: (?:a(*THEN)b) ) c/x
+\= Expect no match
     aabc
 No match
 
 # Atomic
 
 /^.*? (?>a(*THEN)b) c/x
+\= Expect no match
     aabc
 No match
 
@@ -8280,12 +7975,14 @@ No match
  0: aabc
 
 /^.*? (?> (?>a(*THEN)b) ) c/x
+\= Expect no match
     aabc
 No match
 
 # Possessive capture
 
 /^.*? (a(*THEN)b)++ c/x
+\= Expect no match
     aabc
 No match
 
@@ -8301,12 +7998,14 @@ No match
  2: ab
 
 /^.*? ( (a(*THEN)b)++ )++ c/x
+\= Expect no match
     aabc
 No match
 
 # Possessive non-capture
 
 /^.*? (?:a(*THEN)b)++ c/x
+\= Expect no match
     aabc
 No match
 
@@ -8319,6 +8018,7 @@ No match
  0: aabc
 
 /^.*? (?: (?:a(*THEN)b)++ )++ c/x
+\= Expect no match
     aabc
 No match
     
@@ -8331,6 +8031,7 @@ No match
 # Condition
 
 /^.*?(?(?=a)a|b(*THEN)c)/
+\= Expect no match
     ba
 No match
 
@@ -8339,6 +8040,7 @@ No match
  0: ba
 
 /^.*?(?(?=a)a(*THEN)b|c)/
+\= Expect no match
     ac
 No match
 
@@ -8374,8 +8076,7 @@ MK: m
     xabcd
  0: c
  1: ab
-    ** Failers 
-No match
+\= Expect no match 
     xacd
 No match
     
@@ -8413,6 +8114,7 @@ MK: N
  0: C
  1: C
 MK: B
+\= Expect no match
     D 
 No match, mark = B
 
@@ -8421,6 +8123,7 @@ No match, mark = B
  0: C
  1: C
 MK: B
+\= Expect no match
     D 
 No match, mark = B
 
@@ -8429,6 +8132,7 @@ No match, mark = B
  0: C
  1: C
 MK: B
+\= Expect no match
     D 
 No match, mark = B
 
@@ -8437,6 +8141,7 @@ No match, mark = B
  0: C
  1: C
 MK: B
+\= Expect no match
     D 
 No match, mark = B
 
@@ -8445,28 +8150,33 @@ No match, mark = B
  0: C
  1: C
 MK: B
+\= Expect no match
     D 
 No match, mark = B
 
 # This should fail, as the skip causes a bump to offset 3 (the skip).
 
 /A(*MARK:A)A+(*SKIP)(B|Z) | AC/x,mark
+\= Expect no match
     AAAC
 No match, mark = A
 
 # Same 
 
 /A(*MARK:A)A+(*MARK:B)(*SKIP:B)(B|Z) | AC/x,mark
+\= Expect no match
     AAAC
 No match, mark = B
 
 /A(*:A)A+(*SKIP)(B|Z) | AC/x,mark
+\= Expect no match
     AAAC
 No match, mark = A
 
 # This should fail, as a null name is the same as no name.
 
 /A(*MARK:A)A+(*SKIP:)(B|Z) | AC/x,mark
+\= Expect no match
     AAAC
 No match, mark = A
 
@@ -8482,8 +8192,7 @@ MK: A
     XXYZ 
  0: XXY
 MK: B
-    ** Failers
-No match
+\= Expect no match
     XAQQ  
 No match, mark = A
     XAQQXZZ  
@@ -8502,8 +8211,7 @@ MK: A
  0: CD
  1: CD
 MK: B
-    ** Failers
-No match
+\= Expect no match
     AC
 No match, mark = A
     CB    
@@ -8518,8 +8226,7 @@ MK: A
  0: CD
  1: CD
 MK: B
-    ** Failers
-No match
+\= Expect no match
     AC
 No match, mark = A
     CB    
@@ -8558,16 +8265,14 @@ MK: A
     aw 
  0: aw
 MK: n
-    ** Failers 
-No match, mark = n
+\= Expect no match 
     abc
 No match, mark = m
 
 /b(*:m)f|aw/mark
     abaw
  0: aw
-    ** Failers 
-No match
+\= Expect no match 
     abc
 No match, mark = m
     abax 
@@ -8578,14 +8283,12 @@ No match, mark = m
  0: AAC
 
 /a(*PRUNE:X)bc|qq/mark,no_start_optimize
-    ** Failers
-No match, mark = X
+\= Expect no match
     axy
 No match, mark = X
 
 /a(*THEN:X)bc|qq/mark,no_start_optimize
-    ** Failers
-No match, mark = X
+\= Expect no match
     axy
 No match, mark = X
 
@@ -8593,8 +8296,7 @@ No match, mark = X
     abxy
  0: abx
 MK: A
-    ** Failers
-No match
+\= Expect no match
     abpq  
 No match
 
@@ -8602,8 +8304,7 @@ No match
     abxy
  0: abx
 MK: Y
-    ** Failers
-No match
+\= Expect no match
     abpq  
 No match
 
@@ -8611,8 +8312,7 @@ No match
     abxy
  0: abx
 MK: A
-    ** Failers
-No match
+\= Expect no match
     abpq  
 No match
 
@@ -8620,8 +8320,7 @@ No match
     abxy
  0: abx
 MK: Y
-    ** Failers
-No match
+\= Expect no match
     abpq  
 No match
 
@@ -8629,8 +8328,7 @@ No match
     abxy
  0: abx
 MK: A
-    ** Failers
-No match
+\= Expect no match
     abpq  
 No match
 
@@ -8638,8 +8336,7 @@ No match
     abxy
  0: abx
 MK: Y
-    ** Failers
-No match
+\= Expect no match
     abpq  
 No match
 
@@ -8650,6 +8347,7 @@ No match
  2: 
 
 /(another)?(\1+)test/
+\= Expect no match
     hello world test
 No match
 
@@ -8675,22 +8373,6 @@ No match
     aba
  0: aba
 
-/.*?a(*PRUNE)b/
-    aab
- 0: ab
-
-/.*?a(*PRUNE)b/s
-    aab
- 0: ab
-
-/^a(*PRUNE)b/s
-    aab
-No match
-
-/.*?a(*SKIP)b/
-    aab
- 0: ab
-
 /(?>.*?a)b/s
     aab
  0: ab
@@ -8700,6 +8382,7 @@ No match
  0: ab
 
 /(?>^a)b/s
+\= Expect no match
     aab
 No match
 
@@ -8722,6 +8405,7 @@ No match
  2: wxyz
 
 "(?>.*)foo"
+\= Expect no match
     abcdfooxyz
 No match
     
@@ -8738,6 +8422,7 @@ No match
  0: ac
 
 /(?<=(*SKIP)ac)a/
+\= Expect no match
     aa
 No match
 
@@ -8827,6 +8512,7 @@ MK: n
 # This gives "no match", as expected. 
 
 /aaaaa(*COMMIT)b|a+c/
+\= Expect no match
     aaaaaac
 No match
 
@@ -8903,6 +8589,7 @@ No match
     abc
  0: abc
  1: ab
+\= Expect no match
     abd
 No match
 
@@ -8919,10 +8606,11 @@ No match
  0: abd
 
 /a(?=b(*COMMIT)c)[^d]|abd/
+    abc
+ 0: ab
+\= Expect no match
     abd
 No match
-    abc 
- 0: ab
 
 /a(?=bc).|abd/
     abd
@@ -8931,6 +8619,7 @@ No match
  0: ab
     
 /a(?>b(*COMMIT)c)d|abd/
+\= Expect no match
     abceabd 
 No match
 
@@ -8943,6 +8632,7 @@ No match
  0: abd
 
 /(?>a(*COMMIT)c)d|abd/
+\= Expect no match
     abd
 No match
 
@@ -8956,8 +8646,7 @@ No match
 # made them compatible. 
     
 /^(a)?(?(1)a|b)+$/
-    *** Failers
-No match
+\= Expect no match
     a
 No match
 
@@ -8977,8 +8666,8 @@ No match
     abcd
  0: abcd
 
-
 /A(*PRUNE:A)A+(*SKIP:A)(B|Z) | AC/x,mark
+\= Expect no match
     AAAC
 No match, mark = A
 
@@ -8986,68 +8675,82 @@ No match, mark = A
     abcd
  0: abcd
  1: abcd
-    *** Failers 
-No match
+\= Expect no match 
     abcxy 
 No match
     
 /^((yes|no)(*THEN)(*F))?/
+\= Expect no match
     yes
 No match
 
 /(A (.*)   C? (*THEN)  | A D) (*FAIL)/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   C? (*THEN)  | A D) z/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   C? (*THEN)  | A D) \s* (*FAIL)/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   C? (*THEN)  | A D) \s* z/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   (?:C|) (*THEN)  | A D) (*FAIL)/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   (?:C|) (*THEN)  | A D) z/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   C{0,6} (*THEN)  | A D) (*FAIL)/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   C{0,6} (*THEN)  | A D) z/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   (CE){0,6} (*THEN)  | A D) (*FAIL)/x
+\= Expect no match
     AbcdCEBefgBhiBqz
 No match
 
 /(A (.*)   (CE){0,6} (*THEN)  | A D) z/x
+\= Expect no match
     AbcdCEBefgBhiBqz
 No match
 
 /(A (.*)   (CE*){0,6} (*THEN)  | A D) (*FAIL)/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(A (.*)   (CE*){0,6} (*THEN)  | A D) z/x
+\= Expect no match
     AbcdCBefgBhiBqz
 No match
 
 /(?=a(*COMMIT)b|ac)ac|ac/
+\= Expect no match
     ac
 No match
 
 /(?=a(*COMMIT)b|(ac)) ac | (a)c/x
+\= Expect no match
     ac
 No match
 
@@ -9082,6 +8785,7 @@ No match
  0: bn
 
 /(?=b(*SKIP)a)bn|bnn/
+\= Expect no match
     bnn
 No match
 
@@ -9148,30 +8852,35 @@ MK: m(m
 /^\d*\w{4}/
     1234
  0: 1234
+\= Expect no match
     123 
 No match
 
 /^[^b]*\w{4}/
     aaaa
  0: aaaa
+\= Expect no match
     aaa     
 No match
 
 /^[^b]*\w{4}/i
     aaaa
  0: aaaa
+\= Expect no match
     aaa     
 No match
 
 /^a*\w{4}/
     aaaa
  0: aaaa
+\= Expect no match
     aaa     
 No match
 
 /^a*\w{4}/i
     aaaa
  0: aaaa
+\= Expect no match
     aaa     
 No match
 
@@ -9194,8 +8903,7 @@ No match
  1: A
  2: <unset>
  3: bar
-    ** Failers 
-No match
+\= Expect no match 
     Afoofoo
 No match
     Abarbar
@@ -9278,6 +8986,7 @@ No match
  1: ab
 
 /(?:x|(?:(xx|yy)+|x|x|x|x|x)|a|a|a)bc/
+\= Expect no match
     acb
 No match
 
@@ -9337,6 +9046,7 @@ No match
  2: b
 
 /(?:(?P=same)?(?:(?P=same)(?P<same>a)(?P=same)|(?P=same)?(?P<same>b)(?P=same)){2}(?P=same)(?P<same>c)(?P=same)){2}(?P<same>z)?/g,dupnames
+\= Expect no match
     bbbaaaccccaaabbbcc
 No match
 
@@ -9411,5 +9121,624 @@ No match
  3: <unset>
  4: <unset>
  5: 
+
+/(\2|a)(\1)/
+    aaa
+ 0: aa
+ 1: a
+ 2: a
+
+/(\2)(\1)/
+
+"Z*(|d*){216}"
+
+"(?1)(?#?'){8}(a)"
+    baaaaaaaaac
+ 0: aaaaaaaaa
+ 1: a
+
+/((((((((((((x))))))))))))\12/
+    xx
+ 0: xx
+ 1: x
+ 2: x
+ 3: x
+ 4: x
+ 5: x
+ 6: x
+ 7: x
+ 8: x
+ 9: x
+10: x
+11: x
+12: x
+
+/A[\8]B[\9]C/
+    A8B9C
+ 0: A8B9C
+
+/(?1)()((((((\1++))\x85)+)|))/
+    \x85\x85
+ 0: \x85\x85
+ 1: 
+ 2: \x85\x85
+ 3: \x85\x85
+ 4: \x85\x85
+ 5: \x85
+ 6: 
+ 7: 
+
+"(?|(\k'Pm')|(?'Pm'))"
+    abcd
+ 0: 
+ 1: 
+
+/(?|(aaa)|(b))\g{1}/
+    aaaaaa
+ 0: aaaaaa
+ 1: aaa
+    bb 
+ 0: bb
+ 1: b
+
+/(?|(aaa)|(b))(?1)/
+    aaaaaa
+ 0: aaaaaa
+ 1: aaa
+    baaa 
+ 0: baaa
+ 1: b
+\= Expect no match 
+    bb 
+No match
+
+/(?|(aaa)|(b))/
+    xaaa
+ 0: aaa
+ 1: aaa
+    xbc 
+ 0: b
+ 1: b
+
+/(?|(?'a'aaa)|(?'a'b))\k'a'/
+    aaaaaa
+ 0: aaaaaa
+ 1: aaa
+    bb 
+ 0: bb
+ 1: b
+
+/(?|(?'a'aaa)|(?'a'b))(?'a'cccc)\k'a'/dupnames
+    aaaccccaaa
+ 0: aaaccccaaa
+ 1: aaa
+ 2: cccc
+    bccccb 
+ 0: bccccb
+ 1: b
+ 2: cccc
+
+# /x does not apply to MARK labels 
+
+/x (*MARK:ab cd # comment
+ef) x/x,mark
+    axxz
+ 0: xx
+MK: ab cd # comment\x0aef
+
+/(?<=a(B){0}c)X/
+    acX
+ 0: X
+
+/(?<DEFINE>b)(?(DEFINE)(a+))(?&DEFINE)/          
+    bbbb 
+ 0: bb
+ 1: b
+\= Expect no match     
+    baaab
+No match
+
+/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[,;:])(?=.{8,16})(?!.*[\s])/
+    \   Fred:099
+ 0: 
+
+/(?=.*X)X$/ 
+    \  X
+ 0: X
+
+/(?s)(?=.*?)b/
+    aabc
+ 0: b
+
+/(Z)(a)\2{1,2}?(?-i)\1X/i
+    ZaAAZX
+ 0: ZaAAZX
+ 1: Z
+ 2: a
+
+/(?'c')XX(?'YYYYYYYYYYYYYYYYYYYYYYYCl')/
+
+/[s[:digit:]\E-H]+/
+    s09-H
+ 0: s09-H
+
+/[s[:digit:]\Q\E-H]+/
+    s09-H
+ 0: s09-H
+
+/a+(?:|b)a/
+    aaaa
+ 0: aaaa
+
+/X?(R||){3335}/
+
+/(?1)(A(*COMMIT)|B)D/
+    ABD
+ 0: ABD
+ 1: B
+    XABD
+ 0: ABD
+ 1: B
+    BAD
+ 0: BAD
+ 1: A
+    ABXABD  
+ 0: ABD
+ 1: B
+\= Expect no match 
+    ABX 
+No match
+
+/(?(DEFINE)(?<m> 1? (?=(?<cond>2)?) 1 2 (?('cond')|3)))
+    \A
+    ()
+    (?&m)
+    \Z/x
+    123
+ 0: 123
+ 1: <unset>
+ 2: <unset>
+ 3: 
+
+/^(?: 
+(?: A| (1? (?=(?<cond>2)?) (1) 2 (?('cond')|3)) )
+(Z)
+)+$/x
+    AZ123Z
+ 0: AZ123Z
+ 1: 123
+ 2: <unset>
+ 3: 1
+ 4: Z
+\= Expect no match     
+    AZ12Z 
+No match
+    
+/^ (?(DEFINE) ( (?!(a)\2b)..) )   ()(?1)  /x
+    acb
+ 0: ac
+ 1: <unset>
+ 2: <unset>
+ 3: 
+\= Expect no match     
+    aab
+No match
+    
+'(?>ab|abab){1,5}?M'
+    abababababababababababM
+ 0: abababababM
+
+'(?>ab|abab){2}?M'
+    abababM
+ 0: ababM
+
+'((?(?=(a))a)+k)'
+    bbak
+ 0: ak
+ 1: ak
+ 2: a
+
+'((?(?=(a))a|)+k)'
+    bbak
+ 0: ak
+ 1: ak
+ 2: a
+
+'(?(?!(b))a|b)+k'
+    ababbalbbadabak
+ 0: abak
+ 1: b
+
+/(?!(b))c|b/
+    Ab
+ 0: b
+    Ac 
+ 0: c
+
+/(?=(b))b|c/
+    Ab
+ 0: b
+ 1: b
+    Ac 
+ 0: c
+
+/^(.|(.)(?1)\2)$/
+    a
+ 0: a
+ 1: a
+    aba
+ 0: aba
+ 1: aba
+ 2: a
+    abcba
+ 0: abcba
+ 1: abcba
+ 2: a
+    ababa
+ 0: ababa
+ 1: ababa
+ 2: a
+    abcdcba
+ 0: abcdcba
+ 1: abcdcba
+ 2: a
+
+/^((.)(?1)\2|.?)$/
+    a
+ 0: a
+ 1: a
+    aba
+ 0: aba
+ 1: aba
+ 2: a
+    abba
+ 0: abba
+ 1: abba
+ 2: a
+    abcba
+ 0: abcba
+ 1: abcba
+ 2: a
+    ababa
+ 0: ababa
+ 1: ababa
+ 2: a
+    abccba
+ 0: abccba
+ 1: abccba
+ 2: a
+    abcdcba
+ 0: abcdcba
+ 1: abcdcba
+ 2: a
+    abcddcba
+ 0: abcddcba
+ 1: abcddcba
+ 2: a
+
+/^(.)(\1|a(?2))/
+    bab
+ 0: bab
+ 1: b
+ 2: ab
+
+/^(.|(.)(?1)?\2)$/
+    abcba
+ 0: abcba
+ 1: abcba
+ 2: a
+    
+/^(?(?=(a))abc|def)/
+    abc
+ 0: abc
+ 1: a
+
+/^(?(?!(a))def|abc)/
+    abc
+ 0: abc
+ 1: a
+
+/^(?(?=(a)(*ACCEPT))abc|def)/
+    abc
+ 0: abc
+ 1: a
+
+/^(?(?!(a)(*ACCEPT))def|abc)/
+    abc
+ 0: abc
+ 1: a
+
+/^(?1)\d{3}(a)/
+    a123a
+ 0: a123a
+ 1: a
+
+# This pattern uses a lot of named subpatterns in order to match email
+# addresses in various formats. It's a heavy test for named subpatterns. In the
+# <atext> group, slash is coded as \x{2f} so that this pattern can also be
+# processed by perltest.sh, which does not cater for an escaped delimiter
+# within the pattern. $ within the pattern must also be escaped. All $ and @
+# characters in subject strings are escaped so that Perl doesn't interpret them
+# as variable insertions and " characters must also be escaped for Perl.
+
+# This set of subpatterns is more or less a direct transliteration of the BNF
+# definitions in RFC2822, without any of the obsolete features. The addition of
+# a possessive + to the definition of <phrase> reduced the match limit in PCRE2
+# from over 5 million to just under 400, and eliminated a very noticeable delay
+# when this file was passed to perltest.sh.
+
+/(?ix)(?(DEFINE)
+(?<addr_spec>       (?&local_part) \@ (?&domain) )
+(?<angle_addr>      (?&CFWS)?+ < (?&addr_spec) > (?&CFWS)?+ )
+(?<atext>           [a-z\d!#\$%&'*+-\x{2f}=?^_`{|}~] )
+(?<atom>            (?&CFWS)?+ (?&atext)+ (?&CFWS)?+ )
+(?<ccontent>        (?&ctext) | (?&quoted_pair) | (?&comment) )
+(?<ctext>           [^\x{9}\x{10}\x{13}\x{7f}-\x{ff}\ ()\\] )
+(?<comment>         \( (?: (?&FWS)?+ (?&ccontent) )*+ (?&FWS)?+ \) )
+(?<CFWS>            (?: (?&FWS)?+ (?&comment) )* (?# NOT possessive)
+                    (?: (?&FWS)?+ (?&comment) | (?&FWS) ) )
+(?<dcontent>        (?&dtext) | (?&quoted_pair) )
+(?<display_name>    (?&phrase) )
+(?<domain>          (?&dot_atom) | (?&domain_literal) )
+(?<domain_literal>  (?&CFWS)?+ \[ (?: (?&FWS)?+ (?&dcontent) )* (?&FWS)?+ \]
+                    (?&CFWS)?+ )
+(?<dot_atom>        (?&CFWS)?+ (?&dot_atom_text) (?&CFWS)?+ )
+(?<dot_atom_text>   (?&atext)++ (?: \. (?&atext)++)*+ )
+(?<dtext>           [^\x{9}\x{10}\x{13}\x{7f}-\x{ff}\ \[\]\\] )
+(?<FWS>             (?: [\t\ ]*+ \n)?+ [\t\ ]++ )
+(?<local_part>      (?&dot_atom) | (?&quoted_string)  )
+(?<mailbox>         (?&name_addr) | (?&addr_spec) )
+(?<name_addr>       (?&display_name)? (?&angle_addr) )
+(?<phrase>          (?&word)++ )
+(?<qcontent>        (?&qtext) | (?&quoted_pair) )
+(?<quoted_pair>     " (?&text) )
+(?<quoted_string>   (?&CFWS)?+ " (?: (?&FWS)?+ (?&qcontent))* (?&FWS)?+ "
+                    (?&CFWS)?+ )
+(?<qtext>           [^\x{9}\x{10}\x{13}\x{7f}-\x{ff}\ "\\] )
+(?<text>            [^\r\n] )
+(?<word>            (?&atom) | (?&quoted_string) )
+) # End DEFINE
+^(?&mailbox)$/
+    Alan Other <user\@dom.ain>
+ 0: Alan Other <user@dom.ain>
+    <user\@dom.ain>
+ 0: <user@dom.ain>
+    user\@dom.ain
+ 0: user@dom.ain
+    user\@[] 
+ 0: user@[]
+    user\@[domain literal] 
+ 0: user@[domain literal]
+    user\@[domain literal with \"[square brackets\"] inside] 
+ 0: user@[domain literal with "[square brackets"] inside]
+    \"A. Other\" <user.1234\@dom.ain> (a comment)
+ 0: "A. Other" <user.1234@dom.ain> (a comment)
+    A. Other <user.1234\@dom.ain> (a comment)
+ 0: A. Other <user.1234@dom.ain> (a comment)
+    \"/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/\"\@x400-re.lay
+ 0: "/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/"@x400-re.lay
+\= Expect no match
+    A missing angle <user\@some.where
+No match
+    The quick brown fox
+No match
+    
+# -------------------------------------------------------------------------- 
+
+# This pattern uses named groups to match default PCRE2 patterns. It's another
+# heavy test for named subpatterns. Once again, code slash as \x{2f} and escape 
+# $ even in classes so that this works with pcre2test.
+
+/(?sx)(?(DEFINE)
+
+(?<assertion>         (?&simple_assertion) | (?&lookaround) )
+
+(?<atomic_group>      \( \? > (?&regex) \) )
+
+(?<back_reference>    \\ \d+ |
+                      \\g (?: [+-]?\d+ | \{ (?: [+-]?\d+ | (?&groupname) ) \} ) |
+                      \\k <(?&groupname)> |
+                      \\k '(?&groupname)' |
+                      \\k \{ (?&groupname) \} |
+                      \( \? P= (?&groupname) \) )
+
+(?<branch>            (?:(?&assertion) |
+                         (?&callout) |
+                         (?&comment) |
+                         (?&option_setting) |
+                         (?&qualified_item) |
+                         (?&quoted_string) |
+                         (?&quoted_string_empty) | 
+                         (?&special_escape) |
+                         (?&verb)
+                      )* )
+
+(?<callout>           \(\?C (?: \d+ | 
+                      (?: (?<D>["'`^%\#\$]) 
+                        (?: \k'D'\k'D' | (?!\k'D') . )* \k'D' |
+                      \{ (?: \}\} | [^}]*+ )* \} ) 
+                      )? \) )
+
+(?<capturing_group>   \( (?: \? P? < (?&groupname) > | \? ' (?&groupname) ' )?
+                      (?&regex) \) )
+
+(?<character_class>   \[ \^?+ (?: \] (?&class_item)* | (?&class_item)+ ) \] )
+
+(?<character_type>    (?! \\N\{\w+\} ) \\ [dDsSwWhHvVRN] )
+
+(?<class_item>        (?: \[ : (?:
+                      alnum|alpha|ascii|blank|cntrl|digit|graph|lower|print|
+                      punct|space|upper|word|xdigit
+                      ) : \] |
+                      (?&quoted_string) |  
+                      (?&quoted_string_empty) | 
+                      (?&escaped_character) | 
+                      (?&character_type) | 
+                      [^]] ) )
+
+(?<comment>           \(\?\# [^)]* \) | (?&quoted_string_empty) | \\E )
+
+(?<condition>         (?: \( [+-]? \d+ \) |
+                          \( < (?&groupname) > \) |
+                          \( ' (?&groupname) ' \) |
+                          \( R \d* \) |
+                          \( R & (?&groupname) \) |
+                          \( (?&groupname) \) | 
+                          \( DEFINE \) |
+                          \( VERSION >?=\d+(?:\.\d\d?)? \) |
+                          (?&callout)?+ (?&comment)* (?&lookaround) ) )
+
+(?<conditional_group> \(\? (?&condition) (?&branch) (?: \| (?&branch) )? \) )
+
+(?<delimited_regex>   (?<delimiter> [-\x{2f}!"'`=_:;,%&@~]) (?&regex) 
+                      \k'delimiter' .* )
+
+(?<escaped_character> \\ (?: 0[0-7]{1,2} | [0-7]{1,3} | o\{ [0-7]+ \} |
+                      x \{ (*COMMIT) [[:xdigit:]]* \} | x [[:xdigit:]]{0,2} | 
+                      [aefnrt] | c[[:print:]] |
+                      [^[:alnum:]] ) )
+
+(?<group>             (?&capturing_group) | (?&non_capturing_group) |
+                      (?&resetting_group) | (?&atomic_group) |
+                      (?&conditional_group) )
+
+(?<groupname>         [a-zA-Z_]\w* )
+
+(?<literal_character> (?! (?&range_qualifier) ) [^[()|*+?.\$\\] )
+
+(?<lookaround>        \(\? (?: = | ! | <= | <! ) (?&regex) \) )
+
+(?<non_capturing_group> \(\? [iJmnsUx-]* : (?&regex) \) )
+
+(?<option_setting>    \(\? [iJmnsUx-]* \) )
+
+(?<qualified_item>    (?:\. |
+                         (?&lookaround) |
+                         (?&back_reference) |
+                         (?&character_class) |
+                         (?&character_type) |
+                         (?&escaped_character) |
+                         (?&group) |
+                         (?&subroutine_call) |
+                         (?&literal_character) |
+                         (?&quoted_string) 
+                      ) (?&comment)? (?&qualifier)? )
+
+(?<qualifier>         (?: [?*+] | (?&range_qualifier) ) [+?]? )
+
+(?<quoted_string>     (?: \\Q (?: (?!\\E | \k'delimiter') . )++ (?: \\E | ) ) ) 
+                      
+(?<quoted_string_empty>  \\Q\\E ) 
+
+(?<range_qualifier>   \{ (?: \d+ (?: , \d* )? | , \d+ ) \} )
+
+(?<regex>             (?&start_item)* (?&branch) (?: \| (?&branch) )* )
+
+(?<resetting_group>   \( \? \| (?&regex) \) )
+
+(?<simple_assertion>  \^ | \$ | \\A | \\b | \\B | \\G | \\z | \\Z )
+
+(?<special_escape>    \\K )
+
+(?<start_item>        \( \* (?:
+                      ANY |
+                      ANYCRLF |
+                      BSR_ANYCRLF |
+                      BSR_UNICODE |
+                      CR |
+                      CRLF |
+                      LF |
+                      LIMIT_MATCH=\d+ |
+                      LIMIT_DEPTH=\d+ |
+                      LIMIT_HEAP=\d+ | 
+                      NOTEMPTY |
+                      NOTEMPTY_ATSTART |
+                      NO_AUTO_POSSESS |
+                      NO_DOTSTAR_ANCHOR |
+                      NO_JIT |
+                      NO_START_OPT |
+                      NUL |
+                      UTF |
+                      UCP ) \) )
+
+(?<subroutine_call>   (?: \(\?R\) | \(\?[+-]?\d+\) |
+                      \(\? (?: & | P> ) (?&groupname) \) |
+                      \\g < (?&groupname) > |
+                      \\g ' (?&groupname) ' |
+                      \\g < [+-]? \d+ > |
+                      \\g ' [+-]? \d+ ) )
+
+(?<verb>              \(\* (?: ACCEPT | FAIL | F | COMMIT |
+                      (?:MARK)?:(?&verbname) |
+                      (?:PRUNE|SKIP|THEN) (?: : (?&verbname)? )? ) \) )
+
+(?<verbname>          [^)]+ )
+
+) # End DEFINE
+# Kick it all off...
+^(?&delimited_regex)$/subject_literal,jitstack=256
+    /^(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)\11*(\3\4)\1(?#)2$/
+ 0: /^(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)\11*(\3\4)\1(?#)2$/
+    /(cat(a(ract|tonic)|erpillar)) \1()2(3)/
+ 0: /(cat(a(ract|tonic)|erpillar)) \1()2(3)/
+    /^From +([^ ]+) +[a-zA-Z][a-zA-Z][a-zA-Z] +[a-zA-Z][a-zA-Z][a-zA-Z] +[0-9]?[0-9] +[0-9][0-9]:[0-9][0-9]/
+ 0: /^From +([^ ]+) +[a-zA-Z][a-zA-Z][a-zA-Z] +[a-zA-Z][a-zA-Z][a-zA-Z] +[0-9]?[0-9] +[0-9][0-9]:[0-9][0-9]/
+    /^From\s+\S+\s+([a-zA-Z]{3}\s+){2}\d{1,2}\s+\d\d:\d\d/
+ 0: /^From\s+\S+\s+([a-zA-Z]{3}\s+){2}\d{1,2}\s+\d\d:\d\d/
+    /<tr([\w\W\s\d][^<>]{0,})><TD([\w\W\s\d][^<>]{0,})>([\d]{0,}\.)(.*)((<BR>([\w\W\s\d][^<>]{0,})|[\s]{0,}))<\/a><\/TD><TD([\w\W\s\d][^<>]{0,})>([\w\W\s\d][^<>]{0,})<\/TD><TD([\w\W\s\d][^<>]{0,})>([\w\W\s\d][^<>]{0,})<\/TD><\/TR>/is
+ 0: /<tr([\w\W\s\d][^<>]{0,})><TD([\w\W\s\d][^<>]{0,})>([\d]{0,}\.)(.*)((<BR>([\w\W\s\d][^<>]{0,})|[\s]{0,}))<\/a><\/TD><TD([\w\W\s\d][^<>]{0,})>([\w\W\s\d][^<>]{0,})<\/TD><TD([\w\W\s\d][^<>]{0,})>([\w\W\s\d][^<>]{0,})<\/TD><\/TR>/is
+    /^(?(DEFINE) (?<A> a) (?<B> b) )  (?&A) (?&B) /
+ 0: /^(?(DEFINE) (?<A> a) (?<B> b) )  (?&A) (?&B) /
+    /(?(DEFINE)(?<byte>2[0-4]\d|25[0-5]|1\d\d|[1-9]?\d))\b(?&byte)(\.(?&byte)){3}/
+ 0: /(?(DEFINE)(?<byte>2[0-4]\d|25[0-5]|1\d\d|[1-9]?\d))\b(?&byte)(\.(?&byte)){3}/
+    /\b(?&byte)(\.(?&byte)){3}(?(DEFINE)(?<byte>2[0-4]\d|25[0-5]|1\d\d|[1-9]?\d))/
+ 0: /\b(?&byte)(\.(?&byte)){3}(?(DEFINE)(?<byte>2[0-4]\d|25[0-5]|1\d\d|[1-9]?\d))/
+    /^(\w++|\s++)*$/
+ 0: /^(\w++|\s++)*$/
+    /a+b?(*THEN)c+(*FAIL)/
+ 0: /a+b?(*THEN)c+(*FAIL)/
+    /(A (A|B(*ACCEPT)|C) D)(E)/x
+ 0: /(A (A|B(*ACCEPT)|C) D)(E)/x
+    /^\W*+(?:((.)\W*+(?1)\W*+\2|)|((.)\W*+(?3)\W*+\4|\W*+.\W*+))\W*+$/i
+ 0: /^\W*+(?:((.)\W*+(?1)\W*+\2|)|((.)\W*+(?3)\W*+\4|\W*+.\W*+))\W*+$/i
+    /A(*PRUNE)B(*SKIP)C(*THEN)D(*COMMIT)E(*F)F(*FAIL)G(?!)H(*ACCEPT)I/B
+ 0: /A(*PRUNE)B(*SKIP)C(*THEN)D(*COMMIT)E(*F)F(*FAIL)G(?!)H(*ACCEPT)I/B
+    /(?C`a``b`)(?C'a''b')(?C"a""b")(?C^a^^b^)(?C%a%%b%)(?C#a##b#)(?C$a$$b$)(?C{a}}b})/B,callout_info
+ 0: /(?C`a``b`)(?C'a''b')(?C"a""b")(?C^a^^b^)(?C%a%%b%)(?C#a##b#)(?C$a$$b$)(?C{a}}b})/B,callout_info
+    /(?sx)(?(DEFINE)(?<assertion> (?&simple_assertion) | (?&lookaround) )(?<atomic_group> \( \? > (?&regex) \) )(?<back_reference> \\ \d+ | \\g (?: [+-]?\d+ | \{ (?: [+-]?\d+ | (?&groupname) ) \} ) | \\k <(?&groupname)> | \\k '(?&groupname)' | \\k \{ (?&groupname) \} | \( \? P= (?&groupname) \) )(?<branch> (?:(?&assertion) | (?&callout) | (?&comment) | (?&option_setting) | (?&qualified_item) | (?&quoted_string) | (?&quoted_string_empty) | (?&special_escape) | (?&verb) )* )(?<callout> \(\?C (?: \d+ | (?: (?<D>["'`^%\#\$]) (?: \k'D'\k'D' | (?!\k'D') . )* \k'D' | \{ (?: \}\} | [^}]*+ )* \} ) )? \) )(?<capturing_group> \( (?: \? P? < (?&groupname) > | \? ' (?&groupname) ' )? (?&regex) \) )(?<character_class> \[ \^?+ (?: \] (?&class_item)* | (?&class_item)+ ) \] )(?<character_type> (?! \\N\{\w+\} ) \\ [dDsSwWhHvVRN] )(?<class_item> (?: \[ : (?: alnum|alpha|ascii|blank|cntrl|digit|graph|lower|print| punct|space|upper|word|xdigit ) : \] | (?&quoted_string) | (?&quoted_string_empty) | (?&escaped_character) | (?&character_type) | [^]] ) )(?<comment> \(\?\# [^)]* \) | (?&quoted_string_empty) | \\E )(?<condition> (?: \( [+-]? \d+ \) | \( < (?&groupname) > \) | \( ' (?&groupname) ' \) | \( R \d* \) | \( R & (?&groupname) \) | \( (?&groupname) \) | \( DEFINE \) | \( VERSION >?=\d+(?:\.\d\d?)? \) | (?&callout)?+ (?&comment)* (?&lookaround) ) )(?<conditional_group> \(\? (?&condition) (?&branch) (?: \| (?&branch) )? \) )(?<delimited_regex> (?<delimiter> [-\x{2f}!"'`=_:;,%&@~]) (?&regex) \k'delimiter' .* )(?<escaped_character> \\ (?: 0[0-7]{1,2} | [0-7]{1,3} | o\{ [0-7]+ \} | x \{ (*COMMIT) [[:xdigit:]]* \} | x [[:xdigit:]]{0,2} | [aefnrt] | c[[:print:]] | [^[:alnum:]] ) )(?<group> (?&capturing_group) | (?&non_capturing_group) | (?&resetting_group) | (?&atomic_group) | (?&conditional_group) )(?<groupname> [a-zA-Z_]\w* )(?<literal_character> (?! (?&range_qualifier) ) [^[()|*+?.\$\\] )(?<lookaround> \(\? (?: = | ! | <= | <! ) (?&regex) \) )(?<non_capturing_group> \(\? [iJmnsUx-]* : (?&regex) \) )(?<option_setting> \(\? [iJmnsUx-]* \) )(?<qualified_item> (?:\. | (?&lookaround) | (?&back_reference) | (?&character_class) | (?&character_type) | (?&escaped_character) | (?&group) | (?&subroutine_call) | (?&literal_character) | (?&quoted_string) ) (?&comment)? (?&qualifier)? )(?<qualifier> (?: [?*+] | (?&range_qualifier) ) [+?]? )(?<quoted_string> (?: \\Q (?: (?!\\E | \k'delimiter') . )++ (?: \\E | ) ) ) (?<quoted_string_empty> \\Q\\E ) (?<range_qualifier> \{ (?: \d+ (?: , \d* )? | , \d+ ) \} )(?<regex> (?&start_item)* (?&branch) (?: \| (?&branch) )* )(?<resetting_group> \( \? \| (?&regex) \) )(?<simple_assertion> \^ | \$ | \\A | \\b | \\B | \\G | \\z | \\Z )(?<special_escape> \\K )(?<start_item> \( \* (?: ANY | ANYCRLF | BSR_ANYCRLF | BSR_UNICODE | CR | CRLF | LF | LIMIT_MATCH=\d+ | LIMIT_DEPTH=\d+ | LIMIT_HEAP=\d+ | NOTEMPTY | NOTEMPTY_ATSTART | NO_AUTO_POSSESS | NO_DOTSTAR_ANCHOR | NO_JIT | NO_START_OPT | NUL | UTF | UCP ) \) )(?<subroutine_call> (?: \(\?R\) | \(\?[+-]?\d+\) | \(\? (?: & | P> ) (?&groupname) \) | \\g < (?&groupname) > | \\g ' (?&groupname) ' | \\g < [+-]? \d+ > | \\g ' [+-]? \d+ ) )(?<verb> \(\* (?: ACCEPT | FAIL | F | COMMIT | (?:MARK)?:(?&verbname) | (?:PRUNE|SKIP|THEN) (?: : (?&verbname)? )? ) \) )(?<verbname> [^)]+ ))^(?&delimited_regex)$/
+ 0: /(?sx)(?(DEFINE)(?<assertion> (?&simple_assertion) | (?&lookaround) )(?<atomic_group> \( \? > (?&regex) \) )(?<back_reference> \\ \d+ | \\g (?: [+-]?\d+ | \{ (?: [+-]?\d+ | (?&groupname) ) \} ) | \\k <(?&groupname)> | \\k '(?&groupname)' | \\k \{ (?&groupname) \} | \( \? P= (?&groupname) \) )(?<branch> (?:(?&assertion) | (?&callout) | (?&comment) | (?&option_setting) | (?&qualified_item) | (?&quoted_string) | (?&quoted_string_empty) | (?&special_escape) | (?&verb) )* )(?<callout> \(\?C (?: \d+ | (?: (?<D>["'`^%\#\$]) (?: \k'D'\k'D' | (?!\k'D') . )* \k'D' | \{ (?: \}\} | [^}]*+ )* \} ) )? \) )(?<capturing_group> \( (?: \? P? < (?&groupname) > | \? ' (?&groupname) ' )? (?&regex) \) )(?<character_class> \[ \^?+ (?: \] (?&class_item)* | (?&class_item)+ ) \] )(?<character_type> (?! \\N\{\w+\} ) \\ [dDsSwWhHvVRN] )(?<class_item> (?: \[ : (?: alnum|alpha|ascii|blank|cntrl|digit|graph|lower|print| punct|space|upper|word|xdigit ) : \] | (?&quoted_string) | (?&quoted_string_empty) | (?&escaped_character) | (?&character_type) | [^]] ) )(?<comment> \(\?\# [^)]* \) | (?&quoted_string_empty) | \\E )(?<condition> (?: \( [+-]? \d+ \) | \( < (?&groupname) > \) | \( ' (?&groupname) ' \) | \( R \d* \) | \( R & (?&groupname) \) | \( (?&groupname) \) | \( DEFINE \) | \( VERSION >?=\d+(?:\.\d\d?)? \) | (?&callout)?+ (?&comment)* (?&lookaround) ) )(?<conditional_group> \(\? (?&condition) (?&branch) (?: \| (?&branch) )? \) )(?<delimited_regex> (?<delimiter> [-\x{2f}!"'`=_:;,%&@~]) (?&regex) \k'delimiter' .* )(?<escaped_character> \\ (?: 0[0-7]{1,2} | [0-7]{1,3} | o\{ [0-7]+ \} | x \{ (*COMMIT) [[:xdigit:]]* \} | x [[:xdigit:]]{0,2} | [aefnrt] | c[[:print:]] | [^[:alnum:]] ) )(?<group> (?&capturing_group) | (?&non_capturing_group) | (?&resetting_group) | (?&atomic_group) | (?&conditional_group) )(?<groupname> [a-zA-Z_]\w* )(?<literal_character> (?! (?&range_qualifier) ) [^[()|*+?.\$\\] )(?<lookaround> \(\? (?: = | ! | <= | <! ) (?&regex) \) )(?<non_capturing_group> \(\? [iJmnsUx-]* : (?&regex) \) )(?<option_setting> \(\? [iJmnsUx-]* \) )(?<qualified_item> (?:\. | (?&lookaround) | (?&back_reference) | (?&character_class) | (?&character_type) | (?&escaped_character) | (?&group) | (?&subroutine_call) | (?&literal_character) | (?&quoted_string) ) (?&comment)? (?&qualifier)? )(?<qualifier> (?: [?*+] | (?&range_qualifier) ) [+?]? )(?<quoted_string> (?: \\Q (?: (?!\\E | \k'delimiter') . )++ (?: \\E | ) ) ) (?<quoted_string_empty> \\Q\\E ) (?<range_qualifier> \{ (?: \d+ (?: , \d* )? | , \d+ ) \} )(?<regex> (?&start_item)* (?&branch) (?: \| (?&branch) )* )(?<resetting_group> \( \? \| (?&regex) \) )(?<simple_assertion> \^ | \$ | \\A | \\b | \\B | \\G | \\z | \\Z )(?<special_escape> \\K )(?<start_item> \( \* (?: ANY | ANYCRLF | BSR_ANYCRLF | BSR_UNICODE | CR | CRLF | LF | LIMIT_MATCH=\d+ | LIMIT_DEPTH=\d+ | LIMIT_HEAP=\d+ | NOTEMPTY | NOTEMPTY_ATSTART | NO_AUTO_POSSESS | NO_DOTSTAR_ANCHOR | NO_JIT | NO_START_OPT | NUL | UTF | UCP ) \) )(?<subroutine_call> (?: \(\?R\) | \(\?[+-]?\d+\) | \(\? (?: & | P> ) (?&groupname) \) | \\g < (?&groupname) > | \\g ' (?&groupname) ' | \\g < [+-]? \d+ > | \\g ' [+-]? \d+ ) )(?<verb> \(\* (?: ACCEPT | FAIL | F | COMMIT | (?:MARK)?:(?&verbname) | (?:PRUNE|SKIP|THEN) (?: : (?&verbname)? )? ) \) )(?<verbname> [^)]+ ))^(?&delimited_regex)$/
+\= Expect no match
+    /((?(?C'')\QX\E(?!((?(?C'')(?!X=X));=)r*X=X));=)/
+No match
+    /(?:(?(2y)a|b)(X))+/
+No match
+    /a(*MARK)b/
+No match
+    /a(*CR)b/
+No match
+    /(?P<abn>(?P=abn)(?<badstufxxx)/
+No match
+
+# -------------------------------------------------------------------------- 
+
+/<(?x:[a b])>/xx
+    < >
+ 0: < >
+
+/<(?:[a b])>/xx
+    < >
+No match
+
+/<(?xxx:[a b])>/
+    < >
+No match
+    
+/<(?-x:[a b])>/xx
+    < >
+ 0: < >
+
+/[[:digit:]-]+/
+    12-24
+ 0: 12-24
 
 # End of testinput1 

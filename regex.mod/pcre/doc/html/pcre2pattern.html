@@ -110,7 +110,7 @@ Unicode property support
 Another special sequence that may appear at the start of a pattern is (*UCP).
 This has the same effect as setting the PCRE2_UCP option: it causes sequences
 such as \d and \w to use Unicode properties to determine character types,
-instead of recognizing only characters with codes less than 128 via a lookup
+instead of recognizing only characters with codes less than 256 via a lookup
 table.
 </P>
 <P>
@@ -162,35 +162,62 @@ of arbitrary characters). For more details, see the
 documentation.
 </P>
 <br><b>
-Setting match and recursion limits
+Disabling JIT compilation
 </b><br>
 <P>
-The caller of <b>pcre2_match()</b> can set a limit on the number of times the
-internal <b>match()</b> function is called and on the maximum depth of
-recursive calls. These facilities are provided to catch runaway matches that
-are provoked by patterns with huge matching trees (a typical example is a
-pattern with nested unlimited repeats) and to avoid running out of system stack
-by too much recursion. When one of these limits is reached, <b>pcre2_match()</b>
-gives an error return. The limits can also be set by items at the start of the
-pattern of the form
+If a pattern that starts with (*NO_JIT) is successfully compiled, an attempt by
+the application to apply the JIT optimization by calling
+<b>pcre2_jit_compile()</b> is ignored.
+</P>
+<br><b>
+Setting match resource limits
+</b><br>
+<P>
+The pcre2_match() function contains a counter that is incremented every time it
+goes round its main loop. The caller of <b>pcre2_match()</b> can set a limit on
+this counter, which therefore limits the amount of computing resource used for
+a match. The maximum depth of nested backtracking can also be limited; this
+indirectly restricts the amount of heap memory that is used, but there is also
+an explicit memory limit that can be set.
+</P>
+<P>
+These facilities are provided to catch runaway matches that are provoked by
+patterns with huge matching trees (a typical example is a pattern with nested
+unlimited repeats applied to a long string that does not match). When one of
+these limits is reached, <b>pcre2_match()</b> gives an error return. The limits
+can also be set by items at the start of the pattern of the form
 <pre>
+  (*LIMIT_HEAP=d)
   (*LIMIT_MATCH=d)
-  (*LIMIT_RECURSION=d)
+  (*LIMIT_DEPTH=d)
 </pre>
 where d is any number of decimal digits. However, the value of the setting must
 be less than the value set (or defaulted) by the caller of <b>pcre2_match()</b>
 for it to have any effect. In other words, the pattern writer can lower the
 limits set by the programmer, but not raise them. If there is more than one
 setting of one of these limits, the lower value is used.
+</P>
+<P>
+Prior to release 10.30, LIMIT_DEPTH was called LIMIT_RECURSION. This name is
+still recognized for backwards compatibility.
+</P>
+<P>
+The heap limit applies only when the <b>pcre2_match()</b> interpreter is used
+for matching. It does not apply to JIT or DFA matching. The match limit is used
+(but in a different way) when JIT is being used, or when
+<b>pcre2_dfa_match()</b> is called, to limit computing resource usage by those
+matching functions. The depth limit is ignored by JIT but is relevant for DFA
+matching, which uses function recursion for recursions within the pattern. In
+this case, the depth limit controls the amount of system stack that is used.
 <a name="newlines"></a></P>
 <br><b>
 Newline conventions
 </b><br>
 <P>
-PCRE2 supports five different conventions for indicating line breaks in
+PCRE2 supports six different conventions for indicating line breaks in
 strings: a single CR (carriage return) character, a single LF (linefeed)
-character, the two-character sequence CRLF, any of the three preceding, or any
-Unicode newline sequence. The
+character, the two-character sequence CRLF, any of the three preceding, any
+Unicode newline sequence, or the NUL character (binary zero). The
 <a href="pcre2api.html"><b>pcre2api</b></a>
 page has
 <a href="pcre2api.html#newlines">further discussion</a>
@@ -199,13 +226,14 @@ about newlines, and shows how to set the newline convention when calling
 </P>
 <P>
 It is also possible to specify a newline convention by starting a pattern
-string with one of the following five sequences:
+string with one of the following sequences:
 <pre>
   (*CR)        carriage return
   (*LF)        linefeed
   (*CRLF)      carriage return, followed by linefeed
   (*ANYCRLF)   any of the three above
   (*ANY)       all Unicode newline sequences
+  (*NUL)       the NUL character (binary zero)
 </pre>
 These override the default and the options given to the compiling function. For
 example, on a Unix system where LF is the default newline sequence, the pattern
@@ -221,8 +249,8 @@ The newline convention affects where the circumflex and dollar assertions are
 true. It also affects the interpretation of the dot metacharacter when
 PCRE2_DOTALL is not set, and the behaviour of \N. However, it does not affect
 what the \R escape sequence matches. By default, this is any Unicode newline
-sequence, for Perl compatibility. However, this can be changed; see the
-description of \R in the section entitled
+sequence, for Perl compatibility. However, this can be changed; see the next
+section and the description of \R in the section entitled
 <a href="#newlineseq">"Newline sequences"</a>
 below. A change of \R setting can be combined with a change of newline
 convention.
@@ -240,7 +268,7 @@ corresponding to PCRE2_BSR_UNICODE.
 <br><a name="SEC3" href="#TOC1">EBCDIC CHARACTER CODES</a><br>
 <P>
 PCRE2 can be compiled to run in an environment that uses EBCDIC as its
-character code rather than ASCII or Unicode (typically a mainframe system). In
+character code instead of ASCII or Unicode (typically a mainframe system). In
 the sections below, character code values are ASCII or Unicode; in an EBCDIC
 environment these characters may have different code values, and there are no
 code points greater than 255.
@@ -304,11 +332,11 @@ that character may have. This use of backslash as an escape character applies
 both inside and outside character classes.
 </P>
 <P>
-For example, if you want to match a * character, you write \* in the pattern.
-This escaping action applies whether or not the following character would
-otherwise be interpreted as a metacharacter, so it is always safe to precede a
-non-alphanumeric with backslash to specify that it stands for itself. In
-particular, if you want to match a backslash, you write \\.
+For example, if you want to match a * character, you must write \* in the
+pattern. This escaping action applies whether or not the following character
+would otherwise be interpreted as a metacharacter, so it is always safe to
+precede a non-alphanumeric with backslash to specify that it stands for itself.
+In particular, if you want to match a backslash, you write \\.
 </P>
 <P>
 In a UTF mode, only ASCII numbers and letters have any special meaning after a
@@ -339,7 +367,7 @@ An isolated \E that is not preceded by \Q is ignored. If \Q is not followed
 by \E later in the pattern, the literal interpretation continues to the end of
 the pattern (that is, \E is assumed at the end). If the isolated \Q is inside
 a character class, this causes an error, because the character class is not
-terminated.
+terminated by a closing square bracket.
 <a name="digitsafterbackslash"></a></P>
 <br><b>
 Non-printing characters
@@ -349,10 +377,11 @@ A second use of backslash provides a way of encoding non-printing characters
 in patterns in a visible manner. There is no restriction on the appearance of
 non-printing characters in a pattern, but when a pattern is being prepared by
 text editing, it is often easier to use one of the following escape sequences
-than the binary character it represents:
+than the binary character it represents. In an ASCII or Unicode environment,
+these escapes are as follows:
 <pre>
   \a        alarm, that is, the BEL character (hex 07)
-  \cx       "control-x", where x is any ASCII character
+  \cx       "control-x", where x is any printable ASCII character
   \e        escape (hex 1B)
   \f        form feed (hex 0C)
   \n        linefeed (hex 0A)
@@ -369,23 +398,37 @@ The precise effect of \cx on ASCII characters is as follows: if x is a lower
 case letter, it is converted to upper case. Then bit 6 of the character (hex
 40) is inverted. Thus \cA to \cZ become hex 01 to hex 1A (A is 41, Z is 5A),
 but \c{ becomes hex 3B ({ is 7B), and \c; becomes hex 7B (; is 3B). If the
-code unit following \c has a value greater than 127, a compile-time error
-occurs. This locks out non-ASCII characters in all modes.
+code unit following \c has a value less than 32 or greater than 126, a
+compile-time error occurs.
 </P>
 <P>
-The \c facility was designed for use with ASCII characters, but with the
-extension to Unicode it is even less useful than it once was. It is, however,
-recognized when PCRE2 is compiled in EBCDIC mode, where data items are always
-bytes. In this mode, all values are valid after \c. If the next character is a
-lower case letter, it is converted to upper case. Then the 0xc0 bits of the
-byte are inverted. Thus \cA becomes hex 01, as in ASCII (A is C1), but because
-the EBCDIC letters are disjoint, \cZ becomes hex 29 (Z is E9), and other
-characters also generate different values.
+When PCRE2 is compiled in EBCDIC mode, \a, \e, \f, \n, \r, and \t
+generate the appropriate EBCDIC code values. The \c escape is processed
+as specified for Perl in the <b>perlebcdic</b> document. The only characters
+that are allowed after \c are A-Z, a-z, or one of @, [, \, ], ^, _, or ?. Any
+other character provokes a compile-time error. The sequence \c@ encodes
+character code 0; after \c the letters (in either case) encode characters 1-26
+(hex 01 to hex 1A); [, \, ], ^, and _ encode characters 27-31 (hex 1B to hex
+1F), and \c? becomes either 255 (hex FF) or 95 (hex 5F).
+</P>
+<P>
+Thus, apart from \c?, these escapes generate the same character code values as
+they do in an ASCII environment, though the meanings of the values mostly
+differ. For example, \cG always generates code value 7, which is BEL in ASCII
+but DEL in EBCDIC.
+</P>
+<P>
+The sequence \c? generates DEL (127, hex 7F) in an ASCII environment, but
+because 127 is not a control character in EBCDIC, Perl makes it generate the
+APC character. Unfortunately, there are several variants of EBCDIC. In most of
+them the APC character has the value 255 (hex FF), but in the one Perl calls
+POSIX-BC its value is 95 (hex 5F). If certain other characters have POSIX-BC
+values, PCRE2 makes \c? generate 95; otherwise it generates 255.
 </P>
 <P>
 After \0 up to two further octal digits are read. If there are fewer than two
-digits, just those that are present are used. Thus the sequence \0\x\07
-specifies two binary zeros followed by a BEL character (code value 7). Make
+digits, just those that are present are used. Thus the sequence \0\x\015
+specifies two binary zeros followed by a CR character (code value 13). Make
 sure you supply two digits after the initial zero if the pattern character that
 follows is itself an octal digit.
 </P>
@@ -404,21 +447,24 @@ describe the old, ambiguous syntax.
 </P>
 <P>
 The handling of a backslash followed by a digit other than 0 is complicated,
-and Perl has changed in recent releases, causing PCRE2 also to change. Outside
-a character class, PCRE2 reads the digit and any following digits as a decimal
-number. If the number is less than 8, or if there have been at least that many
-previous capturing left parentheses in the expression, the entire sequence is
-taken as a <i>back reference</i>. A description of how this works is given
+and Perl has changed over time, causing PCRE2 also to change.
+</P>
+<P>
+Outside a character class, PCRE2 reads the digit and any following digits as a
+decimal number. If the number is less than 10, begins with the digit 8 or 9, or
+if there are at least that many previous capturing left parentheses in the
+expression, the entire sequence is taken as a <i>back reference</i>. A
+description of how this works is given
 <a href="#backreferences">later,</a>
 following the discussion of
 <a href="#subpattern">parenthesized subpatterns.</a>
+Otherwise, up to three octal digits are read to form a character code.
 </P>
 <P>
-Inside a character class, or if the decimal number following \ is greater than
-7 and there have not been that many capturing subpatterns, PCRE2 handles \8
-and \9 as the literal characters "8" and "9", and otherwise re-reads up to
-three octal digits following the backslash, using them to generate a data
-character. Any subsequent digits stand for themselves. For example:
+Inside a character class, PCRE2 handles \8 and \9 as the literal characters
+"8" and "9", and otherwise reads up to three octal digits following the
+backslash, using them to generate a data character. Any subsequent digits stand
+for themselves. For example, outside a character class:
 <pre>
   \040   is another way of writing an ASCII space
   \40    is the same, provided there are fewer than 40 previous capturing subpatterns
@@ -428,7 +474,7 @@ character. Any subsequent digits stand for themselves. For example:
   \0113  is a tab followed by the character "3"
   \113   might be a back reference, otherwise the character with octal code 113
   \377   might be a back reference, otherwise the value 255 (decimal)
-  \81    is either a back reference, or the two characters "8" and "1"
+  \81    is always a back reference .sp
 </pre>
 Note that octal values of 100 or greater that are specified using this syntax
 must not be introduced by a leading zero, because no more than three octal
@@ -444,9 +490,9 @@ a hexadecimal digit appears between \x{ and }, or if there is no terminating
 <P>
 If the PCRE2_ALT_BSUX option is set, the interpretation of \x is as just
 described only when it is followed by two hexadecimal digits. Otherwise, it
-matches a literal "x" character. In this mode mode, support for code points
-greater than 256 is provided by \u, which must be followed by four hexadecimal
-digits; otherwise it matches a literal "u" character.
+matches a literal "x" character. In this mode, support for code points greater
+than 256 is provided by \u, which must be followed by four hexadecimal digits;
+otherwise it matches a literal "u" character.
 </P>
 <P>
 Characters whose value is less than 256 can be defined by either of the two
@@ -461,12 +507,10 @@ Constraints on character values
 Characters that are specified using octal or hexadecimal numbers are
 limited to certain values, as follows:
 <pre>
-  8-bit non-UTF mode    less than 0x100
-  8-bit UTF-8 mode      less than 0x10ffff and a valid codepoint
-  16-bit non-UTF mode   less than 0x10000
-  16-bit UTF-16 mode    less than 0x10ffff and a valid codepoint
-  32-bit non-UTF mode   less than 0x100000000
-  32-bit UTF-32 mode    less than 0x10ffff and a valid codepoint
+  8-bit non-UTF mode    no greater than 0xff
+  16-bit non-UTF mode   no greater than 0xffff
+  32-bit non-UTF mode   no greater than 0xffffffff
+  All UTF modes         no greater than 0x10ffff and a valid codepoint
 </pre>
 Invalid Unicode codepoints are the range 0xd800 to 0xdfff (the so-called
 "surrogate" codepoints), and 0xffef.
@@ -493,15 +537,15 @@ In Perl, the sequences \l, \L, \u, and \U are recognized by its string
 handler and used to modify the case of following characters. By default, PCRE2
 does not support these escape sequences. However, if the PCRE2_ALT_BSUX option
 is set, \U matches a "U" character, and \u can be used to define a character
-by code point, as described in the previous section.
+by code point, as described above.
 </P>
 <br><b>
 Absolute and relative back references
 </b><br>
 <P>
-The sequence \g followed by an unsigned or a negative number, optionally
-enclosed in braces, is an absolute or relative back reference. A named back
-reference can be coded as \g{name}. Back references are discussed
+The sequence \g followed by a signed or unsigned number, optionally enclosed
+in braces, is an absolute or relative back reference. A named back reference
+can be coded as \g{name}. Back references are discussed
 <a href="#backreferences">later,</a>
 following the discussion of
 <a href="#subpattern">parenthesized subpatterns.</a>
@@ -572,8 +616,8 @@ Unicode is discouraged.
 </P>
 <P>
 By default, characters whose code points are greater than 127 never match \d,
-\s, or \w, and always match \D, \S, and \W, although this may vary for
-characters in the range 128-255 when locale-specific matching is happening.
+\s, or \w, and always match \D, \S, and \W, although this may be different
+for characters in the range 128-255 when locale-specific matching is happening.
 These escape sequences retain their original meanings from before Unicode
 support was available, mainly for efficiency reasons. If the PCRE2_UCP option
 is set, the behaviour is changed so that Unicode properties are used to
@@ -642,8 +686,8 @@ This is an example of an "atomic group", details of which are given
 This particular group matches either the two-character sequence CR followed by
 LF, or one of the single characters LF (linefeed, U+000A), VT (vertical tab,
 U+000B), FF (form feed, U+000C), CR (carriage return, U+000D), or NEL (next
-line, U+0085). The two-character sequence is treated as a single unit that
-cannot be split.
+line, U+0085). Because this is an atomic group, the two-character sequence is
+treated as a single unit that cannot be split.
 </P>
 <P>
 In other modes, two additional characters whose codepoints are greater than 255
@@ -682,7 +726,9 @@ When PCRE2 is built with Unicode support (the default), three additional escape
 sequences that match characters with specific properties are available. In
 8-bit non-UTF-8 mode, these sequences are of course limited to testing
 characters whose codepoints are less than 256, but they do work in this mode.
-The extra escape sequences are:
+In 32-bit non-UTF mode, codepoints greater than 0x10ffff (the Unicode limit)
+may be encountered. These are all treated as being in the Common script and
+with an unassigned type. The extra escape sequences are:
 <pre>
   \p{<i>xx</i>}   a character with the <i>xx</i> property
   \P{<i>xx</i>}   a character without the <i>xx</i> property
@@ -709,6 +755,9 @@ Those that are not part of an identified script are lumped together as
 "Common". The current list of scripts is:
 </P>
 <P>
+Adlam,
+Ahom,
+Anatolian_Hieroglyphs,
 Arabic,
 Armenian,
 Avestan,
@@ -717,6 +766,7 @@ Bamum,
 Bassa_Vah,
 Batak,
 Bengali,
+Bhaiksuki,
 Bopomofo,
 Brahmi,
 Braille,
@@ -749,6 +799,7 @@ Gurmukhi,
 Han,
 Hangul,
 Hanunoo,
+Hatran,
 Hebrew,
 Hiragana,
 Imperial_Aramaic,
@@ -777,6 +828,8 @@ Mahajani,
 Malayalam,
 Mandaic,
 Manichaean,
+Marchen,
+Masaram_Gondi,
 Meetei_Mayek,
 Mende_Kikakui,
 Meroitic_Cursive,
@@ -785,12 +838,16 @@ Miao,
 Modi,
 Mongolian,
 Mro,
+Multani,
 Myanmar,
 Nabataean,
 New_Tai_Lue,
+Newa,
 Nko,
+Nushu,
 Ogham,
 Ol_Chiki,
+Old_Hungarian,
 Old_Italic,
 Old_North_Arabian,
 Old_Permic,
@@ -798,6 +855,7 @@ Old_Persian,
 Old_South_Arabian,
 Old_Turkic,
 Oriya,
+Osage,
 Osmanya,
 Pahawh_Hmong,
 Palmyrene,
@@ -812,8 +870,10 @@ Saurashtra,
 Sharada,
 Shavian,
 Siddham,
+SignWriting,
 Sinhala,
 Sora_Sompeng,
+Soyombo,
 Sundanese,
 Syloti_Nagri,
 Syriac,
@@ -824,6 +884,7 @@ Tai_Tham,
 Tai_Viet,
 Takri,
 Tamil,
+Tangut,
 Telugu,
 Thaana,
 Thai,
@@ -833,7 +894,8 @@ Tirhuta,
 Ugaritic,
 Vai,
 Warang_Citi,
-Yi.
+Yi,
+Zanabazar_Square.
 </P>
 <P>
 Each character has exactly one Unicode general category property, specified by
@@ -939,9 +1001,12 @@ grapheme cluster", and treats the sequence as an atomic group
 <a href="#atomicgroup">(see below).</a>
 Unicode supports various kinds of composite character by giving each character
 a grapheme breaking property, and having rules that use these properties to
-define the boundaries of extended grapheme clusters. \X always matches at
-least one character. Then it decides whether to add additional characters
-according to the following rules for ending a cluster:
+define the boundaries of extended grapheme clusters. The rules are defined in
+Unicode Standard Annex 29, "Unicode Text Segmentation".
+</P>
+<P>
+\X always matches at least one character. Then it decides whether to add
+additional characters according to the following rules for ending a cluster:
 </P>
 <P>
 1. End at the end of the subject string.
@@ -956,11 +1021,25 @@ L, V, LV, or LVT character; an LV or V character may be followed by a V or T
 character; an LVT or T character may be follwed only by a T character.
 </P>
 <P>
-4. Do not end before extending characters or spacing marks. Characters with
-the "mark" property always have the "extend" grapheme breaking property.
+4. Do not end before extending characters or spacing marks or the "zero-width
+joiner" characters. Characters with the "mark" property always have the
+"extend" grapheme breaking property.
 </P>
 <P>
 5. Do not end after prepend characters.
+</P>
+<P>
+6. Do not break within emoji modifier sequences (a base character followed by a
+modifier). Extending characters are allowed before the modifier.
+</P>
+<P>
+7. Do not break within emoji zwj sequences (zero-width jointer followed by
+"glue after ZWJ" or "base glue after ZWJ").
+</P>
+<P>
+8. Do not break within emoji flag sequences. That is, do not break between
+regional indicator (RI) characters if there are an odd number of RI characters
+before the break point.
 </P>
 <P>
 6. Otherwise, end the cluster.
@@ -1097,15 +1176,19 @@ regular expression.
 <P>
 The circumflex and dollar metacharacters are zero-width assertions. That is,
 they test for a particular condition being true without consuming any
-characters from the subject string.
+characters from the subject string. These two metacharacters are concerned with
+matching the starts and ends of lines. If the newline convention is set so that
+only the two-character sequence CRLF is recognized as a newline, isolated CR
+and LF characters are treated as ordinary data characters, and are not
+recognized as newlines.
 </P>
 <P>
 Outside a character class, in the default matching mode, the circumflex
 character is an assertion that is true only if the current matching point is at
 the start of the subject string. If the <i>startoffset</i> argument of
-<b>pcre2_match()</b> is non-zero, circumflex can never match if the
-PCRE2_MULTILINE option is unset. Inside a character class, circumflex has an
-entirely different meaning
+<b>pcre2_match()</b> is non-zero, or if PCRE2_NOTBOL is set, circumflex can
+never match if the PCRE2_MULTILINE option is unset. Inside a character class,
+circumflex has an entirely different meaning
 <a href="#characterclass">(see below).</a>
 </P>
 <P>
@@ -1120,10 +1203,11 @@ to be anchored.)
 <P>
 The dollar character is an assertion that is true only if the current matching
 point is at the end of the subject string, or immediately before a newline at
-the end of the string (by default). Note, however, that it does not actually
-match the newline. Dollar need not be the last character of the pattern if a
-number of alternatives are involved, but it should be the last item in any
-branch in which it appears. Dollar has no special meaning in a character class.
+the end of the string (by default), unless PCRE2_NOTEOL is set. Note, however,
+that it does not actually match the newline. Dollar need not be the last
+character of the pattern if a number of alternatives are involved, but it
+should be the last item in any branch in which it appears. Dollar has no
+special meaning in a character class.
 </P>
 <P>
 The meaning of dollar can be changed so that it matches only at the very end of
@@ -1131,13 +1215,13 @@ the string, by setting the PCRE2_DOLLAR_ENDONLY option at compile time. This
 does not affect the \Z assertion.
 </P>
 <P>
-The meanings of the circumflex and dollar characters are changed if the
-PCRE2_MULTILINE option is set. When this is the case, a circumflex matches
-immediately after internal newlines as well as at the start of the subject
-string. It does not match after a newline that ends the string. A dollar
-matches before any newlines in the string, as well as at the very end, when
-PCRE2_MULTILINE is set. When newline is specified as the two-character
-sequence CRLF, isolated CR and LF characters do not indicate newlines.
+The meanings of the circumflex and dollar metacharacters are changed if the
+PCRE2_MULTILINE option is set. When this is the case, a dollar character
+matches before any newlines in the string, as well as at the very end, and a
+circumflex matches immediately after internal newlines as well as at the start
+of the subject string. It does not match after a newline that ends the string,
+for compatibility with Perl. However, this can be changed by setting the
+PCRE2_ALT_CIRCUMFLEX option.
 </P>
 <P>
 For example, the pattern /^abc$/ matches the subject string "def\nabc" (where
@@ -1146,6 +1230,16 @@ patterns that are anchored in single line mode because all branches start with
 ^ are not anchored in multiline mode, and a match for circumflex is possible
 when the <i>startoffset</i> argument of <b>pcre2_match()</b> is non-zero. The
 PCRE2_DOLLAR_ENDONLY option is ignored if PCRE2_MULTILINE is set.
+</P>
+<P>
+When the newline convention (see
+<a href="#newlines">"Newline conventions"</a>
+below) recognizes the two-character sequence CRLF as a newline, this is
+preferred, even if the single characters CR and LF are also recognized as
+newlines. For example, if the newline convention is "any", a multiline mode
+circumflex matches before "xyz" in the string "abc\r\nxyz" rather than after
+CR, even though CR on its own is a valid newline. (It also matches at the very
+start of the string, of course.)
 </P>
 <P>
 Note that the sequences \A, \Z, and \z can be used to match the start and
@@ -1190,24 +1284,40 @@ whether or not a UTF mode is set. In the 8-bit library, one code unit is one
 byte; in the 16-bit library it is a 16-bit unit; in the 32-bit library it is a
 32-bit unit. Unlike a dot, \C always matches line-ending characters. The
 feature is provided in Perl in order to match individual bytes in UTF-8 mode,
-but it is unclear how it can usefully be used. Because \C breaks up characters
-into individual code units, matching one unit with \C in a UTF mode means that
-the rest of the string may start with a malformed UTF character. This has
-undefined results, because PCRE2 assumes that it is dealing with valid UTF
-strings (and by default it checks this at the start of processing unless the
-PCRE2_NO_UTF_CHECK option is used).
+but it is unclear how it can usefully be used.
+</P>
+<P>
+Because \C breaks up characters into individual code units, matching one unit
+with \C in UTF-8 or UTF-16 mode means that the rest of the string may start
+with a malformed UTF character. This has undefined results, because PCRE2
+assumes that it is matching character by character in a valid UTF string (by
+default it checks the subject string's validity at the start of processing
+unless the PCRE2_NO_UTF_CHECK option is used).
+</P>
+<P>
+An application can lock out the use of \C by setting the
+PCRE2_NEVER_BACKSLASH_C option when compiling a pattern. It is also possible to
+build PCRE2 with the use of \C permanently disabled.
 </P>
 <P>
 PCRE2 does not allow \C to appear in lookbehind assertions
 <a href="#lookbehind">(described below)</a>
-in a UTF mode, because this would make it impossible to calculate the length of
-the lookbehind.
+in UTF-8 or UTF-16 modes, because this would make it impossible to calculate
+the length of the lookbehind. Neither the alternative matching function
+<b>pcre2_dfa_match()</b> nor the JIT optimizer support \C in these UTF modes.
+The former gives a match-time error; the latter fails to optimize and so the
+match is always run using the interpreter.
+</P>
+<P>
+In the 32-bit library, however, \C is always supported (when not explicitly
+locked out) because it always matches a single code unit, whether or not UTF-32
+is specified.
 </P>
 <P>
 In general, the \C escape sequence is best avoided. However, one way of using
-it that avoids the problem of malformed UTF characters is to use a lookahead to
-check the length of the next character, as in this pattern, which could be used
-with a UTF-8 string (ignore white space and line breaks):
+it that avoids the problem of malformed UTF-8 or UTF-16 characters is to use a
+lookahead to check the length of the next character, as in this pattern, which
+could be used with a UTF-8 string (ignore white space and line breaks):
 <pre>
   (?| (?=[\x00-\x7f])(\C) |
       (?=[\x80-\x{7ff}])(\C)(\C) |
@@ -1262,42 +1372,6 @@ whatever setting of the PCRE2_DOTALL and PCRE2_MULTILINE options is used. A
 class such as [^a] always matches one of these characters.
 </P>
 <P>
-The minus (hyphen) character can be used to specify a range of characters in a
-character class. For example, [d-m] matches any letter between d and m,
-inclusive. If a minus character is required in a class, it must be escaped with
-a backslash or appear in a position where it cannot be interpreted as
-indicating a range, typically as the first or last character in the class, or
-immediately after a range. For example, [b-d-z] matches letters in the range b
-to d, a hyphen character, or z.
-</P>
-<P>
-It is not possible to have the literal character "]" as the end character of a
-range. A pattern such as [W-]46] is interpreted as a class of two characters
-("W" and "-") followed by a literal string "46]", so it would match "W46]" or
-"-46]". However, if the "]" is escaped with a backslash it is interpreted as
-the end of range, so [W-\]46] is interpreted as a class containing a range
-followed by two other characters. The octal or hexadecimal representation of
-"]" can also be used to end a range.
-</P>
-<P>
-An error is generated if a POSIX character class (see below) or an escape
-sequence other than one that defines a single character appears at a point
-where a range ending character is expected. For example, [z-\xff] is valid,
-but [A-\d] and [A-[:digit:]] are not.
-</P>
-<P>
-Ranges operate in the collating sequence of character values. They can also be
-used for characters specified numerically, for example [\000-\037]. Ranges
-can include any characters that are valid for the current mode.
-</P>
-<P>
-If a range that includes letters is used when caseless matching is set, it
-matches the letters in either case. For example, [W-c] is equivalent to
-[][\\^_`wxyzabc], matched caselessly, and in a non-UTF mode, if character
-tables for a French locale are in use, [\xc8-\xcb] matches accented E
-characters in both cases.
-</P>
-<P>
 The character escape sequences \d, \D, \h, \H, \p, \P, \s, \S, \v,
 \V, \w, and \W may appear in a character class, and add the characters that
 they match to the class. For example, [\dABCDEF] matches any hexadecimal
@@ -1309,6 +1383,53 @@ above. The escape sequence \b has a different meaning inside a character
 class; it matches the backspace character. The sequences \B, \N, \R, and \X
 are not special inside a character class. Like any other unrecognized escape
 sequences, they cause an error.
+</P>
+<P>
+The minus (hyphen) character can be used to specify a range of characters in a
+character class. For example, [d-m] matches any letter between d and m,
+inclusive. If a minus character is required in a class, it must be escaped with
+a backslash or appear in a position where it cannot be interpreted as
+indicating a range, typically as the first or last character in the class,
+or immediately after a range. For example, [b-d-z] matches letters in the range
+b to d, a hyphen character, or z.
+</P>
+<P>
+Perl treats a hyphen as a literal if it appears before or after a POSIX class
+(see below) or before or after a character type escape such as as \d or \H.
+However, unless the hyphen is the last character in the class, Perl outputs a
+warning in its warning mode, as this is most likely a user error. As PCRE2 has
+no facility for warning, an error is given in these cases.
+</P>
+<P>
+It is not possible to have the literal character "]" as the end character of a
+range. A pattern such as [W-]46] is interpreted as a class of two characters
+("W" and "-") followed by a literal string "46]", so it would match "W46]" or
+"-46]". However, if the "]" is escaped with a backslash it is interpreted as
+the end of range, so [W-\]46] is interpreted as a class containing a range
+followed by two other characters. The octal or hexadecimal representation of
+"]" can also be used to end a range.
+</P>
+<P>
+Ranges normally include all code points between the start and end characters,
+inclusive. They can also be used for code points specified numerically, for
+example [\000-\037]. Ranges can include any characters that are valid for the
+current mode.
+</P>
+<P>
+There is a special case in EBCDIC environments for ranges whose end points are
+both specified as literal letters in the same case. For compatibility with
+Perl, EBCDIC code points within the range that are not letters are omitted. For
+example, [h-k] matches only four characters, even though the codes for h and k
+are 0x88 and 0x92, a range of 11 code points. However, if the range is
+specified numerically, for example, [\x88-\x92] or [h-\x92], all code points
+are included.
+</P>
+<P>
+If a range that includes letters is used when caseless matching is set, it
+matches the letters in either case. For example, [W-c] is equivalent to
+[][\\^_`wxyzabc], matched caselessly, and in a non-UTF mode, if character
+tables for a French locale are in use, [\xc8-\xcb] matches accented E
+characters in both cases.
 </P>
 <P>
 A circumflex can conveniently be used with the upper case character types to
@@ -1369,11 +1490,12 @@ syntax [.ch.] and [=ch=] where "ch" is a "collating element", but these are not
 supported, and an error is given if they are encountered.
 </P>
 <P>
-By default, characters with values greater than 128 do not match any of the
-POSIX character classes. However, if the PCRE2_UCP option is passed to
-<b>pcre2_compile()</b>, some of the classes are changed so that Unicode
-character properties are used. This is achieved by replacing certain POSIX
-classes by other sequences, as follows:
+By default, characters with values greater than 127 do not match any of the
+POSIX character classes, although this may be different for characters in the
+range 128-255 when locale-specific matching is happening. However, if the
+PCRE2_UCP option is passed to <b>pcre2_compile()</b>, some of the classes are
+changed so that Unicode character properties are used. This is achieved by
+replacing certain POSIX classes with other sequences, as follows:
 <pre>
   [:alnum:]  becomes  \p{Xan}
   [:alpha:]  becomes  \p{L}
@@ -1408,12 +1530,12 @@ not controls, that is, characters with the Zs property.
 <P>
 [:punct:]
 This matches all characters that have the Unicode P (punctuation) property,
-plus those characters with code points less than 128 that have the S (Symbol)
+plus those characters with code points less than 256 that have the S (Symbol)
 property.
 </P>
 <P>
 The other POSIX classes are unchanged, and match only characters with code
-points less than 128.
+points less than 256.
 </P>
 <br><a name="SEC11" href="#TOC1">COMPATIBILITY FEATURE FOR WORD BOUNDARIES</a><br>
 <P>
@@ -1451,22 +1573,29 @@ alternative in the subpattern.
 </P>
 <br><a name="SEC13" href="#TOC1">INTERNAL OPTION SETTING</a><br>
 <P>
-The settings of the PCRE2_CASELESS, PCRE2_MULTILINE, PCRE2_DOTALL, and
-PCRE2_EXTENDED options (which are Perl-compatible) can be changed from within
-the pattern by a sequence of Perl option letters enclosed between "(?" and ")".
-The option letters are
+The settings of the PCRE2_CASELESS, PCRE2_MULTILINE, PCRE2_DOTALL,
+PCRE2_EXTENDED, PCRE2_EXTENDED_MORE, and PCRE2_NO_AUTO_CAPTURE options (which
+are Perl-compatible) can be changed from within the pattern by a sequence of
+Perl option letters enclosed between "(?" and ")". The option letters are
 <pre>
   i  for PCRE2_CASELESS
   m  for PCRE2_MULTILINE
+  n  for PCRE2_NO_AUTO_CAPTURE
   s  for PCRE2_DOTALL
   x  for PCRE2_EXTENDED
+  xx for PCRE2_EXTENDED_MORE
 </pre>
 For example, (?im) sets caseless, multiline matching. It is also possible to
-unset these options by preceding the letter with a hyphen, and a combined
-setting and unsetting such as (?im-sx), which sets PCRE2_CASELESS and
-PCRE2_MULTILINE while unsetting PCRE2_DOTALL and PCRE2_EXTENDED, is also
+unset these options by preceding the letter with a hyphen. The two "extended"
+options are not independent; unsetting either one cancels the effects of both
+of them.
+</P>
+<P>
+A combined setting and unsetting such as (?im-sx), which sets PCRE2_CASELESS
+and PCRE2_MULTILINE while unsetting PCRE2_DOTALL and PCRE2_EXTENDED, is also
 permitted. If a letter appears both before and after the hyphen, the option is
-unset.
+unset. An empty options setting "(?)" is allowed. Needless to say, it has no
+effect.
 </P>
 <P>
 The PCRE2-specific options PCRE2_DUPNAMES and PCRE2_UNGREEDY can be changed in
@@ -1476,13 +1605,8 @@ respectively.
 <P>
 When one of these option changes occurs at top level (that is, not inside
 subpattern parentheses), the change applies to the remainder of the pattern
-that follows. If the change is placed right at the start of a pattern, PCRE2
-extracts it into the global options (and it will therefore show up in data
-extracted by the <b>pcre2_pattern_info()</b> function).
-</P>
-<P>
-An option change within a subpattern (see below for a description of
-subpatterns) affects only that part of the subpattern that follows it, so
+that follows. An option change within a subpattern (see below for a description
+of subpatterns) affects only that part of the subpattern that follows it, so
 <pre>
   (a(?i)b)c
 </pre>
@@ -1499,11 +1623,20 @@ option settings happen at compile time. There would be some very weird
 behaviour otherwise.
 </P>
 <P>
+As a convenient shorthand, if any option settings are required at the start of
+a non-capturing subpattern (see the next section), the option letters may
+appear between the "?" and the ":". Thus the two patterns
+<pre>
+  (?i:saturday|sunday)
+  (?:(?i)saturday|sunday)
+</pre>
+match exactly the same set of strings.
+</P>
+<P>
 <b>Note:</b> There are other PCRE2-specific options that can be set by the
-application when the compiling function is called.
-The pattern can contain special leading sequences such as (*CRLF) to override
-what the application has set or what has been defaulted. Details are given in
-the section entitled
+application when the compiling function is called. The pattern can contain
+special leading sequences such as (*CRLF) to override what the application has
+set or what has been defaulted. Details are given in the section entitled
 <a href="#newlineseq">"Newline sequences"</a>
 above. There are also the (*UTF) and (*UCP) leading sequences that can be used
 to set UTF and Unicode property modes; they are equivalent to setting the
@@ -1602,6 +1735,10 @@ first one in the pattern with the given number. The following pattern matches
 <pre>
   /(?|(abc)|(def))(?1)/
 </pre>
+A relative reference such as (?-1) is no different: it is just a convenient way
+of computing an absolute group number.
+</P>
+<P>
 If a
 <a href="#conditions">condition test</a>
 for a subpattern's having matched refers to a non-unique number, the test is
@@ -1714,8 +1851,8 @@ items:
   the \R escape sequence
   an escape such as \d or \pL that matches a single character
   a character class
-  a back reference (see next section)
-  a parenthesized subpattern (including assertions)
+  a back reference
+  a parenthesized subpattern (including most assertions)
   a subroutine call to a subpattern (recursive or otherwise)
 </pre>
 The general repetition quantifier specifies a minimum and maximum number of
@@ -2004,9 +2141,9 @@ subpattern is possible using named parentheses (see below).
 </P>
 <P>
 Another way of avoiding the ambiguity inherent in the use of digits following a
-backslash is to use the \g escape sequence. This escape must be followed by an
-unsigned number or a negative number, optionally enclosed in braces. These
-examples are all identical:
+backslash is to use the \g escape sequence. This escape must be followed by a
+signed or unsigned number, optionally enclosed in braces. These examples are
+all identical:
 <pre>
   (ring), \1
   (ring), \g1
@@ -2014,8 +2151,7 @@ examples are all identical:
 </pre>
 An unsigned number specifies an absolute reference without the ambiguity that
 is present in the older syntax. It is also useful when literal digits follow
-the reference. A negative number is a relative reference. Consider this
-example:
+the reference. A signed number is a relative reference. Consider this example:
 <pre>
   (abc(def)ghi)\g{-1}
 </pre>
@@ -2024,6 +2160,11 @@ subpattern before \g, that is, is it equivalent to \2 in this example.
 Similarly, \g{-2} would be equivalent to \1. The use of relative references
 can be helpful in long patterns, and also in patterns that are created by
 joining together fragments that contain references within themselves.
+</P>
+<P>
+The sequence \g{+1} is a reference to the next capturing subpattern. This kind
+of forward reference can be useful it patterns that repeat. Perl does not
+support the use of + in this way.
 </P>
 <P>
 A back reference matches whatever actually matched the capturing subpattern in
@@ -2114,21 +2255,34 @@ coded as \b, \B, \A, \G, \Z, \z, ^ and $ are described
 <P>
 More complicated assertions are coded as subpatterns. There are two kinds:
 those that look ahead of the current position in the subject string, and those
-that look behind it. An assertion subpattern is matched in the normal way,
-except that it does not cause the current matching position to be changed.
+that look behind it, and in each case an assertion may be positive (must
+succeed for matching to continue) or negative (must not succeed for matching to
+continue). An assertion subpattern is matched in the normal way, except that,
+when matching continues afterwards, the matching position in the subject string
+is as it was at the start of the assertion.
 </P>
 <P>
-Assertion subpatterns are not capturing subpatterns. If such an assertion
-contains capturing subpatterns within it, these are counted for the purposes of
+Assertion subpatterns are not capturing subpatterns. If an assertion contains
+capturing subpatterns within it, these are counted for the purposes of
 numbering the capturing subpatterns in the whole pattern. However, substring
-capturing is carried out only for positive assertions. (Perl sometimes, but not
-always, does do capturing in negative assertions.)
+capturing is carried out only for positive assertions that succeed, that is,
+one of their branches matches, so matching continues after the assertion. If
+all branches of a positive assertion fail to match, nothing is captured, and
+control is passed to the previous backtracking point.
 </P>
 <P>
-For compatibility with Perl, assertion subpatterns may be repeated; though
+No capturing is done for a negative assertion unless it is being used as a
+condition in a
+<a href="#subpatternsassubroutines">conditional subpattern</a>
+(see the discussion below). Matching continues after a non-conditional negative
+assertion only if all its branches fail to match.
+</P>
+<P>
+For compatibility with Perl, most assertion subpatterns may be repeated; though
 it makes no sense to assert the same thing several times, the side effect of
-capturing parentheses may occasionally be useful. In practice, there only three
-cases:
+capturing parentheses may occasionally be useful. However, an assertion that
+forms the condition for a conditional subpattern may not be quantified. In
+practice, for other assertions, there only three cases:
 <br>
 <br>
 (1) If the quantifier is {0}, the assertion is never obeyed during matching.
@@ -2220,18 +2374,31 @@ match. If there are insufficient characters before the current position, the
 assertion fails.
 </P>
 <P>
-In a UTF mode, PCRE2 does not allow the \C escape (which matches a single code
-unit even in a UTF mode) to appear in lookbehind assertions, because it makes
-it impossible to calculate the length of the lookbehind. The \X and \R
-escapes, which can match different numbers of code units, are also not
-permitted.
+In UTF-8 and UTF-16 modes, PCRE2 does not allow the \C escape (which matches a
+single code unit even in a UTF mode) to appear in lookbehind assertions,
+because it makes it impossible to calculate the length of the lookbehind. The
+\X and \R escapes, which can match different numbers of code units, are never
+permitted in lookbehinds.
 </P>
 <P>
 <a href="#subpatternsassubroutines">"Subroutine"</a>
 calls (see below) such as (?2) or (?&X) are permitted in lookbehinds, as long
-as the subpattern matches a fixed-length string.
-<a href="#recursion">Recursion,</a>
-however, is not supported.
+as the subpattern matches a fixed-length string. However,
+<a href="#recursion">recursion,</a>
+that is, a "subroutine" call into a group that is already active,
+is not supported.
+</P>
+<P>
+Perl does not support back references in lookbehinds. PCRE2 does support them,
+but only if certain conditions are met. The PCRE2_MATCH_UNSET_BACKREF option
+must not be set, there must be no use of (?| in the pattern (it creates
+duplicate subpattern numbers), and if the back reference is by name, the name
+must be unique. Of course, the referenced subpattern must itself be of fixed
+length. The following pattern matches words containing at least two characters
+that begin and end with the same character:
+<pre>
+   \b(\w)\w++(?&#60;=\1)
+</PRE>
 </P>
 <P>
 Possessive quantifiers can be used in conjunction with lookbehind assertions to
@@ -2369,7 +2536,9 @@ Checking for a used subpattern by name
 <P>
 Perl uses the syntax (?(&#60;name&#62;)...) or (?('name')...) to test for a used
 subpattern by name. For compatibility with earlier versions of PCRE1, which had
-this facility before Perl, the syntax (?(name)...) is also recognized.
+this facility before Perl, the syntax (?(name)...) is also recognized. Note,
+however, that undelimited names consisting of the letter R followed by digits
+are ambiguous (see the following section).
 </P>
 <P>
 Rewriting the above example to use a named subpattern gives this:
@@ -2384,30 +2553,52 @@ matched.
 Checking for pattern recursion
 </b><br>
 <P>
-If the condition is the string (R), and there is no subpattern with the name R,
-the condition is true if a recursive call to the whole pattern or any
-subpattern has been made. If digits or a name preceded by ampersand follow the
-letter R, for example:
+"Recursion" in this sense refers to any subroutine-like call from one part of
+the pattern to another, whether or not it is actually recursive. See the
+sections entitled
+<a href="#recursion">"Recursive patterns"</a>
+and
+<a href="#subpatternsassubroutines">"Subpatterns as subroutines"</a>
+below for details of recursion and subpattern calls.
+</P>
+<P>
+If a condition is the string (R), and there is no subpattern with the name R,
+the condition is true if matching is currently in a recursion or subroutine
+call to the whole pattern or any subpattern. If digits follow the letter R, and
+there is no subpattern with that name, the condition is true if the most recent
+call is into a subpattern with the given number, which must exist somewhere in
+the overall pattern. This is a contrived example that is equivalent to a+b:
 <pre>
-  (?(R3)...) or (?(R&name)...)
+  ((?(R1)a+|(?1)b))
 </pre>
-the condition is true if the most recent recursion is into a subpattern whose
-number or name is given. This condition does not check the entire recursion
-stack. If the name used in a condition of this kind is a duplicate, the test is
-applied to all subpatterns of the same name, and is true if any one of them is
-the most recent recursion.
+However, in both cases, if there is a subpattern with a matching name, the
+condition tests for its being set, as described in the section above, instead
+of testing for recursion. For example, creating a group with the name R1 by
+adding (?&#60;R1&#62;) to the above pattern completely changes its meaning.
+</P>
+<P>
+If a name preceded by ampersand follows the letter R, for example:
+<pre>
+  (?(R&name)...)
+</pre>
+the condition is true if the most recent recursion is into a subpattern of that
+name (which must exist within the pattern).
+</P>
+<P>
+This condition does not check the entire recursion stack. It tests only the
+current level. If the name used in a condition of this kind is a duplicate, the
+test is applied to all subpatterns of the same name, and is true if any one of
+them is the most recent recursion.
 </P>
 <P>
 At "top level", all these recursion test conditions are false.
-<a href="#recursion">The syntax for recursive patterns</a>
-is described below.
 <a name="subdefine"></a></P>
 <br><b>
 Defining subpatterns for use by reference only
 </b><br>
 <P>
-If the condition is the string (DEFINE), and there is no subpattern with the
-name DEFINE, the condition is always false. In this case, there may be only one
+If the condition is the string (DEFINE), the condition is always false, even if
+there is a group with the name DEFINE. In this case, there may be only one
 alternative in the subpattern. It is always skipped if control reaches this
 point in the pattern; the idea of DEFINE is that it can be used to define
 subroutines that can be referenced from elsewhere. (The use of
@@ -2441,7 +2632,8 @@ For example:
   (?(VERSION&#62;=10.4)yes|no)
 </pre>
 This pattern matches "yes" if the PCRE2 version is greater or equal to 10.4, or
-"no" otherwise.
+"no" otherwise. The fractional part of the version number may not contain more
+than two digits.
 </P>
 <br><b>
 Assertion conditions
@@ -2461,6 +2653,13 @@ presence of at least one letter in the subject. If a letter is found, the
 subject is matched against the first alternative; otherwise it is matched
 against the second. This pattern matches strings in one of the two forms
 dd-aaa-dd or dd-dd-dd, where aaa are letters and dd are digits.
+</P>
+<P>
+When an assertion that is a condition contains capturing subpatterns, any
+capturing that occurs in a matching branch is retained afterwards, for both
+positive and negative assertions, because matching always continues after the
+assertion, whether it succeeds or fails. (Compare non-conditional assertions,
+when captures are retained only for positive assertions that succeed.)
 <a name="comments"></a></P>
 <br><a name="SEC22" href="#TOC1">COMMENTS</a><br>
 <P>
@@ -2554,6 +2753,21 @@ parentheses preceding the recursion. In other words, a negative number counts
 capturing parentheses leftwards from the point at which it is encountered.
 </P>
 <P>
+Be aware however, that if
+<a href="#dupsubpatternnumber">duplicate subpattern numbers</a>
+are in use, relative references refer to the earliest subpattern with the
+appropriate number. Consider, for example:
+<pre>
+  (?|(a)|(b)) (c) (?-2)
+</pre>
+The first two capturing groups (a) and (b) are both numbered 1, and group (c)
+is number 2. When the reference (?-2) is encountered, the second most recently
+opened parentheses has the number 1, but it is the first such group (the (a)
+group) to which the recursion refers. This would be the same if an absolute
+reference (?1) was used. In other words, relative references are just a
+shorthand for computing a group number.
+</P>
+<P>
 It is also possible to refer to subsequently opened parentheses, by writing
 references such as (?+2). However, these cannot be recursive because the
 reference is not inside the parentheses that are referenced. They are always
@@ -2618,93 +2832,57 @@ is the actual recursive call.
 Differences in recursion processing between PCRE2 and Perl
 </b><br>
 <P>
-Recursion processing in PCRE2 differs from Perl in two important ways. In PCRE2
-(like Python, but unlike Perl), a recursive subpattern call is always treated
-as an atomic group. That is, once it has matched some of the subject string, it
-is never re-entered, even if it contains untried alternatives and there is a
-subsequent matching failure. This can be illustrated by the following pattern,
-which purports to match a palindromic string that contains an odd number of
-characters (for example, "a", "aba", "abcba", "abcdcba"):
-<pre>
-  ^(.|(.)(?1)\2)$
-</pre>
-The idea is that it either matches a single character, or two identical
-characters surrounding a sub-palindrome. In Perl, this pattern works; in PCRE2
-it does not if the pattern is longer than three characters. Consider the
-subject string "abcba":
+Some former differences between PCRE2 and Perl no longer exist.
 </P>
 <P>
-At the top level, the first character is matched, but as it is not at the end
-of the string, the first alternative fails; the second alternative is taken
-and the recursion kicks in. The recursive call to subpattern 1 successfully
-matches the next character ("b"). (Note that the beginning and end of line
-tests are not part of the recursion).
+Before release 10.30, recursion processing in PCRE2 differed from Perl in that
+a recursive subpattern call was always treated as an atomic group. That is,
+once it had matched some of the subject string, it was never re-entered, even
+if it contained untried alternatives and there was a subsequent matching
+failure. (Historical note: PCRE implemented recursion before Perl did.)
 </P>
 <P>
-Back at the top level, the next character ("c") is compared with what
-subpattern 2 matched, which was "a". This fails. Because the recursion is
-treated as an atomic group, there are now no backtracking points, and so the
-entire match fails. (Perl is able, at this point, to re-enter the recursion and
-try the second alternative.) However, if the pattern is written with the
-alternatives in the other order, things are different:
-<pre>
-  ^((.)(?1)\2|.)$
-</pre>
-This time, the recursing alternative is tried first, and continues to recurse
-until it runs out of characters, at which point the recursion fails. But this
-time we do have another alternative to try at the higher level. That is the big
-difference: in the previous case the remaining alternative is at a deeper
-recursion level, which PCRE2 cannot use.
+Starting with release 10.30, recursive subroutine calls are no longer treated
+as atomic. That is, they can be re-entered to try unused alternatives if there
+is a matching failure later in the pattern. This is now compatible with the way
+Perl works. If you want a subroutine call to be atomic, you must explicitly
+enclose it in an atomic group.
 </P>
 <P>
-To change the pattern so that it matches all palindromic strings, not just
-those with an odd number of characters, it is tempting to change the pattern to
-this:
+Supporting backtracking into recursions simplifies certain types of recursive
+pattern. For example, this pattern matches palindromic strings:
 <pre>
   ^((.)(?1)\2|.?)$
 </pre>
-Again, this works in Perl, but not in PCRE2, and for the same reason. When a
-deeper recursion has matched a single character, it cannot be entered again in
-order to match an empty string. The solution is to separate the two cases, and
-write out the odd and even cases as alternatives at the higher level:
+The second branch in the group matches a single central character in the
+palindrome when there are an odd number of characters, or nothing when there
+are an even number of characters, but in order to work it has to be able to try
+the second case when the rest of the pattern match fails. If you want to match
+typical palindromic phrases, the pattern has to ignore all non-word characters,
+which can be done like this:
 <pre>
-  ^(?:((.)(?1)\2|)|((.)(?3)\4|.))
-</pre>
-If you want to match typical palindromic phrases, the pattern has to ignore all
-non-word characters, which can be done like this:
-<pre>
-  ^\W*+(?:((.)\W*+(?1)\W*+\2|)|((.)\W*+(?3)\W*+\4|\W*+.\W*+))\W*+$
+  ^\W*+((.)\W*+(?1)\W*+\2|\W*+.?)\W*+$
 </pre>
 If run with the PCRE2_CASELESS option, this pattern matches phrases such as "A
-man, a plan, a canal: Panama!" and it works in both PCRE2 and Perl. Note the
-use of the possessive quantifier *+ to avoid backtracking into sequences of
-non-word characters. Without this, PCRE2 takes a great deal longer (ten times
-or more) to match typical phrases, and Perl takes so long that you think it has
-gone into a loop.
+man, a plan, a canal: Panama!". Note the use of the possessive quantifier *+ to
+avoid backtracking into sequences of non-word characters. Without this, PCRE2
+takes a great deal longer (ten times or more) to match typical phrases, and
+Perl takes so long that you think it has gone into a loop.
 </P>
 <P>
-<b>WARNING</b>: The palindrome-matching patterns above work only if the subject
-string does not start with a palindrome that is shorter than the entire string.
-For example, although "abcba" is correctly matched, if the subject is "ababa",
-PCRE2 finds the palindrome "aba" at the start, then fails at top level because
-the end of the string does not follow. Once again, it cannot jump back into the
-recursion to try other alternatives, so the entire match fails.
-</P>
-<P>
-The second way in which PCRE2 and Perl differ in their recursion processing is
-in the handling of captured values. In Perl, when a subpattern is called
-recursively or as a subpattern (see the next section), it has no access to any
-values that were captured outside the recursion, whereas in PCRE2 these values
-can be referenced. Consider this pattern:
+Another way in which PCRE2 and Perl used to differ in their recursion
+processing is in the handling of captured values. Formerly in Perl, when a
+subpattern was called recursively or as a subpattern (see the next section), it
+had no access to any values that were captured outside the recursion, whereas
+in PCRE2 these values can be referenced. Consider this pattern:
 <pre>
   ^(.)(\1|a(?2))
 </pre>
-In PCRE2, this pattern matches "bab". The first capturing parentheses match "b",
-then in the second group, when the back reference \1 fails to match "b", the
-second alternative matches "a" and then recurses. In the recursion, \1 does
-now match "b" and so the whole match succeeds. In Perl, the pattern fails to
-match because inside the recursive call \1 cannot access the externally set
-value.
+This pattern matches "bab". The first capturing parentheses match "b", then in
+the second group, when the back reference \1 fails to match "b", the second
+alternative matches "a" and then recurses. In the recursion, \1 does now match
+"b" and so the whole match succeeds. This match used to fail in Perl, but in
+later versions (I tried 5.024) it now works.
 <a name="subpatternsassubroutines"></a></P>
 <br><a name="SEC24" href="#TOC1">SUBPATTERNS AS SUBROUTINES</a><br>
 <P>
@@ -2731,11 +2909,10 @@ is used, it does match "sense and responsibility" as well as the other two
 strings. Another example is given in the discussion of DEFINE above.
 </P>
 <P>
-All subroutine calls, whether recursive or not, are always treated as atomic
-groups. That is, once a subroutine has matched some of the subject string, it
-is never re-entered, even if it contains untried alternatives and there is a
-subsequent matching failure. Any capturing parentheses that are set during the
-subroutine call revert to their previous values afterwards.
+Like recursions, subroutine calls used to be treated as atomic, but this
+changed at PCRE2 release 10.30, so backtracking into subroutine calls can now
+occur. However, any capturing parentheses that are set during the subroutine
+call revert to their previous values afterwards.
 </P>
 <P>
 Processing options such as case-independence are fixed when a subpattern is
@@ -2776,67 +2953,109 @@ same pair of parentheses when there is a repetition.
 PCRE2 provides a similar feature, but of course it cannot obey arbitrary Perl
 code. The feature is called "callout". The caller of PCRE2 provides an external
 function by putting its entry point in a match context using the function
-<b>pcre2_set_callout()</b> and passing the context to <b>pcre2_match()</b> or
-<b>pcre2_dfa_match()</b>. If no match context is passed, or if the callout entry
-point is set to NULL, callouts are disabled.
+<b>pcre2_set_callout()</b>, and then passing that context to <b>pcre2_match()</b>
+or <b>pcre2_dfa_match()</b>. If no match context is passed, or if the callout
+entry point is set to NULL, callouts are disabled.
 </P>
 <P>
-Within a regular expression, (?C) indicates the points at which the external
-function is to be called. If you want to identify different callout points, you
-can put a number less than 256 after the letter C. The default value is zero.
-For example, this pattern has two callout points:
+Within a regular expression, (?C&#60;arg&#62;) indicates a point at which the external
+function is to be called. There are two kinds of callout: those with a
+numerical argument and those with a string argument. (?C) on its own with no
+argument is treated as (?C0). A numerical argument allows the application to
+distinguish between different callouts. String arguments were added for release
+10.20 to make it possible for script languages that use PCRE2 to embed short
+scripts within patterns in a similar way to Perl.
+</P>
+<P>
+During matching, when PCRE2 reaches a callout point, the external function is
+called. It is provided with the number or string argument of the callout, the
+position in the pattern, and one item of data that is also set in the match
+block. The callout function may cause matching to proceed, to backtrack, or to
+fail.
+</P>
+<P>
+By default, PCRE2 implements a number of optimizations at matching time, and
+one side-effect is that sometimes callouts are skipped. If you need all
+possible callouts to happen, you need to set options that disable the relevant
+optimizations. More details, including a complete description of the
+programming interface to the callout function, are given in the
+<a href="pcre2callout.html"><b>pcre2callout</b></a>
+documentation.
+</P>
+<br><b>
+Callouts with numerical arguments
+</b><br>
+<P>
+If you just want to have a means of identifying different callout points, put a
+number less than 256 after the letter C. For example, this pattern has two
+callout points:
 <pre>
   (?C1)abc(?C2)def
 </pre>
-If the PCRE2_AUTO_CALLOUT flag is passed to <b>pcre2_compile()</b>, callouts are
-automatically installed before each item in the pattern. They are all numbered
-255. If there is a conditional group in the pattern whose condition is an
-assertion, an additional callout is inserted just before the condition. An
-explicit callout may also be set at this position, as in this example:
+If the PCRE2_AUTO_CALLOUT flag is passed to <b>pcre2_compile()</b>, numerical
+callouts are automatically installed before each item in the pattern. They are
+all numbered 255. If there is a conditional group in the pattern whose
+condition is an assertion, an additional callout is inserted just before the
+condition. An explicit callout may also be set at this position, as in this
+example:
 <pre>
   (?(?C9)(?=a)abc|def)
 </pre>
 Note that this applies only to assertion conditions, not to other types of
 condition.
 </P>
+<br><b>
+Callouts with string arguments
+</b><br>
 <P>
-During matching, when PCRE2 reaches a callout point, the external function is
-called. It is provided with the number of the callout, the position in the
-pattern, and one item of data that is also set in the match block. The callout
-function may cause matching to proceed, to backtrack, or to fail.
-</P>
-<P>
-By default, PCRE2 implements a number of optimizations at matching time, and
-one side-effect is that sometimes callouts are skipped. If you need all
-possible callouts to happen, you need to set options that disable the relevant
-optimizations. More details, and a complete description of the interface to the
-callout function, are given in the
-<a href="pcre2callout.html"><b>pcre2callout</b></a>
-documentation.
+A delimited string may be used instead of a number as a callout argument. The
+starting delimiter must be one of ` ' " ^ % # $ { and the ending delimiter is
+the same as the start, except for {, where the ending delimiter is }. If the
+ending delimiter is needed within the string, it must be doubled. For
+example:
+<pre>
+  (?C'ab ''c'' d')xyz(?C{any text})pqr
+</pre>
+The doubling is removed before the string is passed to the callout function.
 <a name="backtrackcontrol"></a></P>
 <br><a name="SEC27" href="#TOC1">BACKTRACKING CONTROL</a><br>
 <P>
-Perl 5.10 introduced a number of "Special Backtracking Control Verbs", which
-are still described in the Perl documentation as "experimental and subject to
-change or removal in a future version of Perl". It goes on to say: "Their usage
-in production code should be noted to avoid problems during upgrades." The same
-remarks apply to the PCRE2 features described in this section.
+There are a number of special "Backtracking Control Verbs" (to use Perl's
+terminology) that modify the behaviour of backtracking during matching. They
+are generally of the form (*VERB) or (*VERB:NAME). Some verbs take either form,
+possibly behaving differently depending on whether or not a name is present.
 </P>
 <P>
-The new verbs make use of what was previously invalid syntax: an opening
-parenthesis followed by an asterisk. They are generally of the form
-(*VERB) or (*VERB:NAME). Some may take either form, possibly behaving
-differently depending on whether or not a name is present. A name is any
-sequence of characters that does not include a closing parenthesis. The maximum
-length of name is 255 in the 8-bit library and 65535 in the 16-bit and 32-bit
-libraries. If the name is empty, that is, if the closing parenthesis
-immediately follows the colon, the effect is as if the colon were not there.
-Any number of these verbs may occur in a pattern.
+By default, for compatibility with Perl, a name is any sequence of characters
+that does not include a closing parenthesis. The name is not processed in
+any way, and it is not possible to include a closing parenthesis in the name.
+This can be changed by setting the PCRE2_ALT_VERBNAMES option, but the result
+is no longer Perl-compatible.
+</P>
+<P>
+When PCRE2_ALT_VERBNAMES is set, backslash processing is applied to verb names
+and only an unescaped closing parenthesis terminates the name. However, the
+only backslash items that are permitted are \Q, \E, and sequences such as
+\x{100} that define character code points. Character type escapes such as \d
+are faulted.
+</P>
+<P>
+A closing parenthesis can be included in a name either as \) or between \Q
+and \E. In addition to backslash processing, if the PCRE2_EXTENDED option is
+also set, unescaped whitespace in verb names is skipped, and #-comments are
+recognized, exactly as in the rest of the pattern. PCRE2_EXTENDED does not
+affect verb names unless PCRE2_ALT_VERBNAMES is also set.
+</P>
+<P>
+The maximum length of a name is 255 in the 8-bit library and 65535 in the
+16-bit and 32-bit libraries. If the name is empty, that is, if the closing
+parenthesis immediately follows the colon, the effect is as if the colon were
+not there. Any number of these verbs may occur in a pattern.
 </P>
 <P>
 Since these verbs are specifically related to backtracking, most of them can be
 used only when the pattern is to be matched using the traditional matching
-function, because these use a backtracking algorithm. With the exception of
+function, because that uses a backtracking algorithm. With the exception of
 (*FAIL), which behaves like a failing negative assertion, the backtracking
 control verbs cause an error if encountered by the DFA matching function.
 </P>
@@ -2974,11 +3193,11 @@ Verbs that act after backtracking
 The following verbs do nothing when they are encountered. Matching continues
 with what follows, but if there is no subsequent match, causing a backtrack to
 the verb, a failure is forced. That is, backtracking cannot pass to the left of
-the verb. However, when one of these verbs appears inside an atomic group
-(which includes any group that is called as a subroutine) or in an assertion
-that is true, its effect is confined to that group, because once the group has
-been matched, there is never any backtracking into it. In this situation,
-backtracking has to jump to the left of the entire atomic group or assertion.
+the verb. However, when one of these verbs appears inside an atomic group or in
+an assertion that is true, its effect is confined to that group, because once
+the group has been matched, there is never any backtracking into it. In this
+situation, backtracking has to jump to the left of the entire atomic group or
+assertion.
 </P>
 <P>
 These verbs differ in exactly what kind of failure occurs when backtracking
@@ -3042,8 +3261,8 @@ expressed in any other way. In an anchored pattern (*PRUNE) has the same effect
 as (*COMMIT).
 </P>
 <P>
-The behaviour of (*PRUNE:NAME) is the not the same as (*MARK:NAME)(*PRUNE).
-It is like (*MARK:NAME) in that the name is remembered for passing back to the
+The behaviour of (*PRUNE:NAME) is not the same as (*MARK:NAME)(*PRUNE). It is
+like (*MARK:NAME) in that the name is remembered for passing back to the
 caller. However, (*SKIP:NAME) searches only for names set with (*MARK),
 ignoring those set by (*PRUNE) or (*THEN).
 <pre>
@@ -3184,28 +3403,34 @@ in the second repeat of the group acts.
 Backtracking verbs in assertions
 </b><br>
 <P>
-(*FAIL) in an assertion has its normal effect: it forces an immediate
-backtrack.
+(*FAIL) in any assertion has its normal effect: it forces an immediate
+backtrack. The behaviour of the other backtracking verbs depends on whether or
+not the assertion is standalone or acting as the condition in a conditional
+subpattern.
 </P>
 <P>
-(*ACCEPT) in a positive assertion causes the assertion to succeed without any
-further processing. In a negative assertion, (*ACCEPT) causes the assertion to
-fail without any further processing.
+(*ACCEPT) in a standalone positive assertion causes the assertion to succeed
+without any further processing; captured strings are retained. In a standalone
+negative assertion, (*ACCEPT) causes the assertion to fail without any further
+processing; captured substrings are discarded.
+</P>
+<P>
+If the assertion is a condition, (*ACCEPT) causes the condition to be true for
+a positive assertion and false for a negative one; captured substrings are
+retained in both cases.
+</P>
+<P>
+The effect of (*THEN) is not allowed to escape beyond an assertion. If there
+are no more branches to try, (*THEN) causes a positive assertion to be false,
+and a negative assertion to be true.
 </P>
 <P>
 The other backtracking verbs are not treated specially if they appear in a
-positive assertion. In particular, (*THEN) skips to the next alternative in the
-innermost enclosing group that has alternations, whether or not this is within
-the assertion.
-</P>
-<P>
-Negative assertions are, however, different, in order to ensure that changing a
-positive assertion into a negative assertion changes its result. Backtracking
-into (*COMMIT), (*SKIP), or (*PRUNE) causes a negative assertion to be true,
-without considering any further alternative branches in the assertion.
-Backtracking into (*THEN) causes it to skip to the next enclosing alternative
-within the assertion (the normal behaviour), but if the assertion does not have
-such an alternative, (*THEN) behaves like (*PRUNE).
+standalone positive assertion. In a conditional positive assertion,
+backtracking into (*COMMIT), (*SKIP), or (*PRUNE) causes the condition to be
+false. However, for both standalone and conditional negative assertions,
+backtracking into (*COMMIT), (*SKIP), or (*PRUNE) causes the assertion to be
+true, without considering any further alternative branches.
 <a name="btsub"></a></P>
 <br><b>
 Backtracking verbs in subroutines
@@ -3248,9 +3473,9 @@ Cambridge, England.
 </P>
 <br><a name="SEC30" href="#TOC1">REVISION</a><br>
 <P>
-Last updated: 02 January 2015
+Last updated: 29 July 2017
 <br>
-Copyright &copy; 1997-2015 University of Cambridge.
+Copyright &copy; 1997-2017 University of Cambridge.
 <br>
 <p>
 Return to the <a href="index.html">PCRE2 index page</a>.

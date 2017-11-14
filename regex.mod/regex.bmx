@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,15 @@ bbdoc: Regular Expressions
 End Rem
 Module BaH.RegEx
 
-ModuleInfo "Version: 1.07"
+ModuleInfo "Version: 1.08"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: PCRE - 1997-2015 University of Cambridge"
-ModuleInfo "Copyright: Wrapper - 2007-2015 Bruce A Henderson"
+ModuleInfo "Copyright: PCRE - 1997-2017 University of Cambridge"
+ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.08"
+ModuleInfo "History: Updated to PCRE 10.30"
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Updated for 64-bit."
 ModuleInfo "History: 1.06"
@@ -459,7 +461,17 @@ Type TRegEx
 		End If
 		
 	End Method
-	
+
+	Rem
+	bbdoc: Returns which optional features are available.
+	End Rem
+	Function Config:Int(what:Int, where:Int Var)
+		If what <> PCRE2_CONFIG_UNICODE_VERSION And what <> PCRE2_CONFIG_VERSION Then
+			Return pcre2_config_16(what, Varptr where)
+		End If
+		Return PCRE2_ERROR_BADOPTION
+	End Function
+
 End Type
 
 Rem
@@ -620,7 +632,7 @@ Type TRegExMatch
 		End If
 		Return -1
 	End Method
-
+	
 End Type
 
 Rem

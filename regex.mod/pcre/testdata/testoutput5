@@ -3,22 +3,24 @@
 # results in 8-bit, 16-bit, and 32-bit modes are excluded (see tests 10 and
 # 12).
 
+#newline_default lf any anycrlf
+
 # PCRE2 and Perl disagree about the characteristics of certain Unicode
-# characters. For example, 061C is considered by Perl to be Arabic, though
-# is it not listed as such in the Unicode Scripts.txt file, and 2066-2069 are
-# graphic and printable according to Perl, though they are actually "isolate"
-# control characters. That is why the following tests are here rather than in
-# test 4.
+# characters. For example, 061C was considered by Perl to be Arabic, though
+# it was not listed as such in the Unicode Scripts.txt file for Unicode 8.
+# However, it *is* in that file for Unicode 10, but when I came to re-check,
+# Perl had changed in the meantime, with 5.026 not recognizing it as Arabic.
+
+# 2066-2069 are graphic and printable according to Perl, though they are
+# actually "isolate" control characters. That is why the following tests are
+# here rather than in test 4.
 
 /^[\p{Arabic}]/utf
-    ** Failers
-No match
     \x{061c}
-No match
-    
+ 0: \x{61c}
+
 /^[[:graph:]]+$/utf,ucp
-    ** Failers
-No match
+\= Expect no match
     \x{61c}
 No match
     \x{2066}
@@ -31,8 +33,7 @@ No match
 No match
 
 /^[[:print:]]+$/utf,ucp
-    ** Failers
- 0: ** Failers
+\= Expect no match
     \x{61c}
 No match
     \x{2066}
@@ -55,14 +56,14 @@ No match
  0: \x{09}\x{1d}\x{85}\x{61c}\x{2028}\x{2029}\x{2065}\x{2066}\x{2067}
     \x{2068}\x{2069}
  0: \x{2068}\x{2069}
-     
+
 # Perl does not consider U+180e to be a space character. It is true that it
 # does not appear in the Unicode PropList.txt file as such, but in many other
 # sources it is listed as a space, and has been treated as such in PCRE for
-# a long time. 
+# a long time.
 
 /^>[[:blank:]]*/utf,ucp
-    >\x{20}\x{a0}\x{1680}\x{180e}\x{2000}\x{202f}\x{9}\x{b}\x{2028} 
+    >\x{20}\x{a0}\x{1680}\x{180e}\x{2000}\x{202f}\x{9}\x{b}\x{2028}
  0: > \x{a0}\x{1680}\x{180e}\x{2000}\x{202f}\x{09}
 
 /^A\s+Z/utf,ucp
@@ -74,8 +75,9 @@ No match
  0: A\x{2005}Z
     A\x{85}\x{2005}Z
  0: A\x{85}\x{2005}Z
-    
+
 /^[[:graph:]]+$/utf,ucp
+\= Expect no match
     \x{180e}
 No match
 
@@ -88,6 +90,7 @@ No match
  0: \x{09}\x{0a}\x{1d} \x{85}\x{a0}\x{61c}\x{1680}\x{180e}
 
 /^[[:^print:]]+$/utf,ucp
+\= Expect no match
     \x{180e}
 No match
 
@@ -151,7 +154,7 @@ Last code unit = '.'
 Subject length lower bound = 4
     \x{0041}\x{2262}\x{0391}\x{002e}
  0: A\x{2262}\x{391}.
-    
+
 /.{3,5}X/IB,utf
 ------------------------------------------------------------------
         Bra
@@ -182,10 +185,6 @@ Subject length lower bound = 3
     \x{212ab}\x{212ab}\x{212ab}\x{861}
  0: \x{212ab}\x{212ab}\x{212ab}
 
-/(?<=\C)X/utf
-Failed: error 136 at offset 6: \C is not allowed in a lookbehind assertion
-    Should produce an error diagnostic
-    
 /^[ab]/IB,utf
 ------------------------------------------------------------------
         Bra
@@ -197,62 +196,38 @@ Failed: error 136 at offset 6: \C is not allowed in a lookbehind assertion
 Capturing subpattern count = 0
 Compile options: utf
 Overall options: anchored utf
+Starting code units: a b 
 Subject length lower bound = 1
     bar
  0: b
-    *** Failers
-No match
+\= Expect no match
     c
 No match
     \x{ff}
 No match
-    \x{100}  
+    \x{100}
 No match
 
-/^[^ab]/IB,utf
-------------------------------------------------------------------
-        Bra
-        ^
-        [\x00-`c-\xff] (neg)
-        Ket
-        End
-------------------------------------------------------------------
-Capturing subpattern count = 0
-Compile options: utf
-Overall options: anchored utf
-Subject length lower bound = 1
-    c
- 0: c
-    \x{ff}
- 0: \x{ff}
-    \x{100}  
- 0: \x{100}
-    *** Failers 
- 0: *
-    aaa
-No match
-  
 /\x{100}*(\d+|"(?1)")/utf
     1234
  0: 1234
  1: 1234
-    "1234" 
+    "1234"
  0: "1234"
  1: "1234"
     \x{100}1234
  0: \x{100}1234
  1: 1234
-    "\x{100}1234"  
+    "\x{100}1234"
  0: \x{100}1234
  1: 1234
-    \x{100}\x{100}12ab 
+    \x{100}\x{100}12ab
  0: \x{100}\x{100}12
  1: 12
-    \x{100}\x{100}"12" 
+    \x{100}\x{100}"12"
  0: \x{100}\x{100}"12"
  1: "12"
-    *** Failers 
-No match
+\= Expect no match
     \x{100}\x{100}abcd
 No match
 
@@ -303,11 +278,10 @@ Failed: error 108 at offset 15: range out of order in character class
  0: \x{100}
     \x{104}
  0: \x{104}
-    *** Failers
-No match
+\= Expect no match
     \x{105}
 No match
-    \x{ff}    
+    \x{ff}
 No match
 
 /[\xFF]/IB
@@ -338,23 +312,23 @@ Subject length lower bound = 1
  0: \x{d6}
     \x{d6}
  0: \x{d6}
-    
+
 /[Ä-Ü]/utf
     Ö <-- Same with Study
  0: \x{d6}
     \x{d6}
  0: \x{d6}
-    
+
 /[\x{c4}-\x{dc}]/utf
     Ö # Matches without Study
  0: \x{d6}
-    \x{d6} 
+    \x{d6}
  0: \x{d6}
 
 /[\x{c4}-\x{dc}]/utf
     Ö <-- Same with Study
  0: \x{d6}
-    \x{d6} 
+    \x{d6}
  0: \x{d6}
 
 /[^\x{100}]abc(xyz(?1))/IB,utf
@@ -479,14 +453,17 @@ Subject length lower bound = 0
 /\W/utf
     A.B
  0: .
-    A\x{100}B 
+    A\x{100}B
  0: \x{100}
-  
+
 /\w/utf
-    \x{100}X   
+    \x{100}X
  0: X
 
-/^\ሴ/IB,utf
+# Use no_start_optimize because the first code unit is different in 8-bit from
+# the wider modes.
+
+/^\ሴ/IB,utf,no_start_optimize
 ------------------------------------------------------------------
         Bra
         ^
@@ -495,16 +472,16 @@ Subject length lower bound = 0
         End
 ------------------------------------------------------------------
 Capturing subpattern count = 0
-Compile options: utf
-Overall options: anchored utf
-Subject length lower bound = 1
+Compile options: no_start_optimize utf
+Overall options: anchored no_start_optimize utf
+Subject length lower bound = 0
 
 /()()()()()()()()()()
  ()()()()()()()()()()
  ()()()()()()()()()()
  ()()()()()()()()()()
  A (x) (?41) B/x,utf
-    AxxB     
+    AxxB
 Matched, but too many substrings
  0: AxxB
  1: 
@@ -575,15 +552,14 @@ Matched, but too many substrings
  0: a\x{0b}b
     a\x0cb
  0: a\x{0c}b
-    a\x{85}b   
+    a\x{85}b
  0: a\x{85}b
-    a\x{2028}b 
+    a\x{2028}b
  0: a\x{2028}b
-    a\x{2029}b 
+    a\x{2029}b
  0: a\x{2029}b
-    ** Failers
-No match
-    a\n\rb    
+\= Expect no match
+    a\n\rb
 No match
 
 /^a\R*b/bsr=unicode,utf
@@ -599,11 +575,11 @@ No match
  0: a\x{0b}b
     a\x0c\x{2028}\x{2029}b
  0: a\x{0c}\x{2028}\x{2029}b
-    a\x{85}b   
+    a\x{85}b
  0: a\x{85}b
-    a\n\rb    
+    a\n\rb
  0: a\x{0a}\x{0d}b
-    a\n\r\x{85}\x0cb 
+    a\n\r\x{85}\x0cb
  0: a\x{0a}\x{0d}\x{85}\x{0c}b
 
 /^a\R+b/bsr=unicode,utf
@@ -617,15 +593,14 @@ No match
  0: a\x{0b}b
     a\x0c\x{2028}\x{2029}b
  0: a\x{0c}\x{2028}\x{2029}b
-    a\x{85}b   
+    a\x{85}b
  0: a\x{85}b
-    a\n\rb    
+    a\n\rb
  0: a\x{0a}\x{0d}b
-    a\n\r\x{85}\x0cb 
+    a\n\r\x{85}\x0cb
  0: a\x{0a}\x{0d}\x{85}\x{0c}b
-    ** Failers
-No match
-    ab  
+\= Expect no match
+    ab
 No match
 
 /^a\R{1,3}b/bsr=unicode,utf
@@ -635,16 +610,15 @@ No match
  0: a\x{0a}\x{0d}b
     a\n\r\x{85}b
  0: a\x{0a}\x{0d}\x{85}b
-    a\r\n\r\nb 
+    a\r\n\r\nb
  0: a\x{0d}\x{0a}\x{0d}\x{0a}b
-    a\r\n\r\n\r\nb 
+    a\r\n\r\n\r\nb
  0: a\x{0d}\x{0a}\x{0d}\x{0a}\x{0d}\x{0a}b
     a\n\r\n\rb
  0: a\x{0a}\x{0d}\x{0a}\x{0d}b
-    a\n\n\r\nb 
+    a\n\n\r\nb
  0: a\x{0a}\x{0a}\x{0d}\x{0a}b
-    ** Failers
-No match
+\= Expect no match
     a\n\n\n\rb
 No match
     a\r
@@ -655,11 +629,10 @@ No match
  0: X X\x{0a}
     X\x09X\x0b
  0: X\x{09}X\x{0b}
-    ** Failers
+\= Expect no match
+    \x{a0} X\x0a
 No match
-    \x{a0} X\x0a   
-No match
-    
+
 /\H*\h+\V?\v{3,4}/utf
     \x09\x20\x{a0}X\x0a\x0b\x0c\x0d\x0a
  0: \x{09} \x{a0}X\x{0a}\x{0b}\x{0c}\x{0d}
@@ -667,21 +640,19 @@ No match
  0: \x{09} \x{a0}\x{0a}\x{0b}\x{0c}\x{0d}
     \x09\x20\x{a0}\x0a\x0b\x0c
  0: \x{09} \x{a0}\x{0a}\x{0b}\x{0c}
-    ** Failers 
-No match
+\= Expect no match
     \x09\x20\x{a0}\x0a\x0b
 No match
-     
+
 /\H\h\V\v/utf
     \x{3001}\x{3000}\x{2030}\x{2028}
  0: \x{3001}\x{3000}\x{2030}\x{2028}
     X\x{180e}X\x{85}
  0: X\x{180e}X\x{85}
-    ** Failers
+\= Expect no match
+    \x{2009} X\x0a
 No match
-    \x{2009} X\x0a   
-No match
-    
+
 /\H*\h+\V?\v{3,4}/utf
     \x{1680}\x{180e}\x{2007}X\x{2028}\x{2029}\x0c\x0d\x0a
  0: \x{1680}\x{180e}\x{2007}X\x{2028}\x{2029}\x{0c}\x{0d}
@@ -689,11 +660,10 @@ No match
  0: \x{09}\x{205f}\x{a0}\x{0a}\x{2029}\x{0c}\x{2028}
     \x09\x20\x{202f}\x0a\x0b\x0c
  0: \x{09} \x{202f}\x{0a}\x{0b}\x{0c}
-    ** Failers 
-No match
+\= Expect no match
     \x09\x{200a}\x{a0}\x{2028}\x0b
 No match
-     
+
 /[\h]/B,utf
 ------------------------------------------------------------------
         Bra
@@ -739,9 +709,9 @@ No match
 ------------------------------------------------------------------
 
 /.*$/newline=any,utf
-    \x{1ec5} 
+    \x{1ec5}
  0: \x{1ec5}
-    
+
 /a\Rb/I,bsr=anycrlf,utf
 Capturing subpattern count = 0
 Options: utf
@@ -755,11 +725,10 @@ Subject length lower bound = 3
  0: a\x{0a}b
     a\r\nb
  0: a\x{0d}\x{0a}b
-    ** Failers
-No match
+\= Expect no match
     a\x{85}b
 No match
-    a\x0bb     
+    a\x0bb
 No match
 
 /a\Rb/I,bsr=unicode,utf
@@ -777,9 +746,9 @@ Subject length lower bound = 3
  0: a\x{0d}\x{0a}b
     a\x{85}b
  0: a\x{85}b
-    a\x0bb     
+    a\x0bb
  0: a\x{0b}b
-    
+
 /a\R?b/I,bsr=anycrlf,utf
 Capturing subpattern count = 0
 Options: utf
@@ -793,11 +762,10 @@ Subject length lower bound = 2
  0: a\x{0a}b
     a\r\nb
  0: a\x{0d}\x{0a}b
-    ** Failers
-No match
+\= Expect no match
     a\x{85}b
 No match
-    a\x0bb     
+    a\x0bb
 No match
 
 /a\R?b/I,bsr=unicode,utf
@@ -815,19 +783,16 @@ Subject length lower bound = 2
  0: a\x{0d}\x{0a}b
     a\x{85}b
  0: a\x{85}b
-    a\x0bb     
+    a\x0bb
  0: a\x{0b}b
-    ** Failers 
-No match
- 
+
 /.*a.*=.b.*/utf,newline=any
     QQQ\x{2029}ABCaXYZ=!bPQR
  0: ABCaXYZ=!bPQR
-    ** Failers
-No match
+\= Expect no match
     a\x{2029}b
 No match
-    \x61\xe2\x80\xa9\x62 
+    \x61\xe2\x80\xa9\x62
 No match
 
 /[[:a\x{100}b:]]/utf
@@ -836,21 +801,19 @@ Failed: error 130 at offset 3: unknown POSIX class name
 /a[^]b/utf,alt_bsux,allow_empty_class,match_unset_backref
     a\x{1234}b
  0: a\x{1234}b
-    a\nb 
+    a\nb
  0: a\x{0a}b
-    ** Failers
+\= Expect no match
+    ab
 No match
-    ab  
-No match
-    
+
 /a[^]+b/utf,alt_bsux,allow_empty_class,match_unset_backref
     aXb
  0: aXb
-    a\nX\nX\x{1234}b 
+    a\nX\nX\x{1234}b
  0: a\x{0a}X\x{0a}X\x{1234}b
-    ** Failers
-No match
-    ab  
+\= Expect no match
+    ab
 No match
 
 /(\x{de})\1/
@@ -873,7 +836,7 @@ Partial match: Xaa
 Partial match: Xaaa
     Xaaaa\=ps
 Partial match: Xaaaa
-    
+
 /Xa{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -885,7 +848,7 @@ Partial match: Xaa
 Partial match: Xaaa
     Xaaaa\=ps
 Partial match: Xaaaa
-    
+
 /Xa{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -897,7 +860,7 @@ Partial match: Xaa
 Partial match: Xaaa
     Xaaaa\=ps
 Partial match: Xaaaa
-    
+
 /X\x{123}{2,4}b/utf
     X\=ps
 Partial match: X
@@ -909,7 +872,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X\x{123}{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -921,7 +884,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X\x{123}{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -933,8 +896,9 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X\x{123}{2,4}b/utf
+\= Expect no match
     Xx\=ps
 No match
     X\x{123}x\=ps
@@ -945,8 +909,9 @@ No match
 No match
     X\x{123}\x{123}\x{123}\x{123}x\=ps
 No match
-    
+
 /X\x{123}{2,4}?b/utf
+\= Expect no match
     Xx\=ps
 No match
     X\x{123}x\=ps
@@ -957,8 +922,9 @@ No match
 No match
     X\x{123}\x{123}\x{123}\x{123}x\=ps
 No match
-    
+
 /X\x{123}{2,4}+b/utf
+\= Expect no match
     Xx\=ps
 No match
     X\x{123}x\=ps
@@ -969,7 +935,7 @@ No match
 No match
     X\x{123}\x{123}\x{123}\x{123}x\=ps
 No match
-    
+
 /X\d{2,4}b/utf
     X\=ps
 Partial match: X
@@ -981,7 +947,7 @@ Partial match: X33
 Partial match: X333
     X3333\=ps
 Partial match: X3333
-    
+
 /X\d{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -993,7 +959,7 @@ Partial match: X33
 Partial match: X333
     X3333\=ps
 Partial match: X3333
-    
+
 /X\d{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -1017,7 +983,7 @@ Partial match: Xaa
 Partial match: Xaaa
     Xaaaa\=ps
 Partial match: Xaaaa
-    
+
 /X\D{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -1029,7 +995,7 @@ Partial match: Xaa
 Partial match: Xaaa
     Xaaaa\=ps
 Partial match: Xaaaa
-    
+
 /X\D{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -1053,7 +1019,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X\D{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -1065,7 +1031,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X\D{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -1089,7 +1055,7 @@ Partial match: Xaa
 Partial match: Xaaa
     Xaaaa\=ps
 Partial match: Xaaaa
-    
+
 /X[abc]{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -1101,7 +1067,7 @@ Partial match: Xaa
 Partial match: Xaaa
     Xaaaa\=ps
 Partial match: Xaaaa
-    
+
 /X[abc]{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -1125,7 +1091,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X[abc\x{123}]{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -1137,7 +1103,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X[abc\x{123}]{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -1161,7 +1127,7 @@ Partial match: Xzz
 Partial match: Xzzz
     Xzzzz\=ps
 Partial match: Xzzzz
-    
+
 /X[^a]{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -1173,7 +1139,7 @@ Partial match: Xzz
 Partial match: Xzzz
     Xzzzz\=ps
 Partial match: Xzzzz
-    
+
 /X[^a]{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -1197,7 +1163,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X[^a]{2,4}?b/utf
     X\=ps
 Partial match: X
@@ -1209,7 +1175,7 @@ Partial match: X\x{123}\x{123}
 Partial match: X\x{123}\x{123}\x{123}
     X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: X\x{123}\x{123}\x{123}\x{123}
-    
+
 /X[^a]{2,4}+b/utf
     X\=ps
 Partial match: X
@@ -1233,7 +1199,7 @@ Partial match: YXYY
 Partial match: YXYYY
     YXYYYY\=ps
 Partial match: YXYYYY
-    
+
 /(Y)X\1{2,4}?b/utf
     YX\=ps
 Partial match: YX
@@ -1245,7 +1211,7 @@ Partial match: YXYY
 Partial match: YXYYY
     YXYYYY\=ps
 Partial match: YXYYYY
-    
+
 /(Y)X\1{2,4}+b/utf
     YX\=ps
 Partial match: YX
@@ -1269,7 +1235,7 @@ Partial match: \x{123}X\x{123}\x{123}
 Partial match: \x{123}X\x{123}\x{123}\x{123}
     \x{123}X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: \x{123}X\x{123}\x{123}\x{123}\x{123}
-    
+
 /(\x{123})X\1{2,4}?b/utf
     \x{123}X\=ps
 Partial match: \x{123}X
@@ -1281,7 +1247,7 @@ Partial match: \x{123}X\x{123}\x{123}
 Partial match: \x{123}X\x{123}\x{123}\x{123}
     \x{123}X\x{123}\x{123}\x{123}\x{123}\=ps
 Partial match: \x{123}X\x{123}\x{123}\x{123}\x{123}
-    
+
 /(\x{123})X\1{2,4}+b/utf
     \x{123}X\=ps
 Partial match: \x{123}X
@@ -1346,7 +1312,7 @@ Partial match: X
  0: \x{a0}xxx\x{85}
 
 /\S \S/utf,tables=2
-    \x{a2} \x{84} 
+    \x{a2} \x{84}
  0: \x{a2} \x{84}
 
 'A#хц'Bx,newline=any,utf
@@ -1365,7 +1331,7 @@ Partial match: X
         Ket
         End
 ------------------------------------------------------------------
-  
+
 /a+#хaa
   z#XX?/Bx,newline=any,utf
 ------------------------------------------------------------------
@@ -1418,11 +1384,11 @@ Failed: error 168 at offset 3: \c must be followed by a printable ASCII characte
  0: \x{0d}
  1: 
  2: \x{0d}
-    \r\r\n\n\r 
+    \r\r\n\n\r
  0: \x{0d}\x{0d}\x{0a}\x{0a}\x{0d}
  1: \x{0d}\x{0d}\x{0a}\x{0a}
  2: \x{0d}
-    \r\r\n\n\r\n 
+    \r\r\n\n\r\n
  0: \x{0d}\x{0d}\x{0a}\x{0a}\x{0d}
  1: \x{0d}\x{0d}\x{0a}\x{0a}
  2: \x{0d}
@@ -1432,11 +1398,11 @@ Failed: error 168 at offset 3: \c must be followed by a printable ASCII characte
  0: \x{0d}
  1: <unset>
  2: \x{0d}
-    \r\r\n\n\r 
+    \r\r\n\n\r
  0: \x{0d}\x{0d}\x{0a}\x{0a}\x{0d}
  1: \x{0a}
  2: \x{0d}
-    \r\r\n\n\r\n 
+    \r\r\n\n\r\n
  0: \x{0d}\x{0d}\x{0a}\x{0a}\x{0d}
  1: \x{0a}
  2: \x{0d}
@@ -1476,7 +1442,7 @@ Partial match: for
 /f.*/s,utf
     for\=ph
 Partial match: for
-    
+
 /\x{d7ff}\x{e000}/utf
 
 /\x{d800}/utf
@@ -1651,7 +1617,7 @@ Partial match: abaBabA
  0: \x{0d}
     \r\=ph
 Partial match: \x{0d}
-  
+
 /.{2,3}/utf,newline=crlf
     \r\=ps
 Partial match: \x{0d}
@@ -1745,6 +1711,7 @@ Last code unit = 'y'
 Subject length lower bound = 2
 
 /(?<!^)ETA/utf
+\= Expect no match
     ETA
 No match
 
@@ -1765,7 +1732,7 @@ No match
 ------------------------------------------------------------------
 
 /\ud800/utf,alt_bsux,allow_empty_class,match_unset_backref
-Failed: error 173 at offset 5: disallowed Unicode code point (>= 0xd800 && <= 0xdfff)
+Failed: error 173 at offset 6: disallowed Unicode code point (>= 0xd800 && <= 0xdfff)
 
 /^a+[a\x{200}]/B,utf
 ------------------------------------------------------------------
@@ -1872,11 +1839,10 @@ Subject length lower bound = 1
  0: 1234
     12-34
  0: 12-34
-    12+\x{661}-34  
+    12+\x{661}-34
  0: 12+\x{661}-34
-    ** Failers
-No match
-    abcd  
+\= Expect no match
+    abcd
 No match
 
 /(?:[\PPa*]*){8,}/
@@ -1945,7 +1911,7 @@ No match
  0: \x{2028}\x{2028}
     \x{2028}\x{2028}\x{2028}
  0: \x{2028}\x{2028}\x{2028}
-    
+
 /\p{Zl}/B,utf
 ------------------------------------------------------------------
         Bra
@@ -1995,11 +1961,10 @@ No match
 /^\p{Cs}/utf
     \x{dfff}\=no_utf_check
  0: \x{dfff}
-    ** Failers
+\= Expect no match
+    \x{09f}
 No match
-    \x{09f} 
-No match
-  
+
 /^\p{Mn}/utf
     \x{1a1b}
  0: \x{1a1b}
@@ -2021,13 +1986,12 @@ No match
  0: $\x{a2}\x{a3}\x{a4}\x{a5}
     \x{9f2}
  0: \x{9f2}
-    ** Failers
-No match
+\= Expect no match
     X
 No match
     \x{2c2}
 No match
-  
+
 /^\p{Zs}/utf
     \ \
  0:  
@@ -2037,32 +2001,29 @@ No match
  0: \x{1680}
     \x{2000}
  0: \x{2000}
-    \x{2001}     
+    \x{2001}
  0: \x{2001}
-    ** Failers
-No match
+\= Expect no match
     \x{2028}
 No match
-    \x{200d} 
+    \x{200d}
 No match
-  
+
 # These are here because Perl has problems with the negative versions of the
 # properties and has changed how it behaves for caseless matching.
-      
+
 /\p{^Lu}/i,utf
     1234
  0: 1
-    ** Failers
- 0: *
-    ABC 
+\= Expect no match
+    ABC
 No match
 
 /\P{Lu}/i,utf
     1234
  0: 1
-    ** Failers
- 0: *
-    ABC 
+\= Expect no match
+    ABC
 No match
 
 /\p{Ll}/i,utf
@@ -2070,21 +2031,19 @@ No match
  0: a
     Az
  0: z
-    ** Failers
- 0: a
-    ABC   
+\= Expect no match
+    ABC
 No match
 
 /\p{Lu}/i,utf
     A
  0: A
-    a\x{10a0}B 
+    a\x{10a0}B
  0: \x{10a0}
-    ** Failers 
- 0: F
+\= Expect no match
     a
 No match
-    \x{1d00}  
+    \x{1d00}
 No match
 
 /\p{Lu}/i,utf
@@ -2092,26 +2051,25 @@ No match
  0: A
     aZ
  0: Z
-    ** Failers
- 0: F
-    abc   
+\= Expect no match
+    abc
 No match
 
 /[\x{c0}\x{391}]/i,utf
     \x{c0}
  0: \x{c0}
-    \x{e0} 
+    \x{e0}
  0: \x{e0}
 
 # The next two are special cases where the lengths of the different cases of
 # the same character differ. The first went wrong with heap frame storage; the
-# second was broken in all cases. 
+# second was broken in all cases.
 
 /^\x{023a}+?(\x{0130}+)/i,utf
   \x{023a}\x{2c65}\x{0130}
  0: \x{23a}\x{2c65}\x{130}
  1: \x{130}
-  
+
 /^\x{023a}+([^X])/i,utf
   \x{023a}\x{2c65}X
  0: \x{23a}\x{2c65}
@@ -2142,34 +2100,34 @@ No match
 /^\x{c0}$/i,utf
     \x{c0}
  0: \x{c0}
-    \x{e0} 
+    \x{e0}
  0: \x{e0}
 
 /^\x{e0}$/i,utf
     \x{c0}
  0: \x{c0}
-    \x{e0} 
+    \x{e0}
  0: \x{e0}
 
 # The next two should be Perl-compatible, but it fails to match \x{e0}. PCRE
 # will match it only with UCP support, because without that it has no notion
-# of case for anything other than the ASCII letters.  
+# of case for anything other than the ASCII letters.
 
 /((?i)[\x{c0}])/utf
     \x{c0}
  0: \x{c0}
  1: \x{c0}
-    \x{e0} 
+    \x{e0}
  0: \x{e0}
  1: \x{e0}
 
 /(?i:[\x{c0}])/utf
     \x{c0}
  0: \x{c0}
-    \x{e0} 
+    \x{e0}
  0: \x{e0}
 
-# These are PCRE's extra properties to help with Unicodizing \d etc. 
+# These are PCRE's extra properties to help with Unicodizing \d etc.
 
 /^\p{Xan}/utf
     ABCD
@@ -2180,19 +2138,17 @@ No match
  0: \x{6ca}
     \x{a6c}
  0: \x{a6c}
-    \x{10a7}   
+    \x{10a7}
  0: \x{10a7}
-    ** Failers
-No match
-    _ABC   
+\= Expect no match
+    _ABC
 No match
 
 /^\p{Xan}+/utf
     ABCD1234\x{6ca}\x{a6c}\x{10a7}_
  0: ABCD1234\x{6ca}\x{a6c}\x{10a7}
-    ** Failers
-No match
-    _ABC   
+\= Expect no match
+    _ABC
 No match
 
 /^\p{Xan}+?/utf
@@ -2202,15 +2158,15 @@ No match
 /^\p{Xan}*/utf
     ABCD1234\x{6ca}\x{a6c}\x{10a7}_
  0: ABCD1234\x{6ca}\x{a6c}\x{10a7}
-    
+
 /^\p{Xan}{2,9}/utf
     ABCD1234\x{6ca}\x{a6c}\x{10a7}_
  0: ABCD1234\x{6ca}
-    
+
 /^\p{Xan}{2,9}?/utf
     \x{6ca}\x{a6c}\x{10a7}_
  0: \x{6ca}\x{a6c}
-    
+
 /^[\p{Xan}]/utf
     ABCD1234_
  0: A
@@ -2220,29 +2176,26 @@ No match
  0: \x{6ca}
     \x{a6c}
  0: \x{a6c}
-    \x{10a7}   
+    \x{10a7}
  0: \x{10a7}
-    ** Failers
+\= Expect no match
+    _ABC
 No match
-    _ABC   
-No match
- 
+
 /^[\p{Xan}]+/utf
     ABCD1234\x{6ca}\x{a6c}\x{10a7}_
  0: ABCD1234\x{6ca}\x{a6c}\x{10a7}
-    ** Failers
-No match
-    _ABC   
+\= Expect no match
+    _ABC
 No match
 
 /^>\p{Xsp}/utf
     >\x{1680}\x{2028}\x{0b}
  0: >\x{1680}
-    >\x{a0} 
+    >\x{a0}
  0: >\x{a0}
-    ** Failers
-No match
-    \x{0b} 
+\= Expect no match
+    \x{0b}
 No match
 
 /^>\p{Xsp}+/utf
@@ -2256,19 +2209,19 @@ No match
 /^>\p{Xsp}*/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
-    
+
 /^>\p{Xsp}{2,9}/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
-    
+
 /^>\p{Xsp}{2,9}?/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}
-    
+
 /^>[\p{Xsp}]/utf
     >\x{2028}\x{0b}
  0: >\x{2028}
- 
+
 /^>[\p{Xsp}]+/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
@@ -2276,11 +2229,10 @@ No match
 /^>\p{Xps}/utf
     >\x{1680}\x{2028}\x{0b}
  0: >\x{1680}
-    >\x{a0} 
+    >\x{a0}
  0: >\x{a0}
-    ** Failers
-No match
-    \x{0b} 
+\= Expect no match
+    \x{0b}
 No match
 
 /^>\p{Xps}+/utf
@@ -2294,19 +2246,19 @@ No match
 /^>\p{Xps}*/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
-    
+
 /^>\p{Xps}{2,9}/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
-    
+
 /^>\p{Xps}{2,9}?/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}
-    
+
 /^>[\p{Xps}]/utf
     >\x{2028}\x{0b}
  0: >\x{2028}
- 
+
 /^>[\p{Xps}]+/utf
     > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
  0: > \x{09}\x{0a}\x{0c}\x{0d}\x{a0}\x{1680}\x{2028}\x{0b}
@@ -2322,11 +2274,10 @@ No match
  0: \x{a6c}
     \x{10a7}
  0: \x{10a7}
-    _ABC    
+    _ABC
  0: _
-    ** Failers
-No match
-    [] 
+\= Expect no match
+    []
 No match
 
 /^\p{Xwd}+/utf
@@ -2340,15 +2291,15 @@ No match
 /^\p{Xwd}*/utf
     ABCD1234\x{6ca}\x{a6c}\x{10a7}_
  0: ABCD1234\x{6ca}\x{a6c}\x{10a7}_
-    
+
 /^\p{Xwd}{2,9}/utf
     A_B12\x{6ca}\x{a6c}\x{10a7}
  0: A_B12\x{6ca}\x{a6c}\x{10a7}
-    
+
 /^\p{Xwd}{2,9}?/utf
     \x{6ca}\x{a6c}\x{10a7}_
  0: \x{6ca}\x{a6c}
-    
+
 /^[\p{Xwd}]/utf
     ABCD1234_
  0: A
@@ -2358,26 +2309,25 @@ No match
  0: \x{6ca}
     \x{a6c}
  0: \x{a6c}
-    \x{10a7}   
+    \x{10a7}
  0: \x{10a7}
-    _ABC 
+    _ABC
  0: _
-    ** Failers
+\= Expect no match
+    []
 No match
-    []   
-No match
- 
+
 /^[\p{Xwd}]+/utf
     ABCD1234\x{6ca}\x{a6c}\x{10a7}_
  0: ABCD1234\x{6ca}\x{a6c}\x{10a7}_
 
-# A check not in UTF-8 mode 
+# A check not in UTF-8 mode
 
 /^[\p{Xwd}]+/
     ABCD1234_
  0: ABCD1234_
-    
-# Some negative checks 
+
+# Some negative checks
 
 /^[\P{Xwd}]+/utf
     !.+\x{019}\x{35a}AB
@@ -2611,47 +2561,46 @@ No match
         End
 ------------------------------------------------------------------
 
-# Unicode properties for \b abd \B 
+# Unicode properties for \b abd \B
 
 /\b...\B/utf,ucp
     abc_
  0: abc
-    \x{37e}abc\x{376} 
+    \x{37e}abc\x{376}
  0: abc
-    \x{37e}\x{376}\x{371}\x{393}\x{394} 
+    \x{37e}\x{376}\x{371}\x{393}\x{394}
  0: \x{376}\x{371}\x{393}
-    !\x{c0}++\x{c1}\x{c2} 
+    !\x{c0}++\x{c1}\x{c2}
  0: ++\x{c1}
-    !\x{c0}+++++ 
+    !\x{c0}+++++
  0: \x{c0}++
 
-# Without PCRE_UCP, non-ASCII always fail, even if < 256  
+# Without PCRE_UCP, non-ASCII always fail, even if < 256
 
 /\b...\B/utf
     abc_
  0: abc
-    ** Failers 
- 0: Fai
-    \x{37e}abc\x{376} 
+\= Expect no match
+    \x{37e}abc\x{376}
 No match
-    \x{37e}\x{376}\x{371}\x{393}\x{394} 
+    \x{37e}\x{376}\x{371}\x{393}\x{394}
 No match
-    !\x{c0}++\x{c1}\x{c2} 
+    !\x{c0}++\x{c1}\x{c2}
 No match
-    !\x{c0}+++++ 
+    !\x{c0}+++++
 No match
 
-# With PCRE_UCP, non-UTF8 chars that are < 256 still check properties  
+# With PCRE_UCP, non-UTF8 chars that are < 256 still check properties
 
 /\b...\B/ucp
     abc_
  0: abc
-    !\x{c0}++\x{c1}\x{c2} 
+    !\x{c0}++\x{c1}\x{c2}
  0: ++\xc1
-    !\x{c0}+++++ 
+    !\x{c0}+++++
  0: \xc0++
 
-# Some of these are silly, but they check various combinations 
+# Some of these are silly, but they check various combinations
 
 /[[:^alpha:][:^cntrl:]]+/B,utf,ucp
 ------------------------------------------------------------------
@@ -2662,7 +2611,7 @@ No match
 ------------------------------------------------------------------
     123
  0: 123
-    abc 
+    abc
  0: abc
 
 /[[:^cntrl:][:^alpha:]]+/B,utf,ucp
@@ -2674,7 +2623,7 @@ No match
 ------------------------------------------------------------------
     123
  0: 123
-    abc 
+    abc
  0: abc
 
 /[[:alpha:]]+/B,utf,ucp
@@ -2696,7 +2645,7 @@ No match
 ------------------------------------------------------------------
     123
  0: 123
-    abc 
+    abc
  0: abc
 
 /[^\d]+/B,utf,ucp
@@ -2710,7 +2659,7 @@ No match
  0: abc
     abc\x{123}
  0: abc\x{123}
-    \x{660}abc   
+    \x{660}abc
  0: abc
 
 /\p{Lu}+9\p{Lu}+B\p{Lu}+b/B
@@ -2822,13 +2771,15 @@ No match
         End
 ------------------------------------------------------------------
 
-# These behaved oddly in Perl, so they are kept in this test 
+# These behaved oddly in Perl, so they are kept in this test
 
 /(\x{23a}\x{23a}\x{23a})?\1/i,utf
+\= Expect no match
     \x{23a}\x{23a}\x{23a}\x{2c65}\x{2c65}
 No match
 
 /(ȺȺȺ)?\1/i,utf
+\= Expect no match
     ȺȺȺⱥⱥ
 No match
 
@@ -2843,10 +2794,12 @@ No match
  1: \x{23a}\x{23a}\x{23a}
 
 /(\x{23a}\x{23a}\x{23a})\1/i,utf
+\= Expect no match
     \x{23a}\x{23a}\x{23a}\x{2c65}\x{2c65}
 No match
 
 /(ȺȺȺ)\1/i,utf
+\= Expect no match
     ȺȺȺⱥⱥ
 No match
 
@@ -2864,12 +2817,12 @@ No match
     \x{2c65}\x{2c65}\x{23a}\x{23a}
  0: \x{2c65}\x{2c65}\x{23a}\x{23a}
  1: \x{2c65}\x{2c65}
-    
+
 /(ⱥⱥ)\1/i,utf
-    ⱥⱥȺȺ 
+    ⱥⱥȺȺ
  0: \x{2c65}\x{2c65}\x{23a}\x{23a}
  1: \x{2c65}\x{2c65}
-    
+
 /(\x{23a}\x{23a}\x{23a})\1Y/i,utf
     X\x{23a}\x{23a}\x{23a}\x{2c65}\x{2c65}\x{2c65}YZ
  0: \x{23a}\x{23a}\x{23a}\x{2c65}\x{2c65}\x{2c65}Y
@@ -2880,38 +2833,35 @@ No match
  0: \x{2c65}\x{2c65}\x{23a}\x{23a}Y
  1: \x{2c65}\x{2c65}
 
-# These scripts weren't yet in Perl when I added Unicode 6.0.0 to PCRE 
+# These scripts weren't yet in Perl when I added Unicode 6.0.0 to PCRE
 
 /^[\p{Batak}]/utf
     \x{1bc0}
  0: \x{1bc0}
     \x{1bff}
  0: \x{1bff}
-    ** Failers
-No match
+\= Expect no match
     \x{1bf4}
 No match
-    
+
 /^[\p{Brahmi}]/utf
     \x{11000}
  0: \x{11000}
     \x{1106f}
  0: \x{1106f}
-    ** Failers
-No match
+\= Expect no match
     \x{1104e}
 No match
-    
+
 /^[\p{Mandaic}]/utf
     \x{840}
  0: \x{840}
     \x{85e}
  0: \x{85e}
-    ** Failers
-No match
+\= Expect no match
     \x{85c}
 No match
-    \x{85d}    
+    \x{85d}
 No match
 
 /(\X*)(.)/s,utf
@@ -2925,7 +2875,7 @@ No match
  0: Ste\x{301}re\x{301}o
  1: te\x{301}r
  2: \x{301}o
-    
+
 /^\X/utf
     ́réo
  0: \x{301}
@@ -2933,13 +2883,9 @@ No match
 /^a\X41z/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     aX41z
  0: aX41z
-    *** Failers
-No match
+\= Expect no match
     aAz
 No match
-
-/(?<=ab\Cde)X/utf
-Failed: error 136 at offset 10: \C is not allowed in a lookbehind assertion
 
 /\X/
     a\=ps
@@ -2978,8 +2924,8 @@ Partial match: ab
  0: aa
     aba\=ps
  0: aba
-    
-# These Unicode 6.1.0 scripts are not known to Perl.  
+
+# These Unicode 6.1.0 scripts are not known to Perl.
 
 /\p{Chakma}\d/utf,ucp
     \x{11100}\x{1113c}
@@ -3002,7 +2948,7 @@ Partial match: A\x{300}\x{301}
  0: A\x{301}
     A\x{301}\=ph
 Partial match: A\x{301}
-    
+
 /^\X{2,3}/utf
     A\=ps
 Partial match: A
@@ -3030,7 +2976,7 @@ Partial match: AA
  0: A\x{300}\x{301}A\x{300}\x{301}
     A\x{300}\x{301}A\x{300}\x{301}\=ph
 Partial match: A\x{300}\x{301}A\x{300}\x{301}
-    
+
 /^\X+/utf
     AA\=ps
  0: AA
@@ -3138,8 +3084,7 @@ Subject length lower bound = 3
  0+ 
 
 /\x{3a3}++./i,utf,aftertext
-    ** Failers
-No match
+\= Expect no match
     \x{3a3}\x{3c3}\x{3c2}\x{3a3}\x{3c3}\x{3c2}
 No match
 
@@ -3179,28 +3124,33 @@ No match
         Ket
         End
 ------------------------------------------------------------------
+\= Expect no match
     ikt
 No match
 
 /is+t/i,utf
     iSs\x{17f}t
  0: iSs\x{17f}t
+\= Expect no match
     ikt
 No match
 
 /is+?t/i,utf
+\= Expect no match
     ikt
 No match
 
 /is?t/i,utf
+\= Expect no match
     ikt
 No match
 
 /is{2}t/i,utf
+\= Expect no match
     iskt
 No match
-    
-# This property is a PCRE special 
+
+# This property is a PCRE special
 
 /^\p{Xuc}/utf
     $abc
@@ -3211,80 +3161,70 @@ No match
  0: `
     \x{1234}abc
  0: \x{1234}
-    ** Failers
-No match
-    abc     
+\= Expect no match
+    abc
 No match
 
 /^\p{Xuc}+/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $@`\x{a0}\x{1234}\x{e000}
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^\p{Xuc}+?/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^\p{Xuc}+?\*/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $@`\x{a0}\x{1234}\x{e000}*
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^\p{Xuc}++/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $@`\x{a0}\x{1234}\x{e000}
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^\p{Xuc}{3,5}/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $@`\x{a0}\x{1234}
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^\p{Xuc}{3,5}?/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $@`
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^[\p{Xuc}]/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^[\p{Xuc}]+/utf
     $@`\x{a0}\x{1234}\x{e000}**
  0: $@`\x{a0}\x{1234}\x{e000}
-    ** Failers
-No match
+\= Expect no match
     \x{9f}
 No match
 
 /^\P{Xuc}/utf
     abc
  0: a
-    ** Failers
- 0: *
+\= Expect no match
     $abc
 No match
     @abc
@@ -3297,8 +3237,7 @@ No match
 /^[\P{Xuc}]/utf
     abc
  0: a
-    ** Failers
- 0: *
+\= Expect no match
     $abc
 No match
     @abc
@@ -3307,8 +3246,8 @@ No match
 No match
     \x{1234}abc
 No match
-    
-# Some auto-possessification tests 
+
+# Some auto-possessification tests
 
 /\pN+\z/B
 ------------------------------------------------------------------
@@ -3810,7 +3749,7 @@ No match
         End
 ------------------------------------------------------------------
 
-# End auto-possessification tests  
+# End auto-possessification tests
 
 /\w+/B,utf,ucp,auto_callout
 ------------------------------------------------------------------
@@ -3843,7 +3782,7 @@ No match
         End
 ------------------------------------------------------------------
 
-/\D+\X \d+\X \S+\X \s+\X \W+\X \w+\X \C+\X \R+\X \H+\X \h+\X \V+\X \v+\X a+\X \n+\X .+\X/Bx
+/\D+\X \d+\X \S+\X \s+\X \W+\X \w+\X \R+\X \H+\X \h+\X \V+\X \v+\X a+\X \n+\X .+\X/Bx
 ------------------------------------------------------------------
         Bra
         \D+
@@ -3857,8 +3796,6 @@ No match
         \W+
         extuni
         \w+
-        extuni
-        AllAny+
         extuni
         \R+
         extuni
@@ -3898,7 +3835,7 @@ No match
         End
 ------------------------------------------------------------------
 
-/\X+\D \X+\d \X+\S \X+\s \X+\W \X+\w \X+. \X+\C \X+\R \X+\H \X+\h \X+\V \X+\v \X+\X \X+\Z \X+\z \X+$/Bx
+/\X+\D \X+\d \X+\S \X+\s \X+\W \X+\w \X+. \X+\R \X+\H \X+\h \X+\V \X+\v \X+\X \X+\Z \X+\z \X+$/Bx
 ------------------------------------------------------------------
         Bra
         extuni+
@@ -3915,8 +3852,6 @@ No match
         \w
         extuni+
         Any
-        extuni+
-        AllAny
         extuni+
         \R
         extuni+
@@ -3961,7 +3896,7 @@ No match
         Ket
         End
 ------------------------------------------------------------------
-    
+
 /[R-T]+/Bi,utf,ucp
 ------------------------------------------------------------------
         Bra
@@ -3995,7 +3930,7 @@ Subject length lower bound = 1
     \x{100}\x{200}\x{300}
  0: \x{100}\x{200}\x{300}
     ^^^^^^^^^^^^^^
-    
+
 # Test UTF characters in a substitution
 
 /ábc/utf,replace=XሴZ
@@ -4003,7 +3938,767 @@ Subject length lower bound = 1
  1: 123X\x{1234}Z123
 
 /(?<=abc)(|def)/g,utf,replace=<$0>
-      123abcáyzabcdef789abcሴqr
+    123abcáyzabcdef789abcሴqr
  4: 123abc<>\x{e1}yzabc<><def>789abc<>\x{1234}qr
 
-# End of testinput5 
+/[A-`]/iB,utf
+------------------------------------------------------------------
+        Bra
+        [A-z\x{212a}\x{17f}]
+        Ket
+        End
+------------------------------------------------------------------
+    abcdefghijklmno
+ 0: a
+
+/(?<=\K\x{17f})/g,utf,aftertext
+    \x{17f}\x{17f}\x{17f}\x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}\x{17f}\x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}\x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}
+ 0: \x{17f}
+ 0+ 
+
+/(?<=\K\x{17f})/altglobal,utf,aftertext
+    \x{17f}\x{17f}\x{17f}\x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}\x{17f}\x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}\x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}\x{17f}
+ 0: \x{17f}
+ 0+ \x{17f}
+ 0: \x{17f}
+ 0+ 
+
+"\xa\xf<(.\pZ*\P{Xwd}+^\xa8\3'3yq.::?(?J:()\xd1+!~:3'(8?:)':(?'d'(?'d'^u]!.+.+\\A\Ah(n+?9){7}+\K;(?'X'u'(?'c'(?'z'(?<y>\xb::\xf0'|\xd3(\xae?'w(z\x8?P>l)\x8?P>a)'\H\R\xd1+!!~:3'(?:h$N{26875}\W+?\\=D{2}\x89(?i:Uy0\N({2\xa(\v\x85*){y*\A(()\p{L}+?\P{^Xan}'+?\xff\+pS\?|).{;y*\A(()\p{L}+?\8}\d?1(|)(/1){7}.+[Lp{Me}].\s\xdcC*?(?(<y>))(?<!^)$C((;*?(R))+(\xbf(R))\x8a\X*?\x8a\xb\xd1^9\3*+(\xc1,\k'R'\xb4)\xcc(z\z(?J)(?'X'\x1b(\xb\xd1^9\?'3*+P{^Xan}+?\xff\+(\xc1.]k+\xb'Pm'\xb4)\xcc4f\xa7'\xd1V(?i:U,{2,2})'(?'X'))?-%--\x95$9*\4'|\xd1(\x9c''%\x94$9)#(?'R')3\x7?('P\xed7'\xa8\xb1^u\xeaw\1\0\0\(|(?1){7}.+[\p{Me}].\s\xdcC*^\x14?(?(<y>))(?<!^)$C((;*?(R*?))+(?(R)\x8a\X*?\x8a\xb\xd1^9\3*+|(\xc1,\k'R'\xb4)\xcc! z)\z(?JJ)(?'X';(\xb\xd1^9\?'3*+(\xc1.]k+\xb'Pm'\xb4))':(?'d')(?'RD'(d')|)|$)'|(?<x>\g{d});\g{x}\x11\g{d}\x81\|$((?'X'\'X'(?'W''\x92()'9'\x83*))\xba*\!?^ <){)':;\xcc4'\xd1'(?'X'28))?-%--\x95$9*\4'|\xd1((''e\x94*$9:)*#(?'R')3)\x7?('P\xed')\\x16:;()\x1e\x10*:(?<y>)\xd1+0!~:(?)'d'E:yD!\s(?'R'\x1e;\x10:U))|'\x9g!\xb0*){)\\x16:;()\x1e\x10\x87*:(?<y>)\xd1+!~:(?)'}'\d'E:yD!\s(?'R'\x1e;\x10:U))|'))|)g!\xb0*R+9{29+)#(?'P'})*?pS\{3,}\x85,{0,}l{*UTF)(\xe{7}){3722,{9,}d{2,?|))|{)\(A?&d}}{\xa,}2}){3,}7,l{)22}(,}l:7{2,4}}29\x19+)#?'P'})*v?))\x5"
+Failed: error 122 at offset 1227: unmatched closing parenthesis
+
+/$(&.+[\p{Me}].\s\xdcC*?(?(<y>))(?<!^)$C((;*?(R))+(?(R)){0,6}?|){12\x8a\X*?\x8a\x0b\xd1^9\3*+(\xc1,\k'P'\xb4)\xcc(z\z(?JJ)(?'X'8};(\x0b\xd1^9\?'3*+(\xc1.]k+\x0b'Pm'\xb4\xcc4'\xd1'(?'X'))?-%--\x95$9*\4'|\xd1(''%\x95*$9)#(?'R')3\x07?('P\xed')\\x16:;()\x1e\x10*:(?<y>)\xd1+!~:(?)''(d'E:yD!\s(?'R'\x1e;\x10:U))|')g!\xb0*){29+))#(?'P'})*?/
+
+"(*UTF)(*UCP)(.UTF).+X(\V+;\^(\D|)!999}(?(?C{7(?C')\H*\S*/^\x5\xa\\xd3\x85n?(;\D*(?m).[^mH+((*UCP)(*U:F)})(?!^)(?'"
+Failed: error 162 at offset 113: subpattern name expected
+
+/[\pS#moq]/
+    =
+ 0: =
+
+/(*:a\x{12345}b\t(d\)c)xxx/utf,alt_verbnames,mark
+    cxxxz
+ 0: xxx
+MK: a\x{12345}b\x{09}(d)c
+
+/abcd/utf,replace=x\x{824}y\o{3333}z(\Q12\$34$$\x34\E5$$),substitute_extended
+    abcd
+ 1: x\x{824}y\x{6db}z(12\$34$$\x345$)
+
+/a(\x{e0}\x{101})(\x{c0}\x{102})/utf,replace=a\u$1\U$1\E$1\l$2\L$2\Eab\U\x{e0}\x{101}\L\x{d0}\x{160}\EDone,substitute_extended
+    a\x{e0}\x{101}\x{c0}\x{102}
+ 1: a\x{c0}\x{101}\x{c0}\x{100}\x{e0}\x{101}\x{e0}\x{102}\x{e0}\x{103}ab\x{c0}\x{100}\x{f0}\x{161}Done
+
+/((?<digit>\d)|(?<letter>\p{L}))/g,substitute_extended,replace=<${digit:+digit; :not digit; }${letter:+letter:not a letter}>
+    ab12cde
+ 7: <not digit; letter><not digit; letter><digit; not a letter><digit; not a letter><not digit; letter><not digit; letter><not digit; letter>
+
+/(*UCP)(*UTF)[[:>:]]X/B
+------------------------------------------------------------------
+        Bra
+        \b
+        AssertB
+        Reverse
+        prop Xwd
+        Ket
+        X
+        Ket
+        End
+------------------------------------------------------------------
+
+/abc/utf,replace=xyz
+    abc\=zero_terminate
+ 1: xyz
+
+/a[[:punct:]b]/ucp,bincode
+------------------------------------------------------------------
+        Bra
+        a
+        [b[:punct:]]
+        Ket
+        End
+------------------------------------------------------------------
+
+/a[[:punct:]b]/utf,ucp,bincode
+------------------------------------------------------------------
+        Bra
+        a
+        [b[:punct:]]
+        Ket
+        End
+------------------------------------------------------------------
+
+/a[b[:punct:]]/utf,ucp,bincode
+------------------------------------------------------------------
+        Bra
+        a
+        [b[:punct:]]
+        Ket
+        End
+------------------------------------------------------------------
+
+/[[:^ascii:]]/utf,ucp,bincode
+------------------------------------------------------------------
+        Bra
+        [\x80-\xff] (neg)
+        Ket
+        End
+------------------------------------------------------------------
+
+/[[:^ascii:]\w]/utf,ucp,bincode
+------------------------------------------------------------------
+        Bra
+        [\x80-\xff\p{Xwd}\x{100}-\x{10ffff}]
+        Ket
+        End
+------------------------------------------------------------------
+
+/[\w[:^ascii:]]/utf,ucp,bincode
+------------------------------------------------------------------
+        Bra
+        [\x80-\xff\p{Xwd}\x{100}-\x{10ffff}]
+        Ket
+        End
+------------------------------------------------------------------
+
+/[^[:ascii:]\W]/utf,ucp,bincode
+------------------------------------------------------------------
+        Bra
+        [^\x00-\x7f\P{Xwd}]
+        Ket
+        End
+------------------------------------------------------------------
+    \x{de}
+ 0: \x{de}
+    \x{200}
+ 0: \x{200}
+\= Expect no match
+    \x{300}
+No match
+    \x{37e}
+No match
+
+/[[:^ascii:]a]/utf,ucp,bincode
+------------------------------------------------------------------
+        Bra
+        [a\x80-\xff] (neg)
+        Ket
+        End
+------------------------------------------------------------------
+
+/L(?#(|++<!(2)?/B,utf,no_auto_possess,auto_callout
+------------------------------------------------------------------
+        Bra
+        Callout 255 0 14
+        L?
+        Callout 255 14 0
+        Ket
+        End
+------------------------------------------------------------------
+
+/L(?#(|++<!(2)?/B,utf,ucp,auto_callout
+------------------------------------------------------------------
+        Bra
+        Callout 255 0 14
+        L?+
+        Callout 255 14 0
+        Ket
+        End
+------------------------------------------------------------------
+
+/(*UTF)C\x09((?<!'(?x)!*H? #\xcc\x9a[^$]/
+Failed: error 114 at offset 39: missing closing parenthesis
+
+/[\D]/utf
+    \x{1d7cf}
+ 0: \x{1d7cf}
+
+/[\D\P{Nd}]/utf
+    \x{1d7cf}
+ 0: \x{1d7cf}
+
+/[^\D]/utf
+    a9b
+ 0: 9
+\= Expect no match
+    \x{1d7cf}
+No match
+
+/[^\D\P{Nd}]/utf
+    a9b
+ 0: 9
+    \x{1d7cf}
+ 0: \x{1d7cf}
+\= Expect no match
+    \x{10000}
+No match
+
+# Hex uses pattern length, not zero-terminated. This tests for overrunning
+# the given length of a pattern.
+
+/'(*UTF)'/hex
+
+/'#('/hex,extended,utf
+
+/a(?<=A\XB)/utf
+Failed: error 125 at offset 1: lookbehind assertion is not fixed length
+
+/ab(?<=A\RB)/utf
+Failed: error 125 at offset 2: lookbehind assertion is not fixed length
+
+/../utf,auto_callout
+    \n\x{123}\x{123}\x{123}\x{123}
+--->\x{0a}\x{123}\x{123}\x{123}\x{123}
+ +0 ^                                      .
+ +0       ^                                .
+ +1       ^      ^                         .
+ +2       ^             ^                  
+ 0: \x{123}\x{123}
+
+# This tests processing wide characters in extended mode.
+
+/XȀ/x,utf
+
+# These three test a bug fix that was not clearing up after a locale setting
+# when the test or a subsequent one matched a wide character.
+
+//locale=C
+
+/[\P{Yi}]/utf
+\x{2f000}
+ 0: \x{2f000}
+
+/[\P{Yi}]/utf,locale=C
+\x{2f000}
+ 0: \x{2f000}
+
+/^(?<!(?=􃡜))/B,utf
+------------------------------------------------------------------
+        Bra
+        ^
+        AssertB not
+        Assert
+        \x{10385c}
+        Ket
+        Ket
+        Ket
+        End
+------------------------------------------------------------------
+
+# Horizontal and vertical space lists ignore caseless
+
+/[\HH]/Bi,utf
+------------------------------------------------------------------
+        Bra
+        [\x00-\x08\x0a-\x1f!-\x9f\xa1-\xff\x{100}-\x{167f}\x{1681}-\x{180d}\x{180f}-\x{1fff}\x{200b}-\x{202e}\x{2030}-\x{205e}\x{2060}-\x{2fff}\x{3001}-\x{10ffff}]
+        Ket
+        End
+------------------------------------------------------------------
+
+/[^\HH]/Bi,utf
+------------------------------------------------------------------
+        Bra
+        [^\x00-\x08\x0a-\x1f!-\x9f\xa1-\xff\x{100}-\x{167f}\x{1681}-\x{180d}\x{180f}-\x{1fff}\x{200b}-\x{202e}\x{2030}-\x{205e}\x{2060}-\x{2fff}\x{3001}-\x{10ffff}]
+        Ket
+        End
+------------------------------------------------------------------
+
+//g,utf
+    \=zero_terminate
+ 0: 
+
+/^(?1)\p{Nd}{3}(a)/
+    a123a
+ 0: a123a
+ 1: a
+
+/\p{Nd}{0,3}[\pL](*:abc)(?C1)xxx/callout_info
+Callout 1  x
+
+# ---------------------------------------------------------------------------
+
+# A bunch of tests that hit lines of code that others do not (at least when
+# these were created).
+
+/^[^a]{3,}?x/i,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    bbb
+No match
+    cc
+No match
+
+/^[ac]{3,}?x/i,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    aaa\x{100}
+No match
+
+/^X\X/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\p{L&}+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\p{L}+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\p{Lu}+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\p{Arabic}+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\p{Xan}+?/ucp,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\s+?/ucp,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+    XX
+No match
+
+/^X\S+?/ucp,no_start_optimize,no_auto_possess
+    XX
+ 0: XX
+\= Expect no match
+    X
+No match
+
+/^X\w+?/ucp,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X[^\x{b5}]+?/i,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X[\x{b5}]+?/i,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\p{Xuc}+?/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X.+?Z/s,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\R+?/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\H+?/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\V+?/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\s+?/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+    XX
+No match
+
+/^X\S+?/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+
+/^X\p{Any}{1,3}?Z/s,no_start_optimize,no_auto_possess
+    XYYYZ
+ 0: XYYYZ
+\= Expect no match
+    XY
+No match
+    XYY
+No match
+    XYYY
+No match
+    XYYYYZ
+No match
+
+/^X\p{L&}{1,3}?Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+    XY!
+No match
+
+/^X\p{L}{1,3}?Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+    XY!
+No match
+
+/^X\p{Lu}{1,3}?Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+    XY!
+No match
+
+/^X\P{Han}{1,3}?Z/s,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+    XY!
+No match
+    XY\x{2f00}!
+No match
+
+/^X\p{Xan}{1,3}?Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+    XY!
+No match
+
+/^X\p{Xsp}{1,3}?Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    X\n
+No match
+    X\n!
+No match
+    X\n\n! 
+No match
+
+/^X\P{Xsp}{1,3}?Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    XYY\n
+No match
+
+/^X\p{Xwd}{1,3}?Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+    XY!
+No match
+    XYY! 
+No match
+
+/^X\x{b5}+?Z/i,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+    X\x{b5} 
+No match
+    X\x{b5}\x{b5}Y 
+No match
+
+/^X\p{Xuc}+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+    X$
+No match
+    X@@Y  
+No match
+
+/(*CRLF)^X.+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect partial match
+    XYY\r\=ph 
+Partial match: XYY\x{0d}
+\= Expect no match
+    X
+No match
+
+/^X.+?Z/s,utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+No match
+    XYY 
+No match
+
+/^X\R+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X\nX
+No match
+    X\n\rX
+No match
+    X\n\r\nX
+No match
+    X\n\n
+No match
+    X\n\x{0c}    
+No match
+
+/(*BSR_ANYCRLF)^X\R+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X\nX
+No match
+    X\n\rX
+No match
+    X\n\r\nX
+No match
+    X\n\n
+No match
+    X\n\x{0c}    
+No match
+
+/^X\H+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\t
+No match
+    XYY 
+No match
+
+/^X\h+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X\t\t
+No match
+    X\tY
+No match
+
+/^X\V+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\n
+No match
+    XYY 
+No match
+
+/^X\v+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X\n\n
+No match
+    X\nY
+No match
+
+/^X\D+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY9
+No match
+    XYY 
+No match
+
+/^X\d+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X99
+No match
+    X9Y
+No match
+
+/^X\S+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\n
+No match
+    XYY 
+No match
+
+/^X\s+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X\n\n
+No match
+    X\nY
+No match
+
+/^X\W+?Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X.A
+No match
+    X++ 
+No match
+
+/^X\p{L&}{1,3}Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+    XY!
+No match
+
+/^X\p{L}{1,3}Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+
+/^X\p{Xan}{1,3}Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+No match
+
+/^X\P{Xsp}{1,3}Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XYY
+No match
+
+/^X\p{Xuc}+Z/utf,no_start_optimize,no_auto_possess
+\= Expect no match
+    X$
+No match
+
+# ----------------------------------------------------------------------
+# These test the dangerous PCRE2_EXTRA_BAD_ESCAPE_IS_LITERAL option.
+
+/\x{d800}/B,utf,bad_escape_is_literal
+------------------------------------------------------------------
+        Bra
+        x{d800}
+        Ket
+        End
+------------------------------------------------------------------
+
+/\ud800/B,utf,alt_bsux,bad_escape_is_literal
+------------------------------------------------------------------
+        Bra
+        ud800
+        Ket
+        End
+------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
+
+/Aሴ+B/literal,utf,no_utf_check
+    Aሴ+B
+ 0: A\x{1234}+B
+    
+# These are here because I upgraded to Unicode 10.0.0 before Perl did, so it
+# doesn't recognize all these scripts. In time these three tests can be moved
+# to test 4.
+
+/^(\p{Adlam}+)(\p{Bhaiksuki}+)(\p{Marchen}+)(\p{Newa}+)(\p{Osage}+)
+ (\p{Tangut}+)(\p{Masaram_Gondi}+)(\p{Nushu}+)(\p{Soyombo}+)
+ (\p{Zanabazar_Square}+)/x,utf
+    \x{1E900}\x{1E924}\x{1E953}\x{11C00}\x{11C2D}\x{11C3E}\x{11C70}\x{11C77}\x{11CAB}\x{11400}\x{1142F}\x{11455}\x{104B0}\x{104D8}\x{104FB}\x{16FE0}\x{18800}\x{18AF2}\x{11D00}\x{11D3A}\x{11D59}\x{16FE1}\x{1B170}\x{1B2FB}\x{11A50}\x{11A58}\x{11AA2}\x{11A00}\x{11A07}\x{11A47} 
+ 0: \x{1e900}\x{1e924}\x{1e953}\x{11c00}\x{11c2d}\x{11c3e}\x{11c70}\x{11c77}\x{11cab}\x{11400}\x{1142f}\x{11455}\x{104b0}\x{104d8}\x{104fb}\x{16fe0}\x{18800}\x{18af2}\x{11d00}\x{11d3a}\x{11d59}\x{16fe1}\x{1b170}\x{1b2fb}\x{11a50}\x{11a58}\x{11aa2}\x{11a00}\x{11a07}\x{11a47}
+ 1: \x{1e900}\x{1e924}\x{1e953}
+ 2: \x{11c00}\x{11c2d}\x{11c3e}
+ 3: \x{11c70}\x{11c77}\x{11cab}
+ 4: \x{11400}\x{1142f}\x{11455}
+ 5: \x{104b0}\x{104d8}\x{104fb}
+ 6: \x{16fe0}\x{18800}\x{18af2}
+ 7: \x{11d00}\x{11d3a}\x{11d59}
+ 8: \x{16fe1}\x{1b170}\x{1b2fb}
+ 9: \x{11a50}\x{11a58}\x{11aa2}
+10: \x{11a00}\x{11a07}\x{11a47}
+
+/^\x{1E900}\x{104B0}/i,utf
+    \x{1E900}\x{104B0}
+ 0: \x{1e900}\x{104b0}
+    \x{1E922}\x{104D8}
+ 0: \x{1e922}\x{104d8}
+
+/^(?:(\X)(?C))+$/utf
+    \x{1E900}\x{1E924}\x{1E953}\x{11C00}\x{11C2D}\x{11C3E}\x{11C70}\x{11C77}\x{11CAB}\x{11400}\x{1142F}\x{11455}\x{104B0}\x{104D8}\x{104FB}\x{16FE0}\x{18800}\x{18AF2}\x{11D00}\x{11D3A}\x{11D59}\x{16FE1}\x{1B170}\x{1B2FB}\x{11A50}\x{11A58}\x{11AA2}\x{11A00}\x{11A07}\x{11A47}\=callout_capture,callout_no_where 
+Callout 0: last capture = 1
+ 1: \x{1e900}
+Callout 0: last capture = 1
+ 1: \x{1e924}
+Callout 0: last capture = 1
+ 1: \x{1e953}
+Callout 0: last capture = 1
+ 1: \x{11c00}
+Callout 0: last capture = 1
+ 1: \x{11c2d}\x{11c3e}
+Callout 0: last capture = 1
+ 1: \x{11c70}
+Callout 0: last capture = 1
+ 1: \x{11c77}\x{11cab}
+Callout 0: last capture = 1
+ 1: \x{11400}
+Callout 0: last capture = 1
+ 1: \x{1142f}
+Callout 0: last capture = 1
+ 1: \x{11455}
+Callout 0: last capture = 1
+ 1: \x{104b0}
+Callout 0: last capture = 1
+ 1: \x{104d8}
+Callout 0: last capture = 1
+ 1: \x{104fb}
+Callout 0: last capture = 1
+ 1: \x{16fe0}
+Callout 0: last capture = 1
+ 1: \x{18800}
+Callout 0: last capture = 1
+ 1: \x{18af2}
+Callout 0: last capture = 1
+ 1: \x{11d00}\x{11d3a}
+Callout 0: last capture = 1
+ 1: \x{11d59}
+Callout 0: last capture = 1
+ 1: \x{16fe1}
+Callout 0: last capture = 1
+ 1: \x{1b170}
+Callout 0: last capture = 1
+ 1: \x{1b2fb}
+Callout 0: last capture = 1
+ 1: \x{11a50}\x{11a58}
+Callout 0: last capture = 1
+ 1: \x{11aa2}
+Callout 0: last capture = 1
+ 1: \x{11a00}\x{11a07}\x{11a47}
+ 0: \x{1e900}\x{1e924}\x{1e953}\x{11c00}\x{11c2d}\x{11c3e}\x{11c70}\x{11c77}\x{11cab}\x{11400}\x{1142f}\x{11455}\x{104b0}\x{104d8}\x{104fb}\x{16fe0}\x{18800}\x{18af2}\x{11d00}\x{11d3a}\x{11d59}\x{16fe1}\x{1b170}\x{1b2fb}\x{11a50}\x{11a58}\x{11aa2}\x{11a00}\x{11a07}\x{11a47}
+ 1: \x{11a00}\x{11a07}\x{11a47}
+
+# These two are here because JIT is not yet updated. Also, the very first data
+# line is handled differently by Perl.
+
+/^\X/utf
+    A\x{200d}B                     A ZWJ
+ 0: A\x{200d}
+    \x{261D}\x{1F3FB}B             E_Base E_Modifier
+ 0: \x{261d}\x{1f3fb}
+    \x{1F466}\x{1F3FF}B            E_Base_GAZ E_Modifier 
+ 0: \x{1f466}\x{1f3ff}
+    \x{200d}\x{1F3A4}B             ZWJ Glue_After_ZWJ
+ 0: \x{200d}\x{1f3a4}
+    \x{200d}\x{1F469}B             ZWJ E_Base_GAZ  
+ 0: \x{200d}\x{1f469}
+    \x{1F1E6}\x{1F1E7}B            RegionalIndicator RegionalIndicator 
+ 0: \x{1f1e6}\x{1f1e7}
+    \x{261D}\x{E0100}\x{1F3FB}B\=no_jit    E_Base Extend E_Modifier
+** /n is not valid here
+    
+# Regional indicators
+
+/^(\X)(\X)/utf,aftertext
+    \x{1F1E6}\x{1F1E7}\x{1F1E7}B\=no_jit
+ 0: \x{1f1e6}\x{1f1e7}\x{1f1e7}
+ 0+ B
+ 1: \x{1f1e6}\x{1f1e7}
+ 2: \x{1f1e7}
+    \x{1F1E6}\x{1F1E7}\x{1F1E7}\x{1F1E6}B\=no_jit
+ 0: \x{1f1e6}\x{1f1e7}\x{1f1e7}\x{1f1e6}
+ 0+ B
+ 1: \x{1f1e6}\x{1f1e7}
+ 2: \x{1f1e7}\x{1f1e6}
+
+
+# End of testinput5

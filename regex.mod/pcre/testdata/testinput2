@@ -1,14 +1,15 @@
 # This set of tests is not Perl-compatible. It checks on special features
 # of PCRE2's API, error diagnostics, and the compiled code of some patterns.
-# It also checks the non-Perl syntax that PCRE2 supports (Python, .NET, 
-# Oniguruma). There are also some tests where PCRE2 and Perl differ, 
-# either because PCRE2 can't be compatible, or there is a possible Perl 
+# It also checks the non-Perl syntax that PCRE2 supports (Python, .NET,
+# Oniguruma). There are also some tests where PCRE2 and Perl differ,
+# either because PCRE2 can't be compatible, or there is a possible Perl
 # bug.
 
 # NOTE: This is a non-UTF set of tests. When UTF support is needed, use
-# test 5. 
+# test 5.
 
 #forbid_utf
+#newline_default lf any anycrlf
 
 # Test binary zeroes in the pattern
 
@@ -30,14 +31,14 @@
     abc
     defabc
     abc\=anchored
-    *** Failers
+\= Expect no match
     defabc\=anchored
     ABC
 
 /^abc/I
     abc
     abc\=anchored
-    *** Failers
+\= Expect no match
     defabc
     defabc\=anchored
 
@@ -51,7 +52,7 @@
 
 /^abc$/I
     abc
-    *** Failers
+\= Expect no match
     def\nabc
 
 /ab\idef/
@@ -128,7 +129,7 @@
 
 /abc$/I,dollar_endonly
     abc
-    *** Failers
+\= Expect no match
     abc\n
     abc\ndef
 
@@ -140,7 +141,7 @@
 
 /the quick brown fox/I,anchored
     the quick brown fox
-    *** Failers
+\= Expect no match
     this is a line with the quick brown fox
 
 /ab(?z)cd/
@@ -184,13 +185,13 @@
 /(?<!bar|cattle)foo/I
     foo
     catfoo
-    *** Failers
+\= Expect no match
     the barfoo
     and cattlefoo
 
-/(?<=a+)b/
+/abc(?<=a+)b/
 
-/(?<=aaa|b{0,3})b/
+/12345(?<=aaa|b{0,3})b/
 
 /(?<!(foo)a\1)bar/
 
@@ -239,7 +240,7 @@
 /a$/I
     a
     a\n
-    *** Failers
+\= Expect no match
     a\=noteol
     a\n\=noteol
 
@@ -247,7 +248,7 @@
     a
     a\n
     a\n\=noteol
-    *** Failers
+\= Expect no match
     a\=noteol
 
 /\Aabc/Im
@@ -265,14 +266,14 @@
 
 /(?<=foo\n)^bar/Im
     foo\nbarbar
-    ***Failers
+\= Expect no match
     rhubarb
     barbell
     abc\nbarton
 
 /^(?<=foo\n)bar/Im
     foo\nbarbar
-    ***Failers
+\= Expect no match
     rhubarb
     barbell
     abc\nbarton
@@ -280,7 +281,7 @@
 /(?>^abc)/Im
     abc
     def\nabc
-    *** Failers
+\= Expect no match
     defabc
 
 /(?<=ab(c+)d)ef/
@@ -294,7 +295,7 @@
 /(?<=bullock|donkey)-cart/I
     the bullock-cart
     a donkey-cart race
-    *** Failers
+\= Expect no match
     cart
     horse-and-cart
 
@@ -311,7 +312,7 @@
     zZZ
     bZZ
     BZZ
-    *** Failers
+\= Expect no match
     ZZ
     abXYZZ
     zzz
@@ -320,30 +321,31 @@
 /(?<!(foo)a)bar/I
     bar
     foobbar
-    *** Failers
+\= Expect no match
     fooabar
 
-/This one is here because Perl behaves differently; see also the following/I
+# This one is here because Perl behaves differently; see also the following.
 
 /^(a\1?){4}$/I
+\= Expect no match
     aaaa
     aaaaaa
-    
-/Perl does not fail these two for the final subjects. Neither did PCRE until/
-/release 8.01. The problem is in backtracking into a subpattern that contains/
-/a recursive reference to itself. PCRE has now made these into atomic patterns./
+
+# Perl does not fail these two for the final subjects. Neither did PCRE until
+# release 8.01. The problem is in backtracking into a subpattern that contains
+# a recursive reference to itself. PCRE has now made these into atomic patterns.
 
 /^(xa|=?\1a){2}$/
     xa=xaa
-    ** Failers
+\= Expect no match
     xa=xaaa
 
 /^(xa|=?\1a)+$/
     xa=xaa
-    ** Failers
+\= Expect no match
     xa=xaaa
 
-/These are syntax tests from Perl 5.005/I
+# These are syntax tests from Perl 5.005
 
 /a[b-a]/
 
@@ -466,7 +468,7 @@
 
 /\Biss\B/Ig,aftertext
     Mississippi
-    *** Failers
+\= Expect no match
     Mississippi\=anchored
 
 /(?<=[Ms])iss/Ig,aftertext
@@ -495,6 +497,9 @@
 
 /^ab\n/Igm,aftertext
     ab\nab\ncd
+
+/^/gm,newline=any
+    a\rb\nc\r\nxyz\=aftertext
 
 /abc/I
 
@@ -583,14 +588,14 @@
     b
     ab
     \
-    *** Failers
+\= Expect no match
     \=notempty
 
 /|-/I
     abcd
     -abc
     ab-c\=notempty
-    *** Failers
+\= Expect no match
     abc\=notempty
 
 /^.?abcd/I
@@ -610,7 +615,7 @@
     (ab(xycd)pqr
     () abc ()
     12(abcde(fsh)xyz(foo(bar))lmno)89
-    *** Failers
+\= Expect no match
     abcd
     abcd)
     (abcd
@@ -624,7 +629,7 @@
     (ab(xy)cd)
     (a(b(c)d)e)
     ((ab))
-    *** Failers
+\= Expect no match
     ()
 
 /\(  (?: (?>[^()]+) | (?R) )? \) /Ix
@@ -720,7 +725,7 @@
 /((?-i)[[:lower:]])[[:lower:]]/Ii
     ab
     aB
-    *** Failers
+\= Expect no match
     Ab
     AB
 
@@ -796,13 +801,13 @@
 /a(?i)b/IB
     ab
     aB
-    *** Failers
+\= Expect no match
     AB
 
 /(a(?i)b)/IB
     ab
     aB
-    *** Failers
+\= Expect no match
     AB
 
 /   (?i)abc/IBx
@@ -832,7 +837,7 @@
 /\Q\Eabc/IB
 
 /x*+\w/IB
-    *** Failers
+\= Expect no match
     xxxxx
 
 /x?+/IB
@@ -851,12 +856,12 @@
 
 /^(\w++|\s++)*$/I
     now is the time for all good men to come to the aid of the party
-    *** Failers
+\= Expect no match
     this is not a line with only words and spaces!
 
 /(\d++)(\w)/I
     12345a
-    *** Failers
+\= Expect no match
     12345+
 
 /a++b/I
@@ -874,7 +879,7 @@
 /\(([^()]++|\([^()]+\))+\)/I
     (abc)
     (abc(def)xyz)
-    *** Failers
+\= Expect no match
     ((()aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
 /(abc){1,3}+/IB
@@ -937,7 +942,7 @@
     <abc <def> hij>
     <abc<>def>
     <abc<>
-    *** Failers
+\= Expect no match
     <abc
 
 /8J\$WE\<\.rX\+ix\[d1b\!H\#\?vV0vrK\:ZH1\=2M\>iV\;\?aPhFB\<\*vW\@QW\@sO9\}cfZA\-i\'w\%hKd6gt1UJP\,15_\#QY\$M\^Mss_U\/\]\&LK9\[5vQub\^w\[KDD\<EjmhUZ\?\.akp2dF\>qmj\;2\}YWFdYx\.Ap\]hjCPTP\(n28k\+3\;o\&WXqs\/gOXdr\$\:r\'do0\;b4c\(f_Gr\=\"\\4\)\[01T7ajQJvL\$W\~mL_sS\/4h\:x\*\[ZN\=KLs\&L5zX\/\/\>it\,o\:aU\(\;Z\>pW\&T7oP\'2K\^E\:x9\'c\[\%z\-\,64JQ5AeH_G\#KijUKghQw\^\\vea3a\?kka_G\$8\#\`\*kynsxzBLru\'\]k_\[7FrVx\}\^\=\$blx\>s\-N\%j\;D\*aZDnsw\:YKZ\%Q\.Kne9\#hP\?\+b3\(SOvL\,\^\;\&u5\@\?5C5Bhb\=m\-vEh_L15Jl\]U\)0RP6\{q\%L\^_z5E\'Dw6X\b/IB
@@ -1008,7 +1013,7 @@
 /^a/Im
   abcde
   xy\nabc
-  *** Failers
+\= Expect no match
   xyabc
 
 /c|abc/I
@@ -1020,7 +1025,7 @@
 /abc(?C)def/I
     abcdef
     1234abcdef
-    *** Failers
+\= Expect no match
     abcxyz
     abcxyzf
 
@@ -1029,12 +1034,12 @@
 
 /(?C1)\dabc(?C2)def/I
     1234abcdef
-    *** Failers
+\= Expect no match
     abcdef
 
 /(?C1)\dabc(?C2)def/I
     1234abcdef
-    *** Failers
+\= Expect no match
     abcdef
 
 /(?C255)ab/I
@@ -1046,21 +1051,19 @@
 /(?C12vr)x/I
 
 /abc(?C)def/I
-    *** Failers
     \x83\x0\x61bcdef
 
 /(abc)(?C)de(?C1)f/I
     123abcdef
     123abcdef\=callout_capture
     123abcdefC-\=callout_none
-    *** Failers
+\= Expect no match
     123abcdef\=callout_fail=1
 
 /(?C0)(abc(?C1))*/I
     abcabcabc
-    abcabc\=callout_fail=1:3
-    *** Failers
-    abcabcabc\=callout_fail=1:3
+    abcabc\=callout_fail=1:4
+    abcabcabc\=callout_fail=1:4
 
 /(\d{3}(?C))*/I
     123\=callout_capture
@@ -1083,9 +1086,11 @@
    abcxyz\=callout_capture
 
 /a(b+)(c*)(?C1)/I
+\= Expect no match
     abbbbbccc\=callout_data=1
 
 /a(b+?)(c*?)(?C1)/I
+\= Expect no match
     abbbbbccc\=callout_data=1
 
 /(?C)abc/I
@@ -1094,30 +1099,20 @@
 
 /(?C)a|b/I
 
-/(?R)/I
-
-/(a|(?R))/I
-
-/(ab|(bc|(de|(?R))))/I
-
 /x(ab|(bc|(de|(?R))))/I
     xab
     xbc
     xde
     xxab
     xxxab
-    *** Failers
+\= Expect no match
     xyab
-
-/(ab|(bc|(de|(?1))))/I
-
-/x(ab|(bc|(de|(?1)x)x)x)/I
 
 /^([^()]|\((?1)*\))*$/I
     abc
     a(b)c
     a(b(c))d
-    *** Failers)
+\= Expect no match)
     a(b(c)d
 
 /^>abc>([^()]|\((?1)*\))*<xyz<$/I
@@ -1133,13 +1128,13 @@
     12
     (((2+2)*-3)-7)
     -12
-    *** Failers
+\= Expect no match
     ((2+2)*-3)-7)
 
 /^(x(y|(?1){2})z)/I
     xyz
     xxyzxyzz
-    *** Failers
+\= Expect no match
     xxyzz
     xxyzxyzxyzz
 
@@ -1150,7 +1145,7 @@
     <abc <def> hij>
     <abc<>def>
     <abc<>
-    *** Failers
+\= Expect no match
     <abc
 
 /(?1)/I
@@ -1183,7 +1178,7 @@
     Satan, oscillate my metallic sonatas!
     A man, a plan, a canal: Panama!
     Able was I ere I saw Elba.
-    *** Failers
+\= Expect no match
     The quick brown fox
 
 /((?(R)a|b))\1(?1)?/I
@@ -1224,6 +1219,7 @@
    aaabbb
    aaabbb\=callout_data=0
    aaabbb\=callout_data=1
+\= Expect no match
    aaabbb\=callout_data=-1
 
 /ab(?P<one>cd)ef(?P<two>gh)/I
@@ -1246,7 +1242,7 @@
 
 "\[((?P<elem>\d+)(,(?P>elem))*)\]"I
     [10,20,30,5,5,4,4,2,43,23,4234]
-    *** Failers
+\= Expect no match
     []
 
 "\[((?P<elem>\d+)(,(?P>elem))*)?\]"I
@@ -1259,7 +1255,11 @@
 
 /(a(b(?2)c)){0,2}/IB
 
-/[ab]{1}+/IB
+/[ab]{1}+/B
+
+/()(?1){1}/B
+
+/()(?1)/B
 
 /((w\/|-|with)*(free|immediate)*.*?shipping\s*[!.-]*)/Ii
      Baby Bjorn Active Carrier - With free SHIPPING!!
@@ -1275,6 +1275,7 @@
 
 /abcde/IB,auto_callout
   abcde
+\= Expect no match
   abcdfe
 
 /a*b/IB,auto_callout
@@ -1290,18 +1291,19 @@
 /a+b/IB,auto_callout
   ab
   aaaab
+\= Expect no match
   aaaacb
 
 /(abc|def)x/IB,auto_callout
   abcx
   defx
-  ** Failers 
+\= Expect no match
   abcdefzx
 
 /(abc|def)x/IB,auto_callout
   abcx
   defx
-  ** Failers 
+\= Expect no match
   abcdefzx
 
 /(ab|cd){3,4}/I,auto_callout
@@ -1310,9 +1312,11 @@
   abcdcdcdcdcd
 
 /([ab]{,4}c|xy)/IB,auto_callout
+\= Expect no match
     Note: that { does NOT introduce a quantifier
 
 /([ab]{,4}c|xy)/IB,auto_callout
+\= Expect no match
     Note: that { does NOT introduce a quantifier
 
 /([ab]{1,4}c|xy){4,5}?123/IB,auto_callout
@@ -1322,7 +1326,7 @@
   ab cd\=offset=1
 
 /\b.*/Is
-  ab cd\=offset=1
+  ab cd\=startoffset=1
 
 /(?!.bcd).*/I
   Xbcd12345
@@ -1333,7 +1337,7 @@
     abcd\=ps
     abcde\=ps
     the quick brown abc\=ps
-    ** Failers\=ps
+\= Expect no match\=ps
     the quick brown abxyz fox\=ps
 
 "^(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/(20)?\d\d$"I
@@ -1348,7 +1352,7 @@
     02/\=ps
     02/0\=ps
     02/1\=ps
-    ** Failers\=ps
+\= Expect no match\=ps
     \=ps
     123\=ps
     33/4/04\=ps
@@ -1382,7 +1386,7 @@
     1234X
     12345\=ps
     12345X
-    *** Failers
+\= Expect no match
     1X
     123456\=ps
 
@@ -1395,17 +1399,17 @@
 
 /line\nbreak/I,firstline
     this is a line\nbreak
-    ** Failers
+\= Expect no match
     line one\nthis is a line\nbreak in the second line
 
 /line\nbreak/Im,firstline
     this is a line\nbreak
-    ** Failers
+\= Expect no match
     line one\nthis is a line\nbreak in the second line
 
 /(?i)(?-i)AbCd/I
     AbCd
-    ** Failers
+\= Expect no match
     abcd
 
 /a{11111111111111111111}/I
@@ -1460,9 +1464,8 @@
 /^((?P<A>a1)|(?P<A>a2)b)/I,dupnames
     a1b\=copy=A
     a2b\=copy=A
-    ** Failers
     a1b\=copy=Z,copy=A
-    
+
 /(?|(?<a>)(?<b>)(?<a>)|(?<a>)(?<b>)(?<a>))/I,dupnames
 
 /^(?P<A>a)(?P<A>b)/I,dupnames
@@ -1478,7 +1481,6 @@
 /^((?P<A>a1)|(?P<A>a2)b)/I,dupnames
     a1b\=get=A
     a2b\=get=A
-    ** Failers
     a1b\=get=Z,get=A
 
 /^(?P<A>a)(?P<A>b)/I,dupnames
@@ -1497,9 +1499,9 @@
 
 /^(?P<A>a) (?J:(?P<B>b)(?P<B>c)) (?P<A>d)/I
 
-/ In this next test, J is not set at the outer level; consequently it isn't
-set in the pattern's options; consequently pcre_get_named_substring() produces
-a random value. /Ix
+# In this next test, J is not set at the outer level; consequently it isn't set
+# in the pattern's options; consequently pcre2_substring_get_byname() produces
+# a random value.
 
 /^(?P<A>a) (?J:(?P<B>b)(?P<B>c)) (?P<C>d)/I
     a bc d\=copy=A,copy=B,copy=C
@@ -1507,7 +1509,7 @@ a random value. /Ix
 /^(?P<A>a)?(?(A)a|b)/I
     aabc
     bc
-    ** Failers
+\= Expect no match
     abc
 
 /(?:(?(ZZ)a|b)(?P<ZZ>X))+/I
@@ -1539,7 +1541,7 @@ a random value. /Ix
 /^abc/Im,newline=lf
     xyz\nabc
     xyz\r\nabc
-    ** Failers
+\= Expect no match
     xyz\rabc
     xyzabc\r
     xyzabc\rpqr
@@ -1548,13 +1550,13 @@ a random value. /Ix
 
 /^abc/Im,newline=crlf
     xyz\r\nabclf>
-    ** Failers
+\= Expect no match
     xyz\nabclf
     xyz\rabclf
-    
+
 /^abc/Im,newline=cr
     xyz\rabc
-    ** Failers
+\= Expect no match
     xyz\nabc
     xyz\r\nabc
 
@@ -1612,7 +1614,7 @@ a random value. /Ix
 
 /^a+A\d/IB
     aaaA5
-    ** Failers
+\= Expect no match
     aaaa5
 
 /^a*A\d/IBi
@@ -1784,7 +1786,7 @@ a random value. /Ix
 /^(?:(?(ZZ)a|b)(?<ZZ>X))+/
     bXaX
     bXbX
-    ** Failers
+\= Expect no match
     aXaX
     aXbX
 
@@ -1805,14 +1807,14 @@ a random value. /Ix
 /^((?(abc)a|b)(?<abc>x|y))+/
     bxay
     bxby
-    ** Failers
+\= Expect no match
     axby
 
 /^(((?P=abc)|X)(?<abc>x|y))+/
     XxXxxx
     XxXyyx
     XxXyxx
-    ** Failers
+\= Expect no match
     x
 
 /^(?1)(abc)/
@@ -1845,7 +1847,7 @@ a random value. /Ix
     Satan, oscillate my metallic sonatas!
     A man, a plan, a canal: Panama!
     Able was I ere I saw Elba.
-    *** Failers
+\= Expect no match
     The quick brown fox
 
 /(?=(\w+))\1:/I
@@ -1856,14 +1858,14 @@ a random value. /Ix
 
 /(?'abc'a|b)(?<abc>d|e)\k<abc>{2}/dupnames
     adaa
-    ** Failers
+\= Expect no match
     addd
     adbb
 
 /(?'abc'a|b)(?<abc>d|e)(?&abc){2}/dupnames
     bdaa
     bdab
-    ** Failers
+\= Expect no match
     bddd
 
 /(?(<bc))/
@@ -1885,26 +1887,27 @@ a random value. /Ix
 /(?(DEFINE) abc) xyz/Ix
 
 /(a|)*\d/
-  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\=ovector=0
   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4\=ovector=0
+\= Expect no match
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\=ovector=0
 
 /^a.b/newline=lf
     a\rb
-    ** Failers
+\= Expect no match
     a\nb
 
 /^a.b/newline=cr
     a\nb
-    ** Failers
+\= Expect no match
     a\rb
 
 /^a.b/newline=anycrlf
     a\x85b
-    ** Failers
+\= Expect no match
     a\rb
 
 /^a.b/newline=any
-    ** Failers
+\= Expect no match
     a\nb
     a\rb
     a\x85b
@@ -1922,7 +1925,7 @@ a random value. /Ix
     a\x0bb
     a\x0cb
     a\x85b
-    ** Failers
+\= Expect no match
     a\n\rb
 
 /^a\R*b/bsr=unicode
@@ -1945,7 +1948,7 @@ a random value. /Ix
     a\x85b
     a\n\rb
     a\n\r\x85\x0cb
-    ** Failers
+\= Expect no match
     ab
 
 /^a\R{1,3}b/bsr=unicode
@@ -1956,7 +1959,7 @@ a random value. /Ix
     a\r\n\r\n\r\nb
     a\n\r\n\rb
     a\n\n\r\nb
-    ** Failers
+\= Expect no match
     a\n\n\n\rb
     a\r
 
@@ -1980,12 +1983,14 @@ a random value. /Ix
     123axbaxbaxbx456
 
 /(abc)(?i:(?1))/
-   defabcabcxyz
-   DEFabcABCXYZ
+    defabcabcxyz
+\= Expect no match
+    DEFabcABCXYZ
 
 /(abc)(?:(?i)(?1))/
-   defabcabcxyz
-   DEFabcABCXYZ
+    defabcabcxyz
+\= Expect no match
+    DEFabcABCXYZ
 
 /^(a)\g-2/
 
@@ -1999,24 +2004,24 @@ a random value. /Ix
 
 /^a.b/newline=lf
     a\rb
-    *** Failers
+\= Expect no match
     a\nb
 
 /.+foo/
     afoo
-    ** Failers
+\= Expect no match
     \r\nfoo
     \nfoo
 
 /.+foo/newline=crlf
     afoo
     \nfoo
-    ** Failers
+\= Expect no match
     \r\nfoo
 
 /.+foo/newline=any
     afoo
-    ** Failers
+\= Expect no match
     \nfoo
     \r\nfoo
 
@@ -2024,11 +2029,11 @@ a random value. /Ix
     afoo
     \r\nfoo
     \nfoo
-    
+
 /^$/gm,newline=any
     abc\r\rxyz
-    abc\n\rxyz  
-    ** Failers 
+    abc\n\rxyz
+\= Expect no match
     abc\r\nxyz
 
 /(?m)^$/g,newline=any,aftertext
@@ -2036,7 +2041,7 @@ a random value. /Ix
 
 /(?m)^$|^\r\n/g,newline=any,aftertext
     abc\r\n\r\n
-    
+
 /(?m)$/g,newline=any,aftertext
     abc\r\n\r\n
 
@@ -2045,7 +2050,7 @@ a random value. /Ix
 
 /^X/m
     XABC
-    ** Failers 
+\= Expect no match
     XABC\=notbol
 
 /(ab|c)(?-1)/B
@@ -2053,9 +2058,9 @@ a random value. /Ix
 
 /xy(?+1)(abc)/B
     xyabcabc
-    ** Failers
-    xyabc  
-    
+\= Expect no match
+    xyabc
+
 /x(?-0)y/
 
 /x(?-1)y/
@@ -2067,14 +2072,14 @@ a random value. /Ix
 /^(abc)?(?(-1)X|Y)/B
     abcX
     Y
-    ** Failers
-    abcY   
-    
+\= Expect no match
+    abcY
+
 /^((?(+1)X|Y)(abc))+/B
     YabcXabc
     YabcXabcXabc
-    ** Failers
-    XabcXabc  
+\= Expect no match
+    XabcXabc
 
 /(?(-1)a)/B
 
@@ -2087,30 +2092,30 @@ a random value. /Ix
 
 /(?<A>tom|bon)-\k{A}/
     tom-tom
-    bon-bon 
-    ** Failers
-    tom-bon  
+    bon-bon
+\= Expect no match
+    tom-bon
 
 /\g{A/
 
 /(?|(abc)|(xyz))/B
    >abc<
-   >xyz< 
+   >xyz<
 
 /(x)(?|(abc)|(xyz))(x)/B
     xabcx
-    xxyzx 
+    xxyzx
 
 /(x)(?|(abc)(pqr)|(xyz))(x)/B
     xabcpqrx
-    xxyzx 
+    xxyzx
 
 /\H++X/B
-    ** Failers
+\= Expect no match
     XXXX
-    
+
 /\H+\hY/B
-    XXXX Y 
+    XXXX Y
 
 /\H+ Y/B
 
@@ -2162,23 +2167,29 @@ a random value. /Ix
 /A(*PRUNE)B(*SKIP)C(*THEN)D(*COMMIT)E(*F)F(*FAIL)G(?!)H(*ACCEPT)I/B
 
 /^a+(*FAIL)/auto_callout
+\= Expect no match
     aaaaaa
-    
+
 /a+b?c+(*FAIL)/auto_callout
+\= Expect no match
     aaabccc
 
 /a+b?(*PRUNE)c+(*FAIL)/auto_callout
+\= Expect no match
     aaabccc
 
 /a+b?(*COMMIT)c+(*FAIL)/auto_callout
+\= Expect no match
     aaabccc
-    
+
 /a+b?(*SKIP)c+(*FAIL)/auto_callout
+\= Expect no match
     aaabcccaaabccc
 
 /a+b?(*THEN)c+(*FAIL)/auto_callout
+\= Expect no match
     aaabccc
-    
+
 /a(*MARK)b/
 
 /(?i:A{1,}\6666666666)/
@@ -2190,53 +2201,54 @@ a random value. /Ix
 /(?1)\c[/
 
 /.+A/newline=crlf
+\= Expect no match
     \r\nA
-    
+
 /\nA/newline=crlf
-    \r\nA 
+    \r\nA
 
 /[\r\n]A/newline=crlf
-    \r\nA 
+    \r\nA
 
 /(\r|\n)A/newline=crlf
-    \r\nA 
+    \r\nA
 
 /a(*CR)b/
 
 /(*CR)a.b/
     a\nb
-    ** Failers
-    a\rb  
+\= Expect no match
+    a\rb
 
 /(*CR)a.b/newline=lf
     a\nb
-    ** Failers
-    a\rb  
+\= Expect no match
+    a\rb
 
 /(*LF)a.b/newline=CRLF
     a\rb
-    ** Failers
-    a\nb  
+\= Expect no match
+    a\nb
 
 /(*CRLF)a.b/
     a\rb
-    a\nb  
-    ** Failers
-    a\r\nb  
+    a\nb
+\= Expect no match
+    a\r\nb
 
 /(*ANYCRLF)a.b/newline=CR
-    ** Failers
+\= Expect no match
     a\rb
-    a\nb  
-    a\r\nb  
+    a\nb
+    a\r\nb
 
 /(*ANY)a.b/newline=cr
-    ** Failers
+\= Expect no match
     a\rb
-    a\nb  
-    a\r\nb  
-    a\x85b 
-    
+    a\nb
+    a\r\nb
+    a\x85b
+
 /(*ANY).*/g
     abc\r\ndef
 
@@ -2246,63 +2258,81 @@ a random value. /Ix
 /(*CRLF).*/g
     abc\r\ndef
 
+/(*NUL)^.*/
+    a\nb\x00ccc
+
+/(*NUL)^.*/s
+    a\nb\x00ccc
+
+/^x/m,newline=NUL
+    ab\x00xy
+
+/'#comment' 0d 0a 00 '^x\' 0a 'y'/x,newline=nul,hex
+    x\nyz
+
+/(*NUL)^X\NY/
+    X\nY
+    X\rY
+\= Expect no match
+    X\x00Y
+
 /a\Rb/I,bsr=anycrlf
     a\rb
     a\nb
     a\r\nb
-    ** Failers
+\= Expect no match
     a\x85b
-    a\x0bb     
+    a\x0bb
 
 /a\Rb/I,bsr=unicode
     a\rb
     a\nb
     a\r\nb
     a\x85b
-    a\x0bb     
-    
+    a\x0bb
+
 /a\R?b/I,bsr=anycrlf
     a\rb
     a\nb
     a\r\nb
-    ** Failers
+\= Expect no match
     a\x85b
-    a\x0bb     
+    a\x0bb
 
 /a\R?b/I,bsr=unicode
     a\rb
     a\nb
     a\r\nb
     a\x85b
-    a\x0bb     
-    
+    a\x0bb
+
 /a\R{2,4}b/I,bsr=anycrlf
     a\r\n\nb
     a\n\r\rb
     a\r\n\r\n\r\n\r\nb
-    ** Failers
+\= Expect no match
     a\x85\x85b
-    a\x0b\x0bb     
+    a\x0b\x0bb
 
 /a\R{2,4}b/I,bsr=unicode
     a\r\rb
     a\n\n\nb
     a\r\n\n\r\rb
     a\x85\x85b
-    a\x0b\x0bb     
-    ** Failers 
-    a\r\r\r\r\rb 
- 
+    a\x0b\x0bb
+\= Expect no match
+    a\r\r\r\r\rb
+
 /(*BSR_ANYCRLF)a\Rb/I
     a\nb
-    a\rb 
+    a\rb
 
 /(*BSR_UNICODE)a\Rb/I
     a\x85b
 
 /(*BSR_ANYCRLF)(*CRLF)a\Rb/I
     a\nb
-    a\rb 
+    a\rb
 
 /(*CRLF)(*BSR_UNICODE)a\Rb/I
     a\x85b
@@ -2343,14 +2373,6 @@ a random value. /Ix
 
 /(?P>)/
 
-/(?!\w)(?R)/
-
-/(?=\w)(?R)/
-
-/(?<!\w)(?R)/
-
-/(?<=\w)(?R)/
-
 /[[:foo:]]/
 
 /[[:1234:]]/
@@ -2373,21 +2395,22 @@ a random value. /Ix
 
 /^(?+1)(?<a>x|y){0}z/
     xzxx
-    yzyy 
-    ** Failers
-    xxz  
+    yzyy
+\= Expect no match
+    xxz
 
 /(\3)(\1)(a)/
+\= Expect no match
     cat
 
 /(\3)(\1)(a)/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     cat
-    
+
 /TA]/
-    The ACTA] comes 
+    The ACTA] comes
 
 /TA]/alt_bsux,allow_empty_class,match_unset_backref,dupnames
-    The ACTA] comes 
+    The ACTA] comes
 
 /(?2)[]a()b](abc)/
     abcbabc
@@ -2397,12 +2420,12 @@ a random value. /Ix
 
 /(?1)[]a()b](abc)/
     abcbabc
-    ** Failers 
+\= Expect no match
     abcXabc
 
 /(?1)[^]a()b](abc)/
     abcXabc
-    ** Failers 
+\= Expect no match
     abcbabc
 
 /(?2)[]a()b](abc)(xyz)/
@@ -2419,28 +2442,28 @@ a random value. /Ix
 /a[^]b/
 
 /a[]b/alt_bsux,allow_empty_class,match_unset_backref,dupnames
-    ** Failers
+\= Expect no match
     ab
 
 /a[]+b/alt_bsux,allow_empty_class,match_unset_backref,dupnames
-    ** Failers
-    ab 
+\= Expect no match
+    ab
 
 /a[]*+b/alt_bsux,allow_empty_class,match_unset_backref,dupnames
-    ** Failers
-    ab 
+\= Expect no match
+    ab
 
 /a[^]b/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     aXb
-    a\nb 
-    ** Failers
-    ab  
-    
+    a\nb
+\= Expect no match
+    ab
+
 /a[^]+b/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     aXb
-    a\nX\nXb 
-    ** Failers
-    ab  
+    a\nX\nXb
+\= Expect no match
+    ab
 
 /a(?!)b/B
 
@@ -2453,32 +2476,32 @@ a random value. /Ix
 
 /(?(?=.*b)b|^)/I,auto_callout
    adc
-   abc 
-   
+   abc
+
 /(?(?=b).*b|^d)/I
 
 /(?(?=.*b).*b|^d)/I
 
 /xyz/auto_callout
-  xyz 
-  abcxyz 
-  ** Failers 
+  xyz
+  abcxyz
+\= Expect no match
   abc
-  abcxypqr  
-  
+  abcxypqr
+
 /xyz/auto_callout,no_start_optimize
-  abcxyz 
-  ** Failers 
+  abcxyz
+\= Expect no match
   abc
-  abcxypqr  
-  
+  abcxypqr
+
 /(*NO_START_OPT)xyz/auto_callout
   abcxyz
-  
+
 /(*NO_AUTO_POSSESS)a+b/B
 
 /xyz/auto_callout,no_start_optimize
-  abcxyz 
+  abcxyz
 
 /^"((?(?=[a])[^"])|b)*"$/auto_callout
     "ab"
@@ -2491,150 +2514,152 @@ a random value. /Ix
 
 /^X(?&N)(a)(?|(b)|(q))(c)(d)(?<N>Y)/
     XYabcdY
- 
+
 /Xa{2,4}b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /Xa{2,4}?b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /Xa{2,4}+b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /X\d{2,4}b/
     X\=ps
     X3\=ps
     X33\=ps
     X333\=ps
     X3333\=ps
-    
+
 /X\d{2,4}?b/
     X\=ps
     X3\=ps
     X33\=ps
     X333\=ps
     X3333\=ps
-    
+
 /X\d{2,4}+b/
     X\=ps
     X3\=ps
     X33\=ps
     X333\=ps
     X3333\=ps
-    
+
 /X\D{2,4}b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /X\D{2,4}?b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /X\D{2,4}+b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /X[abc]{2,4}b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /X[abc]{2,4}?b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /X[abc]{2,4}+b/
     X\=ps
     Xa\=ps
     Xaa\=ps
     Xaaa\=ps
     Xaaaa\=ps
-    
+
 /X[^a]{2,4}b/
     X\=ps
     Xz\=ps
     Xzz\=ps
     Xzzz\=ps
     Xzzzz\=ps
-    
+
 /X[^a]{2,4}?b/
     X\=ps
     Xz\=ps
     Xzz\=ps
     Xzzz\=ps
     Xzzzz\=ps
-    
+
 /X[^a]{2,4}+b/
     X\=ps
     Xz\=ps
     Xzz\=ps
     Xzzz\=ps
     Xzzzz\=ps
-    
+
 /(Y)X\1{2,4}b/
     YX\=ps
     YXY\=ps
     YXYY\=ps
     YXYYY\=ps
     YXYYYY\=ps
-    
+
 /(Y)X\1{2,4}?b/
     YX\=ps
     YXY\=ps
     YXYY\=ps
     YXYYY\=ps
     YXYYYY\=ps
-    
+
 /(Y)X\1{2,4}+b/
     YX\=ps
     YXY\=ps
     YXYY\=ps
     YXYYY\=ps
     YXYYYY\=ps
-    
+
 /\++\KZ|\d+X|9+Y/startchar
     ++++123999\=ps
     ++++123999Y\=ps
     ++++Z1234\=ps
 
 /Z(*F)/
+\= Expect no match
     Z\=ps
     ZA\=ps
-    
+
 /Z(?!)/
+\= Expect no match
     Z\=ps
     ZA\=ps
 
 /dog(sbody)?/
     dogs\=ps
     dogs\=ph
-    
+
 /dog(sbody)??/
     dogs\=ps
     dogs\=ph
@@ -2642,7 +2667,7 @@ a random value. /Ix
 /dog|dogsbody/
     dogs\=ps
     dogs\=ph
- 
+
 /dogsbody|dog/
     dogs\=ps
     dogs\=ph
@@ -2654,14 +2679,14 @@ a random value. /Ix
 /abc/
    abc\=ps
    abc\=ph
-   
+
 /abc\K123/startchar
     xyzabc123pqr
     xyzabc12\=ps
     xyzabc12\=ph
-    
+
 /(?<=abc)123/
-    xyzabc123pqr 
+    xyzabc123pqr
     xyzabc12\=ps
     xyzabc12\=ph
 
@@ -2680,14 +2705,14 @@ a random value. /Ix
     abcdef
     abcdef\=notempty_atstart
     xyzabcdef\=notempty_atstart
-    ** Failers
+\= Expect no match
     abcdef\=notempty
     xyzabcdef\=notempty
-    
+
 /^(?:(?=abc)|abc\K)/aftertext,startchar
     abcdef
     abcdef\=notempty_atstart
-    ** Failers 
+\= Expect no match
     abcdef\=notempty
 
 /a?b?/aftertext
@@ -2696,79 +2721,79 @@ a random value. /Ix
     xyzabc\=notempty
     xyzabc\=notempty_atstart
     xyz\=notempty_atstart
-    ** Failers 
+\= Expect no match
     xyz\=notempty
 
 /^a?b?/aftertext
     xyz
     xyzabc
-    ** Failers 
+\= Expect no match
     xyzabc\=notempty
     xyzabc\=notempty_atstart
     xyz\=notempty_atstart
     xyz\=notempty
-    
+
 /^(?<name>a|b\g<name>c)/
     aaaa
     bacxxx
-    bbaccxxx 
+    bbaccxxx
     bbbacccxx
 
 /^(?<name>a|b\g'name'c)/
     aaaa
     bacxxx
-    bbaccxxx 
+    bbaccxxx
     bbbacccxx
 
 /^(a|b\g<1>c)/
     aaaa
     bacxxx
-    bbaccxxx 
+    bbaccxxx
     bbbacccxx
 
 /^(a|b\g'1'c)/
     aaaa
     bacxxx
-    bbaccxxx 
+    bbaccxxx
     bbbacccxx
 
 /^(a|b\g'-1'c)/
     aaaa
     bacxxx
-    bbaccxxx 
+    bbaccxxx
     bbbacccxx
 
 /(^(a|b\g<-1>c))/
     aaaa
     bacxxx
-    bbaccxxx 
+    bbaccxxx
     bbbacccxx
 
 /(?-i:\g<name>)(?i:(?<name>a))/
     XaaX
-    XAAX 
+    XAAX
 
 /(?i:\g<name>)(?-i:(?<name>a))/
     XaaX
-    ** Failers 
-    XAAX 
+\= Expect no match
+    XAAX
 
 /(?-i:\g<+1>)(?i:(a))/
     XaaX
-    XAAX 
+    XAAX
 
 /(?=(?<regex>(?#simplesyntax)\$(?<name>[a-zA-Z_\x{7f}-\x{ff}][a-zA-Z0-9_\x{7f}-\x{ff}]*)(?:\[(?<index>[a-zA-Z0-9_\x{7f}-\x{ff}]+|\$\g<name>)\]|->\g<name>(\(.*?\))?)?|(?#simple syntax withbraces)\$\{(?:\g<name>(?<indices>\[(?:\g<index>|'(?:\\.|[^'\\])*'|"(?:\g<regex>|\\.|[^"\\])*")\])?|\g<complex>|\$\{\g<complex>\})\}|(?#complexsyntax)\{(?<complex>\$(?<segment>\g<name>(\g<indices>*|\(.*?\))?)(?:->\g<segment>)*|\$\g<complex>|\$\{\g<complex>\})\}))\{/
 
 /(?<n>a|b|c)\g<n>*/
    abc
-   accccbbb 
+   accccbbb
 
 /^X(?7)(a)(?|(b)|(q)(r)(s))(c)(d)(Y)/
     XYabcdY
 
 /(?<=b(?1)|zzz)(a)/
     xbaax
-    xzzzax 
+    xzzzax
 
 /(a)(?<=b\1)/
 
@@ -2819,7 +2844,7 @@ a random value. /Ix
     (?: [0-9a-f]{1,4} |       # 1-4 hex digits or
     (?(1)0 | () ) )           # if null previously matched, fail; else null
     :                         # followed by colon
-  ){1,7}                      # end item; 1-7 of them required               
+  ){1,7}                      # end item; 1-7 of them required
   [0-9a-f]{1,4} $             # final hex number at end of string
   (?(1)|.)                    # check that there was an empty component
   /Iix
@@ -2831,25 +2856,25 @@ a random value. /Ix
 /(?|(?<a>A)|(?<b>B))/
 
 /(?:a(?<quote> (?<apostrophe>')|(?<realquote>")) |
-    b(?<quote> (?<apostrophe>')|(?<realquote>")) ) 
+    b(?<quote> (?<apostrophe>')|(?<realquote>")) )
     (?('quote')[a-z]+|[0-9]+)/Ix,dupnames
     a"aaaaa
-    b"aaaaa 
-    ** Failers 
+    b"aaaaa
+\= Expect no match
     b"11111
-    a"11111 
-    
+    a"11111
+
 /^(?|(a)(b)(c)(?<D>d)|(?<D>e)) (?('D')X|Y)/IBx,dupnames
     abcdX
     eX
-    ** Failers
+\= Expect no match
     abcdY
-    ey     
-    
+    ey
+
 /(?<A>a) (b)(c)  (?<A>d  (?(R&A)$ | (?4)) )/IBx,dupnames
     abcdd
-    ** Failers
-    abcdde  
+\= Expect no match
+    abcdde
 
 /abcd*/
     xxxxabcd\=ps
@@ -2873,19 +2898,6 @@ a random value. /Ix
     xxxxabcde\=ps
     xxxxabcde\=ph
 
-# This is not in the Perl-compatible test because Perl seems currently to be
-# broken and not behaving as specified in that it *does* bumpalong after
-# hitting (*COMMIT). 
-
-/(?1)(A(*COMMIT)|B)D/
-    ABD
-    XABD
-    BAD
-    ABXABD  
-    ** Failers 
-    ABX 
-    BAXBAD  
-
 /(\3)(\1)(a)/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     cat
 
@@ -2893,20 +2905,21 @@ a random value. /Ix
     cat
 
 /(\3)(\1)(a)/I
+\= Expect no match
     cat
 
 /i(?(DEFINE)(?<s>a))/I
     i
-    
+
 /()i(?(1)a)/I
     ia
 
 /(?i)a(?-i)b|c/B
     XabX
     XAbX
-    CcC 
-    ** Failers
-    XABX   
+    CcC
+\= Expect no match
+    XABX
 
 /(?i)a(?s)b|c/B
 
@@ -2914,18 +2927,20 @@ a random value. /Ix
 
 /^(ab(c\1)d|x){2}$/B
     xabcxd
-    
+
 /^(?&t)*+(?(DEFINE)(?<t>.))$/B
 
 /^(?&t)*(?(DEFINE)(?<t>.))$/B
 
-/ -- This one is here because Perl gives the match as "b" rather than "ab". I
-     believe this to be a Perl bug. --/
-      
+# This one is here because Perl gives the match as "b" rather than "ab". I
+# believe this to be a Perl bug.
+
 /(?>a\Kb)z|(ab)/
-    ab\=startchar 
+    ab\=startchar
 
 /(?P<L1>(?P<L2>0|)|(?P>L2)(?P>L1))/
+    abcd
+    0abc
 
 /abc(*MARK:)pqr/
 
@@ -2933,10 +2948,11 @@ a random value. /Ix
 
 /abc(*FAIL:123)xyz/
 
-# This should, and does, fail. In Perl, it does not, which I think is a 
+# This should, and does, fail. In Perl, it does not, which I think is a
 # bug because replacing the B in the pattern by (B|D) does make it fail.
 
 /A(*COMMIT)B/aftertext,mark
+\= Expect no match
     ACABX
 
 # These should be different, but in Perl they are not, which I think
@@ -2946,35 +2962,39 @@ a random value. /Ix
     AC
 
 /A(*PRUNE)B|A(*PRUNE)C/mark
+\= Expect no match
     AC
-    
+
 # Mark names can be duplicated. Perl doesn't give a mark for this one,
 # though PCRE2 does.
 
 /^A(*:A)B|^X(*:A)Y/mark
-    ** Failers
+\= Expect no match
     XAQQ
-    
-# COMMIT at the start of a pattern should be the same as an anchor. Perl 
+
+# COMMIT at the start of a pattern should be the same as an anchor. Perl
 # optimizations defeat this. So does the PCRE2 optimization unless we disable
 # it.
 
 /(*COMMIT)ABC/
     ABCDEFG
-    
+
 /(*COMMIT)ABC/no_start_optimize
-    ** Failers
+\= Expect no match
     DEFGABC
-    
+
 /^(ab (c+(*THEN)cd) | xyz)/x
-    abcccd  
+\= Expect no match
+    abcccd
 
 /^(ab (c+(*PRUNE)cd) | xyz)/x
-    abcccd  
+\= Expect no match
+    abcccd
 
 /^(ab (c+(*FAIL)cd) | xyz)/x
-    abcccd  
-    
+\= Expect no match
+    abcccd
+
 # Perl gets some of these wrong
 
 /(?>.(*ACCEPT))*?5/
@@ -2991,21 +3011,21 @@ a random value. /Ix
 
 /A\NB./B
     ACBD
-    *** Failers
+\= Expect no match
     A\nB
-    ACB\n   
+    ACB\n
 
 /A\NB./Bs
     ACBD
-    ACB\n 
-    *** Failers
-    A\nB  
-  
+    ACB\n
+\= Expect no match
+    A\nB
+
 /A\NB/newline=crlf
     A\nB
     A\rB
-    ** Failers
-    A\r\nB    
+\= Expect no match
+    A\r\nB
 
 /\R+b/B
 
@@ -3033,6 +3053,7 @@ a random value. /Ix
     X\x0d\x0a
 
 /X\H++\R/B
+\= Expect no match
     X\x0d\x0a
 
 /(?<=abc)def/
@@ -3067,17 +3088,21 @@ a random value. /Ix
     abc\=ph
 
 /abc\B/
-    abc
     abc\=ps
     abc\=ph
+\= Expect no match
+    abc
 
 /.+/
+\= Bad offsets
+    abc\=offset=4
+    abc\=offset=-4
+\= Valid data
     abc\=offset=0
     abc\=offset=1
     abc\=offset=2
+\= Expect no match
     abc\=offset=3
-    abc\=offset=4
-    abc\=offset=-4 
 
 /^\cÄ£/
 
@@ -3091,24 +3116,24 @@ a random value. /Ix
 
 /(?P<abn>(?P=axn)xxx)(?<axn>yy)/B
 
-# These tests are here because Perl gets the first one wrong. 
+# These tests are here because Perl gets the first one wrong.
 
 /(\R*)(.)/s
     \r\n
-    \r\r\n\n\r 
-    \r\r\n\n\r\n 
+    \r\r\n\n\r
+    \r\r\n\n\r\n
 
 /(\R)*(.)/s
     \r\n
-    \r\r\n\n\r 
-    \r\r\n\n\r\n 
+    \r\r\n\n\r
+    \r\r\n\n\r\n
 
 /((?>\r\n|\n|\x0b|\f|\r|\x85)*)(.)/s
     \r\n
-    \r\r\n\n\r 
-    \r\r\n\n\r\n 
+    \r\r\n\n\r
+    \r\r\n\n\r\n
 
-# ------------- 
+# -------------
 
 /^abc$/B
 
@@ -3116,12 +3141,12 @@ a random value. /Ix
 
 /^(a)*+(\w)/
     aaaaX
-    ** Failers 
+\= Expect no match
     aaaa
 
 /^(?:a)*+(\w)/
     aaaaX
-    ** Failers 
+\= Expect no match
     aaaa
 
 /(a)++1234/IB
@@ -3180,35 +3205,39 @@ a random value. /Ix
 
 /(abc)\1+/
 
-# Perl doesn't get these right IMO (the 3rd is PCRE2-specific) 
+# Perl doesn't get these right IMO (the 3rd is PCRE2-specific)
 
 /(?1)(?:(b(*ACCEPT))){0}/
     b
 
 /(?1)(?:(b(*ACCEPT))){0}c/
     bc
-    ** Failers 
-    b 
+\= Expect no match
+    b
 
 /(?1)(?:((*ACCEPT))){0}c/
     c
     c\=notempty
 
 /^.*?(?(?=a)a|b(*THEN)c)/
+\= Expect no match
     ba
 
 /^.*?(?(?=a)a|bc)/
     ba
 
 /^.*?(?(?=a)a(*THEN)b|c)/
+\= Expect no match
     ac
 
 /^.*?(?(?=a)a(*THEN)b)c/
+\= Expect no match
     ac
 
 /^.*?(a(*THEN)b)c/
+\= Expect no match
     aabc
-    
+
 /^.*? (?1) c (?(DEFINE)(a(*THEN)b))/x
     aabc
 
@@ -3223,9 +3252,11 @@ a random value. /Ix
 
 /(*MARK:A)(*SKIP:B)(C|X)/mark
     C
+\= Expect no match
     D
-     
+
 /(*:A)A+(*SKIP:A)(B|Z)/mark
+\= Expect no match
     AAAC
 
 # ----------------------------
@@ -3233,13 +3264,14 @@ a random value. /Ix
 "(?=a*(*ACCEPT)b)c"
     c
     c\=notempty
-    
+
 /(?1)c(?(DEFINE)((*ACCEPT)b))/
     c
     c\=notempty
-    
+
 /(?>(*ACCEPT)b)c/
     c
+\= Expect no match
     c\=notempty
 
 /(?:(?>(a)))+a%/allaftertext
@@ -3247,7 +3279,7 @@ a random value. /Ix
 
 /(a)b|ac/allaftertext
     ac\=ovector=1
-    
+
 /(a)(b)x|abc/allaftertext
      abc\=ovector=2
 
@@ -3272,7 +3304,7 @@ a random value. /Ix
     foobazbarX
     barfooX
     bazX
-    foobarbazX    
+    foobarbazX
     bazfooX\=ovector=0
     bazfooX\=ovector=1
     bazfooX\=ovector=2
@@ -3302,14 +3334,13 @@ a random value. /Ix
 
 /[:a[:abc]b:]/B
 
-/(a+|(?R)b)/
-
 /^(a(*:A)(d|e(*:B))z|aeq)/auto_callout
     adz
     aez
     aeqwerty
 
 /.(*F)/
+\= Expect no match
     abc\=ph
 
 /\btype\b\W*?\btext\b\W*?\bjavascript\b/I
@@ -3323,9 +3354,10 @@ a random value. /Ix
     ax
 
 'a*(*ACCEPT)b'aftertext
-    \=notempty_atstart
     abc\=notempty_atstart
     bbb\=notempty_atstart
+\= Expect no match
+    \=notempty_atstart
 
 /(*ACCEPT)a/I,aftertext
     bax
@@ -3335,17 +3367,18 @@ a random value. /Ix
 
 /^(?>a+)(?>(z+))\w/B
     aaaazzzzb
-    ** Failers
-    aazz  
+\= Expect no match
+    aazz
 
 /(.)(\1|a(?2))/
     bab
-    
+
 /\1|(.)(?R)\1/
     cbbbc
-    
+
 /(.)((?(1)c|a)|a(?2))/
-    baa  
+\= Expect no match
+    baa
 
 /(?P<abn>(?P=abn)xxx)/B
 
@@ -3353,7 +3386,7 @@ a random value. /Ix
 
 /^a\x41z/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     aAz
-    *** Failers
+\= Expect no match
     ax41z
 
 /^a[m\x41]z/alt_bsux,allow_empty_class,match_unset_backref,dupnames
@@ -3364,7 +3397,7 @@ a random value. /Ix
 
 /^a\u0041z/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     aAz
-    *** Failers
+\= Expect no match
     au0041z
 
 /^a[m\u0041]z/alt_bsux,allow_empty_class,match_unset_backref,dupnames
@@ -3372,12 +3405,12 @@ a random value. /Ix
 
 /^a\u041z/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     au041z
-    *** Failers
+\= Expect no match
     aAz
 
 /^a\U0041z/alt_bsux,allow_empty_class,match_unset_backref,dupnames
     aU0041z
-    *** Failers
+\= Expect no match
     aAz
 
 /(?(?=c)c|d)++Y/B
@@ -3386,7 +3419,7 @@ a random value. /Ix
 
 /a[\NB]c/
     aNc
-    
+
 /a[B-\Nc]/
 
 /a[B\Nc]/
@@ -3398,34 +3431,34 @@ a random value. /Ix
 # This test, with something more complicated than individual letters, causes
 # different behaviour in Perl. Perhaps it disables some optimization; no tag is
 # passed back for the failures, whereas in PCRE2 there is a tag.
-    
+
 /(A|P)(*:A)(B|P) | (X|P)(X|P)(*:B)(Y|P)/x,mark
     AABC
-    XXYZ 
-    ** Failers
-    XAQQ  
-    XAQQXZZ  
-    AXQQQ 
-    AXXQQQ 
+    XXYZ
+\= Expect no match
+    XAQQ
+    XAQQXZZ
+    AXQQQ
+    AXXQQQ
 
 # Perl doesn't give marks for these, though it does if the alternatives are
-# replaced by single letters. 
-    
+# replaced by single letters.
+
 /(b|q)(*:m)f|a(*:n)w/mark
-    aw 
-    ** Failers 
+    aw
+\= Expect no match
     abc
 
 /(q|b)(*:m)f|a(*:n)w/mark
-    aw 
-    ** Failers 
+    aw
+\= Expect no match
     abc
 
-# After a partial match, the behaviour is as for a failure. 
+# After a partial match, the behaviour is as for a failure.
 
 /^a(*:X)bcde/mark
    abc\=ps
-   
+
 # These are here because Perl doesn't return a mark, except for the first.
 
 /(?=(*:x))(q|)/aftertext,mark
@@ -3493,22 +3526,22 @@ a random value. /Ix
     ababa\=ps
     ababa\=ph
     abababx
-    ababababx  
+    ababababx
 
 /^(..)\1{2,3}?x/
     aba\=ps
     ababa\=ps
     ababa\=ph
     abababx
-    ababababx  
-    
+    ababababx
+
 /^(..)(\1{2,3})ab/
     abababab
 
 /^\R/
     \r\=ps
     \r\=ph
-    
+
 /^\R{2,3}x/
     \r\=ps
     \r\=ph
@@ -3517,7 +3550,7 @@ a random value. /Ix
     \r\r\r\=ps
     \r\r\r\=ph
     \r\rx
-    \r\r\rx    
+    \r\r\rx
 
 /^\R{2,3}?x/
     \r\=ps
@@ -3527,20 +3560,20 @@ a random value. /Ix
     \r\r\r\=ps
     \r\r\r\=ph
     \r\rx
-    \r\r\rx    
-    
+    \r\r\rx
+
 /^\R?x/
     \r\=ps
     \r\=ph
     x
-    \rx  
+    \rx
 
 /^\R+x/
     \r\=ps
     \r\=ph
     \r\n\=ps
     \r\n\=ph
-    \rx  
+    \rx
 
 /^a$/newline=crlf
     a\r\=ps
@@ -3561,7 +3594,7 @@ a random value. /Ix
 /./newline=crlf
     \r\=ps
     \r\=ph
-  
+
 /.{2,3}/newline=crlf
     \r\=ps
     \r\=ph
@@ -3580,9 +3613,9 @@ a random value. /Ix
 
 "AB(C(D))(E(F))?(?(?=\2)(?=\4))"
     ABCDGHI\=ovector=01
-    
+
 # These are all run as real matches in test 1; here we are just checking the
-# settings of the anchored and startline bits.  
+# settings of the anchored and startline bits.
 
 /(?>.*?a)(?<=ba)/I
 
@@ -3618,10 +3651,10 @@ a random value. /Ix
 
 /(?:(a)+(?C1)bb|aa(?C2)b)/
     aab\=callout_capture
-   
+
 /(?:(a)++(?C1)bb|aa(?C2)b)/
     aab\=callout_capture
-    
+
 /(?:(?>(a))(?C1)bb|aa(?C2)b)/
     aab\=callout_capture
 
@@ -3638,11 +3671,11 @@ a random value. /Ix
 /(ab)x|ab/
     ab\=ovector=0
     ab\=ovector=1
-  
+
 /(?<=123)(*MARK:xx)abc/mark
     xxxx123a\=ph
     xxxx123a\=ps
-    
+
 /123\Kabc/startchar
     xxxx123a\=ph
     xxxx123a\=ps
@@ -3657,21 +3690,22 @@ a random value. /Ix
 
 /aaaaa(*COMMIT)(*PRUNE)b|a+c/
     aaaaaac
-    
+
 # Here are some that Perl treats differently because of the way it handles
-# backtracking verbs. 
+# backtracking verbs.
 
 /(?!a(*COMMIT)b)ac|ad/
      ac
-     ad 
+     ad
 
 /^(?!a(*THEN)b|ac)../
+     ad
+\= Expect no match
      ac
-     ad 
 
 /^(?=a(*THEN)b|ac)/
     ac
-    
+
 /\A.*?(?:a|b(*THEN)c)/
     ba
 
@@ -3682,14 +3716,14 @@ a random value. /Ix
     ba
 
 /(?:(a(*MARK:X)a+(*SKIP:X)b)){0}(?:(?1)|aac)/
-    aac 
+    aac
 
 /\A.*?(a|b(*THEN)c)/
     ba
 
 /^(A(*THEN)B|A(*THEN)D)/
-    AD           
-    
+    AD
+
 /(?!b(*THEN)a)bn|bnn/
     bnn
 
@@ -3699,7 +3733,7 @@ a random value. /Ix
 /(?=b(*THEN)a|)bn|bnn/
     bnn
 
-# This test causes a segfault with Perl 5.18.0 
+# This test causes a segfault with Perl 5.18.0
 
 /^(?=(a)){0}b(?1)/
     backgammon
@@ -3712,41 +3746,40 @@ a random value. /Ix
 
 /[bcd]*a/B
 
-# A complete set of tests for auto-possessification of character types.
+# A complete set of tests for auto-possessification of character types, but
+# omitting \C because it might be disabled (it has its own tests).
 
-/\D+\D \D+\d \D+\S \D+\s \D+\W \D+\w \D+. \D+\C \D+\R \D+\H \D+\h \D+\V \D+\v \D+\Z \D+\z \D+$/Bx
+/\D+\D \D+\d \D+\S \D+\s \D+\W \D+\w \D+. \D+\R \D+\H \D+\h \D+\V \D+\v \D+\Z \D+\z \D+$/Bx
 
-/\d+\D \d+\d \d+\S \d+\s \d+\W \d+\w \d+. \d+\C \d+\R \d+\H \d+\h \d+\V \d+\v \d+\Z \d+\z \d+$/Bx
+/\d+\D \d+\d \d+\S \d+\s \d+\W \d+\w \d+. \d+\R \d+\H \d+\h \d+\V \d+\v \d+\Z \d+\z \d+$/Bx
 
-/\S+\D \S+\d \S+\S \S+\s \S+\W \S+\w \S+. \S+\C \S+\R \S+\H \S+\h \S+\V \S+\v \S+\Z \S+\z \S+$/Bx
+/\S+\D \S+\d \S+\S \S+\s \S+\W \S+\w \S+. \S+\R \S+\H \S+\h \S+\V \S+\v \S+\Z \S+\z \S+$/Bx
 
-/\s+\D \s+\d \s+\S \s+\s \s+\W \s+\w \s+. \s+\C \s+\R \s+\H \s+\h \s+\V \s+\v \s+\Z \s+\z \s+$/Bx
+/\s+\D \s+\d \s+\S \s+\s \s+\W \s+\w \s+. \s+\R \s+\H \s+\h \s+\V \s+\v \s+\Z \s+\z \s+$/Bx
 
-/\W+\D \W+\d \W+\S \W+\s \W+\W \W+\w \W+. \W+\C \W+\R \W+\H \W+\h \W+\V \W+\v \W+\Z \W+\z \W+$/Bx
+/\W+\D \W+\d \W+\S \W+\s \W+\W \W+\w \W+. \W+\R \W+\H \W+\h \W+\V \W+\v \W+\Z \W+\z \W+$/Bx
 
-/\w+\D \w+\d \w+\S \w+\s \w+\W \w+\w \w+. \w+\C \w+\R \w+\H \w+\h \w+\V \w+\v \w+\Z \w+\z \w+$/Bx
+/\w+\D \w+\d \w+\S \w+\s \w+\W \w+\w \w+. \w+\R \w+\H \w+\h \w+\V \w+\v \w+\Z \w+\z \w+$/Bx
 
-/\C+\D \C+\d \C+\S \C+\s \C+\W \C+\w \C+. \C+\C \C+\R \C+\H \C+\h \C+\V \C+\v \C+\Z \C+\z \C+$/Bx
+/\R+\D \R+\d \R+\S \R+\s \R+\W \R+\w \R+. \R+\R \R+\H \R+\h \R+\V \R+\v \R+\Z \R+\z \R+$/Bx
 
-/\R+\D \R+\d \R+\S \R+\s \R+\W \R+\w \R+. \R+\C \R+\R \R+\H \R+\h \R+\V \R+\v \R+\Z \R+\z \R+$/Bx
+/\H+\D \H+\d \H+\S \H+\s \H+\W \H+\w \H+. \H+\R \H+\H \H+\h \H+\V \H+\v \H+\Z \H+\z \H+$/Bx
 
-/\H+\D \H+\d \H+\S \H+\s \H+\W \H+\w \H+. \H+\C \H+\R \H+\H \H+\h \H+\V \H+\v \H+\Z \H+\z \H+$/Bx
+/\h+\D \h+\d \h+\S \h+\s \h+\W \h+\w \h+. \h+\R \h+\H \h+\h \h+\V \h+\v \h+\Z \h+\z \h+$/Bx
 
-/\h+\D \h+\d \h+\S \h+\s \h+\W \h+\w \h+. \h+\C \h+\R \h+\H \h+\h \h+\V \h+\v \h+\Z \h+\z \h+$/Bx
+/\V+\D \V+\d \V+\S \V+\s \V+\W \V+\w \V+. \V+\R \V+\H \V+\h \V+\V \V+\v \V+\Z \V+\z \V+$/Bx
 
-/\V+\D \V+\d \V+\S \V+\s \V+\W \V+\w \V+. \V+\C \V+\R \V+\H \V+\h \V+\V \V+\v \V+\Z \V+\z \V+$/Bx
+/\v+\D \v+\d \v+\S \v+\s \v+\W \v+\w \v+. \v+\R \v+\H \v+\h \v+\V \v+\v \v+\Z \v+\z \v+$/Bx
 
-/\v+\D \v+\d \v+\S \v+\s \v+\W \v+\w \v+. \v+\C \v+\R \v+\H \v+\h \v+\V \v+\v \v+\Z \v+\z \v+$/Bx
+/ a+\D  a+\d  a+\S  a+\s  a+\W  a+\w  a+.  a+\R  a+\H  a+\h  a+\V  a+\v  a+\Z  a+\z  a+$/Bx
 
-/ a+\D  a+\d  a+\S  a+\s  a+\W  a+\w  a+.  a+\C  a+\R  a+\H  a+\h  a+\V  a+\v  a+\Z  a+\z  a+$/Bx
+/\n+\D \n+\d \n+\S \n+\s \n+\W \n+\w \n+. \n+\R \n+\H \n+\h \n+\V \n+\v \n+\Z \n+\z \n+$/Bx
 
-/\n+\D \n+\d \n+\S \n+\s \n+\W \n+\w \n+. \n+\C \n+\R \n+\H \n+\h \n+\V \n+\v \n+\Z \n+\z \n+$/Bx
+/ .+\D  .+\d  .+\S  .+\s  .+\W  .+\w  .+.  .+\R  .+\H  .+\h  .+\V  .+\v  .+\Z  .+\z  .+$/Bx
 
-/ .+\D  .+\d  .+\S  .+\s  .+\W  .+\w  .+.  .+\C  .+\R  .+\H  .+\h  .+\V  .+\v  .+\Z  .+\z  .+$/Bx
+/ .+\D  .+\d  .+\S  .+\s  .+\W  .+\w  .+.  .+\R  .+\H  .+\h  .+\V  .+\v  .+\Z  .+\z  .+$/Bsx
 
-/ .+\D  .+\d  .+\S  .+\s  .+\W  .+\w  .+.  .+\C  .+\R  .+\H  .+\h  .+\V  .+\v  .+\Z  .+\z  .+$/Bsx
-
-/\D+$  \d+$  \S+$  \s+$  \W+$  \w+$  \C+$  \R+$  \H+$  \h+$  \V+$  \v+$   a+$  \n+$   .+$  .+$/Bmx
+/ \D+$  \d+$  \S+$  \s+$  \W+$  \w+$  \R+$  \H+$  \h+$  \V+$ \v+$  a+$   \n+$  .+$  .+$/Bmx
 
 /(?=a+)a(a+)++a/B
 
@@ -3808,13 +3841,13 @@ a random value. /Ix
 
 /[a-c]{0,6}d/IB
 
-# End of special auto-possessive tests 
+# End of special auto-possessive tests
 
 /^A\o{1239}B/
     A\123B
 
 /^A\oB/
-    
+
 /^A\x{zz}B/
 
 /^A\x{12Z/
@@ -3886,21 +3919,22 @@ a random value. /Ix
 
 /[[:<:]]red[[:>:]]/B
     little red riding hood
-    a /red/ thing 
+    a /red/ thing
     red is a colour
-    put it all on red  
-    ** Failers
+    put it all on red
+\= Expect no match
     no reduction
     Alfred Winifred
-    
+
 /[a[:<:]] should give error/
 
 /(?=ab\K)/aftertext
     abcd\=startchar
 
 /abcd/newline=lf,firstline
+\= Expect no match
     xx\nxabcd
-    
+
 # Test stack guard external calls.
 
 /(((a)))/stackguard=1
@@ -3931,25 +3965,25 @@ a random value. /Ix
 
 /A\9B/
 
-# This one is here because Perl fails to match "12" for this pattern when the $ 
+# This one is here because Perl fails to match "12" for this pattern when the $
 # is present.
-    
+
 /^(?(?=abc)\w{3}:|\d\d)$/
     abc:
     12
-    *** Failers
+\= Expect no match
     123
-    xyz    
+    xyz
 
-# Perl gets this one wrong, giving "a" as the after text for ca and failing to 
+# Perl gets this one wrong, giving "a" as the after text for ca and failing to
 # match for cd.
 
 /(?(?=ab)ab)/aftertext
     abxxx
     ca
-    cd 
-    
-# This should test both paths for processing OP_RECURSE. 
+    cd
+
+# This should test both paths for processing OP_RECURSE.
 
 /(?(R)a+|(?R)b)/
     aaaabcde
@@ -3961,29 +3995,29 @@ a random value. /Ix
 /(*NOTEMPTY)a*?b*?/
     ab
     ba
-    cb  
+    cb
 
 /(*NOTEMPTY_ATSTART)a*?b*?/aftertext
     ab
-    cdab 
+    cdab
 
 /(?(VERSION>=10.0)yes|no)/I
     yesno
-    
+
 /(?(VERSION=8)yes){3}/BI,aftertext
     yesno
 
 /(?(VERSION=8)yes|no){3}/I
     yesnononoyes
-    ** Failers
-    yesno   
+\= Expect no match
+    yesno
 
 /(?:(?<VERSION>abc)|xyz)(?(VERSION)yes|no)/I
     abcyes
     xyzno
-    ** Failers
+\= Expect no match
     abcno
-    xyzyes    
+    xyzyes
 
 /(?(VERSION<10)yes|no)/
 
@@ -3991,24 +4025,24 @@ a random value. /Ix
 
 /(?(VERSION>=10.0.0)yes|no)/
 
+/(?(VERSION=10.101)yes|no)/
+
 /abcd/I
 
 /abcd/I,no_start_optimize
 
 /(|ab)*?d/I
    abd
-   xyd 
+   xyd
 
 /(|ab)*?d/I,no_start_optimize
    abd
-   xyd 
+   xyd
 
 /\k<A>*(?<A>aa)(?<A>bb)/match_unset_backref,dupnames
     aabb
 
 /(((((a)))))/parens_nest_limit=2
-
-# Tests for pcre2_substitute()
 
 /abc/replace=XYZ
     123123
@@ -4063,7 +4097,7 @@ a random value. /Ix
 
 /abc/replace=[9]XYZ
     123abc123
-    
+
 /abc/replace=xyz
     1abc2\=partial_hard
 
@@ -4076,20 +4110,77 @@ a random value. /Ix
 /(?<=abc)(|def)/g,replace=<$0>
     123abcxyzabcdef789abcpqr
 
-# End of substitute tests 
-
-"((?=(?(?=(?(?=(?(?=())))*)))))"
+/./replace=$0
     a
 
-"(?(?=)?==)(((((((((?=)))))))))"
+/(.)(.)/replace=$2+$1
+    abc
+
+/(?<A>.)(?<B>.)/replace=$B+$A
+    abc
+
+/(.)(.)/g,replace=$2$1
+    abcdefgh
+
+/(*:pear)apple|(*:orange)lemon|(*:strawberry)blackberry/g,replace=${*MARK}
+    apple lemon blackberry
+    apple strudel
+    fruitless
+
+/(*:pear)apple|(*:orange)lemon|(*:strawberry)blackberry/replace=${*MARK} sauce,
+    apple lemon blackberry
+
+/(*:pear)apple|(*:orange)lemon|(*:strawberry)blackberry/g,replace=<$*MARK>
+    apple lemon blackberry
+    apple strudel
+    fruitless
+
+/(*:pear)apple/g,replace=${*MARKING}
+    apple lemon blackberry
+
+/(*:pear)apple/g,replace=${*MARK-time
+    apple lemon blackberry
+
+/(*:pear)apple/g,replace=${*mark}
+    apple lemon blackberry
+
+/(*:pear)apple|(*:orange)lemon|(*:strawberry)blackberry/g,replace=<$*MARKET>
+    apple lemon blackberry
+
+/(*:pear)apple|(*:orange)lemon|(*:strawberry)blackberry/g,replace=[22]${*MARK}
+    apple lemon blackberry
+    apple lemon blackberry\=substitute_overflow_length
+
+/(*:pear)apple|(*:orange)lemon|(*:strawberry)blackberry/g,replace=[23]${*MARK}
+    apple lemon blackberry
+
+/abc/
+    123abc123\=replace=[9]XYZ
+    123abc123\=substitute_overflow_length,replace=[9]XYZ
+    123abc123\=substitute_overflow_length,replace=[6]XYZ
+    123abc123\=substitute_overflow_length,replace=[1]XYZ
+    123abc123\=substitute_overflow_length,replace=[0]XYZ
+
+/a(b)c/
+    123abc123\=replace=[9]x$1z
+    123abc123\=substitute_overflow_length,replace=[9]x$1z
+    123abc123\=substitute_overflow_length,replace=[6]x$1z
+    123abc123\=substitute_overflow_length,replace=[1]x$1z
+    123abc123\=substitute_overflow_length,replace=[0]x$1z
+
+"((?=(?(?=(?(?=(?(?=()))))))))"
+    a
+
+"(?(?=)==)(((((((((?=)))))))))"
+\= Expect no match
     a
 
 /(a)(b)|(c)/
     XcX\=ovector=2,get=1,get=2,get=3,get=4,getall
-    
+
 /x(?=ab\K)/
-    xab\=get=0 
-    xab\=copy=0 
+    xab\=get=0
+    xab\=copy=0
     xab\=getall
 
 /(?<A>a)|(?<A>b)/dupnames
@@ -4105,9 +4196,11 @@ a random value. /Ix
 /^abc/info,no_dotstar_anchor
 
 /.*\d/info,auto_callout
+\= Expect no match
     aaa
 
 /.*\d/info,no_dotstar_anchor,auto_callout
+\= Expect no match
     aaa
 
 /.*\d/dotall,info
@@ -4116,4 +4209,1170 @@ a random value. /Ix
 
 /(*NO_DOTSTAR_ANCHOR)(?s).*\d/info
 
-# End of testinput2 
+'^(?:(a)|b)(?(1)A|B)'
+    aA123\=ovector=1
+    aA123\=ovector=2
+
+'^(?:(?<AA>a)|b)(?(<AA>)A|B)'
+    aA123\=ovector=1
+    aA123\=ovector=2
+
+'^(?<AA>)(?:(?<AA>a)|b)(?(<AA>)A|B)'dupnames
+    aA123\=ovector=1
+    aA123\=ovector=2
+    aA123\=ovector=3
+
+'^(?:(?<AA>X)|)(?:(?<AA>a)|b)\k{AA}'dupnames
+    aa123\=ovector=1
+    aa123\=ovector=2
+    aa123\=ovector=3
+
+/(?<N111>(?J)(?<N111>1(111111)11|)1|1|)(?(<N111>)1)/
+
+/(?<N>(?J)(?<N>))(?-J)\k<N>/
+
+# Quantifiers are not allowed on condition assertions, but are otherwise
+# OK in conditions.
+
+/(?(?=0)?)+/
+
+/(?(?=0)(?=00)?00765)/
+     00765
+
+/(?(?=0)(?=00)?00765|(?!3).56)/
+     00765
+     456
+\= Expect no match
+     356
+
+'^(a)*+(\w)'
+    g
+    g\=ovector=1
+
+'^(?:a)*+(\w)'
+    g
+    g\=ovector=1
+
+# These two pattern showeds up compile-time bugs
+
+"((?2){0,1999}())?"
+
+/((?+1)(\1))/B
+
+# Callouts with string arguments
+
+/a(?C"/
+
+/a(?C"a/
+
+/a(?C"a"/
+
+/a(?C"a"bcde(?C"b")xyz/
+
+/a(?C"a)b""c")/B
+
+/ab(?C" any text with spaces ")cde/B
+    abcde
+    12abcde
+
+/^a(b)c(?C1)def/
+      abcdef
+
+/^a(b)c(?C"AB")def/
+      abcdef
+
+/^a(b)c(?C1)def/
+      abcdef\=callout_capture
+
+/^a(b)c(?C{AB})def/B
+      abcdef\=callout_capture
+
+/(?C`a``b`)(?C'a''b')(?C"a""b")(?C^a^^b^)(?C%a%%b%)(?C#a##b#)(?C$a$$b$)(?C{a}}b})/B,callout_info
+
+/(?:a(?C`code`)){3}/B
+
+/^(?(?C25)(?=abc)abcd|xyz)/B,callout_info
+    abcdefg
+    xyz123
+
+/^(?(?C$abc$)(?=abc)abcd|xyz)/B
+    abcdefg
+    xyz123
+
+/^ab(?C'first')cd(?C"second")ef/
+    abcdefg
+
+/(?:a(?C`code`)){3}X/
+    aaaXY
+
+# Binary zero in callout string
+#  a  (  ?  C  '  x     z  '  )  b
+/ 61 28 3f 43 27 78 00 7a 27 29 62/hex,callout_info
+    abcdefgh
+
+/(?(?!)^)/
+
+/(?(?!)a|b)/
+    bbb
+\= Expect no match
+    aaa
+
+# JIT gives a different error message for the infinite recursion
+
+"(*NO_JIT)((?2)+)((?1)){"
+    abcd{
+
+# Perl fails to diagnose the absence of an assertion
+
+"(?(?<E>.*!.*)?)"
+
+"X((?2)()*+){2}+"B
+
+"X((?2)()*+){2}"B
+
+/(?<=\bABQ(3(?-7)))/
+
+/(?<=\bABQ(3(?+7)))/
+
+";(?<=()((?3))((?2)))"
+
+# Perl loops on this (PCRE2 used to!)
+
+/(?<=\Ka)/g,aftertext
+    aaaaa
+
+/(?<=\Ka)/altglobal,aftertext
+    aaaaa
+
+/((?2){73}(?2))((?1))/info
+
+/abc/
+\= Expect no match
+    \[9x!xxx(]{9999}
+
+/(abc)*/
+    \[abc]{5}
+
+/^/gm
+    \n\n\n
+
+/^/gm,alt_circumflex
+    \n\n\n
+
+/((((((((x))))))))\81/
+    xx1
+
+/((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((x))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))\80/
+    xx
+
+/\80/
+
+/A\8B\9C/
+    A8B9C
+
+/(?x:((?'a')) # comment (with parentheses) and | vertical
+(?-x:#not a comment (?'b')) # this is a comment ()
+(?'c')) # not a comment (?'d')/info
+
+/(?|(?'a')(2)(?'b')|(?'a')(?'a')(3))/I,dupnames
+    A23B
+    B32A
+
+# These are some patterns that used to cause buffer overflows or other errors
+# while compiling.
+
+/.((?2)(?R)|\1|$)()/B
+
+/.((?3)(?R)()(?2)|\1|$)()/B
+
+/(\9*+(?2);\3++()2|)++{/
+
+/\V\x85\9*+((?2)\3++()2)*:2/
+
+/(((?(R)){0,2}) (?'x'((?'R')((?'R')))))/dupnames
+
+/(((?(X)){0,2}) (?'x'((?'X')((?'X')))))/dupnames
+
+/(((?(R)){0,2}) (?'x'((?'X')((?'R')))))/
+
+"(?J)(?'d'(?'d'\g{d}))"
+
+"(?=!((?2)(?))({8(?<=(?1){29}8bbbb\x16\xd\xc6^($(\xa9H4){4}h}?1)B))\x15')"
+
+/A(?'')Z/
+
+"(?J:(?|(?'R')(\k'R')|((?'R'))))"
+
+/(?<=|(\,\$(?73591620449005828816)\xa8.{7}){6}\x09)/
+
+/^(?:(?(1)x|)+)+$()/B
+
+/[[:>:]](?<)/
+
+/((?x)(*:0))#(?'/
+
+/(?C$[$)(?<]/
+
+/(?C$)$)(?<]/
+
+/(?(R))*+/B
+    abcd
+
+/((?x)(?#))#(?'/
+
+/((?x)(?#))#(?'abc')/I
+
+/[[:\\](?<[::]/
+
+/[[:\\](?'abc')[a:]/I
+
+"[[[.\xe8Nq\xffq\xff\xe0\x2|||::Nq\xffq\xff\xe0\x6\x2|||::[[[:[::::::[[[[[::::::::[:[[[:[:::[[[[[[[[[[[[:::::::::::::::::[[.\xe8Nq\xffq\xff\xe0\x2|||::Nq\xffq\xff\xe0\x6\x2|||::[[[:[::::::[[[[[::::::::[:[[[:[:::[[[[[[[[[[[[[[:::E[[[:[:[[:[:::[[:::E[[[:[:[[:'[:::::E[[[:[::::::[[[:[[[[[[[::E[[[:[::::::[[[:[[[[[[[[:[[::[::::[[:::::::[[:[[[[[[[:[[::[:[[:[~"
+
+/()(?(R)0)*+/B
+
+/(?R-:(?</
+
+/(?R-:(?<)/
+
+/(?(?C{\Q})(?!(?'/
+
+/(?(?C{\Q})(?!(?'abc')))/I
+
+/(?1){3918}(((((0(\k'R'))))(?J)(?'R'(?'R'\3){99})))/I
+
+/(?|(aaa)|(b))\g{1}/I
+
+/(?|(aaa)|(b))(?1)/I
+
+/(?|(aaa)|(b))/I
+
+/(?|(?'a'aaa)|(?'a'b))\k'a'/I
+
+/(?|(?'a'aaa)|(?'a'b))(?'a'cccc)\k'a'/I,dupnames
+
+/ab{3cd/
+    ab{3cd
+
+/ab{3,cd/
+    ab{3,cd
+
+/ab{3,4a}cd/
+    ab{3,4a}cd
+
+/{4,5a}bc/
+    {4,5a}bc
+
+/\x0{ab}/
+    \0{ab}
+
+/^(a(b))\1\g1\g{1}\g-1\g{-1}\g{-02}Z/
+    ababababbbabZXXXX
+
+/.*?a(*PRUNE)b/
+    aab
+
+/.*?a(*PRUNE)b/s
+    aab
+
+/^a(*PRUNE)b/s
+\= Expect no match
+    aab
+
+/.*?a(*SKIP)b/
+    aab
+
+/(?(8000000000/
+
+/((?(R8000000000)))/
+
+/0(?0)|(1)(*THEN)(*SKIP:0)(*FAIL)/
+\= Expect no match
+    01
+
+/(?(1)()\983040\2)/
+
+/(*LIMIT_MATCH=)abc/
+
+/(*CRLF)(*LIMIT_MATCH=)abc/
+
+/(?:ab)?(?:ab)(?:ab)/
+    abab
+    ababab
+\= Expect no match
+    aba
+
+/((*MARK:A))++a(*SKIP:B)b/
+\= Expect no match
+    aacb
+
+/(*MARK:a\zb)z/alt_verbnames
+
+/(*:ab\t(d\)c)xxx/
+
+/(*:ab\t(d\)c)xxx/alt_verbnames,mark
+    cxxxz
+
+/(*:A\Qxx)x\EB)x/alt_verbnames,mark
+    x
+
+/(*:A\ExxxB)x/alt_verbnames,mark
+    x
+
+/(*: A \ and #comment
+     \ B)x/x,alt_verbnames,mark
+    x
+
+/(*: A \ and #comment
+     \ B)x/alt_verbnames,mark
+    x
+
+/(*: A \ and #comment
+     \ B)x/x,mark
+    x
+
+/(*: A \ and #comment
+     \ B)x/mark
+    x
+
+/(*:A
+B)x/alt_verbnames,mark
+    x
+
+/(*:abc\Qpqr)/alt_verbnames
+
+/abc/use_offset_limit
+    1234abcde\=offset_limit=100
+    1234abcde\=offset_limit=9
+    1234abcde\=offset_limit=4
+    1234abcde\=offset_limit=4,offset=4
+\= Expect no match
+    1234abcde\=offset_limit=4,offset=5
+    1234abcde\=offset_limit=3
+
+/(?<=abc)/use_offset_limit
+    1234abc\=offset_limit=7
+\= Expect no match
+    1234abc\=offset_limit=6
+
+/A/g,replace=-,use_offset_limit
+    XAXAXAXAXA\=offset_limit=4
+
+/abc/
+\= Expect error
+    1234abcde\=offset_limit=4
+
+/^\w/m,use_offset_limit
+    \n..\naa\=offset_limit=3
+    \n..\naa\=offset_limit=4
+
+/abcd/null_context
+    abcd\=null_context
+\= Expect error
+    abcd\=null_context,find_limits
+    abcd\=allusedtext,startchar
+
+/abcd/replace=w\rx\x82y\o{333}z(\Q12\$34$$\x34\E5$$),substitute_extended
+    abcd
+
+/a(bc)(DE)/replace=a\u$1\U$1\E$1\l$2\L$2\Eab\Uab\LYZ\EDone,substitute_extended
+    abcDE
+
+/abcd/replace=xy\kz,substitute_extended
+    abcd
+
+/a(?:(b)|(c))/substitute_extended,replace=X${1:+1:-1}X${2:+2:-2}
+    ab
+    ac
+    ab\=replace=${1:+$1\:$1:$2}
+    ac\=replace=${1:+$1\:$1:$2}
+
+/a(?:(b)|(c))/substitute_extended,replace=X${1:-1:-1}X${2:-2:-2}
+    ab
+    ac
+
+/(a)/substitute_extended,replace=>${1:+\Q$1:{}$$\E+\U$1}<
+    a
+
+/X(b)Y/substitute_extended
+    XbY\=replace=x${1:+$1\U$1}y
+    XbY\=replace=\Ux${1:+$1$1}y
+
+/a/substitute_extended,replace=${*MARK:+a:b}
+    a
+
+/(abcd)/replace=${1:+xy\kz},substitute_extended
+    abcd
+
+/(abcd)/
+    abcd\=replace=${1:+xy\kz},substitute_extended
+
+/abcd/substitute_extended,replace=>$1<
+    abcd
+
+/abcd/substitute_extended,replace=>xxx${xyz}<<<
+    abcd
+
+/(?J)(?:(?<A>a)|(?<A>b))/replace=<$A>
+    [a]
+    [b]
+\= Expect error
+    (a)\=ovector=1
+
+/(a)|(b)/replace=<$1>
+\= Expect error
+    b
+
+/(aa)(BB)/substitute_extended,replace=\U$1\L$2\E$1..\U$1\l$2$1
+    aaBB
+
+/^(o(\1{72}{\"{\\{00000059079}\d*){74}}){19}/I
+
+/((p(?'K/
+
+/((p(?'K/no_auto_capture
+
+/abc/replace=A$3123456789Z
+    abc
+
+/(?<!a{65535}a{5})x/I
+
+/(?<!a{65535})x/I
+
+/(?=a\K)/replace=z
+    BaCaD
+
+/(?'abcdefghijklmnopqrstuvwxyzABCDEFG'toolong)/
+
+/(?'abcdefghijklmnopqrstuvwxyzABCDEF'justright)/
+
+# These two use zero-termination
+/abcd/max_pattern_length=3
+
+/abc/max_pattern_length=3
+
+# These two, being hex, pass the length
+/abcdefab/hex,max_pattern_length=3
+
+/abcdef/hex,max_pattern_length=3
+
+# These patterns used to take a long time to compile
+
+"(.*)
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))"xI
+
+"(?<=a()
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+a)"xI
+
+"(?|()|())(.*)
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))"xI
+
+"(?|()|())(?<=a()
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+((?-2)(?-2))((?-2)(?-2))((?-2)(?-2))
+a)"xI
+
+# Test the use of malloc for caching group information when there are more
+# groups than fit into the on-stack workspace.
+
+/\[()]{1024}/I,expand
+
+# Test minlength capped at 65535
+
+/(A{65000})\1{65000}/I
+
+# Test group scans when numbers are not unique
+
+/(?|()+|(a)+)/BI
+
+/(?|(a)+|()+)/BI
+
+/(?|()|(a))/BI
+
+/(?|(a)|())/BI
+
+# Test CRLF handling in empty string substitutions
+
+/^$/gm,newline=anycrlf,replace=-
+    X\r\n\r\nY
+
+/^$/gm,newline=crlf,replace=-
+    X\r\n\r\nY
+
+/^$/gm,newline=any,replace=-
+    X\r\n\r\nY
+
+"(*ANYCRLF)(?m)^(.*[^0-9\r\n].*|)$"g,replace=NaN
+    15\r\nfoo\r\n20\r\nbar\r\nbaz\r\n\r\n20
+
+/a[[:punct:]b]/bincode
+
+/a[b[:punct:]]/bincode
+
+/L(?#(|++<!(2)?/B
+
+/L(?#(|++<!(2)?/B,no_auto_possess
+
+/L(?#(|++<!(2)?/B,auto_callout
+
+/L(?#(|++<!(2)?/B,no_auto_possess,auto_callout
+
+/(A*)\E+/B,auto_callout
+
+/()\Q\E*]/B,auto_callout
+    a[bc]d
+
+/\x8a+f|;T?(*:;.'?`(\xeap ){![^()!y*''C*(?';]{1;(\x08)/B,alt_verbnames,dupnames,extended
+
+# Tests for NULL characters in comments and verb "names" and callouts
+
+# /A#B\x00C\x0aZ/
+/41 23 42 00 43 0a 5a/Bx,hex
+
+# /A+#B\x00C\x0a+/
+/41 2b 23 42 00 43 0a 2b/Bx,hex
+
+# /A(*:B\x00W#X\00Y\x0aC)Z/
+/41 28 2a 3a 42 00 57 23 58 00 59 0a 43 29 5a/Bx,hex,alt_verbnames
+
+# /A(*:B\x00W#X\00Y\x0aC)Z/
+/41 28 2a 3a 42 00 57 23 58 00 59 0a 43 29 5a/Bx,hex
+
+# /A(?C{X\x00Y})B/
+/41 28 3f 43 7b 58 00 59 7d 29 42/B,hex
+
+# /A(?#X\x00Y)B/
+/41 28 3f 23 7b 00 7d 29 42/B,hex
+
+# Tests for leading comment in extended patterns
+
+/ (?-x):?/extended
+
+/(?-x):?/extended
+
+/0b 28 3f 2d 78 29 3a/hex,extended
+
+/#comment
+(?-x):?/extended
+
+/(8(*:6^\x09x\xa6l\)6!|\xd0:[^:|)\x09d\Z\d{85*m(?'(?<1!)*\W[*\xff]!!h\w]*\xbe;/alt_bsux,alt_verbnames,allow_empty_class,dollar_endonly,extended,multiline,never_utf,no_dotstar_anchor,no_start_optimize
+
+/a|(b)c/replace=>$1<,substitute_unset_empty
+    cat
+    xbcom
+
+/a|(b)c/
+    cat\=replace=>$1<
+    cat\=replace=>$1<,substitute_unset_empty
+    xbcom\=replace=>$1<,substitute_unset_empty
+
+/a|(b)c/substitute_extended
+    cat\=replace=>${2:-xx}<
+    cat\=replace=>${2:-xx}<,substitute_unknown_unset
+    cat\=replace=>${X:-xx}<,substitute_unknown_unset
+
+/a|(?'X'b)c/replace=>$X<,substitute_unset_empty
+    cat
+    xbcom
+
+/a|(?'X'b)c/replace=>$Y<,substitute_unset_empty
+    cat
+    cat\=substitute_unknown_unset
+    cat\=substitute_unknown_unset,-substitute_unset_empty
+
+/a|(b)c/replace=>$2<,substitute_unset_empty
+    cat
+    cat\=substitute_unknown_unset
+    cat\=substitute_unknown_unset,-substitute_unset_empty
+
+/()()()/use_offset_limit
+    \=ovector=11000000000
+    \=callout_fail=11000000000
+    \=callout_fail=1:11000000000
+    \=callout_data=11000000000
+    \=callout_data=-11000000000
+    \=offset_limit=1100000000000000000000
+    \=copy=11000000000
+
+/(*MARK:A\x00b)/mark
+    abc
+
+/(*MARK:A\x00b)/mark,alt_verbnames
+    abc
+
+/"(*MARK:A" 00 "b)"/mark,hex
+    abc
+
+/"(*MARK:A" 00 "b)"/mark,hex,alt_verbnames
+    abc
+
+/efg/hex
+
+/eff/hex
+
+/effg/hex
+
+/(?J)(?'a'))(?'a')/
+
+/(?<=((?C)0))/
+    9010
+\= Expect no match
+    abc
+
+/aaa/
+\[abc]{10000000000000000000000000000}
+\[a]{3}
+
+/\[AB]{6000000000000000000000}/expand
+
+# Hex uses pattern length, not zero-terminated. This tests for overrunning
+# the given length of a pattern.
+
+/'(*U'/hex
+
+/'(*'/hex
+
+/'('/hex
+
+//hex
+
+# These tests are here because Perl never allows a back reference in a
+# lookbehind. PCRE2 supports some limited cases.
+
+/([ab])...(?<=\1)z/
+    a11az
+    b11bz
+\= Expect no match
+    b11az
+
+/(?|([ab]))...(?<=\1)z/
+
+/([ab])(\1)...(?<=\2)z/
+    aa11az
+
+/(a\2)(b\1)(?<=\2)/
+
+/(?<A>[ab])...(?<=\k'A')z/
+    a11az
+    b11bz
+\= Expect no match
+    b11az
+
+/(?<A>[ab])...(?<=\k'A')(?<A>)z/dupnames
+
+# Perl does not support \g+n
+
+/((\g+1X)?([ab]))+/
+    aaXbbXa
+
+/ab(?C1)c/auto_callout
+    abc
+
+/'ab(?C1)c'/hex,auto_callout
+    abc
+
+# Perl accepts these, but gives a warning. We can't warn, so give an error.
+
+/[a-[:digit:]]+/
+    a-a9-a
+
+/[A-[:digit:]]+/
+    A-A9-A
+
+/[a-\d]+/
+    a-a9-a
+
+/(?<RA>abc)(?(R)xyz)/B
+
+/(?<R>abc)(?(R)xyz)/B
+
+/(?=.*[A-Z])/I
+
+/()(?<=(?0))/
+
+/(?<!|!(?<!))/
+
+/(?<!|!|!||||||(?<!)||(?<!)!|!||(?<!)!|!(?<!)!|!|!|!||||!!|<!)!|!||||!|/
+
+/{2,2{2,2/use_length
+
+/.>*?\g'0/use_length
+
+/.>*?\g'0/
+
+/{„Í„ÍÍ„Í{'{22{2{{2{'{22{{22{2{'{22{2{{2{{222{{2{'{22{2{22{2{'{22{2{{2{'{22{2{22{2{'{'{22{2{22{2{'{22{2{{2{'{22{2{22{2{'{222{2Ä„Í„ÍÍ„Í{'{22{2{{2{'{22{{11{2{'{22{2{{2{{'{22{2{{2{'{22{{22{1{'{22{2{{2{{222{{2{'{22{2{22{2{'{/auto_callout
+
+//
+\=get=i00000000000000000000000000000000
+\=get=i2345678901234567890123456789012,get=i1245678901234567890123456789012
+
+"(?(?C))"
+
+/(?(?(?(?(?(?))))))/
+
+/(?<=(?1))((?s))/anchored
+
+/(*:ab)*/
+
+%(*:(:(svvvvvvvvvv:]*[   Z!*;[]*[^[]*!^[+.+{{2,7}'      _\\\\\\\\\\\\\)?.:..    *w////\\\Q\\\\\\\\\\\\\\\T\\\\\+/?/////'+\\\EEE?/////'+/*+/[^K]?]//(w)%never_backslash_c,alt_verbnames,auto_callout
+
+/./newline=crlf
+    \=ph
+
+/(\x0e00\000000\xc)/replace=\P,substitute_extended
+    \x0e00\000000\xc
+
+//replace=0
+    \=offset=7
+
+".+\QX\E+"B,no_auto_possess
+
+".+\QX\E+"B,auto_callout,no_auto_possess
+
+# This one is here because Perl gives an 'unmatched )' error which goes away
+# if one of the \) sequences is removed - which is weird. PCRE finds it too
+# complicated to find a minimum matching length.
+
+"()X|((((((((()))))))((((())))))\2())((((((\2\2)))\2)(\22((((\2\2)2))\2)))(2\ZZZ)+:)Z^|91ZiZZnter(ZZ |91Z(ZZ ZZ(\r2Z( or#(\Z2(Z\Z(\2\2)2))\2Z)Z(\22Z((\Z2(Z\Z(\2\2)2))\2Z+:)Z|91Z(ZZ ZZ(\r2Z( or#(\Z2(Z\Z((Z*(\2(Z\':))\0)i|||||||||||||||loZ\2\2)2))\2Z)Z(\22Z((\Z2(Z\Z(\2\2)2))\2Z)))int \)\0nte!rnal errpr\2\\21r(2\ZZZ)+:)Z!|91Z(ZZ ZZ(\r2Z( or#(\Z2(Z\Z(\2\2)2))\2Z)Z(\22Z((\Z2(Z\Z(\2\2)2))\2Z)))int \)\0(2\ZZZ)+:)Z^|91ZiZZnter(ZZ |91Z(ZZ ZZ(\r2Z( or#(\Z2(Z\Z(\2\2)2))\2Z)Z(\22Z((\Z2(Z\Z(\2\2)2))\2Z)))int \)\0(2\ZZZ)+:)Z^)))int \)\0(2\ZZZ)+:)Z^|91ZiZZnter(ZZernZal ZZ(\r2Z( or#(\Z2(Z\Z(\2\2)2))\2Z)Z(\22Z((\Z2(Z\Z(\2\2)2))\2Z)))int \))\ZZ(\r2Z( or#(\Z2(Z\Z(\2\2)2))\2Z)Z(\22Z((\Z2(Z\Z(\2\2)))\2))))((((((\2\2))))))"I
+
+# This checks that new code for handling groups that may match an empty string
+# works on a very large number of alternatives. This pattern used to provoke a
+# complaint that it was too complicated.
+
+/(?:\[A|B|C|D|E|F|G|H|I|J|]{200}Z)/expand
+
+# This one used to compile rubbish instead of a compile error, and then
+# behave unpredictably at match time.
+
+/.+(?(?C'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'))?!XXXX.=X/
+    .+(?(?C'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'))?!XXXX.=X
+
+/[:[:alnum:]-[[a:lnum:]+/
+
+/((?(?C'')\QX\E(?!((?(?C'')(?!X=X));=)r*X=X));=)/
+
+/((?(?C'')\Q\E(?!((?(?C'')(?!X=X));=)r*X=X));=)/
+
+/abcd/auto_callout
+    abcd\=callout_error=255:2
+
+/()(\g+65534)/
+
+/()(\g+65533)/
+
+/Á\x00\x00\x00š(\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\2*\x00k\d+\x00â€Ž\x00\x00\x00\x00\x00\2*\x00\x00\1*.){36}int^\x00\x00ÿÿ\x00š(\1{50779}?)J\w2/I
+
+/(a)(b)\2\1\1\1\1/I
+
+/(?<a>a)(?<b>b)\g{b}\g{a}\g{a}\g{a}\g{a}(?<a>xx)(?<b>zz)/I,dupnames
+
+//
+    \=ovector=7777777777
+
+# This is here because Perl matches, even though a COMMIT is encountered
+# outside of the recursion.
+
+/(?1)(A(*COMMIT)|B)D/
+    BAXBAD
+
+"(?1){2}(a)"B
+
+"(?1){2,4}(a)"B
+
+# This test differs from Perl for the first subject. Perl ends up with
+# $1 set to 'B'; PCRE2 has it unset (which I think is right).
+
+/^(?:
+(?:A| (?:B|B(*ACCEPT)) (?<=(.)) D)
+(Z)
+)+$/x
+    AZB
+    AZBDZ
+
+# The first of these, when run by Perl, gives the mark 'aa', which is wrong.
+
+'(?>a(*:aa))b|ac' mark
+    ac
+
+'(?:a(*:aa))b|ac' mark
+    ac
+
+/(R?){65}/
+    (R?){65}
+
+/\[(a)]{60}/expand
+    aaaa
+
+/(?<!\1((?U)1((?U))))(*F)/never_backslash_c,alt_bsux,anchored,extended
+
+/\g{3/
+
+/(a(?C1)(b)(c)d)+/
+  abcdabcd\=callout_capture
+
+# Perl matches this one, but PCRE does not because (*ACCEPT) clears out any
+# pending backtracks in the recursion.
+
+/^ (?(DEFINE) (..(*ACCEPT)|...) ) (?1)$/x
+\= Expect no match
+    abc
+
+# Perl gives no match for this one
+
+/(a(*MARK:m)(*ACCEPT)){0}(?1)/mark
+    abc
+
+/abc/endanchored
+    xyzabc
+\= Expect no match
+    xyzabcdef
+\= Expect error
+    xyzabc\=ph
+
+/abc/
+    xyzabc\=endanchored
+\= Expect no match
+    xyzabcdef\=endanchored
+\= Expect error
+    xyzabc\=ps,endanchored
+
+/abc(*ACCEPT)d/endanchored
+    xyzabc
+\= Expect no match
+    xyzabcdef
+
+/abc|bcd/endanchored
+    xyzabcd
+\= Expect no match
+    xyzabcdef
+
+/a(*ACCEPT)x|aa/endanchored
+    aaa
+
+# Check auto-anchoring when there is a group that is never obeyed at
+# the start of a branch.
+
+/(?(DEFINE)(a))^bc/I
+
+/(a){0}.*bc/sI
+
+# This should be anchored, as the condition is always false and there is
+# no alternative branch.
+
+/(?(VERSION>=999)yes)^bc/I
+
+# This should not be anchored.
+
+/(?(VERSION>=999)yes|no)^bc/I
+
+/(*LIMIT_HEAP=0)xxx/I
+
+/\d{0,3}(*:abc)(?C1)xxx/callout_info
+
+# ----------------------------------------------------------------------
+
+# These are a whole pile of tests that touch lines of code that are not
+# used by any other tests (at least when these were created).
+
+/^a+?x/i,no_start_optimize,no_auto_possess
+\= Expect no match
+    aaa
+
+/^[^a]{3,}?x/i,no_start_optimize,no_auto_possess
+\= Expect no match
+    bbb
+    cc
+
+/^X\S/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\W/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\H/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\h/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\V/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\v/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\h/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY
+
+/^X\V/no_start_optimize,no_auto_possess
+\= Expect no match
+    X\n
+
+/^X\v/no_start_optimize,no_auto_possess
+\= Expect no match
+    XX
+
+/^X.+?/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\R+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    XX
+
+/^X\H+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\h+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+
+/^X\V+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+    X\n
+
+/^X\D+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+    X9
+
+/^X\S+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+    X\n
+
+/^X\W+?/no_start_optimize,no_auto_possess
+\= Expect no match
+    X
+    XX
+
+/^X.+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\n
+
+/(*CRLF)^X.+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\r\=ps
+
+/^X\R+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X\nX
+    X\n\r\n
+    X\n\rY
+    X\n\nY
+    X\n\x{0c}Y
+
+/(*BSR_ANYCRLF)^X\R+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X\nX
+    X\n\r\n
+    X\n\rY
+    X\n\nY
+    X\n\x{0c}Y
+
+/^X\H+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\t
+    XYY
+
+/^X\h+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X\t\t
+    X\tY
+
+/^X\V+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\n
+    XYY
+
+/^X\v+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X\n\n
+    X\nY
+
+/^X\D+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY9
+    XYY
+
+/^X\d+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X99
+    X9Y
+
+/^X\S+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\n
+    XYY
+
+/^X\s+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X\n\n
+    X\nY
+
+/^X\W+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X.A
+    X++
+
+/^X\w+?Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    Xa.
+    Xaa
+
+/^X.{1,3}Z/s,no_start_optimize,no_auto_possess
+\= Expect no match
+    Xa.bd
+
+/^X\h+Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    X\t\t
+    X\tY
+
+/^X\V+Z/no_start_optimize,no_auto_possess
+\= Expect no match
+    XY\n
+    XYY
+
+/^(X(*THEN)Y|AB){0}(?1)/
+    ABX
+\= Expect no match
+    XAB
+
+/^(?!A(?C1)B)C/
+    ABC\=callout_error=1,no_jit
+
+/^(?!A(?C1)B)C/no_start_optimize
+    ABC\=callout_error=1
+
+/^(?(?!A(?C1)B)C)/
+    ABC\=callout_error=1
+
+# ----------------------------------------------------------------------
+
+/[a b c]/BxxI
+
+/[a b c]/BxxxI
+
+/[a b c]/B,extended_more
+
+/[ a b c ]/B,extended_more
+
+/[a b](?xx: [ 12 ] (?-xx:[ 34 ]) )y z/B
+
+# Unsetting /x also unsets /xx
+
+/[a b](?xx: [ 12 ] (?-x:[ 34 ]) )y z/B
+
+/(a)(?-n:(b))(c)/nB
+
+# ----------------------------------------------------------------------
+# These test the dangerous PCRE2_EXTRA_BAD_ESCAPE_IS_LITERAL option.
+
+/\j\x{z}\o{82}\L\uabcd\u\U\g{\g/B,\bad_escape_is_literal
+
+/\N{\c/B,bad_escape_is_literal
+
+/[\j\x{z}\o\gA-\Nb-\g]/B,bad_escape_is_literal
+
+/[Q-\N]/B,bad_escape_is_literal
+
+# ----------------------------------------------------------------------
+
+/a\b(c/literal
+    a\\b(c
+
+/a\b(c/literal,caseless
+    a\\b(c
+    a\\B(c
+
+/a\b(c/literal,firstline
+    XYYa\\b(c
+\= Expect no match
+    X\na\\b(c
+
+/a\b?c/literal,use_offset_limit
+    XXXXa\\b?c\=offset_limit=4
+\= Expect no match
+    XXXXa\\b?c\=offset_limit=3
+
+/a\b(c/literal,anchored,endanchored
+    a\\b(c
+\= Expect no match
+    Xa\\b(c
+    a\\b(cX
+    Xa\\b(cX
+
+//literal,extended
+
+/a\b(c/literal,auto_callout,no_start_optimize
+    XXXXa\\b(c
+
+/a\b(c/literal,auto_callout
+    XXXXa\\b(c
+
+/(*CR)abc/literal
+    (*CR)abc
+
+/cat|dog/match_word
+    the cat sat
+\= Expect no match
+    caterpillar
+    snowcat
+    syndicate
+
+/(cat)|dog/match_line,literal
+    (cat)|dog
+\= Expect no match
+    the cat sat
+    caterpillar
+    snowcat
+    syndicate
+
+/a whole line/match_line,multiline
+    Rhubarb \na whole line\n custard
+\= Expect no match
+    Not a whole line
+
+# Perl gets this wrong, failing to capture 'b' in group 1.
+
+/^(b+|a){1,2}?bc/
+    bbc
+    
+# And again here, for the "babc" subject string. 
+
+/^(b*|ba){1,2}?bc/
+    babc
+    bbabc
+    bababc
+\= Expect no match
+    bababbc
+    babababc
+
+/[[:digit:]-a]/
+
+/[[:digit:]-[:print:]]/
+
+/[\d-a]/
+
+/[\H-z]/
+
+/[\d-[:print:]]/
+
+# End of testinput2

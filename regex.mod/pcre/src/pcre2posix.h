@@ -7,7 +7,7 @@ and semantics are as close as possible to those of the Perl 5 language.
 
                        Written by Philip Hazel
      Original API code Copyright (c) 1997-2012 University of Cambridge
-         New API code Copyright (c) 2014 University of Cambridge
+         New API code Copyright (c) 2016 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -56,12 +56,14 @@ extern "C" {
 #define REG_NOTBOL    0x0004  /* Maps to PCRE2_NOTBOL */
 #define REG_NOTEOL    0x0008  /* Maps to PCRE2_NOTEOL */
 #define REG_DOTALL    0x0010  /* NOT defined by POSIX; maps to PCRE2_DOTALL */
-#define REG_NOSUB     0x0020  /* Maps to PCRE2_NO_AUTO_CAPTURE */
+#define REG_NOSUB     0x0020  /* Do not report what was matched */
 #define REG_UTF       0x0040  /* NOT defined by POSIX; maps to PCRE2_UTF */
 #define REG_STARTEND  0x0080  /* BSD feature: pass subject string by so,eo */
 #define REG_NOTEMPTY  0x0100  /* NOT defined by POSIX; maps to PCRE2_NOTEMPTY */
 #define REG_UNGREEDY  0x0200  /* NOT defined by POSIX; maps to PCRE2_UNGREEDY */
 #define REG_UCP       0x0400  /* NOT defined by POSIX; maps to PCRE2_UCP */
+#define REG_PEND      0x0800  /* GNU feature: pass end pattern by re_endp */
+#define REG_NOSPEC    0x1000  /* Maps to PCRE2_LITERAL */
 
 /* This is not used by PCRE2, but by defining it we make it easier
 to slot PCRE2 into existing programs that make POSIX calls. */
@@ -91,13 +93,16 @@ enum {
 };
 
 
-/* The structure representing a compiled regular expression. */
+/* The structure representing a compiled regular expression. It is also used
+for passing the pattern end pointer when REG_PEND is set. */
 
 typedef struct {
   void *re_pcre2_code;
   void *re_match_data;
+  const char *re_endp;
   size_t re_nsub;
   size_t re_erroffset;
+  int re_cflags;
 } regex_t;
 
 /* The structure in which a captured offset is returned. */

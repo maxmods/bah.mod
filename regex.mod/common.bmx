@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ Import "pcre/src/pcre2_config.c"
 Import "pcre/src/pcre2_context.c"
 Import "pcre/src/pcre2_dfa_match.c"
 Import "pcre/src/pcre2_error.c"
+Import "pcre/src/pcre2_find_bracket.c"
 Import "pcre/src/pcre2_jit_compile.c"
 Import "pcre/src/pcre2_maketables.c"
 Import "pcre/src/pcre2_match.c"
@@ -64,6 +65,7 @@ Const PCRE2_CONFIG_STACKRECURSE:Int =            8
 Const PCRE2_CONFIG_UNICODE:Int =                 9
 Const PCRE2_CONFIG_UNICODE_VERSION:Int =        10
 Const PCRE2_CONFIG_VERSION:Int =                11
+Const PCRE2_CONFIG_HEAPLIMIT:Int =              12
 
 ' Exec-time and get/set-time error codes
 ' Error codes: no match and partial match are "expected" errors.
@@ -131,9 +133,19 @@ Const PCRE2_ERROR_NOSUBSTRING:Int =       -49
 Const PCRE2_ERROR_NOUNIQUESUBSTRING:Int = -50
 Const PCRE2_ERROR_NULL:Int =              -51
 Const PCRE2_ERROR_RECURSELOOP:Int =       -52
-Const PCRE2_ERROR_RECURSIONLIMIT:Int =    -53
+Const PCRE2_ERROR_DEPTHLIMIT:Int =        -53
+Const PCRE2_ERROR_RECURSIONLIMIT:Int =    PCRE2_ERROR_DEPTHLIMIT ' Obsolete synonym
 Const PCRE2_ERROR_UNAVAILABLE:Int =       -54
 Const PCRE2_ERROR_UNSET:Int =             -55
+Const PCRE2_ERROR_BADOFFSETLIMIT:Int =    -56
+Const PCRE2_ERROR_BADREPESCAPE:Int =      -57
+Const PCRE2_ERROR_REPMISSINGBRACE:Int =   -58
+Const PCRE2_ERROR_BADSUBSTITUTION:Int =   -59
+Const PCRE2_ERROR_BADSUBSPATTERN:Int =    -60
+Const PCRE2_ERROR_TOOMANYREPLACE:Int =    -61
+Const PCRE2_ERROR_BADSERIALIZEDDATA:Int = -62
+Const PCRE2_ERROR_HEAPLIMIT:Int =         -63
+Const PCRE2_ERROR_CONVERT_SYNTAX:Int =    -64
 
 ' The following option bits can be passed to pcre2_compile(), pcre2_match(),
 ' or pcre2_dfa_match(). PCRE2_NO_UTF_CHECK affects only the function to which it
@@ -172,6 +184,12 @@ Const PCRE2_NO_START_OPTIMIZE:Int =   $00010000  '   J M D
 Const PCRE2_UCP:Int =                 $00020000  ' C J M D
 Const PCRE2_UNGREEDY:Int =            $00040000  ' C      
 Const PCRE2_UTF:Int =                 $00080000  ' C J M D
+Const PCRE2_NEVER_BACKSLASH_C:Int =   $00100000  ' C       
+Const PCRE2_ALT_CIRCUMFLEX:Int =      $00200000  '   J M D 
+Const PCRE2_ALT_VERBNAMES:Int =       $00400000  ' C       
+Const PCRE2_USE_OFFSET_LIMIT:Int =    $00800000  '   J M D 
+Const PCRE2_EXTENDED_MORE:Int =       $01000000  ' C       
+Const PCRE2_LITERAL:Int =             $02000000  ' C       
 
 ' These are for pcre2_jit_compile(). 
 
@@ -195,10 +213,13 @@ Const PCRE2_PARTIAL_HARD:Int =        $00000020
 Const PCRE2_DFA_RESTART:Int =         $00000040
 Const PCRE2_DFA_SHORTEST:Int =        $00000080
 
-' This is an additional option for pcre2_substitute().
+' This is an additional option for pcre2_substitute(), which passes any others through to pcre2_match().
 
-Const PCRE2_SUBSTITUTE_GLOBAL:Int =   $00000100
-
+Const PCRE2_SUBSTITUTE_GLOBAL:Int =           $00000100
+Const PCRE2_SUBSTITUTE_EXTENDED:Int =         $00000200
+Const PCRE2_SUBSTITUTE_UNSET_EMPTY:Int =      $00000400
+Const PCRE2_SUBSTITUTE_UNKNOWN_UNSET:Int =    $00000800
+Const PCRE2_SUBSTITUTE_OVERFLOW_LENGTH:Int =  $00001000
 
 ' Request types for Request types for pcre2_pattern_info()
 
@@ -223,8 +244,12 @@ Const PCRE2_INFO_NAMECOUNT:Int =            17
 Const PCRE2_INFO_NAMEENTRYSIZE:Int =        18
 Const PCRE2_INFO_NAMETABLE:Int =            19
 Const PCRE2_INFO_NEWLINE:Int =              20
-Const PCRE2_INFO_RECURSIONLIMIT:Int =       21
+Const PCRE2_INFO_DEPTHLIMIT:Int =           21
+Const PCRE2_INFO_RECURSIONLIMIT:Int =       PCRE2_INFO_DEPTHLIMIT ' Obsolete synonym
 Const PCRE2_INFO_SIZE:Int =                 22
+Const PCRE2_INFO_HASBACKSLASHC:Int =        23
+Const PCRE2_INFO_FRAMESIZE:Int =            24
+Const PCRE2_INFO_HEAPLIMIT:Int =            25
 
 ' Newline and \R settings, for use in compile contexts. The newline values
 ' must be kept in step with values set in config.h and both sets must all be
@@ -235,9 +260,10 @@ Const PCRE2_NEWLINE_LF:Int =          2
 Const PCRE2_NEWLINE_CRLF:Int =        3
 Const PCRE2_NEWLINE_ANY:Int =         4
 Const PCRE2_NEWLINE_ANYCRLF:Int =     5
+Const PCRE2_NEWLINE_NUL:Int =         6
 
 Extern
-	Function _strlen:Int(s:Byte Ptr) = "strlen"
+	Function _strlen:Int(s:Byte Ptr) = "size_t strlen(const char *)!"
 
 	Function pcre2_config_16:Int(what:Int, where:Int Ptr)
 

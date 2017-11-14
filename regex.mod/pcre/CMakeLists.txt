@@ -67,16 +67,31 @@
 # 2013-10-08 PH got rid of the "source" command, which is a bash-ism (use ".")
 # 2013-11-05 PH added support for PARENS_NEST_LIMIT
 # 2014-08-29 PH converted the file for PCRE2 (which has no C++).
+# 2015-04-24 PH added support for PCRE2_DEBUG
+# 2015-07-16 PH updated for new pcre2_find_bracket source module
+# 2015-08-24 PH correct C_FLAGS setting (patch from Roy Ivy III)
+# 2015-10=16 PH added support for never-backslash-C
+# 2016-03-01 PH applied Chris Wilson's patch for MSVC static
+# 2016-06-24 PH applied Chris Wilson's second patch, putting the first under
+#            a new option instead of being unconditional.
+# 2016-10-05 PH fixed a typo (PCRE should be PCRE2) in above patch
+#            fix by David Gaussmann
+# 2016-10-07 PH added PCREGREP_MAX_BUFSIZE
+# 2017-03-11 PH turned HEAP_MATCH_RECURSE into a NO-OP for 10.30
+# 2017-04-08 PH added HEAP_LIMIT
+# 2017-06-15 ZH added SUPPORT_JIT_SEALLOC support
 
 PROJECT(PCRE2 C)
 
-# Increased minimum to 2.8.0 to support newer add_test features
+# Increased minimum to 2.8.0 to support newer add_test features. Set policy
+# CMP0026 to avoid warnings for the use of LOCATION in GET_TARGET_PROPERTY.
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0)
+CMAKE_POLICY(SET CMP0026 OLD)
 
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake) # for FindReadline.cmake
 
-SET(CMAKE_C_FLAGS -I${PROJECT_SOURCE_DIR}/src)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${PROJECT_SOURCE_DIR}/src")
 
 # external packages
 FIND_PACKAGE( BZip2 )
@@ -116,6 +131,8 @@ OPTION(PCRE2_BUILD_PCRE2_16 "Build 16 bit PCRE2 library" OFF)
 
 OPTION(PCRE2_BUILD_PCRE2_32 "Build 32 bit PCRE2 library" OFF)
 
+OPTION(PCRE2_DEBUG "Include debugging code" OFF)
+
 SET(PCRE2_EBCDIC OFF CACHE BOOL
     "Use EBCDIC coding instead of ASCII. (This is rarely used outside of mainframe systems.)")
 
@@ -128,32 +145,47 @@ SET(PCRE2_LINK_SIZE "2" CACHE STRING
 SET(PCRE2_PARENS_NEST_LIMIT "250" CACHE STRING
     "Default nested parentheses limit. See PARENS_NEST_LIMIT in config.h.in for details.")
 
+SET(PCRE2_HEAP_LIMIT "20000000" CACHE STRING
+    "Default limit on heap memory (kilobytes). See HEAP_LIMIT in config.h.in for details.")
+
 SET(PCRE2_MATCH_LIMIT "10000000" CACHE STRING
     "Default limit on internal looping. See MATCH_LIMIT in config.h.in for details.")
 
-SET(PCRE2_MATCH_LIMIT_RECURSION "MATCH_LIMIT" CACHE STRING
-    "Default limit on internal recursion. See MATCH_LIMIT_RECURSION in config.h.in for details.")
+SET(PCRE2_MATCH_LIMIT_DEPTH "MATCH_LIMIT" CACHE STRING
+    "Default limit on internal depth of search. See MATCH_LIMIT_DEPTH in config.h.in for details.")
 
 SET(PCRE2GREP_BUFSIZE "20480" CACHE STRING
-    "Buffer size parameter for pcre2grep. See PCRE2GREP_BUFSIZE in config.h.in for details.")
+    "Buffer starting size parameter for pcre2grep. See PCRE2GREP_BUFSIZE in config.h.in for details.")
+
+SET(PCRE2GREP_MAX_BUFSIZE "1048576" CACHE STRING
+    "Buffer maximum size parameter for pcre2grep. See PCRE2GREP_MAX_BUFSIZE in config.h.in for details.")
 
 SET(PCRE2_NEWLINE "LF" CACHE STRING
-    "What to recognize as a newline (one of CR, LF, CRLF, ANY, ANYCRLF).")
+    "What to recognize as a newline (one of CR, LF, CRLF, ANY, ANYCRLF, NUL).")
 
 SET(PCRE2_HEAP_MATCH_RECURSE OFF CACHE BOOL
-    "If ON, then don't use stack recursion when matching. See HEAP_MATCH_RECURSE in config.h.in for details.")
+    "Obsolete option: do not use")
 
 SET(PCRE2_SUPPORT_JIT OFF CACHE BOOL
     "Enable support for Just-in-time compiling.")
 
+SET(PCRE2_SUPPORT_JIT_SEALLOC OFF CACHE BOOL
+    "Enable SELinux compatible execmem allocator in JIT.")
+
 SET(PCRE2_SUPPORT_PCRE2GREP_JIT ON CACHE BOOL
     "Enable use of Just-in-time compiling in pcre2grep.")
+
+SET(PCRE2_SUPPORT_PCRE2GREP_CALLOUT ON CACHE BOOL
+    "Enable callout string support in pcre2grep.")
 
 SET(PCRE2_SUPPORT_UNICODE ON CACHE BOOL
     "Enable support for Unicode and UTF-8/UTF-16/UTF-32 encoding.")
 
 SET(PCRE2_SUPPORT_BSR_ANYCRLF OFF CACHE BOOL
     "ON=Backslash-R matches only LF CR and CRLF, OFF=Backslash-R matches all Unicode Linebreaks")
+
+SET(PCRE2_NEVER_BACKSLASH_C OFF CACHE BOOL
+    "If ON, backslash-C (upper case C) is locked out.")
 
 SET(PCRE2_SUPPORT_VALGRIND OFF CACHE BOOL
     "Enable Valgrind support.")
@@ -173,6 +205,9 @@ IF (MINGW)
 ENDIF(MINGW)
 
 IF(MSVC)
+  OPTION(PCRE2_STATIC_RUNTIME
+	"ON=Compile against the static runtime (/MT)."
+	OFF)
   OPTION(INSTALL_MSVC_PDB
          "ON=Install .pdb files built by MSVC, if generated"
          OFF)
@@ -245,6 +280,10 @@ IF(PCRE2_SUPPORT_BSR_ANYCRLF)
         SET(BSR_ANYCRLF 1)
 ENDIF(PCRE2_SUPPORT_BSR_ANYCRLF)
 
+IF(PCRE2_NEVER_BACKSLASH_C)
+        SET(NEVER_BACKSLASH_C 1)
+ENDIF(PCRE2_NEVER_BACKSLASH_C)
+
 IF(PCRE2_SUPPORT_UNICODE)
         SET(SUPPORT_UNICODE 1)
 ENDIF(PCRE2_SUPPORT_UNICODE)
@@ -253,9 +292,17 @@ IF(PCRE2_SUPPORT_JIT)
         SET(SUPPORT_JIT 1)
 ENDIF(PCRE2_SUPPORT_JIT)
 
+IF(PCRE2_SUPPORT_JIT_SEALLOC)
+        SET(SLJIT_PROT_EXECUTABLE_ALLOCATOR 1)
+ENDIF(PCRE2_SUPPORT_JIT_SEALLOC)
+
 IF(PCRE2_SUPPORT_PCRE2GREP_JIT)
         SET(SUPPORT_PCRE2GREP_JIT 1)
 ENDIF(PCRE2_SUPPORT_PCRE2GREP_JIT)
+
+IF(PCRE2_SUPPORT_PCRE2GREP_CALLOUT)
+        SET(SUPPORT_PCRE2GREP_CALLOUT 1)
+ENDIF(PCRE2_SUPPORT_PCRE2GREP_CALLOUT)
 
 IF(PCRE2_SUPPORT_VALGRIND)
         SET(SUPPORT_VALGRIND 1)
@@ -305,6 +352,9 @@ ENDIF(PCRE2_NEWLINE STREQUAL "ANY")
 IF(PCRE2_NEWLINE STREQUAL "ANYCRLF")
         SET(NEWLINE_DEFAULT "5")
 ENDIF(PCRE2_NEWLINE STREQUAL "ANYCRLF")
+IF(PCRE2_NEWLINE STREQUAL "NUL")
+        SET(NEWLINE_DEFAULT "6")
+ENDIF(PCRE2_NEWLINE STREQUAL "NUL")
 
 IF(NEWLINE_DEFAULT STREQUAL "")
         MESSAGE(FATAL_ERROR "The PCRE2_NEWLINE variable must be set to one of the following values: \"LF\", \"CR\", \"CRLF\", \"ANY\", \"ANYCRLF\".")
@@ -318,10 +368,6 @@ IF(PCRE2_EBCDIC_NL25)
         SET(EBCDIC 1)
         SET(EBCDIC_NL25 1)
 ENDIF(PCRE2_EBCDIC_NL25)
-
-IF(PCRE2_HEAP_MATCH_RECURSE)
-        SET(HEAP_MATCH_RECURSE 1)
-ENDIF(PCRE2_HEAP_MATCH_RECURSE)
 
 # Output files
 
@@ -383,8 +429,10 @@ SET(PCRE2_SOURCES
   src/pcre2_compile.c
   src/pcre2_config.c
   src/pcre2_context.c
+  src/pcre2_convert.c
   src/pcre2_dfa_match.c
   src/pcre2_error.c
+  src/pcre2_find_bracket.c
   src/pcre2_jit_compile.c
   src/pcre2_maketables.c
   src/pcre2_match.c
@@ -392,6 +440,7 @@ SET(PCRE2_SOURCES
   src/pcre2_newline.c
   src/pcre2_ord2utf.c
   src/pcre2_pattern_info.c
+  src/pcre2_serialize.c
   src/pcre2_string_utils.c
   src/pcre2_study.c
   src/pcre2_substitute.c
@@ -439,6 +488,18 @@ SET(PCRE2POSIX_SOURCES
 ENDIF (EXISTS ${PROJECT_SOURCE_DIR}/pcre2posix.rc)
 ENDIF(MSVC AND NOT PCRE2_STATIC)
 
+# Fix static compilation with MSVC: https://bugs.exim.org/show_bug.cgi?id=1681
+# This code was taken from the CMake wiki, not from WebM.
+
+IF(MSVC AND PCRE2_STATIC_RUNTIME)
+  MESSAGE(STATUS "** MSVC and PCRE2_STATIC_RUNTIME: modifying compiler flags to use static runtime library")
+  foreach(flag_var
+          CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+          CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+    string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+  endforeach()
+ENDIF(MSVC AND PCRE2_STATIC_RUNTIME)
+
 # Build setup
 
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
@@ -463,18 +524,18 @@ ADD_LIBRARY(pcre2-8 ${PCRE2_HEADERS} ${PCRE2_SOURCES} ${PROJECT_BINARY_DIR}/conf
 SET_PROPERTY(TARGET pcre2-8
   PROPERTY COMPILE_DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8)
 SET(targets ${targets} pcre2-8)
-ADD_LIBRARY(pcre2posix ${PCRE2POSIX_HEADERS} ${PCRE2POSIX_SOURCES})
-SET_PROPERTY(TARGET pcre2posix
+ADD_LIBRARY(pcre2-posix ${PCRE2POSIX_HEADERS} ${PCRE2POSIX_SOURCES})
+SET_PROPERTY(TARGET pcre2-posix
   PROPERTY COMPILE_DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8)
-SET(targets ${targets} pcre2posix)
-TARGET_LINK_LIBRARIES(pcre2posix pcre2-8)
+SET(targets ${targets} pcre2-posix)
+TARGET_LINK_LIBRARIES(pcre2-posix pcre2-8)
 
 IF(MINGW AND NOT PCRE2_STATIC)
   IF(NON_STANDARD_LIB_PREFIX)
-    SET_TARGET_PROPERTIES(pcre2-8 pcre2posix PROPERTIES PREFIX "")
+    SET_TARGET_PROPERTIES(pcre2-8 pcre2-posix PROPERTIES PREFIX "")
   ENDIF(NON_STANDARD_LIB_PREFIX)
   IF(NON_STANDARD_LIB_SUFFIX)
-    SET_TARGET_PROPERTIES(pcre2-8 pcre2posix PROPERTIES SUFFIX "-0.dll")
+    SET_TARGET_PROPERTIES(pcre2-8 pcre2-posix PROPERTIES SUFFIX "-0.dll")
   ENDIF(NON_STANDARD_LIB_SUFFIX)
 ENDIF(MINGW AND NOT PCRE2_STATIC)
 ENDIF(PCRE2_BUILD_PCRE2_8)
@@ -522,7 +583,7 @@ IF(PCRE2_BUILD_PCRE2GREP)
   SET_PROPERTY(TARGET pcre2grep
     PROPERTY COMPILE_DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8)
   SET(targets ${targets} pcre2grep)
-  TARGET_LINK_LIBRARIES(pcre2grep pcre2posix ${PCRE2GREP_LIBS})
+  TARGET_LINK_LIBRARIES(pcre2grep pcre2-posix ${PCRE2GREP_LIBS})
 ENDIF(PCRE2_BUILD_PCRE2GREP)
 
 # Testing
@@ -535,7 +596,7 @@ IF(PCRE2_BUILD_TESTS)
   ADD_EXECUTABLE(pcre2test ${PCRE2TEST_SOURCES})
   SET(targets ${targets} pcre2test)
   IF(PCRE2_BUILD_PCRE2_8)
-    LIST(APPEND PCRE2TEST_LIBS pcre2posix pcre2-8)
+    LIST(APPEND PCRE2TEST_LIBS pcre2-posix pcre2-8)
   ENDIF(PCRE2_BUILD_PCRE2_8)
   IF(PCRE2_BUILD_PCRE2_16)
     LIST(APPEND PCRE2TEST_LIBS pcre2-16)
@@ -560,6 +621,15 @@ IF(PCRE2_BUILD_TESTS)
     ENDIF(PCRE2_BUILD_PCRE2_32)
     TARGET_LINK_LIBRARIES(pcre2_jit_test ${PCRE2_JIT_TEST_LIBS})
   ENDIF(PCRE2_SUPPORT_JIT)
+
+  # exes in Debug location tested by the RunTest shell script
+  # via "make test"
+
+  IF(PCRE2_BUILD_PCRE2GREP)
+    GET_TARGET_PROPERTY(PCRE2GREP_EXE pcre2grep DEBUG_LOCATION)
+  ENDIF(PCRE2_BUILD_PCRE2GREP)
+
+  GET_TARGET_PROPERTY(PCRE2TEST_EXE pcre2test DEBUG_LOCATION)
 
 # =================================================
   # Write out a CTest configuration file
@@ -681,6 +751,10 @@ ELSE(BUILD_SHARED_LIBS)
   SET(BUILD_STATIC_LIBS ON)
 ENDIF(BUILD_SHARED_LIBS)
 
+IF(PCRE2_HEAP_MATCH_RECURSE)
+  MESSAGE(WARNING "HEAP_MATCH_RECURSE is obsolete and does nothing.")
+ENDIF(PCRE2_HEAP_MATCH_RECURSE)
+
 IF(PCRE2_SHOW_REPORT)
   STRING(TOUPPER "${CMAKE_BUILD_TYPE}" buildtype)
   IF (CMAKE_C_FLAGS)
@@ -698,21 +772,24 @@ IF(PCRE2_SHOW_REPORT)
   MESSAGE(STATUS "  Build 16 bit PCRE2 library ...... : ${PCRE2_BUILD_PCRE2_16}")
   MESSAGE(STATUS "  Build 32 bit PCRE2 library ...... : ${PCRE2_BUILD_PCRE2_32}")
   MESSAGE(STATUS "  Enable JIT compiling support .... : ${PCRE2_SUPPORT_JIT}")
+  MESSAGE(STATUS "  Use SELinux allocator in JIT .... : ${PCRE2_SUPPORT_JIT_SEALLOC}")
   MESSAGE(STATUS "  Enable Unicode support .......... : ${PCRE2_SUPPORT_UNICODE}")
   MESSAGE(STATUS "  Newline char/sequence ........... : ${PCRE2_NEWLINE}")
   MESSAGE(STATUS "  \\R matches only ANYCRLF ......... : ${PCRE2_SUPPORT_BSR_ANYCRLF}")
+  MESSAGE(STATUS "  \\C is disabled .................. : ${PCRE2_NEVER_BACKSLASH_C}")
   MESSAGE(STATUS "  EBCDIC coding ................... : ${PCRE2_EBCDIC}")
   MESSAGE(STATUS "  EBCDIC coding with NL=0x25 ...... : ${PCRE2_EBCDIC_NL25}")
   MESSAGE(STATUS "  Rebuild char tables ............. : ${PCRE2_REBUILD_CHARTABLES}")
-  MESSAGE(STATUS "  Use heap recursion .............. : ${PCRE2_HEAP_MATCH_RECURSE}")
   MESSAGE(STATUS "  Internal link size .............. : ${PCRE2_LINK_SIZE}")
   MESSAGE(STATUS "  Parentheses nest limit .......... : ${PCRE2_PARENS_NEST_LIMIT}")
+  MESSAGE(STATUS "  Heap limit ...................... : ${PCRE2_HEAP_LIMIT}")
   MESSAGE(STATUS "  Match limit ..................... : ${PCRE2_MATCH_LIMIT}")
-  MESSAGE(STATUS "  Match limit recursion ........... : ${PCRE2_MATCH_LIMIT_RECURSION}")
+  MESSAGE(STATUS "  Match depth limit ............... : ${PCRE2_MATCH_LIMIT_DEPTH}")
   MESSAGE(STATUS "  Build shared libs ............... : ${BUILD_SHARED_LIBS}")
   MESSAGE(STATUS "  Build static libs ............... : ${BUILD_STATIC_LIBS}")
   MESSAGE(STATUS "  Build pcre2grep ................. : ${PCRE2_BUILD_PCRE2GREP}")
   MESSAGE(STATUS "  Enable JIT in pcre2grep ......... : ${PCRE2_SUPPORT_PCRE2GREP_JIT}")
+  MESSAGE(STATUS "  Enable callouts in pcre2grep .... : ${PCRE2_SUPPORT_PCRE2GREP_CALLOUT}")
   MESSAGE(STATUS "  Buffer size for pcre2grep ....... : ${PCRE2GREP_BUFSIZE}")
   MESSAGE(STATUS "  Build tests (implies pcre2test  . : ${PCRE2_BUILD_TESTS}")
   MESSAGE(STATUS "               and pcre2grep)")
