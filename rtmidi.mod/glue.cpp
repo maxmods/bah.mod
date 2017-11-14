@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2010-2016 Bruce A Henderson
+ Copyright (c) 2010-2017 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -249,10 +249,8 @@ BBString * bmx_rtmidiout_getPortName(RtMidiOut * m, int portNumber) {
 
 void bmx_rtmidiout_sendMessage(RtMidiOut * m, unsigned char * message, int length) {
 	try {
-		std::vector<unsigned char> mess;
-		mess.insert(mess.end(),message,message+length);
-		
-		m->sendMessage(&mess);
+			
+		m->sendMessage(message, length);
 		
 	} catch (RtMidiError &error) {
 		bmx_rtmidi_throw(error);
