@@ -17,7 +17,11 @@ Type TAppendableCStream Extends TCStream
 			_mode=MODE_READ
 		EndIf
 		path=path.Replace( "\","/" )
+?bmxng
+		Local cstream:Byte Ptr = fopen_( path,mode )
+?Not bmxng
 		Local cstream:Int = fopen_( path,mode )
+?
 ?Linux
 		If (Not cstream) And (Not writeable)
 			path=CasedFileName(path)
