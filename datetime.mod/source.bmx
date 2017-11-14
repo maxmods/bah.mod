@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -317,7 +317,11 @@ End Extern
 
 Function arrayToCStrings:Byte Ptr(stringArray:String[])
 
+?bmxng
+	Local cStrings:Byte Ptr = MemAlloc(Size_T(4 * stringArray.length))
+?Not bmxng
 	Local cStrings:Byte Ptr = MemAlloc(4 * stringArray.length)
+?
 	Local p:Int Ptr = Int Ptr(cStrings)
 		
 	For Local i:Int = 0 Until stringArray.length
