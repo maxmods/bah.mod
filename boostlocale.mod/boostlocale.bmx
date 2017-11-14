@@ -1,4 +1,4 @@
-' Copyright (c) 2013 Bruce A Henderson
+' Copyright (c) 2013-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,12 @@ bbdoc: Boost Locale
 End Rem
 Module BaH.BoostLocale
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2013-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to Boost 1.65.1."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
