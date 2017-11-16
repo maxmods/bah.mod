@@ -1,4 +1,4 @@
-' Copyright (c) 2015, Bruce A Henderson
+' Copyright (c) 2015-2017 Bruce A Henderson
 ' All rights reserved.
 ' 
 ' Redistribution and use in source and binary forms, with or without
@@ -24,14 +24,13 @@
 ' 
 SuperStrict
 
-Import BaH.Jansson
 Import BaH.LibXML
 
 Import "source.bmx"
 
 Extern
 
-	Function tmx_load_buf:Byte Ptr(buf:Byte Ptr, buflen:Int, filename:Byte Ptr)
+	Function tmx_load_buffer:Byte Ptr(buf:Byte Ptr, buflen:Int, filename:Byte Ptr)
 	Function tmx_map_free(handle:Byte Ptr)
 
 	Function bmx_tmx_map_width:Int(handle:Byte Ptr)
@@ -43,8 +42,13 @@ Extern
 	Function bmx_tmx_map_renderorder:Int(handle:Byte Ptr)
 	Function bmx_tmx_map_ts_head:Byte Ptr(handle:Byte Ptr)
 	Function bmx_tmx_map_ly_head:Byte Ptr(handle:Byte Ptr)
+	Function bmx_tmx_map_properties:Byte Ptr(handle:Byte Ptr)
 
-	Function bmx_tmx_tileset_firstgid:Int(handle:Byte Ptr)
+	Function bmx_tmx_tilesetlist_firstgid:Int(handle:Byte Ptr)
+	Function bmx_tmx_tilesetlist_hasNext:Int(handle:Byte Ptr)
+	Function bmx_tmx_tilesetlist_next:Byte Ptr(handle:Byte Ptr)
+	Function bmx_tmx_tilesetlist_tileset:Byte Ptr(handle:Byte Ptr)
+
 	Function bmx_tmx_tileset_name:Byte Ptr(handle:Byte Ptr)
 	Function bmx_tmx_tileset_tile_width:Int(handle:Byte Ptr)
 	Function bmx_tmx_tileset_tile_height:Int(handle:Byte Ptr)
@@ -55,8 +59,7 @@ Extern
 	Function bmx_tmx_tileset_image:Byte Ptr(handle:Byte Ptr)
 	Function bmx_tmx_tileset_properties:Byte Ptr(handle:Byte Ptr)
 	Function bmx_tmx_tileset_tiles:Byte Ptr(handle:Byte Ptr)
-	Function bmx_tmx_tileset_hasNext:Int(handle:Byte Ptr)
-	Function bmx_tmx_tileset_next:Byte Ptr(handle:Byte Ptr)
+	Function bmx_tmx_tileset_tilecount:Int(handle:Byte Ptr)
 
 	Function bmx_tmx_layer_name:Byte Ptr(handle:Byte Ptr)
 	Function bmx_tmx_layer_color:Int(handle:Byte Ptr)
@@ -72,12 +75,16 @@ Extern
 	Function bmx_tmx_layer_objects:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_tmx_property_name:Byte Ptr(handle:Byte Ptr)
-	Function bmx_tmx_property_value:Byte Ptr(handle:Byte Ptr)
-	Function bmx_tmx_property_hasNext:Int(handle:Byte Ptr)
-	Function bmx_tmx_property_next:Byte Ptr(handle:Byte Ptr)
+	Function bmx_tmx_property_type:Int(handle:Byte Ptr)
+	Function bmx_tmx_property_int_value:Int(handle:Byte Ptr)
+	Function bmx_tmx_property_float_value:Float(handle:Byte Ptr)
+	Function bmx_tmx_property_bool_value:Int(handle:Byte Ptr)
+	Function bmx_tmx_property_string_value:Byte Ptr(handle:Byte Ptr)
+	Function bmx_tmx_property_file_value:Byte Ptr(handle:Byte Ptr)
+	Function bmx_tmx_property_color_value:Int(handle:Byte Ptr)
 
 	Function bmx_tmx_object_name:Byte Ptr(handle:Byte Ptr)
-	Function bmx_tmx_object_shape:Int(handle:Byte Ptr)
+	Function bmx_tmx_object_type:Int(handle:Byte Ptr)
 	Function bmx_tmx_object_x:Double(handle:Byte Ptr)
 	Function bmx_tmx_object_y:Double(handle:Byte Ptr)
 	Function bmx_tmx_object_width:Double(handle:Byte Ptr)
@@ -101,9 +108,11 @@ Extern
 	Function bmx_tmx_tile_id:Int(handle:Byte Ptr)
 	Function bmx_tmx_tile_image:Byte Ptr(handle:Byte Ptr)
 	Function bmx_tmx_tile_properties:Byte Ptr(handle:Byte Ptr)
-	Function bmx_tmx_tile_hasNext:Int(handle:Byte Ptr)
-	Function bmx_tmx_tile_next:Byte Ptr(handle:Byte Ptr)
+	
+	Function bmx_tmx_tilearray_get:Byte Ptr(handle:Byte Ptr, index:Int)
 
+	Function bmx_tmx_properties_get:Byte Ptr(handle:Byte Ptr, key:Byte Ptr)
+	
 	Global tmx_errno:Int
 	
 End Extern
@@ -190,10 +199,20 @@ Const TMX_LAYER_TYPE_NONE:Int = 0
 Const TMX_LAYER_TYPE_LAYER:Int = 1
 Const TMX_LAYER_TYPE_OBJGR:Int = 2
 Const TMX_LAYER_TYPE_IMAGE:Int = 3
+Const TMX_LAYER_TYPE_GROUP:Int = 4
 
-Const TMX_SHAPE_NONE:Int = 0
-Const TMX_SHAPE_SQUARE:Int = 1
-Const TMX_SHAPE_POLYGON:Int = 2
-Const TMX_SHAPE_POLYLINE:Int = 3
-Const TMX_SHAPE_ELLIPSE:Int = 4
-Const TMX_SHAPE_TILE:Int = 5
+Const TMX_OBJECT_NONE:Int = 0
+Const TMX_OBJECT_SQUARE:Int = 1
+Const TMX_OBJECT_POLYGON:Int = 2
+Const TMX_OBJECT_POLYLINE:Int = 3
+Const TMX_OBJECT_ELLIPSE:Int = 4
+Const TMX_OBJECT_TILE:Int = 5
+Const TMX_OBJECT_TEXT:Int = 6
+
+Const TMX_PROPERTY_NONE:Int = 0
+Const TMX_PROPERTY_INT:Int = 1
+Const TMX_PROPERTY_FLOAT:Int = 2
+Const TMX_PROPERTY_BOOL:Int = 3
+Const TMX_PROPERTY_STRING:Int = 4
+Const TMX_PROPERTY_COLOR:Int = 5
+Const TMX_PROPERTY_FILE:Int = 6

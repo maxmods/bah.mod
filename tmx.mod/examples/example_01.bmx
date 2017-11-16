@@ -3,7 +3,7 @@ SuperStrict
 Framework BaH.TMX
 Import BRL.StandardIO
 
-Local map:TMXMap = TMXMap.Load("../tmx/examples/csv.tmx")
+Local map:TMXMap = TMXMap.Load("../tmx/examples/data/csv.tmx")
 
 DumpMap(map)
 
@@ -28,20 +28,23 @@ Function DumpMap(map:TMXMap)
 	End If
 
 	If map Then
-		DumpTileset(map.tileset())
+		DumpTileset(map.tilesets())
 		DumpLayer(map.layer(), map.height() * map.width())
 		DumpProp(map.properties(), 0)
 	End If
 
 End Function
 
-Function DumpTileset(tileset:TMXTileset)
+Function DumpTileset(tilesetList:TMXTilesetList)
+		
+	If tilesetList Then
 	
-	If tileset Then
+		Local tileset:TMXTileset = tilesetList.tileset()
+	
 		Print "tileset={"
 	
 		Print "~tname=" + tileset.name()
-		Print "~tfirstgid=" + tileset.firstgid()
+		Print "~tfirstgid=" + tilesetList.firstgid()
 		Print "~ttile_height=" + tileset.tileHeight()
 		Print "~ttile_width=" + tileset.tileWidth()
 		Print "~tmargin=" + tileset.margin()
@@ -58,8 +61,8 @@ Function DumpTileset(tileset:TMXTileset)
 		Print "tileset={ (NULL) }"
 	End If
 	
-	If tileset And tileset.HasNext() Then
-		DumpTileset(tileset.NextTileset())
+	If tilesetList And tilesetList.HasNext() Then
+		DumpTileset(tilesetList.NextTilesetList())
 	End If
 	
 End Function
@@ -70,7 +73,7 @@ Function DumpLayer(layer:TMXLayer, count:Int)
 		Print "layer={"
 	
 		Print "~tname=" + layer.name()
-		Print "~tcolor=" + layer.color()
+		'Print "~tcolor=" + layer.color()
 		Print "~tvisible=" + layer.visible()
 		Print "~topacity=" + layer.opacity()
 	
@@ -107,18 +110,34 @@ Function DumpLayer(layer:TMXLayer, count:Int)
 
 End Function
 
-Function DumpProp(prop:TMXProperty, depth:Int)
+Type TPropDumper Extends TMXPropertyIterator
+
+	Field padding:String
+
+	Method nextProperty(property:TMXProperty)
+		Print padding + property.name() '+ "=" + prop.value()
+	End Method
+
+End Type
+
+Function DumpProp(prop:TMXProperties, depth:Int)
 	Local padding:String
 	For Local i:Int = 0 Until depth
 		padding :+ "~t"
 	Next
 	
 	If prop Then
+		Local dumper:TPropDumper = New TPropDumper
+		dumper.padding = padding + "~t"
+	
+	
 		Print padding + "properties={"
-		While prop
-			Print padding + "~t" + prop.name() + "=" + prop.value()
-			prop = prop.NextProperty()
-		Wend
+		
+		prop.forEach(dumper)
+		
+		'While prop
+		'	prop = prop.NextProperty()
+		'Wend
 
 		Print padding + "}"
 	Else
@@ -132,15 +151,15 @@ Function DumpObjects(obj:TMXObject)
 		Print "~tobject={"
 
 		Print "~t~tname=" + obj.name()
-		Print "~t~tshape=" + GetShape(obj.shape())
+		'Print "~t~tshape=" + GetShape(obj.shape())
 		Print "~t~tx=" + obj.x()
 		Print "~t~ty=" + obj.y()
-		Print "~t~tnumber of points=" + obj.pointsCount()
+		'Print "~t~tnumber of points=" + obj.pointsCount()
 		Print "~t~trotation=" + obj.rotation()
 		Print "~t~tvisible=" + obj.visible()
-		If obj.pointsCount Then
-			DumpPoints(obj.points(), obj.pointsCount())
-		End If
+		'If obj.pointsCount Then
+		'	DumpPoints(obj.points(), obj.pointsCount())
+		'End If
 		DumpProp(obj.properties(), 2)
 	
 		Print "~t}"
@@ -179,24 +198,22 @@ Function DumpImage(image:TMXImage)
 	End If
 End Function
 
-Function DumpTile(tile:TMXTile)
-	If tile Then
+Function DumpTile(tileArray:TMXTileArray)
+
+	For Local i:Int = 0 Until tileArray.tileCount()
+		Local tile:TMXTile = tileArray.get(i)
+		
 		Print "~ttile={"
 
 		Print "~t~tid=" + tile.id()
 		DumpProp(tile.properties(), 2)
 		
 		Print "~t}"
-	Else
-		Print "~ttile={ (NULL) }"
-	End If
 
-	If tile And tile.HasNext() Then
-		DumpTile(tile.NextTile())
-	End If
-
+	Next
+	
 End Function
-
+Rem
 Function GetShape:String(shape:Int)
 	Select shape
 		Case TMX_SHAPE_NONE
@@ -213,4 +230,4 @@ Function GetShape:String(shape:Int)
 			Return "unknown"
 	End Select
 End Function
-
+End Rem

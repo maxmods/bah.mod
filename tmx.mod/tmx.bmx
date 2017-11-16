@@ -1,4 +1,4 @@
-' Copyright (c) 2015, Bruce A Henderson
+' Copyright (c) 2015-2017 Bruce A Henderson
 ' All rights reserved.
 ' 
 ' Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,13 @@ bbdoc: Tiled map loader.
 End Rem
 Module BaH.TMX
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: TMX - 2013, Bayle Jonathan"
-ModuleInfo "Copyright: Wrapper - 2015,  Bruce A Henderson"
+ModuleInfo "Copyright: TMX - 2013-2017 Bayle Jonathan"
+ModuleInfo "Copyright: Wrapper - 2015-2017  Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to TMX 1.0.0."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
 
@@ -59,7 +61,7 @@ Type TMXMap
 			
 			Local f:Byte Ptr = filename.ToUTF8String()
 			
-			map.mapPtr = tmx_load_buf(data, data.length, f)
+			map.mapPtr = tmx_load_buffer(data, data.length, f)
 			
 			MemFree(f)
 			
@@ -97,13 +99,14 @@ Type TMXMap
 	
 	Method renderorder:Int()
 		Return bmx_tmx_map_renderorder(mapPtr)
+	End Method	
+
+	Method properties:TMXProperties()
+		Return TMXProperties._create(bmx_tmx_map_properties(mapPtr))
 	End Method
-	
-	Method properties:TMXProperty()
-	End Method
-	
-	Method tileset:TMXTileset()
-		Return TMXTileset._create(bmx_tmx_map_ts_head(mapPtr))
+
+	Method tilesets:TMXTilesetList()
+		Return TMXTilesetList._create(bmx_tmx_map_ts_head(mapPtr))
 	End Method
 	
 	Method layer:TMXLayer()
@@ -119,13 +122,53 @@ Type TMXMap
 	
 End Type
 
+Type TMXTilesetList
+	
+	Field listPtr:Byte Ptr
+
+	Function _create:TMXTilesetList(listPtr:Byte Ptr)
+		If listPtr Then
+			Local this:TMXTilesetList = New TMXTilesetList
+			this.listPtr = listPtr
+			Return this
+		End If		
+	End Function
+
+	Method firstgid:Int()
+		Return bmx_tmx_tilesetlist_firstgid(listPtr)
+	End Method
+	
+	Method tileset:TMXTileset()
+		Return TMXTileset._create(bmx_tmx_tilesetlist_tileset(listPtr))
+	End Method
+	
+	Method HasNext:Int()
+		Return bmx_tmx_tilesetlist_hasNext(listPtr)
+	End Method
+	
+	Method NextTilesetList:TMXTilesetList()
+		Return _create(bmx_tmx_tilesetlist_next(listPtr))
+	End Method
+	
+End Type
+
 Type TMXLayer
 
 	Field layerPtr:Byte Ptr
 
 	Function _create:TMXLayer(layerPtr:Byte Ptr)
 		If layerPtr Then
-			Local this:TMXLayer = New TMXLayer
+			Local this:TMXLayer
+			Select bmx_tmx_layer_type(layerPtr)
+				Case TMX_LAYER_TYPE_LAYER
+					this = New TMXLayer
+				Case TMX_LAYER_TYPE_OBJGR
+					this = New TMXObjectGroupLayer
+				Case TMX_LAYER_TYPE_IMAGE
+					this = New TMXImageLayer
+				Case TMX_LAYER_TYPE_GROUP
+					this = New TMXGroupLayer
+			End Select
 			this.layerPtr = layerPtr
 			Return this
 		End If
@@ -133,10 +176,6 @@ Type TMXLayer
 
 	Method name:String()
 		Return String.FromUTF8String(bmx_tmx_layer_name(layerPtr))
-	End Method
-	
-	Method color:Int()
-		Return bmx_tmx_layer_color(layerPtr)
 	End Method
 	
 	Method opacity:Double()
@@ -162,9 +201,9 @@ Type TMXLayer
 	Method gids:Int Ptr()
 		Return bmx_tmx_layer_gids(layerPtr)
 	End Method
-	
-	Method properties:TMXProperty()
-		Return TMXProperty._create(bmx_tmx_layer_properties(layerPtr))
+
+	Method properties:TMXProperties()
+		Return TMXProperties._create(bmx_tmx_layer_properties(layerPtr))
 	End Method
 	
 	Method objects:TMXObject()
@@ -181,13 +220,36 @@ Type TMXLayer
 	
 End Type
 
+Type TMXObjectGroupLayer Extends TMXLayer
+	
+	Method color:Int()
+		Return bmx_tmx_layer_color(layerPtr)
+	End Method
+
+End Type
+
+Type TMXImageLayer Extends TMXLayer
+End Type
+
+Type TMXGroupLayer Extends TMXLayer
+End Type
+
 Type TMXObject
 
 	Field objectPtr:Byte Ptr
 	
 	Function _create:TMXObject(objectPtr:Byte Ptr)
 		If objectPtr Then
-			Local this:TMXObject = New TMXObject
+			Local this:TMXObject
+			Select bmx_tmx_object_type(objectPtr)
+				Case TMX_OBJECT_SQUARE, TMX_OBJECT_POLYGON, TMX_OBJECT_POLYLINE, TMX_OBJECT_ELLIPSE
+					this = New TMXShapeObject
+				Case TMX_OBJECT_TILE
+					this = New TMXTileObject
+				Case TMX_OBJECT_TEXT
+					this = New TMXTextObject
+			End Select
+			
 			this.objectPtr = objectPtr
 			Return this
 		End If
@@ -197,8 +259,8 @@ Type TMXObject
 		Return String.FromUTF8String(bmx_tmx_object_name(objectPtr))
 	End Method
 	
-	Method shape:Int()
-		Return bmx_tmx_object_shape(objectPtr)
+	Method objectType:Int()
+		Return bmx_tmx_object_type(objectPtr)
 	End Method
 	
 	Method x:Double()
@@ -217,18 +279,6 @@ Type TMXObject
 		Return bmx_tmx_object_height(objectPtr)
 	End Method
 	
-	Method gid:Int()
-		Return bmx_tmx_object_gid(objectPtr)
-	End Method
-	
-	Method points:Double Ptr Ptr()
-		Return bmx_tmx_object_points(objectPtr)
-	End Method
-	
-	Method pointsCount:Int()
-		Return bmx_tmx_object_points_len(objectPtr)
-	End Method
-	
 	Method visible:Int()
 		Return bmx_tmx_object_visible(objectPtr)
 	End Method
@@ -236,17 +286,41 @@ Type TMXObject
 	Method rotation:Double()
 		Return bmx_tmx_object_rotation(objectPtr)
 	End Method
-	
-	Method properties:TMXProperty()
-		Return TMXProperty._create(bmx_tmx_object_properties(objectPtr))
+
+	Method properties:TMXProperties()
+		Return TMXProperties._create(bmx_tmx_object_properties(objectPtr))
 	End Method
-	
+
 	Method HasNext:Int()
 		Return bmx_tmx_object_hasNext(objectPtr)
 	End Method
 	
 	Method NextObject:TMXObject()
 		Return _create(bmx_tmx_object_next(objectPtr))
+	End Method
+	
+End Type
+
+Type TMXShapeObject Extends TMXObject
+
+	Method points:Double Ptr Ptr()
+		Return bmx_tmx_object_points(objectPtr)
+	End Method
+	
+	Method pointsCount:Int()
+		Return bmx_tmx_object_points_len(objectPtr)
+	End Method
+
+End Type
+
+Type TMXTextObject Extends TMXObject
+
+End Type
+
+Type TMXTileObject Extends TMXObject
+
+	Method gid:Int()
+		Return bmx_tmx_object_gid(objectPtr)
 	End Method
 	
 End Type
@@ -262,10 +336,6 @@ Type TMXTileset
 			Return this
 		End If
 	End Function
-	
-	Method firstgid:Int()
-		Return bmx_tmx_tileset_firstgid(tilesetPtr)
-	End Method
 	
 	Method name:String()
 		Return String.FromUTF8String(bmx_tmx_tileset_name(tilesetPtr))
@@ -299,22 +369,14 @@ Type TMXTileset
 		Return TMXImage._create(bmx_tmx_tileset_image(tilesetPtr))
 	End Method
 
-	Method properties:TMXProperty()
-		Return TMXProperty._create(bmx_tmx_tileset_properties(tilesetPtr))
+	Method properties:TMXProperties()
+		Return TMXProperties._create(bmx_tmx_tileset_properties(tilesetPtr))
 	End Method
 
-	Method tiles:TMXTile()
-		Return TMXTile._create(bmx_tmx_tileset_tiles(tilesetPtr))
+	Method tiles:TMXTileArray()
+		Return TMXTileArray._create(bmx_tmx_tileset_tiles(tilesetPtr), bmx_tmx_tileset_tilecount(tilesetPtr))
 	End Method
 				
-	Method HasNext:Int()
-		Return bmx_tmx_tileset_hasNext(tilesetPtr)
-	End Method
-	
-	Method NextTileset:TMXTileset()
-		Return _create(bmx_tmx_tileset_next(tilesetPtr))
-	End Method
-	
 End Type
 
 Type TMXImage
@@ -355,6 +417,32 @@ Type TMXImage
 	
 End Type
 
+Type TMXTileArray
+
+	Field arrayPtr:Byte Ptr
+	Field count:Int
+
+	Function _create:TMXTileArray(arrayPtr:Byte Ptr, count:Int)
+		If arrayPtr Then
+			Local this:TMXTileArray = New TMXTileArray
+			this.arrayPtr = arrayPtr
+			this.count = count
+			Return this
+		End If
+	End Function
+
+	Method tileCount:Int()
+		Return count
+	End Method
+	
+	Method get:TMXTile(index:Int)
+		If index >= 0 And index < count Then
+			Return TMXTile._create(bmx_tmx_tilearray_get(arrayPtr, index))
+		End If
+	End Method
+
+End Type
+
 Type TMXTile
 
 	Field tilePtr:Byte Ptr
@@ -374,47 +462,146 @@ Type TMXTile
 	Method image:TMXImage()
 		Return TMXImage._create(bmx_tmx_tile_image(tilePtr))
 	End Method
-	
-	Method properties:TMXProperty()
-		Return TMXProperty._create(bmx_tmx_tile_properties(tilePtr))
-	End Method
 
-	Method HasNext:Int()
-		Return bmx_tmx_tile_hasNext(tilePtr)
+	Method properties:TMXProperties()
+		Return TMXProperties._create(bmx_tmx_tile_properties(tilePtr))
 	End Method
 	
-	Method NextTile:TMXTile()
-		Return _create(bmx_tmx_tile_next(tilePtr))
+End Type
+
+Type TMXProperties
+
+	Field propertiesPtr:Byte Ptr
+
+	Function _create:TMXProperties(propertiesPtr:Byte Ptr)
+		If propertiesPtr Then
+			Local this:TMXProperties = New TMXProperties
+			this.propertiesPtr = propertiesPtr
+			Return this
+		End If
+	End Function
+
+	Method get:TMXProperty(key:String)
+		Local k:Byte Ptr = key.ToUTF8String()
+		Local prop:TMXProperty = TMXProperty._create(bmx_tmx_properties_get(propertiesPtr, k))
+		MemFree(k)
+		Return prop
+	End Method
+	
+	Method forEach(iter:TMXPropertyIterator)
+		tmx_property_foreach(propertiesPtr, TMXPropertyIterator._next, iter)
 	End Method
 
 End Type
 
+Extern
+	Function tmx_property_foreach(handle:Byte Ptr, cb(p:Byte Ptr, i:TMXPropertyIterator), d:TMXPropertyIterator)
+End Extern
+
+Type TMXPropertyIterator Abstract
+
+	Method nextProperty(property:TMXProperty) Abstract
+
+	Function _next(propertyPtr:Byte Ptr, iter:TMXPropertyIterator) { nomangle }
+		iter.nextProperty(TMXProperty._create(propertyPtr))
+	End Function
+	
+End Type
+
 Type TMXProperty
 
-	Field propertPtr:Byte Ptr
+	Field propertyPtr:Byte Ptr
 	
-	Function _create:TMXProperty(propertPtr:Byte Ptr)
-		If propertPtr Then
-			Local this:TMXProperty = New TMXProperty
-			this.propertPtr = propertPtr
+	Function _create:TMXProperty(propertyPtr:Byte Ptr)
+		If propertyPtr Then
+			Local this:TMXProperty
+			Select bmx_tmx_property_type(propertyPtr)
+				Case TMX_PROPERTY_INT
+					this = New TMXIntProperty
+				Case TMX_PROPERTY_FLOAT
+					this = New TMXFloatProperty
+				Case TMX_PROPERTY_BOOL
+					this = New TMXBoolProperty
+				Case TMX_PROPERTY_STRING
+					this = New TMXStringProperty
+				Case TMX_PROPERTY_FILE
+					this = New TMXFileProperty
+				Case TMX_PROPERTY_COLOR
+					this = New TMXColorProperty
+			End Select
+			this.propertyPtr = propertyPtr
 			Return this
 		End If
 	End Function
 
 	Method name:String()
-		Return String.FromUTF8String(bmx_tmx_property_name(propertPtr))
+		Return String.FromUTF8String(bmx_tmx_property_name(propertyPtr))
 	End Method
 	
-	Method value:String()
-		Return String.FromUTF8String(bmx_tmx_property_value(propertPtr))
+	Method intValue:Int()
 	End Method
 
-	Method HasNext:Int()
-		Return bmx_tmx_property_hasNext(propertPtr)
+	Method floatValue:Float()
+	End Method
+
+	Method boolValue:Int()
+	End Method
+
+	Method stringValue:String()
+	End Method
+
+	Method fileValue:String()
 	End Method
 	
-	Method NextProperty:TMXProperty()
-		Return _create(bmx_tmx_property_next(propertPtr))
+	Method colorValue:Int()
+	End Method
+
+End Type
+
+Type TMXIntProperty Extends TMXProperty
+
+	Method intValue:Int()
+		Return bmx_tmx_property_int_value(propertyPtr)
+	End Method
+	
+End Type
+
+Type TMXFloatProperty Extends TMXProperty
+
+	Method floatValue:Float()
+		Return bmx_tmx_property_float_value(propertyPtr)
+	End Method
+	
+End Type
+
+Type TMXBoolProperty Extends TMXProperty
+
+	Method boolValue:Int()
+		Return bmx_tmx_property_bool_value(propertyPtr)
+	End Method
+	
+End Type
+
+Type TMXStringProperty Extends TMXProperty
+
+	Method stringValue:String()
+		Return String.FromUTF8String(bmx_tmx_property_string_value(propertyPtr))
+	End Method
+	
+End Type
+
+Type TMXFileProperty Extends TMXProperty
+
+	Method fileValue:String()
+		Return String.FromUTF8String(bmx_tmx_property_file_value(propertyPtr))
+	End Method
+	
+End Type
+
+Type TMXColorProperty Extends TMXProperty
+
+	Method colorValue:Int()
+		Return bmx_tmx_property_color_value(propertyPtr)
 	End Method
 	
 End Type

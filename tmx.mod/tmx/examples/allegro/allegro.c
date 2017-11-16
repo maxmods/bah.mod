@@ -54,16 +54,18 @@ void draw_polygone(double **points, double x, double y, int pointsc, ALLEGRO_COL
 	}
 }
 
-void draw_objects(tmx_object *head, ALLEGRO_COLOR color) {
+void draw_objects(tmx_object_group *objgr) {
+	ALLEGRO_COLOR color = int_to_al_color(objgr->color);
+	tmx_object *head = objgr->head;
 	while (head) {
 		if (head->visible) {
-			if (head->shape == S_SQUARE) {
+			if (head->obj_type == OT_SQUARE) {
 				al_draw_rectangle(head->x, head->y, head->x+head->width, head->y+head->height, color, LINE_THICKNESS);
-			} else if (head->shape  == S_POLYGON) {
-				draw_polygone(head->points, head->x, head->y, head->points_len, color);
-			} else if (head->shape == S_POLYLINE) {
-				draw_polyline(head->points, head->x, head->y, head->points_len, color);
-			} else if (head->shape == S_ELLIPSE) {
+			} else if (head->obj_type  == OT_POLYGON) {
+				draw_polygone(head->content.shape->points, head->x, head->y, head->content.shape->points_len, color);
+			} else if (head->obj_type == OT_POLYLINE) {
+				draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len, color);
+			} else if (head->obj_type == OT_ELLIPSE) {
 				al_draw_ellipse(head->x + head->width/2.0, head->y + head->height/2.0, head->width/2.0, head->height/2.0, color, LINE_THICKNESS);
 			}
 		}
@@ -83,23 +85,34 @@ int gid_extract_flags(unsigned int gid) {
 	return res;
 }
 
-int gid_clear_flags(unsigned int gid) {
+unsigned int gid_clear_flags(unsigned int gid) {
 	return gid & TMX_FLIP_BITS_REMOVAL;
 }
 
 void draw_layer(tmx_map *map, tmx_layer *layer) {
 	unsigned long i, j;
-	unsigned int x, y, w, h, flags;
+	unsigned int gid, x, y, w, h, flags;
 	float op;
 	tmx_tileset *ts;
+	tmx_image *im;
 	ALLEGRO_BITMAP *tileset;
 	op = layer->opacity;
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
-			ts = tmx_get_tileset(map, layer->content.gids[(i*map->width)+j], &x, &y);
-			if (ts) {
-				w = ts->tile_width; h = ts->tile_height;
-				tileset = (ALLEGRO_BITMAP*)ts->image->resource_image;
+			gid = gid_clear_flags(layer->content.gids[(i*map->width)+j]);
+			if (map->tiles[gid] != NULL) {
+				ts = map->tiles[gid]->tileset;
+				im = map->tiles[gid]->image;
+				x  = map->tiles[gid]->ul_x;
+				y  = map->tiles[gid]->ul_y;
+				w  = ts->tile_width;
+				h  = ts->tile_height;
+				if (im) {
+					tileset = (ALLEGRO_BITMAP*)im->resource_image;
+				}
+				else {
+					tileset = (ALLEGRO_BITMAP*)ts->image->resource_image;
+				}
 				flags = gid_extract_flags(layer->content.gids[(i*map->width)+j]);
 				al_draw_tinted_bitmap_region(tileset, al_map_rgba_f(op, op, op, op), x, y, w, h, j*ts->tile_width, i*ts->tile_height, flags);
 			}
@@ -107,28 +120,13 @@ void draw_layer(tmx_map *map, tmx_layer *layer) {
 	}
 }
 
-/*
-	Render map
-*/
-ALLEGRO_BITMAP* render_map(tmx_map *map) {
-	ALLEGRO_BITMAP *res = NULL;
-	tmx_layer *layers = map->ly_head;
-	unsigned long w, h;
-	
-	if (map->orient != O_ORT) fatal_error("only orthogonal orient currently supported in this example!");
-	
-	w = map->width  * map->tile_width;  /* Bitmap's width and height */
-	h = map->height * map->tile_height;
-	if (!(res = al_create_bitmap(w, h))) fatal_error("failed to create bitmap!");
-	
-	al_set_target_bitmap(res);
-	
-	al_clear_to_color(int_to_al_color(map->backgroundcolor));
-	
+void draw_all_layers(tmx_map *map, tmx_layer *layers) {
 	while (layers) {
 		if (layers->visible) {
-			if (layers->type == L_OBJGR) {
-				draw_objects(layers->content.head, int_to_al_color(layers->color));
+			if (layers->type == L_GROUP) {
+				draw_all_layers(map, layers->content.group_head);
+			} else if (layers->type == L_OBJGR) {
+				draw_objects(layers->content.objgr);
 			} else if (layers->type == L_IMAGE) {
 				if (layers->opacity < 1.) {
 					float op = layers->opacity;
@@ -141,6 +139,26 @@ ALLEGRO_BITMAP* render_map(tmx_map *map) {
 		}
 		layers = layers->next;
 	}
+}
+
+/*
+	Render map
+*/
+ALLEGRO_BITMAP* render_map(tmx_map *map) {
+	ALLEGRO_BITMAP *res = NULL;
+	unsigned long w, h;
+	
+	if (map->orient != O_ORT) fatal_error("only orthogonal orient currently supported in this example!");
+	
+	w = map->width  * map->tile_width;  /* Bitmap's width and height */
+	h = map->height * map->tile_height;
+	if (!(res = al_create_bitmap(w, h))) fatal_error("failed to create bitmap!");
+	
+	al_set_target_bitmap(res);
+	
+	al_clear_to_color(int_to_al_color(map->backgroundcolor));
+	
+	draw_all_layers(map, map->ly_head);
 	
 	al_set_target_backbuffer(al_get_current_display());
 	

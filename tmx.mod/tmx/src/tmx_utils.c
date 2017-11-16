@@ -8,6 +8,7 @@
 #include <ctype.h> /* is */
 
 #include "tmx.h"
+#include "tsx.h"
 #include "tmx_utils.h"
 
 /*
@@ -143,11 +144,11 @@ cleanup:
 #ifdef WANT_ZLIB
 #include <zlib.h>
 
-void* z_alloc(void *opaque, unsigned int items, unsigned int size) {
+void* z_alloc(void *opaque UNUSED, unsigned int items, unsigned int size) {
 	return tmx_alloc_func(NULL, items *size);
 }
 
-void z_free(void *opaque, void *address) {
+void z_free(void *opaque UNUSED, void *address) {
 	tmx_free_func(address);
 }
 
@@ -249,59 +250,105 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32
 }
 
 /*
-	Node allocation
-*/
-
-static void* node_alloc(size_t size) {
-	void *res = tmx_alloc_func(NULL, size);
-	if (res) {
-		memset(res, 0, size);
-	} else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
-}
-
-tmx_property* alloc_prop(void) {
-	return (tmx_property*)node_alloc(sizeof(tmx_property));
-}
-
-tmx_image* alloc_image(void) {
-	return (tmx_image*)node_alloc(sizeof(tmx_image));
-}
-
-tmx_object* alloc_object(void) {
-	tmx_object *res = (tmx_object*)node_alloc(sizeof(tmx_object));
-	if (res) {
-		res->visible = 1;
-	}
-	return res;
-}
-
-tmx_layer* alloc_layer(void) {
-	tmx_layer *res = (tmx_layer*)node_alloc(sizeof(tmx_layer));
-	if (res) {
-		res->opacity = 1.0f;
-		res->visible = 1;
-	}
-	return res;
-}
-
-tmx_tile* alloc_tile(void) {
-	return (tmx_tile*)node_alloc(sizeof(tmx_tile));
-}
-
-tmx_tileset* alloc_tileset(void) {
-	return (tmx_tileset*)node_alloc(sizeof(tmx_tileset));
-}
-
-tmx_map* alloc_map(void) {
-	return (tmx_map*)node_alloc(sizeof(tmx_map));
-}
-
-/*
 	Misc
 */
+
+void map_post_parsing(tmx_map **map) {
+	if (*map) {
+		if (!mk_map_tile_array(*map)) {
+			tmx_map_free(*map);
+			*map = NULL;
+		}
+	}
+}
+
+/* Sets tile->tileset and tile->ul_x,y */
+int set_tiles_runtime_props(tmx_tileset *ts) {
+	unsigned int i, j;
+	unsigned int tiles_x_count, ts_w, tx, ty;
+
+	if (ts == NULL) {
+		tmx_err(E_INVAL, "set_tiles_runtime_props: invalid argument: ts is NULL");
+		return 0;
+	}
+
+	/* reindex tiles (tiles are sorted, but not indexed correctly) */
+	for (i=ts->tilecount-1, j=0; j<ts->tilecount; j++, i--) {
+		if (ts->tiles[i].id > 0L && ts->tiles[i].id != i) {
+			memcpy(ts->tiles+(ts->tiles[i].id), ts->tiles+i, sizeof(tmx_tile));
+			memset(ts->tiles+i, 0, sizeof(tmx_tile));
+		}
+	}
+
+	for (i=0; i<ts->tilecount; i++) {
+		ts->tiles[i].id = i;
+		ts->tiles[i].tileset = ts;
+
+		/* set bitmap's region x and y coordinates */
+		ts_w = ts->image->width - 2 * (ts->margin) + ts->spacing;
+
+		tiles_x_count = ts_w / (ts->tile_width + ts->spacing);
+
+		tx = i % tiles_x_count;
+		ty = i / tiles_x_count;
+
+		ts->tiles[i].ul_x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing);
+		ts->tiles[i].ul_y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing);
+	}
+
+	return 1;
+}
+
+/* Creates the array at map->tiles */
+int mk_map_tile_array(tmx_map *map) {
+	unsigned int i;
+	tmx_tileset_list *ts, *max_ts;
+
+	if (!map) {
+		tmx_err(E_INVAL, "mk_map_tile_array: invalid argument: map is NULL");
+		return 0;
+	}
+
+	if (!(map->ts_head)) {
+		/* no tileset => nothing to do */
+		return 1;
+	}
+
+	/* Counts total tile count */
+	ts = max_ts = map->ts_head;
+	while (ts != NULL) {
+		if (ts->firstgid > max_ts->firstgid) {
+			max_ts = ts;
+		}
+		ts = ts->next;
+	}
+	if (max_ts->tileset->image) {
+		map->tilecount = max_ts->firstgid + max_ts->tileset->tilecount;
+	}
+	else {
+		/* Gets the last id, ts->tiles is sorted by id */
+		map->tilecount = max_ts->firstgid + max_ts->tileset->tiles[max_ts->tileset->tilecount - 1].id + 1;
+	}
+
+	/* Allocates the GID indexed tile array */
+	if (!(map->tiles = tmx_alloc_func(NULL, map->tilecount * sizeof(void*)))) {
+		tmx_errno = E_ALLOC;
+		return 0;
+	}
+	memset(map->tiles, 0, map->tilecount * sizeof(void*));
+
+	/* Populates the array */
+	map->tiles[0] = NULL; /* GIDs start from 1 */
+	ts = map->ts_head;
+	while (ts != NULL) {
+		for (i=0; i<ts->tileset->tilecount; i++) {
+			map->tiles[ts->firstgid + ts->tileset->tiles[i].id] = &(ts->tileset->tiles[i]);
+		}
+		ts = ts->next;
+	}
+
+	return 1;
+}
 
 /* "orthogonal" -> ORT */
 enum tmx_map_orient parse_orient(const char *orient_str) {
@@ -313,6 +360,9 @@ enum tmx_map_orient parse_orient(const char *orient_str) {
 	}
 	if (!strcmp(orient_str, "stagging")) {
 		return O_STA;
+	}
+	if (!strcmp(orient_str, "hexagonal")) {
+		return O_HEX;
 	}
 	return O_NONE;
 }
@@ -332,6 +382,121 @@ enum tmx_map_renderorder parse_renderorder(const char *renderorder) {
 		return R_LEFTUP;
 	}
 	return R_NONE;
+}
+
+/* "index" -> G_INDEX */
+enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder) {
+	if (draworder == NULL || !strcmp(draworder, "topdown")) {
+		return G_TOPDOWN;
+	}
+	if (!strcmp(draworder, "index")) {
+		return G_INDEX;
+	}
+	return G_NONE;
+}
+
+/* "even" -> SI_EVEN */
+enum tmx_stagger_index parse_stagger_index(const char *staggerindex) {
+	if (staggerindex == NULL || !strcmp(staggerindex, "odd")) {
+		return SI_ODD;
+	}
+	if (!strcmp(staggerindex, "even")) {
+		return SI_EVEN;
+	}
+	return SI_NONE;
+}
+
+/* "y" -> SA_Y */
+enum tmx_stagger_axis parse_stagger_axis(const char *staggeraxis) {
+	if (staggeraxis == NULL || !strcmp(staggeraxis, "y")) {
+		return SA_Y;
+	}
+	if (!strcmp(staggeraxis, "columns")) {
+		return SA_X;
+	}
+	return SA_NONE;
+}
+
+/* "integer" -> PT_INT */
+enum tmx_property_type parse_property_type(const char *propertytype) {
+	if (propertytype == NULL || !strcmp(propertytype, "string")) {
+		return PT_STRING;
+	}
+	if (!strcmp(propertytype, "int")) {
+		return PT_INT;
+	}
+	if (!strcmp(propertytype, "float")) {
+		return PT_FLOAT;
+	}
+	if (!strcmp(propertytype, "bool")) {
+		return PT_BOOL;
+	}
+	if (!strcmp(propertytype, "color")) {
+		return PT_COLOR;
+	}
+	if (!strcmp(propertytype, "file")) {
+		return PT_FILE;
+	}
+	return PT_NONE;
+}
+
+enum tmx_horizontal_align parse_horizontal_align(const char *horalign) {
+	if (horalign == NULL) {
+		return HA_NONE;
+	}
+	if (!strcmp(horalign, "left")) {
+		return HA_LEFT;
+	}
+	if (!strcmp(horalign, "center")) {
+		return HA_CENTER;
+	}
+	if (!strcmp(horalign, "right")) {
+		return HA_RIGHT;
+	}
+	return HA_NONE;
+}
+
+enum tmx_vertical_align parse_vertical_align(const char *veralign) {
+	if (veralign == NULL) {
+		return VA_NONE;
+	}
+	if (!strcmp(veralign, "top")) {
+		return VA_TOP;
+	}
+	if (!strcmp(veralign, "center")) {
+		return VA_CENTER;
+	}
+	if (!strcmp(veralign, "bottom")) {
+		return VA_BOTTOM;
+	}
+	return VA_NONE;
+}
+
+enum tmx_layer_type parse_layer_type(const char *nodename) {
+	if (nodename == NULL) {
+		return L_NONE;
+	}
+	if (!strcmp(nodename, "layer")) {
+		return L_LAYER;
+	}
+	if (!strcmp(nodename, "objectgroup")) {
+		return L_OBJGR;
+	}
+	if (!strcmp(nodename, "imagelayer")) {
+		return L_IMAGE;
+	}
+	if (!strcmp(nodename, "group")) {
+		return L_GROUP;
+	}
+	return L_NONE;
+}
+
+/* "false" -> 0 */
+int parse_boolean(const char *boolean) {
+	if (boolean != NULL && !strcmp(boolean, "true")) {
+		return 1;
+	}
+	return 0;
 }
 
 /* "#337FA2" -> 0x337FA2 */
@@ -379,6 +544,9 @@ size_t dirpath_len(const char *str) {
 
 /* ("C:\Maps\map.tmx", "tilesets\ts1.tsx") => "C:\Maps\tilesets\ts1.tsx" */
 char* mk_absolute_path(const char *base_path, const char *rel_path) {
+	if (base_path == NULL) {
+		return tmx_strdup(rel_path);
+	}
 	/* if base_path is a directory, it MUST have a trailing path separator */
 	size_t dp_len = dirpath_len(base_path);
 	size_t rp_len = strlen(rel_path);
