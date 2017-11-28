@@ -2,7 +2,7 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2009-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -47,12 +47,12 @@ int code_49(struct zint_symbol *symbol, unsigned char source[], const int length
     int c_grid[8][8]; /* Refers to table 3 */
     int w_grid[8][4]; /* Refets to table 2 */
     int pad_count = 0;
-    char pattern[40];
+    char pattern[80];
     int gs1;
     size_t h;
 
     if (length > 81) {
-        strcpy(symbol->errtxt, "Input too long (D30)");
+        strcpy(symbol->errtxt, "430: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     if (symbol->input_mode == GS1_MODE) {
@@ -64,7 +64,7 @@ int code_49(struct zint_symbol *symbol, unsigned char source[], const int length
 
     for (i = 0; i < length; i++) {
         if (source[i] > 127) {
-            strcpy(symbol->errtxt, "Invalid characters in input data (D31)");
+            strcpy(symbol->errtxt, "431: Invalid characters in input data");
             return ZINT_ERROR_INVALID_DATA;
         }
         if (gs1 && (source[i] == '['))
@@ -215,7 +215,7 @@ int code_49(struct zint_symbol *symbol, unsigned char source[], const int length
     }
 
     if (codeword_count > 49) {
-        strcpy(symbol->errtxt, "Input too long (D32)");
+        strcpy(symbol->errtxt, "432: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -306,28 +306,35 @@ int code_49(struct zint_symbol *symbol, unsigned char source[], const int length
     }
 
     for (i = 0; i < rows; i++) {
-        strcpy(pattern, "11"); /* Start character */
+        strcpy(pattern, "10"); /* Start character */
         for (j = 0; j < 4; j++) {
             if (i != (rows - 1)) {
                 if (c49_table4[i][j] == 'E') {
                     /* Even Parity */
-                    strcat(pattern, c49_appxe_even[w_grid[i][j]]);
+                    bin_append(c49_even_bitpattern[w_grid[i][j]], 16, pattern);
                 } else {
                     /* Odd Parity */
-                    strcat(pattern, c49_appxe_odd[w_grid[i][j]]);
+                    bin_append(c49_odd_bitpattern[w_grid[i][j]], 16, pattern);
                 }
             } else {
                 /* Last row uses all even parity */
-                strcat(pattern, c49_appxe_even[w_grid[i][j]]);
+                bin_append(c49_even_bitpattern[w_grid[i][j]], 16, pattern);
             }
         }
-        strcat(pattern, "4"); /* Stop character */
+        strcat(pattern, "1111"); /* Stop character */
 
         /* Expand into symbol */
         symbol->row_height[i] = 10;
-        expand(symbol, pattern);
+
+        for (j = 0; j < strlen(pattern); j++) {
+            if (pattern[j] == '1') {
+                set_module(symbol, i, j);
+            }
+        }
     }
 
+    symbol->rows = rows;
+    symbol->width = strlen(pattern);
     symbol->whitespace_width = 10;
     if (!(symbol->output_options & BARCODE_BIND)) {
         symbol->output_options += BARCODE_BIND;
@@ -336,3 +343,4 @@ int code_49(struct zint_symbol *symbol, unsigned char source[], const int length
 
     return 0;
 }
+

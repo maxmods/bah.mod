@@ -2,20 +2,20 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2009-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,7 +26,7 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
 
@@ -44,7 +44,7 @@
 #define SSET	"0123456789ABCDEF"
 
 int svg_plot(struct zint_symbol *symbol) {
-    int i, block_width, latch, r, this_row;
+    int i, block_width, latch, r;
     float textpos, large_bar_height, preset_height, row_height, row_posn = 0.0;
     FILE *fsvg;
     int error_number = 0;
@@ -105,7 +105,7 @@ int svg_plot(struct zint_symbol *symbol) {
         fsvg = fopen(symbol->outfile, "w");
     }
     if (fsvg == NULL) {
-        strcpy(symbol->errtxt, "Could not open output file (F60)");
+        strcpy(symbol->errtxt, "660: Could not open output file");
         return ZINT_ERROR_FILE_ACCESS;
     }
 
@@ -114,24 +114,24 @@ int svg_plot(struct zint_symbol *symbol) {
     to_upper((unsigned char*) symbol->bgcolour);
 
     if (strlen(symbol->fgcolour) != 6) {
-        strcpy(symbol->errtxt, "Malformed foreground colour target (F61)");
+        strcpy(symbol->errtxt, "661: Malformed foreground colour target");
         fclose(fsvg);
         return ZINT_ERROR_INVALID_OPTION;
     }
     if (strlen(symbol->bgcolour) != 6) {
-        strcpy(symbol->errtxt, "Malformed background colour target (F62)");
+        strcpy(symbol->errtxt, "662: Malformed background colour target");
         fclose(fsvg);
         return ZINT_ERROR_INVALID_OPTION;
     }
     error_number = is_sane(SSET, (unsigned char*) symbol->fgcolour, strlen(symbol->fgcolour));
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Malformed foreground colour target (F63)");
+        strcpy(symbol->errtxt, "663: Malformed foreground colour target");
         fclose(fsvg);
         return ZINT_ERROR_INVALID_OPTION;
     }
     error_number = is_sane(SSET, (unsigned char*) symbol->bgcolour, strlen(symbol->bgcolour));
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Malformed background colour target (F64)");
+        strcpy(symbol->errtxt, "664: Malformed background colour target");
         fclose(fsvg);
         return ZINT_ERROR_INVALID_OPTION;
     }
@@ -205,6 +205,13 @@ int svg_plot(struct zint_symbol *symbol) {
         }
     }
     addon[r] = '\0';
+
+    /* Don't include control characters in output text */
+    for(i = 0; i < ustrlen(local_text); i++) {
+        if (local_text[i] < ' ') {
+            local_text[i] = ' ';
+        }
+    }
 
     if (ustrlen(local_text) != 0) {
         textoffset = 9;
@@ -299,7 +306,7 @@ int svg_plot(struct zint_symbol *symbol) {
         int addon_latch = 0;
 
         for (r = 0; r < symbol->rows; r++) {
-            this_row = r;
+            int this_row = r;
             if (symbol->row_height[this_row] == 0) {
                 row_height = large_bar_height;
             } else {
@@ -316,7 +323,7 @@ int svg_plot(struct zint_symbol *symbol) {
             row_posn += yoffset;
 
             if (symbol->output_options & BARCODE_DOTTY_MODE) {
-                /* Use (currently undocumented) dot mode - see SF ticket #29 */
+                /* Use dot mode */
                 for (i = 0; i < symbol->width; i++) {
                     if (module_is_set(symbol, this_row, i)) {
                         fprintf(fsvg, "      <circle cx=\"%.2f\" cy=\"%.2f\" r=\"%.2f\" fill=\"#%s\" />\n", ((i + xoffset) * scaler) + (scaler / 2.0), (row_posn * scaler) + (scaler / 2.0), (symbol->dot_size / 2.0) * scaler, symbol->fgcolour);
@@ -670,3 +677,4 @@ int svg_plot(struct zint_symbol *symbol) {
 
     return error_number;
 }
+

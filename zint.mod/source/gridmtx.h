@@ -1,20 +1,20 @@
 /*  gridmtx.h - definitions for Grid Matrix
 
     libzint - the open source barcode library
-    Copyright (C) 2009-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,7 +25,7 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
 
@@ -37,7 +37,7 @@
 #define GM_BYTE		6
 #define GM_CHINESE	7
 
-#define EUROPIUM	"0123456789ABCDEFGHIJKLMOPRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
+#define EUROPIUM	"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
 
 static const char shift_set[] = {
     /* From Table 7 - Encoding of control characters */
@@ -47,15 +47,15 @@ static const char shift_set[] = {
     ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~'
 };
 
-static const int gm_recommend_cw[] = {
+static const unsigned short int gm_recommend_cw[] = {
     9, 30, 59, 114, 170, 237, 315, 405, 506, 618, 741, 875, 1021
 };
 
-static const int gm_max_cw[] = {
+static const unsigned short int gm_max_cw[] = {
     11, 40, 79, 146, 218, 305, 405, 521, 650, 794, 953, 1125, 1313
 };
 
-static const int gm_data_codewords[] = {
+static const unsigned short int gm_data_codewords[] = {
     0, 15, 13, 11, 9,
     45, 40, 35, 30, 25,
     89, 79, 69, 59, 49,
@@ -71,20 +71,20 @@ static const int gm_data_codewords[] = {
     1313, 1167, 1021, 875, 729
 };
 
-static const int gm_n1[] = {
+static const char gm_n1[] = {
     18, 50, 98, 81, 121, 113, 113, 116, 121, 126, 118, 125, 122
 };
 
-static const int gm_b1[] = {
+static const char gm_b1[] = {
     1, 1, 1, 2, 2, 2, 2, 3, 2, 7, 5, 10, 6
 };
 
-static const int gm_b2[] = {
+static const char gm_b2[] = {
     0, 0, 0, 0, 0, 1, 2, 2, 4, 0, 4, 0, 6
 };
 
 /* Values from table A.1 */
-static const int gm_ebeb[] = {
+static const char gm_ebeb[] = {
     /* E1 B3 E2 B4 */
     0, 0, 0, 0, // version 1
     3, 1, 0, 0,
@@ -153,7 +153,7 @@ static const int gm_ebeb[] = {
     61, 9, 60, 3
 };
 
-static const int gm_macro_matrix[] = {
+static const unsigned short int gm_macro_matrix[] = {
     728, 625, 626, 627, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649, 650,
     727, 624, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 651,
     726, 623, 528, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 553, 652,
@@ -182,3 +182,4 @@ static const int gm_macro_matrix[] = {
     703, 600, 599, 598, 597, 596, 595, 594, 593, 592, 591, 590, 589, 588, 587, 586, 585, 584, 583, 582, 581, 580, 579, 578, 577, 576, 675,
     702, 701, 700, 699, 698, 697, 696, 695, 694, 693, 692, 691, 690, 689, 688, 687, 686, 685, 684, 683, 682, 681, 680, 679, 678, 677, 676,
 };
+

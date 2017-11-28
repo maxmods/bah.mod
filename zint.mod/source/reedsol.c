@@ -1,20 +1,20 @@
-/** 
- 
+/**
+
   This is a simple Reed-Solomon encoder
   (C) Cliff Hones 2004
- 
+
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,8 +25,8 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
-    SUCH DAMAGE. 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+    SUCH DAMAGE.
  */
 
 // It is not written with high efficiency in mind, so is probably
@@ -116,12 +116,12 @@ void rs_init_code(const int nsym, int index) {
     }
 }
 
-void rs_encode(const int len, const unsigned char *data, unsigned char *res) {
-    int i, k, m;
+void rs_encode(const size_t len,const unsigned char *data, unsigned char *res) {
+    int i, k;
     for (i = 0; i < rlen; i++)
         res[i] = 0;
     for (i = 0; i < len; i++) {
-        m = res[rlen - 1] ^ data[i];
+        int m = res[rlen - 1] ^ data[i];
         for (k = rlen - 1; k > 0; k--) {
             if (m && rspoly[k])
                 res[k] = (unsigned char) (res[k - 1] ^ alog[(logt[m] + logt[rspoly[k]]) % logmod]);
@@ -137,11 +137,11 @@ void rs_encode(const int len, const unsigned char *data, unsigned char *res) {
 
 /* The same as above but for larger bitlengths - Aztec code compatible */
 void rs_encode_long(const int len, const unsigned int *data, unsigned int *res) {
-    int i, k, m;
+    int i, k;
     for (i = 0; i < rlen; i++)
         res[i] = 0;
     for (i = 0; i < len; i++) {
-        m = res[rlen - 1] ^ data[i];
+        int m = res[rlen - 1] ^ data[i];
         for (k = rlen - 1; k > 0; k--) {
             if (m && rspoly[k])
                 res[k] = res[k - 1] ^ alog[(logt[m] + logt[rspoly[k]]) % logmod];
@@ -162,3 +162,4 @@ void rs_free(void) {
     free(rspoly);
     rspoly = NULL;
 }
+

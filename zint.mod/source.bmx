@@ -67,6 +67,8 @@ Import "source/bmp.c"
 Import "source/gif.c"
 Import "source/pcx.c"
 Import "source/hanxin.c"
+Import "source/tif.c"
+Import "source/emf.c"
 Import "source/cairo.c"
 
 Import "glue.c"

@@ -1,8 +1,8 @@
-/* gs1.h - Verifies GS1 data */
+/* tif.h - Aldus Tagged Image File Format */
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2009-2017 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2016-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -29,18 +29,60 @@
     OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
-#ifndef __GS1_H
-#define __GS1_H
+#ifndef TIF_H
+#define	TIF_H
 
-#ifdef __cplusplus
+#ifdef	__cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
-    extern int gs1_verify(struct zint_symbol *symbol, const unsigned char source[], const size_t src_len, char reduced[]);
-    extern int ugs1_verify(struct zint_symbol *symbol, const unsigned char source[], const unsigned int src_len, unsigned char reduced[]);
+#ifdef _MSC_VER
+#include <windows.h>
+#include "stdint_msvc.h"
+#else
+#include <stdint.h>
+#endif
 
-#ifdef __cplusplus
+#pragma pack(1)
+
+    typedef struct tiff_header {
+        uint16_t byte_order;
+        uint16_t identity;
+        uint32_t offset;
+    } tiff_header_t;
+
+    typedef struct tiff_tag {
+        uint16_t tag;
+        uint16_t type;
+        uint32_t count;
+        uint32_t offset;
+    } tiff_tag_t;
+
+    typedef struct tiff_ifd {
+        uint16_t entries;
+        tiff_tag_t new_subset;
+        tiff_tag_t image_width;
+        tiff_tag_t image_length;
+        tiff_tag_t bits_per_sample;
+        tiff_tag_t compression;
+        tiff_tag_t photometric;
+        tiff_tag_t strip_offsets;
+        tiff_tag_t samples_per_pixel;
+        tiff_tag_t rows_per_strip;
+        tiff_tag_t strip_byte_counts;
+        tiff_tag_t x_resolution;
+        tiff_tag_t y_resolution;
+        tiff_tag_t planar_config;
+        tiff_tag_t resolution_unit;
+        uint32_t offset;
+    } tiff_ifd_t;
+
+#pragma pack()
+
+#ifdef	__cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
-#endif /* __GS1_H */
+#endif	/* TIF_H */
+
+

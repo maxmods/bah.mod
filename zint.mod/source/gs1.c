@@ -2,20 +2,20 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2009-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2009-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,7 +26,7 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
 
@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef _MSC_VER
-#include <malloc.h> 
+#include <malloc.h>
 #endif
 #include "common.h"
 #include "gs1.h"
@@ -79,17 +79,17 @@ int gs1_verify(struct zint_symbol *symbol, const unsigned char source[], const s
     /* Detect extended ASCII characters */
     for (i = 0; i < src_len; i++) {
         if (source[i] >= 128) {
-            strcpy(symbol->errtxt, "Extended ASCII characters are not supported by GS1 (B50)");
+            strcpy(symbol->errtxt, "250: Extended ASCII characters are not supported by GS1");
             return ZINT_ERROR_INVALID_DATA;
         }
         if (source[i] < 32) {
-            strcpy(symbol->errtxt, "Control characters are not supported by GS1 (B51)");
+            strcpy(symbol->errtxt, "251: Control characters are not supported by GS1 ");
             return ZINT_ERROR_INVALID_DATA;
         }
     }
 
     if (source[0] != '[') {
-        strcpy(symbol->errtxt, "Data does not start with an AI (B52)");
+        strcpy(symbol->errtxt, "252: Data does not start with an AI");
         return ZINT_ERROR_INVALID_DATA;
     }
 
@@ -129,31 +129,31 @@ int gs1_verify(struct zint_symbol *symbol, const unsigned char source[], const s
 
     if (bracket_level != 0) {
         /* Not all brackets are closed */
-        strcpy(symbol->errtxt, "Malformed AI in input data (brackets don\'t match) (B53)");
+        strcpy(symbol->errtxt, "253: Malformed AI in input data (brackets don\'t match)");
         return ZINT_ERROR_INVALID_DATA;
     }
 
     if (max_bracket_level > 1) {
         /* Nested brackets */
-        strcpy(symbol->errtxt, "Found nested brackets in input data (B54)");
+        strcpy(symbol->errtxt, "254: Found nested brackets in input data");
         return ZINT_ERROR_INVALID_DATA;
     }
 
     if (max_ai_length > 4) {
         /* AI is too long */
-        strcpy(symbol->errtxt, "Invalid AI in input data (AI too long) (B55)");
+        strcpy(symbol->errtxt, "255: Invalid AI in input data (AI too long)");
         return ZINT_ERROR_INVALID_DATA;
     }
 
     if (min_ai_length <= 1) {
         /* AI is too short */
-        strcpy(symbol->errtxt, "Invalid AI in input data (AI too short) (B56)");
+        strcpy(symbol->errtxt, "256: Invalid AI in input data (AI too short)");
         return ZINT_ERROR_INVALID_DATA;
     }
 
     if (ai_latch == 1) {
         /* Non-numeric data in AI */
-        strcpy(symbol->errtxt, "Invalid AI in input data (non-numeric characters in AI) (B57)");
+        strcpy(symbol->errtxt, "257: Invalid AI in input data (non-numeric characters in AI)");
         return ZINT_ERROR_INVALID_DATA;
     }
 
@@ -190,7 +190,7 @@ int gs1_verify(struct zint_symbol *symbol, const unsigned char source[], const s
     for (i = 0; i < ai_count; i++) {
         if (data_length[i] == 0) {
             /* No data for given AI */
-            strcpy(symbol->errtxt, "Empty data field in input data (B58)");
+            strcpy(symbol->errtxt, "258: Empty data field in input data");
             return ZINT_ERROR_INVALID_DATA;
         }
     }
@@ -286,13 +286,13 @@ int gs1_verify(struct zint_symbol *symbol, const unsigned char source[], const s
     }
 
     if (error_latch == 5) {
-        strcpy(symbol->errtxt, "Invalid data length for AI (B59)");
+        strcpy(symbol->errtxt, "259: Invalid data length for AI ");
         strcat(symbol->errtxt, ai_string);
         return ZINT_ERROR_INVALID_DATA;
     }
 
     if (error_latch == 6) {
-        strcpy(symbol->errtxt, "Invalid AI value (B60)");
+        strcpy(symbol->errtxt, "260: Invalid AI value");
         strcat(symbol->errtxt, ai_string);
         return ZINT_ERROR_INVALID_DATA;
     }
@@ -353,6 +353,7 @@ int ugs1_verify(struct zint_symbol *symbol, const unsigned char source[], const 
         ustrcpy(reduced, (unsigned char*) temp);
         return 0;
     }
-    strcpy(symbol->errtxt, "ugs1_verify overflow (B61)");
+    strcpy(symbol->errtxt, "261: ugs1_verify overflow");
     return ZINT_ERROR_INVALID_DATA;
 }
+

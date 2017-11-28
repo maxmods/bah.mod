@@ -2,7 +2,7 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2010-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2010-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -417,7 +417,7 @@ int maxi_text_process(int mode, unsigned char source[], int length, int eci) {
             i++;
         }
         i++;
-    } while (i < 145);
+    } while (i < 144);
 
     /* Number compression has not been forgotten! - It's handled below */
     i = 0;
@@ -452,14 +452,44 @@ int maxi_text_process(int mode, unsigned char source[], int length, int eci) {
     } while (i <= 143);
 
     /* Insert ECI at the beginning of message if needed */
+    /* Encode ECI assignment numbers according to table 3 */
     if (eci != 3) {
         maxi_bump(set, character, 0);
         character[0] = 27; // ECI
-        maxi_bump(set, character, 1);
-        character[1] = eci;
-        length += 2;
+        if (eci <= 31) {
+            maxi_bump(set, character, 1);
+            character[1] = eci;
+            length += 2;
+        }
+        if ((eci >= 32) && (eci <= 1023)) {
+            maxi_bump(set, character, 1);
+            maxi_bump(set, character, 1);
+            character[1] = 0x20 + ((eci >> 6) & 0x0F);
+            character[2] = eci & 0x3F;
+            length += 3;
+        }
+        if ((eci >= 1024) && (eci <= 32767)) {
+            maxi_bump(set, character, 1);
+            maxi_bump(set, character, 1);
+            maxi_bump(set, character, 1);
+            character[1] = 0x30 + ((eci >> 12) & 0x03);
+            character[2] = (eci >> 6) & 0x3F;
+            character[3] = eci & 0x3F;
+            length += 4;
+        }
+        if (eci >= 32768) {
+            maxi_bump(set, character, 1);
+            maxi_bump(set, character, 1);
+            maxi_bump(set, character, 1);
+            maxi_bump(set, character, 1);
+            character[1] = 0x38 + ((eci >> 18) & 0x02);
+            character[2] = (eci >> 12) & 0x3F;
+            character[3] = (eci >> 6) & 0x3F;
+            character[4] = eci & 0x3F;
+            length += 5;
+        }
     }
-    
+
     if (((mode == 2) || (mode == 3)) && (length > 84)) {
         return ZINT_ERROR_TOO_LONG;
     }
@@ -503,7 +533,8 @@ int maxi_text_process(int mode, unsigned char source[], int length, int eci) {
 
 /* Format structured primary for Mode 2 */
 void maxi_do_primary_2(char postcode[], int country, int service) {
-    int postcode_length, postcode_num, i;
+    size_t postcode_length;
+   int    postcode_num, i;
 
     for (i = 0; i < 10; i++) {
         if ((postcode[i] < '0') || (postcode[i] > '9')) {
@@ -557,8 +588,8 @@ void maxi_do_primary_3(char postcode[], int country, int service) {
     maxi_codeword[9] = ((service & 0x3f0) >> 4);
 }
 
-int maxicode(struct zint_symbol *symbol, unsigned char local_source[], int length) {
-    int i, j, block, bit, mode, countrycode = 0, service = 0, lp = 0;
+int maxicode(struct zint_symbol *symbol, unsigned char local_source[], const int length) {
+    int i, j, block, bit, mode, lp = 0;
     int bit_pattern[7], internal_error = 0, eclen;
     char postcode[12], countrystr[4], servicestr[4];
 
@@ -585,22 +616,24 @@ int maxicode(struct zint_symbol *symbol, unsigned char local_source[], int lengt
     }
 
     if ((mode < 2) || (mode > 6)) { /* Only codes 2 to 6 supported */
-        strcpy(symbol->errtxt, "Invalid Maxicode Mode (E50)");
+        strcpy(symbol->errtxt, "550: Invalid Maxicode Mode");
         return ZINT_ERROR_INVALID_OPTION;
     }
 
     if ((mode == 2) || (mode == 3)) { /* Modes 2 and 3 need data in symbol->primary */
+        int countrycode;
+        int service;
         if (lp == 0) { /* Mode set manually means lp doesn't get set */
             lp = strlen(symbol->primary);
         }
         if (lp != 15) {
-            strcpy(symbol->errtxt, "Invalid Primary String (E51)");
+            strcpy(symbol->errtxt, "551: Invalid Primary String");
             return ZINT_ERROR_INVALID_DATA;
         }
 
         for (i = 9; i < 15; i++) { /* check that country code and service are numeric */
             if ((symbol->primary[i] < '0') || (symbol->primary[i] > '9')) {
-                strcpy(symbol->errtxt, "Invalid Primary String (E52)");
+                strcpy(symbol->errtxt, "552: Invalid Primary String");
                 return ZINT_ERROR_INVALID_DATA;
             }
         }
@@ -643,7 +676,7 @@ int maxicode(struct zint_symbol *symbol, unsigned char local_source[], int lengt
 
     i = maxi_text_process(mode, local_source, length, symbol->eci);
     if (i == ZINT_ERROR_TOO_LONG) {
-        strcpy(symbol->errtxt, "Input data too long (E53)");
+        strcpy(symbol->errtxt, "553: Input data too long");
         return i;
     }
 
@@ -700,3 +733,5 @@ int maxicode(struct zint_symbol *symbol, unsigned char local_source[], int lengt
 
     return internal_error;
 }
+
+

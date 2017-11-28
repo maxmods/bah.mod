@@ -2,21 +2,21 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2008-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2017 Robin Stuart <rstuart114@gmail.com>
     Bugfixes thanks to Christian Sakowski and BogDan Vatra
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +27,7 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
 
@@ -35,7 +35,7 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef _MSC_VER
-#include <malloc.h> 
+#include <malloc.h>
 #endif
 #include "common.h"
 #include "gs1.h"
@@ -102,13 +102,13 @@ int parunmodd(const unsigned char llyth) {
  * bring together same type blocks
  */
 void grwp(int *indexliste) {
-    int i, j;
 
     /* bring together same type blocks */
     if (*(indexliste) > 1) {
-        i = 1;
+        int i = 1;
         while (i < *(indexliste)) {
             if (list[1][i - 1] == list[1][i]) {
+                int j;
                 /* bring together */
                 list[0][i - 1] = list[0][i - 1] + list[0][i];
                 j = i + 1;
@@ -131,11 +131,11 @@ void grwp(int *indexliste) {
  * Implements rules from ISO 15417 Annex E
  */
 void dxsmooth(int *indexliste) {
-    int i, current, last, next, length;
+    int i, last, next;
 
     for (i = 0; i < *(indexliste); i++) {
-        current = list[1][i];
-        length = list[0][i];
+        int current = list[1][i];
+        int length = list[0][i];
         if (i != 0) {
             last = list[1][i - 1];
         } else {
@@ -291,9 +291,10 @@ void c128_set_c(unsigned char source_a, unsigned char source_b, char dest[], int
 }
 
 /* Handle Code 128 and NVE-18 */
-int code_128(struct zint_symbol *symbol, unsigned char source[], int length) {
+int code_128(struct zint_symbol *symbol, unsigned char source[], const size_t length) {
     int i, j, k, values[170] = {0}, bar_characters, read, total_sum;
-    int error_number, indexchaine, indexliste, sourcelen, f_state;
+    int error_number, indexchaine, indexliste, f_state;
+    size_t sourcelen;
     char set[170] = {' '}, fset[170] = {' '}, mode, last_set, current_set = ' ';
     float glyph_count;
     char dest[1000];
@@ -310,7 +311,7 @@ int code_128(struct zint_symbol *symbol, unsigned char source[], int length) {
     if (sourcelen > 160) {
         /* This only blocks rediculously long input - the actual length of the
            resulting barcode depends on the type of data, so this is trapped later */
-        strcpy(symbol->errtxt, "Input too long (C40)");
+        strcpy(symbol->errtxt, "340: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -482,7 +483,7 @@ int code_128(struct zint_symbol *symbol, unsigned char source[], int length) {
         }
     }
     if (glyph_count > 60.0) {
-        strcpy(symbol->errtxt, "Input too long (C41)");
+        strcpy(symbol->errtxt, "341: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -707,13 +708,13 @@ int ean_128(struct zint_symbol *symbol, unsigned char source[], const size_t len
     if (length > 160) {
         /* This only blocks rediculously long input - the actual length of the
         resulting barcode depends on the type of data, so this is trapped later */
-        strcpy(symbol->errtxt, "Input too long (C42)");
+        strcpy(symbol->errtxt, "342: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     for (i = 0; i < length; i++) {
         if (source[i] == '\0') {
             /* Null characters not allowed! */
-            strcpy(symbol->errtxt, "NULL character in input data (C43)");
+            strcpy(symbol->errtxt, "343: NULL character in input data");
             return ZINT_ERROR_INVALID_DATA;
         }
     }
@@ -843,7 +844,7 @@ int ean_128(struct zint_symbol *symbol, unsigned char source[], const size_t len
         }
     }
     if (glyph_count > 60.0) {
-        strcpy(symbol->errtxt, "Input too long (C44)");
+        strcpy(symbol->errtxt, "344: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -1010,13 +1011,13 @@ int nve_18(struct zint_symbol *symbol, unsigned char source[], int length) {
     sourcelen = length;
 
     if (sourcelen > 17) {
-        strcpy(symbol->errtxt, "Input too long (C45)");
+        strcpy(symbol->errtxt, "345: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
     error_number = is_sane(NEON, source, length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C46)");
+        strcpy(symbol->errtxt, "346: Invalid characters in data");
         return error_number;
     }
     zeroes = 17 - sourcelen;
@@ -1051,13 +1052,13 @@ int ean_14(struct zint_symbol *symbol, unsigned char source[], int length) {
     unsigned char ean128_equiv[20];
 
     if (length > 13) {
-        strcpy(symbol->errtxt, "Input wrong length (C47)");
+        strcpy(symbol->errtxt, "347: Input wrong length");
         return ZINT_ERROR_TOO_LONG;
     }
 
     error_number = is_sane(NEON, source, length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid character in data (C48)");
+        strcpy(symbol->errtxt, "348: Invalid character in data");
         return error_number;
     }
 
@@ -1085,3 +1086,5 @@ int ean_14(struct zint_symbol *symbol, unsigned char source[], int length) {
 
     return error_number;
 }
+
+

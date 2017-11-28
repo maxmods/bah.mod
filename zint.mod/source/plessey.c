@@ -2,20 +2,20 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2008-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,7 +26,7 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
 
@@ -49,21 +49,21 @@ static const char *MSITable[10] = {
 };
 
 /* Not MSI/Plessey but the older Plessey standard */
-int plessey(struct zint_symbol *symbol, unsigned char source[], int length) {
+int plessey(struct zint_symbol *symbol, unsigned char source[], const size_t length) {
 
-    unsigned int i, check;
+    unsigned int i;
     unsigned char *checkptr;
     static const char grid[9] = {1, 1, 1, 1, 0, 1, 0, 0, 1};
     char dest[1024]; /* 8 + 65 * 8 + 8 * 2 + 9 + 1 ~ 1024 */
     int error_number;
 
     if (length > 65) {
-        strcpy(symbol->errtxt, "Input too long (C70)");
+        strcpy(symbol->errtxt, "370: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     error_number = is_sane(SSET, source, length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C71)");
+        strcpy(symbol->errtxt, "371: Invalid characters in data");
         return error_number;
     }
     checkptr = (unsigned char *) calloc(1, length * 4 + 8);
@@ -73,7 +73,7 @@ int plessey(struct zint_symbol *symbol, unsigned char source[], int length) {
 
     /* Data area */
     for (i = 0; i < length; i++) {
-        check = posn(SSET, source[i]);
+        unsigned int check = posn(SSET, source[i]);
         lookup(SSET, PlessTable, source[i], dest);
         checkptr[4 * i] = check & 1;
         checkptr[4 * i + 1] = (check >> 1) & 1;
@@ -85,10 +85,11 @@ int plessey(struct zint_symbol *symbol, unsigned char source[], int length) {
        used in GNU Barcode */
 
     for (i = 0; i < (4 * length); i++) {
-        int j;
-        if (checkptr[i])
+        if (checkptr[i]) {
+            int j;
             for (j = 0; j < 9; j++)
                 checkptr[i + j] ^= grid[j];
+        }
     }
 
     for (i = 0; i < 8; i++) {
@@ -110,13 +111,13 @@ int plessey(struct zint_symbol *symbol, unsigned char source[], int length) {
 }
 
 /* Plain MSI Plessey - does not calculate any check character */
-int msi_plessey(struct zint_symbol *symbol, unsigned char source[], int length) {
+int msi_plessey(struct zint_symbol *symbol, unsigned char source[], const size_t length) {
 
-    unsigned int i;
+	size_t i;
     char dest[512]; /* 2 + 55 * 8 + 3 + 1 ~ 512 */
 
     if (length > 55) {
-        strcpy(symbol->errtxt, "Input too long (C72)");
+        strcpy(symbol->errtxt, "372: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -148,7 +149,7 @@ int msi_plessey_mod10(struct zint_symbol *symbol, unsigned char source[], int le
     error_number = 0;
 
     if (length > 18) {
-        strcpy(symbol->errtxt, "Input too long (C73)");
+        strcpy(symbol->errtxt, "373: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -171,7 +172,7 @@ int msi_plessey_mod10(struct zint_symbol *symbol, unsigned char source[], int le
     dau = strtoul(un, NULL, 10);
     dau *= 2;
 
-    sprintf(tri, "%ld", dau);
+    sprintf(tri, "%lu", dau);
 
     pedwar = 0;
     h = strlen(tri);
@@ -216,7 +217,7 @@ int msi_plessey_mod1010(struct zint_symbol *symbol, unsigned char source[], cons
 
     if (src_len > 18) {
         /* No Entry Stack Smashers! limit because of str->number conversion*/
-        strcpy(symbol->errtxt, "Input too long (C74)");
+        strcpy(symbol->errtxt, "374: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -240,7 +241,7 @@ int msi_plessey_mod1010(struct zint_symbol *symbol, unsigned char source[], cons
     dau = strtoul(un, NULL, 10);
     dau *= 2;
 
-    sprintf(tri, "%ld", dau);
+    sprintf(tri, "%lu", dau);
 
     pedwar = 0;
     h = strlen(tri);
@@ -270,7 +271,7 @@ int msi_plessey_mod1010(struct zint_symbol *symbol, unsigned char source[], cons
     dau = strtoul(un, NULL, 10);
     dau *= 2;
 
-    sprintf(tri, "%ld", dau);
+    sprintf(tri, "%lu", dau);
 
     pedwar = 0;
     h = strlen(tri);
@@ -306,7 +307,7 @@ int msi_plessey_mod1010(struct zint_symbol *symbol, unsigned char source[], cons
     return error_number;
 }
 
-/* Calculate a Modulo 11 check digit using the system discussed on Wikipedia - 
+/* Calculate a Modulo 11 check digit using the system discussed on Wikipedia -
     see http://en.wikipedia.org/wiki/Talk:MSI_Barcode */
 int msi_plessey_mod11(struct zint_symbol *symbol, unsigned char source[], const unsigned int src_len) {
     /* uses the IBM weight system */
@@ -317,7 +318,7 @@ int msi_plessey_mod11(struct zint_symbol *symbol, unsigned char source[], const 
     error_number = 0;
 
     if (src_len > 55) {
-        strcpy(symbol->errtxt, "Input too long (C75)");
+        strcpy(symbol->errtxt, "375: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -368,7 +369,8 @@ int msi_plessey_mod11(struct zint_symbol *symbol, unsigned char source[], const 
  * Verified against http://www.bokai.com/BarcodeJSP/applet/BarcodeSampleApplet.htm */
 int msi_plessey_mod1110(struct zint_symbol *symbol, unsigned char source[], const unsigned int src_len) {
     /* Weighted using the IBM system */
-    unsigned long i, weight, x, check, wright, dau, pedwar, pump, h;
+    unsigned long i, weight, x, check, wright, dau, pedwar, pump;
+    size_t h;
     long si;
     char un[16], tri[16];
     int error_number;
@@ -379,7 +381,7 @@ int msi_plessey_mod1110(struct zint_symbol *symbol, unsigned char source[], cons
     error_number = 0;
 
     if (src_len > 18) {
-        strcpy(symbol->errtxt, "Input too long (C76)");
+        strcpy(symbol->errtxt, "376: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
 
@@ -427,7 +429,7 @@ int msi_plessey_mod1110(struct zint_symbol *symbol, unsigned char source[], cons
     dau = strtoul(un, NULL, 10);
     dau *= 2;
 
-    sprintf(tri, "%ld", dau);
+    sprintf(tri, "%lu", dau);
 
     pedwar = 0;
     h = strlen(tri);
@@ -465,7 +467,7 @@ int msi_handle(struct zint_symbol *symbol, unsigned char source[], int length) {
 
     error_number = is_sane(NEON, source, length);
     if (error_number != 0) {
-        strcpy(symbol->errtxt, "Invalid characters in input data (C77)");
+        strcpy(symbol->errtxt, "377: Invalid characters in input data");
         return ZINT_ERROR_INVALID_DATA;
     }
 
@@ -489,3 +491,4 @@ int msi_handle(struct zint_symbol *symbol, unsigned char source[], int length) {
 
     return error_number;
 }
+

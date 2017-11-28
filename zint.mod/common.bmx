@@ -146,7 +146,7 @@ Const BARCODE_RSS_EXPSTACK_CC:Int = 139
 Const BARCODE_CHANNEL:Int = 140
 Const BARCODE_CODEONE:Int = 141
 Const BARCODE_GRIDMATRIX:Int = 142
-
+Const BARCODE_UPNQR:Int = 143
 
 
 ' Warning and error conditions

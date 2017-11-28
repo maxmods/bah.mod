@@ -2,20 +2,20 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2008-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,7 +26,7 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
 
@@ -56,7 +56,7 @@ static char *TeleTable[] = {
     "3113111113", "11311111111111", "331111111111", "111113111113", "31111111111111", "111311111113", "131111111113"
 };
 
-int telepen(struct zint_symbol *symbol, unsigned char source[], int src_len) {
+int telepen(struct zint_symbol *symbol, unsigned char source[], const size_t src_len) {
     unsigned int i, count, check_digit;
     int error_number;
     char dest[512]; /*14 + 30 * 14 + 14 + 14 + 1 ~ 512 */
@@ -66,7 +66,7 @@ int telepen(struct zint_symbol *symbol, unsigned char source[], int src_len) {
     count = 0;
 
     if (src_len > 30) {
-        strcpy(symbol->errtxt, "Input too long (C90)");
+        strcpy(symbol->errtxt, "390: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     /* Start character */
@@ -75,7 +75,7 @@ int telepen(struct zint_symbol *symbol, unsigned char source[], int src_len) {
     for (i = 0; i < src_len; i++) {
         if (source[i] > 126) {
             /* Cannot encode extended ASCII */
-            strcpy(symbol->errtxt, "Invalid characters in input data (C91)");
+            strcpy(symbol->errtxt, "391: Invalid characters in input data");
             return ZINT_ERROR_INVALID_DATA;
         }
         strcat(dest, TeleTable[source[i]]);
@@ -103,23 +103,24 @@ int telepen(struct zint_symbol *symbol, unsigned char source[], int src_len) {
     return error_number;
 }
 
-int telepen_num(struct zint_symbol *symbol, unsigned char source[], int src_len) {
-    unsigned int i, count, check_digit, glyph;
-    int error_number, temp_length = src_len;
+int telepen_num(struct zint_symbol *symbol, unsigned char source[], const size_t src_len) {
+    unsigned int count, check_digit, glyph;
+    int error_number;
+    size_t i,temp_length = src_len;
     char dest[1024]; /* 14 + 60 * 14 + 14 + 14 + 1 ~ 1024 */
     unsigned char temp[64];
 
     count = 0;
 
     if (temp_length > 60) {
-        strcpy(symbol->errtxt, "Input too long (C92)");
+        strcpy(symbol->errtxt, "392: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     ustrcpy(temp, source);
     to_upper(temp);
-    error_number = is_sane(NEON, temp, temp_length);
+    error_number = is_sane(SODIUM, temp, temp_length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C93)");
+        strcpy(symbol->errtxt, "393: Invalid characters in data");
         return error_number;
     }
 
@@ -136,7 +137,7 @@ int telepen_num(struct zint_symbol *symbol, unsigned char source[], int src_len)
 
     for (i = 0; i < temp_length; i += 2) {
         if (temp[i] == 'X') {
-            strcpy(symbol->errtxt, "Invalid position of X in Telepen data (C94)");
+            strcpy(symbol->errtxt, "394: Invalid position of X in Telepen data");
             return ZINT_ERROR_INVALID_DATA;
         }
 
@@ -164,3 +165,4 @@ int telepen_num(struct zint_symbol *symbol, unsigned char source[], int src_len)
     ustrcpy(symbol->text, temp);
     return error_number;
 }
+

@@ -30,11 +30,15 @@ bbdoc: Barcode Generator
 End Rem
 Module BaH.Zint
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2017 Bruce A Henderson"
-ModuleInfo "Copyright: libzint - 2009-2016 Robin Stuart"
+ModuleInfo "Copyright: libzint - 2009-2017 Robin Stuart"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to libzint 2.6.2."
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Implemented Zint/Cairo renderer."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Implemented Zint/Cairo renderer."
 ModuleInfo "History: 1.00"

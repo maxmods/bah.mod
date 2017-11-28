@@ -1,7 +1,7 @@
 /* pdf417.c - Handles PDF417 stacked symbology */
 
 /*  Zint - A barcode generating program using libpng
-    Copyright (C) 2008-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2017 Robin Stuart <rstuart114@gmail.com>
     Portions Copyright (C) 2004 Grandzebu
     Bug Fixes thanks to KL Chin <klchin@users.sourceforge.net>
 
@@ -62,14 +62,14 @@
 
 /* text mode processing tables */
 
-static const int asciix[95] = {
+static const char asciix[95] = {
     7, 8, 8, 4, 12, 4, 4, 8, 8, 8, 12, 4, 12, 12, 12, 12, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 12, 8, 8, 4, 8, 8, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 8, 8, 8, 4, 8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 2, 2, 2, 8, 8, 8, 8
 };
 
-static const int asciiy[95] = {
+static const char asciiy[95] = {
     26, 10, 20, 15, 18, 21, 10, 28, 23, 24, 22, 20, 13, 16, 17, 19, 0, 1, 2, 3,
     4, 5, 6, 7, 8, 9, 14, 0, 1, 23, 2, 25, 3, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 4, 5, 6, 24, 7, 8, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -78,7 +78,7 @@ static const int asciiy[95] = {
 
 /* Automatic sizing table */
 
-static const int MicroAutosize[56] = {
+static const char MicroAutosize[56] = {
     4, 6, 7, 8, 10, 12, 13, 14, 16, 18, 19, 20, 24, 29, 30, 33, 34, 37, 39, 46, 54, 58, 70, 72, 82, 90, 108, 126,
     1, 14, 2, 7, 3, 25, 8, 16, 5, 17, 9, 6, 10, 11, 28, 12, 19, 13, 29, 20, 30, 21, 22, 31, 23, 32, 33, 34
 };
@@ -101,13 +101,13 @@ int quelmode(char codeascii) {
 
 /* 844 */
 void regroupe(int *indexliste) {
-    int i, j;
 
     /* bring together same type blocks */
     if (*(indexliste) > 1) {
-        i = 1;
+        int i = 1;
         while (i < *(indexliste)) {
             if (liste[1][i - 1] == liste[1][i]) {
+                int j;
                 /* bring together */
                 liste[0][i - 1] = liste[0][i - 1] + liste[0][i];
                 j = i + 1;
@@ -224,11 +224,9 @@ void pdfsmooth(int *indexliste) {
 }
 
 /* 547 */
-void textprocess(int *chainemc, int *mclength, char chaine[], int start, int length, int block) {
+void textprocess(int *chainemc, int *mclength, char chaine[], int start, int length) {
     int j, indexlistet, curtable, listet[2][5000], chainet[5000], wnet;
-    char codeascii;
 
-    codeascii = 0;
     wnet = 0;
 
     for (j = 0; j < 1000; j++) {
@@ -236,7 +234,7 @@ void textprocess(int *chainemc, int *mclength, char chaine[], int start, int len
     }
     /* listet will contain the table numbers and the value of each characters */
     for (indexlistet = 0; indexlistet < length; indexlistet++) {
-        codeascii = chaine[start + indexlistet];
+        char codeascii = chaine[start + indexlistet];
         switch (codeascii) {
             case '\t': listet[0][indexlistet] = 12;
                 listet[1][indexlistet] = 12;
@@ -417,17 +415,8 @@ void textprocess(int *chainemc, int *mclength, char chaine[], int start, int len
 }
 
 /* 671 */
-void byteprocess(int *chainemc, int *mclength, unsigned char chaine[], int start, int length, int block) {
+void byteprocess(int *chainemc, int *mclength, unsigned char chaine[], int start, int length) {
     int debug = 0;
-    int len = 0;
-    unsigned int chunkLen = 0;
-#if defined(_MSC_VER) && _MSC_VER == 1200
-    uint64_t mantisa = 0;
-    uint64_t total = 0;
-#else
-    uint64_t mantisa = 0ULL;
-    uint64_t total = 0ULL;
-#endif
 
     if (debug) printf("\nEntering byte mode at position %d\n", start);
 
@@ -438,6 +427,7 @@ void byteprocess(int *chainemc, int *mclength, unsigned char chaine[], int start
             printf("913 %d\n", chainemc[*mclength - 1]);
         }
     } else {
+        int len;
         /* select the switch for multiple of 6 bytes */
         if (length % 6 == 0) {
             chainemc[(*mclength)++] = 924;
@@ -447,8 +437,11 @@ void byteprocess(int *chainemc, int *mclength, unsigned char chaine[], int start
             if (debug) printf("901 ");
         }
 
+        len = 0;
+
         while (len < length) {
-            chunkLen = length - len;
+			uint64_t total;
+            unsigned int chunkLen = length - len;
             if (6 <= chunkLen) /* Take groups of 6 */ {
                 chunkLen = 6;
                 len += chunkLen;
@@ -459,7 +452,7 @@ void byteprocess(int *chainemc, int *mclength, unsigned char chaine[], int start
 #endif
 
                 while (chunkLen--) {
-                    mantisa = chaine[start++];
+                    uint64_t mantisa = chaine[start++];
 #if defined(_MSC_VER) && _MSC_VER == 1200
                     total |= mantisa << (uint64_t) (chunkLen * 8);
 #else
@@ -490,8 +483,8 @@ void byteprocess(int *chainemc, int *mclength, unsigned char chaine[], int start
 }
 
 /* 712 */
-void numbprocess(int *chainemc, int *mclength, char chaine[], int start, int length, int block) {
-    int j, loop, longueur, dummy[100], dumlength, diviseur, nombre;
+void numbprocess(int *chainemc, int *mclength, char chaine[], int start, int length) {
+    int j, loop, dummy[100], diviseur, nombre;
     char chainemod[50], chainemult[100], temp;
 
     strcpy(chainemod, "");
@@ -504,7 +497,8 @@ void numbprocess(int *chainemc, int *mclength, char chaine[], int start, int len
 
     j = 0;
     while (j < length) {
-        dumlength = 0;
+        int longueur;
+        int dumlength = 0;
         strcpy(chainemod, "");
         longueur = length - j;
         if (longueur > 44) {
@@ -557,13 +551,11 @@ void numbprocess(int *chainemc, int *mclength, char chaine[], int start, int len
 }
 
 /* 366 */
-int pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length) {
+static int pdf417(struct zint_symbol *symbol, unsigned char chaine[], const size_t length) {
     int i, k, j, indexchaine, indexliste, mode, longueur, loop, mccorrection[520], offset;
-    int total, chainemc[2700], mclength, c1, c2, c3, dummy[35], codeerr;
-    char codebarre[140], pattern[580];
-    int debug = 0;
-
-    codeerr = 0;
+    int total, chainemc[2700], mclength, c1, c2, c3, dummy[35];
+    char pattern[580];
+    int debug = symbol->debug;
 
     /* 456 */
     indexliste = 0;
@@ -609,29 +601,51 @@ int pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length) {
     /* 541 - now compress the data */
     indexchaine = 0;
     mclength = 0;
-    
+
     if (symbol->output_options & READER_INIT) {
         chainemc[mclength] = 921; /* Reader Initialisation */
         mclength++;
     }
-    
+
     if (symbol->eci != 3) {
-        chainemc[mclength] = 927; /* ECI */
-        mclength++;
-        chainemc[mclength] = symbol->eci;
-        mclength++;
+        /* Encoding ECI assignment number, according to Table 8 */
+        if (symbol->eci <= 899) {
+            chainemc[mclength] = 927; /* ECI */
+            mclength++;
+            chainemc[mclength] = symbol->eci;
+            mclength++;
+        }
+        if ((symbol->eci >= 900) && (symbol->eci <= 810899)) {
+            chainemc[mclength] = 926; /* ECI */
+            mclength++;
+            chainemc[mclength] = (symbol->eci / 900) - 1;
+            mclength++;
+            chainemc[mclength] = symbol->eci % 900;
+            mclength++;
+        }
+        if (symbol->eci >= 810900) {
+            chainemc[mclength] = 925; /* ECI */
+            mclength++;
+            chainemc[mclength] = symbol->eci - 810900;
+            mclength++;
+        }
     }
-    
+
+    if (symbol->eci > 811799) {
+        strcpy(symbol->errtxt, "472: Invalid ECI");
+        return ZINT_ERROR_INVALID_OPTION;
+    }
+
     for (i = 0; i < indexliste; i++) {
         switch (liste[1][i]) {
             case TEX: /* 547 - text mode */
-                textprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i], i);
+                textprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i]);
                 break;
             case BYT: /* 670 - octet stream mode */
-                byteprocess(chainemc, &mclength, chaine, indexchaine, liste[0][i], i);
+                byteprocess(chainemc, &mclength, chaine, indexchaine, liste[0][i]);
                 break;
             case NUM: /* 712 - numeric mode */
-                numbprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i], i);
+                numbprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i]);
                 break;
         }
         indexchaine = indexchaine + liste[0][i];
@@ -670,7 +684,7 @@ int pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length) {
         symbol->option_2 = 30;
     }
     if (symbol->option_2 < 1) {
-        symbol->option_2 = 0.5 + sqrt((longueur + k) / 3.0);
+        symbol->option_2 =(int)(0.5 + sqrt((longueur + k) / 3.0));
     }
     if (((longueur + k) / symbol->option_2) > 90) {
         /* stop the symbol from becoming too high */
@@ -764,81 +778,62 @@ int pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length) {
             case 0:
                 dummy[0] = k + c1;
                 dummy[symbol->option_2 + 1] = k + c3;
+                offset = 0; /* cluster(0) */
                 break;
             case 1:
                 dummy[0] = k + c2;
                 dummy[symbol->option_2 + 1] = k + c1;
+                offset = 929; /* cluster(3) */
                 break;
             case 2:
                 dummy[0] = k + c3;
                 dummy[symbol->option_2 + 1] = k + c2;
+                offset = 1858; /* cluster(6) */
                 break;
         }
-        strcpy(codebarre, "+*"); /* Start with a start char and a separator */
-        if (symbol->symbology == BARCODE_PDF417TRUNC) {
-            /* truncated - so same as before except knock off the last 5 chars */
-            for (j = 0; j <= symbol->option_2; j++) {
-                switch (i % 3) {
-                    case 1: offset = 929;
-                        break;
-                    case 2: offset = 1858;
-                        break;
-                    default: offset = 0;
-                        break;
-                }
-                strcat(codebarre, codagemc[offset + dummy[j]]);
-                strcat(codebarre, "*");
-            }
-        } else {
-            /* normal PDF417 symbol */
-            for (j = 0; j <= symbol->option_2 + 1; j++) {
-                switch (i % 3) {
-                    case 1: offset = 929;
-                        /* cluster(3) */ break;
-                    case 2: offset = 1858;
-                        /* cluster(6) */ break;
-                    default: offset = 0;
-                        /* cluster(0) */ break;
-                }
-                strcat(codebarre, codagemc[offset + dummy[j]]);
-                strcat(codebarre, "*");
-            }
-            strcat(codebarre, "-");
+        strcpy(pattern, "");
+        bin_append(0x1FEA8, 17, pattern); /* Row start */
+
+        for (j = 0; j <= symbol->option_2; j++) {
+            bin_append(pdf_bitpattern[offset + dummy[j]], 16, pattern);
+            strcat(pattern, "0");
         }
 
-        strcpy(pattern, "");
-        for (loop = 0; loop < strlen(codebarre); loop++) {
-            lookup(BRSET, PDFttf, codebarre[loop], pattern);
+        if (symbol->symbology != BARCODE_PDF417TRUNC) {
+            bin_append(pdf_bitpattern[offset + dummy[j]], 16, pattern);
+            strcat(pattern, "0");
+            bin_append(0x3FA29, 18, pattern); /* Row Stop */
         }
+
         for (loop = 0; loop < strlen(pattern); loop++) {
             if (pattern[loop] == '1') {
                 set_module(symbol, i, loop);
             }
         }
-        if (symbol->height == 0) {
-            symbol->row_height[i] = 3;
-        }
+
+        symbol->row_height[i] = 3;
+
     }
     symbol->rows = (mclength / symbol->option_2);
-    symbol->width = strlen(pattern);
+    symbol->width =(int)strlen(pattern);
 
     /* 843 */
-    return codeerr;
+    return 0;
 }
 
 /* 345 */
-int pdf417enc(struct zint_symbol *symbol, unsigned char source[], int length) {
+int pdf417enc(struct zint_symbol *symbol, unsigned char source[], const size_t length) {
     int codeerr, error_number;
 
     error_number = 0;
 
     if ((symbol->option_1 < -1) || (symbol->option_1 > 8)) {
-        strcpy(symbol->errtxt, "Security value out of range (D60)");
+        strcpy(symbol->errtxt, "460: Security value out of range");
         symbol->option_1 = -1;
         error_number = ZINT_WARN_INVALID_OPTION;
     }
     if ((symbol->option_2 < 0) || (symbol->option_2 > 30)) {
-        strcpy(symbol->errtxt, "Number of columns out of range (D61)");
+        strcpy(symbol->errtxt, "461: Number of columns out of range");
         symbol->option_2 = 0;
         error_number = ZINT_WARN_INVALID_OPTION;
     }
@@ -850,23 +845,26 @@ int pdf417enc(struct zint_symbol *symbol, unsigned char source[], int length) {
     if (codeerr != 0) {
         switch (codeerr) {
             case 1:
-                strcpy(symbol->errtxt, "No such file or file unreadable (D62)");
+                strcpy(symbol->errtxt, "462: No such file or file unreadable");
                 error_number = ZINT_ERROR_INVALID_OPTION;
                 break;
             case 2:
-                strcpy(symbol->errtxt, "Input string too long (D63)");
+                strcpy(symbol->errtxt, "463: Input string too long");
                 error_number = ZINT_ERROR_TOO_LONG;
                 break;
             case 3:
-                strcpy(symbol->errtxt, "Number of codewords per row too small (D64)");
+                strcpy(symbol->errtxt, "464: Number of codewords per row too small");
                 error_number = ZINT_WARN_INVALID_OPTION;
                 break;
             case 4:
-                strcpy(symbol->errtxt, "Data too long for specified number of columns (D65)");
+                strcpy(symbol->errtxt, "465: Data too long for specified number of columns");
                 error_number = ZINT_ERROR_TOO_LONG;
                 break;
+            case ZINT_ERROR_INVALID_OPTION:
+                error_number = codeerr;
+                break;
             default:
-                strcpy(symbol->errtxt, "Something strange happened (D66)");
+                strcpy(symbol->errtxt, "466: Something strange happened");
                 error_number = ZINT_ERROR_ENCODING_PROBLEM;
                 break;
         }
@@ -877,12 +875,12 @@ int pdf417enc(struct zint_symbol *symbol, unsigned char source[], int length) {
 }
 
 /* like PDF417 only much smaller! */
-int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length) {
+int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], const size_t length) {
     int i, k, j, indexchaine, indexliste, mode, longueur, mccorrection[50], offset;
     int total, chainemc[2700], mclength, dummy[5], codeerr;
-    char codebarre[100], pattern[580];
+    char pattern[580];
     int variant, LeftRAPStart, CentreRAPStart, RightRAPStart, StartCluster;
-    int LeftRAP, CentreRAP, RightRAP, Cluster, writer, flip, loop;
+    int LeftRAP, CentreRAP, RightRAP, Cluster, loop;
     int debug = 0;
 
     /* Encoding starts out the same as PDF417, so use the same code */
@@ -932,29 +930,51 @@ int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length)
     /* 541 - now compress the data */
     indexchaine = 0;
     mclength = 0;
-    
+
     if (symbol->output_options & READER_INIT) {
         chainemc[mclength] = 921; /* Reader Initialisation */
         mclength++;
     }
-    
-    if (symbol->eci != 3) {
-        chainemc[mclength] = 927; /* ECI */
-        mclength++;
-        chainemc[mclength] = symbol->eci;
-        mclength++;
+
+    if (symbol->eci > 811799) {
+        strcpy(symbol->errtxt, "473: Invalid ECI");
+        return ZINT_ERROR_INVALID_OPTION;
     }
-    
+
+    if (symbol->eci != 3) {
+        /* Encoding ECI assignment number, according to Table 8 */
+        if (symbol->eci <= 899) {
+            chainemc[mclength] = 927; /* ECI */
+            mclength++;
+            chainemc[mclength] = symbol->eci;
+            mclength++;
+        }
+        if ((symbol->eci >= 900) && (symbol->eci <= 810899)) {
+            chainemc[mclength] = 926; /* ECI */
+            mclength++;
+            chainemc[mclength] = (symbol->eci / 900) - 1;
+            mclength++;
+            chainemc[mclength] = symbol->eci % 900;
+            mclength++;
+        }
+        if (symbol->eci >= 810900) {
+            chainemc[mclength] = 925; /* ECI */
+            mclength++;
+            chainemc[mclength] = symbol->eci - 810900;
+            mclength++;
+        }
+    }
+
     for (i = 0; i < indexliste; i++) {
         switch (liste[1][i]) {
             case TEX: /* 547 - text mode */
-                textprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i], i);
+                textprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i]);
                 break;
             case BYT: /* 670 - octet stream mode */
-                byteprocess(chainemc, &mclength, chaine, indexchaine, liste[0][i], i);
+                byteprocess(chainemc, &mclength, chaine, indexchaine, liste[0][i]);
                 break;
             case NUM: /* 712 - numeric mode */
-                numbprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i], i);
+                numbprocess(chainemc, &mclength, (char*) chaine, indexchaine, liste[0][i]);
                 break;
         }
         indexchaine = indexchaine + liste[0][i];
@@ -963,11 +983,11 @@ int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length)
     /* This is where it all changes! */
 
     if (mclength > 126) {
-        strcpy(symbol->errtxt, "Input data too long (D67)");
+        strcpy(symbol->errtxt, "467: Input data too long");
         return ZINT_ERROR_TOO_LONG;
     }
     if (symbol->option_2 > 4) {
-        strcpy(symbol->errtxt, "Specified width out of range (D68)");
+        strcpy(symbol->errtxt, "468: Specified width out of range");
         symbol->option_2 = 0;
         codeerr = ZINT_WARN_INVALID_OPTION;
     }
@@ -987,21 +1007,21 @@ int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length)
     if ((symbol->option_2 == 1) && (mclength > 20)) {
         /* the user specified 1 column but the data doesn't fit - go to automatic */
         symbol->option_2 = 0;
-        strcpy(symbol->errtxt, "Specified symbol size too small for data (D69)");
+        strcpy(symbol->errtxt, "469: Specified symbol size too small for data");
         codeerr = ZINT_WARN_INVALID_OPTION;
     }
 
     if ((symbol->option_2 == 2) && (mclength > 37)) {
         /* the user specified 2 columns but the data doesn't fit - go to automatic */
         symbol->option_2 = 0;
-        strcpy(symbol->errtxt, "Specified symbol size too small for data (D6A)");
+        strcpy(symbol->errtxt, "470: Specified symbol size too small for data");
         codeerr = ZINT_WARN_INVALID_OPTION;
     }
 
     if ((symbol->option_2 == 3) && (mclength > 82)) {
         /* the user specified 3 columns but the data doesn't fit - go to automatic */
         symbol->option_2 = 0;
-        strcpy(symbol->errtxt, "Specified symbol size too small for data (D6B)");
+        strcpy(symbol->errtxt, "471: Specified symbol size too small for data");
         codeerr = ZINT_WARN_INVALID_OPTION;
     }
 
@@ -1201,7 +1221,7 @@ int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length)
     if (debug) printf("\nInternal row representation:\n");
     for (i = 0; i < symbol->rows; i++) {
         if (debug) printf("row %d: ", i);
-        strcpy(codebarre, "");
+        strcpy(pattern, "");
         offset = 929 * Cluster;
         for (j = 0; j < 5; j++) {
             dummy[j] = 0;
@@ -1212,62 +1232,30 @@ int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length)
         }
 
         /* Copy the data into codebarre */
-        strcat(codebarre, RAPLR[LeftRAP]);
-        strcat(codebarre, "1");
-        strcat(codebarre, codagemc[offset + dummy[1]]);
-        strcat(codebarre, "1");
+        bin_append(rap_side[LeftRAP - 1], 10, pattern);
+        bin_append(pdf_bitpattern[offset + dummy[1]], 16, pattern);
+        strcat(pattern, "0");
         if (symbol->option_2 == 3) {
-            strcat(codebarre, RAPC[CentreRAP]);
+            bin_append(rap_centre[CentreRAP - 1], 10, pattern);
         }
         if (symbol->option_2 >= 2) {
-            strcat(codebarre, "1");
-            strcat(codebarre, codagemc[offset + dummy[2]]);
-            strcat(codebarre, "1");
+            bin_append(pdf_bitpattern[offset + dummy[2]], 16, pattern);
+            strcat(pattern, "0");
         }
         if (symbol->option_2 == 4) {
-            strcat(codebarre, RAPC[CentreRAP]);
+            bin_append(rap_centre[CentreRAP - 1], 10, pattern);
         }
         if (symbol->option_2 >= 3) {
-            strcat(codebarre, "1");
-            strcat(codebarre, codagemc[offset + dummy[3]]);
-            strcat(codebarre, "1");
+            bin_append(pdf_bitpattern[offset + dummy[3]], 16, pattern);
+            strcat(pattern, "0");
         }
         if (symbol->option_2 == 4) {
-            strcat(codebarre, "1");
-            strcat(codebarre, codagemc[offset + dummy[4]]);
-            strcat(codebarre, "1");
+            bin_append(pdf_bitpattern[offset + dummy[4]], 16, pattern);
+            strcat(pattern, "0");
         }
-        strcat(codebarre, RAPLR[RightRAP]);
-        strcat(codebarre, "1"); /* stop */
-        if (debug) printf("%s\n", codebarre);
-
-        /* Now codebarre is a mixture of letters and numbers */
-
-        writer = 0;
-        flip = 1;
-        strcpy(pattern, "");
-        for (loop = 0; loop < strlen(codebarre); loop++) {
-            if ((codebarre[loop] >= '0') && (codebarre[loop] <= '9')) {
-                for (k = 0; k < ctoi(codebarre[loop]); k++) {
-                    if (flip == 0) {
-                        pattern[writer] = '0';
-                    } else {
-                        pattern[writer] = '1';
-                    }
-                    writer++;
-                }
-                pattern[writer] = '\0';
-                if (flip == 0) {
-                    flip = 1;
-                } else {
-                    flip = 0;
-                }
-            } else {
-                lookup(BRSET, PDFttf, codebarre[loop], pattern);
-                writer += 5;
-            }
-        }
-        symbol->width = writer;
+        bin_append(rap_side[RightRAP - 1], 10, pattern);
+        strcat(pattern, "1"); /* stop */
+        if (debug) printf("%s\n", pattern);
 
         /* so now pattern[] holds the string of '1's and '0's. - copy this to the symbol */
         for (loop = 0; loop < strlen(pattern); loop++) {
@@ -1276,6 +1264,7 @@ int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length)
             }
         }
         symbol->row_height[i] = 2;
+        symbol->width = strlen(pattern);
 
         /* Set up RAPs and Cluster for next row */
         LeftRAP++;
@@ -1299,3 +1288,5 @@ int micro_pdf417(struct zint_symbol *symbol, unsigned char chaine[], int length)
 
     return codeerr;
 }
+
+

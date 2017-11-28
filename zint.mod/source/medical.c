@@ -2,20 +2,20 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2008-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
 
-    1. Redistributions of source code must retain the above copyright 
-       notice, this list of conditions and the following disclaimer.  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.  
+       documentation and/or other materials provided with the distribution.
     3. Neither the name of the project nor the names of its contributors
        may be used to endorse or promote products derived from this software
-       without specific prior written permission. 
+       without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,7 +26,7 @@
     OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
     HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
  */
 
@@ -65,19 +65,19 @@ int pharma_one(struct zint_symbol *symbol, unsigned char source[], int length) {
     char dest[64]; /* 17 * 2 + 1 */
 
     if (length > 6) {
-        strcpy(symbol->errtxt, "Input too long (C50)");
+        strcpy(symbol->errtxt, "350: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     error_number = is_sane(NEON, source, length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C51)");
+        strcpy(symbol->errtxt, "351: Invalid characters in data");
         return error_number;
     }
 
     tester = atoi((char*) source);
 
     if ((tester < 3) || (tester > 131070)) {
-        strcpy(symbol->errtxt, "Data out of range (C52)");
+        strcpy(symbol->errtxt, "352: Data out of range");
         return ZINT_ERROR_INVALID_DATA;
     }
 
@@ -120,7 +120,7 @@ int pharma_two_calc(struct zint_symbol *symbol, unsigned char source[], char des
     tester = atoi((char*) source);
 
     if ((tester < 4) || (tester > 64570080)) {
-        strcpy(symbol->errtxt, "Data out of range (C53)");
+        strcpy(symbol->errtxt, "353: Data out of range");
         return ZINT_ERROR_INVALID_DATA;
     }
     error_number = 0;
@@ -160,12 +160,12 @@ int pharma_two(struct zint_symbol *symbol, unsigned char source[], int length) {
     strcpy(height_pattern, "");
 
     if (length > 8) {
-        strcpy(symbol->errtxt, "Input too long (C54)");
+        strcpy(symbol->errtxt, "354: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     error_number = is_sane(NEON, source, length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C55)");
+        strcpy(symbol->errtxt, "355: Invalid characters in data");
         return error_number;
     }
     error_number = pharma_two_calc(symbol, source, height_pattern);
@@ -200,25 +200,25 @@ int codabar(struct zint_symbol *symbol, unsigned char source[], int length) {
     strcpy(dest, "");
 
     if (length > 60) { /* No stack smashing please */
-        strcpy(symbol->errtxt, "Input too long (C56)");
+        strcpy(symbol->errtxt, "356: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     to_upper(source);
     error_number = is_sane(CALCIUM, source, length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C57)");
+        strcpy(symbol->errtxt, "357: Invalid characters in data");
         return error_number;
     }
     /* Codabar must begin and end with the characters A, B, C or D */
     if ((source[0] != 'A') && (source[0] != 'B') && (source[0] != 'C')
             && (source[0] != 'D')) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C58)");
+        strcpy(symbol->errtxt, "358: Invalid characters in data");
         return ZINT_ERROR_INVALID_DATA;
     }
 
     if ((source[length - 1] != 'A') && (source[length - 1] != 'B') &&
             (source[length - 1] != 'C') && (source[length - 1] != 'D')) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C59)");
+        strcpy(symbol->errtxt, "359: Invalid characters in data");
         return ZINT_ERROR_INVALID_DATA;
     }
 
@@ -235,18 +235,18 @@ int codabar(struct zint_symbol *symbol, unsigned char source[], int length) {
 int code32(struct zint_symbol *symbol, unsigned char source[], int length) {
     int i, zeroes, error_number, checksum, checkpart, checkdigit;
     char localstr[10], risultante[7];
-    long int pharmacode, remainder, devisor;
+    long int pharmacode, devisor;
     int codeword[6];
     char tabella[34];
 
     /* Validate the input */
     if (length > 8) {
-        strcpy(symbol->errtxt, "Input too long (C5A)");
+        strcpy(symbol->errtxt, "360: Input too long");
         return ZINT_ERROR_TOO_LONG;
     }
     error_number = is_sane(NEON, source, length);
     if (error_number == ZINT_ERROR_INVALID_DATA) {
-        strcpy(symbol->errtxt, "Invalid characters in data (C5B)");
+        strcpy(symbol->errtxt, "361: Invalid characters in data");
         return error_number;
     }
 
@@ -280,6 +280,7 @@ int code32(struct zint_symbol *symbol, unsigned char source[], int length) {
     /* Convert from decimal to base-32 */
     devisor = 33554432;
     for (i = 5; i >= 0; i--) {
+        long int remainder;
         codeword[i] = pharmacode / devisor;
         remainder = pharmacode % devisor;
         pharmacode = remainder;
@@ -304,3 +305,5 @@ int code32(struct zint_symbol *symbol, unsigned char source[], int length) {
 
     return error_number;
 }
+
+

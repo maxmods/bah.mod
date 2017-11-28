@@ -2,7 +2,7 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2008-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
     SUCH DAMAGE.
  */
 
-static const int ascii_font[] = {
+static const char ascii_font[] = {
     /* Each character is 7 x 14 pixels */
     0, 0, 8, 8, 8, 8, 8, 8, 8, 0, 8, 8, 0, 0, /* ! */
     0, 20, 20, 20, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* " */
@@ -224,7 +224,7 @@ static const int ascii_font[] = {
     0, 0, 0, 36, 0, 66, 66, 34, 36, 20, 28, 8, 72, 48, /* ÿ */
 };
 
-static const int small_font[] = {
+static const char small_font[] = {
     /* Each character is 5 x 9 pixels */
     0, 2, 2, 2, 2, 0, 2, 0, 0, /* ! */
     0, 5, 5, 5, 0, 0, 0, 0, 0, /* " */

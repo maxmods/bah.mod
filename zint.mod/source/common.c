@@ -2,7 +2,7 @@
 
 /*
     libzint - the open source barcode library
-    Copyright (C) 2008-2016 Robin Stuart <rstuart114@gmail.com>
+    Copyright (C) 2008-2017 Robin Stuart <rstuart114@gmail.com>
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -43,7 +43,31 @@ size_t ustrlen(const unsigned char data[]) {
 int ctoi(const char source) {
     if ((source >= '0') && (source <= '9'))
         return (source - '0');
-    return (source - 'A' + 10);
+    if ((source >= 'A') && (source <= 'F'))
+        return (source - 'A' + 10);
+    if ((source >= 'a') && (source <= 'f'))
+        return (source - 'a' + 10);
+    return -1;
+}
+
+
+/* Convert an integer value to a string representing its binary equivalent */
+void bin_append(const int arg, const int length, char *binary) {
+    int i;
+    int start;
+    size_t posn = strlen(binary);
+
+    start = 0x01 << (length - 1);
+
+    for (i = 0; i < length; i++) {
+        binary[posn + i] = '0';
+        if (arg & (start >> i)) {
+            binary[posn + i] = '1';
+        }
+    }
+    binary[posn + length] = '\0';
+
+    return;
 }
 
 /* Converts an integer value to its hexadecimal character */
@@ -54,7 +78,6 @@ char itoc(const int source) {
         return ('A' + (source - 10));
     }
 }
-
 /* Converts lower case characters to upper case in a string source[] */
 void to_upper(unsigned char source[]) {
     size_t i, src_len = ustrlen(source);
@@ -68,11 +91,11 @@ void to_upper(unsigned char source[]) {
 
 /* Verifies that a string only uses valid characters */
 int is_sane(const char test_string[], const unsigned char source[], const size_t length) {
-    unsigned int j, latch;
+    unsigned int j;
     size_t i, lt = strlen(test_string);
 
     for (i = 0; i < length; i++) {
-        latch = FALSE;
+        unsigned int latch = FALSE;
         for (j = 0; j < lt; j++) {
             if (source[i] == test_string[j]) {
                 latch = TRUE;
@@ -87,18 +110,6 @@ int is_sane(const char test_string[], const unsigned char source[], const size_t
     return 0;
 }
 
-/* Returns the position of data in set_string */
-int posn(const char set_string[], const char data) {
-    size_t i, n = strlen(set_string);
-
-    for (i = 0; i < n; i++) {
-        if (data == set_string[i]) {
-            return i;
-        }
-    }
-    return 0;
-}
-
 /* Replaces huge switch statements for looking up in tables */
 void lookup(const char set_string[], const char *table[], const char data, char dest[]) {
     size_t i, n = strlen(set_string);
@@ -108,6 +119,18 @@ void lookup(const char set_string[], const char *table[], const char data, char 
             strcat(dest, table[i]);
         }
     }
+}
+
+/* Returns the position of data in set_string */
+int posn(const char set_string[], const char data) {
+    int i, n = (int)strlen(set_string);
+
+    for (i = 0; i < n; i++) {
+        if (data == set_string[i]) {
+         return i;
+        }
+    }
+   return -1;
 }
 
 /* Return true (1) if a module is dark/black, otherwise false (0) */
@@ -161,10 +184,8 @@ void expand(struct zint_symbol *symbol, const char data[]) {
 
 /* Indicates which symbologies can have row binding */
 int is_stackable(const int symbology) {
-    int retval = 0;
-
     if (symbology < BARCODE_PDF417) {
-        retval = 1;
+        return 1;
     }
 
     switch (symbology) {
@@ -178,10 +199,10 @@ int is_stackable(const int symbology) {
         case BARCODE_ITF14:
         case BARCODE_CODE32:
         case BARCODE_CODABLOCKF:
-            retval = 1;
+            return 1;
     }
 
-    return retval;
+    return 0;
 }
 
 /* Indicates which symbols can have addon (EAN-2 and EAN-5) */
@@ -211,7 +232,7 @@ int is_extendable(const int symbology) {
     return 0;
 }
 
-int istwodigits(const unsigned char source[], const int position) {
+int istwodigits(const unsigned char source[], const size_t position) {
     if ((source[position] >= '0') && (source[position] <= '9')) {
         if ((source[position + 1] >= '0') && (source[position + 1] <= '9')) {
             return 1;
@@ -221,8 +242,9 @@ int istwodigits(const unsigned char source[], const int position) {
     return 0;
 }
 
-int utf8toutf16(struct zint_symbol *symbol, const unsigned char source[], int vals[], int *length) {
-    int bpos, jpos, error_number;
+int utf8toutf16(struct zint_symbol *symbol, const unsigned char source[], int vals[], size_t *length) {
+    size_t bpos;
+    int    jpos, error_number;
     int next;
 
     bpos = 0;
@@ -238,11 +260,11 @@ int utf8toutf16(struct zint_symbol *symbol, const unsigned char source[], int va
             jpos++;
         } else {
             if ((source[bpos] >= 0x80) && (source[bpos] <= 0xbf)) {
-                strcpy(symbol->errtxt, "Corrupt Unicode data (B40)");
+                strcpy(symbol->errtxt, "240: Corrupt Unicode data");
                 return ZINT_ERROR_INVALID_DATA;
             }
             if ((source[bpos] >= 0xc0) && (source[bpos] <= 0xc1)) {
-                strcpy(symbol->errtxt, "Overlong encoding not supported (B41)");
+                strcpy(symbol->errtxt, "241: Overlong encoding not supported");
                 return ZINT_ERROR_INVALID_DATA;
             }
 
@@ -259,7 +281,7 @@ int utf8toutf16(struct zint_symbol *symbol, const unsigned char source[], int va
                 jpos++;
             } else
                 if (source[bpos] >= 0xf0) {
-                strcpy(symbol->errtxt, "Unicode sequences of more than 3 bytes not supported (B42)");
+                strcpy(symbol->errtxt, "242: Unicode sequences of more than 3 bytes not supported");
                 return ZINT_ERROR_INVALID_DATA;
             }
         }
@@ -272,20 +294,21 @@ int utf8toutf16(struct zint_symbol *symbol, const unsigned char source[], int va
     return error_number;
 }
 
-void set_minimum_height(struct zint_symbol *symbol, int min_height) {
+
+void set_minimum_height(struct zint_symbol *symbol, const int min_height) {
     /* Enforce minimum permissable height of rows */
     int fixed_height = 0;
     int zero_count = 0;
     int i;
-    
+
     for (i = 0; i < symbol->rows; i++) {
         fixed_height += symbol->row_height[i];
-        
+
         if (symbol->row_height[i] == 0) {
             zero_count++;
         }
     }
-    
+
     if (zero_count > 0) {
         if (((symbol->height - fixed_height) / zero_count) < min_height) {
             for (i = 0; i < symbol->rows; i++) {
@@ -296,3 +319,4 @@ void set_minimum_height(struct zint_symbol *symbol, int min_height) {
         }
     }
 }
+
