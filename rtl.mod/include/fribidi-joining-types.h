@@ -1,12 +1,6 @@
 /* FriBidi
  * fribidi-joining-types.h - character joining types
  *
- * $Id: fribidi-joining-types.h,v 1.5 2005-11-03 01:39:01 behdad Exp $
- * $Author: behdad $
- * $Date: 2005-11-03 01:39:01 $
- * $Revision: 1.5 $
- * $Source: /home/behdad/src/fdo/fribidi/togit/git/../fribidi/fribidi2/lib/fribidi-joining-types.h,v $
- *
  * Author:
  *   Behdad Esfahbod, 2001, 2002, 2004
  *
@@ -28,7 +22,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA
  *
- * For licensing issues, contact <license@farsiweb.info>.
+ * For licensing issues, contact <fribidi.license@gmail.com>.
  */
 #ifndef _FRIBIDI_JOINING_TYPES_H
 #define _FRIBIDI_JOINING_TYPES_H
@@ -95,12 +89,12 @@ enum _FriBidiJoiningTypeEnum
 #ifdef __FRIBIDI_DOC
 typedef enum _FriBidiJoiningTypeEnum FriBidiJoiningType;
 #else /* !__FRIBIDI_DOC */
-typedef fribidi_uint8 FriBidiJoiningType;
+typedef uint8_t FriBidiJoiningType;
 #endif /* !__FRIBIDI_DOC */
 
 /* FriBidiArabicProp is essentially the same type as FriBidiJoiningType, but
  * not limited to the few values returned by fribidi_get_joining_type. */
-typedef fribidi_uint8 FriBidiArabicProp;
+typedef uint8_t FriBidiArabicProp;
 
 /*
  * The equivalent of JoiningType values for ArabicProp

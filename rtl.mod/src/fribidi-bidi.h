@@ -1,12 +1,6 @@
 /* FriBidi
  * fribidi-bidi.h - bidirectional algorithm
  *
- * $Id: fribidi-bidi.h,v 1.15 2005-11-03 01:39:01 behdad Exp $
- * $Author: behdad $
- * $Date: 2005-11-03 01:39:01 $
- * $Revision: 1.15 $
- * $Source: /home/behdad/src/fdo/fribidi/togit/git/../fribidi/fribidi2/lib/fribidi-bidi.h,v $
- *
  * Authors:
  *   Behdad Esfahbod, 2001, 2002, 2004
  *   Dov Grobgeld, 1999, 2000
@@ -30,7 +24,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA
  * 
- * For licensing issues, contact <license@farsiweb.info>.
+ * For licensing issues, contact <fribidi.license@gmail.com>.
  */
 #ifndef _FRIBIDI_BIDI_H
 #define _FRIBIDI_BIDI_H
@@ -43,7 +37,7 @@
 
 #include "fribidi-begindecls.h"
 
-#define fribidi_get_par_embedding_levels FRIBIDI_NAMESPACE(get_par_embedding_levels)
+#define fribidi_get_par_direction FRIBIDI_NAMESPACE(get_par_direction)
 /* fribidi_get_par_direction - get base paragraph direction
  *
  * This function finds the base direction of a single paragraph,
@@ -68,8 +62,8 @@ FRIBIDI_ENTRY FriBidiParType fribidi_get_par_direction (
   const FriBidiStrIndex len	/* input string length */
 );
 
-#define fribidi_get_par_embedding_levels FRIBIDI_NAMESPACE(get_par_embedding_levels)
-/* fribidi_get_par_embedding_levels - get bidi embedding levels of a paragraph
+#define fribidi_get_par_embedding_levels_ex FRIBIDI_NAMESPACE(get_par_embedding_levels_ex)
+/* fribidi_get_par_embedding_levels_ex - get bidi embedding levels of a paragraph
  *
  * This function finds the bidi embedding levels of a single paragraph,
  * as defined by the Unicode Bidirectional Algorithm available at
@@ -85,9 +79,11 @@ FRIBIDI_ENTRY FriBidiParType fribidi_get_par_direction (
  * (memory allocation failure most probably).
  */
 FRIBIDI_ENTRY FriBidiLevel
-fribidi_get_par_embedding_levels (
+fribidi_get_par_embedding_levels_ex (
   const FriBidiCharType *bidi_types,	/* input list of bidi types as returned by
 					   fribidi_get_bidi_types() */
+  const FriBidiBracketType *bracket_types,	/* input list of bracket types as returned by
+					   fribidi_get_bracket_types() */
   const FriBidiStrIndex len,	/* input string length of the paragraph */
   FriBidiParType *pbase_dir,	/* requested and resolved paragraph
 				 * base direction */

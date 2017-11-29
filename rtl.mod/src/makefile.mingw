@@ -20,7 +20,7 @@ LIBRARIES =  $(lib_LIBRARIES)
 
 libfribidi_a_OBJECTS = fribidi.o fribidi-arabic.o \
 	fribidi-bidi.o fribidi-bidi-types.o fribidi-deprecated.o \
-	fribidi-joining.o fribidi-joining-types.o fribidi-mem.o \
+	fribidi-joining.o fribidi-joining-types.o fribidi-brackets.o \
 	fribidi-mirroring.o fribidi-run.o fribidi-shape.o
 
 LIBS = -lmingwex -lmingw32 -lgcc -lmoldname -lmsvcrt -luser32 -lkernel32

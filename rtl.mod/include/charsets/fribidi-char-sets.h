@@ -1,12 +1,6 @@
 /* FriBidi
  * fribidi-char-sets.h - character set conversion routines
  *
- * $Id: fribidi-char-sets.h,v 1.3 2004-06-09 14:59:21 behdad Exp $
- * $Author: behdad $
- * $Date: 2004-06-09 14:59:21 $
- * $Revision: 1.3 $
- * $Source: /home/behdad/src/fdo/fribidi/togit/git/../fribidi/fribidi2/charset/fribidi-char-sets.h,v $
- *
  * Authors:
  *   Behdad Esfahbod, 2001, 2002, 2004
  *   Dov Grobgeld, 1999, 2000
@@ -30,7 +24,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA
  * 
- * For licensing issues, contact <license@farsiweb.info>.
+ * For licensing issues, contact <fribidi.license@gmail.com>.
  */
 #ifndef _FRIBIDI_CHAR_SETS_H
 #define _FRIBIDI_CHAR_SETS_H

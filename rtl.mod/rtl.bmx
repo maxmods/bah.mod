@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2013 Bruce A Henderson
+' Copyright (c) 2009-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,24 @@ bbdoc: Right-To-Left String Formatter
 End Rem
 Module BaH.RTL
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2009-2013 Bruce A Henderson"
+ModuleInfo "Copyright: 2009-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to fribidi 0.19.7.6c57b8a"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to fribidi 0.19.5"
 ModuleInfo "History: 1.00 Initial Release"
 
-?macos
+?macosx86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
-?win32
+?macosx64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/macosx64"
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/win32x64"
 ?
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"

@@ -1,12 +1,6 @@
 /* FriBidi
  * fribidi-joining.h - Arabic joining algorithm
  *
- * $Id: fribidi-joining.h,v 1.3 2004-06-21 21:15:31 behdad Exp $
- * $Author: behdad $
- * $Date: 2004-06-21 21:15:31 $
- * $Revision: 1.3 $
- * $Source: /home/behdad/src/fdo/fribidi/togit/git/../fribidi/fribidi2/lib/fribidi-joining.h,v $
- *
  * Authors:
  *   Behdad Esfahbod, 2004
  *
@@ -28,7 +22,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA
  * 
- * For licensing issues, contact <license@farsiweb.info>.
+ * For licensing issues, contact <fribidi.license@gmail.com>.
  */
 #ifndef _FRIBIDI_JOINING_H
 #define _FRIBIDI_JOINING_H

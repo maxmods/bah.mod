@@ -65,7 +65,7 @@
 #define PACKAGE_NAME "GNU FriBidi"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU FriBidi 0.19.5"
+#define PACKAGE_STRING "GNU FriBidi 0.19.7"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "fribidi"
@@ -74,7 +74,7 @@
 #define PACKAGE_URL "http://fribidi.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.19.5"
+#define PACKAGE_VERSION "0.19.7"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void

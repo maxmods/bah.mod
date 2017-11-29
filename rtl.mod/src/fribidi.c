@@ -1,12 +1,6 @@
 /* FriBidi
  * fribidi.c - Unicode bidirectional and Arabic joining/shaping algorithms
  *
- * $Id: fribidi.c,v 1.18 2006-01-31 03:23:13 behdad Exp $
- * $Author: behdad $
- * $Date: 2006-01-31 03:23:13 $
- * $Revision: 1.18 $
- * $Source: /home/behdad/src/fdo/fribidi/togit/git/../fribidi/fribidi2/lib/fribidi.c,v $
- *
  * Authors:
  *   Behdad Esfahbod, 2001, 2002, 2004
  *   Dov Grobgeld, 1999, 2000
@@ -30,7 +24,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA
  * 
- * For licensing issues, contact <license@farsiweb.info>.
+ * For licensing issues, contact <fribidi.license@gmail.com>.
  */
 
 #include "common.h"
@@ -78,22 +72,14 @@ const char *fribidi_version_info =
 #if DEBUG+0
   " --enable-debug"
 #endif /* DEBUG */
-#if USE_SIMPLE_MALLOC+0
-  " --enable-malloc"
-#endif /* USE_SIMPLE_MALLOC */
 #if FRIBIDI_CHARSETS+0
 #else
   " --disable-charsets"
 #endif /* !FRIBIDI_CHARSETS */
-#if FRIBIDI_USE_GLIB+0
-  " --with-glib"
-#else /* !FRIBIDI_USE_GLIB */
-  " --without-glib"
-#endif /* !FRIBIDI_USE_GLIB */
   ".\n\n"
   "Copyright (C) 2004  Sharif FarsiWeb, Inc.\n"
   "Copyright (C) 2001, 2002, 2004, 2005  Behdad Esfahbod\n"
-  "Copyright (C) 1999, 2000  Dov Grobgeld\n"
+  "Copyright (C) 1999, 2000, 2017  Dov Grobgeld\n"
   FRIBIDI_NAME " comes with NO WARRANTY, to the extent permitted by law.\n"
   "You may redistribute copies of " FRIBIDI_NAME " under\n"
   "the terms of the GNU Lesser General Public License.\n"

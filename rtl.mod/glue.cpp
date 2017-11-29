@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2009-2013 Bruce A Henderson
+  Copyright (c) 2009-2017 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 #include <common.h>
 #include <fribidi.h>
-
+#include <fribidi-deprecated.h>
 
 
 class MaxRTLConverter;

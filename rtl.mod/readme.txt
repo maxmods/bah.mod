@@ -8,6 +8,8 @@ In the src folder, simply run the command :
 
 make -f makefile.mingw
 
+For x64 builds, you may need to add -m64 to CXXFLAGS and CCFLAGS.
+
 You may have to first delete the .o, .a and .dll files.
 (Yes, I was too lazy to make a "clean" script!)
 
