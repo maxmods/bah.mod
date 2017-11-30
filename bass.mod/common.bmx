@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2015 Bruce A Henderson
+' Copyright (c) 2008-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -296,6 +296,23 @@ Const BASS_CONFIG_DEV_BUFFER:Int = 27
 Const BASS_CONFIG_DEV_DEFAULT:Int = 36
 
 Const BASS_CONFIG_NET_READTIMEOUT:Int = 37
+Const BASS_CONFIG_VISTA_SPEAKERS:Int = 38
+Const BASS_CONFIG_IOS_SPEAKER:Int = 39
+Const BASS_CONFIG_MF_DISABLE:Int = 40
+Const BASS_CONFIG_HANDLES:Int = 41
+Const BASS_CONFIG_UNICODE:Int = 42
+Const BASS_CONFIG_SRC:Int = 43
+Const BASS_CONFIG_SRC_SAMPLE:Int = 44
+Const BASS_CONFIG_ASYNCFILE_BUFFER:Int = 45
+Const BASS_CONFIG_OGG_PRESCAN:Int = 47
+Const BASS_CONFIG_MF_VIDEO:Int = 48
+Const BASS_CONFIG_AIRPLAY:Int = 49
+Const BASS_CONFIG_DEV_NONSTOP:Int = 50
+Const BASS_CONFIG_IOS_NOCATEGORY:Int = 51
+Const BASS_CONFIG_VERIFY_NET:Int = 52
+Const BASS_CONFIG_DEV_PERIOD:Int = 53
+Const BASS_CONFIG_FLOAT:Int = 54
+Const BASS_CONFIG_NET_SEEK:Int = 56
 
 
 ' BASS_SetConfigPtr options
@@ -303,16 +320,17 @@ Const BASS_CONFIG_NET_AGENT:Int = 16
 Const BASS_CONFIG_NET_PROXY:Int = 17
 
 ' Initialization flags
-Const BASS_DEVICE_8BITS:Int = 1	' use 8 bit resolution, else 16 bit
-Const BASS_DEVICE_MONO:Int = 2	' use mono, else stereo
-Const BASS_DEVICE_3D:Int = 4	' enable 3D functionality
-Const BASS_DEVICE_LATENCY:Int = 256	' calculate device latency (BASS_INFO struct)
-Const BASS_DEVICE_CPSPEAKERS:Int = 1024 ' detect speakers via Windows control panel
-Const BASS_DEVICE_SPEAKERS:Int = 2048 ' force enabling of speaker assignment
-Const BASS_DEVICE_NOSPEAKER:Int = 4096 ' ignore speaker arrangement
-?linux
-Const BASS_DEVICE_DMIX:Int = 8192 ' use ALSA "dmix" plugin
-?
+Const BASS_DEVICE_8BITS:Int = $0001	' use 8 bit resolution, else 16 bit
+Const BASS_DEVICE_MONO:Int = $0002	' use mono, else stereo
+Const BASS_DEVICE_3D:Int = $0004	' enable 3D functionality
+Const BASS_DEVICE_LATENCY:Int = $0100	' calculate device latency (BASS_INFO struct)
+Const BASS_DEVICE_CPSPEAKERS:Int = $0400 ' detect speakers via Windows control panel
+Const BASS_DEVICE_SPEAKERS:Int = $0800 ' force enabling of speaker assignment
+Const BASS_DEVICE_NOSPEAKER:Int = $1000 ' ignore speaker arrangement
+Const BASS_DEVICE_DMIX:Int = $2000 ' use ALSA "dmix" plugin
+Const BASS_DEVICE_FREQ:Int = $4000 ' set device sample rate
+Const BASS_DEVICE_STEREO:Int = $8000 ' limit output To stereo
+
 
 ' DirectSound interfaces (for use with BASS_GetDSoundObject)
 Const BASS_OBJECT_DS:Int = 1	' IDirectSound
@@ -503,52 +521,66 @@ Const BASS_ATTRIB_VOL:Int = 2
 Const BASS_ATTRIB_PAN:Int = 3
 Const BASS_ATTRIB_EAXMIX:Int = 4
 Const BASS_ATTRIB_NOBUFFER:Int = 5
-
+Const BASS_ATTRIB_VBR:Int = 6
+Const BASS_ATTRIB_CPU:Int = 7
+Const BASS_ATTRIB_SRC:Int = 8
+Const BASS_ATTRIB_NET_RESUME:Int = 9
+Const BASS_ATTRIB_SCANINFO:Int = 10
+Const BASS_ATTRIB_NORAMP:Int = 11
+Const BASS_ATTRIB_BITRATE:Int = 12
 Const BASS_ATTRIB_MUSIC_AMPLIFY:Int = $100
 Const BASS_ATTRIB_MUSIC_PANSEP:Int = $101
 Const BASS_ATTRIB_MUSIC_PSCALER:Int = $102
 Const BASS_ATTRIB_MUSIC_BPM:Int = $103
 Const BASS_ATTRIB_MUSIC_SPEED:Int = $104
 Const BASS_ATTRIB_MUSIC_VOL_GLOBAL:Int = $105
+Const BASS_ATTRIB_MUSIC_ACTIVE:Int = $106
 Const BASS_ATTRIB_MUSIC_VOL_CHAN:Int = $200 ' + channel #
 Const BASS_ATTRIB_MUSIC_VOL_INST:Int = $300 ' + instrument #
 
 ' BASS_ChannelGetData flags
-Const BASS_DATA_AVAILABLE:Int = 0			' query how much data is buffered
-Const BASS_DATA_FLOAT:Int = $40000000	' flag: return floating-point sample data
-Const BASS_DATA_FFT256:Int = $80000000	' 256 sample FFT
-Const BASS_DATA_FFT512:Int = $80000001	' 512 FFT
-Const BASS_DATA_FFT1024:Int = $80000002	' 1024 FFT
-Const BASS_DATA_FFT2048:Int = $80000003	' 2048 FFT
-Const BASS_DATA_FFT4096:Int = $80000004	' 4096 FFT
-Const BASS_DATA_FFT8192:Int = $80000005	' 8192 FFT
-Const BASS_DATA_FFT16384:Int = $80000006	' 16384 FFT
-
-Const BASS_DATA_FFT_INDIVIDUAL:Int = $10	' FFT flag: FFT for each channel, else all combined
-Const BASS_DATA_FFT_NOWINDOW:Int = $20	' FFT flag: no Hanning window
+Const BASS_DATA_AVAILABLE:Int = 0 ' query how much data is buffered
+Const BASS_DATA_FIXED:Int = $20000000 ' flag: return 8.24 fixed-point data
+Const BASS_DATA_FLOAT:Int = $40000000 ' flag: return floating-point sample data
+Const BASS_DATA_FFT256:Int = $80000000 ' 256 sample FFT
+Const BASS_DATA_FFT512:Int = $80000001 ' 512 FFT
+Const BASS_DATA_FFT1024:Int = $80000002 ' 1024 FFT
+Const BASS_DATA_FFT2048:Int = $80000003 ' 2048 FFT
+Const BASS_DATA_FFT4096:Int = $80000004 ' 4096 FFT
+Const BASS_DATA_FFT8192:Int = $80000005 ' 8192 FFT
+Const BASS_DATA_FFT16384:Int = $80000006 ' 16384 FFT
+Const BASS_DATA_FFT32768:Int = $80000007 ' 32768 FFT
+Const BASS_DATA_FFT_INDIVIDUAL:Int = $10 ' FFT flag: FFT for each channel, else all combined
+Const BASS_DATA_FFT_NOWINDOW:Int = $20 ' FFT flag: no Hanning window
+Const BASS_DATA_FFT_REMOVEDC:Int = $40 ' FFT flag: pre-remove DC bias
+Const BASS_DATA_FFT_COMPLEX:Int = $80 ' FFT flag: return complex data
 
 ' BASS_ChannelGetTags types : what's returned
-Const BASS_TAG_ID3:Int = 0	' ID3v1 tags : 128 byte block
-Const BASS_TAG_ID3V2:Int = 1	' ID3v2 tags : variable length block
-Const BASS_TAG_OGG:Int = 2	' OGG comments : series of null-terminated UTF-8 strings
-Const BASS_TAG_HTTP:Int = 3	' HTTP headers : series of null-terminated ANSI strings
-Const BASS_TAG_ICY:Int = 4	' ICY headers : series of null-terminated ANSI strings
-Const BASS_TAG_META:Int = 5	' ICY metadata : ANSI string
-Const BASS_TAG_APE:Int = 6	' APE tags : series of Null-terminated UTF-8 strings
-
-Const BASS_TAG_VENDOR:Int = 9	' OGG encoder : UTF-8 string
-Const BASS_TAG_LYRICS3:Int = 10	' Lyric3v2 tag : ASCII string
+Const BASS_TAG_ID3:Int = 0 ' ID3v1 tags : TAG_ID3 structure
+Const BASS_TAG_ID3V2:Int = 1 ' ID3v2 tags : variable length block
+Const BASS_TAG_OGG:Int = 2 ' OGG comments : series of null-terminated UTF-8 strings
+Const BASS_TAG_HTTP:Int = 3 ' HTTP headers : series of null-terminated ANSI strings
+Const BASS_TAG_ICY:Int = 4 ' ICY headers : series of null-terminated ANSI strings
+Const BASS_TAG_META:Int = 5 ' ICY metadata : ANSI string
+Const BASS_TAG_APE:Int = 6 ' APE tags : series of null-terminated UTF-8 strings
+Const BASS_TAG_MP4:Int = 7 ' MP4/iTunes metadata : series of null-terminated UTF-8 strings
+Const BASS_TAG_WMA:Int = 8 ' WMA tags : series of null-terminated UTF-8 strings
+Const BASS_TAG_VENDOR:Int = 9 ' OGG encoder : UTF-8 string
+Const BASS_TAG_LYRICS3:Int = 10 ' Lyric3v2 tag : ASCII string
 Const BASS_TAG_CA_CODEC:Int = 11 ' CoreAudio codec info : TAG_CA_CODEC structure
-Const BASS_TAG_RIFF_INFO:Int = $100 ' RIFF/WAVE tags : series of null-terminated ANSI strings
+Const BASS_TAG_MF:Int = 13 ' Media Foundation tags : series of null-terminated UTF-8 strings
+Const BASS_TAG_WAVEFORMAT:Int = 14 ' WAVE format : WAVEFORMATEEX structure
+Const BASS_TAG_RIFF_INFO:Int = $100 ' RIFF "INFO" tags : series of null-terminated ANSI strings
 Const BASS_TAG_RIFF_BEXT:Int = $101 ' RIFF/BWF "bext" tags : TAG_BEXT structure
 Const BASS_TAG_RIFF_CART:Int = $102 ' RIFF/BWF "cart" tags : TAG_CART structure
-Const BASS_TAG_RIFF_DISP:Int = $103 ' RIFF "DISP" text tag : ANSI String
-
-Const BASS_TAG_MUSIC_NAME:Int = $10000	' MOD music name : ANSI string
-Const BASS_TAG_MUSIC_MESSAGE:Int = $10001	' MOD message : ANSI string
-Const BASS_TAG_MUSIC_ORDERS:Int = $10002	' MOD order list : BYTE array of pattern numbers
-Const BASS_TAG_MUSIC_INST:Int = $10100	' + instrument #, MOD instrument name : ANSI string
-Const BASS_TAG_MUSIC_SAMPLE:Int = $10300	' + sample #, MOD sample name : ANSI string
+Const BASS_TAG_RIFF_DISP:Int = $103 ' RIFF "DISP" text tag : ANSI string
+Const BASS_TAG_APE_BINARY:Int = $1000 ' + index #, binary APE tag : TAG_APE_BINARY structure
+Const BASS_TAG_MUSIC_NAME:Int = $10000 ' MOD music name : ANSI string
+Const BASS_TAG_MUSIC_MESSAGE:Int = $10001 ' MOD message : ANSI string
+Const BASS_TAG_MUSIC_ORDERS:Int = $10002 ' MOD order list : BYTE array of pattern numbers
+Const BASS_TAG_MUSIC_AUTH:Int = $10003 ' MOD author : UTF-8 string
+Const BASS_TAG_MUSIC_INST:Int = $10100 ' + instrument #, MOD instrument name : ANSI string
+Const BASS_TAG_MUSIC_SAMPLE:Int = $10300 ' + sample #, MOD sample name : ANSI string
 
 ' DX8 effect types, use with BASS_ChannelSetFX
 Const BASS_FX_DX8_CHORUS:Int = 0
