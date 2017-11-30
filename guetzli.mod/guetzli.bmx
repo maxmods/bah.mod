@@ -20,10 +20,13 @@ bbdoc: Guetzli JPEG Saver
 End Rem
 Module BaH.Guetzli
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Apache 2.0"
 ModuleInfo "Copyright: Wrapper - 2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to latest guetzli (cb5e4a8)"
+ModuleInfo "History: Added user-TStream support."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
@@ -57,7 +60,14 @@ Function SavePixmapJPeg:Int( pixmap:TPixmap, url:Object, quality:Int = DEFAULT_J
 
 	Assert quality>=1 And quality<=100
 
-	Local stream:TStream = WriteStream( url )
+	Local stream:TStream
+	
+	If TStream(url) Then
+		stream = TStream(url)
+	Else	
+		stream = WriteStream( url )
+	End If
+	
 	If Not stream Return False
 	
 	pixmap = pixmap.convert(PF_RGB888)
@@ -66,7 +76,11 @@ Function SavePixmapJPeg:Int( pixmap:TPixmap, url:Object, quality:Int = DEFAULT_J
 
 	bmx_guetzli_savejpg(stream, writefunc, pixmap.width, pixmap.height, pixmap.pitch, pix, quality)
 
-	stream.Close
+	' only close if we created the stream
+	If Not TStream(url) Then
+		stream.Close
+	End If
+	
 	Return True
 End Function
 

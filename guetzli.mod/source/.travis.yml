@@ -1,0 +1,42 @@
+language: cpp
+sudo: false
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: BUILD_SYSTEM=bazel
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - libjpeg-progs
+            - netpbm # For pngtopnm in smoke_test.sh.
+            - wget
+
+    - os: osx
+      env: BUILD_SYSTEM=bazel
+
+    - os: linux
+      dist: trusty
+      env: BUILD_SYSTEM=make
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - libjpeg-progs
+            - libpng-dev
+            - netpbm # For pngtopnm in smoke_test.sh.
+            - pkg-config
+            - wget
+
+    - os: osx
+      env: BUILD_SYSTEM=make
+
+
+install:
+- ./.travis.sh install
+script:
+- ./.travis.sh script
