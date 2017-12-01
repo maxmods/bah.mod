@@ -25,10 +25,12 @@ bbdoc: Expat XML Parser
 End Rem
 Module BaH.Expat
 
-ModuleInfo "Version: 1.05"
+ModuleInfo "Version: 1.06"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.06"
+ModuleInfo "History: Update to expat 2.2.5."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Update to expat 2.2.1."
 ModuleInfo "History: 1.04"

@@ -23,6 +23,7 @@ SuperStrict
 Import BRL.Blitz
 Import BRL.Stream
 
+Import "expat/*.h"
 Import "expat/lib/*.h"
 
 Import "expat/lib/xmlparse.c"
@@ -30,6 +31,7 @@ Import "expat/lib/xmlrole.c"
 Import "expat/lib/xmltok.c"
 Import "expat/lib/xmltok_impl.c"
 Import "expat/lib/xmltok_ns.c"
+Import "expat/lib/loadlibrary.c"
 
 Import "glue.cpp"
 
