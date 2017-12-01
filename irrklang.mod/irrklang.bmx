@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2013 Bruce A Henderson
+' Copyright (c) 2008-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,15 @@ bbdoc: irrKlang
 End Rem
 Module BaH.irrKlang
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: irrKlang - See http://www.ambiera.com/irrklang/license.html"
-ModuleInfo "Copyright: Wrapper - 2008-2013 Bruce A Henderson"
-ModuleInfo "Copyright: irrKlang - Nikolaus Gebhardt / Ambiera 2002-2009"
+ModuleInfo "Copyright: Wrapper - 2008-2017 Bruce A Henderson"
+ModuleInfo "Copyright: irrKlang - Nikolaus Gebhardt / Ambiera 2002-2014"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated to irrKlang 1.5.0"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated to irrKlang 1.4.0"
 ModuleInfo "History: Loading the same sound twice now returns a valid object."
@@ -39,12 +42,14 @@ ModuleInfo "History: Strings now converted to UTF8 and back."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (irrKlang 1.04)"
 
-?win32
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 ?macos
 ModuleInfo "LD_OPTS:  -bind_at_load -L%PWD%/lib/macos"
-?linux
+?linuxx86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/linux"
+?linuxx64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/linuxx64"
 ?
 
 Import "common.bmx"
@@ -1658,7 +1663,7 @@ Type TISoundStopEventReceiver
 		Return Self
 	End Method
 
-	Function _OnSoundStopped(sound:Byte Ptr, reason:Int, rec:TISoundStopEventReceiver)
+	Function _OnSoundStopped(sound:Byte Ptr, reason:Int, rec:TISoundStopEventReceiver) { nomangle }
 		rec.OnSoundStopped(TISound._create(sound), reason, rec.userData)
 	End Function
 	

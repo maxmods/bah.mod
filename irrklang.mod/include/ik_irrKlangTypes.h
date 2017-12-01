@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Nikolaus Gebhardt
+// Copyright (C) 2002-2014 Nikolaus Gebhardt
 // This file is part of the "irrKlang" library.
 // For conditions of distribution and use, see copyright notice in irrKlang.h
 
@@ -70,8 +70,26 @@ namespace irrklang
 		return (a + tolerance > b) && (a - tolerance < b);
 	}
 
+} // end irrklang namespace
 
-} // end namespace
+// ensure wchar_t type is existing for unicode support
+#include <wchar.h>
+
+// define the wchar_t type if not already built in.
+#ifdef _MSC_VER  // microsoft compiler
+	#ifndef _WCHAR_T_DEFINED
+		//! A 16 bit wide character type.
+		/**
+			Defines the wchar_t-type.
+			In VS6, its not possible to tell
+			the standard compiler to treat wchar_t as a built-in type, and
+			sometimes we just don't want to include the huge stdlib.h or wchar.h,
+			so we'll use this.
+		*/
+		typedef unsigned short wchar_t;
+		#define _WCHAR_T_DEFINED
+	#endif // wchar is not defined
+#endif // microsoft compiler
 
 
 #endif // __IRR_TYPES_H_INCLUDED__

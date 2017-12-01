@@ -1,6 +1,6 @@
 /* irrKlang.h -- interface of the 'irrKlang' library
 
-  Copyright (C) 2002-2009 Nikolaus Gebhardt
+  Copyright (C) 2002-2014 Nikolaus Gebhardt
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,9 +34,9 @@
 #include "ik_ISoundMixedOutputReceiver.h"
 
 //! irrKlang Version
-#define IRR_KLANG_VERSION "1.4.0"
+#define IRR_KLANG_VERSION "1.5.0"
 
-/*! \mainpage irrKlang 1.4.0 API documentation
+/*! \mainpage irrKlang 1.5.0 API documentation
  *
  * <div align="center"><img src="logobig.png" ></div>
 
@@ -63,6 +63,7 @@
  * @ref staticLib <br/>
  * @ref enumeratingDevices <br/>
  * @ref recordingAudio <br/>
+ * @ref unicode <br/>
  * <br/>
  * Short full examples:<br/>
  * @ref quickstartexample <br/>
@@ -107,7 +108,7 @@
  * </ul>
  * It is also able to run on different operating systems and use several output drivers:
  *<ul>
- *       <li>Windows 98, ME, NT 4, 2000, XP, Vista, Windows 7</li>
+ *       <li>Windows 98, ME, NT 4, 2000, XP, Vista, Windows 7, Windows 8</li>
  *	<ul>
  *       <li>DirectSound</li>
  *       <li>DirectSound8</li>
@@ -792,6 +793,35 @@
  * <br/>
  *
  *
+ * \section unicode Unicode support
+ *
+ * irrKlang supports unicode on all operating systems. Internally, it uses UTF8, and all functions accepting strings
+ * and file names take UTF8 strings. If you are running irrKlang on Windows, and are using the UNICODE define or using
+ * wchar_t* strings directly, you can do this as well. Use the irrKlang provided function makeUTF8fromUTF16string() to 
+ * convert your wchar_t* string to a char* string.
+ *
+ * This example shows how:
+ *
+ * \code
+ * const wchar_t* yourFilename = L"SomeUnicodeFilename.wav"; // assuming this is the file name you get from some of your functions
+ *
+ * const int nBufferSize = 2048; // large enough, but best would be wcslen(yourFilename)*3.
+ * char strBuffer[nBufferSize]; 
+ * irrklang::makeUTF8fromUTF16string(yourFilename, strBuffer, nBufferSize);
+ *
+ * // now the converted file name is in strBuffer. We can play it for example now:
+ * engine->play2D(strBuffer);
+ * \endcode
+ *
+ * Of course, you can use any other unicode converion function for this. makeUTF8fromUTF16string() is only provided
+ * for convenience.
+ * <br/>
+ * <br/>
+ * <br/>
+ * <br/>
+ *
+ *
+ *
  *
  *
  * \section quickstartexample Quick Start Example
@@ -982,6 +1012,21 @@ namespace irrklang
 	IRRKLANG_API ISoundDeviceList* IRRKLANGCALLCONV createAudioRecorderDeviceList(
 		E_SOUND_OUTPUT_DRIVER driver = ESOD_AUTO_DETECT,
 		const char* sdk_version_do_not_use = IRR_KLANG_VERSION);
+
+
+	//! Converts a wchar_t string to an utf8 string, useful when using Windows in unicode mode. 
+	/** irrKlang works with unicode file names, and accepts char* strings as parameters for names and filenames.
+	If you are running irrKlang in Windows, and working with wchar_t* pointers instead of char* ones, 
+	you can use this function to create a char* (UTF8) representation of your wchar_t* (UTF16) string.
+	Works for filenames and other strings.
+	\param pInputString zero terminated input string.
+	\param pOutputBuffer the buffer where the converted string is written to. Be sure that this buffer
+	has a big enough size. A good size would be three times the string length of your input buffer, like
+	wcslen(yourInputBuffer)*3. Because each wchar_t can be represented by up to 3 chars.
+	\param outputBufferSize size of your output buffer.
+	\return Returns true if successful, and false if not. If 'false' is returned, maybe your buffer was too small. */
+	IRRKLANG_API bool IRRKLANGCALLCONV makeUTF8fromUTF16string(
+		const wchar_t* pInputString, char* pOutputBuffer, int outputBufferSize);
 
 
 } // end namespace irrklang

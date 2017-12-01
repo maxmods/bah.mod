@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2008-2013 Bruce A Henderson
+ Copyright (c) 2008-2017 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,17 @@ class MaxSAudioStreamFormat;
 class Maxvec3df;
 class MaxSoundStopEventReceiver;
 
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
 extern "C" {
 
 #include <blitz.h>
 
-    void _bah_irrklang_TISoundStopEventReceiver__OnSoundStopped(irrklang::ISound* sound, irrklang::E_STOP_EVENT_CAUSE reason, BBObject * handle);
+    void CB_PREF(bah_irrklang_TISoundStopEventReceiver__OnSoundStopped)(irrklang::ISound* sound, irrklang::E_STOP_EVENT_CAUSE reason, BBObject * handle);
 
 	irrklang::ISoundEngine* bmx_createIrrKlangDevice(irrklang::E_SOUND_OUTPUT_DRIVER driver, int options, const char * deviceID);
 
@@ -206,7 +212,7 @@ public:
 	
 	virtual void OnSoundStopped(irrklang::ISound* sound, irrklang::E_STOP_EVENT_CAUSE reason, void* userData)
      {
-        _bah_irrklang_TISoundStopEventReceiver__OnSoundStopped(sound, reason, maxHandle);
+        CB_PREF(bah_irrklang_TISoundStopEventReceiver__OnSoundStopped)(sound, reason, maxHandle);
      }
 
 private:
