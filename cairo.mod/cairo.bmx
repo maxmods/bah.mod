@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2015 Bruce A Henderson
+' Copyright (c) 2006-2017 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -22,12 +22,15 @@ bbdoc: Cairo Vector Graphics Library
 End Rem
 Module BaH.cairo
 
-ModuleInfo "Version: 1.26"
+ModuleInfo "Version: 1.27"
 ModuleInfo "License: MPL / LGPL"
 ModuleInfo "Copyright: Cairo -  University of Southern California and Carl D. Worth"
 ModuleInfo "Copyright: Wrapper - Bruce A Henderson, based on initial work by Duncan Cross."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.27"
+ModuleInfo "History: Cairo update to 1.15.8."
+ModuleInfo "History: Split out pixman into separate BaH.Pixman module."
 ModuleInfo "History: 1.26"
 ModuleInfo "History: Updated for bmx-ng."
 ModuleInfo "History: 1.25"
@@ -123,6 +126,7 @@ ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX -DHAVE_PTHREAD_SETSPECIFIC"
 Import BRL.Pixmap
 Import BRL.Max2D
 Import Pub.Zlib
+Import BaH.Pixman
 'Import Pub.libpng
 'Import BaH.Fontconfig
 
@@ -1516,7 +1520,11 @@ Close_path()
 			Local dashBank:TBank = CreateBank(num_dashes * 8)
 			' populate the double mem
 			For Local i:Int = 0 Until num_dashes
+?bmxng
+				dashBank.PokeDouble(Size_T(i * 8), dashes[i])
+? Not bmxng
 				dashBank.PokeDouble(i * 8, dashes[i])
+?
 			Next
 			cairo_set_dash(contextPtr, dashBank.lock(), num_dashes, offset)
 			

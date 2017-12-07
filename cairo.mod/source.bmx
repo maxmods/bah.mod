@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2015 Bruce A Henderson
+' Copyright (c) 2006-2017 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -22,45 +22,7 @@ Import "src/*.h"
 Import "../../pub.mod/zlib.mod/*.h"
 Import "../../pub.mod/libpng.mod/*.h"
 Import "../../pub.mod/freetype.mod/include/*.h"
-Import "../../pub.mod/glew.mod/*.h"
-
-' pixman
-Import "src/pixman/*.h"
-Import "src/pixman/pixman-access.c"
-Import "src/pixman/pixman-access-accessors.c"
-'Import "src/pixman/pixman-cpu.c"
-Import "src/pixman/pixman-gradient-walker.c"
-Import "src/pixman/pixman-region16.c"
-Import "src/pixman/pixman-region32.c"
-Import "src/pixman/pixman-image.c"
-Import "src/pixman/pixman-implementation.c"
-Import "src/pixman/pixman-combine32.c"
-Import "src/pixman/pixman-combine-float.c"
-'Import "src/pixman/pixman-combine64.c"
-Import "src/pixman/pixman-general.c"
-Import "src/pixman/pixman.c"
-Import "src/pixman/pixman-fast-path.c"
-Import "src/pixman/pixman-solid-fill.c"
-Import "src/pixman/pixman-conical-gradient.c"
-Import "src/pixman/pixman-linear-gradient.c"
-Import "src/pixman/pixman-radial-gradient.c"
-Import "src/pixman/pixman-bits-image.c"
-Import "src/pixman/pixman-utils.c"
-Import "src/pixman/pixman-edge.c"
-Import "src/pixman/pixman-edge-accessors.c"
-Import "src/pixman/pixman-trap.c"
-Import "src/pixman/pixman-timer.c"
-Import "src/pixman/pixman-matrix.c"
-?macos
-Import "src/pixman/pixman-mmx.c"
-Import "src/pixman/pixman-sse2.c"
-?
-Import "src/pixman/pixman-x86.c"
-Import "src/pixman/pixman-arm.c"
-Import "src/pixman/pixman-noop.c"
-Import "src/pixman/pixman-mips.c"
-Import "src/pixman/pixman-ppc.c"
-
+Import "../pixman.mod/pixman/*.h"
 
 ' cairo
 Import "src/cairo-analysis-surface.c"
@@ -104,10 +66,10 @@ Import "src/cairo-image-compositor.c"
 Import "src/cairo-image-info.c"
 Import "src/cairo-image-source.c"
 Import "src/cairo-image-surface.c"
+Import "src/cairo-line.c"
 Import "src/cairo-lzw.c"
 Import "src/cairo-mask-compositor.c"
 Import "src/cairo-matrix.c"
-'Import "src/cairo-meta-surface.c"
 Import "src/cairo-mesh-pattern-rasterizer.c"
 Import "src/cairo-misc.c"
 Import "src/cairo-mono-scan-converter.c"
@@ -152,8 +114,8 @@ Import "src/cairo-surface-offset.c"
 Import "src/cairo-surface-snapshot.c"
 Import "src/cairo-surface-subsurface.c"
 Import "src/cairo-surface-wrapper.c"
-'Import "src/cairo-system.c"
-'Import "src/cairo-tee-surface.c"
+Import "src/cairo-tag-attributes.c"
+Import "src/cairo-tag-stack.c"
 Import "src/cairo-tor-scan-converter.c"
 Import "src/cairo-tor22-scan-converter.c"
 Import "src/cairo-toy-font-face.c"
@@ -174,6 +136,7 @@ Import "src/cairo-type1-subset.c"
 Import "src/cairo-type3-glyph-surface.c"
 
 
+Import "src/cairo-pdf-interchange.c"
 Import "src/cairo-pdf-operators.c"
 Import "src/cairo-pdf-shading.c"
 Import "src/cairo-pdf-surface.c"
@@ -188,20 +151,9 @@ Import "src/cairo-ft-font.c"
 Import "src/cairo-type1-glyph-names.c"
 Import "src/cairo-type1-subset.c"
 
-'Import "src/cairo-gl-shaders.c"
-'Import "src/cairo-gl-surface.c"
-'Import "src/cairo-gl-glyphs.c"
-'Import "src/cairo-gl-device.c"
-'Import "src/cairo-gl-composite.c"
-'Import "src/cairo-gl-gradient.c"
-
 Import "src/cairo-script-surface.c"
 
 Import "src/cairo-svg-surface.c"
 
 Import "src/cairo-xml-surface.c"
-
-'?macos
-'Import "glglue_macos.m"
-'?
 

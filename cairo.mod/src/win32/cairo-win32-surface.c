@@ -122,11 +122,7 @@ _cairo_win32_print_gdi_error (const char *context)
 
     fflush (stderr);
 
-    /* We should switch off of last_status, but we'd either return
-     * CAIRO_STATUS_NO_MEMORY or CAIRO_STATUS_UNKNOWN_ERROR and there
-     * is no CAIRO_STATUS_UNKNOWN_ERROR.
-     */
-    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
+    return _cairo_error (CAIRO_STATUS_WIN32_GDI_ERROR);
 }
 
 cairo_bool_t
@@ -172,6 +168,21 @@ cairo_win32_surface_get_dc (cairo_surface_t *surface)
 }
 
 /**
+ * _cairo_surface_is_win32:
+ * @surface: a #cairo_surface_t
+ *
+ * Checks if a surface is an #cairo_win32_surface_t
+ *
+ * Return value: %TRUE if the surface is an win32 surface
+ **/
+static inline cairo_bool_t
+_cairo_surface_is_win32 (const cairo_surface_t *surface)
+{
+    /* _cairo_surface_nil sets a NULL backend so be safe */
+    return surface->backend && surface->backend->type == CAIRO_SURFACE_TYPE_WIN32;
+}
+
+/**
  * cairo_win32_surface_get_image:
  * @surface: a #cairo_surface_t
  *
@@ -187,8 +198,10 @@ cairo_win32_surface_get_dc (cairo_surface_t *surface)
 cairo_surface_t *
 cairo_win32_surface_get_image (cairo_surface_t *surface)
 {
-    if (surface->backend->type != CAIRO_SURFACE_TYPE_WIN32)
-	return NULL;
+
+    if (! _cairo_surface_is_win32 (surface)) {
+        return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_SURFACE_TYPE_MISMATCH));
+    }
 
     GdiFlush();
     return to_win32_display_surface(surface)->image;

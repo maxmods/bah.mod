@@ -280,7 +280,7 @@ can_use_msaa_compositor (cairo_gl_surface_t *surface,
     /* Multisampling OpenGL ES surfaces only maintain one multisampling
        framebuffer and thus must use the spans compositor to do non-antialiased
        rendering. */
-    if (((cairo_gl_context_t *) surface->base.device)->gl_flavor == CAIRO_GL_FLAVOR_ES
+    if (((cairo_gl_context_t *) surface->base.device)->gl_flavor == CAIRO_GL_FLAVOR_ES2
 	 && surface->supports_msaa
 	 && antialias == CAIRO_ANTIALIAS_NONE)
 	return FALSE;
@@ -356,10 +356,12 @@ _cairo_gl_msaa_compositor_mask_source_operator (const cairo_compositor_t *compos
 	status = _draw_int_rect (ctx, &setup, &composite->bounded);
     else
 	status = _draw_traps (ctx, &setup, &traps);
+    if (unlikely (status))
+        goto finish;
 
     /* Now draw the second pass. */
-    _cairo_gl_composite_set_operator (&setup, CAIRO_OPERATOR_ADD,
-				      FALSE /* assume_component_alpha */);
+    status = _cairo_gl_composite_set_operator (&setup, CAIRO_OPERATOR_ADD,
+					       FALSE /* assume_component_alpha */);
     if (unlikely (status))
         goto finish;
     status = _cairo_gl_composite_set_source (&setup,
@@ -580,6 +582,7 @@ _prevent_overlapping_strokes (cairo_gl_context_t 		*ctx,
 	scissor_was_enabled = glIsEnabled (GL_SCISSOR_TEST);
 	if (! scissor_was_enabled) {
 	    _cairo_path_fixed_approximate_stroke_extents (path, style, ctm,
+							  FALSE, /* is_vector */
 							  &stroke_extents);
 	    _cairo_gl_scissor_to_rectangle (setup->dst, &stroke_extents);
 	}

@@ -53,7 +53,7 @@ struct _cairo_span_renderer {
 
     /* Render the spans on row y of the destination by whatever compositing
      * method is required. */
-    cairo_warn cairo_status_t
+    cairo_status_t
     (*render_rows) (void *abstract_renderer,
 		    int y, int height,
 		    const cairo_half_open_span_t	*coverages,
@@ -167,6 +167,10 @@ cairo_private void
 _cairo_botor_scan_converter_init (cairo_botor_scan_converter_t *self,
 				  const cairo_box_t *extents,
 				  cairo_fill_rule_t fill_rule);
+
+cairo_private cairo_status_t
+_cairo_botor_scan_converter_add_polygon (cairo_botor_scan_converter_t *converter,
+					const cairo_polygon_t *polygon);
 
 /* cairo-spans.c: */
 

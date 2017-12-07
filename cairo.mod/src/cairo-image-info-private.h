@@ -43,6 +43,7 @@ typedef struct _cairo_image_info {
     int		 height;
     int		 num_components;
     int		 bits_per_component;
+    int		 is_adobe_jpeg;
 } cairo_image_info_t;
 
 cairo_private cairo_int_status_t
@@ -59,5 +60,10 @@ cairo_private cairo_int_status_t
 _cairo_image_info_get_png_info (cairo_image_info_t	*info,
 				const unsigned char     *data,
 				unsigned long            length);
+
+cairo_private cairo_int_status_t
+_cairo_image_info_get_jbig2_info (cairo_image_info_t	*info,
+				  const unsigned char	*data,
+				  unsigned long		 length);
 
 #endif /* CAIRO_IMAGE_INFO_PRIVATE_H */

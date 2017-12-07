@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2015 Bruce A Henderson
+' Copyright (c) 2006-2017 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -401,7 +401,12 @@ Function LoadFT:Byte Ptr( src$ )
 		If FT_Init_FreeType( Varptr ft_lib ) Return Null
 	EndIf
 
-	Local buf:Byte Ptr,buf_size:Int
+	Local buf:Byte Ptr
+?bmxng
+	Local buf_size:Size_T
+?Not bmxng	
+	Local buf_size:Int
+?
 			
 	'Local ft_face:Byte Ptr
 

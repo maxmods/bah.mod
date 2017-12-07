@@ -44,11 +44,12 @@
 #include "cairo-quartz.h"
 #include "cairo-surface-clipper-private.h"
 
-#ifdef CGFLOAT_DEFINED
-typedef CGFloat cairo_quartz_float_t;
-#else
-typedef float cairo_quartz_float_t;
+#ifndef CGFLOAT_DEFINED
+/* On 10.4, Quartz APIs used float instead of CGFloat */
+typedef float CGFloat;
 #endif
+
+typedef CGFloat cairo_quartz_float_t;
 
 typedef enum {
     DO_DIRECT,
@@ -56,6 +57,9 @@ typedef enum {
     DO_IMAGE,
     DO_TILED_IMAGE
 } cairo_quartz_action_t;
+
+/* define CTFontRef for pre-10.5 SDKs */
+typedef const struct __CTFont *CTFontRef;
 
 typedef struct cairo_quartz_surface {
     cairo_surface_t base;
@@ -82,6 +86,9 @@ typedef struct cairo_quartz_image_surface {
 
 cairo_private cairo_bool_t
 _cairo_quartz_verify_surface_size(int width, int height);
+
+cairo_private cairo_bool_t
+_cairo_surface_is_quartz (const cairo_surface_t *surface);
 
 cairo_private CGImageRef
 CairoQuartzCreateCGImage (cairo_format_t format,
