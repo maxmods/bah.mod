@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -307,8 +307,14 @@ End Function
 ' custom function to convert a String array to a "C" string array.
 Function arrayToCStrings:Byte Ptr(stringArray:String[])
 
+?bmxng
+	Local length:Size_T
+?Not bmxng
+	Local length:Int
+?
 ?Not x64
-	Local cStrings:Byte Ptr = MemAlloc(4 * stringArray.length)
+	length = 4 * stringArray.length
+	Local cStrings:Byte Ptr = MemAlloc(length)
 		
 	For Local i:Int = 0 Until stringArray.length
 		
@@ -317,7 +323,8 @@ Function arrayToCStrings:Byte Ptr(stringArray:String[])
 		
 	Next
 ?x64
-	Local cStrings:Byte Ptr = MemAlloc(8 * stringArray.length)
+	length = 8 * stringArray.length
+	Local cStrings:Byte Ptr = MemAlloc()
 		
 	For Local i:Int = 0 Until stringArray.length
 		

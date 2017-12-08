@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,19 @@ bbdoc: Curses
 End Rem
 Module BaH.Curses
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007-2013 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to pdcurses 3.4.ae32ac4"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (cdk 5.0.20120323, pdcurses 3.4)"
 
 ?macos
 ModuleInfo "CC_OPTS: -DNCURSES_OPAQUE=0"
 ?win32
-ModuleInfo "CC_OPTS: -DNCURSES_MOUSE_VERSION"
+ModuleInfo "CC_OPTS: -DNCURSES_MOUSE_VERSION -DPDC_WIDE"
 ?
 
 Import Pub.StdC

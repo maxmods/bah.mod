@@ -41,7 +41,7 @@ If dialog Then
 End If
 
 ' callback for dialog key binding
-Function dialogHelpCB(widget:TCursesWidget, data:Object, key:Int)
+Function dialogHelpCB:Int(widget:TCursesWidget, data:Object, key:Int)
 
 	Select TCursesDialog(widget).currentButton()
 		Case 0

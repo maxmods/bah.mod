@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2013 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ Type TCursesWidget
 	bbdoc: Add a key binding for the specified key.
 	about: @data can be any arbitrary data you wish to be supplied when the callback is executed.
 	End Rem
-	Method bindKey(key:Int, data:Object, bindFunc(widget:TCursesWidget, data:Object, key:Int))
+	Method bindKey(key:Int, data:Object, bindFunc:Int(widget:TCursesWidget, data:Object, key:Int))
 	
 		Local bc:TBindCallback = New TBindCallback
 		bc.widget = Self
@@ -620,6 +620,19 @@ Type TConsoleSystemDriver Extends TSystemDriver
 	Method OpenURL:Int( url:String )
 		Return NativeDriver.OpenURL(url)
 	End Method
+	
+	Method DesktopWidth:Int()
+	End Method
+	
+	Method DesktopHeight:Int()
+	End Method
+
+	Method DesktopDepth:Int()
+	End Method
+
+	Method DesktopHertz:Int()
+	End Method
+
 End Type
 
 Type TMouseEvent
@@ -631,7 +644,7 @@ Type TMouseEvent
 	Field z:Int
 	Field event:Int
 
-	Function _create:TMouseEvent(id:Int, x:Int, y:Int, z:Int, state:Int)
+	Function _create:TMouseEvent(id:Int, x:Int, y:Int, z:Int, state:Int) { nomangle }
 		Local this:TMouseEvent = New TMouseEvent
 		this.id = id
 		this.x = x
