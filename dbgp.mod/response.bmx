@@ -48,8 +48,8 @@ Type TDdbgpReponse
 		Return buf
 	End Method
 	
-	Method newResponse:TNode(command:String, id:String)
-		Local node:TNode = New TNode.Create("response")
+	Method newResponse:TXmlNode(command:String, id:String)
+		Local node:TXmlNode = New TXmlNode.Create("response")
 		node.addAttribute("command", command)
 		node.addAttribute("transaction_id", id)
 		Return node
@@ -58,7 +58,7 @@ Type TDdbgpReponse
 	Method init:String(file:String, session:String)
 		Local buf:StringBuffer = xml()
 		
-		Local node:TNode = New TNode.Create("init")
+		Local node:TXmlNode = New TXmlNode.Create("init")
 		node.addAttribute("fileuri", fileToURI(file))
 		node.addAttribute("idekey", session)
 		node.addAttribute("language", "BlitzMax")
@@ -72,7 +72,7 @@ Type TDdbgpReponse
 	Method featureGet:String(id:String, name:String, supported:Int, value:String)
 		Local buf:StringBuffer = xml()
 
-		Local response:TNode = newResponse("feature_get", id)
+		Local response:TXmlNode = newResponse("feature_get", id)
 		response.addAttribute("feature_name", name)
 		If supported Then
 			response.addAttribute("supported", "1")
@@ -89,7 +89,7 @@ Type TDdbgpReponse
 	Method featureSet:String(id:String, name:String, supported:Int)
 		Local buf:StringBuffer = xml()
 
-		Local response:TNode = newResponse("feature_set", id)
+		Local response:TXmlNode = newResponse("feature_set", id)
 		response.addAttribute("feature_name", name)
 		If supported Then
 			response.addAttribute("supported", "1")
@@ -104,7 +104,7 @@ Type TDdbgpReponse
 	Method simpleResponseWithSuccess:String(name:String, id:String, success:Int)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("name", id)
+		Local response:TXmlNode = newResponse("name", id)
 		If success Then
 			response.addAttribute("success", "1")
 		Else
@@ -130,7 +130,7 @@ Type TDdbgpReponse
 	Method status:String(id:String, state:Int, reason:String)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("status", id)
+		Local response:TXmlNode = newResponse("status", id)
 		
 		response.addAttribute("status", DebugState.map(state))
 		response.addAttribute("reason", reason)
@@ -142,7 +142,7 @@ Type TDdbgpReponse
 	Method stream:String(_type:String, data:Byte[])
 		Local buf:StringBuffer = xml()
 		
-		Local s:TNode = New TNode.Create("stream")
+		Local s:TXmlNode = New TXmlNode.Create("stream")
 		s.addAttribute("type", _type)
 		s.addAttribute("encoding", "base64")
 		
@@ -155,7 +155,7 @@ Type TDdbgpReponse
 	Method run:String(id:String, state:Int, success:Int)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("run", id)
+		Local response:TXmlNode = newResponse("run", id)
 		response.addAttribute("status", DebugState.map(state))
 		
 		If success Then
@@ -171,7 +171,7 @@ Type TDdbgpReponse
 	Method breakpoint:String(id:String)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("break", id)
+		Local response:TXmlNode = newResponse("break", id)
 		response.addAttribute("status", DebugState.map(DebugState.BREAK))
 		response.addAttribute("reason", "ok")
 
@@ -182,7 +182,7 @@ Type TDdbgpReponse
 	Method stackGet:String(id:String, stack:TList)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("stack_get", id)
+		Local response:TXmlNode = newResponse("stack_get", id)
 		
 		For Local scope:TBlitzMaxStackScope = EachIn stack
 			addToStack(response, scope, scope.getLevel())
@@ -192,8 +192,8 @@ Type TDdbgpReponse
 		Return buf.ToString()
 	End Method
 	
-	Method addToStack(parent:TNode, scope:TBlitzMaxStackScope, level:Int)
-		Local stack:TNode = parent.addNodeName("stack")
+	Method addToStack(parent:TXmlNode, scope:TBlitzMaxStackScope, level:Int)
+		Local stack:TXmlNode = parent.addNodeName("stack")
 		
 		stack.addAttribute("level", level)
 		stack.addAttribute("type", "file")
@@ -214,9 +214,9 @@ Type TDdbgpReponse
 
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("context_names", id)
+		Local response:TXmlNode = newResponse("context_names", id)
 		
-		Local context:TNode = response.addNodeName("context")
+		Local context:TXmlNode = response.addNodeName("context")
 		context.addAttribute("name", "Local")
 		context.addAttribute("id", "0")
 
@@ -227,7 +227,7 @@ Type TDdbgpReponse
 	Method stop:String(id:String, state:Int)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("stop", id)
+		Local response:TXmlNode = newResponse("stop", id)
 		response.addAttribute("status", DebugState.map(DebugState.BREAK))
 		response.addAttribute("reason", "ok")
 
@@ -238,7 +238,7 @@ Type TDdbgpReponse
 	Method contextGet:String(id:String, stack:TList, depth:Int, context:Int)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("context_get", id)
+		Local response:TXmlNode = newResponse("context_get", id)
 		response.addAttribute("context", context)
 		
 		For Local scope:TBlitzMaxStackScope = EachIn stack
@@ -253,8 +253,8 @@ Type TDdbgpReponse
 		Return buf.ToString()
 	End Method
 	
-	Method addProperty:TNode(response:TNode, variable:TBlitzMaxScopeVariable)
-		Local prop:TNode = response.addNodeName("property")
+	Method addProperty:TXmlNode(response:TXmlNode, variable:TBlitzMaxScopeVariable)
+		Local prop:TXmlNode = response.addNodeName("property")
 		
 		prop.addAttribute("name", variable.getName())
 		prop.addAttribute("fullname", variable.fullname)
@@ -292,14 +292,14 @@ Type TDdbgpReponse
 	Method propGet:String(id:String, name:String, page:Int, obj:TBlitzMaxObjectScope)
 		Local buf:StringBuffer = xml()
 		
-		Local response:TNode = newResponse("property_get", id)
+		Local response:TXmlNode = newResponse("property_get", id)
 		
 		' this is the variable for which we are retrieving its contents
 		Local v:TBlitzMaxScopeVariable = New TBlitzMaxScopeVariable
 		v.name = name.Split("#")[0]
 		v.fullname = name
 		v.children = True
-		Local prop:TNode = addProperty(response, v)
+		Local prop:TXmlNode = addProperty(response, v)
 		
 		If obj.getVariables() Then
 			For Local variable:TBlitzMaxScopeVariable = EachIn obj.getVariables()

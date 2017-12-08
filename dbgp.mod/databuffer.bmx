@@ -29,7 +29,11 @@ Type TDataBuffer
 				Local b:Byte[] = New Byte[size - 1]
 				
 				If remaining Then
+?bmxng
+					MemCopy(b, remaining, Size_T(remaining.length))
+?Not bmxng
 					MemCopy(b, remaining, remaining.length)
+?
 					' FIXME System.arraycopy(newData, last + 1, b, remaining.length, i - last - 1 - t)
 				Else
 
@@ -48,7 +52,12 @@ Type TDataBuffer
 		' if we have data left over, hold onto it for adding to the next chunk.
 		If last + 1 < length Then
 			remaining = New Byte[length - last]
+?bmxng
+			Local nd:Byte Ptr = newData
+			MemCopy(remaining, nd + last + 1, Size_T(length - last))
+?Not bmxng
 			MemCopy(remaining, (Varptr newData)[last + 1], length - last) 
+?
 		End If
 		
 	End Method
@@ -57,9 +66,11 @@ Type TDataBuffer
 		
 		If length > 0 Then
 			Local b:Byte[] = New Byte[length]
-			
+?bmxng
+			MemCopy(b, newData, Size_T(length))
+?Not bmxng
 			MemCopy(b, newData, length)
-			
+?			
 			data.addLast(b)
 		End If
 		

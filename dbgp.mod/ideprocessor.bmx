@@ -41,7 +41,11 @@ Type TBlitzMaxIDEDebugProcessor
 		Local success:Int = True
 		
 		socket = TSocket.CreateTCP()
+?bmxng
+		socket.Connect(AddrInfo(ideHost, idePort)[0])
+?Not bmxng
 		socket.Connect(HostIp(ideHost), idePort)
+?
 		
 		inout = TSocketStream.Create(socket)
 		

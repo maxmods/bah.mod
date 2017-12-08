@@ -5,14 +5,14 @@ Import BaH.Base64
 
 Import "common.bmx"
 
-Type TNode
+Type TXmlNode
 
 	Field name:String
 	Field attributes:TList
 	Field nodes:TList
 	Field text:String
 	
-	Method Create:TNode(name:Object)
+	Method Create:TXmlNode(name:Object)
 		Self.name = String(name)
 		Return Self
 	End Method
@@ -39,7 +39,7 @@ Type TNode
 		
 		' children
 		If nodes Then
-			For Local node:TNode = EachIn nodes
+			For Local node:TXmlNode = EachIn nodes
 				node.render(buf)
 			Next
 		End If
@@ -55,7 +55,7 @@ Type TNode
 		
 	End Method
 	
-	Method addAttribute:TNode(name:String, value:String)
+	Method addAttribute:TXmlNode(name:String, value:String)
 		If Not attributes Then
 			attributes = New TList
 		End If
@@ -65,15 +65,15 @@ Type TNode
 		Return Self
 	End Method
 	
-	Method addNodeName:TNode(name:String)
-		Local node:TNode = New TNode.Create(name)
+	Method addNodeName:TXmlNode(name:String)
+		Local node:TXmlNode = New TXmlNode.Create(name)
 		
 		addNode(node)
 		
 		Return node
 	End Method
 	
-	Method addNode:TNode(node:TNode)
+	Method addNode:TXmlNode(node:TXmlNode)
 		If Not nodes Then
 			nodes = New TList
 		End If
@@ -90,7 +90,7 @@ Type TNode
 End Type
 
 ' A base64 encoded CDATA node.
-Type TDataNode Extends TNode
+Type TDataNode Extends TXmlNode
 
 	Method Create:TDataNode(data:Object)
 		name = TBase64.Encode(Byte[](data), Byte[](data).length)
