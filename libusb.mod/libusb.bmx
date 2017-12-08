@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: libusb
 End Rem
 Module BaH.libusb
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2007-2009 Bruce A Henderson"
+ModuleInfo "Copyright: 2007-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Updated for NG"
 ModuleInfo "History: 1.00 Initial Release"
 
 ?win32
@@ -222,8 +224,8 @@ Type USBDeviceHandle
 	bulkWrite, etc).
 	</p>
 	End Rem
-	Method claimInterface:Int(interface:Int)
-		Return usb_claim_interface(handlePtr, interface)
+	Method claimInterface:Int(iface:Int)
+		Return usb_claim_interface(handlePtr, iface)
 	End Method
 	
 	Rem
@@ -232,8 +234,8 @@ Type USBDeviceHandle
 	about: Releases an interface previously claimed with claimInterface. The @interface parameter is the value as
 	specified in the descriptor field interfaceNumber. 
 	End Rem
-	Method releaseInterface:Int(interface:Int)
-		Return usb_release_interface(handlePtr, interface)
+	Method releaseInterface:Int(iface:Int)
+		Return usb_release_interface(handlePtr, iface)
 	End Method
 	
 	Rem
@@ -416,7 +418,7 @@ Type USBInterfaceDescriptor Extends USBDescriptorHeader
 	Rem
 	bbdoc: 
 	End Rem
-	Method interface:Int()
+	Method IFace:Int()
 		Return bmx_usbinterfacedescriptor_interface(descriptorPtr)
 	End Method
 	
@@ -519,7 +521,7 @@ Type USBConfigDescriptor Extends USBDescriptorHeader
 	Rem
 	bbdoc: 
 	End Rem
-	Method interface:USBInterface(index:Int)
+	Method IFace:USBInterface(index:Int)
 		Return USBInterface._create(bmx_usbconfigdescriptor_interface(descriptorPtr, index))
 	End Method
 	

@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2017 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -105,8 +105,8 @@ Extern
 	Function usb_interrupt_read:Int(handle:Byte Ptr, endpoint:Int, bytes:Byte Ptr, size:Int, timeout:Int)
 	Function usb_control_msg:Int(handle:Byte Ptr, requestType:Int, request:Int, value:Int, index:Int, bytes:Byte Ptr, size:Int, timeout:Int)
 	Function usb_set_configuration:Int(handle:Byte Ptr, configuration:Int)
-	Function usb_claim_interface:Int(handle:Byte Ptr, interface:Int)
-	Function usb_release_interface:Int(handle:Byte Ptr, interface:Int)
+	Function usb_claim_interface:Int(handle:Byte Ptr, iface:Int)
+	Function usb_release_interface:Int(handle:Byte Ptr, iface:Int)
 	Function usb_set_altinterface:Int(handle:Byte Ptr, alternate:Int)
 	Function usb_clear_halt:Int(handle:Byte Ptr, endpoint:Int)
 	Function usb_reset:Int(handle:Byte Ptr)

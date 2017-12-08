@@ -117,28 +117,28 @@ Function printConfiguration(config:USBConfigDescriptor)
 	Print "  maxPower:            " + config.maxPower()
 
 	For Local i:Int = 0 Until config.numInterfaces()
-		printInterface(config.interface(i))
+		printInterface(config.IFace(i))
 	Next
 
 End Function
 
-Function printInterface(interface:USBInterface)
-	For Local i:Int = 0 Until interface.numAltsetting()
-		printAltsetting(interface.altsetting(i))
+Function printInterface(iface:USBInterface)
+	For Local i:Int = 0 Until iface.numAltsetting()
+		printAltsetting(iface.altsetting(i))
 	Next
 End Function
 
-Function printAltsetting(interface:USBInterfaceDescriptor)
-	Print "    interfaceNumber:   " + interface.interfaceNumber()
-	Print "    alternateSetting:  " + interface.alternateSetting()
-	Print "    numEndpoints:      " + interface.numEndpoints()
-	Print "    interfaceClass:    " + interface.interfaceClass()
-	Print "    interfaceSubClass: " + interface.interfaceSubClass()
-	Print "    interfaceProtocol: " + interface.interfaceProtocol()
-	Print "    interface:         " + interface.interface()
+Function printAltsetting(iface:USBInterfaceDescriptor)
+	Print "    interfaceNumber:   " + iface.interfaceNumber()
+	Print "    alternateSetting:  " + iface.alternateSetting()
+	Print "    numEndpoints:      " + iface.numEndpoints()
+	Print "    interfaceClass:    " + iface.interfaceClass()
+	Print "    interfaceSubClass: " + iface.interfaceSubClass()
+	Print "    interfaceProtocol: " + iface.interfaceProtocol()
+	Print "    interface:         " + iface.IFace()
 	
-	For Local i:Int = 0 Until interface.numEndpoints()
-		printEndpoint(interface.endpoint(i))
+	For Local i:Int = 0 Until iface.numEndpoints()
+		printEndpoint(iface.endpoint(i))
 	Next
 End Function
 
