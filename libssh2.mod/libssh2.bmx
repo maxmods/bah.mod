@@ -130,7 +130,7 @@ Type TSSHSession
 	Rem
 	bbdoc: 
 	End Rem
-	Method UserAuthKeyboardInteractive:Int(username:String, callback:Int(name:String, instruction:String, ..
+	Method UserAuthKeyboardInteractive:Int(username:String, callback(name:String, instruction:String, ..
 			prompts:TSSHKeyboardPrompt[], responses:TSSHKeyboardResponse[]))
 		
 		interactiveCallback = callback
