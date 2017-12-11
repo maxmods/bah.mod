@@ -51,7 +51,7 @@ Extern
 
 	Function bmx_torrent_session_create:Byte Ptr()
 	Function bmx_torrent_session_free(handle:Byte Ptr)
-	Function bmx_torrent_session_listenOn:Int(handle:Byte Ptr, portFrom:Int, portTo:Int, interface:String)
+	Function bmx_torrent_session_listenOn:Int(handle:Byte Ptr, portFrom:Int, portTo:Int, iface:String)
 	Function bmx_torrent_session_status:Byte Ptr(handle:Byte Ptr)
 	Function bmx_torrent_session_is_listening:Int(handle:Byte Ptr)
 	Function bmx_torrent_session_pause(handle:Byte Ptr)
