@@ -81,6 +81,9 @@ If your big endian system isn't being detected, add an OS specific check
 #endif // BYTE_ORDER
 
 #ifdef _WIN32
+#if __GNUC__ >= 7
+#include <stdio.h>
+#endif
 #define snprintf _snprintf
 #define lfind _lfind
 #endif // _WIN32
