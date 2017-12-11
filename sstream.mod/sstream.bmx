@@ -17,6 +17,11 @@ ModuleInfo "History: Initial port from BRL.Stream 1.09"
 
 ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
 
+?bmxng
+Import "common_ng.bmx"
+?Not bmxng
+Import "common.bmx"
+?
 Import "glue.c"
 
 Import Pub.StdC
@@ -592,7 +597,7 @@ Type TCSStream Extends TSStream
 		Assert _cstream Else "Attempt to read from closed stream"
 		Assert _mode & MODE_READ Else "Attempt to read from write-only stream"
 ?bmxng
-		count=fread64_( buf,1:size_t,size_t(count),_cstream )	
+		count=fread64_( buf,1:Size_T,Size_T(count),_cstream )	
 ?Not bmxng
 		count=fread64_( buf,1,count,_cstream )	
 ?
@@ -604,7 +609,7 @@ Type TCSStream Extends TSStream
 		Assert _cstream Else "Attempt to write to closed stream"
 		Assert _mode & MODE_WRITE Else "Attempt to write to read-only stream"
 ?bmxng
-		count=fwrite64_( buf,1:size_t,size_t(count),_cstream )
+		count=fwrite64_( buf,1:Size_T,Size_T(count),_cstream )
 ?Not bmxng
 		count=fwrite64_( buf,1,count,_cstream )
 ?
@@ -1141,38 +1146,3 @@ Function CasedFileName$(path$)
 	EndIf
 End Function
 
-
-Extern "c"
-
-Function fopen64_:Byte Ptr( file$,Mode$ )
-Function fclose64_:Int( c_stream:Byte Ptr )="fclose"
-?bmxng
-Function fread64_:size_t( buf:Byte Ptr,size:size_t,count:size_t,c_stream:Byte Ptr )="fread"
-Function fwrite64_:size_t( buf:Byte Ptr,size:size_t,count:size_t,c_stream:Byte Ptr )="fwrite"
-?Not bmxng
-Function fread64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Byte Ptr )="fread"
-Function fwrite64_:Int( buf:Byte Ptr,size:Int,count:Int,c_stream:Byte Ptr )="fwrite"
-?
-Function fflush64_:Int( c_stream:Byte Ptr )="fflush"
-?win32
-Function fseek64_:Int( c_stream:Byte Ptr,offset:Long,origin:Int )="fseeko64"
-Function ftell64_( c_stream:Byte Ptr, pos:Long Ptr )
-?linux
-Function fseek64_:Int( c_stream:Byte Ptr,offset:Long,origin:Int )="fseeko64"
-?macos
-Function fseek64_:Int( c_stream:Byte Ptr,offset:Long,origin:Int )="fseeko"
-?Not win32
-Function ftell64_( c_stream:Byte Ptr, pos:Long Ptr )
-?
-Function feof64_:Int( c_stream:Byte Ptr )="feof"
-Function fgetc64_:Int( c_stream:Byte Ptr )="fgetc"
-Function ungetc64_:Int( char:Int,c_stream:Byte Ptr )="ungetc"
-Function fputs64_:Int( str$,c_stream:Byte Ptr )
-
-'bmxng
-'Function stat_:Int( path$,st_mode:Int Var,st_size:Int Var,st_mtime:Int Var,st_ctime:Int Var )
-?Not bmxng
-Function stat_:Int( path$,st_mode:Int Var,st_size:Int Var,st_mtime:Int Var,st_ctime:Int Var )
-?
-
-End Extern

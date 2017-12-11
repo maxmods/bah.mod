@@ -37,7 +37,11 @@ Type TRamSStream Extends TSStream
 	Method Read:Long( buf:Byte Ptr,count:Long )
 		If count<=0 Or _read=False Return 0
 		If _pos+count>_size count=_size-_pos
+?bmxng
+		MemCopy buf,_buf+_pos,Size_T(count)
+?Not bmxng
 		MemCopy buf,_buf+_pos,count
+?
 		_pos:+count
 		Return count
 	End Method
@@ -45,7 +49,11 @@ Type TRamSStream Extends TSStream
 	Method Write:Long( buf:Byte Ptr,count:Long )
 		If count<=0 Or _write=False Return 0
 		If _pos+count>_size count=_size-_pos
+?bmxng
+		MemCopy _buf+_pos,buf,Size_T(count)
+?Not bmxng
 		MemCopy _buf+_pos,buf,count
+?
 		_pos:+count
 		Return count
 	End Method
