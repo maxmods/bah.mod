@@ -516,7 +516,11 @@ Type TMySQLResultSet Extends TQueryResultSet
 				mySQLFields[i].mySQLField = _field
 				mySQLFields[i].dataLength = bmx_mysql_field_length(_field) + 1
 				' make some space for the data...
+?bmxng
+				mySQLFields[i].dataValue = MemAlloc(Size_T(mySQLFields[i].dataLength))
+?Not bmxng
 				mySQLFields[i].dataValue = MemAlloc(mySQLFields[i].dataLength)
+?
 				
 				' build result set field information
 				Local qf:TQueryField = TQueryField.Create(convertUTF8toISO8859(bmx_mysql_field_name(_field)), dbTypeFromNative(Null, bmx_mysql_field_type(_field), bmx_mysql_field_flags(_field)))
