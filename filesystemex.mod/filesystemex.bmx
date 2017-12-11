@@ -1,4 +1,4 @@
-' Copyright (c) 2011-2013 Bruce A Henderson
+' Copyright (c) 2011-2017 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,12 @@ about: Mirrors BRL.FileSystem functionality but utilises Boost Filesytem's API i
 End Rem
 Module BaH.FileSystemEX
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2011-2013 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2011-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Fixed for NG."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
@@ -126,9 +128,13 @@ bbdoc: Get file mode
 returns: file mode flags
 End Rem
 Function FileMode:Int(path:String)
-	'Return bmx_filesystem_filemode(path)
 	path = RealPath(path)
-	Local Mode:Int, size:Int, mtime:Int, ctime:Int
+	Local Mode:Int, mtime:Int, ctime:Int
+?bmxng
+	Local size:Long
+?Not bmxng
+	Local size:Int
+?
 	If stat_( path,Mode,size,mtime,ctime ) Return -1
 	Return Mode & 511
 End Function
@@ -148,7 +154,12 @@ End Rem
 Function CreateFile:Int(path:String)
 	path = RealPath(path)
 	DeleteFile(path)
-	Local t:Int = fopen_( path,"wb" )
+?bmxng
+	Local t:Byte Ptr
+?Not bmxng
+	Local t:Int
+?
+	t = fopen_( path,"wb" )
 	If t fclose_ t
 	If FileType( path )=FILETYPE_FILE Return True
 End Function
