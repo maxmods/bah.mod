@@ -861,7 +861,11 @@ Type TOracleResultSet Extends TQueryResultSet
 						blob._owner = True
 						blob._isNull = False
 						blob._size = bmx_ora_blob_length(value)
+?bmxng
+						blob.value = MemAlloc(Size_T(blob._size))
+?Not bmxng
 						blob.value = MemAlloc(blob._size)
+?
 						
 						bmx_ora_blob_getdata(value, blob.value)
 
