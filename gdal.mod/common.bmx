@@ -139,7 +139,7 @@ Extern
 	Function bmx_gdal_OGRSpatialReference_SetLinearUnitsAndUpdateParameters:Int(handle:Byte Ptr, name:String, inMeters:Double)
 	Function bmx_gdal_OGRSpatialReference_SetLinearUnits:Int(handle:Byte Ptr, name:String, inMeters:Double)
 	Function bmx_gdal_OGRSpatialReference_GetLinearUnits:String(handle:Byte Ptr, units:Double Ptr)
-	Function bmx_gdal_OGRSpatialReference_SetAngularUnits(handle:Byte Ptr, name:String, inDegrees:Double)
+	Function bmx_gdal_OGRSpatialReference_SetAngularUnits:Int(handle:Byte Ptr, name:String, inDegrees:Double)
 	Function bmx_gdal_OGRSpatialReference_GetAngularUnits:String(handle:Byte Ptr, units:Double Ptr)
 	Function bmx_gdal_OGRSpatialReference_GetPrimeMeridian:String(handle:Byte Ptr, meridian:Double Ptr)
 	Function bmx_gdal_OGRSpatialReference_IsGeographic:Int(handle:Byte Ptr)
