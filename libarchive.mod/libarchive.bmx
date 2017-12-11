@@ -510,7 +510,11 @@ Type TArchiveCallbackData
 	Function Create:TArchiveCallbackData(stream:TSStream, size:Int)
 ?
 		Local this:TArchiveCallbackData = New TArchiveCallbackData
+?bmxng
+		this.data = MemAlloc(Size_T(size))
+?Not bmxng
 		this.data = MemAlloc(size)
+?
 		this.stream = stream
 		this.size = size
 		Return this
