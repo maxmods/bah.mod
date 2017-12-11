@@ -264,8 +264,11 @@ Type TLWSWebSocket
 	End Rem
 	Method writeText:Int(Text:String)
 		Local s:Byte Ptr = Text.ToUTF8String()
+?bmxng
+		Local n:Size_T = _strlen(s)
+?Not bmxng
 		Local n:Int = _strlen(s)
-	
+?
 		Local data:Byte[LWS_SEND_BUFFER_PRE_PADDING + n + LWS_SEND_BUFFER_POST_PADDING]
 		Local offset:Byte Ptr = Byte Ptr(data) + LWS_SEND_BUFFER_PRE_PADDING
 		MemCopy(offset, s, n)
@@ -284,7 +287,11 @@ Type TLWSWebSocket
 		If protocol = LWS_WRITE_BINARY Or protocol = LWS_WRITE_TEXT Then
 			Local data:Byte[LWS_SEND_BUFFER_PRE_PADDING + length + LWS_SEND_BUFFER_POST_PADDING]
 			Local offset:Byte Ptr = Byte Ptr(data) + LWS_SEND_BUFFER_PRE_PADDING
+?bmxng
+			MemCopy(offset, buffer, Size_T(length))
+?Not bmxng
 			MemCopy(offset, buffer, length)
+?
 			Return bmx_libwebsockets_websocket_write(socketPtr, offset, length, protocol)
 		Else
 			Return bmx_libwebsockets_websocket_write(socketPtr, buffer, length, protocol)
