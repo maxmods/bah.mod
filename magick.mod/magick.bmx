@@ -178,7 +178,11 @@ Type TMImage
 	Function CreateFromStream:TMImage(stream:TStream)
 		_init_magick()
 		
+?bmxng
+		Local size:Size_T = stream.Size()
+?Not bmxng
 		Local size:Int = stream.Size()
+?
 		Local buffer:Byte Ptr = MemAlloc(size)
 		
 		stream.ReadBytes(buffer, size)
@@ -405,15 +409,15 @@ Type TMImage
 	' TODO
 	End Method
 	
-	Method composite(compositeImage:TMImage, xOffset:Int, yOffset:Int, operator:Int = COMPOSITE_INCOMPOSITEOP)
+	Method composite(compositeImage:TMImage, xOffset:Int, yOffset:Int, op:Int = COMPOSITE_INCOMPOSITEOP)
 	'TODO
 	End Method
 
-	Method compositeGeometry(compositeImage:TMImage, geometry:Object, operator:Int = COMPOSITE_INCOMPOSITEOP)
+	Method compositeGeometry(compositeImage:TMImage, geometry:Object, op:Int = COMPOSITE_INCOMPOSITEOP)
 	'TODO
 	End Method
 
-	Method compositeGravity(compositeImage:TMImage, gravity:Int, operator:Int = COMPOSITE_INCOMPOSITEOP)
+	Method compositeGravity(compositeImage:TMImage, gravity:Int, op:Int = COMPOSITE_INCOMPOSITEOP)
 	'TODO
 	End Method
 	
