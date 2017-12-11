@@ -1,6 +1,6 @@
 SuperStrict
 
-Import "../expat.mod/src/*.h"
+Import "../expat.mod/expat/lib/*.h"
 
 Import "src/lib/*.h"
 Import "src/lib/graph/*.h"

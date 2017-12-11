@@ -5,11 +5,13 @@ bbdoc: Graphviz
 End Rem
 Module BaH.Graphviz
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: Common Public License"
 ModuleInfo "Copyright: AT&T Research"
-ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed win32 config issue."
 ModuleInfo "History: 1.00"
@@ -320,7 +322,7 @@ Type TGVGraphviz
 		Local size:Double, width:Double, height:Double
 		bmx_para_fontmetrics(para, Varptr size, Varptr width, Varptr height)
 		
-		Local font:TGVFont = TGVFont(fontList.valueForKey(TGVFont.key(name, size, 0)))
+		Local font:TGVFont = TGVFont(fontList.valueForKey(TGVFont.key(name, Float(size), 0)))
 
 		Local just:Byte = bmx_para_just(para)
 
@@ -429,12 +431,12 @@ Type TGVGraphviz
 		bmx_para_fontmetrics(para, Varptr size, Varptr width, Varptr height)
 
 		' get the cached font
-		Local font:TGVFont = TGVFont(fontList.valueForKey(TGVFont.key(name, size, 0)))
+		Local font:TGVFont = TGVFont(fontList.valueForKey(TGVFont.key(name, Float(size), 0)))
 		
 		' cache a new font
 		If Not font Then
-			font = graphvizDriver.loadFont(name, size, 0)
-			fontList.insert(TGVFont.key(name, size, 0), font)
+			font = graphvizDriver.loadFont(name, Float(size), 0)
+			fontList.insert(TGVFont.key(name, Float(size), 0), font)
 		End If
 
 		' get the font metrics
@@ -550,7 +552,7 @@ Type TGVGraphviz
 		End If
 		
 		If graphvizDriver.graphviz.rendered Then
-			graphvizDriver.setViewPortAndOrigin(originX, originY, jWidth, jHeight, jWidth / 2 + originX, jHeight / 2 + originY)
+			graphvizDriver.setViewPortAndOrigin(Int(originX), Int(originY), jWidth, jHeight, Int(jWidth / 2 + originX), Int(jHeight / 2 + originY))
 		End If
 
 		bmx_gvj_setSize(jobPtr, jWidth, jHeight)
@@ -574,7 +576,7 @@ Type TGVGraphviz
 		Local originX:Float, originY:Float
 		graphvizDriver.GetOriginXY(originX, originY)
 		' Graphviz translates the x,y coordinates for us.
-		bmx_job_setPointer(jobPtr, x - originX, y - originY)
+		bmx_job_setPointer(jobPtr, Int(x - originX), Int(y - originY))
 	End Method
 	
 	Rem
@@ -589,7 +591,7 @@ Type TGVGraphviz
 		Local originX:Float, originY:Float
 		graphvizDriver.GetOriginXY(originX, originY)
 		' Graphviz translates the x,y coordinates for us.
-		bmx_job_mouseDown(jobPtr, x - originX, y - originY, button)
+		bmx_job_mouseDown(jobPtr, Int(x - originX), Int(y - originY), button)
 	End Method
 
 	Rem
@@ -604,7 +606,7 @@ Type TGVGraphviz
 		Local originX:Float, originY:Float
 		graphvizDriver.GetOriginXY(originX, originY)
 		' Graphviz translates the x,y coordinates for us.
-		bmx_job_mouseUp(jobPtr, x - originX, y - originY, button)
+		bmx_job_mouseUp(jobPtr, Int(x - originX), Int(y - originY), button)
 	End Method
 	
 	Rem
@@ -615,7 +617,7 @@ Type TGVGraphviz
 		Local originX:Float, originY:Float
 		graphvizDriver.GetOriginXY(originX, originY)
 		' Graphviz translates the x,y coordinates for us.
-		bmx_job_mouseScroll(jobPtr, x - originX, y - originY, direction)
+		bmx_job_mouseScroll(jobPtr, Int(x - originX), Int(y - originY), direction)
 	End Method
 	
 	
