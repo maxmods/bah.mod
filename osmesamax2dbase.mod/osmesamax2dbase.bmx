@@ -862,7 +862,11 @@ Function CollideSpans(polys:TList,count,y)
 	width=endx-startx
 	If width<=0 Return 0
 	If width>Len(LineBuffer) LineBuffer=New Int[width]
+?bmxng
+	MemClear LineBuffer,Size_T(width*4)
+?Not bmxng
 	MemClear LineBuffer,width*4
+?
 	For p=EachIn polys
 		src=p.texture
 		If src
