@@ -110,9 +110,9 @@ Type TSession
 	Service pack 2).
 	</p>
 	End Rem
-	Method listenOn:Int(portFrom:Int, portTo:Int, interface:String = Null)
-		If interface Then
-			Return bmx_torrent_session_listenOn(sessionPtr, portFrom, portTo, interface)
+	Method listenOn:Int(portFrom:Int, portTo:Int, iface:String = Null)
+		If iface Then
+			Return bmx_torrent_session_listenOn(sessionPtr, portFrom, portTo, iface)
 		Else
 			Return bmx_torrent_session_listenOn(sessionPtr, portFrom, portTo, Null)
 		End If
