@@ -23,7 +23,7 @@ SuperStrict
 Import BRL.Blitz
 Import Pub.FreeType
 Import Pub.libpng
-Import BaH.libxml
+Import BRL.LinkedList
 
 Import "../../pub.mod/freetype.mod/include/*.h"
 Import "../../pub.mod/zlib.mod/*.h"

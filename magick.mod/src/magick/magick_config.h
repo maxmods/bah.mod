@@ -451,7 +451,7 @@
 #undef HasX11
 
 /* Define if you have XML library */
-#define HasXML 1
+#undef HasXML
 
 /* Define if you have zlib compression library */
 #define HasZLIB 1

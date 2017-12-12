@@ -34,7 +34,7 @@ ModuleInfo "Copyright: Wrapper - 2008-2016 Bruce A Henderson"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
-ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC"
+ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DMAGICK_JPEG_EXTERNAL_NAMES"
 ?Not win32
 ModuleInfo "C_OPTS: -std=c99"
