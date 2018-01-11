@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2016 Bruce A Henderson
+ Copyright (c) 2007-2018 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,19 +25,13 @@ extern "C" {
 class MaxHttppost;
 class MaxSList;
 
-#include <blitz.h>
+#include <brl.mod/blitz.mod/blitz.h>
 #include <curl/curl.h>
 
-	/* for Win32, we need to reference the functions, otherwise we get "undefined reference to _imp__ ...." */
-	#ifdef WIN32
-	extern CURL *curl_easy_init(void);
-	extern CURLcode curl_easy_setopt(CURL *curl, CURLoption option, ...);
-	#endif
-
-	void bmx_curl_easy_setopt_long(CURL *curl, CURLoption option, long param);
-	void bmx_curl_easy_setopt_str(CURL *curl, CURLoption option, char * param);
-	void bmx_curl_easy_setopt_obj(CURL *curl, CURLoption option, void * param);
-	void bmx_curl_easy_setopt_bbint64(CURL *curl, CURLoption option, BBInt64 param);
+	CURLcode bmx_curl_easy_setopt_long(CURL *curl, CURLoption option, long param);
+	CURLcode bmx_curl_easy_setopt_str(CURL *curl, CURLoption option, char * param);
+	CURLcode bmx_curl_easy_setopt_obj(CURL *curl, CURLoption option, void * param);
+	CURLcode bmx_curl_easy_setopt_bbint64(CURL *curl, CURLoption option, BBInt64 param);
 
 	MaxHttppost * bmx_curl_new_httppostPtr();
 	void bmx_curl_formadd_name_content(MaxHttppost * postPtr, const char * name, const char * content);
@@ -75,20 +69,20 @@ class MaxSList;
 }
 
 
-void bmx_curl_easy_setopt_long(CURL *curl, CURLoption option, long param) {
-	curl_easy_setopt(curl, option, param);
+CURLcode bmx_curl_easy_setopt_long(CURL *curl, CURLoption option, long param) {
+	return curl_easy_setopt(curl, option, param);
 }
 
-void bmx_curl_easy_setopt_str(CURL *curl, CURLoption option, char * param) {
-	curl_easy_setopt(curl, option, param);
+CURLcode bmx_curl_easy_setopt_str(CURL *curl, CURLoption option, char * param) {
+	return curl_easy_setopt(curl, option, param);
 }
 
-void bmx_curl_easy_setopt_obj(CURL *curl, CURLoption option, void * param) {
-	curl_easy_setopt(curl, option, param);
+CURLcode bmx_curl_easy_setopt_obj(CURL *curl, CURLoption option, void * param) {
+	return curl_easy_setopt(curl, option, param);
 }
 
-void bmx_curl_easy_setopt_bbint64(CURL *curl, CURLoption option, BBInt64 param) {
-	curl_easy_setopt(curl, option, param);
+CURLcode bmx_curl_easy_setopt_bbint64(CURL *curl, CURLoption option, BBInt64 param) {
+	return curl_easy_setopt(curl, option, param);
 }
 
 
@@ -296,7 +290,18 @@ int bmx_curl_multiselect(CURLM * multi, double timeout) {
 	FD_ZERO(&exceptfds);
 
 	curl_multi_fdset(multi, &readfds, &writefds, &exceptfds, &maxfd);
-	return select(maxfd + 1, &readfds, &writefds, &exceptfds, &to);
+	
+	if (maxfd == -1) {
+#ifdef _WIN32
+		Sleep(100);
+		return 0;
+#else
+		struct timeval wait = { 0, 100 * 1000 };
+		return select(0, NULL, NULL, NULL, &wait);
+#endif
+	} else {
+		return select(maxfd + 1, &readfds, &writefds, &exceptfds, &to);
+	}
 }
 
 CURLMSG bmx_curl_CURLMsg_msg(CURLMsg * message) {

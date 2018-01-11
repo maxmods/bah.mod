@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -149,34 +149,34 @@ Type TCurlEasy Extends TCurlHasLists
 	Rem
 	bbdoc: Sets a particular curl @option with the int @parameter.
 	End Rem
-	Method setOptInt(option:Int, parameter:Int)
+	Method setOptInt:Int(option:Int, parameter:Int)
 		If easyHandlePtr Then
-			bmx_curl_easy_setopt_long(easyHandlePtr, option, parameter)
+			Return bmx_curl_easy_setopt_long(easyHandlePtr, option, parameter)
 		End If
 	End Method
 
 	Rem
 	bbdoc: Sets a particular curl @option with the long @parameter.
 	End Rem
-	Method setOptLong(option:Int, parameter:Long)
+	Method setOptLong:Int(option:Int, parameter:Long)
 		If easyHandlePtr Then
-			bmx_curl_easy_setopt_bbint64(easyHandlePtr, option, parameter)
+			Return bmx_curl_easy_setopt_bbint64(easyHandlePtr, option, parameter)
 		End If
 	End Method
 
 	Rem
 	bbdoc: Sets a particular curl @option with the byte ptr @parameter.
 	End Rem
-	Method setOptBytePtr(option:Int, parameter:Byte Ptr)
+	Method setOptBytePtr:Int(option:Int, parameter:Byte Ptr)
 		If easyHandlePtr Then
-			curl_easy_setopt(easyHandlePtr, option, parameter)
+			Return curl_easy_setopt(easyHandlePtr, option, parameter)
 		End If
 	End Method
 
 	Rem
 	bbdoc: Sets a particular curl @option with the String @parameter.
 	End Rem
-	Method setOptString(option:Int, parameter:String)
+	Method setOptString:Int(option:Int, parameter:String)
 		If easyHandlePtr Then
 			' strings need to be alive for as long as libcurl needs them... so we cache them.
 			
@@ -196,10 +196,10 @@ Type TCurlEasy Extends TCurlHasLists
 		
 			If parameter Then
 				opt.s = parameter.toCString()
-				curl_easy_setopt(easyHandlePtr, option, opt.s)
+				Return curl_easy_setopt(easyHandlePtr, option, opt.s)
 			Else
 				opt.s = Null
-				curl_easy_setopt(easyHandlePtr, option, Null)
+				Return curl_easy_setopt(easyHandlePtr, option, Null)
 			End If
 		End If
 	End Method

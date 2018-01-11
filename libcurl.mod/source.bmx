@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,21 @@
 ' THE SOFTWARE.
 
 SuperStrict
+
+?Not macos
+Import BaH.libssh2
+?
+
+Import bah.mbedtls
+Import "../mbedtls.mod/mbedtls/include/*.h"
+
+?win32
+'Import "ssl/include/*.h"
+?
+
+?Not macos
+Import "../libssh2.mod/include_all/*.h"
+?
 
 Import "src/ares/*.h"
 
@@ -84,6 +99,7 @@ Import "src/lib/llist.c"
 Import "src/lib/md4.c"
 Import "src/lib/md5.c"
 Import "src/lib/memdebug.c"
+Import "src/lib/mime.c"
 Import "src/lib/mprintf.c"
 Import "src/lib/multi.c"
 Import "src/lib/netrc.c"
@@ -96,10 +112,13 @@ Import "src/lib/pipeline.c"
 Import "src/lib/pop3.c"
 Import "src/lib/progress.c"
 Import "src/lib/strcase.c"
+Import "src/lib/rand.c"
 Import "src/lib/rtsp.c"
 Import "src/lib/security.c"
 Import "src/lib/select.c"
 Import "src/lib/sendf.c"
+Import "src/lib/setopt.c"
+Import "src/lib/sha256.c"
 Import "src/lib/share.c"
 Import "src/lib/slist.c"
 Import "src/lib/smb.c"
@@ -143,6 +162,7 @@ Import "src/lib/vtls/axtls.c"
 Import "src/lib/vtls/cyassl.c"
 Import "src/lib/vtls/darwinssl.c"
 Import "src/lib/vtls/gtls.c"
+Import "src/lib/vtls/mbedtls.c"
 Import "src/lib/vtls/nss.c"
 Import "src/lib/vtls/openssl.c"
 Import "src/lib/vtls/polarssl.c"

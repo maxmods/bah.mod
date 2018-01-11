@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 
 SuperStrict
 
-Import BRL.Blitz
 Import Pub.zlib
 
 
@@ -33,7 +32,10 @@ Import "-lidn"
 ?win32
 Import "-ladvapi32"
 Import "-lws2_32"
+?macos
+Import "-framework Security"
 ?
+
 
 Import "src/include/*.h"
 Import "curl_glue.cpp"
@@ -42,7 +44,7 @@ Extern
 
 	Function curl_global_init:Int(flags:Int)
 	Function curl_easy_init:Byte Ptr()
-	Function curl_easy_setopt(handle:Byte Ptr, option:Int, param:Byte Ptr)
+	Function curl_easy_setopt:Int(handle:Byte Ptr, option:Int, param:Byte Ptr)
 	Function curl_easy_perform:Int(handle:Byte Ptr)
 	Function curl_easy_cleanup(handle:Byte Ptr)
 	Function curl_easy_reset(handle:Byte Ptr)
@@ -60,10 +62,10 @@ Extern
 	Function curl_multi_perform:Int(handle:Byte Ptr, running:Int Ptr)
 	Function curl_multi_info_read:Byte Ptr(handle:Byte Ptr, queuesize:Int Ptr)
 	
-	Function bmx_curl_easy_setopt_long(handle:Byte Ptr, option:Int, param:Int)
-	Function bmx_curl_easy_setopt_str(handle:Byte Ptr, option:Int, param:Byte Ptr)
-	Function bmx_curl_easy_setopt_obj(handle:Byte Ptr, option:Int, param:Object)
-	Function bmx_curl_easy_setopt_bbint64(handle:Byte Ptr, option:Int, param:Long)
+	Function bmx_curl_easy_setopt_long:Int(handle:Byte Ptr, option:Int, param:Int)
+	Function bmx_curl_easy_setopt_str:Int(handle:Byte Ptr, option:Int, param:Byte Ptr)
+	Function bmx_curl_easy_setopt_obj:Int(handle:Byte Ptr, option:Int, param:Object)
+	Function bmx_curl_easy_setopt_bbint64:Int(handle:Byte Ptr, option:Int, param:Long)
 	
 	Function bmx_curl_new_httppostPtr:Byte Ptr()
 	Function bmx_curl_formadd_name_content(httppostPtr:Byte Ptr, name:Byte Ptr, content:Byte Ptr)

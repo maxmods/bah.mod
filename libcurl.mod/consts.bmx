@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@ SuperStrict
 Const CURL_READFUNC_ABORT:Int = $10000000
 
 Rem
-bbdoc: Initialize SSL.
+bbdoc: Initialize SSL. No purpose since since 7.57.0
 End Rem
 Const CURL_GLOBAL_SSL:Int =  1 Shl 0
 
@@ -44,6 +44,7 @@ about: This sets no bit.
 End Rem
 Const CURL_GLOBAL_NOTHING:Int = 0
 Const CURL_GLOBAL_DEFAULT:Int = CURL_GLOBAL_ALL
+Const CURL_GLOBAL_ACK_EINTR:Int = 1 Shl 2
 
 Const CURLOPTTYPE_LONG:Int = 0
 Const CURLOPTTYPE_OBJECTPOINT:Int = 10000
@@ -61,7 +62,7 @@ protocol to use based on the given host name. If the given protocol of the set U
 libcurl will return on error (#CURLE_UNSUPPORTED_PROTOCOL) when you call #perform.<br>
 Use #VersionInfo for detailed info on which protocols that are supported.
 End Rem
-Const CURLOPT_URL:Int =  CURLOPTTYPE_OBJECTPOINT + 2
+Const CURLOPT_URL:Int =  CURLOPTTYPE_STRINGPOINT + 2
 
 Rem
 bbdoc: Port number to connect, if other than default.
@@ -94,7 +95,7 @@ The proxy host string given in environment variables can be specified the exact 
 can be set with #CURLOPT_PROXY, include protocol prefix (http://) and embedded user + password.
 </p>
 End Rem
-Const CURLOPT_PROXY:Int = CURLOPTTYPE_OBJECTPOINT + 4
+Const CURLOPT_PROXY:Int = CURLOPTTYPE_STRINGPOINT + 4
 
 Rem
 bbdoc: A String which should be [user name]:[password] to use for the connection.
@@ -111,13 +112,13 @@ libcurl will only send this user and password information to hosts using the ini
 not send the user and password to those. This is enforced to prevent accidental information leakage.
 </p>
 End Rem
-Const CURLOPT_USERPWD:Int = CURLOPTTYPE_OBJECTPOINT + 5
+Const CURLOPT_USERPWD:Int = CURLOPTTYPE_STRINGPOINT + 5
 
 Rem
 bbdoc: A String which should be [user name]:[password] to use for the connection to the HTTP proxy.
 about: Use #CURLOPT_PROXYAUTH to decide authentication method.
 End Rem
-Const CURLOPT_PROXYUSERPWD:Int = CURLOPTTYPE_OBJECTPOINT + 6
+Const CURLOPT_PROXYUSERPWD:Int = CURLOPTTYPE_STRINGPOINT + 6
 
 Rem
 bbdoc: A String which should contain the specified range you want.
@@ -126,13 +127,12 @@ separated with commas as in "X-Y,N-M". Using this kind of multiple intervals wil
 server to send the response document in pieces (using standard MIME separation techniques).
 Pass a Null to this option to disable the use of ranges.
 End Rem
-Const CURLOPT_RANGE:Int = CURLOPTTYPE_OBJECTPOINT + 7
+Const CURLOPT_RANGE:Int = CURLOPTTYPE_STRINGPOINT + 7
 
 Rem
 bbdoc: Specified file stream to upload from (use as Input).
-about: See also #CURLOPT_READDATA.
 End Rem
-Const CURLOPT_INFILE:Int = CURLOPTTYPE_OBJECTPOINT + 9
+Const CURLOPT_READDATA:Int = CURLOPTTYPE_OBJECTPOINT + 9
 
 Rem
 bbdoc: See instead #setDebugCallback.
@@ -268,15 +268,12 @@ about: The default format is "PEM" and can be changed with #CURLOPT_SSLCERTTYPE.
 With NSS this is the nickname of the certificate you wish to authenticate with. 
 </p>
 End Rem
-Const CURLOPT_SSLCERT:Int = CURLOPTTYPE_OBJECTPOINT + 25
-
-' see CURLOPT_SSLKEYPASSWD
-Const CURLOPT_SSLCERTPASSWD:Int = CURLOPTTYPE_OBJECTPOINT + 26
+Const CURLOPT_SSLCERT:Int = CURLOPTTYPE_STRINGPOINT + 25
 
 Rem
-bbdoc: String to be used as the password required to use the #CURLOPT_SSLKEY or #CURLOPT_SSH_PRIVATE_KEYFILE private key.
+bbdoc: Password for the SSL or SSH private key.
 End Rem
-Const CURLOPT_SSLKEYPASSWD:Int = CURLOPTTYPE_OBJECTPOINT + 26
+Const CURLOPT_KEYPASSWD:Int = CURLOPTTYPE_STRINGPOINT + 26
 
 Rem
 bbdoc: Convert Unix newlines to CRLF newlines on transfers.
@@ -295,7 +292,7 @@ Const CURLOPT_WRITEHEADER:Int = CURLOPTTYPE_OBJECTPOINT + 29
 Const CURLOPT_WRITEDATA:Int = CURLOPT_FILE
 
 ' see setReadCallback()
-Const CURLOPT_READDATA:Int = CURLOPT_INFILE
+'Const CURLOPT_READDATA:Int = CURLOPT_READDATA
 
 ' see setHeaderCallback()
 Const CURLOPT_HEADERDATA:Int = CURLOPT_WRITEHEADER
@@ -314,19 +311,21 @@ If you use this option multiple times, you just add more files to read. Subseque
 cookies.
 </p>
 End Rem
-Const CURLOPT_COOKIEFILE:Int = CURLOPTTYPE_OBJECTPOINT + 31
+Const CURLOPT_COOKIEFILE:Int = CURLOPTTYPE_STRINGPOINT + 31
 
 Rem
 bbdoc: An option to control what version of SSL/TLS to attempt to use.
 The available options are:
 <table>
 <tr><th>Constant</th><th>Meaning</th></tr>
-<tr><td>CURL_SSLVERSION_DEFAULT</td><td>The default action. When libcurl built with OpenSSL or NSS, this
-will attempt to figure out the remote SSL protocol version. Unfortunately there are a lot of ancient and
-broken servers in use which cannot handle this technique and will fail to connect.</td></tr>
-<tr><td>CURL_SSLVERSION_TLSv1</td><td>Force TLSv1</td></tr>
-<tr><td>CURL_SSLVERSION_SSLv2</td><td>Force SSLv2</td></tr>
-<tr><td>CURL_SSLVERSION_SSLv3</td><td>Force SSLv3</td></tr>
+<tr><td>CURL_SSLVERSION_DEFAULT</td><td>The default action. This will attempt to figure out the remote SSL protocol version..</td></tr>
+<tr><td>CURL_SSLVERSION_TLSv1</td><td>TLSv1.x</td></tr>
+<tr><td>CURL_SSLVERSION_SSLv2</td><td>SSLv2</td></tr>
+<tr><td>CURL_SSLVERSION_SSLv3</td><td>SSLv3</td></tr>
+<tr><td>CURL_SSLVERSION_TLSv1_0</td><td>TLSv1.0</td></tr>
+<tr><td>CURL_SSLVERSION_TLSv1_1</td><td>TLSv1.1</td></tr>
+<tr><td>CURL_SSLVERSION_TLSv1_2</td><td>TLSv1.2</td></tr>
+<tr><td>CURL_SSLVERSION_TLSv1_3</td><td>TLSv1.3</td></tr>
 </table>
 End Rem
 Const CURLOPT_SSLVERSION:Int = CURLOPTTYPE_LONG + 32
@@ -762,9 +761,12 @@ bbdoc: A number set to one of the values described below to force libcurl to use
 about: This is not sensible to do unless you have a good reason.
 <table>
 <tr><th>Constant</th><th>Meaning</th></tr>
-<tr><td>CURL_HTTP_VERSION_NONE</td><td>We don't care about what version the library uses. libcurl will use whatever it thinks fit.</td></tr>
-<tr><td>CURL_HTTP_VERSION_1_0</td><td>Enforce HTTP 1.0 requests.</td></tr>
-<tr><td>CURL_HTTP_VERSION_1_1</td><td>Enforce HTTP 1.1 requests.</td></tr>
+<tr><td>#CURL_HTTP_VERSION_NONE</td><td>We don't care about what version the library uses. libcurl will use whatever it thinks fit.</td></tr>
+<tr><td>#CURL_HTTP_VERSION_1_0</td><td>Please use HTTP 1.0 in the request.</td></tr>
+<tr><td>#CURL_HTTP_VERSION_1_1</td><td>Please use HTTP 1.1 in the request.</td></tr>
+<tr><td>#CURL_HTTP_VERSION_2_0</td><td>Please use HTTP 2 in the request.</td></tr>
+<tr><td>#CURL_HTTP_VERSION_2TLS</td><td>Use version 2 for HTTPS, version 1.1 for HTTP.</td></tr>
+<tr><td>#CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE</td><td>Please use HTTP 2 without HTTP/1.1 upgrade.</td></tr>
 </table>
 End Rem
 Const CURLOPT_HTTP_VERSION:Int = CURLOPTTYPE_LONG + 84
@@ -1729,6 +1731,126 @@ bbdoc: Continue to send data if the server responds early with an HTTP status co
 End Rem
 Const CURLOPT_KEEP_SENDING_ON_ERROR:Int = CURLOPTTYPE_LONG + 245
 
+Rem
+bbdoc: The CApath or CAfile used to validate the proxy certificate this option is used only if PROXY_SSL_VERIFYPEER is true
+End Rem
+Const CURLOPT_PROXY_CAINFO:Int = CURLOPTTYPE_STRINGPOINT + 246
+
+Rem
+bbdoc: The CApath directory used to validate the proxy certificate this option is used only if PROXY_SSL_VERIFYPEER is true
+End Rem
+Const CURLOPT_PROXY_CAPATH:Int = CURLOPTTYPE_STRINGPOINT + 247
+
+Rem
+bbdoc: Set if we should verify the proxy in ssl handshake, set 1 to verify.
+End Rem
+Const CURLOPT_PROXY_SSL_VERIFYPEER:Int = CURLOPTTYPE_LONG + 248
+
+Rem
+bbdoc: Set if we should verify the Common name from the proxy certificate in ssl handshake, set 1 to check existence, 2 to ensure that it matches the provided hostname.
+End Rem
+Const CURLOPT_PROXY_SSL_VERIFYHOST:Int = CURLOPTTYPE_LONG + 249
+
+Rem
+bbdoc: What version to specifically try to use for proxy. See CURL_SSLVERSION defines below.
+End Rem
+Const CURLOPT_PROXY_SSLVERSION:Int = CURLOPTTYPE_LONG + 250
+
+Rem
+bbdoc: Set a username for authenticated TLS for proxy
+End Rem
+Const CURLOPT_PROXY_TLSAUTH_USERNAME:Int = CURLOPTTYPE_STRINGPOINT + 251
+
+Rem
+bbdoc: Set a password for authenticated TLS for proxy
+End Rem
+Const CURLOPT_PROXY_TLSAUTH_PASSWORD:Int = CURLOPTTYPE_STRINGPOINT + 252
+
+Rem
+bbdoc: Set authentication type for authenticated TLS for proxy
+End Rem
+Const CURLOPT_PROXY_TLSAUTH_TYPE:Int = CURLOPTTYPE_STRINGPOINT + 253
+
+Rem
+bbdoc: name of the file keeping your private SSL-certificate for proxy
+End Rem
+Const CURLOPT_PROXY_SSLCERT:Int = CURLOPTTYPE_STRINGPOINT + 254
+
+Rem
+bbdoc: type of the file keeping your SSL-certificate ("DER", "PEM", "ENG") for proxy
+End Rem
+Const CURLOPT_PROXY_SSLCERTTYPE:Int = CURLOPTTYPE_STRINGPOINT + 255
+
+Rem
+bbdoc: name of the file keeping your private SSL-key for proxy
+End Rem
+Const CURLOPT_PROXY_SSLKEY:Int = CURLOPTTYPE_STRINGPOINT + 256
+
+Rem
+bbdoc: type of the file keeping your private SSL-key ("DER", "PEM", "ENG") for proxy
+End Rem
+Const CURLOPT_PROXY_SSLKEYTYPE:Int = CURLOPTTYPE_STRINGPOINT + 257
+
+Rem
+bbdoc: password for the SSL private key for proxy
+End Rem
+Const CURLOPT_PROXY_KEYPASSWD:Int = CURLOPTTYPE_STRINGPOINT + 258
+
+Rem
+bbdoc: Specify which SSL ciphers to use for proxy
+End Rem
+Const CURLOPT_PROXY_SSL_CIPHER_LIST:Int = CURLOPTTYPE_STRINGPOINT + 259
+
+Rem
+bbdoc: CRL file for proxy
+End Rem
+Const CURLOPT_PROXY_CRLFILE:Int = CURLOPTTYPE_STRINGPOINT + 260
+
+Rem
+bbdoc: Enable/disable specific SSL features with a bitmask for proxy, see CURLSSLOPT_*
+End Rem
+Const CURLOPT_PROXY_SSL_OPTIONS:Int = CURLOPTTYPE_LONG + 261
+
+Rem
+bbdoc: Name of pre proxy to use.
+End Rem
+Const CURLOPT_PRE_PROXY:Int = CURLOPTTYPE_STRINGPOINT + 262
+
+Rem
+bbdoc: The public key in DER form used to validate the proxy public key this option is used only if PROXY_SSL_VERIFYPEER is true
+End Rem
+Const CURLOPT_PROXY_PINNEDPUBLICKEY:Int = CURLOPTTYPE_STRINGPOINT + 263
+
+Rem
+bbdoc: Path to an abstract Unix domain socket
+End Rem
+Const CURLOPT_ABSTRACT_UNIX_SOCKET:Int = CURLOPTTYPE_STRINGPOINT + 264
+
+Rem
+bbdoc: Suppress proxy CONNECT response headers from user callbacks
+End Rem
+Const CURLOPT_SUPPRESS_CONNECT_HEADERS:Int = CURLOPTTYPE_LONG + 265
+
+Rem
+bbdoc: The request target, instead of extracted from the URL
+End Rem
+Const CURLOPT_REQUEST_TARGET:Int = CURLOPTTYPE_STRINGPOINT + 266
+
+Rem
+bbdoc: bitmask of allowed auth methods for connections to SOCKS5 proxies
+End Rem
+Const CURLOPT_SOCKS5_AUTH:Int = CURLOPTTYPE_LONG + 267
+
+Rem
+bbdoc: Enable/disable SSH compression
+End Rem
+Const CURLOPT_SSH_COMPRESSION:Int = CURLOPTTYPE_LONG + 268
+
+Rem
+bbdoc: Post MIME data.
+End Rem
+Const CURLOPT_MIMEPOST:Int = CURLOPTTYPE_OBJECTPOINT + 269
+
 
 Rem
 bbdoc: No authentication
@@ -2278,7 +2400,9 @@ Const CURLINFO_STRING:Int = $100000
 Const CURLINFO_LONG:Int = $200000
 Const CURLINFO_DOUBLE:Int = $300000
 Const CURLINFO_SLIST:Int = $400000
+Const CURLINFO_PTR:Int = $400000 ' same as SLIST
 Const CURLINFO_SOCKET:Int = $500000
+Const CURLINFO_OFF_T:Int = $600000
 Const CURLINFO_MASK:Int = $0fffff
 Const CURLINFO_TYPEMASK:Int = $f00000
 
@@ -2290,66 +2414,160 @@ Const CURLINFO_NAMELOOKUP_TIME:Int = CURLINFO_DOUBLE + 4
 Const CURLINFO_CONNECT_TIME:Int = CURLINFO_DOUBLE + 5
 Const CURLINFO_PRETRANSFER_TIME:Int = CURLINFO_DOUBLE + 6
 Const CURLINFO_SIZE_UPLOAD:Int = CURLINFO_DOUBLE + 7
+Const CURLINFO_SIZE_UPLOAD_T:Int = CURLINFO_OFF_T + 7
 Const CURLINFO_SIZE_DOWNLOAD:Int = CURLINFO_DOUBLE + 8
+Const CURLINFO_SIZE_DOWNLOAD_T:Int = CURLINFO_OFF_T + 8
 Const CURLINFO_SPEED_DOWNLOAD:Int = CURLINFO_DOUBLE + 9
+Const CURLINFO_SPEED_DOWNLOAD_T:Int = CURLINFO_OFF_T + 9
 Const CURLINFO_SPEED_UPLOAD:Int = CURLINFO_DOUBLE + 10
-Const CURLINFO_HEADER_SIZE:Int = CURLINFO_LONG   + 11
-Const CURLINFO_REQUEST_SIZE:Int = CURLINFO_LONG   + 12
-Const CURLINFO_SSL_VERIFYRESULT:Int = CURLINFO_LONG   + 13
-Const CURLINFO_FILETIME:Int = CURLINFO_LONG   + 14
+Const CURLINFO_SPEED_UPLOAD_T:Int = CURLINFO_OFF_T + 10
+Const CURLINFO_HEADER_SIZE:Int = CURLINFO_LONG + 11
+Const CURLINFO_REQUEST_SIZE:Int = CURLINFO_LONG + 12
+Const CURLINFO_SSL_VERIFYRESULT:Int = CURLINFO_LONG + 13
+Const CURLINFO_FILETIME:Int = CURLINFO_LONG + 14
 Const CURLINFO_CONTENT_LENGTH_DOWNLOAD:Int = CURLINFO_DOUBLE + 15
+Const CURLINFO_CONTENT_LENGTH_DOWNLOAD_T:Int = CURLINFO_OFF_T + 15
 Const CURLINFO_CONTENT_LENGTH_UPLOAD:Int = CURLINFO_DOUBLE + 16
+Const CURLINFO_CONTENT_LENGTH_UPLOAD_T:Int = CURLINFO_OFF_T + 16
 Const CURLINFO_STARTTRANSFER_TIME:Int = CURLINFO_DOUBLE + 17
 Const CURLINFO_CONTENT_TYPE:Int = CURLINFO_STRING + 18
 Const CURLINFO_REDIRECT_TIME:Int = CURLINFO_DOUBLE + 19
-Const CURLINFO_REDIRECT_COUNT:Int = CURLINFO_LONG   + 20
+Const CURLINFO_REDIRECT_COUNT:Int = CURLINFO_LONG + 20
 Const CURLINFO_PRIVATE:Int = CURLINFO_STRING + 21
-Const CURLINFO_HTTP_CONNECTCODE:Int = CURLINFO_LONG   + 22
-Const CURLINFO_HTTPAUTH_AVAIL:Int = CURLINFO_LONG   + 23
-Const CURLINFO_PROXYAUTH_AVAIL:Int = CURLINFO_LONG   + 24
-Const CURLINFO_OS_ERRNO:Int = CURLINFO_LONG   + 25
-Const CURLINFO_NUM_CONNECTS:Int = CURLINFO_LONG   + 26
-Const CURLINFO_SSL_ENGINES:Int = CURLINFO_SLIST  + 27
-Const CURLINFO_COOKIELIST:Int = CURLINFO_SLIST  + 28
-Const CURLINFO_LASTSOCKET:Int = CURLINFO_LONG   + 29
+Const CURLINFO_HTTP_CONNECTCODE:Int = CURLINFO_LONG + 22
+Const CURLINFO_HTTPAUTH_AVAIL:Int = CURLINFO_LONG + 23
+Const CURLINFO_PROXYAUTH_AVAIL:Int = CURLINFO_LONG + 24
+Const CURLINFO_OS_ERRNO:Int = CURLINFO_LONG + 25
+Const CURLINFO_NUM_CONNECTS:Int = CURLINFO_LONG + 26
+Const CURLINFO_SSL_ENGINES:Int = CURLINFO_SLIST + 27
+Const CURLINFO_COOKIELIST:Int = CURLINFO_SLIST + 28
+Const CURLINFO_LASTSOCKET:Int = CURLINFO_LONG + 29
 Const CURLINFO_FTP_ENTRY_PATH:Int = CURLINFO_STRING + 30
 Const CURLINFO_REDIRECT_URL:Int = CURLINFO_STRING + 31
 Const CURLINFO_PRIMARY_IP:Int = CURLINFO_STRING + 32
 Const CURLINFO_APPCONNECT_TIME:Int = CURLINFO_DOUBLE + 33
-Const CURLINFO_CERTINFO:Int = CURLINFO_SLIST  + 34
-Const CURLINFO_CONDITION_UNMET:Int = CURLINFO_LONG   + 35
+Const CURLINFO_CERTINFO:Int = CURLINFO_SLIST + 34
+Const CURLINFO_CONDITION_UNMET:Int = CURLINFO_LONG + 35
 Const CURLINFO_RTSP_SESSION_ID:Int = CURLINFO_STRING + 36
-Const CURLINFO_RTSP_CLIENT_CSEQ:Int = CURLINFO_LONG   + 37
-Const CURLINFO_RTSP_SERVER_CSEQ:Int = CURLINFO_LONG   + 38
-Const CURLINFO_RTSP_CSEQ_RECV:Int = CURLINFO_LONG   + 39
-Const CURLINFO_PRIMARY_PORT:Int = CURLINFO_LONG   + 40
+Const CURLINFO_RTSP_CLIENT_CSEQ:Int = CURLINFO_LONG + 37
+Const CURLINFO_RTSP_SERVER_CSEQ:Int = CURLINFO_LONG + 38
+Const CURLINFO_RTSP_CSEQ_RECV:Int = CURLINFO_LONG + 39
+Const CURLINFO_PRIMARY_PORT:Int = CURLINFO_LONG + 40
 Const CURLINFO_LOCAL_IP:Int = CURLINFO_STRING + 41
-Const CURLINFO_LOCAL_PORT:Int = CURLINFO_LONG   + 42
-Const CURLINFO_TLS_SESSION:Int = CURLINFO_SLIST  + 43
+Const CURLINFO_LOCAL_PORT:Int = CURLINFO_LONG + 42
+Const CURLINFO_TLS_SESSION:Int = CURLINFO_SLIST + 43
 Const CURLINFO_ACTIVESOCKET:Int = CURLINFO_SOCKET + 44
-Const CURLINFO_TLS_SSL_PTR:Int = CURLINFO_SLIST  + 45
-Const CURLINFO_HTTP_VERSION:Int = CURLINFO_LONG   + 46
+Const CURLINFO_TLS_SSL_PTR:Int = CURLINFO_SLIST + 45
+Const CURLINFO_HTTP_VERSION:Int = CURLINFO_LONG + 46
+Const CURLINFO_PROXY_SSL_VERIFYRESULT:Int = CURLINFO_LONG + 47
+Const CURLINFO_PROTOCOL:Int = CURLINFO_LONG + 48
+Const CURLINFO_SCHEME:Int = CURLINFO_STRING + 49
 
+Const CURLCLOSEPOLICY_NONE:Int = 0 ' first, never use this
+Const CURLCLOSEPOLICY_OLDEST:Int = 1
+Const CURLCLOSEPOLICY_LEAST_RECENTLY_USED:Int = 2
+Const CURLCLOSEPOLICY_LEAST_TRAFFIC:Int = 3
+Const CURLCLOSEPOLICY_SLOWEST:Int = 4
+Const CURLCLOSEPOLICY_CALLBACK:Int = 5
+
+Rem
+bbdoc: #CURLOPT_FTP_SSL_CCC option - Do not send CCC.
+End Rem
 Const CURLFTPSSL_CCC_NONE:Int = 0
+Rem
+bbdoc: #CURLOPT_FTP_SSL_CCC option - Let the server initiate the shutdown.
+End Rem
 Const CURLFTPSSL_CCC_PASSIVE:Int = 1
+Rem
+bbdoc: #CURLOPT_FTP_SSL_CCC option - Initiate the shutdown.
+End Rem
 Const CURLFTPSSL_CCC_ACTIVE:Int = 2
 
+Rem
+bbdoc: CURLOPT_FTPSSLAUTH option - Let libcurl decide.
+End Rem
 Const CURLFTPAUTH_DEFAULT:Int = 0
+Rem
+bbdoc: CURLOPT_FTPSSLAUTH option - Use "AUTH SSL".
+End Rem
 Const CURLFTPAUTH_SSL:Int = 1
+Rem
+bbdoc: CURLOPT_FTPSSLAUTH option - Use "AUTH TLS".
+End Rem
 Const CURLFTPAUTH_TLS:Int = 2
 
+Rem
+bbdoc:do NOT create missing dirs!
+End Rem
+Const CURLFTP_CREATE_DIR_NONE:Int = 0
+Rem
+bbdoc:(FTP/SFTP) if CWD fails, try MKD and then CWD again if MKD succeeded, for SFTP this does similar magic
+End Rem
+Const CURLFTP_CREATE_DIR:Int = 1
+Rem
+bbdoc:(FTP only) if CWD fails, try MKD and then CWD again even if MKD failed!
+End Rem
+Const CURLFTP_CREATE_DIR_RETRY:Int = 2
+
+Rem
+bbdoc: CURLOPT_FTP_FILEMETHOD option - let libcurl pick.
+End Rem
 Const CURLFTPMETHOD_DEFAULT:Int = 0
+Rem
+bbdoc: CURLOPT_FTP_FILEMETHOD option - single CWD operation for each path part.
+End Rem
 Const CURLFTPMETHOD_MULTICWD:Int = 1
+Rem
+bbdoc: CURLOPT_FTP_FILEMETHOD option - no CWD at all.
+End Rem
 Const CURLFTPMETHOD_NOCWD:Int = 2
+Rem
+bbdoc: CURLOPT_FTP_FILEMETHOD option - one CWD to full dir, then work on file.
+End Rem
 Const CURLFTPMETHOD_SINGLECWD:Int = 3
 
+Rem
+bbdoc: CURLOPT_IPRESOLVE option - default, resolves addresses to all IP versions that your system allows.
+End Rem
 Const CURL_IPRESOLVE_WHATEVER:Int = 0
+Rem
+bbdoc: CURLOPT_IPRESOLVE option - resolve to IPv4 addresses.
+End Rem
 Const CURL_IPRESOLVE_V4:Int = 1
+Rem
+bbdoc: CURLOPT_IPRESOLVE option - resolve to IPv6 addresses.
+End Rem
 Const CURL_IPRESOLVE_V6:Int = 2
 
+Rem
+bbdoc: CURLOPT_HTTP_VERSION option - setting this means we don't care, and that we'd like the library to choose the best possible for us.
+End Rem
 Const CURL_HTTP_VERSION_NONE:Int = 0
+Rem
+bbdoc: CURLOPT_HTTP_VERSION option - please use HTTP 1.0 in the request.
+End Rem
 Const CURL_HTTP_VERSION_1_0:Int = 1
+Rem
+bbdoc: CURLOPT_HTTP_VERSION option - please use HTTP 1.1 in the request.
+End Rem
 Const CURL_HTTP_VERSION_1_1:Int = 2
+Rem
+bbdoc: CURLOPT_HTTP_VERSION option - please use HTTP 2 in the request.
+End Rem
+Const CURL_HTTP_VERSION_2_0:Int = 3
+Rem
+bbdoc: CURLOPT_HTTP_VERSION option - please use HTTP 2 in the request.
+about: Same as #CURL_HTTP_VERSION_2_0.
+End Rem
+Const CURL_HTTP_VERSION_2:Int = CURL_HTTP_VERSION_2_0
+Rem
+bbdoc: CURLOPT_HTTP_VERSION option - use version 2 for HTTPS, version 1.1 for HTTP.
+End Rem
+Const CURL_HTTP_VERSION_2TLS:Int = 4
+Rem
+bbdoc: CURLOPT_HTTP_VERSION option - please use HTTP 2 without HTTP/1.1  Upgrade.
+End Rem
+Const CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE:Int = 5
 
 Rem
 bbdoc:  This easy handle has completed.
@@ -2382,18 +2600,41 @@ bbdoc: this is a libcurl bug
 End Rem
 Const CURLM_INTERNAL_ERROR:Int = 4
 Rem
-bbdoc: 
+bbdoc: the passed in socket argument did not match
 End Rem
 Const CURLM_BAD_SOCKET:Int = 5
 Rem
-bbdoc: 
+bbdoc: curl_multi_setopt() with unsupported option
 End Rem
 Const CURLM_UNKNOWN_OPTION:Int = 6
+Rem
+bbdoc: an easy handle already added to a multi handle was attempted to get added - again
+End Rem
+Const CURLM_ADDED_ALREADY:Int = 7
+
+Rem
+bbdoc: just to make code nicer when using curl_multi_socket() you can now check for CURLM_CALL_MULTI_SOCKET too in the same style it works for curl_multi_perform() and CURLM_CALL_MULTI_PERFORM
+End Rem
+Const CURLM_CALL_MULTI_SOCKET:Int = CURLM_CALL_MULTI_PERFORM
 
 Const CURL_SSLVERSION_DEFAULT:Int = 0
-Const CURL_SSLVERSION_TLSv1:Int = 1
+Const CURL_SSLVERSION_TLSv1:Int = 1 ' TLS 1.x
 Const CURL_SSLVERSION_SSLv2:Int = 2
 Const CURL_SSLVERSION_SSLv3:Int = 3
+Const CURL_SSLVERSION_TLSv1_0:Int = 4
+Const CURL_SSLVERSION_TLSv1_1:Int = 5
+Const CURL_SSLVERSION_TLSv1_2:Int = 6
+Const CURL_SSLVERSION_TLSv1_3:Int = 7
+
+Const CURL_SSLVERSION_MAX_NONE:Int = 0
+Const CURL_SSLVERSION_MAX_DEFAULT:Int = CURL_SSLVERSION_TLSv1   Shl 16
+Const CURL_SSLVERSION_MAX_TLSv1_0:Int = CURL_SSLVERSION_TLSv1_0 Shl 16
+Const CURL_SSLVERSION_MAX_TLSv1_1:Int = CURL_SSLVERSION_TLSv1_1 Shl 16
+Const CURL_SSLVERSION_MAX_TLSv1_2:Int = CURL_SSLVERSION_TLSv1_2 Shl 16
+Const CURL_SSLVERSION_MAX_TLSv1_3:Int = CURL_SSLVERSION_TLSv1_3 Shl 16
+
+Const CURL_TLSAUTH_NONE:Int = 0
+Const CURL_TLSAUTH_SRP:Int = 1
 
 Const CURL_TIMECOND_NONE:Int = 0
 Const CURL_TIMECOND_IFMODSINCE:Int = 1
@@ -2426,3 +2667,20 @@ This option is for the multi handle's use only, when using the easy interface yo
 </p>
 End Rem
 Const CURLMOPT_MAXCONNECTS:Int = 6
+
+Rem
+bbdoc: do not attempt to use SSL
+End Rem
+Const CURLUSESSL_NONE:Int = 0
+Rem
+bbdoc: try using SSL, proceed anyway otherwise
+End Rem
+Const CURLUSESSL_TRY:Int = 1
+Rem
+bbdoc: SSL for the control connection or fail
+End Rem
+Const CURLUSESSL_CONTROL:Int = 2
+Rem
+bbdoc: SSL for all communication or fail
+End Rem
+Const CURLUSESSL_ALL:Int = 3

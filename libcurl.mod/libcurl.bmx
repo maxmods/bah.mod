@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -21,18 +21,22 @@
 SuperStrict
 
 Rem
-bbdoc: libcurl
+bbdoc: libcurl with SSL
 End Rem
 Module BaH.libcurl
 
-ModuleInfo "Version: 1.05"
+ModuleInfo "Version: 1.06"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: (libcurl) 1996 - 2016, Daniel Stenberg"
+ModuleInfo "Copyright: (libcurl) 1996 - 2017, Daniel Stenberg"
 ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology, 2004 - 2013 by Daniel Stenberg et al"
-ModuleInfo "Copyright: (Wrapper) 2007-2016 Bruce A Henderson"
+ModuleInfo "Copyright: (Wrapper) 2007-2018 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.06"
+ModuleInfo "History: Update to libcurl 7.57.0"
+ModuleInfo "History: Update to c-ares 1.13.0"
+ModuleInfo "History: Changed to use mbed TSL instead of openSSL."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Update to libcurl 7.51.0"
 ModuleInfo "History: Update to c-ares 1.12.0"
@@ -44,22 +48,24 @@ ModuleInfo "History: Do not build acountry.c."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to libcurl 7.28.1"
 ModuleInfo "History: Update to c-ares 1.9.1"
+ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
+ModuleInfo "History: Added ssh support. Now requires BaH.libssh2."
 ModuleInfo "History: Fixed ResponseCode() not returning correct codes."
 ModuleInfo "History: ReadStream now uses Read() instead of ReadBytes()."
 ModuleInfo "History: 1.02"
+ModuleInfo "History: Skipped to synchronise version number with bah.libcurl."
+ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to libcurl 7.18.0"
 ModuleInfo "History: Update to c-ares 1.5.1"
 ModuleInfo "History: Now nulls internal slist."
-ModuleInfo "History: 1.01"
-ModuleInfo "History: Added c-ares (1.4.0) for asynchronous DNS resolving."
-ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4)"
+ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4, c-ares 1.4.0)"
 
 ?Not win32
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
 ?win32
 ModuleInfo "CC_OPTS: -DHAVE_GETTIMEOFDAY -DCURL_DISABLE_LDAP"
 ?
-ModuleInfo "CC_OPTS: -DCURL_STATICLIB -DCARES_STATICLIB -DCURL_STRICTER"
+ModuleInfo "CC_OPTS: -DCURL_STATICLIB -DCARES_STATICLIB -DCURL_STRICTER -DUSE_MBEDTLS"
 
 ' NOTES :
 '
