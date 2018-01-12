@@ -15,7 +15,14 @@ Const password:String = "password"
 
 Local socket:TSocket = TSocket.CreateTCP()
 
-If Not socket.Connect(HostIp(ipAddress), 22) Then
+Local res:Int
+?bmxng
+res = socket.Connect(AddrInfo(ipAddress, 22)[0])
+?Not bmxng
+res = socket.Connect(HostIp(ipAddress), 22)
+?
+
+If Not res Then
 
 	Print "Failed to connect"
 	End

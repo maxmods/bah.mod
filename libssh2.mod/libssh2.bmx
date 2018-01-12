@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2016 Bruce A Henderson
+' Copyright (c) 2009-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,21 @@ bbdoc: Libssh2
 End Rem
 Module BaH.libssh2
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009-2016 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2018 Bruce A Henderson"
 
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Added SFTP support."
+ModuleInfo "History: Use mbedtls instead of OpenSSL."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to libssh2 1.8.0"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
 
-?win32x86
-ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
-?win32x64
-ModuleInfo "LD_OPTS: -L%PWD%/ssl/libx64"
-?
-
-?Not macos
-ModuleInfo "CC_OPTS: -DLIBSSH2_OPENSSL"
+ModuleInfo "CC_OPTS: -DLIBSSH2_MBEDTLS"
 
 Import BRL.Socket
 Import "common.bmx"
@@ -157,6 +153,13 @@ Type TSSHSession
 	Function _setResponse(responses:TSSHKeyboardResponse[], index:Int, responsePtr:Byte Ptr) { nomangle }
 		responses[index] = TSSHKeyboardResponse._create(responsePtr)
 	End Function
+
+	Rem
+	bbdoc: Opens SFTP channel for the given SSH session.
+	End Rem
+	Method SftpInit:TSSHSftp()
+		Return TSSHSftp._create(bmx_libssh2_sftp_init(sessionPtr))
+	End Method
 	
 	Rem
 	bbdoc: Frees resources associated with the session instance.
@@ -396,5 +399,171 @@ Type TSSHKeyboardPrompt
 	End Method
 	
 End Type
+
+Rem
+bbdoc: An SFTP channel.
+End Rem
+Type TSSHSftp
+
+	Field sftpPtr:Byte Ptr
+	
+	Function _create:TSSHSftp(sftpPtr:Byte Ptr)
+		If sftpPtr Then
+			Local this:TSSHSftp = New TSSHSftp
+			this.sftpPtr = sftpPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Mkdir:Int(path:String, mode:Int)
+		Return bmx_libssh2_sftp_mkdir(sftpPtr, path, mode)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Rmdir:Int(path:String)
+		Return bmx_libssh2_sftp_rmdir(sftpPtr, path)
+	End Method
+	
+	Rem
+	bbdoc: Renames a filesystem object on the remote filesystem.
+	returns: 0 on success or negative on failure. It returns @LIBSSH2_ERROR_EAGAIN when it would otherwise block. While @LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	about: The semantics of this command typically include the ability to move a filesystem object between folders
+	and/or filesystem mounts. If the LIBSSH2_SFTP_RENAME_OVERWRITE flag is not set and the destfile entry already
+	exists, the operation will fail. Use of the other two flags indicate a preference (but not a requirement) for
+	the remote end to perform an atomic rename operation and/or using native system calls when possible.
+	End Rem
+	Method Rename:Int(source:String, dest:String, flags:Int)
+		Return bmx_libssh2_sftp_rename(sftpPtr, source, dest, flags)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetChannel:TSSHChannel()
+		Return TSSHChannel._create(bmx_libssh2_sftp_get_channel(sftpPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method LastError:Int()
+		Return bmx_libssh2_sftp_last_error(sftpPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OpenFile:TSSHSftpHandle(filename:String, flags:Int, mode:Int)
+		Return TSSHSftpHandle._create(bmx_libssh2_sftp_open(sftpPtr, filename, flags, mode, LIBSSH2_SFTP_OPENFILE))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OpenDir:TSSHSftpHandle(dirname:String, flags:Int, mode:Int)
+		Return TSSHSftpHandle._create(bmx_libssh2_sftp_open(sftpPtr, dirname, flags, mode, LIBSSH2_SFTP_OPENDIR))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Shutdown:Int()
+		If sftpPtr Then
+			Local res:Int = bmx_libssh2_sftp_shutdown(sftpPtr)
+			sftpPtr = Null
+			Return res
+		End If
+	End Method
+	
+	Method Delete()
+		Shutdown()
+	End Method
+	
+End Type
+
+Rem
+bbdoc: A filehandle for the remote file.
+End Rem
+Type TSSHSftpHandle
+
+	Field handlePtr:Byte Ptr
+	
+	Function _create:TSSHSftpHandle(handlePtr:Byte Ptr)
+		If handlePtr Then
+			Local this:TSSHSftpHandle = New TSSHSftpHandle
+			this.handlePtr = handlePtr
+			Return this
+		End If
+	End Function
+
+?bmxng
+	Rem
+	bbdoc: 
+	End Rem
+	Method Read:Size_T(buf:Byte Ptr, length:Size_T)
+		Return bmx_libssh2_sftp_read(handlePtr, buf, length)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Write:Size_T(buf:Byte Ptr, count:Size_T)
+		Return bmx_libssh2_sftp_write(handlePtr, buf, count)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Tell:Size_T()
+		Return bmx_libssh2_sftp_tell(handlePtr)
+	End Method
+?Not bmxng
+	Rem
+	bbdoc: 
+	End Rem
+	Method Read:Int(buf:Byte Ptr, length:Int)
+		Return bmx_libssh2_sftp_read(handlePtr, buf, length)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Write:Int(buf:Byte Ptr, count:Int)
+		Return bmx_libssh2_sftp_write(handlePtr, buf, count)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Tell:Int()
+		Return bmx_libssh2_sftp_tell(handlePtr)
+	End Method
 ?
+	Rem
+	bbdoc: 
+	End Rem
+	Method Fsync:Int()
+		Return bmx_libssh2_sftp_fsync(handlePtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Seek(offset:Long)
+		bmx_libssh2_sftp_seek64(handlePtr, offset)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Close:Int()
+		Return bmx_libssh2_sftp_close_handle(handlePtr)
+	End Method
+	
+End Type
 

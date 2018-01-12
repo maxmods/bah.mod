@@ -1,4 +1,31 @@
+/*
+ Copyright (c) 2009-20018 Bruce A Henderson
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+     * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+     * Neither the name of the author nor the
+       names of its contributors may be used to endorse or promote products
+       derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 #include <libssh2.h>
+#include <libssh2_sftp.h>
 
 class MaxSSHSession;
 
@@ -55,6 +82,22 @@ extern "C" {
 	int bmx_libssh2_channel_waiteof(LIBSSH2_CHANNEL * channel);
 	int bmx_libssh2_channel_getexitstatus(LIBSSH2_CHANNEL * channel);
 	LIBSSH2_CHANNEL * bmx_libssh2_channel_directtcpip(MaxSSHSession * session, BBString * host, int port, BBString * shost, int sport);
+
+	LIBSSH2_SFTP * bmx_libssh2_sftp_init(MaxSSHSession * session);
+	int bmx_libssh2_sftp_shutdown(LIBSSH2_SFTP * sftp);
+	int bmx_libssh2_sftp_last_error(LIBSSH2_SFTP * sftp);
+	LIBSSH2_CHANNEL * bmx_libssh2_sftp_get_channel(LIBSSH2_SFTP * sftp);
+	int bmx_libssh2_sftp_rename(LIBSSH2_SFTP * sftp, BBString * sourcefile, BBString * destfile, int flags);
+	int bmx_libssh2_sftp_mkdir(LIBSSH2_SFTP * sftp, BBString * path, int mode);
+	int bmx_libssh2_sftp_rmdir(LIBSSH2_SFTP * sftp, BBString * path);
+	LIBSSH2_SFTP_HANDLE * bmx_libssh2_sftp_open(LIBSSH2_SFTP * sftp, BBString * filename, int flags, int mode, int openType);
+
+	size_t bmx_libssh2_sftp_read(LIBSSH2_SFTP_HANDLE * handle, char * buf, size_t length);
+	size_t bmx_libssh2_sftp_write(LIBSSH2_SFTP_HANDLE * handle, char * buf, size_t count);
+	size_t bmx_libssh2_sftp_tell(LIBSSH2_SFTP_HANDLE * handle);
+	void bmx_libssh2_sftp_seek64(LIBSSH2_SFTP_HANDLE * handle, BBInt64 offset);
+	int bmx_libssh2_sftp_fsync(LIBSSH2_SFTP_HANDLE * handle);
+	int bmx_libssh2_sftp_close_handle(LIBSSH2_SFTP_HANDLE * handle);
 
 }
 
@@ -291,4 +334,77 @@ LIBSSH2_CHANNEL * bmx_libssh2_channel_directtcpip(MaxSSHSession * session, BBStr
 }
 
 
+// ***************************************************
+
+LIBSSH2_SFTP * bmx_libssh2_sftp_init(MaxSSHSession * session) {
+	return libssh2_sftp_init(session->Session());
+}
+
+int bmx_libssh2_sftp_shutdown(LIBSSH2_SFTP * sftp) {
+	return libssh2_sftp_shutdown(sftp);
+}
+
+int bmx_libssh2_sftp_last_error(LIBSSH2_SFTP * sftp) {
+	return libssh2_sftp_last_error(sftp);
+}
+
+LIBSSH2_CHANNEL * bmx_libssh2_sftp_get_channel(LIBSSH2_SFTP * sftp) {
+	return libssh2_sftp_get_channel(sftp);
+}
+
+int bmx_libssh2_sftp_rename(LIBSSH2_SFTP * sftp, BBString * sourcefile, BBString * destfile, int flags) {
+	char *s = bbStringToUTF8String( sourcefile );
+	char *d = bbStringToUTF8String( destfile );
+	int res = libssh2_sftp_rename_ex(sftp, s, strlen(s), d, strlen(d), flags);
+	bbMemFree(d);
+	bbMemFree(s);
+	return res;
+}
+
+int bmx_libssh2_sftp_mkdir(LIBSSH2_SFTP * sftp, BBString * path, int mode) {
+	char *p = bbStringToUTF8String( path );
+	int res = libssh2_sftp_mkdir(sftp, p, mode);
+	bbMemFree(p);
+	return res;
+}
+
+int bmx_libssh2_sftp_rmdir(LIBSSH2_SFTP * sftp, BBString * path) {
+	char *p = bbStringToUTF8String( path );
+	int res = libssh2_sftp_rmdir(sftp, p);
+	bbMemFree(p);
+	return res;
+}
+
+LIBSSH2_SFTP_HANDLE * bmx_libssh2_sftp_open(LIBSSH2_SFTP * sftp, BBString * filename, int flags, int mode, int openType) {
+	char *f = bbStringToUTF8String( filename );
+	LIBSSH2_SFTP_HANDLE * handle = libssh2_sftp_open_ex(sftp, f, strlen(f), flags, mode, openType);
+	bbMemFree(f);
+	return handle;
+}
+
+// ***************************************************
+
+size_t bmx_libssh2_sftp_read(LIBSSH2_SFTP_HANDLE * handle, char * buf, size_t length) {
+	return libssh2_sftp_read(handle, buf, length);
+}
+
+size_t bmx_libssh2_sftp_write(LIBSSH2_SFTP_HANDLE * handle, char * buf, size_t count) {
+	return libssh2_sftp_write(handle, buf, count);
+}
+
+size_t bmx_libssh2_sftp_tell(LIBSSH2_SFTP_HANDLE * handle) {
+	return libssh2_sftp_tell(handle);
+}
+
+void bmx_libssh2_sftp_seek64(LIBSSH2_SFTP_HANDLE * handle, BBInt64 offset) {
+	libssh2_sftp_seek64(handle, offset);
+}
+
+int bmx_libssh2_sftp_fsync(LIBSSH2_SFTP_HANDLE * handle) {
+	return libssh2_sftp_fsync(handle);
+}
+
+int bmx_libssh2_sftp_close_handle(LIBSSH2_SFTP_HANDLE * handle) {
+	return libssh2_sftp_close_handle(handle);
+}
 

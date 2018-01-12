@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2016 Bruce A Henderson
+' Copyright (c) 2009-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,11 @@ SuperStrict
 
 Import BRL.Blitz
 Import Pub.zlib
+Import BaH.mbedtls
+
+Import "../mbedtls.mod/mbedtls/include/*.h"
 
 ?win32
-Import "ssl/include/*.h"
 Import "include_win32/*.h"
 ?Not win32
 Import "include_unix/*.h"
