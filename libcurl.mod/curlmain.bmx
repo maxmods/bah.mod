@@ -273,30 +273,32 @@ Type TCurlEasy Extends TCurlHasLists
 	
 	Rem
 	bbdoc: Get transfer progress information.
-	about: This function gets called by libcurl instead of its internal equivalent with a frequent
-	interval during operation (roughly once per second) no matter if data is being transfered or not.
+	about: This function gets called by libcurl instead of its internal equivalent with a frequent interval.
+	While data is being transferred it will be called very frequently, and during slow periods like when
+	nothing is being transferred it can slow down to about one call per second.
+	The callback gets told how much data libcurl will transfer and has transferred, in number of bytes.
+	@dltotal is the total number of bytes libcurl expects to download in this transfer.
+	@dlnow is the number of bytes downloaded so far. @ultotal is the total number of bytes libcurl expects to
+	upload in this transfer. @ulnow is the number of bytes uploaded so far.
 	Unknown/unused argument values passed to the callback will be set to zero (like if you only download
 	data, the upload size will remain 0). Returning a non-zero value from this callback will cause libcurl
 	to abort the transfer and return #CURLE_ABORTED_BY_CALLBACK.
 	<p>
-	If you transfer data with the multi interface, this function will not be called during periods of
-	idleness unless you call the appropriate libcurl function that performs transfers. Usage of the
-	this callback is not recommended when using the multi interface.
+	If you transfer data with the multi interface, this function will not be called during periods of idleness
+	unless you call the appropriate libcurl function that performs transfers.
 	</p>
-	<p><i>Notes: </i>This is a convenience method for using setopt with #CURLOPT_PROGRESSFUNCTION and #CURLOPT_PROGRESSDATA.</p>
+	<p><i>Notes: </i>This is a convenience method for using setopt with #CURLOPT_XFERINFOFUNCTION and #CURLOPT_XFERINFODATA.</p>
 	End Rem
-	Method setProgressCallback(progressFunction:Int(data:Object, dltotal:Double, dlnow:Double, ultotal:Double, ulnow:Double), data:Object = Null)
+	Method setProgressCallback(xferinfoFunction:Int(data:Object, dltotal:Long, dlnow:Long, ultotal:Long, ulnow:Long), data:Object = Null)
 		If easyHandlePtr Then
 			' enable progress callback
 			setOptInt(CURLOPT_NOPROGRESS, 0)
 			
 			' set the callback
-			curl_easy_setopt(easyHandlePtr, CURLOPT_PROGRESSFUNCTION, progressFunction)
+			curl_easy_setopt(easyHandlePtr, CURLOPT_XFERINFOFUNCTION, xferinfoFunction)
 			
-			' set user data, if required
-			If data Then
-				bmx_curl_easy_setopt_obj(easyHandlePtr, CURLOPT_PROGRESSDATA, data)
-			End If
+			' set user data. Need to set it to at least Null so the callback doesn't send us a NULL pointer instead of a Null Object.
+			bmx_curl_easy_setopt_obj(easyHandlePtr, CURLOPT_XFERINFODATA, data)
 		End If
 	End Method
 	

@@ -1597,6 +1597,10 @@ bbdoc: Function that will be called instead of the internal progress display fun
 about: This function should be defined as the curl_xferinfo_callback prototype defines. (Deprecates CURLOPT_PROGRESSFUNCTION)
 End Rem
 Const CURLOPT_XFERINFOFUNCTION:Int = CURLOPTTYPE_FUNCTIONPOINT + 219
+Rem
+bbdoc: A synonym for #CURLOPT_PROGRESSDATA
+End Rem
+Const CURLOPT_XFERINFODATA:Int = CURLOPT_PROGRESSDATA
 
 Rem
 bbdoc: The XOAUTH2 bearer token
