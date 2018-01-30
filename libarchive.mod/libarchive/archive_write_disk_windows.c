@@ -192,7 +192,7 @@ struct archive_write_disk {
 
 /*
  * Default mode for dirs created automatically (will be modified by umask).
- * Note that POSIX specifies 0777 for implicity-created dirs, "modified
+ * Note that POSIX specifies 0777 for implicitly-created dirs, "modified
  * by the process' file creation mask."
  */
 #define	DEFAULT_DIR_MODE 0777
@@ -330,8 +330,6 @@ file_information(struct archive_write_disk *a, wchar_t *path,
 				break;
 			case L'C': case L'c':
 				if (((p[2] == L'M' || p[2] == L'm' ) &&
-				    (p[3] == L'D' || p[3] == L'd' )) ||
-				    ((p[2] == L'M' || p[2] == L'm' ) &&
 				    (p[3] == L'D' || p[3] == L'd' )))
 					*mode |= S_IXUSR | S_IXGRP | S_IXOTH;
 				break;
@@ -398,7 +396,7 @@ permissive_name_w(struct archive_write_disk *a)
 	}
 
 	/*
-	 * A full-pathname pointig a network drive
+	 * A full-pathname pointing to a network drive
 	 * like "\\<server-name>\<share-name>\file". 
 	 */
 	if (wnp[0] == L'\\' && wnp[1] == L'\\' && wnp[2] != L'\\') {
@@ -470,9 +468,17 @@ permissive_name_w(struct archive_write_disk *a)
 		return (-1);
 	archive_wstring_ensure(&(a->_name_data), 4 + l + 1 + wcslen(wn) + 1);
 	a->name = a->_name_data.s;
-	/* Prepend "\\?\" and drive name. */
-	archive_wstrncpy(&(a->_name_data), L"\\\\?\\", 4);
-	archive_wstrncat(&(a->_name_data), wsp, l);
+	/* Prepend "\\?\" and drive name if not already added. */
+	if (l > 3 && wsp[0] == L'\\' && wsp[1] == L'\\' &&
+		wsp[2] == L'?' && wsp[3] == L'\\')
+	{
+		archive_wstrncpy(&(a->_name_data), wsp, l);
+	}
+	else
+	{
+		archive_wstrncpy(&(a->_name_data), L"\\\\?\\", 4);
+		archive_wstrncat(&(a->_name_data), wsp, l);
+	}
 	archive_wstrncat(&(a->_name_data), L"\\", 1);
 	archive_wstrcat(&(a->_name_data), wn);
 	a->name = a->_name_data.s;
@@ -525,7 +531,7 @@ la_GetFunctionKernel32(const char *name)
 	static int set;
 	if (!set) {
 		set = 1;
-		lib = LoadLibrary("kernel32.dll");
+		lib = LoadLibrary(TEXT("kernel32.dll"));
 	}
 	if (lib == NULL) {
 		fprintf(stderr, "Can't load kernel32.dll?!\n");
@@ -900,7 +906,7 @@ _archive_write_disk_header(struct archive *_a, struct archive_entry *entry)
 }
 
 int
-archive_write_disk_set_skip_file(struct archive *_a, int64_t d, int64_t i)
+archive_write_disk_set_skip_file(struct archive *_a, la_int64_t d, la_int64_t i)
 {
 	struct archive_write_disk *a = (struct archive_write_disk *)_a;
 	archive_check_magic(&a->archive, ARCHIVE_WRITE_DISK_MAGIC,
@@ -1011,7 +1017,11 @@ _archive_write_disk_data_block(struct archive *_a,
 		    "Write request too large");
 		return (ARCHIVE_WARN);
 	}
+#if ARCHIVE_VERSION_NUMBER < 3999000
 	return (ARCHIVE_OK);
+#else
+	return (size);
+#endif
 }
 
 static ssize_t
@@ -1146,7 +1156,7 @@ _archive_write_disk_finish_entry(struct archive *_a)
 int
 archive_write_disk_set_group_lookup(struct archive *_a,
     void *private_data,
-    int64_t (*lookup_gid)(void *private, const char *gname, int64_t gid),
+    la_int64_t (*lookup_gid)(void *private, const char *gname, la_int64_t gid),
     void (*cleanup_gid)(void *private))
 {
 	struct archive_write_disk *a = (struct archive_write_disk *)_a;
@@ -1182,7 +1192,7 @@ archive_write_disk_set_user_lookup(struct archive *_a,
 }
 
 int64_t
-archive_write_disk_gid(struct archive *_a, const char *name, int64_t id)
+archive_write_disk_gid(struct archive *_a, const char *name, la_int64_t id)
 {
        struct archive_write_disk *a = (struct archive_write_disk *)_a;
        archive_check_magic(&a->archive, ARCHIVE_WRITE_DISK_MAGIC,
@@ -1193,7 +1203,7 @@ archive_write_disk_gid(struct archive *_a, const char *name, int64_t id)
 }
  
 int64_t
-archive_write_disk_uid(struct archive *_a, const char *name, int64_t id)
+archive_write_disk_uid(struct archive *_a, const char *name, la_int64_t id)
 {
        struct archive_write_disk *a = (struct archive_write_disk *)_a;
        archive_check_magic(&a->archive, ARCHIVE_WRITE_DISK_MAGIC,
@@ -1211,10 +1221,9 @@ archive_write_disk_new(void)
 {
 	struct archive_write_disk *a;
 
-	a = (struct archive_write_disk *)malloc(sizeof(*a));
+	a = (struct archive_write_disk *)calloc(1, sizeof(*a));
 	if (a == NULL)
 		return (NULL);
-	memset(a, 0, sizeof(*a));
 	a->archive.magic = ARCHIVE_WRITE_DISK_MAGIC;
 	/* We're ready to write a header immediately. */
 	a->archive.state = ARCHIVE_STATE_HEADER;
@@ -1313,9 +1322,20 @@ restore_entry(struct archive_write_disk *a)
 		}
 	}
 
+	if ((en == ENOENT) && (archive_entry_hardlink(a->entry) != NULL)) {
+		archive_set_error(&a->archive, en,
+			"Hard-link target '%s' does not exist.",
+			archive_entry_hardlink(a->entry));
+		return (ARCHIVE_FAILED);
+	}
+
 	if ((en == EISDIR || en == EEXIST)
 	    && (a->flags & ARCHIVE_EXTRACT_NO_OVERWRITE)) {
 		/* If we're not overwriting, we're done. */
+		if (S_ISDIR(a->mode)) {
+			/* Don't overwrite any settings on existing directories. */
+			a->todo = 0;
+		}
 		archive_entry_unset_size(a->entry);
 		return (ARCHIVE_OK);
 	}

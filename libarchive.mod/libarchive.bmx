@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2017 Bruce A Henderson
+' Copyright (c) 2013-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,13 @@ End Rem
 Module BaH.LibArchive
 
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: libarchive - 2003-2010 Tim Kientzle"
-ModuleInfo "Copyright: Wrapper - 2013-2017 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2013-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to libarchive 3.3.2.77d26b0."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Removed libiconv requirement from Win32."
 ModuleInfo "History: 1.00"
