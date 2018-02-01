@@ -25,8 +25,6 @@
 '
 SuperStrict
 
-Import BRL.Blitz
-
 Import "../libxml.mod/src/*.h"
 Import "../xz.mod/src/liblzma/api/*.h"
 ?win32
@@ -186,5 +184,5 @@ Import "zlib/gzlib.c"
 Import "zlib/gzread.c"
 Import "zlib/gzwrite.c"
 
-Import "glue.cpp"
+Import "glue.c"
 
