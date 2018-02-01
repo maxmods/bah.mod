@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2017 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,15 @@ bbdoc: Regular Expressions
 End Rem
 Module BaH.RegEx
 
-ModuleInfo "Version: 1.08"
+ModuleInfo "Version: 1.09"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: PCRE - 1997-2017 University of Cambridge"
-ModuleInfo "Copyright: Wrapper - 2007-2017 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2018 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.09"
+ModuleInfo "History: Fixed issue using wrong ovector offset."
 ModuleInfo "History: 1.08"
 ModuleInfo "History: Updated to PCRE 10.30"
 ModuleInfo "History: 1.07"
@@ -271,7 +273,6 @@ Type TRegEx
 			init()
 		End If
 
-
 		' no target specified, we are probably performing another search on the original target
 		If Not target Then
 		
@@ -293,12 +294,11 @@ Type TRegEx
 					MemFree(TArg)
 				End If
 			
-				'Local tg:String = convertISO8859toUTF8(target)
 				TArg = target.toWString()
 				targLength = target.length
 			End If
 		End If
-		
+
 		' set the startPos to 0 if not already set
 		If startPos < 0 Then
 			startPos = 0
@@ -314,9 +314,7 @@ Type TRegEx
 			Local match:TRegExMatch = New TRegExMatch
 			match.pcre = pcre
 			match.matchPtr = matchPtr
-
-			lastEndPos = offsets[sizeOffsets]
-			
+			lastEndPos = offsets[1]
 			Return match
 		Else
 
