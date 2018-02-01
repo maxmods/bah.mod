@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,14 @@ bbdoc: String Formatter
 End Rem
 Module BaH.Format
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2007,2008 Bruce A Henderson"
+ModuleInfo "Copyright: 2007-2018 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Fixed offset problem."
+ModuleInfo "History: Use StringBuilder/Buffer for string concat."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Rewritten to use native snfprintf."
 ModuleInfo "History: License change to MIT."
@@ -39,10 +42,13 @@ ModuleInfo "History: Initial Release."
 
 Import BaH.RegEx
 Import BRL.LinkedList
+?bmxng
+Import BRL.StringBuilder
+?Not bmxng
+Import BaH.StringBuffer
+?
 
-Import BRL.Blitz
-
-Import "glue.cpp"
+Import "glue.c"
 
 Extern
 	Function bmx_sprintf_string:String(format:Byte Ptr, value:String)
@@ -51,8 +57,6 @@ Extern
 	Function bmx_sprintf_double:String(format:Byte Ptr, value:Double)
 	Function bmx_sprintf_long:String(format:Byte Ptr, value:Long)
 End Extern
-
-
 
 Rem
 bbdoc: The string formatter.
@@ -91,7 +95,6 @@ Type TFormatter
 		Local parts:TList = New TList
 		
 		Local match:TRegExMatch = regex.Find(text)
-		
 		Local i:Int = 0
 		
 		While i < text.length
@@ -120,7 +123,7 @@ Type TFormatter
 				Exit
 			End If
 			
-			i = match.SubEnd(0)
+			i = match.SubEnd(0) + 1
 			
 			match = regex.find()
 		Wend
@@ -216,7 +219,7 @@ Type TFormatter
 	End Method
 
 	Rem
-	bbdoc: Appends a Float argument to the formatter.
+	bbdoc: Appends a Float argument To the formatter.
 	about: Parameters:
 	<ul>
 	<li><b>value</b> : The Float argument value</li>
@@ -271,16 +274,20 @@ Type TFormatter
 	returns: The formatted String.
 	End Rem
 	Method Format:String()
-		Local s:String
+?bmxng
+		Local sb:TStringBuilder = New TStringBuilder
+?Not bmxng
+		Local sb:TStringBuffer = New TStringBuffer
+?
 		Local arg:Int = 0
 		
 		If text Then
 			For Local i:Int = 0 Until formatParts.length
 				If TPlainText(formatParts[i]) Then
-					s:+ formatParts[i].ToString()		
+					sb.Append(formatParts[i].ToString())
 				Else
 					If (Not TFormattingText(formatParts[i]).invalid) And (args And arg < args.length) Then
-						s:+ TFormattingText(formatParts[i]).processArg(args[arg])
+						sb.Append(TFormattingText(formatParts[i]).processArg(args[arg]))
 						' next arg only if this was a "real" arg format
 						If TFormattingText(formatParts[i]).formatType <> TFormattingText.FTYPE_LINEBREAK And ..
 								TFormattingText(formatParts[i]).formatType <> TFormattingText.FTYPE_PERCENT Then
@@ -288,16 +295,16 @@ Type TFormatter
 						End If
 					Else
 						If Not TFormattingText(formatParts[i]).invalid Then
-							s:+ TFormattingText(formatParts[i]).processArg(New TNullArg)
+							sb.Append(TFormattingText(formatParts[i]).processArg(New TNullArg))
 						Else
-							s:+ formatParts[i].ToString()
+							sb.Append(formatParts[i].ToString())
 						End If
 					End If
 				End If
 			Next
 		End If
 		
-		Return s
+		Return sb.ToString()
 	End Method
 
 	Rem
@@ -384,7 +391,7 @@ Type TFormattingText Extends TStringFormatPart
 	
 	Method ProcessArg:String(arg:TArg)
 		Local s:String
-		
+
 		If TStringArg(arg) Then
 			s = bmx_sprintf_string(formatText, TStringArg(arg).value)
 		Else If TIntArg(arg) Then
