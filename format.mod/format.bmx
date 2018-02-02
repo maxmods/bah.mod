@@ -45,7 +45,7 @@ Import BRL.LinkedList
 ?bmxng
 Import BRL.StringBuilder
 ?Not bmxng
-Import BaH.StringBuffer
+Import BaH.StringBuilder
 ?
 
 Import "glue.c"
@@ -274,11 +274,8 @@ Type TFormatter
 	returns: The formatted String.
 	End Rem
 	Method Format:String()
-?bmxng
 		Local sb:TStringBuilder = New TStringBuilder
-?Not bmxng
-		Local sb:TStringBuffer = New TStringBuffer
-?
+
 		Local arg:Int = 0
 		
 		If text Then
