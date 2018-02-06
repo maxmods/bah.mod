@@ -20,14 +20,23 @@ bbdoc: mbed TLS SSL library.
 End Rem
 Module BaH.mbedtls
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Apache 2.0"
 ModuleInfo "Copyright: Wrapper - 2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to mbedtls 2.7.0."
+ModuleInfo "History: Applied win32 vsnprintf patch."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
 Import "common.bmx"
+
+'
+' Patch notes :
+'    For older versions of win32, a patch was required for 2.7.0 use of vsnprintf
+'    see : https://github.com/ARMmbed/mbedtls/issues/355
+'
 
 Function MBEDTLSError:String(errornum:Int)
 	Local buf:Byte[1024]
