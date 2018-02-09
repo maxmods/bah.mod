@@ -1,13 +1,34 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Darwin ACL support */
+/* #undef ARCHIVE_ACL_DARWIN */
+
+/* FreeBSD ACL support */
+/* #undef ARCHIVE_ACL_FREEBSD */
+
+/* FreeBSD NFSv4 ACL support */
+/* #undef ARCHIVE_ACL_FREEBSD_NFS4 */
+
+/* Linux POSIX.1e ACL support via libacl */
+/* #undef ARCHIVE_ACL_LIBACL */
+
+/* Linux NFSv4 ACL support via librichacl */
+/* #undef ARCHIVE_ACL_LIBRICHACL */
+
+/* Solaris ACL support */
+/* #undef ARCHIVE_ACL_SUNOS */
+
+/* Solaris NFSv4 ACL support */
+/* #undef ARCHIVE_ACL_SUNOS_NFS4 */
+
 /* MD5 via ARCHIVE_CRYPTO_MD5_LIBC supported. */
 /* #undef ARCHIVE_CRYPTO_MD5_LIBC */
 
 /* MD5 via ARCHIVE_CRYPTO_MD5_LIBMD supported. */
 /* #undef ARCHIVE_CRYPTO_MD5_LIBMD */
 
-#ifndef WIN32
+#ifdef __APPLE__
 /* MD5 via ARCHIVE_CRYPTO_MD5_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_MD5_LIBSYSTEM 1
 #endif
@@ -39,7 +60,7 @@
 /* SHA1 via ARCHIVE_CRYPTO_SHA1_LIBMD supported. */
 /* #undef ARCHIVE_CRYPTO_SHA1_LIBMD */
 
-#ifndef WIN32
+#ifdef __APPLE__
 /* SHA1 via ARCHIVE_CRYPTO_SHA1_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_SHA1_LIBSYSTEM 1
 #endif
@@ -66,7 +87,7 @@
 /* #undef ARCHIVE_CRYPTO_SHA256_LIBMD */
 
 /* SHA256 via ARCHIVE_CRYPTO_SHA256_LIBSYSTEM supported. */
-#ifndef WIN32
+#ifdef __APPLE__
 #define ARCHIVE_CRYPTO_SHA256_LIBSYSTEM 1
 #endif
 
@@ -88,7 +109,7 @@
 /* SHA384 via ARCHIVE_CRYPTO_SHA384_LIBC3 supported. */
 /* #undef ARCHIVE_CRYPTO_SHA384_LIBC3 */
 
-#ifndef WIN32
+#ifdef __APPLE__
 /* SHA384 via ARCHIVE_CRYPTO_SHA384_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_SHA384_LIBSYSTEM 1
 #endif
@@ -114,7 +135,7 @@
 /* SHA512 via ARCHIVE_CRYPTO_SHA512_LIBMD supported. */
 /* #undef ARCHIVE_CRYPTO_SHA512_LIBMD */
 
-#ifndef WIN32
+#ifdef __APPLE__
 /* SHA512 via ARCHIVE_CRYPTO_SHA512_LIBSYSTEM supported. */
 #define ARCHIVE_CRYPTO_SHA512_LIBSYSTEM 1
 #endif
@@ -128,17 +149,86 @@
 /* SHA512 via ARCHIVE_CRYPTO_SHA512_WIN supported. */
 /* #undef ARCHIVE_CRYPTO_SHA512_WIN */
 
+/* AIX xattr support */
+/* #undef ARCHIVE_XATTR_AIX */
+
+/* Darwin xattr support */
+/* #undef ARCHIVE_XATTR_DARWIN */
+
+/* FreeBSD xattr support */
+/* #undef ARCHIVE_XATTR_FREEBSD */
+
+/* Linux xattr support */
+#ifdef __linux
+#define ARCHIVE_XATTR_LINUX 1
+#endif
+
+/* Version number of bsdcat */
+#define BSDCAT_VERSION_STRING "3.3.3dev"
+
 /* Version number of bsdcpio */
-#define BSDCPIO_VERSION_STRING "3.1.2"
+#define BSDCPIO_VERSION_STRING "3.3.3dev"
 
 /* Version number of bsdtar */
-#define BSDTAR_VERSION_STRING "3.1.2"
+#define BSDTAR_VERSION_STRING "3.3.3dev"
+
+/* Define to 1 if the system has the type `ace_t'. */
+/* #undef HAVE_ACE_T */
+
+/* Define to 1 if you have the `acl' function. */
+/* #undef HAVE_ACL */
+
+/* Define to 1 if the system has the type `aclent_t'. */
+/* #undef HAVE_ACLENT_T */
+
+/* Define to 1 if you have the `acl_add_flag_np' function. */
+/* #undef HAVE_ACL_ADD_FLAG_NP */
+
+/* Define to 1 if you have the `acl_add_perm' function. */
+/* #undef HAVE_ACL_ADD_PERM */
+
+/* Define to 1 if you have the `acl_clear_flags_np' function. */
+/* #undef HAVE_ACL_CLEAR_FLAGS_NP */
+
+/* Define to 1 if you have the `acl_clear_perms' function. */
+/* #undef HAVE_ACL_CLEAR_PERMS */
 
 /* Define to 1 if you have the `acl_create_entry' function. */
+#ifndef __linux
 #define HAVE_ACL_CREATE_ENTRY 1
+#endif
+/* Define to 1 if you have the `acl_delete_def_file' function. */
+/* #undef HAVE_ACL_DELETE_DEF_FILE */
 
-/* Define to 1 if you have the `acl_get_link' function. */
-/* #undef HAVE_ACL_GET_LINK */
+/* Define to 1 if the system has the type `acl_entry_t'. */
+/* #undef HAVE_ACL_ENTRY_T */
+
+/* Define to 1 if you have the `acl_free' function. */
+/* #undef HAVE_ACL_FREE */
+
+/* Define to 1 if you have the `acl_get_brand_np' function. */
+/* #undef HAVE_ACL_GET_BRAND_NP */
+
+/* Define to 1 if you have the `acl_get_entry' function. */
+/* #undef HAVE_ACL_GET_ENTRY */
+
+/* Define to 1 if you have the `acl_get_entry_type_np' function. */
+/* #undef HAVE_ACL_GET_ENTRY_TYPE_NP */
+
+/* Define to 1 if you have the `acl_get_fd' function. */
+/* #undef HAVE_ACL_GET_FD */
+
+/* Define to 1 if you have the `acl_get_fd_np' function. */
+/* #undef HAVE_ACL_GET_FD_NP */
+
+/* Define to 1 if you have the `acl_get_file' function. */
+/* #undef HAVE_ACL_GET_FILE */
+
+/* Define to 1 if you have the `acl_get_flagset_np' function. */
+/* #undef HAVE_ACL_GET_FLAGSET_NP */
+
+/* Define to 1 if you have the `acl_get_flag_np' function. */
+/* #undef HAVE_ACL_GET_FLAG_NP */
 
 /* Define to 1 if you have the `acl_get_link_np' function. */
 #define HAVE_ACL_GET_LINK_NP 1
@@ -146,17 +236,29 @@
 /* Define to 1 if you have the `acl_get_perm' function. */
 /* #undef HAVE_ACL_GET_PERM */
 
+/* Define to 1 if you have the `acl_get_permset' function. */
+/* #undef HAVE_ACL_GET_PERMSET */
+
 /* Define to 1 if you have the `acl_get_perm_np' function. */
 #define HAVE_ACL_GET_PERM_NP 1
+/* Define to 1 if you have the `acl_get_qualifier' function. */
+/* #undef HAVE_ACL_GET_QUALIFIER */
+
+/* Define to 1 if you have the `acl_get_tag_type' function. */
+/* #undef HAVE_ACL_GET_TAG_TYPE */
 
 /* Define to 1 if you have the `acl_init' function. */
 #define HAVE_ACL_INIT 1
+/* Define to 1 if you have the `acl_is_trivial_np' function. */
+/* #undef HAVE_ACL_IS_TRIVIAL_NP */
 
 /* Define to 1 if you have the <acl/libacl.h> header file. */
 /* #undef HAVE_ACL_LIBACL_H */
 
 /* Define to 1 if the system has the type `acl_permset_t'. */
 #define HAVE_ACL_PERMSET_T 1
+/* Define to 1 if you have the `acl_set_entry_type_np' function. */
+/* #undef HAVE_ACL_SET_ENTRY_TYPE_NP */
 
 /* Define to 1 if you have the `acl_set_fd' function. */
 #define HAVE_ACL_SET_FD 1
@@ -166,12 +268,29 @@
 
 /* Define to 1 if you have the `acl_set_file' function. */
 #define HAVE_ACL_SET_FILE 1
+/* Define to 1 if you have the `acl_set_link_np' function. */
+/* #undef HAVE_ACL_SET_LINK_NP */
 
-/* True for systems with POSIX ACL support */
-/* #undef HAVE_ACL_USER */
+/* Define to 1 if you have the `acl_set_qualifier' function. */
+/* #undef HAVE_ACL_SET_QUALIFIER */
+
+/* Define to 1 if you have the `acl_set_tag_type' function. */
+/* #undef HAVE_ACL_SET_TAG_TYPE */
+
+/* Define to 1 if the system has the type `acl_t'. */
+/* #undef HAVE_ACL_T */
+
+/* Define to 1 if the system has the type `acl_tag_t'. */
+/* #undef HAVE_ACL_TAG_T */
+
+/* Define to 1 if you have the `arc4random_buf' function. */
+/* #undef HAVE_ARC4RANDOM_BUF */
 
 /* Define to 1 if you have the <attr/xattr.h> header file. */
 /* #undef HAVE_ATTR_XATTR_H */
+
+/* Define to 1 if you have the <bcrypt.h> header file. */
+/* #undef HAVE_BCRYPT_H */
 
 /* Define to 1 if you have the <bzlib.h> header file. */
 #define HAVE_BZLIB_H 1
@@ -186,7 +305,9 @@
 #define HAVE_CHROOT 1
 
 /* Define to 1 if you have the <copyfile.h> header file. */
+#ifdef WIN32
 #define HAVE_COPYFILE_H 1
+#endif
 
 #ifndef WIN32
 /* Define to 1 if you have the `ctime_r' function. */
@@ -199,9 +320,53 @@
 /* Define to 1 if you have the `cygwin_conv_path' function. */
 /* #undef HAVE_CYGWIN_CONV_PATH */
 
+/* Define to 1 if you have the declaration of `ACE_GETACL', and to 0 if you
+   don't. */
+/* #undef HAVE_DECL_ACE_GETACL */
+
+/* Define to 1 if you have the declaration of `ACE_GETACLCNT', and to 0 if you
+   don't. */
+/* #undef HAVE_DECL_ACE_GETACLCNT */
+
+/* Define to 1 if you have the declaration of `ACE_SETACL', and to 0 if you
+   don't. */
+/* #undef HAVE_DECL_ACE_SETACL */
+
+/* Define to 1 if you have the declaration of `ACL_SYNCHRONIZE', and to 0 if
+   you don't. */
+/* #undef HAVE_DECL_ACL_SYNCHRONIZE */
+
+/* Define to 1 if you have the declaration of `ACL_TYPE_EXTENDED', and to 0 if
+   you don't. */
+/* #undef HAVE_DECL_ACL_TYPE_EXTENDED */
+
+/* Define to 1 if you have the declaration of `ACL_TYPE_NFS4', and to 0 if you
+   don't. */
+/* #undef HAVE_DECL_ACL_TYPE_NFS4 */
+
+/* Define to 1 if you have the declaration of `ACL_USER', and to 0 if you
+   don't. */
+/* #undef HAVE_DECL_ACL_USER */
+
 /* Define to 1 if you have the declaration of `EXTATTR_NAMESPACE_USER', and to
    0 if you don't. */
 #define HAVE_DECL_EXTATTR_NAMESPACE_USER 0
+
+/* Define to 1 if you have the declaration of `GETACL', and to 0 if you don't.
+   */
+/* #undef HAVE_DECL_GETACL */
+
+/* Define to 1 if you have the declaration of `GETACLCNT', and to 0 if you
+   don't. */
+/* #undef HAVE_DECL_GETACLCNT */
+
+/* Define to 1 if you have the declaration of `INT32_MAX', and to 0 if you
+   don't. */
+#define HAVE_DECL_INT32_MAX 1
+
+/* Define to 1 if you have the declaration of `INT32_MIN', and to 0 if you
+   don't. */
+#define HAVE_DECL_INT32_MIN 1
 
 /* Define to 1 if you have the declaration of `INT64_MAX', and to 0 if you
    don't. */
@@ -210,6 +375,18 @@
 /* Define to 1 if you have the declaration of `INT64_MIN', and to 0 if you
    don't. */
 #define HAVE_DECL_INT64_MIN 1
+
+/* Define to 1 if you have the declaration of `INTMAX_MAX', and to 0 if you
+   don't. */
+#define HAVE_DECL_INTMAX_MAX 1
+
+/* Define to 1 if you have the declaration of `INTMAX_MIN', and to 0 if you
+   don't. */
+#define HAVE_DECL_INTMAX_MIN 1
+
+/* Define to 1 if you have the declaration of `SETACL', and to 0 if you don't.
+   */
+/* #undef HAVE_DECL_SETACL */
 
 /* Define to 1 if you have the declaration of `SIZE_MAX', and to 0 if you
    don't. */
@@ -231,12 +408,20 @@
    don't. */
 #define HAVE_DECL_UINT64_MAX 1
 
+/* Define to 1 if you have the declaration of `UINTMAX_MAX', and to 0 if you
+   don't. */
+#define HAVE_DECL_UINTMAX_MAX 1
+
+/* Define to 1 if you have the declaration of `XATTR_NOFOLLOW', and to 0 if
+   you don't. */
+#define HAVE_DECL_XATTR_NOFOLLOW 0
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #define HAVE_DIRENT_H 1
 
-/* Define to 1 if you have the `dirfd' function. */
-/* #undef HAVE_DIRFD */
+/* Define to 1 if you have a dirfd function or macro */
+#define HAVE_DIRFD 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -245,9 +430,11 @@
 /* #undef HAVE_DOPRNT */
 
 /* Define to 1 if nl_langinfo supports D_MD_ORDER */
+#ifdef WIN32
 #define HAVE_D_MD_ORDER 1
+#endif
 
-#ifndef WIN32
+#ifdef __APPLE__
 /* A possible errno value for invalid file format errors */
 #define HAVE_EFTYPE 1
 #endif
@@ -264,23 +451,40 @@
 /* Define to 1 if you have the <ext2fs/ext2_fs.h> header file. */
 /* #undef HAVE_EXT2FS_EXT2_FS_H */
 
+/* Define to 1 if you have the `extattr_get_fd' function. */
+/* #undef HAVE_EXTATTR_GET_FD */
+
 /* Define to 1 if you have the `extattr_get_file' function. */
 /* #undef HAVE_EXTATTR_GET_FILE */
+
+/* Define to 1 if you have the `extattr_get_link' function. */
+/* #undef HAVE_EXTATTR_GET_LINK */
+
+/* Define to 1 if you have the `extattr_list_fd' function. */
+/* #undef HAVE_EXTATTR_LIST_FD */
 
 /* Define to 1 if you have the `extattr_list_file' function. */
 /* #undef HAVE_EXTATTR_LIST_FILE */
 
+/* Define to 1 if you have the `extattr_list_link' function. */
+/* #undef HAVE_EXTATTR_LIST_LINK */
+
 /* Define to 1 if you have the `extattr_set_fd' function. */
 /* #undef HAVE_EXTATTR_SET_FD */
 
-/* Define to 1 if you have the `extattr_set_file' function. */
-/* #undef HAVE_EXTATTR_SET_FILE */
+/* Define to 1 if you have the `extattr_set_link' function. */
+/* #undef HAVE_EXTATTR_SET_LINK */
+
+/* Define to 1 if you have the `facl' function. */
+/* #undef HAVE_FACL */
 
 /* Define to 1 if you have the `fchdir' function. */
 #define HAVE_FCHDIR 1
 
 /* Define to 1 if you have the `fchflags' function. */
+#ifdef WIN32
 #define HAVE_FCHFLAGS 1
+#endif
 
 #ifndef WIN32
 /* Define to 1 if you have the `fchmod' function. */
@@ -297,7 +501,9 @@
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the `fdopendir' function. */
-/* #undef HAVE_FDOPENDIR */
+#ifndef WIN32
+#define HAVE_FDOPENDIR 1
+#endif
 
 /* Define to 1 if you have the `fgetea' function. */
 /* #undef HAVE_FGETEA */
@@ -327,7 +533,9 @@
 #define HAVE_FSTAT 1
 
 /* Define to 1 if you have the `fstatat' function. */
-/* #undef HAVE_FSTATAT */
+#ifndef WIN32
+#define HAVE_FSTATAT 1
+#endif
 
 /* Define to 1 if you have the `fstatfs' function. */
 #define HAVE_FSTATFS 1
@@ -339,13 +547,17 @@
 #define HAVE_FTRUNCATE 1
 
 /* Define to 1 if you have the `futimens' function. */
-/* #undef HAVE_FUTIMENS */
+#ifndef WIN32
+#define HAVE_FUTIMENS 1
+#endif
 
 /* Define to 1 if you have the `futimes' function. */
 #define HAVE_FUTIMES 1
 
 /* Define to 1 if you have the `futimesat' function. */
-/* #undef HAVE_FUTIMESAT */
+#ifndef WIN32
+#define HAVE_FUTIMESAT 1
+#endif
 
 /* Define to 1 if you have the `getea' function. */
 /* #undef HAVE_GETEA */
@@ -369,7 +581,9 @@
 #define HAVE_GETPWUID_R 1
 
 /* Define to 1 if you have the `getvfsbyname' function. */
+#ifdef WIN32
 #define HAVE_GETVFSBYNAME 1
+#endif
 
 /* Define to 1 if you have the `getxattr' function. */
 #define HAVE_GETXATTR 1
@@ -405,7 +619,9 @@
 #endif
 
 /* Define to 1 if you have the `lchflags' function. */
+#ifdef WIN32
 #define HAVE_LCHFLAGS 1
+#endif
 
 #ifndef WIN32
 /* Define to 1 if you have the `lchmod' function. */
@@ -419,13 +635,12 @@
 /* #undef HAVE_LGETEA */
 
 /* Define to 1 if you have the `lgetxattr' function. */
-/* #undef HAVE_LGETXATTR */
+#ifndef WIN32
+#define HAVE_LGETXATTR 1
+#endif
 
 /* Define to 1 if you have the `acl' library (-lacl). */
 /* #undef HAVE_LIBACL */
-
-/* Define to 1 if you have the `attr' library (-lattr). */
-/* #undef HAVE_LIBATTR */
 
 /* Define to 1 if you have the `bz2' library (-lbz2). */
 #define HAVE_LIBBZ2 1
@@ -445,11 +660,11 @@
 /* Define to 1 if you have the `expat' library (-lexpat). */
 /* #undef HAVE_LIBEXPAT */
 
+/* Define to 1 if you have the `lz4' library (-llz4). */
+/* #undef HAVE_LIBLZ4 */
+
 /* Define to 1 if you have the `lzma' library (-llzma). */
 #define HAVE_LIBLZMA 1
-
-/* Define to 1 if you have the `lzmadec' library (-llzmadec). */
-/* #undef HAVE_LIBLZMADEC */
 
 /* Define to 1 if you have the `lzo2' library (-llzo2). */
 /* #undef HAVE_LIBLZO2 */
@@ -469,6 +684,9 @@
 /* Define to 1 if you have the `regex' library (-lregex). */
 /* #undef HAVE_LIBREGEX */
 
+/* Define to 1 if you have the `richacl' library (-lrichacl). */
+/* #undef HAVE_LIBRICHACL */
+
 /* Define to 1 if you have the `xml2' library (-lxml2). */
 /* #undef HAVE_LIBXML2 */
 
@@ -480,6 +698,8 @@
 
 /* Define to 1 if you have the `z' library (-lz). */
 #define HAVE_LIBZ 1
+/* Define to 1 if you have the `zstd' library (-lzstd). */
+/* #undef HAVE_LIBZSTD */
 
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
@@ -487,18 +707,19 @@
 /* Define to 1 if you have the `link' function. */
 #define HAVE_LINK 1
 
+#ifdef __linux
 /* Define to 1 if you have the <linux/fiemap.h> header file. */
-/* #undef HAVE_LINUX_FIEMAP_H */
+#define HAVE_LINUX_FIEMAP_H 1
 
 /* Define to 1 if you have the <linux/fs.h> header file. */
-/* #undef HAVE_LINUX_FS_H */
+#define HAVE_LINUX_FS_H 1
 
 /* Define to 1 if you have the <linux/magic.h> header file. */
-/* #undef HAVE_LINUX_MAGIC_H */
+#define HAVE_LINUX_MAGIC_H 1
 
 /* Define to 1 if you have the <linux/types.h> header file. */
-/* #undef HAVE_LINUX_TYPES_H */
-
+#define HAVE_LINUX_TYPES_H 1
+#endif
 /* Define to 1 if you have the `listea' function. */
 /* #undef HAVE_LISTEA */
 
@@ -509,9 +730,10 @@
 /* #undef HAVE_LLISTEA */
 
 /* Define to 1 if you have the `llistxattr' function. */
-/* #undef HAVE_LLISTXATTR */
-
-#ifndef WIN32
+#ifdef __linux
+#define HAVE_LLISTXATTR 1
+#endif
+#ifdef __APPLE__
 /* Define to 1 if you have the <localcharset.h> header file. */
 #define HAVE_LOCALCHARSET_H 1
 
@@ -534,7 +756,9 @@
 /* #undef HAVE_LSETEA */
 
 /* Define to 1 if you have the `lsetxattr' function. */
-/* #undef HAVE_LSETXATTR */
+#ifdef __linux
+#define HAVE_LSETXATTR 1
+#endif
 
 /* Define to 1 if you have the `lstat' function. */
 #define HAVE_LSTAT 1
@@ -544,13 +768,20 @@
 /* #undef HAVE_LSTAT_EMPTY_STRING_BUG */
 
 /* Define to 1 if you have the `lutimes' function. */
+#ifdef __linux
 #define HAVE_LUTIMES 1
+#endif
 
-/* Define to 1 if you have the <lzmadec.h> header file. */
-/* #undef HAVE_LZMADEC_H */
+/* Define to 1 if you have the <lz4hc.h> header file. */
+/* #undef HAVE_LZ4HC_H */
+
+/* Define to 1 if you have the <lz4.h> header file. */
+/* #undef HAVE_LZ4_H */
 
 /* Define to 1 if you have the <lzma.h> header file. */
 #define HAVE_LZMA_H 1
+/* Define to 1 if you have the `lzma_stream_encoder_mt' function. */
+/* #undef HAVE_LZMA_STREAM_ENCODER_MT */
 
 /* Define to 1 if you have the <lzo/lzo1x.h> header file. */
 /* #undef HAVE_LZO_LZO1X_H */
@@ -561,8 +792,20 @@
 /* Define to 1 if you have the `mbrtowc' function. */
 #define HAVE_MBRTOWC 1
 
+/* Define to 1 if you have the `mbr_gid_to_uuid' function. */
+/* #undef HAVE_MBR_GID_TO_UUID */
+
+/* Define to 1 if you have the `mbr_uid_to_uuid' function. */
+/* #undef HAVE_MBR_UID_TO_UUID */
+
+/* Define to 1 if you have the `mbr_uuid_to_id' function. */
+/* #undef HAVE_MBR_UUID_TO_ID */
+
 /* Define to 1 if you have the <md5.h> header file. */
 /* #undef HAVE_MD5_H */
+
+/* Define to 1 if you have the <membership.h> header file. */
+/* #undef HAVE_MEMBERSHIP_H */
 
 /* Define to 1 if you have the `memmove' function. */
 #define HAVE_MEMMOVE 1
@@ -588,8 +831,17 @@
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 /* #undef HAVE_NDIR_H */
 
+/* Define to 1 if you have the <nettle/aes.h> header file. */
+/* #undef HAVE_NETTLE_AES_H */
+
+/* Define to 1 if you have the <nettle/hmac.h> header file. */
+/* #undef HAVE_NETTLE_HMAC_H */
+
 /* Define to 1 if you have the <nettle/md5.h> header file. */
 /* #undef HAVE_NETTLE_MD5_H */
+
+/* Define to 1 if you have the <nettle/pbkdf2.h> header file. */
+/* #undef HAVE_NETTLE_PBKDF2_H */
 
 /* Define to 1 if you have the <nettle/ripemd160.h> header file. */
 /* #undef HAVE_NETTLE_RIPEMD160_H */
@@ -603,7 +855,9 @@
 #endif
 
 /* Define to 1 if you have the `openat' function. */
-/* #undef HAVE_OPENAT */
+#ifdef __linux
+#define HAVE_OPENAT 1
+#endif
 
 /* Define to 1 if you have the <openssl/evp.h> header file. */
 /* #undef HAVE_OPENSSL_EVP_H */
@@ -617,6 +871,9 @@
 /* Define to 1 if you have the `pipe' function. */
 #define HAVE_PIPE 1
 
+/* Define to 1 if you have the `PKCS5_PBKDF2_HMAC_SHA1' function. */
+/* #undef HAVE_PKCS5_PBKDF2_HMAC_SHA1 */
+
 /* Define to 1 if you have the `poll' function. */
 #define HAVE_POLL 1
 
@@ -627,6 +884,11 @@
 
 /* Define to 1 if you have the `posix_spawnp' function. */
 #define HAVE_POSIX_SPAWNP 1
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#ifndef WIN32
+#define HAVE_PTHREAD_H 1
+#endif
 
 #ifndef WIN32
 /* Define to 1 if you have the <pwd.h> header file. */
@@ -640,10 +902,41 @@
 #define HAVE_READLINK 1
 
 /* Define to 1 if you have the `readlinkat' function. */
-/* #undef HAVE_READLINKAT */
+#ifdef __linux
+#define HAVE_READLINKAT 1
+#endif
+
+/* Define to 1 if you have the `readpassphrase' function. */
+/* #undef HAVE_READPASSPHRASE */
+
+/* Define to 1 if you have the <readpassphrase.h> header file. */
+/* #undef HAVE_READPASSPHRASE_H */
 
 /* Define to 1 if you have the <regex.h> header file. */
+#ifdef __linux
 #define HAVE_REGEX_H 1
+#endif
+
+/* Define to 1 if you have the `richacl_alloc' function. */
+/* #undef HAVE_RICHACL_ALLOC */
+
+/* Define to 1 if you have the `richacl_equiv_mode' function. */
+/* #undef HAVE_RICHACL_EQUIV_MODE */
+
+/* Define to 1 if you have the `richacl_free' function. */
+/* #undef HAVE_RICHACL_FREE */
+
+/* Define to 1 if you have the `richacl_get_fd' function. */
+/* #undef HAVE_RICHACL_GET_FD */
+
+/* Define to 1 if you have the `richacl_get_file' function. */
+/* #undef HAVE_RICHACL_GET_FILE */
+
+/* Define to 1 if you have the `richacl_set_fd' function. */
+/* #undef HAVE_RICHACL_SET_FD */
+
+/* Define to 1 if you have the `richacl_set_file' function. */
+/* #undef HAVE_RICHACL_SET_FILE */
 
 /* Define to 1 if you have the <ripemd.h> header file. */
 /* #undef HAVE_RIPEMD_H */
@@ -656,6 +949,9 @@
 
 /* Define to 1 if you have the `setlocale' function. */
 #define HAVE_SETLOCALE 1
+
+/* Define to 1 if you have the `setxattr' function. */
+/* #undef HAVE_SETXATTR */
 
 /* Define to 1 if you have the <sha256.h> header file. */
 /* #undef HAVE_SHA256_H */
@@ -721,29 +1017,33 @@
 /* Define to 1 if you have the `strrchr' function. */
 #define HAVE_STRRCHR 1
 
+/* Define to 1 if the system has the type `struct richace'. */
+/* #undef HAVE_STRUCT_RICHACE */
+
+/* Define to 1 if the system has the type `struct richacl'. */
+/* #undef HAVE_STRUCT_RICHACL */
+
 /* Define to 1 if `f_namemax' is a member of `struct statfs'. */
 /* #undef HAVE_STRUCT_STATFS_F_NAMEMAX */
 
 /* Define to 1 if `f_iosize' is a member of `struct statvfs'. */
 /* #undef HAVE_STRUCT_STATVFS_F_IOSIZE */
 
-#ifndef WIN32
-#ifndef __APPLE__
 /* Define to 1 if `st_birthtime' is a member of `struct stat'. */
-#define HAVE_STRUCT_STAT_ST_BIRTHTIME 1
+/* #undef HAVE_STRUCT_STAT_ST_BIRTHTIME */
 
 /* Define to 1 if `st_birthtimespec.tv_nsec' is a member of `struct stat'. */
-#define HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC 1
-#endif
-#endif
+/* #undef HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC */
 
 /* Define to 1 if `st_blksize' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_BLKSIZE 1
 
 /* Define to 1 if `st_flags' is a member of `struct stat'. */
+#ifndef __linux
 #define HAVE_STRUCT_STAT_ST_FLAGS 1
+#endif
 
-#ifndef WIN32
+#ifdef __APPLE__
 /* Define to 1 if `st_mtimespec.tv_nsec' is a member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
 #endif
@@ -755,8 +1055,9 @@
 /* #undef HAVE_STRUCT_STAT_ST_MTIME_USEC */
 
 /* Define to 1 if `st_mtim.tv_nsec' is a member of `struct stat'. */
-/* #undef HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC */
-
+#ifdef __linux
+#define HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC 1
+#endif
 /* Define to 1 if `st_umtime' is a member of `struct stat'. */
 /* #undef HAVE_STRUCT_STAT_ST_UMTIME */
 
@@ -768,12 +1069,20 @@
 /* Define to 1 if `__tm_gmtoff' is a member of `struct tm'. */
 /* #undef HAVE_STRUCT_TM___TM_GMTOFF */
 
+/* Define to 1 if the system has the type `struct vfsconf'. */
+/* #undef HAVE_STRUCT_VFSCONF */
+
+/* Define to 1 if the system has the type `struct xvfsconf'. */
+/* #undef HAVE_STRUCT_XVFSCONF */
+
 #ifndef WIN32
 /* Define to 1 if you have the `symlink' function. */
 #define HAVE_SYMLINK 1
 
 /* Define to 1 if you have the <sys/acl.h> header file. */
+#ifndef __linux
 #define HAVE_SYS_ACL_H 1
+#endif
 
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #define HAVE_SYS_CDEFS_H 1
@@ -810,11 +1119,16 @@
 /* Define to 1 if you have the <sys/poll.h> header file. */
 #define HAVE_SYS_POLL_H 1
 
+/* Define to 1 if you have the <sys/richacl.h> header file. */
+/* #undef HAVE_SYS_RICHACL_H */
+
 /* Define to 1 if you have the <sys/select.h> header file. */
 #define HAVE_SYS_SELECT_H 1
 
 /* Define to 1 if you have the <sys/statfs.h> header file. */
-/* #undef HAVE_SYS_STATFS_H */
+#ifdef __linux
+#define HAVE_SYS_STATFS_H 1
+#endif
 
 /* Define to 1 if you have the <sys/statvfs.h> header file. */
 #define HAVE_SYS_STATVFS_H 1
@@ -834,12 +1148,12 @@
 #ifndef WIN32
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #define HAVE_SYS_UTSNAME_H 1
-#endif
 
 /* Define to 1 if you have the <sys/vfs.h> header file. */
-/* #undef HAVE_SYS_VFS_H */
+#ifdef __linux
+#define HAVE_SYS_VFS_H 1
+#endif
 
-#ifndef WIN32
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #define HAVE_SYS_WAIT_H 1
 #endif
@@ -877,7 +1191,9 @@
 #define HAVE_UTIME 1
 
 /* Define to 1 if you have the `utimensat' function. */
-/* #undef HAVE_UTIMENSAT */
+#ifdef __linux
+#define HAVE_UTIMENSAT 1
+#endif
 
 /* Define to 1 if you have the `utimes' function. */
 #define HAVE_UTIMES 1
@@ -932,11 +1248,21 @@
 /* Define to 1 if you have the `wmemcpy' function. */
 #define HAVE_WMEMCPY 1
 
+/* Define to 1 if you have the `wmemmove' function. */
+#define HAVE_WMEMMOVE 1
+
 /* Define to 1 if you have a working EXT2_IOC_GETFLAGS */
 /* #undef HAVE_WORKING_EXT2_IOC_GETFLAGS */
 
+/* Define to 1 if you have a working FS_IOC_GETFLAGS */
+#ifdef __linux
+#define HAVE_WORKING_FS_IOC_GETFLAGS 1
+#endif
+
 /* Define to 1 if you have the <zlib.h> header file. */
 #define HAVE_ZLIB_H 1
+/* Define to 1 if you have the <zstd.h> header file. */
+/* #undef HAVE_ZSTD_H */
 
 /* Define to 1 if you have the `_ctime64_s' function. */
 /* #undef HAVE__CTIME64_S */
@@ -957,17 +1283,18 @@
 #define ICONV_CONST 
 
 /* Version number of libarchive as a single integer */
-#define LIBARCHIVE_VERSION_NUMBER "3001002"
+#define LIBARCHIVE_VERSION_NUMBER "3003003"
 
 /* Version number of libarchive */
-#define LIBARCHIVE_VERSION_STRING "3.1.2"
+#define LIBARCHIVE_VERSION_STRING "3.3.3dev"
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
-/* #undef LSTAT_FOLLOWS_SLASHED_SYMLINK */
+#ifdef __linux
+#define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
+#endif
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Define to 1 if `major', `minor', and `makedev' are declared in <mkdev.h>.
@@ -978,8 +1305,8 @@
    <sysmacros.h>. */
 /* #undef MAJOR_IN_SYSMACROS */
 
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-/* #undef NO_MINUS_C_MINUS_O */
+/* Define to '0x05020000' for Windows Server 2003 APIs. */
+/* #undef NTDDI_VERSION */
 
 /* Name of package */
 #define PACKAGE "libarchive"
@@ -991,7 +1318,7 @@
 #define PACKAGE_NAME "libarchive"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "libarchive 3.1.2"
+#define PACKAGE_STRING "libarchive 3.3.3dev"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "libarchive"
@@ -1000,7 +1327,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.1.2"
+#define PACKAGE_VERSION "3.3.3dev"
 
 /* Define to 1 if PCRE_STATIC needs to be defined. */
 /* #undef PCRE_STATIC */
@@ -1012,7 +1339,9 @@
 #define STDC_HEADERS 1
 
 /* Define to 1 if strerror_r returns char *. */
-/* #undef STRERROR_R_CHAR_P */
+#ifdef __linux
+#define STRERROR_R_CHAR_P 1
+#endif
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1
@@ -1040,10 +1369,12 @@
 
 
 /* Version number of package */
-#define VERSION "3.1.2"
+#define VERSION "3.3.3dev"
 
-/* Define to '0x0500' for Windows 2000 APIs. */
-/* #undef WINVER */
+/* Define to '0x0502' for Windows Server 2003 APIs. */
+#ifdef WIN32
+#define WINVER 0x0502
+#endif
 
 /* Enable large inode numbers on Mac OS X 10.5.  */
 #ifndef _DARWIN_USE_64_BIT_INODE
@@ -1086,8 +1417,8 @@
 /* #undef _UINT8_T */
 
 #ifdef WIN32
-/* Define to '0x0500' for Windows 2000 APIs. */
-#define _WIN32_WINNT 0x0500
+/* Define to '0x0502' for Windows Server 2003 APIs. */
+#define _WIN32_WINNT 0x0502
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
