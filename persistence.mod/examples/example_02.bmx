@@ -91,13 +91,14 @@ End Type
 Local test:TTest = TTest.Set()
 Local obj:Object 
 
-Local pers:TPersist = New TPersist
+Local persist:TPersist = New TXMLPersistenceBuilder.Build()
 
 ' compress the data
 TPersist.compressed = True
 
 ' ++ Compression only works with "files"
-pers.SerializeToFile(test, "example2.bmo")
+persist.SerializeToFile(test, "example2.bmo")
+persist.Free()
 
 Print "Saved..."
 
@@ -105,6 +106,6 @@ Print "Saved..."
 TPersist.maxDepth = 4096
 
 ' ++ De-serialize from a file.
-obj = pers.DeSerializeFromFile("example2.bmo")
+obj = persist.DeSerializeFromFile("example2.bmo")
 
 

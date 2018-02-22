@@ -2,6 +2,11 @@ SuperStrict
 
 Framework BaH.Persistence
 Import BRL.StandardIO
+?bmxng
+Import BRL.StringBuilder
+?Not bmxng
+Import BaH.StringBuilder
+?
 
 Type TRect
 	Field x:Int
@@ -25,6 +30,7 @@ Type TObj
 	Field rect:TRect = New TRect
 	
 	Field map:TMap = New TMap
+	Field map2:TMap = New TMap
 		
 	Function Set:TObj()
 		Local this:TObj = New TObj
@@ -84,28 +90,71 @@ Type TTest
 	
 End Type
 
+' register as a default serializer
+TXMLPersistenceBuilder.RegisterDefault(New TRectXmlSerializer)
 
 Local test:TTest = TTest.Set()
+Local persist:TPersist = New TXMLPersistenceBuilder.Build()
 
 ' ++  Serialize to a String
-Local s:String = TPersist.Serialize(test)
+Local s:String = persist.SerializeToString(test)
 Print s
 
-' ++  De-serialize the String
-Local obj:Object = TPersist.DeSerialize(s)
+persist.Free()
 
-Local pers:TPersist = New TPersist
+' ++  De-serialize the String
+Local obj:Object = persist.DeSerializeObject(s)
+persist.Free()
 
 ' ++ Create a Stream and Serialize the current object to it.
 Local stream:TStream = WriteStream("example.bmo")
-pers.SerializeToStream(obj, stream)
+persist.SerializeToStream(obj, stream)
 stream.Close()
+
+persist.Free()
 
 ' ++ De-serialize from a Stream.
 stream = ReadStream("example.bmo")
-obj = TPersist.DeSerialize(stream)
+obj = persist.DeSerializeFromStream(stream)
+persist.Free()
 
 ' ++ Serialize and output the latest object... all should be well :-)
 TPersist.format = True
-Print TPersist.Serialize(obj)
+Print persist.SerializeToString(obj)
 
+
+Type TRectXMLSerializer Extends TXMLSerializer
+
+	Global nil:TNode = New TMap._root
+
+	Method TypeName:String()
+		Return "TRect"
+	End Method
+	
+	Method Serialize(tid:TTypeId, obj:Object, node:TxmlNode)
+		Local rect:TRect = TRect(obj)
+		Local sb:TStringBuilder = New TStringBuilder
+		sb.AppendInt(rect.x)
+		sb.Append(",").AppendInt(rect.y)
+		sb.Append(",").AppendInt(rect.w)
+		sb.Append(",").AppendInt(rect.h)
+		node.SetContent(sb.ToString())
+	End Method
+	
+	Method Deserialize:Object(objType:TTypeId, node:TxmlNode)
+		Local rect:TRect = TRect(CreateObjectInstance(objType, node))
+		Local parts:String[] = node.GetContent().Split(",")
+		If parts.length = 4 Then
+			rect.x = Int(parts[0])
+			rect.y = Int(parts[1])
+			rect.w = Int(parts[2])
+			rect.h = Int(parts[3])
+		End If
+		Return rect	
+	End Method
+
+	Method Clone:TXMLSerializer()
+		Return New Self
+	End Method
+
+End Type
