@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016, Bruce A Henderson
+' Copyright (c) 2007-2018, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -35,20 +35,19 @@ Import "src/SFMT.c"
 Import "sfmtglue.c"
 
 Extern
-	Function bmx_sfmt_init_gen_rand:Byte Ptr(seed:Int)
-	Function bmx_sfmt_free(fmt:Byte Ptr)
+	Function bmx_sfmt_init_gen_rand(seed:Int)
 ?bmxng
-	Function sfmt_genrand_uint32:UInt(fmt:Byte Ptr)
-	Function bmx_gen_rand64(fmt:Byte Ptr, v:ULong Ptr)
+	Function sfmt_genrand_uint32:UInt()
+	Function bmx_gen_rand64(v:ULong Ptr)
 ?Not bmxng
-	Function sfmt_genrand_uint32:Int(fmt:Byte Ptr)
-	Function bmx_gen_rand64(fmt:Byte Ptr, v:Long Ptr)
+	Function sfmt_genrand_uint32:Int()
+	Function bmx_gen_rand64(v:Long Ptr)
 ?
 	
-	Function bmx_genrand_real1:Double(fmt:Byte Ptr)
-	Function bmx_genrand_real2:Double(fmt:Byte Ptr)
-	Function bmx_genrand_real3:Double(fmt:Byte Ptr)
-	Function bmx_genrand_res53:Double(fmt:Byte Ptr)
+	Function bmx_genrand_real1:Double()
+	Function bmx_genrand_real2:Double()
+	Function bmx_genrand_real3:Double()
+	Function bmx_genrand_res53:Double()
 	
 End Extern
 

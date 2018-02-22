@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2016, Bruce A Henderson
+ Copyright (c) 2007-2018, Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -29,38 +29,34 @@
 #include "blitz.h"
 #include "SFMT.h"
 
-sfmt_t * bmx_sfmt_init_gen_rand(int seed) {
-	sfmt_t * fmt = malloc(sizeof(sfmt_t));
-	sfmt_init_gen_rand(fmt, seed);
-	return fmt;
+static sfmt_t sfmt;
+
+void bmx_sfmt_init_gen_rand(int seed) {
+	sfmt_init_gen_rand(&sfmt, seed);
 }
 
-void bmx_sfmt_free(sfmt_t * fmt) {
-	free(fmt);
+double bmx_genrand_real1() {
+	return sfmt_genrand_real1(&sfmt);
 }
 
-double bmx_genrand_real1(sfmt_t * fmt) {
-	return sfmt_genrand_real1(fmt);
+double bmx_genrand_real2() {
+	return sfmt_genrand_real2(&sfmt);
 }
 
-double bmx_genrand_real2(sfmt_t * fmt) {
-	return sfmt_genrand_real2(fmt);
-}
-
-double bmx_genrand_real3(sfmt_t * fmt) {
-	return sfmt_genrand_real3(fmt);
+double bmx_genrand_real3() {
+	return sfmt_genrand_real3(&sfmt);
 }
 
 #ifdef BMX_NG
-void bmx_gen_rand64(sfmt_t * fmt, BBUInt64 * r) {
-	*r = sfmt_genrand_uint64(fmt);
+void bmx_gen_rand64(BBUInt64 * r) {
+	*r = sfmt_genrand_uint64(&sfmt);
 }
 #else
-void bmx_gen_rand64(sfmt_t * fmt, BBInt64 * r) {
-	*r = sfmt_genrand_uint64(fmt);
+void bmx_gen_rand64(BBInt64 * r) {
+	*r = sfmt_genrand_uint64(&sfmt);
 }
 #endif
 
-double bmx_genrand_res53(sfmt_t * fmt) {
-    return sfmt_genrand_res53(fmt);
+double bmx_genrand_res53() {
+    return sfmt_genrand_res53(&sfmt);
 }
