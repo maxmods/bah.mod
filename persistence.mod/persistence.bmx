@@ -664,7 +664,7 @@ Type TPersist
 	Rem
 	bbdoc: 
 	End Rem
-	Method DeSerializeObject:Object(Text:String, parent:TxmlNode = Null, options:Int = 0)
+	Method DeSerializeObject:Object(Text:String, parent:TxmlNode = Null, options:Int = 0, parentIsNode:Int = False)
 
 		Local node:TxmlNode
 		
@@ -688,7 +688,11 @@ Type TPersist
 				End If
 				lastNode = node
 			Else
-				node = TxmlNode(parent.GetFirstChild())
+				If parentIsNode Then
+					node = parent
+				Else
+					node = TxmlNode(parent.GetFirstChild())
+				End If
 				lastNode = node
 			End If
 		End If
@@ -930,8 +934,8 @@ Type TXMLSerializer
 		Return persist.fileVersion
 	End Method
 	
-	Method DeserializeObject:Object(node:TxmlNode)
-		Return persist.DeserializeObject("", node)
+	Method DeserializeObject:Object(node:TxmlNode, direct:Int = False)
+		Return persist.DeserializeObject("", node, 0, direct)
 	End Method
 	
 	Rem
@@ -1036,4 +1040,43 @@ Type TMapXMLSerializer Extends TXMLSerializer
 
 End Type
 
-TXMLPersistenceBuilder.RegisterDefault(New TMapXmlSerializer)
+Type TListXMLSerializer Extends TXMLSerializer
+
+	Method TypeName:String()
+		Return "TList"
+	End Method
+	
+	Method Serialize(tid:TTypeId, obj:Object, node:TxmlNode)
+		Local list:TList = TList(obj)
+		
+		If list Then
+			For Local item:Object = EachIn list
+				SerializeObject(item, node)
+			Next
+		End If
+	End Method
+	
+	Method Deserialize:Object(objType:TTypeId, node:TxmlNode)
+		Local list:TList = TList(CreateObjectInstance(objType, node))
+
+		If GetFileVersion() <= 5
+			DeserializeFields(objType, list, node)
+		Else
+			If node.getChildren() Then
+				For Local listNode:TxmlNode = EachIn node.getChildren()
+					list.AddLast(DeserializeObject(listNode, True))
+				Next
+			End If
+		End If
+		
+		Return list
+	End Method
+	
+	Method Clone:TXMLSerializer()
+		Return New Self
+	End Method
+
+End Type
+
+TXMLPersistenceBuilder.RegisterDefault(New TMapXMLSerializer)
+TXMLPersistenceBuilder.RegisterDefault(New TListXMLSerializer)
