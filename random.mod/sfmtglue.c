@@ -26,37 +26,53 @@
 */
 
 
-#include "blitz.h"
+#include "brl.mod/blitz.mod/blitz.h"
+#include <stdlib.h>
+#include <malloc.h>
 #include "SFMT.h"
 
-static sfmt_t sfmt;
-
-void bmx_sfmt_init_gen_rand(int seed) {
-	sfmt_init_gen_rand(&sfmt, seed);
+sfmt_t * bmx_sfmt_init_gen_rand(sfmt_t * sfmt, int seed) {
+	if (sfmt == NULL) {
+#ifdef WIN32
+		sfmt = _aligned_malloc(sizeof(*sfmt), 16);
+#else
+		sfmt = aligned_malloc(16, sizeof(*sfmt));
+#endif
+	}
+	sfmt_init_gen_rand(sfmt, seed);
+	return sfmt;
 }
 
-double bmx_genrand_real1() {
-	return sfmt_genrand_real1(&sfmt);
+void bmx_sfmt_free(sfmt_t * sfmt) {
+#ifdef WIN32
+	_aligned_free(sfmt);
+#else
+	free(sfmt);
+#endif
 }
 
-double bmx_genrand_real2() {
-	return sfmt_genrand_real2(&sfmt);
+double bmx_genrand_real1(sfmt_t * sfmt) {
+	return sfmt_genrand_real1(sfmt);
 }
 
-double bmx_genrand_real3() {
-	return sfmt_genrand_real3(&sfmt);
+double bmx_genrand_real2(sfmt_t * sfmt) {
+	return sfmt_genrand_real2(sfmt);
+}
+
+double bmx_genrand_real3(sfmt_t * sfmt) {
+	return sfmt_genrand_real3(sfmt);
 }
 
 #ifdef BMX_NG
-void bmx_gen_rand64(BBUInt64 * r) {
-	*r = sfmt_genrand_uint64(&sfmt);
+void bmx_gen_rand64(sfmt_t * sfmt, BBUInt64 * r) {
+	*r = sfmt_genrand_uint64(sfmt);
 }
 #else
-void bmx_gen_rand64(BBInt64 * r) {
-	*r = sfmt_genrand_uint64(&sfmt);
+void bmx_gen_rand64(sfmt_t * sfmt, BBInt64 * r) {
+	*r = sfmt_genrand_uint64(sfmt);
 }
 #endif
 
-double bmx_genrand_res53() {
-    return sfmt_genrand_res53(&sfmt);
+double bmx_genrand_res53(sfmt_t * sfmt) {
+    return sfmt_genrand_res53(sfmt);
 }

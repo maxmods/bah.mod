@@ -25,9 +25,6 @@
 '
 SuperStrict
 
-Import BRL.Blitz
-
-
 Import "src/*.h"
 Import "src/SFMT.c"
 
@@ -35,19 +32,20 @@ Import "src/SFMT.c"
 Import "sfmtglue.c"
 
 Extern
-	Function bmx_sfmt_init_gen_rand(seed:Int)
+	Function bmx_sfmt_init_gen_rand:Byte Ptr(handle:Byte Ptr, seed:Int)
+	Function bmx_sfmt_free(handle:Byte Ptr)
 ?bmxng
-	Function sfmt_genrand_uint32:UInt()
-	Function bmx_gen_rand64(v:ULong Ptr)
+	Function sfmt_genrand_uint32:UInt(handle:Byte Ptr)
+	Function bmx_gen_rand64(handle:Byte Ptr, v:ULong Ptr)
 ?Not bmxng
-	Function sfmt_genrand_uint32:Int()
-	Function bmx_gen_rand64(v:Long Ptr)
+	Function sfmt_genrand_uint32:Int(handle:Byte Ptr)
+	Function bmx_gen_rand64(handle:Byte Ptr, v:Long Ptr)
 ?
 	
-	Function bmx_genrand_real1:Double()
-	Function bmx_genrand_real2:Double()
-	Function bmx_genrand_real3:Double()
-	Function bmx_genrand_res53:Double()
+	Function bmx_genrand_real1:Double(handle:Byte Ptr)
+	Function bmx_genrand_real2:Double(handle:Byte Ptr)
+	Function bmx_genrand_real3:Double(handle:Byte Ptr)
+	Function bmx_genrand_res53:Double(handle:Byte Ptr)
 	
 End Extern
 

@@ -30,12 +30,15 @@ bbdoc: Random Numbers - SFMT
 End Rem
 Module BaH.Random
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: SFMT - 2006-2017 Mutsuo Saito, Makoto Matsumoto and Hiroshima"
 ModuleInfo "Copyright: Wrapper - 2007-2018 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Created TRandom to support multiple generators."
+ModuleInfo "History: Aligned pointer creation."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Update to SFMT 1.5.1"
 ModuleInfo "History: Refactored."
@@ -51,6 +54,7 @@ ModuleInfo "History: Initial Version (SFMT 1.2)"
 
 ModuleInfo "CC_OPTS: -DMEXP=19937"
 ModuleInfo "CC_OPTS: -fno-strict-aliasing"
+ModuleInfo "CC_OPTS: -std=c11"
 
 ?x86
 ModuleInfo "CC_OPTS: -msse2 -DHAVE_SSE2"
@@ -62,15 +66,14 @@ Import "common.bmx"
 
 Private
 
-Global kRndInitialized:Int = False
+Global _random:TRandom = New TRandom
 
 Public
 Rem
 bbdoc: This function initializes the internal state array with a 32-bit integer seed.
 End Rem
 Function SeedRnd(seed:Int)
-	kRndInitialized = True
-	bmx_sfmt_init_gen_rand(seed)
+	_random.SeedRnd(seed)
 End Function
 
 Rem
@@ -87,10 +90,7 @@ The optional parameter allows you to use #Rand32 in 2 ways:<br>
 </table>
 End Rem
 Function Rand:Int( min_value:Int, max_value:Int = 1 )
-	If Not kRndInitialized SeedRnd(0)
-	Local Range:Double = max_value - min_value
-	If Range > 0 Return Int( bmx_genrand_res53()*(1:Double+Range) )+min_value
-	Return Int( bmx_genrand_res53()*(1-Range) )+max_value
+	Return _random.Rand(min_value, max_value)
 End Function
 
 Rem
@@ -107,8 +107,7 @@ The optional parameters allow you to use Rnd in 3 ways:<br>
 </table>
 End Rem
 Function Rnd:Double( min_value!=1,max_value!=0 )
-	If max_value > min_value Return RndDouble() * (max_value - min_value) + min_value
-	Return RndDouble() * (min_value - max_value) + max_value
+	Return _random.Rnd(min_value, max_value)
 End Function
 
 Rem
@@ -125,10 +124,7 @@ The optional parameter allows you to use #Rand64 in 2 ways:<br>
 </table>
 End Rem
 Function Rand64:Long( min_value:Long, max_value:Long = 1 )
-	If Not kRndInitialized SeedRnd(0)
-	Local Range:Long = max_value - min_value
-	If Range > 0 Return Long( bmx_genrand_res53() * (1:Long + Range) ) + min_value
-	Return Long( bmx_genrand_res53() * (1:Long - Range) ) + max_value
+	Return _random.Rand64(min_value, max_value)
 End Function
 
 Rem
@@ -136,8 +132,7 @@ bbdoc: Generate random float
 returns: A random float in the range 0 (inclusive) to 1 (exclusive)
 End Rem
 Function RndFloat:Float()
-	If Not kRndInitialized SeedRnd(0)
-	Return Float(bmx_genrand_real3())
+	Return _random.RndFloat()
 End Function
 
 Rem
@@ -145,7 +140,54 @@ bbdoc: Generate random double
 returns: A random double in the range 0 (inclusive) to 1 (exclusive)
 End Rem
 Function RndDouble:Double()
-	If Not kRndInitialized SeedRnd(0)
-	Return bmx_genrand_res53()
+	Return _random.RndDouble()
 End Function
 
+Rem
+bbdoc: An instance of a random number generator.
+End Rem
+Type TRandom
+
+	Field sfmtPtr:Byte Ptr
+	
+	Method New()
+		sfmtPtr = bmx_sfmt_init_gen_rand(Null, 0)
+	End Method
+	
+	Method SeedRnd(seed:Int)
+		bmx_sfmt_init_gen_rand(sfmtPtr, seed)
+	End Method
+
+	Method Rand:Int( min_value:Int, max_value:Int = 1 )
+		Local Range:Double = max_value - min_value
+		If Range > 0 Return Int( bmx_genrand_res53(sfmtPtr)*(1:Double+Range) )+min_value
+		Return Int( bmx_genrand_res53(sfmtPtr)*(1:Double-Range) )+max_value
+	End Method
+
+	Method Rnd:Double( min_value!=1,max_value!=0 )
+		If max_value > min_value Return RndDouble() * (max_value - min_value) + min_value
+		Return RndDouble() * (min_value - max_value) + max_value
+	End Method
+
+	Method Rand64:Long( min_value:Long, max_value:Long = 1 )
+		Local Range:Long = max_value - min_value
+		If Range > 0 Return Long( bmx_genrand_res53(sfmtPtr) * (1:Long + Range) ) + min_value
+		Return Long( bmx_genrand_res53(sfmtPtr) * (1:Long - Range) ) + max_value
+	End Method
+	
+	Method RndFloat:Float()
+		Return Float(bmx_genrand_real3(sfmtPtr))
+	End Method
+	
+	Method RndDouble:Double()
+		Return bmx_genrand_res53(sfmtPtr)
+	End Method
+	
+	Method Delete()
+		If sfmtPtr Then
+			bmx_sfmt_free(sfmtPtr)
+			sfmtPtr = Null
+		End If
+	End Method
+	
+End Type
