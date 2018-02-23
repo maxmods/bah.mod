@@ -153,8 +153,4 @@ Type TRectXMLSerializer Extends TXMLSerializer
 		Return rect	
 	End Method
 
-	Method Clone:TXMLSerializer()
-		Return New Self
-	End Method
-
 End Type

@@ -909,9 +909,11 @@ Type TXMLSerializer
 	Method Deserialize:Object(objType:TTypeId, node:TxmlNode) Abstract
 
 	Rem
-	bbdoc: Implementations should just : Return New Self
+	bbdoc: Returns a new instance.
 	End Rem	
-	Method Clone:TXMLSerializer() Abstract
+	Method Clone:TXMLSerializer()
+		Return New Self
+	End Method
 	
 	Rem
 	bbdoc: 
@@ -1033,10 +1035,6 @@ Type TMapXMLSerializer Extends TXMLSerializer
 		
 		Return map
 	End Method
-	
-	Method Clone:TXMLSerializer()
-		Return New Self
-	End Method
 
 End Type
 
@@ -1070,10 +1068,6 @@ Type TListXMLSerializer Extends TXMLSerializer
 		End If
 		
 		Return list
-	End Method
-	
-	Method Clone:TXMLSerializer()
-		Return New Self
 	End Method
 
 End Type
