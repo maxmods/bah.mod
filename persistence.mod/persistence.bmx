@@ -85,6 +85,7 @@ Type TPersist
 	Field fileVersion:Int
 	
 	Field serializers:TMap = New TMap
+	Field _inited:Int
 
 	Rem
 	bbdoc: Serializes the specified Object into a String.
@@ -108,6 +109,7 @@ Type TPersist
 	bbdoc: Serializes an Object to a String.
 	End Rem
 	Method SerializeToString:String(obj:Object)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
 		Free()
 		SerializeObject(obj)
 		
@@ -118,6 +120,7 @@ Type TPersist
 	bbdoc: Serializes an Object to the file @filename.
 	End Rem
 	Method SerializeToFile(obj:Object, filename:String)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
 		Free()
 		SerializeObject(obj)
 		
@@ -137,6 +140,7 @@ Type TPersist
 	about: It is up to the user to free the returned TxmlDoc object.
 	End Rem
 	Method SerializeToDoc:TxmlDoc(obj:Object)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
 		Free()
 		SerializeObject(obj)
 		
@@ -151,6 +155,7 @@ Type TPersist
 	about: It is up to the user to close the stream.
 	End Rem
 	Method SerializeToStream(obj:Object, stream:TStream)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
 		Free()
 		SerializeObject(obj)
 		
@@ -440,6 +445,7 @@ Type TPersist
 	@options relate to libxml specific parsing flags that can be applied.
 	End Rem
 	Method DeSerialize:Object(data:Object, options:Int = 0)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
 
 		xmlParserMaxDepth = maxDepth
 		
@@ -457,6 +463,8 @@ Type TPersist
 	about: It is up to the user to free the supplied TxmlDoc.
 	End Rem
 	Method DeSerializeFromDoc:Object(xmlDoc:TxmlDoc)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
+
 		doc = xmlDoc
 
 		xmlParserMaxDepth = maxDepth
@@ -474,6 +482,7 @@ Type TPersist
 	about: @options relate to libxml specific parsing flags that can be applied.
 	End Rem
 	Method DeSerializeFromFile:Object(filename:String, options:Int = 0)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
 	
 		xmlParserMaxDepth = maxDepth
 
@@ -493,6 +502,8 @@ Type TPersist
 	about: @options relate to libxml specific parsing flags that can be applied.
 	End Rem
 	Method DeSerializeFromStream:Object(stream:TStream, options:Int = 0)
+		If Not _inited Throw "Use TXMLPersistenceBuilder to create TPersist instance."
+
 		Local data:String
 		Local buf:Byte[2048]
 
@@ -863,6 +874,7 @@ Type TXMLPersistenceBuilder
 	End Rem
 	Method Build:TPersist()
 		Local persist:TPersist = New TPersist
+		persist._inited = True
 		
 		For Local s:TXMLSerializer = EachIn serializers.Values()
 			persist.AddSerializer(s)
