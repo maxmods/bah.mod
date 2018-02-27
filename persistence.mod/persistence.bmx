@@ -403,7 +403,8 @@ Type TPersist
 						
 				' special case for String object
 				If tid = StringTypeId Then
-					node.SetContent(String(obj))
+					Local s:String = doc.encodeEntities(String(obj))
+					node.setContent(s)
 				Else
 					SerializeByType(tid, obj, node)
 				End If
