@@ -346,8 +346,10 @@ Type TPersist
 	Rem
 	bbdoc: 
 	End Rem
-	Method SerializeObject(obj:Object, parent:TxmlNode = Null)
+	Method SerializeObject:TxmlNode(obj:Object, parent:TxmlNode = Null)
 
+		Local node:TxmlNode
+		
 		If Not doc Then
 			doc = TxmlDoc.newDoc("1.0")
 			parent = TxmlNode.newNode("bmo") ' BlitzMax Object
@@ -372,7 +374,7 @@ Type TPersist
 				objectIsArray = True
 			End If
 			
-			Local node:TxmlNode = parent.addChild(tidName)
+			node = parent.addChild(tidName)
 			
 			Local objRef:String = GetObjRef(obj)
 			node.setAttribute("ref", objRef)
@@ -417,6 +419,8 @@ Type TPersist
 			End If
 	
 		End If
+		
+		Return node
 		
 	End Method
 	
@@ -931,8 +935,8 @@ Type TXMLSerializer
 	Rem
 	bbdoc: 
 	End Rem
-	Method SerializeObject(obj:Object, node:TxmlNode)
-		persist.SerializeObject(obj, node)
+	Method SerializeObject:TxmlNode(obj:Object, node:TxmlNode)
+		Return persist.SerializeObject(obj, node)
 	End Method
 	
 	Rem
