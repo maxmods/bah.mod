@@ -20,10 +20,13 @@ bbdoc: mbed TLS SSL library.
 End Rem
 Module BaH.mbedtls
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: Apache 2.0"
 ModuleInfo "Copyright: Wrapper - 2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to mbedtls 2.7.1."
+ModuleInfo "History: Fixed 64-bit build."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to mbedtls 2.7.0."
 ModuleInfo "History: Applied win32 vsnprintf patch."

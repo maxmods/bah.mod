@@ -82,7 +82,7 @@ int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
         return( -1 );
 
     va_start( argp, fmt );
-#if defined(_TRUNCATE) && !defined(__MINGW32__)
+#if defined(_TRUNCATE)
     ret = _vsnprintf_s( s, n, _TRUNCATE, fmt, argp );
 #else
     ret = _vsnprintf( s, n, fmt, argp );

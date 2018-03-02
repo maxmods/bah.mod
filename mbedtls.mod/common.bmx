@@ -130,11 +130,13 @@ Extern
 	End Rem
 ?bmxng
 	Function EntropyFunc:Int(entropy:Object, output:Byte Ptr, length:Size_T) = "mbedtls_entropy_func"
+	Function mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Byte Ptr, custom:Byte Ptr, length:Size_T)
+	Function bmx_mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Object, custom:Byte Ptr, length:Size_T)
 ?Not bmxng
 	Function EntropyFunc:Int(entropy:Object, output:Byte Ptr, length:Int) = "mbedtls_entropy_func"
-?
 	Function mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Byte Ptr, custom:Byte Ptr, length:Int)
 	Function bmx_mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Object, custom:Byte Ptr, length:Int)
+?
 	
 ?bmxng
 	Function RandomFunc:Int(rng:Object, output:Byte Ptr, length:Size_T) = "mbedtls_ctr_drbg_random"
