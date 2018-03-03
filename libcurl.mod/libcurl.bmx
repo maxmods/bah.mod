@@ -73,6 +73,6 @@ ModuleInfo "CC_OPTS: -DCURL_STATICLIB -DCARES_STATICLIB -DCURL_STRICTER -DUSE_MB
 '
 ' Added extra options to config_win32.h
 ' Added __GNUC__ test to ares/setup.h - for GCC 4+ compilation
-'
+' Added 64-bit mingw32 setting for CARES_TYPEOF_ARES_SSIZE_T
 
 Import "curlmain.bmx"
