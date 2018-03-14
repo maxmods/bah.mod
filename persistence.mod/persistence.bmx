@@ -378,7 +378,7 @@ Type TPersist
 			
 			Local objRef:String = GetObjRef(obj)
 			node.setAttribute("ref", objRef)
-			objectMap.Insert(objRef, obj)
+			AddObjectRef(obj, node)
 
 			' We need to handle array objects differently..
 			If objectIsArray Then
@@ -534,10 +534,14 @@ Type TPersist
 		End If
 	End Method
 	
+	Method AddObjectRef(obj:Object, node:TxmlNode)
+		objectMap.Insert(node.getAttribute("ref"), obj)
+	End Method
+	
 	Method CreateObjectInstance:Object(objType:TTypeId, node:TxmlNode)
 		' create the object
 		Local obj:Object = objType.NewObject()
-		objectMap.Insert(node.getAttribute("ref"), obj)
+		AddObjectRef(obj, node)
 		Return obj
 	End Method
 	
@@ -727,7 +731,7 @@ Type TPersist
 				
 				Local size:Int = node.getAttribute("size").toInt()
 				obj = objType.NewArray(size)
-				objectMap.Insert(node.getAttribute("ref"), obj)
+				AddObjectRef(obj, node)
 
 				If size > 0 Then
 					Local arrayElementType:TTypeId = objType.ElementType()
@@ -782,7 +786,7 @@ Type TPersist
 				' special case for String object
 				If objType = StringTypeId Then
 					obj = node.GetContent()
-					objectMap.Insert(node.getAttribute("ref"), obj)
+					AddObjectRef(obj, node)
 					Return obj
 				End If
 
@@ -980,6 +984,13 @@ Type TXMLSerializer
 			Return True
 		End If
 		AddObjectRef(ref, obj)
+	End Method
+
+	Rem
+	bbdoc: Adds the xml reference to the object map, in order to track what object instances have been processed.
+	End Rem
+	Method AddObjectRefNode(node:TxmlNode, obj:Object)
+		persist.AddObjectRef(obj, node)
 	End Method
 	
 	Rem
