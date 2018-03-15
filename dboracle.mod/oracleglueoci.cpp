@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2008-2013 Bruce A Henderson
+ Copyright (c) 2008-2018 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,15 @@ using namespace std;
 
 extern "C" {
 
-#include "blitz.h"
+#include "brl.mod/blitz.mod/blitz.h"
 
-	BBObject * _bah_dboracle_TOracleSQLException__create(int errorCode, BBString * message);
+#ifdef BMX_NG
+#define CB_PREF(func) func
+#else
+#define CB_PREF(func) _##func
+#endif
+
+	BBObject * CB_PREF(bah_dboracle_TOracleSQLException__create)(int errorCode, BBString * message);
 
 
 	void * bmx_ora_environment_createEnvironment();
@@ -70,7 +76,7 @@ extern "C" {
 
 	int bmx_ora_bind_int(OCI_Statement * stmt, char * name, int * value);
 	int bmx_ora_bind_double(OCI_Statement * stmt, char * name, double * value);
-	int bmx_ora_bind_string(OCI_Statement * stmt, char * name, BBChar * str, unsigned int length);
+	int bmx_ora_bind_string(OCI_Statement * stmt, char * name, char * str, unsigned int length);
 	int bmx_ora_bind_setnull(OCI_Statement * stmt, unsigned int index);
 	int bmx_ora_bind_long(OCI_Statement * stmt, char * name, big_int * value);
 	int bmx_ora_bind_blob(OCI_Statement * stmt, char * name, OCI_Lob * blob, void * data, unsigned int length);
@@ -159,7 +165,7 @@ void * bmx_ora_environment_createEnvironment() {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return 0;
@@ -186,7 +192,7 @@ OCI_Connection * bmx_ora_environment_createConnection(void * envHandle, BBString
 		bbMemFree( u );
 		bbMemFree( p );
 		bbMemFree( c );
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	bbMemFree( u );
@@ -208,7 +214,7 @@ void bmx_ora_environment_terminateConnection(void * envHandle, OCI_Connection * 
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 
@@ -226,7 +232,7 @@ void bmx_ora_environment_terminateEnvironment(void * envHandle) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 }
@@ -245,7 +251,7 @@ void bmx_ora_connection_commit(OCI_Connection * conn) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 }
@@ -262,7 +268,7 @@ void bmx_ora_connection_rollback(OCI_Connection * conn) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 }
@@ -281,7 +287,7 @@ OCI_Statement * bmx_ora_connection_createStatement(OCI_Connection * conn) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return stmt;
@@ -302,7 +308,7 @@ void bmx_ora_statement_closeResultSet(OCI_Statement * stmt, OCI_Resultset * rs) 
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 }
@@ -330,7 +336,7 @@ int bmx_ora_statement_execute(OCI_Statement * stmt, BBString * statement) {
 
 	} catch (MaxSQLException sqlEx) {
 		bbMemFree( sql );
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	bbMemFree( sql );
@@ -353,7 +359,7 @@ int bmx_ora_statement_getAutoCommit(OCI_Connection * conn) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return static_cast<int>(autoCommit);
@@ -372,7 +378,7 @@ void bmx_ora_statement_setAutoCommit(OCI_Connection * conn, int autoCommit) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 }
@@ -391,7 +397,7 @@ OCI_Resultset * bmx_ora_statement_getResultSet(OCI_Statement * stmt) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return rs;
@@ -412,7 +418,7 @@ int bmx_ora_statement_getUpdateCount(OCI_Statement * stmt) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return count;
@@ -432,7 +438,7 @@ int bmx_ora_statement_free(OCI_Statement * stmt) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return static_cast<int>(res);
@@ -455,7 +461,7 @@ int bmx_ora_statement_prepare(OCI_Statement * stmt, BBString * statement) {
 
 	} catch (MaxSQLException sqlEx) {
 		bbMemFree( sql );
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	bbMemFree( sql );
@@ -482,7 +488,7 @@ int bmx_ora_statement_executeprepared(OCI_Statement * stmt) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return res;
@@ -504,7 +510,7 @@ int bmx_ora_resultset_getColCount(OCI_Resultset * rs) {
 		}
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return count;
@@ -537,7 +543,7 @@ BBString * bmx_ora_resultset_getColInfo(OCI_Resultset * rs, int index, int * dat
 		*nullable = static_cast<int>(OCI_GetColumnNullable(col));
 	
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return colName;
@@ -557,7 +563,7 @@ int bmx_ora_resultset_next(OCI_Resultset * rs) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return static_cast<int>(ret);
@@ -577,7 +583,7 @@ int bmx_ora_resultset_isNull(OCI_Resultset * rs, unsigned int index) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -598,7 +604,7 @@ int bmx_ora_resultset_getInt(OCI_Resultset * rs, unsigned int index) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return value;
@@ -619,7 +625,7 @@ float bmx_ora_resultset_getFloat(OCI_Resultset * rs, unsigned int index) {
 		}
 		
 	} catch (SQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return value;
@@ -640,7 +646,7 @@ double bmx_ora_resultset_getDouble(OCI_Resultset * rs, unsigned int index) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return value;
@@ -662,7 +668,7 @@ BBString * bmx_ora_resultset_getString(OCI_Resultset * rs, unsigned int index) {
 		value = bbStringFromWString((const BBChar *)v);
 
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return value;
@@ -682,7 +688,7 @@ OCI_Lob * bmx_ora_resultset_getBlob(OCI_Resultset * rs, unsigned int index) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 	return value;
@@ -700,7 +706,7 @@ void bmx_ora_resultset_getLong(OCI_Resultset * rs, unsigned int index, big_int *
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 }
@@ -721,7 +727,7 @@ void bmx_ora_resultset_getDatetime(OCI_Resultset * rs, unsigned int index, int *
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 	
 }
@@ -741,7 +747,7 @@ int bmx_ora_bind_int(OCI_Statement * stmt, char * name, int * value) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -760,26 +766,26 @@ int bmx_ora_bind_double(OCI_Statement * stmt, char * name, double * value) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
 }
 
-int bmx_ora_bind_string(OCI_Statement * stmt, char * name, BBChar * str, unsigned int length) {
+int bmx_ora_bind_string(OCI_Statement * stmt, char * name, char * str, unsigned int length) {
 	ocilib_error_reset();
 
 	bool ret = false;
 
 	try {
-		ret = OCI_BindString(stmt, name, (wchar_t*)str, length);
+		ret = OCI_BindString(stmt, name, str, length);
 
 		if (hasError) {
 			throw MaxSQLException(lastErrorCode, lastErrorMessage);
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -798,7 +804,7 @@ int bmx_ora_bind_setnull(OCI_Statement * stmt, unsigned int index) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -817,7 +823,7 @@ int bmx_ora_bind_long(OCI_Statement * stmt, char * name, big_int * value) {
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -838,7 +844,7 @@ int bmx_ora_bind_blob(OCI_Statement * stmt, char * name, OCI_Lob * blob, void * 
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -859,7 +865,7 @@ int bmx_ora_bind_date(OCI_Statement * stmt, char * name, OCI_Date * date, int y,
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -880,7 +886,7 @@ int bmx_ora_bind_datetime(OCI_Statement * stmt, char * name, OCI_Date * date, in
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);
@@ -901,7 +907,7 @@ int bmx_ora_bind_time(OCI_Statement * stmt, char * name, OCI_Date * date, int hh
 		}
 		
 	} catch (MaxSQLException sqlEx) {
-		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+		bbExThrow(CB_PREF(bah_dboracle_TOracleSQLException__create)(sqlEx.getErrorCode(), sqlEx.getMessage()));
 	}
 
 	return static_cast<int>(ret);

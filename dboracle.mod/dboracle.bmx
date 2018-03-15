@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2013 Bruce A Henderson
+' Copyright (c) 2008-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,24 @@ about: An Oracle database driver for #bah.database.Database
 End Rem
 Module BaH.DBOracle
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008-2013 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to ocilib 4.5.1"
 ModuleInfo "History: 1.00 Initial Release (ocilib 3.12.1)"
 
 
-ModuleInfo "CC_OPTS: -fexceptions -DOCI_CHARSET_MIXED"
+ModuleInfo "CC_OPTS: -fexceptions -DOCI_CHARSET_ANSI"
 
-?macos
-ModuleInfo "LD_OPTS: -L%PWD%/lib/macos/"
-?win32
+?win32x86
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32/"
+?win32x64
+ModuleInfo "LD_OPTS: -L%PWD%/lib/win32x64/"
+?win32
 ModuleInfo "CC_OPTS: -DOCI_API=__cdecl"
-?linux
-ModuleInfo "LD_OPTS: -L%PWD%/lib/linux/"
 ?
 
 Import BaH.Database
@@ -527,7 +528,7 @@ Type TOracleResultSet Extends TQueryResultSet
 		Local values:TDBType[] = boundValues
 
 		Local params:Byte Ptr[]
-		Local strings:Short Ptr[]
+		Local strings:Byte Ptr[]
 		Local blobs:Byte Ptr[]
 		Local dates:Byte Ptr[]
 
@@ -568,7 +569,7 @@ Type TOracleResultSet Extends TQueryResultSet
 						Case DBTYPE_STRING
 	
 							Local s:String = values[i].getString()
-							strings[i] = s.toWString()
+							strings[i] = s.toUTF8String()
 	
 							result = bmx_ora_bind_string(stmtHandle, params[i], strings[i], s.length)
 							
@@ -965,7 +966,7 @@ Type TOracleSQLException Extends TRuntimeException
 	Field errorCode:Int
 	Field message:String
 	
-	Function _create:TOracleSQLException(errorCode:Int, message:String)
+	Function _create:TOracleSQLException(errorCode:Int, message:String) { nomangle }
 		Local this:TOracleSQLException = New TOracleSQLException
 		this.errorCode = errorCode
 		this.message = message

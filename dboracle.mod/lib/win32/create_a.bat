@@ -1,1 +1,1 @@
-dlltool -d ocilibm.def -l libocilibm.a
+dlltool -d oci.def -l liboci.a
