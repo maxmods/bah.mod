@@ -2,13 +2,14 @@ SuperStrict
 
 Framework BaH.DBSQLite
 Import BRL.filesystem
+Import brl.standardio
 
 DeleteFile("maxtest.db")
 
 Local db:TDBConnection = LoadDatabase("SQLITE", "maxtest.db")
 
 If Not db Then
-	DebugLog("Didn't work...")
+	Print("Didn't work...")
 	End
 End If
 
@@ -59,7 +60,7 @@ If db.isOpen() Then
 	While query.nextRow()
 		Local record:TQueryRecord = query.rowRecord()
 		
-		DebugLog("Name = " + TDBString(record.value(1)).value + " " + TDBString(record.value(2)).value)
+		Print("Name = " + TDBString(record.value(1)).value + " " + TDBString(record.value(2)).value)
 	Wend
 	
 			
@@ -68,7 +69,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print(db.error().toString())
 	db.close()
 	End
 End Function

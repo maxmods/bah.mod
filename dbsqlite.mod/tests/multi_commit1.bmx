@@ -1,6 +1,7 @@
 SuperStrict
 
 Framework bah.DBSQLite
+Import brl.standardio
 
 Local db:TDBConnection = LoadDatabase("SQLITE", "test.db") 
 
@@ -11,12 +12,12 @@ If db.isOpen() Then
     Repeat
       db.executeQuery("INSERT INTO tbl values (NULL, 'Name " + i + "')") 
       If db.hasError() Then
-        DebugLog db.error().ToString()
+        Print db.error().ToString()
         Delay(2000) 
       EndIf
     Until Not db.hasError() 
     Delay(2000) 
   Next
   db.Close() 
-  DebugLog "Done"
+  Print "Done"
 End If

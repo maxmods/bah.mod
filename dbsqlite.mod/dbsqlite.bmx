@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,16 @@ about: An SQLite database driver for #bah.database.Database
 End Rem
 Module BaH.DBSQLite
 
-ModuleInfo "Version: 1.14"
+ModuleInfo "Version: 1.15"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2015 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2018 Bruce A Henderson"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.15"
+ModuleInfo "History: Update to SQLite 3.22.0."
+ModuleInfo "History: Fixed for 64-bit targets."
 ModuleInfo "History: 1.14"
 ModuleInfo "History: Update to SQLite 3.8.11.1."
 ModuleInfo "History: Added user authentication support."
@@ -86,6 +89,13 @@ Import BaH.Database
 
 Import "common.bmx"
 
+' Notes
+'
+'  Appended userauth.c to end of sqlite3.c
+'  Appended sqlite3userauth.h to end of sqlite3.h
+'
+'  Applied fast_math patch to sqlite3.c
+'
 
 ' The implementation
 
@@ -350,7 +360,6 @@ Type TDBSQLite Extends TDBConnection
 			Case 21 Return "Library used incorrectly"
 			Case 22 Return "Uses OS features Not supported on host"
 			Case 23 Return "Authorization denied"
-			Case 24 Return "Auxiliary database format error"
 			Case 25 Return "2nd parameter to sqlite3_bind out of range"
 			Case 26 Return "File opened that is not a database file"
 			Case 27 Return "Notifications from sqlite3_log()"
@@ -528,7 +537,7 @@ Type TSQLiteResultSet Extends TQueryResultSet
 		Local result:Int = sqlite3_prepare_v2(TDBSQLite(conn).handle, q, _strlen(q) , Varptr stmtHandle, 0)
 		MemFree(q)
 		If result <> SQLITE_OK Then
-			conn.setError("Error preparing statement", convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
+			conn.setError("Error preparing statement", String.FromUTF8String(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
 		
 			free()
 			Return False
@@ -544,7 +553,7 @@ Type TSQLiteResultSet Extends TQueryResultSet
 				
 		Local result:Int = sqlite3_reset(stmtHandle)
 		If result <> SQLITE_OK Then
-			conn.setError("Error resetting statement", convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
+			conn.setError("Error resetting statement", String.FromUTF8String(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
 
 			free()
 			Return False
@@ -576,13 +585,13 @@ Type TSQLiteResultSet Extends TQueryResultSet
 							result = sqlite3_bind_int64(stmtHandle, i + 1, values[i].getLong())
 						Case DBTYPE_STRING
 							Local s:Byte Ptr = values[i].getString().ToUTF8String()
-							result = sqlite3_bind_text(stmtHandle, i + 1, s, _strlen(s), -1)
+							result = bmx_sqlite3_bind_text64(stmtHandle, i + 1, s, _strlen(s), -1)
 							MemFree(s)
 						Case DBTYPE_BLOB
-							result = sqlite3_bind_blob(stmtHandle, i + 1, values[i].getBlob(), values[i].size(), 0)
+							result = bmx_sqlite3_bind_blob64(stmtHandle, i + 1, values[i].getBlob(), values[i].size(), 0)
 						Case DBTYPE_DATE, DBTYPE_DATETIME, DBTYPE_TIME
 							Local s:Byte Ptr = values[i].getString().ToUTF8String()
-							result = sqlite3_bind_text(stmtHandle, i + 1, s, _strlen(s), -1)
+							result = bmx_sqlite3_bind_text64(stmtHandle, i + 1, s, _strlen(s), -1)
 							MemFree(s)
 					End Select
 					
@@ -590,7 +599,7 @@ Type TSQLiteResultSet Extends TQueryResultSet
 			
 				If result <> SQLITE_OK Then
 					sqlite3_reset(stmtHandle)
-					conn.setError("Failed to bind parameter (" + i + ")", convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
+					conn.setError("Failed to bind parameter (" + i + ")", String.FromUTF8String(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
 					
 					free()
 					Return False
@@ -694,7 +703,7 @@ Type TSQLiteResultSet Extends TQueryResultSet
 				sqlite3_reset(stmtHandle)
 
 				' raise an error!
-				conn.setError(convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), Null, TDatabaseError.ERROR_STATEMENT, result)
+				conn.setError(String.FromUTF8String(sqlite3_errmsg(TDBSQLite(conn).handle)), Null, TDatabaseError.ERROR_STATEMENT, result)
 				Return False
 		End Select
 		
@@ -713,11 +722,11 @@ Type TSQLiteResultSet Extends TQueryResultSet
 		
 		For Local i:Int = 0 Until colCount
 		
-			Local columnName:String = convertUTF8toISO8859(sqlite3_column_name(stmtHandle, i))
+			Local columnName:String = String.FromUTF8String(sqlite3_column_name(stmtHandle, i))
 			Local tn:Byte Ptr = sqlite3_column_decltype(stmtHandle, i)
 			Local typeName:String
 			If tn Then
-				typeName = convertUTF8toISO8859(tn)
+				typeName = String.FromUTF8String(tn)
 			End If
 			
 			Local dotPosition:Int = columnName.findLast(".") + 1

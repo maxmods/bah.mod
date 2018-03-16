@@ -3,6 +3,7 @@ SuperStrict
 Framework BaH.DBSQLite
 Import BRL.FileSystem
 Import BRL.Random
+Import brl.standardio
 
 Type TPersonStuff
 	Field forename:String
@@ -21,7 +22,7 @@ DeleteFile("maxtest.db")
 Local db:TDBConnection = LoadDatabase("SQLITE", "maxtest.db")
 
 If Not db Then
-	DebugLog("Didn't work...")
+	Print("Didn't work...")
 	End
 End If
 
@@ -86,13 +87,13 @@ If db.isOpen() Then
 			errorAndClose(db)
 		End If
 		
-		DebugLog "id = " + query.lastInsertedId()
+		Print "id = " + query.lastInsertedId()
 	Next
 
 	Local qr:TDatabaseQuery = db.executeQuery("SELECT count(forename) FROM person ")
 	While qr.nextRow()
 		Local record:TQueryRecord = qr.rowRecord()
-		DebugLog ("count = " + record.value(0).getInt())
+		Print ("count = " + record.value(0).getInt())
 	Wend
 	
 	' NOTE : There is a bug in SQLite. The following should return TWO rows.
@@ -122,10 +123,10 @@ If db.isOpen() Then
 		Local i:Int = record.value(0).getInt() - 1
 		
 		' compare what went in, to what went out.
-		DebugLog(" IN  - " + pstuff[i].forename + " : " + pstuff[i].surname + " : " + pstuff[i].dataInt + ..
+		Print(" IN  - " + pstuff[i].forename + " : " + pstuff[i].surname + " : " + pstuff[i].dataInt + ..
 			" : " + pstuff[i].dataFloat + " : " + pstuff[i].dataDouble + " : " + pstuff[i].dataLong)
 		
-		DebugLog(" OUT - " + record.value(1).getString() + " : " + record.value(2).getString() + ..
+		Print(" OUT - " + record.value(1).getString() + " : " + record.value(2).getString() + ..
 			" : " + record.value(3).getInt() + " : " + record.value(4).getFloat() + ..
 			" : " + record.value(5).getDouble() + " : " + record.value(6).getLong() )
 	Wend
@@ -139,7 +140,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print(db.error().toString())
 	db.close()
 	End
 End Function

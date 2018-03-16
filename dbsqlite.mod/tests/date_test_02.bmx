@@ -2,7 +2,7 @@ SuperStrict
 
 Framework BaH.DBSQLite
 Import BRL.filesystem
-
+Import brl.standardio
 
 DeleteFile("maxtest.db")
 
@@ -61,7 +61,7 @@ If db.isOpen() Then
 	While query.nextRow()
 		Local record:TQueryRecord = query.rowRecord()
 		
-		DebugLog("Name = " + record.getString(1) + " " + record.getString(2) + " - " + ..
+		Print("Name = " + record.getString(1) + " " + record.getString(2) + " - " + ..
 			TDBDate.SetFromString(record.getString(3)).getString() + " - " + ..
 			TDBTime.SetFromString(record.getString(4)).getString() + " - " + ..
 			TDBDateTime.SetFromString(record.getString(5)).getString())
@@ -73,7 +73,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print(db.error().toString())
 	db.close()
 	End
 End Function

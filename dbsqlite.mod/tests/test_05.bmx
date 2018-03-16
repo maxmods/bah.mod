@@ -2,11 +2,12 @@ SuperStrict
 
 Framework BaH.DBSQLite
 Import BRL.filesystem
+Import brl.standardio
 
 Local db:TDBConnection = LoadDatabase("SQLITE", "maxtest.db")
 
 If Not db Then
-	DebugLog("Didn't work...")
+	Print("Didn't work...")
 	End
 End If
 
@@ -22,7 +23,7 @@ If db.isOpen() Then
 	
 	If list Then
 		For Local i:Int = 0 Until list.length
-			DebugLog("   " + (i + 1) + ".   " + list[i])
+			Print("   " + (i + 1) + ".   " + list[i])
 		Next
 	End If
 
@@ -31,7 +32,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print(db.error().toString())
 	db.close()
 	End
 End Function

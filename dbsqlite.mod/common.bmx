@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2015 Bruce A Henderson
+' Copyright (c) 2007-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,6 @@
 '
 SuperStrict
 
-Import BRL.Blitz
-
 ' source
 Import "src/*.h"
 
@@ -36,7 +34,7 @@ Import "src/sqlite3.c"
 Import "-ldl" ' links to the dynamic link library library
 ?
 
-Import "sqlitehelper.cpp"
+Import "sqlitehelper.c"
 
 ' Constants
 Const SQLITE_OK:Int =           0   ' Successful result
@@ -63,6 +61,11 @@ Const SQLITE_MISMATCH:Int =    20   ' Data Type mismatch
 Const SQLITE_MISUSE:Int =      21   ' Library used incorrectly
 Const SQLITE_NOLFS:Int =       22   ' Uses OS features Not supported on host
 Const SQLITE_AUTH:Int =        23   ' Authorization denied
+Const SQLITE_FORMAT:Int =      24   ' Not used
+Const SQLITE_RANGE:Int =       25   ' 2nd parameter to sqlite3_bind out of range
+Const SQLITE_NOTADB:Int =      26   ' File opened that is not a database file
+Const SQLITE_NOTICE:Int =      27   ' Notifications from sqlite3_log()
+Const SQLITE_WARNING:Int =     28   ' Warnings from sqlite3_log()
 Const SQLITE_ROW:Int =         100  ' sqlite_step() has another row ready
 Const SQLITE_DONE:Int =        101  ' sqlite_step() has finished executing
 
@@ -72,15 +75,26 @@ Const SQLITE_TEXT:Int =     3
 Const SQLITE_BLOB:Int =     4
 Const SQLITE_NULL:Int =     5
 
-Const SQLITE_OPEN_READONLY:Int = $00000001
-Const SQLITE_OPEN_READWRITE:Int = $00000002
-Const SQLITE_OPEN_CREATE:Int = $00000004
-Const SQLITE_OPEN_URI:Int = $00000040
-Const SQLITE_OPEN_MEMORY:Int = $00000080
-Const SQLITE_OPEN_NOMUTEX:Int = $00008000
-Const SQLITE_OPEN_FULLMUTEX:Int = $00010000
-Const SQLITE_OPEN_SHAREDCACHE:Int = $00020000
-Const SQLITE_OPEN_PRIVATECACHE:Int = $00040000
+Const SQLITE_OPEN_READONLY:Int =         $00000001  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_READWRITE:Int =        $00000002  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_CREATE:Int =           $00000004  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_DELETEONCLOSE:Int =    $00000008  ' VFS only
+Const SQLITE_OPEN_EXCLUSIVE:Int =        $00000010  ' VFS only
+Const SQLITE_OPEN_AUTOPROXY:Int =        $00000020  ' VFS only
+Const SQLITE_OPEN_URI:Int =              $00000040  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_MEMORY:Int =           $00000080  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_MAIN_DB:Int =          $00000100  ' VFS only
+Const SQLITE_OPEN_TEMP_DB:Int =          $00000200  ' VFS only
+Const SQLITE_OPEN_TRANSIENT_DB:Int =     $00000400  ' VFS only
+Const SQLITE_OPEN_MAIN_JOURNAL:Int =     $00000800  ' VFS only
+Const SQLITE_OPEN_TEMP_JOURNAL:Int =     $00001000  ' VFS only
+Const SQLITE_OPEN_SUBJOURNAL:Int =       $00002000  ' VFS only
+Const SQLITE_OPEN_MASTER_JOURNAL:Int =   $00004000  ' VFS only
+Const SQLITE_OPEN_NOMUTEX:Int =          $00008000  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_FULLMUTEX:Int =        $00010000  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_SHAREDCACHE:Int =      $00020000  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_PRIVATECACHE:Int =     $00040000  ' Ok for sqlite3_open_v2()
+Const SQLITE_OPEN_WAL:Int =              $00080000  ' VFS only
 
 ' Externs
 Extern
@@ -105,8 +119,6 @@ Extern
 	Function sqlite3_bind_int:Int(stmtHandle:Byte Ptr, index:Int, value:Int)
 	Function sqlite3_bind_int64:Int(stmtHandle:Byte Ptr, index:Int, value:Long)
 	Function sqlite3_bind_double:Int(stmtHandle:Byte Ptr, index:Int, value:Double)
-	Function sqlite3_bind_text:Int(stmtHandle:Byte Ptr, index:Int, value:Byte Ptr, size:Int, how:Int)
-	Function sqlite3_bind_blob:Int(stmtHandle:Byte Ptr, index:Int, value:Byte Ptr, size:Int, how:Int)
 	Function sqlite3_changes:Int(handle:Byte Ptr)
 	Function sqlite3_errmsg:Byte Ptr(handle:Byte Ptr)
 	Function sqlite3_backup_init:Byte Ptr(toHandle:Byte Ptr, dbTo:Byte Ptr, fromHandle:Byte Ptr, dbFrom:Byte Ptr)
@@ -114,6 +126,8 @@ Extern
 	Function sqlite3_backup_finish:Int(handle:Byte Ptr)
 	Function sqlite3_errcode:Int(handle:Byte Ptr)
 
+	Function bmx_sqlite3_bind_text64:Int(stmtHandle:Byte Ptr, index:Int, value:Byte Ptr, size:Long, how:Int)
+	Function bmx_sqlite3_bind_blob64:Int(stmtHandle:Byte Ptr, index:Int, value:Byte Ptr, size:Long, how:Int)
 	Function bmx_sqlite3_column_int64(stmtHandle:Byte Ptr, index:Int, value:Long Ptr)
 	Function bmx_sqlite3_last_insert_rowid(handle:Byte Ptr, id:Long Ptr)
 

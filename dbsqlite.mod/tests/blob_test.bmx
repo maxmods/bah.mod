@@ -21,7 +21,6 @@ If db.hasError() Then
 	errorAndClose(db)
 End If
 
-
 Local names:String[][] = [ ..
 	[ "Alfred", "Aho", "alfred-aho.jpg" ],   ..
 	[ "Brian", "Kernighan", "brian-kernighan.jpg" ], ..

@@ -2,11 +2,12 @@ SuperStrict
 
 Framework BaH.DBSQLite
 Import BRL.filesystem
+Import brl.standardio
 
 Local db:TDBConnection = LoadDatabase("SQLITE", "maxtest.db")
 
 If Not db Then
-	DebugLog("Didn't work...")
+	Print("Didn't work...")
 	End
 End If
 
@@ -20,7 +21,7 @@ If db.isOpen() Then
 	' get a list of tables in the database
 	Local table:TDBTable = db.getTableInfo("person", True)
 	
-	DebugLog table.ddl
+	Print table.ddl
 	
 '	DebugStop
 	'If list Then
@@ -34,7 +35,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print(db.error().toString())
 	db.close()
 	End
 End Function

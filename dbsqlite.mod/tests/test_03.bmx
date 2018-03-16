@@ -3,6 +3,7 @@ SuperStrict
 Framework BaH.DBSQLite
 Import BRL.FileSystem
 Import BRL.Random
+Import brl.standardio
 
 Type TPersonStuff
 	Field forename:String
@@ -20,7 +21,7 @@ DeleteFile("maxtest.db")
 Local db:TDBConnection = LoadDatabase("SQLITE", "maxtest.db")
 
 If Not db Then
-	DebugLog("Didn't work...")
+	Print("Didn't work...")
 	End
 End If
 
@@ -50,7 +51,7 @@ If db.isOpen() Then
 
 
 	db.executeQuery("DROP TABLE if exists person")
-'DebugStop
+
 	' Create a new table
 	Local s:String = "CREATE TABLE if not exists person (id integer primary key AUTOINCREMENT, " + ..
 	  " forename varchar(30), surname varchar(30), dataint integer, datafloat float, datadouble double, datalong bigint )"
@@ -80,7 +81,7 @@ If db.isOpen() Then
 		query.bindValue(3, TDBFloat.Set(pstuff[i].dataFloat))
 		query.bindValue(4, TDBDouble.Set(pstuff[i].datadouble))
 		query.bindValue(5, TDBLong.Set(pstuff[i].dataLong))
-'DebugStop
+
 		query.execute()
 		
 		If db.hasError() Then
@@ -93,16 +94,16 @@ If db.isOpen() Then
 	If db.hasError() Then
 		errorAndClose(db)
 	End If
-'DebugStop
+
 	For Local record:TQueryRecord = EachIn query
 '	While query.nextRow()
 '		Local record:TQueryRecord = query.rowRecord()
 		
 		Local i:Int = record.value(0).getInt() - 1
-		DebugLog(" IN  - " + pstuff[i].forename + " : " + pstuff[i].surname + " : " + pstuff[i].dataInt + ..
+		Print(" IN  - " + pstuff[i].forename + " : " + pstuff[i].surname + " : " + pstuff[i].dataInt + ..
 			" : " + pstuff[i].dataFloat + " : " + pstuff[i].dataDouble + " : " + pstuff[i].dataLong)
 		
-		DebugLog(" OUT - " + record.value(1).getString() + " : " + record.value(2).getString() + ..
+		Print(" OUT - " + record.value(1).getString() + " : " + record.value(2).getString() + ..
 			" : " + record.value(3).getInt() + " : " + record.value(4).getFloat() + ..
 			" : " + record.value(5).getDouble() + " : " + record.value(6).getLong() )
 '	Wend
@@ -113,7 +114,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print(db.error().toString())
 	db.close()
 	End
 End Function
