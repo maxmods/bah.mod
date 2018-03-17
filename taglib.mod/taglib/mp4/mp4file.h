@@ -54,7 +54,7 @@ namespace TagLib {
        *
        * \note In the current implementation, \a propertiesStyle is ignored.
        */
-      File(FileName file, bool readProperties = true, 
+      File(FileName file, bool readProperties = true,
            Properties::ReadStyle audioPropertiesStyle = Properties::Average);
 
       /*!
@@ -66,7 +66,7 @@ namespace TagLib {
        *
        * \note In the current implementation, \a propertiesStyle is ignored.
        */
-      File(IOStream *stream, bool readProperties = true, 
+      File(IOStream *stream, bool readProperties = true,
            Properties::ReadStyle audioPropertiesStyle = Properties::Average);
 
       /*!
@@ -114,10 +114,14 @@ namespace TagLib {
        */
       bool save();
 
-    private:
+      /*!
+       * Returns whether or not the file on disk actually has an MP4 tag, or the
+       * file has a Metadata Item List (ilst) atom.
+       */
+      bool hasMP4Tag() const;
 
-      void read(bool readProperties, Properties::ReadStyle audioPropertiesStyle);
-      bool checkValid(const MP4::AtomList &list);
+    private:
+      void read(bool readProperties);
 
       class FilePrivate;
       FilePrivate *d;

@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2016 Bruce A Henderson
+' Copyright (c) 2009-2018 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -22,11 +22,13 @@ about: Reading and editing audio meta data.
 End Rem
 Module BaH.TagLib
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MPL"
 ModuleInfo "Copyright: TagLib - Scott Wheeler"
-ModuleInfo "Copyright: Wrapper - 2009-2016 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to TagLib 1.11.1.a800931"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.00"

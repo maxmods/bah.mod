@@ -5,7 +5,7 @@
 
 /***************************************************************************
  *   This library is free software; you can redistribute it and/or modify  *
- *   it  under the terms of the GNU Lesser General Public License version  *
+ *   it under the terms of the GNU Lesser General Public License version   *
  *   2.1 as published by the Free Software Foundation.                     *
  *                                                                         *
  *   This library is distributed in the hope that it will be useful, but   *
@@ -15,8 +15,12 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
- *   MA  02110-1301  USA                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
+ *                                                                         *
+ *   Alternatively, this file is available under the Mozilla Public        *
+ *   License Version 1.1.  You may obtain a copy of the License at         *
+ *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
 #ifndef TAGLIB_MODTAG_H
@@ -50,39 +54,39 @@ namespace TagLib {
        * Returns the track name; if no track name is present in the tag
        * String::null will be returned.
        */
-      String title() const;
+      virtual String title() const;
 
       /*!
        * Not supported by module files.  Therefore always returns String::null.
        */
-      String artist() const;
+      virtual String artist() const;
 
       /*!
        * Not supported by module files.  Therefore always returns String::null.
        */
-      String album() const;
+      virtual String album() const;
 
       /*!
        * Returns the track comment derived from the instrument/sample/pattern
        * names; if no comment is present in the tag String::null will be
        * returned.
        */
-      String comment() const;
+      virtual String comment() const;
 
       /*!
        * Not supported by module files.  Therefore always returns String::null.
        */
-      String genre() const;
+      virtual String genre() const;
 
       /*!
        * Not supported by module files.  Therefore always returns 0.
        */
-      uint year() const;
+      virtual unsigned int year() const;
 
       /*!
        * Not supported by module files.  Therefore always returns 0.
        */
-      uint track() const;
+      virtual unsigned int track() const;
 
       /*!
        * Returns the name of the tracker used to create/edit the module file.
@@ -97,21 +101,21 @@ namespace TagLib {
        * Sets the title to \a title.  If \a title is String::null then this
        * value will be cleared.
        *
-       * The length limits per file type are (1 characetr = 1 byte):
+       * The length limits per file type are (1 character = 1 byte):
        * Mod 20 characters, S3M 27 characters, IT 25 characters and XM 20
        * characters.
        */
-      void setTitle(const String &title);
+      virtual void setTitle(const String &title);
 
       /*!
        * Not supported by module files and therefore ignored.
        */
-      void setArtist(const String &artist);
+      virtual void setArtist(const String &artist);
 
       /*!
        * Not supported by module files and therefore ignored.
        */
-      void setAlbum(const String &album);
+      virtual void setAlbum(const String &album);
 
       /*!
        * Sets the comment to \a comment.  If \a comment is String::null then
@@ -126,26 +130,26 @@ namespace TagLib {
        * an thus the line length in comments are limited. Too big comments
        * will be truncated.
        *
-       * The line length limits per file type are (1 characetr = 1 byte):
+       * The line length limits per file type are (1 character = 1 byte):
        * Mod 22 characters, S3M 27 characters, IT 25 characters and XM 22
        * characters.
        */
-      void setComment(const String &comment);
+      virtual void setComment(const String &comment);
 
       /*!
        * Not supported by module files and therefore ignored.
        */
-      void setGenre(const String &genre);
+      virtual void setGenre(const String &genre);
 
       /*!
        * Not supported by module files and therefore ignored.
        */
-      void setYear(uint year);
+      virtual void setYear(unsigned int year);
 
       /*!
        * Not supported by module files and therefore ignored.
        */
-      void setTrack(uint track);
+      virtual void setTrack(unsigned int track);
 
       /*!
        * Sets the tracker name to \a trackerName.  If \a trackerName is
@@ -169,7 +173,7 @@ namespace TagLib {
        * Implements the unified property interface -- import function.
        * Because of the limitations of the module file tag, any tags besides
        * COMMENT, TITLE and, if it is an XM file, TRACKERNAME, will be
-       * returened. Additionally, if the map contains tags with multiple values,
+       * returned. Additionally, if the map contains tags with multiple values,
        * all but the first will be contained in the returned map of unsupported
        * properties.
        */

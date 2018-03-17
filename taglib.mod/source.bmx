@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2016 Bruce A Henderson
+' Copyright (c) 2009-2018 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -51,6 +51,7 @@ Import "taglib/audioproperties.cpp"
 Import "taglib/tagunion.cpp"
 Import "taglib/fileref.cpp"
 Import "taglib/tag.cpp"
+Import "taglib/tagutils.cpp"
 
 Import "taglib/ape/apefile.cpp"
 Import "taglib/ape/apefooter.cpp"
@@ -105,18 +106,23 @@ Import "taglib/mpeg/id3v2/id3v2header.cpp"
 Import "taglib/mpeg/id3v2/id3v2synchdata.cpp"
 
 Import "taglib/mpeg/id3v2/frames/attachedpictureframe.cpp"
-Import "taglib/mpeg/id3v2/frames/urllinkframe.cpp"
+Import "taglib/mpeg/id3v2/frames/chapterframe.cpp"
 Import "taglib/mpeg/id3v2/frames/commentsframe.cpp"
+Import "taglib/mpeg/id3v2/frames/eventtimingcodesframe.cpp"
 Import "taglib/mpeg/id3v2/frames/generalencapsulatedobjectframe.cpp"
 Import "taglib/mpeg/id3v2/frames/ownershipframe.cpp"
+Import "taglib/mpeg/id3v2/frames/podcastframe.cpp"
 Import "taglib/mpeg/id3v2/frames/popularimeterframe.cpp"
 Import "taglib/mpeg/id3v2/frames/privateframe.cpp"
 Import "taglib/mpeg/id3v2/frames/relativevolumeframe.cpp"
+Import "taglib/mpeg/id3v2/frames/synchronizedlyricsframe.cpp"
+Import "taglib/mpeg/id3v2/frames/tableofcontentsframe.cpp"
 Import "taglib/mpeg/id3v2/frames/textidentificationframe.cpp"
 Import "taglib/mpeg/id3v2/frames/uniquefileidentifierframe.cpp"
 Import "taglib/mpeg/id3v2/frames/unknownframe.cpp"
 Import "taglib/mpeg/id3v2/frames/unsynchronizedlyricsframe.cpp"
-
+Import "taglib/mpeg/id3v2/frames/urllinkframe.cpp"
+  
 Import "taglib/ogg/xiphcomment.cpp"
 Import "taglib/ogg/oggpage.cpp"
 Import "taglib/ogg/oggpageheader.cpp"
@@ -158,6 +164,7 @@ Import "taglib/toolkit/tpropertymap.cpp"
 Import "taglib/toolkit/trefcounter.cpp"
 Import "taglib/toolkit/tstring.cpp"
 Import "taglib/toolkit/tstringlist.cpp"
+Import "taglib/toolkit/tzlib.cpp"
 
 Import "taglib/trueaudio/trueaudiofile.cpp"
 Import "taglib/trueaudio/trueaudioproperties.cpp"
