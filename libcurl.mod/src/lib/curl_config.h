@@ -680,7 +680,9 @@
 #define HAVE_SYS_SOCKET_H 1
 
 /* Define to 1 if you have the <sys/sockio.h> header file. */
+#ifndef __linux__
 #define HAVE_SYS_SOCKIO_H 1
+#endif
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -928,6 +930,9 @@
 /* The size of `short', as computed by sizeof. */
 #define SIZEOF_SHORT 2
 
+#ifndef WIN32
+#define SIZEOF_CURL_OFF_T SIZEOF_OFF_T
+#endif
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
