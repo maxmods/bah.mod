@@ -463,9 +463,9 @@ Type TRegEx
 	Rem
 	bbdoc: Returns which optional features are available.
 	End Rem
-	Function Config:Int(what:Int, where:Int Var)
+	Function Config:Int(what:Int, where_:Int Var)
 		If what <> PCRE2_CONFIG_UNICODE_VERSION And what <> PCRE2_CONFIG_VERSION Then
-			Return pcre2_config_16(what, Varptr where)
+			Return pcre2_config_16(what, Varptr where_)
 		End If
 		Return PCRE2_ERROR_BADOPTION
 	End Function

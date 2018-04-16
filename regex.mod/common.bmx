@@ -265,7 +265,7 @@ Const PCRE2_NEWLINE_NUL:Int =         6
 Extern
 	Function _strlen:Int(s:Byte Ptr) = "size_t strlen(const char *)!"
 
-	Function pcre2_config_16:Int(what:Int, where:Int Ptr)
+	Function pcre2_config_16:Int(what:Int, where_:Int Ptr)
 
 ?ptr64
 	Function pcre2_compile_16:Byte Ptr(pattern:Short Ptr, patternLength:Long, options:Int, errorcodeptr:Int Ptr, ..
@@ -294,7 +294,7 @@ Extern
 	Function pcre2_match_data_create_from_pattern_16:Byte Ptr(pcre:Byte Ptr, context:Byte Ptr)
 	Function pcre2_match_data_free_16(matchPtr:Byte Ptr)
 	
-	Function pcre2_pattern_info_16:Int(pcre:Byte Ptr, what:Int, where:Int Ptr)
+	Function pcre2_pattern_info_16:Int(pcre:Byte Ptr, what:Int, where_:Int Ptr)
 	
 	Function pcre2_get_ovector_count_16:Int(matchPtr:Byte Ptr)
 	

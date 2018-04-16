@@ -26,7 +26,7 @@ Extern
 	Function bmx_agmemread:Byte Ptr(text:Byte Ptr)
 	
 	Function gvLayout(gvc:Byte Ptr, g:Byte Ptr, how:Byte Ptr)
-	Function gvRender(gvc:Byte Ptr, g:Byte Ptr, how:Byte Ptr, where:Byte Ptr)
+	Function gvRender(gvc:Byte Ptr, g:Byte Ptr, how:Byte Ptr, where_:Byte Ptr)
 	Function bmx_gvFreeLayout(gvc:Byte Ptr, g:Byte Ptr)
 	
 	Function gvLayoutJobs(gvc:Byte Ptr, g:Byte Ptr)

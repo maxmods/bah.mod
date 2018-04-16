@@ -75,7 +75,7 @@ Type TBlitzMaxStackScope
 
 	Field name:String
 	
-	Field where:String
+	Field where_:String
 	Field source:String
 	Field line:Int
 	Field column:Int
@@ -110,7 +110,7 @@ Type TBlitzMaxStackScope
 	
 	Method addVariable:TBlitzMaxScopeVariable(variable:String)
 		If variable.StartsWith("Function") Then
-			where = variable[variable.Find(" ") + 1..]
+			where_ = variable[variable.Find(" ") + 1..]
 		Else
 			If Not variables Then
 				variables = New TList
@@ -141,7 +141,7 @@ Type TBlitzMaxStackScope
 	End Method
 	
 	Method getWhere:String()
-		Return where
+		Return where_
 	End Method
 	
 	Method getVariables:TList()
