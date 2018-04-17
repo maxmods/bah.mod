@@ -30,13 +30,15 @@ bbdoc: Regular Expressions
 End Rem
 Module BaH.RegEx
 
-ModuleInfo "Version: 1.09"
+ModuleInfo "Version: 1.10"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: PCRE - 1997-2017 University of Cambridge"
+ModuleInfo "Copyright: PCRE - 1997-2018 University of Cambridge"
 ModuleInfo "Copyright: Wrapper - 2007-2018 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.10"
+ModuleInfo "History: Updated to PCRE 10.31"
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Fixed issue using wrong ovector offset."
 ModuleInfo "History: 1.08"
