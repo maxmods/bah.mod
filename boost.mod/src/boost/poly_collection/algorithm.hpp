@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Joaquin M Lopez Munoz.
+/* Copyright 2016-2018 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -971,6 +971,8 @@ std::pair<OutputIterator1,OutputIterator2> partition_copy(
 template<typename Predicate,typename... Ts>
 struct partition_point_pred
 {
+  partition_point_pred(const Predicate& pred):pred(pred){}
+
   template<typename Iterator>
   bool operator()(const Iterator& it)const
   {

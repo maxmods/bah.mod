@@ -977,7 +977,7 @@ template <typename Block, typename Allocator>
 dynamic_bitset<Block, Allocator>&
 dynamic_bitset<Block, Allocator>::set()
 {
-  std::fill(m_bits.begin(), m_bits.end(), ~Block(0));
+  std::fill(m_bits.begin(), m_bits.end(), static_cast<Block>(~0));
   m_zero_unused_bits();
   return *this;
 }
@@ -1056,7 +1056,7 @@ bool dynamic_bitset<Block, Allocator>::all() const
     }
 
     const block_width_type extra_bits = count_extra_bits();
-    block_type const all_ones = ~static_cast<Block>(0);
+    block_type const all_ones = static_cast<Block>(~0);
 
     if (extra_bits == 0) {
         for (size_type i = 0, e = num_blocks(); i < e; ++i) {
@@ -1070,7 +1070,7 @@ bool dynamic_bitset<Block, Allocator>::all() const
                 return false;
             }
         }
-        block_type const mask = ~(~static_cast<Block>(0) << extra_bits);
+        const block_type mask = (block_type(1) << extra_bits) - 1;
         if (m_highest_block() != mask) {
             return false;
         }
@@ -1940,8 +1940,7 @@ inline void dynamic_bitset<Block, Allocator>::m_zero_unused_bits()
     const block_width_type extra_bits = count_extra_bits();
 
     if (extra_bits != 0)
-        m_highest_block() &= ~(~static_cast<Block>(0) << extra_bits);
-
+        m_highest_block() &= (Block(1) << extra_bits) - 1;
 }
 
 // check class invariants
@@ -1950,7 +1949,7 @@ bool dynamic_bitset<Block, Allocator>::m_check_invariants() const
 {
     const block_width_type extra_bits = count_extra_bits();
     if (extra_bits > 0) {
-        block_type const mask = (~static_cast<Block>(0) << extra_bits);
+        const block_type mask = block_type(~0) << extra_bits;
         if ((m_highest_block() & mask) != 0)
             return false;
     }

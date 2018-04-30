@@ -2,6 +2,7 @@
 
 //  Copyright Beman Dawes 2006, 2007
 //  Copyright Christoper Kohlhoff 2007
+//  Copyright Peter Dimov 2017, 2018
 
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -144,7 +145,7 @@ namespace boost
 
     } // namespace errc
 
-# ifndef BOOST_SYSTEM_NO_DEPRECATED
+# ifdef BOOST_SYSTEM_ENABLE_DEPRECATED
     namespace posix = errc;
     namespace posix_error = errc;
 # endif
@@ -198,7 +199,7 @@ namespace boost
 #endif
     //  deprecated synonyms ------------------------------------------------------------//
 
-#ifndef BOOST_SYSTEM_NO_DEPRECATED
+#ifdef BOOST_SYSTEM_ENABLE_DEPRECATED
     inline const error_category &  get_system_category() { return system_category(); }
     inline const error_category &  get_generic_category() { return generic_category(); }
     inline const error_category &  get_posix_category() { return generic_category(); }
@@ -208,6 +209,12 @@ namespace boost
       = generic_category();
     static const error_category &  native_ecat    BOOST_ATTRIBUTE_UNUSED
       = system_category();
+#endif
+
+#ifdef BOOST_MSVC
+#pragma warning(push)
+// 'this' : used in base member initializer list
+#pragma warning(disable: 4355)
 #endif
 
     //  class error_category  ------------------------------------------------//
@@ -328,6 +335,10 @@ namespace boost
         { return std::less<const error_category*>()( this, &rhs ); }
     };
 
+#ifdef BOOST_MSVC
+#pragma warning(pop)
+#endif
+
     //  class error_condition  ---------------------------------------------------------//
 
     //  error_conditions are portable, error_codes are system or library specific
@@ -377,6 +388,15 @@ namespace boost
       const error_category &  category() const BOOST_SYSTEM_NOEXCEPT { return *m_cat; }
       std::string             message() const  { return m_cat->message(value()); }
 
+#if !defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
+
+      explicit operator bool() const BOOST_SYSTEM_NOEXCEPT  // true if error
+      {
+        return m_val != 0;
+      }
+
+#else
+
       typedef void (*unspecified_bool_type)();
       static void unspecified_bool_true() {}
 
@@ -389,6 +409,8 @@ namespace boost
       {
         return m_val == 0;
       }
+
+#endif
 
       // relationals:
       //  the more symmetrical non-member syntax allows enum
@@ -476,6 +498,15 @@ namespace boost
         { return m_cat->default_error_condition(value()); }
       std::string             message() const  { return m_cat->message(value()); }
 
+#if !defined(BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS)
+
+      explicit operator bool() const BOOST_SYSTEM_NOEXCEPT  // true if error
+      {
+        return m_val != 0;
+      }
+
+#else
+
       typedef void (*unspecified_bool_type)();
       static void unspecified_bool_true() {}
 
@@ -488,6 +519,8 @@ namespace boost
       {
         return m_val == 0;
       }
+
+#endif
 
       // relationals:
       inline friend bool operator==( const error_code & lhs,
@@ -523,7 +556,7 @@ namespace boost
     };
 
     //  predefined error_code object used as "throw on error" tag
-# ifndef BOOST_SYSTEM_NO_DEPRECATED
+# ifdef BOOST_SYSTEM_ENABLE_DEPRECATED
     BOOST_SYSTEM_DECL extern error_code throws;
 # endif
 
@@ -532,8 +565,9 @@ namespace boost
     //  "throws" function in namespace boost rather than namespace boost::system.
 
   }  // namespace system
-
-  namespace detail { inline system::error_code * throws() { return 0; } }
+                                                               
+  namespace detail
+  {
     //  Misuse of the error_code object is turned into a noisy failure by
     //  poisoning the reference. This particular implementation doesn't
     //  produce warnings or errors from popular compilers, is very efficient
@@ -541,8 +575,21 @@ namespace boost
     //  from order of initialization problems. In practice, it also seems
     //  cause user function error handling implementation errors to be detected
     //  very early in the development cycle.
+    inline system::error_code* throws()
+    {
+      // See github.com/boostorg/system/pull/12 by visigoth for why the return
+      // is poisoned with nonzero rather than (0). A test, test_throws_usage(),
+      // has been added to error_code_test.cpp, and as visigoth mentioned it
+      // fails on clang for release builds with a return of 0 but works fine
+      // with (1).
+      // Since the undefined behavior sanitizer (-fsanitize=undefined) does not
+      // allow a reference to be formed to the unaligned address of (1), we use
+      // (8) instead.
+      return reinterpret_cast<system::error_code*>(8);
+    }
+  }
 
-  inline system::error_code & throws()
+  inline system::error_code& throws()
     { return *detail::throws(); }
 
   namespace system

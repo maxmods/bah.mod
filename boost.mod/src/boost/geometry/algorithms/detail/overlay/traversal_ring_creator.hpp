@@ -41,6 +41,7 @@ template
     typename Geometry1,
     typename Geometry2,
     typename Turns,
+    typename TurnInfoMap,
     typename Clusters,
     typename IntersectionStrategy,
     typename RobustPolicy,
@@ -64,7 +65,8 @@ struct traversal_ring_creator
         = operation_from_overlay<OverlayType>::value;
 
     inline traversal_ring_creator(Geometry1 const& geometry1, Geometry2 const& geometry2,
-            Turns& turns, Clusters const& clusters,
+            Turns& turns, TurnInfoMap& turn_info_map,
+            Clusters const& clusters,
             IntersectionStrategy const& intersection_strategy,
             RobustPolicy const& robust_policy, Visitor& visitor)
         : m_trav(geometry1, geometry2, turns, clusters,
@@ -73,6 +75,7 @@ struct traversal_ring_creator
         , m_geometry1(geometry1)
         , m_geometry2(geometry2)
         , m_turns(turns)
+        , m_turn_info_map(turn_info_map)
         , m_clusters(clusters)
         , m_intersection_strategy(intersection_strategy)
         , m_robust_policy(robust_policy)
@@ -159,7 +162,7 @@ struct traversal_ring_creator
         // Update registration and append point
         turn_type& current_turn = m_turns[turn_index];
         turn_operation_type& op = current_turn.operations[op_index];
-        detail::overlay::append_no_dups_or_spikes(current_ring, current_turn.point,
+        detail::overlay::append_no_collinear(current_ring, current_turn.point,
             m_intersection_strategy.get_side_strategy(),
             m_robust_policy);
 
@@ -177,7 +180,7 @@ struct traversal_ring_creator
         turn_type const& start_turn = m_turns[start_turn_index];
         turn_operation_type& start_op = m_turns[start_turn_index].operations[start_op_index];
 
-        detail::overlay::append_no_dups_or_spikes(ring, start_turn.point,
+        detail::overlay::append_no_collinear(ring, start_turn.point,
             m_intersection_strategy.get_side_strategy(),
             m_robust_policy);
 
@@ -203,7 +206,7 @@ struct traversal_ring_creator
             return traverse_error_none;
         }
 
-        if (start_turn.cluster_id >= 0)
+        if (start_turn.is_clustered())
         {
             turn_type const& turn = m_turns[current_turn_index];
             if (turn.cluster_id == start_turn.cluster_id)
@@ -286,7 +289,7 @@ struct traversal_ring_creator
                                               m_robust_policy);
                 rings.push_back(ring);
 
-                m_trav.finalize_visit_info();
+                m_trav.finalize_visit_info(m_turn_info_map);
                 finalized_ring_size++;
             }
         }
@@ -341,12 +344,67 @@ struct traversal_ring_creator
         }
     }
 
+    template <typename Rings>
+    void iterate_with_preference(std::size_t phase,
+                 Rings& rings, std::size_t& finalized_ring_size,
+                 typename Backtrack::state_type& state)
+    {
+        for (std::size_t turn_index = 0; turn_index < m_turns.size(); ++turn_index)
+        {
+            turn_type const& turn = m_turns[turn_index];
+
+            if (turn.discarded || turn.blocked())
+            {
+                // Skip discarded and blocked turns
+                continue;
+            }
+
+            turn_operation_type const& op0 = turn.operations[0];
+            turn_operation_type const& op1 = turn.operations[1];
+
+            if (phase == 0)
+            {
+                if (! op0.enriched.prefer_start && ! op1.enriched.prefer_start)
+                {
+                    // Not preferred, take next one
+                    continue;
+                }
+            }
+
+            if (turn.both(operation_continue))
+            {
+                // Traverse only one turn, the one with the SMALLEST remaining distance
+                // to avoid skipping a turn in between, which can happen in rare cases
+                // (e.g. #130)
+                int const op_index
+                        = op0.remaining_distance <= op1.remaining_distance ? 0 : 1;
+
+                traverse_with_operation(turn, turn_index, op_index,
+                        rings, finalized_ring_size, state);
+            }
+            else
+            {
+                bool const forward = op0.enriched.prefer_start;
+
+                int op_index = forward ? 0 : 1;
+                int const increment = forward ? 1 : -1;
+
+                for (int i = 0; i < 2; i++, op_index += increment)
+                {
+                    traverse_with_operation(turn, turn_index, op_index,
+                            rings, finalized_ring_size, state);
+                }
+            }
+        }
+    }
+
 private:
     traversal_type m_trav;
 
     Geometry1 const& m_geometry1;
     Geometry2 const& m_geometry2;
     Turns& m_turns;
+    TurnInfoMap& m_turn_info_map; // contains turn-info information per ring
     Clusters const& m_clusters;
     IntersectionStrategy const& m_intersection_strategy;
     RobustPolicy const& m_robust_policy;

@@ -1,4 +1,4 @@
-' Copyright (c) 2011-2017 Bruce A Henderson
+' Copyright (c) 2011-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,12 @@ about: Mirrors BRL.FileSystem functionality but utilises Boost Filesytem's API i
 End Rem
 Module BaH.FileSystemEX
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2011-2017 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2011-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated to Boost 1.67"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed for NG."
 ModuleInfo "History: 1.00"

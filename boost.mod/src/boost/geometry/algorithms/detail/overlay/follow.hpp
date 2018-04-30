@@ -1,6 +1,7 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
 // Copyright (c) 2007-2014 Barend Gehrels, Amsterdam, the Netherlands.
+// Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland.
 
 // This file was modified by Oracle on 2014, 2017.
 // Modifications copyright (c) 2014-2017 Oracle and/or its affiliates.
@@ -26,6 +27,7 @@
 
 #include <boost/geometry/algorithms/covered_by.hpp>
 #include <boost/geometry/algorithms/clear.hpp>
+#include <boost/geometry/algorithms/detail/relate/turns.hpp>
 
 
 namespace boost { namespace geometry
@@ -58,7 +60,7 @@ template
     typename Polygon,
     typename PtInPolyStrategy
 >
-static inline bool last_covered_by(Turn const& turn, Operation const& op,
+static inline bool last_covered_by(Turn const& /*turn*/, Operation const& op,
                 LineString const& linestring, Polygon const& polygon,
                 PtInPolyStrategy const& strategy)
 {
@@ -343,6 +345,7 @@ template
 class follow
 {
 
+#ifdef BOOST_GEOMETRY_SETOPS_LA_OLD_BEHAVIOR
     template <typename Turn>
     struct sort_on_segment
     {
@@ -389,7 +392,7 @@ class follow
 
         }
     };
-
+#endif // BOOST_GEOMETRY_SETOPS_LA_OLD_BEHAVIOR
 
 
 public :
@@ -433,7 +436,15 @@ public :
 
         // Sort intersection points on segments-along-linestring, and distance
         // (like in enrich is done for poly/poly)
+        // sort turns by Linear seg_id, then by fraction, then
+        // for same ring id: x, u, i, c
+        // for different ring id: c, i, u, x
+#ifdef BOOST_GEOMETRY_SETOPS_LA_OLD_BEHAVIOR
         std::sort(boost::begin(turns), boost::end(turns), sort_on_segment<turn_type>());
+#else
+        typedef relate::turns::less<0, relate::turns::less_op_linear_areal_single<0> > turn_less;
+        std::sort(boost::begin(turns), boost::end(turns), turn_less());
+#endif
 
         LineStringOut current_piece;
         geometry::segment_identifier current_segment_id(0, -1, -1, -1);

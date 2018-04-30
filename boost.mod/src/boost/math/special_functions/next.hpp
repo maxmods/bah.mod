@@ -29,8 +29,8 @@ namespace boost{ namespace math{
 
    namespace concepts {
 
-      struct real_concept;
-      struct std_real_concept;
+      class real_concept;
+      class std_real_concept;
 
    }
 

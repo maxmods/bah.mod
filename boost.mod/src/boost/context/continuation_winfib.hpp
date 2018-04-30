@@ -63,8 +63,6 @@ static VOID WINAPI entry_func( LPVOID data) noexcept {
 }
 
 struct BOOST_CONTEXT_DECL activation_record {
-    thread_local static activation_record   *   current_rec;
-
     LPVOID                                                      fiber{ nullptr };
     stack_context                                               sctx{};
     bool                                                        main_ctx{ true };
@@ -197,11 +195,11 @@ struct forced_unwind {
 template< typename Ctx, typename StackAlloc, typename Fn >
 class capture_record : public activation_record {
 private:
-    StackAlloc                                          salloc_;
+    typename std::decay< StackAlloc >::type             salloc_;
     typename std::decay< Fn >::type                     fn_;
 
     static void destroy( capture_record * p) noexcept {
-        StackAlloc salloc = p->salloc_;
+        typename std::decay< StackAlloc >::type salloc = std::move( p->salloc_);
         stack_context sctx = p->sctx;
         // deallocate activation record
         p->~capture_record();
@@ -210,9 +208,9 @@ private:
     }
 
 public:
-    capture_record( stack_context sctx, StackAlloc salloc, Fn && fn) noexcept :
+    capture_record( stack_context sctx, StackAlloc && salloc, Fn && fn) noexcept :
         activation_record( sctx),
-        salloc_( salloc),
+        salloc_( std::forward< StackAlloc >( salloc)),
         fn_( std::forward< Fn >( fn) ) {
     }
 
@@ -226,7 +224,7 @@ public:
         try {
             // invoke context-function
 #if defined(BOOST_NO_CXX17_STD_INVOKE)
-            c = invoke( fn_, std::move( c) );
+            c = boost::context::detail::invoke( fn_, std::move( c) );
 #else
             c = std::invoke( fn_, std::move( c) );
 #endif  
@@ -244,7 +242,7 @@ public:
 };
 
 template< typename Ctx, typename StackAlloc, typename Fn >
-static activation_record * create_context1( StackAlloc salloc, Fn && fn) {
+static activation_record * create_context1( StackAlloc && salloc, Fn && fn) {
     typedef capture_record< Ctx, StackAlloc, Fn >  capture_t;
 
     auto sctx = salloc.allocate();
@@ -255,14 +253,14 @@ static activation_record * create_context1( StackAlloc salloc, Fn && fn) {
             & ~ static_cast< uintptr_t >( 0xff) );
     // placment new for control structure on context stack
     capture_t * record = new ( storage) capture_t{
-            sctx, salloc, std::forward< Fn >( fn) };
+            sctx, std::forward< StackAlloc >( salloc), std::forward< Fn >( fn) };
     // create user-context
     record->fiber = ::CreateFiber( sctx.size, & detail::entry_func< capture_t >, record);
     return record;
 }
 
 template< typename Ctx, typename StackAlloc, typename Fn >
-static activation_record * create_context2( preallocated palloc, StackAlloc salloc, Fn && fn) {
+static activation_record * create_context2( preallocated palloc, StackAlloc && salloc, Fn && fn) {
     typedef capture_record< Ctx, StackAlloc, Fn >  capture_t; 
 
     BOOST_ASSERT( ( sizeof( capture_t) ) < palloc.size);
@@ -272,7 +270,7 @@ static activation_record * create_context2( preallocated palloc, StackAlloc sall
             & ~ static_cast< uintptr_t >( 0xff) );
     // placment new for control structure on context stack
     capture_t * record = new ( storage) capture_t{
-            palloc.sctx, salloc, std::forward< Fn >( fn) };
+            palloc.sctx, std::forward< StackAlloc >( salloc), std::forward< Fn >( fn) };
     // create user-context
     record->fiber = ::CreateFiber( palloc.sctx.size, & detail::entry_func< capture_t >, record);
     return record;
@@ -288,18 +286,18 @@ private:
     friend class detail::capture_record;
 
     template< typename Ctx, typename StackAlloc, typename Fn >
-    friend detail::activation_record * detail::create_context1( StackAlloc, Fn &&);
+    friend detail::activation_record * detail::create_context1( StackAlloc &&, Fn &&);
 
     template< typename Ctx, typename StackAlloc, typename Fn >
-    friend detail::activation_record * detail::create_context2( preallocated, StackAlloc, Fn &&);
+    friend detail::activation_record * detail::create_context2( preallocated, StackAlloc &&, Fn &&);
 
     template< typename StackAlloc, typename Fn >
     friend continuation
-    callcc( std::allocator_arg_t, StackAlloc, Fn &&);
+    callcc( std::allocator_arg_t, StackAlloc &&, Fn &&);
 
     template< typename StackAlloc, typename Fn >
     friend continuation
-    callcc( std::allocator_arg_t, preallocated, StackAlloc, Fn &&);
+    callcc( std::allocator_arg_t, preallocated, StackAlloc &&, Fn &&);
 
     detail::activation_record   *   ptr_{ nullptr };
 
@@ -324,20 +322,23 @@ public:
     continuation( continuation const&) = delete;
     continuation & operator=( continuation const&) = delete;
 
-    continuation( continuation && other) noexcept :
-        ptr_{ nullptr } {
+    continuation( continuation && other) noexcept {
         swap( other);
     }
 
     continuation & operator=( continuation && other) noexcept {
         if ( BOOST_LIKELY( this != & other) ) {
-            ptr_ = other.ptr_;
-            other.ptr_ = nullptr;
+            continuation tmp = std::move( other);
+            swap( tmp);
         }
         return * this;
     }
 
-    continuation resume() {
+    continuation resume() & {
+        return std::move( * this).resume();
+    }
+
+    continuation resume() && {
 #if defined(BOOST_NO_CXX14_STD_EXCHANGE)
         detail::activation_record * ptr = detail::exchange( ptr_, nullptr)->resume();
 #else
@@ -349,11 +350,16 @@ public:
             ptr = detail::activation_record::current()->ontop( ptr);
             detail::activation_record::current()->ontop = nullptr;
         }
-        return continuation{ ptr };
+        return { ptr };
     }
 
     template< typename Fn >
-    continuation resume_with( Fn && fn) {
+    continuation resume_with( Fn && fn) & {
+        return std::move( * this).resume_with( std::forward< Fn >( fn) );
+    }
+
+    template< typename Fn >
+    continuation resume_with( Fn && fn) && {
 #if defined(BOOST_NO_CXX14_STD_EXCHANGE)
         detail::activation_record * ptr =
             detail::exchange( ptr_, nullptr)->resume_with< continuation >( std::forward< Fn >( fn) );
@@ -367,7 +373,7 @@ public:
             ptr = detail::activation_record::current()->ontop( ptr);
             detail::activation_record::current()->ontop = nullptr;
         }
-        return continuation{ ptr };
+        return { ptr };
     }
 
     explicit operator bool() const noexcept {
@@ -431,18 +437,18 @@ callcc( Fn && fn) {
 
 template< typename StackAlloc, typename Fn >
 continuation
-callcc( std::allocator_arg_t, StackAlloc salloc, Fn && fn) {
+callcc( std::allocator_arg_t, StackAlloc && salloc, Fn && fn) {
     return continuation{
         detail::create_context1< continuation >(
-                salloc, std::forward< Fn >( fn) ) }.resume();
+                std::forward< StackAlloc >( salloc), std::forward< Fn >( fn) ) }.resume();
 }
 
 template< typename StackAlloc, typename Fn >
 continuation
-callcc( std::allocator_arg_t, preallocated palloc, StackAlloc salloc, Fn && fn) {
+callcc( std::allocator_arg_t, preallocated palloc, StackAlloc && salloc, Fn && fn) {
     return continuation{
         detail::create_context2< continuation >(
-                palloc, salloc, std::forward< Fn >( fn) ) }.resume();
+                palloc, std::forward< StackAlloc >( salloc), std::forward< Fn >( fn) ) }.resume();
 }
 
 inline

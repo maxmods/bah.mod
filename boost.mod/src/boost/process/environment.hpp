@@ -472,17 +472,17 @@ public:
 
         ///Assign a string to the value
         void assign(const string_type &value);
-        ///Assign a set of strings to the entry; they will be seperated by ';' or ':'.
+        ///Assign a set of strings to the entry; they will be separated by ';' or ':'.
         void assign(const std::vector<string_type> &value);
-        ///Append a string to the end of the entry, it will seperated by ';' or ':'.
+        ///Append a string to the end of the entry, it will separated by ';' or ':'.
         void append(const string_type &value);
         ///Reset the value
         void clear();
         ///Assign a string to the entry.
         entry &operator=(const string_type & value);
-        ///Assign a set of strings to the entry; they will be seperated by ';' or ':'.
+        ///Assign a set of strings to the entry; they will be separated by ';' or ':'.
         entry &operator=(const std::vector<string_type> & value);
-        ///Append a string to the end of the entry, it will seperated by ';' or ':'.
+        ///Append a string to the end of the entry, it will separated by ';' or ':'.
         entry &operator+=(const string_type & value);
     };
 
@@ -592,17 +592,17 @@ public:
 
         ///Assign a string to the value
         void assign(const string_type &value);
-        ///Assign a set of strings to the entry; they will be seperated by ';' or ':'.
+        ///Assign a set of strings to the entry; they will be separated by ';' or ':'.
         void assign(const std::vector<string_type> &value);
-        ///Append a string to the end of the entry, it will seperated by ';'  or ':'.
+        ///Append a string to the end of the entry, it will separated by ';'  or ':'.
         void append(const string_type &value);
         ///Reset the value
         void clear();
         ///Assign a string to the entry.
         entry &operator=(const string_type & value);
-        ///Assign a set of strings to the entry; they will be seperated by ';' or ':'.
+        ///Assign a set of strings to the entry; they will be separated by ';' or ':'.
         entry &operator=(const std::vector<string_type> & value);
-        ///Append a string to the end of the entry, it will seperated by ';' or ':'.
+        ///Append a string to the end of the entry, it will separated by ';' or ':'.
         entry &operator+=(const string_type & value);
     };
 
@@ -631,14 +631,17 @@ public:
 };
 
 
-
+#if !defined(BOOST_NO_ANSI_APIS)
 ///Definition of the environment for the current process.
 typedef basic_native_environment<char>     native_environment;
+#endif
 ///Definition of the environment for the current process.
 typedef basic_native_environment<wchar_t> wnative_environment;
 
+#if !defined(BOOST_NO_ANSI_APIS)
 ///Type definition to hold a seperate environment.
 typedef basic_environment<char>     environment;
+#endif
 ///Type definition to hold a seperate environment.
 typedef basic_environment<wchar_t> wenvironment;
 
@@ -651,8 +654,10 @@ namespace this_process
 ///Definition of the native handle type.
 typedef ::boost::process::detail::api::native_handle_t native_handle_type;
 
+#if !defined(BOOST_NO_ANSI_APIS)
 ///Definition of the environment for this process.
 using ::boost::process::native_environment;
+#endif
 ///Definition of the environment for this process.
 using ::boost::process::wnative_environment;
 
@@ -660,8 +665,10 @@ using ::boost::process::wnative_environment;
 inline int get_id()                     { return ::boost::process::detail::api::get_id();}
 ///Get the native handle of the current process.
 inline native_handle_type native_handle()  { return ::boost::process::detail::api::native_handle();}
+#if !defined(BOOST_NO_ANSI_APIS)
 ///Get the enviroment of the current process.
 inline native_environment   environment() { return ::boost::process:: native_environment(); }
+#endif
 ///Get the enviroment of the current process.
 inline wnative_environment wenvironment() { return ::boost::process::wnative_environment(); }
 ///Get the path environment variable of the current process runs.

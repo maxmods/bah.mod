@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2017 Bruce A Henderson
+ Copyright (c) 2007-2018 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without

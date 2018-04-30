@@ -15,13 +15,13 @@
 #if !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
 #   include <dlfcn.h>
 #else
-#   include <boost/detail/winapi/dll.hpp>
+#   include <boost/winapi/dll.hpp>
 #endif
 
 namespace boost { namespace stacktrace { namespace detail {
 
-class location_from_symbol {
 #if !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
+class location_from_symbol {
     ::Dl_info dli_;
 
 public:
@@ -40,22 +40,32 @@ public:
     const char* name() const BOOST_NOEXCEPT {
         return dli_.dli_fname;
     }
-#else
-    BOOST_STATIC_CONSTEXPR boost::detail::winapi::DWORD_ DEFAULT_PATH_SIZE_ = 260;
+};
 
+class program_location {
+public:
+    const char* name() const BOOST_NOEXCEPT {
+        return 0;
+    }
+};
+
+#else
+
+class location_from_symbol {
+    BOOST_STATIC_CONSTEXPR boost::winapi::DWORD_ DEFAULT_PATH_SIZE_ = 260;
     char file_name_[DEFAULT_PATH_SIZE_];
 
 public:
     explicit location_from_symbol(const void* addr) BOOST_NOEXCEPT {
         file_name_[0] = '\0';
 
-        boost::detail::winapi::MEMORY_BASIC_INFORMATION_ mbi;
-        if (!boost::detail::winapi::VirtualQuery(addr, &mbi, sizeof(mbi))) {
+        boost::winapi::MEMORY_BASIC_INFORMATION_ mbi;
+        if (!boost::winapi::VirtualQuery(addr, &mbi, sizeof(mbi))) {
             return;
         }
 
-        boost::detail::winapi::HMODULE_ handle = reinterpret_cast<boost::detail::winapi::HMODULE_>(mbi.AllocationBase);
-        if (!boost::detail::winapi::GetModuleFileNameA(handle, file_name_, DEFAULT_PATH_SIZE_)) {
+        boost::winapi::HMODULE_ handle = reinterpret_cast<boost::winapi::HMODULE_>(mbi.AllocationBase);
+        if (!boost::winapi::GetModuleFileNameA(handle, file_name_, DEFAULT_PATH_SIZE_)) {
             file_name_[0] = '\0';
             return;
         }
@@ -68,8 +78,27 @@ public:
     const char* name() const BOOST_NOEXCEPT {
         return file_name_;
     }
-#endif
 };
+
+class program_location {
+    BOOST_STATIC_CONSTEXPR boost::winapi::DWORD_ DEFAULT_PATH_SIZE_ = 260;
+    char file_name_[DEFAULT_PATH_SIZE_];
+
+public:
+    program_location() BOOST_NOEXCEPT {
+        file_name_[0] = '\0';
+
+        const boost::winapi::HMODULE_ handle = 0;
+        if (!boost::winapi::GetModuleFileNameA(handle, file_name_, DEFAULT_PATH_SIZE_)) {
+            file_name_[0] = '\0';
+        }
+    }
+
+    const char* name() const BOOST_NOEXCEPT {
+        return file_name_[0] ? file_name_ : 0;
+    }
+};
+#endif
 
 }}} // namespace boost::stacktrace::detail
 

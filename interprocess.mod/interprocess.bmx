@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2017 Bruce A Henderson
+' Copyright (c) 2009-2018 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,12 @@ bbdoc: Interprocess Communication
 End Rem
 Module BaH.Interprocess
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009-2017 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Updated to Boost 1.67."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Updated to Boost 1.65.1."
 ModuleInfo "History: 1.03"
