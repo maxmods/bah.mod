@@ -1,0 +1,20 @@
+# Visual C++
+.vs/
+*Copy
+*.db
+*.opensdf
+*.sdf
+*.suo
+*.user
+*.opendb
+
+VS2008/bin/
+VS2010/bin/
+VS2010/zwrapbench/
+VS2012/
+VS2013/
+VS2015/
+Studio*
+
+# CMake
+cmake/build/
