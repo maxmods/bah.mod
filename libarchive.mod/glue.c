@@ -113,6 +113,10 @@ int bmx_libarchive_archive_read_support_filter_xz(struct archive * arc) {
 	return archive_read_support_filter_xz(arc);
 }
 
+int bmx_libarchive_archive_read_support_filter_zstd(struct archive * arc) {
+	return archive_read_support_filter_zstd(arc);
+}
+
 int bmx_libarchive_archive_read_support_format_all(struct archive * arc) {
 	return archive_read_support_format_all(arc);
 }
@@ -314,6 +318,10 @@ int bmx_libarchive_archive_write_add_filter_uuencode(struct archive * arc) {
 
 int bmx_libarchive_archive_write_add_filter_xz(struct archive * arc) {
 	return archive_write_add_filter_xz(arc);
+}
+
+int bmx_libarchive_archive_write_add_filter_zstd(struct archive * arc) {
+	return archive_write_add_filter_zstd(arc);
 }
 
 int bmx_libarchive_archive_write_set_format(struct archive * arc, int formatCode) {
@@ -523,3 +531,22 @@ int bmx_libarchive_archive_read_disk_set_standard_lookup(struct archive * arc) {
 	return archive_read_disk_set_standard_lookup(arc);
 }
 
+int bmx_libarchive_archive_read_disk_set_symlink_logical(struct archive * arc) {
+	return archive_read_disk_set_symlink_logical(arc);
+}
+
+int bmx_libarchive_archive_read_disk_set_symlink_physical(struct archive * arc) {
+	return archive_read_disk_set_symlink_physical(arc);
+}
+
+int bmx_libarchive_archive_read_disk_set_symlink_hybrid(struct archive * arc) {
+	return archive_read_disk_set_symlink_hybrid(arc);
+}
+
+BBString * bmx_libarchive_archive_read_disk_gname(struct archive * arc, __LA_INT64_T gid) {
+	return bbStringFromUTF8String(archive_read_disk_gname(arc, gid));
+}
+
+BBString * bmx_libarchive_archive_read_disk_uname(struct archive * arc, __LA_INT64_T uid) {
+	return bbStringFromUTF8String(archive_read_disk_uname(arc, uid));
+}

@@ -27,6 +27,7 @@ SuperStrict
 
 Import "../libxml.mod/src/*.h"
 Import "../xz.mod/src/liblzma/api/*.h"
+Import "../zstd.mod/zstd/lib/*.h"
 ?win32
 'Import "../libiconv.mod/include/*.h"
 ?

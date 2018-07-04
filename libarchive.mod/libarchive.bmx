@@ -31,11 +31,13 @@ End Rem
 Module BaH.LibArchive
 
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: libarchive - 2003-2010 Tim Kientzle"
 ModuleInfo "Copyright: Wrapper - 2013-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Added zstd support."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to libarchive 3.3.2.77d26b0."
 ModuleInfo "History: 1.01"
@@ -292,47 +294,90 @@ Type TReadArchive Extends TArchive
 		Return bmx_libarchive_archive_read_support_filter_xz(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables auto-detection code and decompression support for Zstd.
+	about: May fall back on external programs if an appropriate library was not available at build time.
+	Decompression using an external program is usually slower than decompression through built-in libraries.
+	End Rem
+	Method SupportFilterZstd:Int()
+		Return bmx_libarchive_archive_read_support_filter_zstd(archivePtr)
+	End Method
 
+	Rem
+	bbdoc: Enables support for all available formats except the "raw" format.
+	End Rem
 	Method SupportFormatAll:Int()
 		Return bmx_libarchive_archive_read_support_format_all(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for 7zip.
+	End Rem
 	Method SupportFormat7zip:Int()
 		Return bmx_libarchive_archive_read_support_format_7zip(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for ar.
+	End Rem
 	Method SupportFormatAr:Int()
 		Return bmx_libarchive_archive_read_support_format_ar(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables a single format specified by the format code.
+	about: This can be useful when reading a single archive twice; use TArchive.Format() after reading the first time and pass the resulting code to
+	this method to selectively enable only the necessary format support.
+	End Rem
 	Method SupportFormatByCode:Int(code:Int)
 		Return bmx_libarchive_archive_read_support_format_by_code(archivePtr, code)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for cab.
+	End Rem
 	Method SupportFormatCab:Int()
 		Return bmx_libarchive_archive_read_support_format_cab(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for cpio.
+	End Rem
 	Method SupportFormatCpio:Int()
 		Return bmx_libarchive_archive_read_support_format_cpio(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method SupportFormatEmpty:Int()
 		Return bmx_libarchive_archive_read_support_format_empty(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for tar.
+	End Rem
 	Method SupportFormatGnutar:Int()
 		Return bmx_libarchive_archive_read_support_format_gnutar(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for iso9660.
+	End Rem
 	Method SupportFormatIso9660:Int()
 		Return bmx_libarchive_archive_read_support_format_iso9660(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for lha.
+	End Rem
 	Method SupportFormatLha:Int()
 		Return bmx_libarchive_archive_read_support_format_lha(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: Enables support, including auto-detection code, for mtree.
+	End Rem
 	Method SupportFormatMtree:Int()
 		Return bmx_libarchive_archive_read_support_format_mtree(archivePtr)
 	End Method
@@ -346,18 +391,30 @@ Type TReadArchive Extends TArchive
 		Return bmx_libarchive_archive_read_support_format_rar(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method SupportFormatRaw:Int()
 		Return bmx_libarchive_archive_read_support_format_raw(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method SupportFormatTar:Int()
 		Return bmx_libarchive_archive_read_support_format_tar(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method SupportFormatXar:Int()
 		Return bmx_libarchive_archive_read_support_format_xar(archivePtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method SupportFormatZip:Int()
 		Return bmx_libarchive_archive_read_support_format_zip(archivePtr)
 	End Method
@@ -678,6 +735,13 @@ Type TWriteArchive Extends TArchive
 	Rem
 	bbdoc: 
 	End Rem
+	Method AddFilterZstd:Int()
+		Return bmx_libarchive_archive_write_add_filter_zstd(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetFormat:Int(formatCode:Int)
 		Return bmx_libarchive_archive_write_set_format(archivePtr, formatCode)
 	End Method
@@ -892,18 +956,23 @@ Type TReadDiskArchive Extends TArchive
 	End Method
 
 	Method SetSymlinkLogical:Int()
+		Return bmx_libarchive_archive_read_disk_set_symlink_logical(archivePtr)
 	End Method
 
 	Method SetSymlinkPhysical:Int()
+		Return bmx_libarchive_archive_read_disk_set_symlink_physical(archivePtr)
 	End Method
 
 	Method SetSymlinkhybrid:Int()
+		Return bmx_libarchive_archive_read_disk_set_symlink_hybrid(archivePtr)
 	End Method
 	
 	Method GName:String(gid:Long)
+		Return bmx_libarchive_archive_read_disk_gname(archivePtr, gid)
 	End Method
 	
 	Method UName:String(uid:Long)
+		Return bmx_libarchive_archive_read_disk_uname(archivePtr, uid)
 	End Method
 	
 	Method SetStandardLookup:Int()

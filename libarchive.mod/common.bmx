@@ -33,6 +33,7 @@ Import BaH.LibXML
 Import BaH.Libiconv
 ?
 Import BaH.xz
+Import BaH.zstd
 
 Import "source.bmx"
 
@@ -54,6 +55,7 @@ Extern
 	Function bmx_libarchive_archive_read_support_filter_rpm:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_filter_uu:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_filter_xz:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_support_filter_zstd:Int(handle:Byte Ptr)
 
 	Function bmx_libarchive_archive_read_support_format_all:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_format_7zip:Int(handle:Byte Ptr)
@@ -110,6 +112,7 @@ Extern
 	Function bmx_libarchive_archive_write_add_filter_none:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_add_filter_uuencode:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_add_filter_xz:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_add_filter_zstd:Int(handle:Byte Ptr)
 
 	Function bmx_libarchive_archive_write_set_format:Int(handle:Byte Ptr, formatCode:Int)
 	Function bmx_libarchive_archive_write_set_format_by_name:Int(handle:Byte Ptr, name:String)
@@ -162,6 +165,11 @@ Extern
 	Function bmx_libarchive_archive_read_disk_new:Byte Ptr()
 	Function bmx_libarchive_archive_read_disk_entry_from_file:Int(handle:Byte Ptr, entry:Byte Ptr)
 	Function bmx_libarchive_archive_read_disk_set_standard_lookup:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_disk_set_symlink_logical:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_disk_set_symlink_physical:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_disk_set_symlink_hybrid:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_disk_gname:String(handle:Byte Ptr, gid:Long)
+	Function bmx_libarchive_archive_read_disk_uname:String(handle:Byte Ptr, uid:Long)
 
 End Extern
 
