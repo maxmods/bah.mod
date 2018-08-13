@@ -1,4 +1,4 @@
-' Copyright (c) 2016 Bruce A Henderson
+' Copyright (c) 2016-2018 Bruce A Henderson
 '
 ' This software is provided 'as-is', without any express or implied
 ' warranty. In no event will the authors be held liable for any damages
@@ -29,7 +29,7 @@ Module BaH.SoLoud
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: zlib/libpng"
 ModuleInfo "Copyright: SoLoud - 2013-2016 Jari Komppa"
-ModuleInfo "Copyright: Wrapper - 2016 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2016-2018 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
@@ -305,7 +305,7 @@ Type TSoloud
 	Rem
 	bbdoc: Sets the global volume.
 	End Rem
-	Method setGlobalVolume(volume:Float)
+	Method SetGlobalVolume(volume:Float)
 		Soloud_setGlobalVolume(slPtr, volume)
 	End Method
 	
@@ -625,6 +625,13 @@ Type TSLWav Extends TSLLoadableAudioSource
 	Rem
 	bbdoc: 
 	End Rem
+	Method getLength:Double()
+		Return Wav_getLength(asPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Load:Int(filename:String)
 		Local s:Byte Ptr = filename.ToUTF8String()
 		Local res:Int = Wav_load(asPtr, s)
@@ -774,6 +781,13 @@ Type TSLWavStream Extends TSLLoadableAudioSource
 		Local res:Int = WavStream_load(asPtr, s)
 		MemFree(s)
 		Return res
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getLength:Double()
+		Return WavStream_getLength(asPtr)
 	End Method
 	
 	Rem
