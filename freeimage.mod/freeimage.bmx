@@ -197,9 +197,9 @@ Rem
 bbdoc: Loads a multi-page image into a #TMultiFreeImage object.
 returns: A #TMultiFreeImage object or Null if not found or not a valid multi-page format.
 End Rem
-Function LoadMultiFreeImage:TMultiFreeImage( filename:String, readOnly:Int = True, flags:Int = 0 )
+Function LoadMultiFreeImage:TMultiFreeImage( filename:String, _readOnly:Int = True, flags:Int = 0 )
 	
-	Return TMultiFreeImage.CreateFromFile(filename, readOnly, flags)
+	Return TMultiFreeImage.CreateFromFile(filename, _readOnly, flags)
 
 End Function
 
@@ -257,14 +257,14 @@ Type TMultiFreeImage
 	bbdoc: Creates a new #TMultiFreeImage from the specified @filename.
 	about: Set @readOnly to False, if you intend making changes to pages.
 	End Rem
-	Function CreateFromFile:TMultiFreeImage(filename:String, readOnly:Int = True, flags:Int = 0)
+	Function CreateFromFile:TMultiFreeImage(filename:String, _readOnly:Int = True, flags:Int = 0)
 	
 		hasError = False
 	
 		Local this:TMultiFreeImage = New TMultiFreeImage
 		
 		this.filename = filename
-		this.freeImagePtr = bmx_multifreeimage_new(this, filename, readOnly, False)
+		this.freeImagePtr = bmx_multifreeimage_new(this, filename, _readOnly, False)
 		
 		If Not this.isValidImage()
 			Return Null
