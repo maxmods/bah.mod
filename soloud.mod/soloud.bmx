@@ -36,6 +36,8 @@ ModuleInfo "History: Initial Release."
 
 ?macos
 ModuleInfo "CC_OPTS: -DWITH_COREAUDIO"
+?win32x86
+ModuleInfo "CC_OPTS: -msse2"
 ?win32
 ModuleInfo "CC_OPTS: -DWITH_WASAPI -DWITH_WINMM -DMODPLUG_STATIC"
 ?linuxx86
