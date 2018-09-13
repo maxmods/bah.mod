@@ -516,7 +516,11 @@ Function WriteDebug( t$ )
 
 		Local s:String = "~~>" + t
 		Local b:Byte Ptr = s.toUTF8String()
+?bmxng
+		Local i:Size_T = _strlen(b)
+?Not bmxng
 		Local i:Int = _strlen(b)
+?
 		_serverSocket.Send(b, i)
 		MemFree(b) 
 		'WriteStderr "~~>"+t
