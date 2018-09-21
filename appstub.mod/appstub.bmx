@@ -21,7 +21,7 @@ ModuleInfo "History: Customized for Mac - for wxWidgets goodness!"
 ModuleInfo "History: 1.20 BRL Release"
 ModuleInfo "History: Official BRL release"
 
-?Debug
+?Debug And Not bmxng
 Import "debugger.stdio.bmx"
 ?
 

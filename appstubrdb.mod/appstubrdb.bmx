@@ -17,7 +17,7 @@ ModuleInfo "Copyright: (TCP, Remote Debugging) Bruce A Henderson"
 ModuleInfo "History: 1.00 Initial Release"
 ModuleInfo "History: Based on BRL.Appstub 1.20"
 
-?Debug
+?Debug And Not bmxng
 Import "debugger.tcp.bmx"	' TCP-based debugger
 ?
 
