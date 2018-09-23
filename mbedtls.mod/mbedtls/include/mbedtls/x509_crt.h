@@ -105,7 +105,7 @@ mbedtls_x509_crt;
  *
  * All lists are bitfields, built by ORing flags from MBEDTLS_X509_ID_FLAG().
  */
-typedef struct
+typedef struct mbedtls_x509_crt_profile
 {
     uint32_t allowed_mds;       /**< MDs for signatures         */
     uint32_t allowed_pks;       /**< PK algs for signatures     */
@@ -287,8 +287,15 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  *                 used to sign the certificate, CRL verification is skipped
  *                 silently, that is *without* setting any flag.
  *
+ * \note           The \c trust_ca list can contain two types of certificates:
+ *                 (1) those of trusted root CAs, so that certificates
+ *                 chaining up to those CAs will be trusted, and (2)
+ *                 self-signed end-entity certificates to be trusted (for
+ *                 specific peers you know) - in that case, the self-signed
+ *                 certificate doesn't need to have the CA bit set.
+ *
  * \param crt      a certificate (chain) to be verified
- * \param trust_ca the list of trusted CAs
+ * \param trust_ca the list of trusted CAs (see note above)
  * \param ca_crl   the list of CRLs for trusted CAs (see note above)
  * \param cn       expected Common Name (can be set to
  *                 NULL if the CN must not be verified)
