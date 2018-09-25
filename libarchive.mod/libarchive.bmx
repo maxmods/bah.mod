@@ -31,11 +31,13 @@ End Rem
 Module BaH.LibArchive
 
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: libarchive - 2003-2010 Tim Kientzle"
 ModuleInfo "Copyright: Wrapper - 2013-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Update to libarchive 3.3.4.c16ce12."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Added zstd support."
 ModuleInfo "History: 1.02"
