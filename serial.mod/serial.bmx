@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2017 Bruce A Henderson
+' Copyright (c) 2013-2018 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Serial port interface.
 End Rem
 Module BaH.Serial
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Serial Library - 2012 William Woodall, John Harrison"
-ModuleInfo "Copyright: BlitzMax wrapper - 2013-2017 Bruce A Henderson"
+ModuleInfo "Copyright: BlitzMax wrapper - 2013-2018 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to latest 1.2.1 rev 5a354ea"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to latest 1.2.1 rev 827c4a7"
 ModuleInfo "History: Fixes for NG"
@@ -113,7 +115,7 @@ Type TSerial
 	</li>
 	</ul>
 	End Rem
-	Method read:Int(buffer:Byte Ptr, size:Int)
+	Method Read:Int(buffer:Byte Ptr, size:Int)
 		Return bmx_serial_read(serialPtr, buffer, size)
 	End Method
 	
@@ -179,7 +181,7 @@ Type TSerial
 	bbdoc: Sets the baudrate for the serial port.
 	about: Possible baudrates depends on the system but some safe baudrates include: 110, 300, 600, 1200, 2400, 4800, 9600,
 	14400, 19200, 28800, 38400, 56000, 57600, 115200.
-	Some other baudrates that are supported by some comports: 128000, 153600, 230400, 256000, 460800, 921600
+	Some other baudrates that are supported by some comports: 128000, 153600, 230400, 256000, 460800, 500000, 921600
 	End Rem
 	Method setBaudrate(baudrate:Int)
 		bmx_serial_setbaudrate(serialPtr, baudrate)
@@ -211,7 +213,7 @@ Type TSerial
 	
 	Rem
 	bbdoc: Sets the parity for the serial port.
-	about: A value for the method of parity, default is PARITY_NONE, possible values are PARITY_NONE, PARITY_ODD or PARITY_EVEN.
+	about: A value for the method of parity, default is PARITY_NONE, possible values are PARITY_NONE, PARITY_ODD, PARITY_EVEN, PARITY_MARK or PARITY_SPACE.
 	End Rem
 	Method setParity(parity:Int)
 		bmx_serial_setparity(serialPtr, parity)

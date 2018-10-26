@@ -93,6 +93,8 @@ Const FLOWCONTROL_HARDWARE:Int = 2
 Const PARITY_NONE:Int = 0
 Const PARITY_ODD:Int = 1
 Const PARITY_EVEN:Int = 2
+Const PARITY_MARK:Int = 3
+Const PARITY_SPACE:Int = 4
 
 Const STOPBITS_ONE:Int = 1
 Const STOPBITS_TWO:Int = 2
