@@ -108,6 +108,16 @@ Serial::SerialImpl::reconfigurePort ()
     THROW (IOException, "Error getting the serial port state.");
   }
 
+  // source : https://github.com/wjwwood/serial/pull/164
+  // Boilerplate default settings
+  dcbSerialParams.fBinary = true;
+  dcbSerialParams.fDtrControl = DTR_CONTROL_ENABLE;
+  dcbSerialParams.fDsrSensitivity = false;
+  dcbSerialParams.fTXContinueOnXoff = false;
+  dcbSerialParams.fErrorChar = false;
+  dcbSerialParams.fNull = false;
+  dcbSerialParams.fAbortOnError = false;
+
   // setup baud rate
   switch (baudrate_) {
 #ifdef CBR_0
