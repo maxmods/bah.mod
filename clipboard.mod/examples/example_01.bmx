@@ -7,6 +7,8 @@ Local clipboard:TClipboard = New TClipboard.Create()
 
 Local txt:String = Input("Enter some text : ")
 
+Print "Text = " + txt
+
 clipboard.SetText(txt)
 
 Print "Copied to clipboard...~n"

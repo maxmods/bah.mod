@@ -20,6 +20,9 @@
 ' 
 SuperStrict
 
+?linux
+Import "-lxcb"
+?
 Import "source.bmx"
 
 Extern
