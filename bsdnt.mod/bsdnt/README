@@ -1,0 +1,72 @@
+BSDNT version 1.0
+=================
+
+BSDNT is a BSD licensed bignum library, suitable for use by languages which
+need to provide bignum support and for other projects requiring relatively
+fast bignums.
+
+The primary goal of the project is to have clean, comprehensible, 
+well-documented code, whilst retaining reasonable performance. It is not
+a goal to insanely optimise where that would make the code less readable
+and maintainable.
+
+Features
+========
+
+* Support for Linux, OSX, BSD, MinGW32, Cygwin, Cygwin64
+* Inline assembly optimisation for 64 bit Intel and AMD x86_64 processors
+* Low level multiprecision natural numbers interface (nn.h)
+* High level multiprecision integer interface (zz.h)
+* Very extensive test code
+* SHA1 implementation
+* KISS / SuperKISS / Mersenne_twister pseudorandom number generators
+
+Requirements
+============
+
+Currently we require bash, gnu make and gcc 4 or later or clang.
+
+Installation
+============
+
+To build bsdnt and run the test code
+
+$ cd bsdnt
+$ ./configure
+$ make check
+
+Documentation
+=============
+
+The user will most likely use the interfaces in nn.h and zz.h.
+
+All of the functions are documented in those two files.
+
+Future improvements
+===================
+
+* Unroll assembly loops
+* Assembly support for more processors
+* Multiprecision rational number interface
+* Multiprecision floating point interface
+* Simplify and merge the BSD licensed fft found here:
+  https://github.com/wbhart/flint2/tree/trunk/fft
+* Asymptotically fast algorithms for GCD, get_str, set_str, division (??)
+* Square root and n-th root code
+
+Contributors
+============
+
+William Hart, Brian Gladman, Antony Vennard, Gonzalo Tornaria, Howard Mao,
+Lee Wei Yeong, Ryan Goulden.
+----
+
+See the LICENSE file for legal info and warranty information.
+
+Contributions are welcome. There is a Google group here:
+
+https://groups.google.com/forum/#!forum/bsdnt-devel
+
+Enjoy!!
+
+William Hart - 1-1-2014

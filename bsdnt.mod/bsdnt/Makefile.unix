@@ -1,0 +1,116 @@
+# Copyright (C):
+# * Antony Vennard 2010.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#  
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in
+#     the documentation and/or other materials provided with the
+#     distribution.
+#  
+# THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+
+# BSDNT UNIX Build System.
+
+# If you actually want to use this script I suggest you run ./configure.
+
+# Build tools and environment
+AS=__ASSEMBLER__
+AR=__ARCHIVE__
+CC=__COMPILER__
+AFLAGS=__AFLAGS__
+CFLAGS=__CFLAGS__
+LIBS=-L$(CURDIR)
+INCS=-I$(CURDIR) 
+PREFIX=__PREFIX__
+
+# QUIET MAKE
+QUIET_AS         = @echo '   ' AS '   ' $@;
+QUIET_CC         = @echo '   ' CC '   ' $@;
+QUIET_LINK       = @echo '   ' LINK ' ' $@;
+QUIET_AR         = @echo '   ' AR '   ' $@;
+QUIET_SO         = @echo '   ' SO '   ' $@;
+
+# FILES
+SOURCES = __SOURCES__
+HEADERS = __HEADERS__
+ARCHHEADERS = __ARCHHEADERS__
+OBJS = $(patsubst %.c, build/%.o, $(SOURCES))
+
+# TEST FILES
+TSOURCES = __TSOURCES__
+
+TESTS = $(patsubst %.c, build/%, $(TSOURCES)) 
+
+BINARIES = __BINARIES__ $(TESTS)
+
+LIBRARIES = __LIBRARIES__
+
+# PROFILE FILES
+PSOURCES = __PSOURCES__
+
+PROFS = $(patsubst %.c, build/%, $(PSOURCES))
+
+# PHONY SPEC
+.PHONY: all clean distclean check strip profile install
+
+# RULES
+all: $(OBJS) $(BINARIES) $(LIBRARIES)
+
+clean:
+	rm -f $(OBJS) $(BINARIES) $(LIBRARIES)
+	rm -f cpuid
+	rm -f endian
+
+distclean: clean
+	rm -f *arch.h
+	rm -f config.h
+
+check: $(OBJS) $(BINARIES)
+	$(foreach prog, $(TESTS), $(prog);)	
+
+install:
+	mkdir -p $(PREFIX)/lib $(PREFIX)/include/bsdnt/arch/inline
+	cp $(LIBRARIES) $(PREFIX)/lib
+	cp $(HEADERS) $(PREFIX)/include/bsdnt
+	cp $(ARCHHEADERS) $(PREFIX)/include/bsdnt/arch/inline
+
+strip:
+	strip $(BINARIES)
+
+profile: $(OBJS) $(PROFS)
+
+libbsdnt.a: $(OBJS)
+	$(QUIET_AR)$(AR) rcs $@ $(OBJS)
+
+libbsdnt.so: $(OBJS)
+	$(QUIET_CC)$(CC) -shared $(OBJS) -lm -o $@
+
+libbsdnt.dylib: $(OBJS)
+	$(QUIET_CC)$(CC) -shared $(OBJS) -lm -o $@
+
+libbsdnt.dll: $(OBJS)
+	$(QUIET_CC)$(CC) -shared $(OBJS) -lm -o $@
+
+build/arch/%.o: %.asm
+	$(QUIET_AS)$(AS)  $(AFLAGS) $< -o $@
+
+build/%.o: %.c 
+	$(QUIET_CC)$(CC) $(CFLAGS) $(INCS) -c $< -o $@
+
+build/test/%.o: %.c
+	$(QUIET_CC)$(CC) $(CFLAGS) $(INCS) -c $< -o $@
+
+build/profile/%: $(OBJS) 
+	$(QUIET_LINK)$(CC) $(CFLAGS) $(INCS) profile/$(@F).c $(OBJS) -o $@ -lm
+
+build/test/%: $(OBJS)
+	$(QUIET_LINK)$(CC) $(CFLAGS) $(INCS) test/$(@F).c $(OBJS) -o $@ -lm
+
