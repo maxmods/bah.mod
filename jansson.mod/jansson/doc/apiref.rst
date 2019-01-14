@@ -58,6 +58,11 @@ the library:
       /* Code specific to version 1.3 and above */
       #endif
 
+``JANSSON_THREAD_SAFE_REFCOUNT``
+  If this value is defined all read-only operations and reference counting in
+  Jansson are thread safe.  This value is not defined for versions older than
+  ``2.11`` or when the compiler does not provide built-in atomic functions.
+
 
 Value Representation
 ====================
@@ -332,6 +337,8 @@ length-aware functions if you wish to embed null bytes in strings.
    Like :func:`json_string`, but with explicit length, so *value* may
    contain null characters or not be null terminated.
 
+   .. versionadded:: 2.7
+
 .. function:: json_t *json_string_nocheck(const char *value)
 
    .. refcounting:: new
@@ -347,6 +354,8 @@ length-aware functions if you wish to embed null bytes in strings.
    Like :func:`json_string_nocheck`, but with explicit length, so
    *value* may contain null characters or not be null terminated.
 
+   .. versionadded:: 2.7
+
 .. function:: const char *json_string_value(const json_t *string)
 
    Returns the associated value of *string* as a null terminated UTF-8
@@ -361,6 +370,8 @@ length-aware functions if you wish to embed null bytes in strings.
    Returns the length of *string* in its UTF-8 presentation, or zero
    if *string* is not a JSON string.
 
+   .. versionadded:: 2.7
+
 .. function:: int json_string_set(json_t *string, const char *value)
 
    Sets the associated value of *string* to *value*. *value* must be a
@@ -371,6 +382,8 @@ length-aware functions if you wish to embed null bytes in strings.
 
    Like :func:`json_string_set`, but with explicit length, so *value*
    may contain null characters or not be null terminated.
+
+   .. versionadded:: 2.7
 
 .. function:: int json_string_set_nocheck(json_t *string, const char *value)
 
@@ -383,6 +396,18 @@ length-aware functions if you wish to embed null bytes in strings.
 
    Like :func:`json_string_set_nocheck`, but with explicit length,
    so *value* may contain null characters or not be null terminated.
+
+   .. versionadded:: 2.7
+
+.. function:: json_t *json_sprintf(const char *format, ...)
+              json_t *json_vsprintf(const char *format, va_list ap)
+
+   .. refcounting:: new
+
+   Construct a JSON string from a format string and varargs, just like
+   :func:`printf()`.
+
+   .. versionadded:: 2.11
 
 
 Number
@@ -941,9 +966,13 @@ in which case no error information is returned to the caller.
 
        Array index is out of range.
 
+   .. versionadded:: 2.11
+
 .. function:: enum json_error_code json_error_code(const json_error_t *error)
 
    Returns the error code embedded in ``error->text``.
+
+   .. versionadded:: 2.11
 
 
 Encoding
@@ -1108,6 +1137,10 @@ These functions output UTF-8:
    *buffer* points to a buffer containing a chunk of output, *size* is
    the length of the buffer, and *data* is the corresponding
    :func:`json_dump_callback()` argument passed through.
+
+   *buffer* is guaranteed to be a valid UTF-8 string (i.e. multi-byte
+   code unit sequences are preserved). *buffer* never contains
+   embedded null bytes.
 
    On error, the function should return -1 to stop the encoding
    process. On success, it should return 0.
@@ -1304,10 +1337,18 @@ If no error or position information is needed, you can pass *NULL*.
    *buffer* points to a buffer of *buflen* bytes, and *data* is the
    corresponding :func:`json_load_callback()` argument passed through.
 
-   On success, the function should return the number of bytes read; a
-   returned value of 0 indicates that no data was read and that the
-   end of file has been reached. On error, the function should return
+   On success, the function should write at most *buflen* bytes to
+   *buffer*, and return the number of bytes written; a returned value
+   of 0 indicates that no data was produced and that the end of file
+   has been reached. On error, the function should return
    ``(size_t)-1`` to abort the decoding process.
+
+   In UTF-8, some code points are encoded as multi-byte sequences. The
+   callback function doesn't need to worry about this, as Jansson
+   handles it at a higher level. For example, you can safely read a
+   fixed number of bytes from a network connection without having to
+   care about code unit sequences broken apart by the chunk
+   boundaries.
 
    .. versionadded:: 2.4
 
@@ -1554,7 +1595,10 @@ type whose address should be passed.
     Store a JSON value with no conversion to a :type:`json_t` pointer.
 
 ``O`` (any value) [json_t \*]
-    Like ``O``, but the JSON value's reference count is incremented.
+    Like ``o``, but the JSON value's reference count is incremented.
+    Storage pointers should be initialized NULL before using unpack.
+    The caller is responsible for releasing all references incremented
+    by unpack, even when an error occurs.
 
 ``[fmt]`` (array)
     Convert each item in the JSON array according to the inner format

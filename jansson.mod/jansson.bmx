@@ -1,4 +1,4 @@
-' Copyright (c) 2014-2017 Bruce A Henderson
+' Copyright (c) 2014-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: A JSON encoder/decoder.
 End Rem
 Module BaH.Jansson
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2014-2017 Bruce A Henderson"
+ModuleInfo "Copyright: 2014-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Updated to Jansson 2.12"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to Jansson 2.10.009ffa3"
 ModuleInfo "History: Added errorCode field to TJSONError."

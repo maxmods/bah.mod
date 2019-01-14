@@ -122,6 +122,10 @@ static void error_set(json_error_t *error, const lex_t *lex,
         }
         else
         {
+            if(code == json_error_invalid_syntax) {
+                /* More specific error code for premature end of file. */
+                code = json_error_premature_end_of_input;
+            }
             if(lex->stream.state == STREAM_STATE_ERROR) {
                 /* No context for UTF-8 decoding errors */
                 result = msg_text;
@@ -738,13 +742,11 @@ static json_t *parse_object(lex_t *lex, size_t flags, json_error_t *error)
             goto error;
         }
 
-        if(json_object_set_nocheck(object, key, value)) {
+        if(json_object_set_new_nocheck(object, key, value)) {
             jsonp_free(key);
-            json_decref(value);
             goto error;
         }
 
-        json_decref(value);
         jsonp_free(key);
 
         lex_scan(lex, error);
@@ -781,11 +783,9 @@ static json_t *parse_array(lex_t *lex, size_t flags, json_error_t *error)
         if(!elem)
             goto error;
 
-        if(json_array_append(array, elem)) {
-            json_decref(elem);
+        if(json_array_append_new(array, elem)) {
             goto error;
         }
-        json_decref(elem);
 
         lex_scan(lex, error);
         if(lex->token != ',')
@@ -829,10 +829,8 @@ static json_t *parse_value(lex_t *lex, size_t flags, json_error_t *error)
             }
 
             json = jsonp_stringn_nocheck_own(value, len);
-            if(json) {
-                lex->value.string.val = NULL;
-                lex->value.string.len = 0;
-            }
+            lex->value.string.val = NULL;
+            lex->value.string.len = 0;
             break;
         }
 
@@ -1036,8 +1034,8 @@ json_t *json_loadf(FILE *input, size_t flags, json_error_t *error)
 
 static int fd_get_func(int *fd)
 {
-    uint8_t c;
 #ifdef HAVE_UNISTD_H
+    uint8_t c;
     if (read(*fd, &c, 1) == 1)
         return c;
 #endif
