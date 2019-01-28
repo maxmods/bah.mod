@@ -62,6 +62,7 @@ BASS_GetInfo
 BASS_GetVersion
 BASS_GetVolume
 BASS_Init
+BASS_IsStarted
 BASS_MusicFree
 BASS_MusicLoad
 BASS_Pause

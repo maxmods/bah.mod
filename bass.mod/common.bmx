@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2017 Bruce A Henderson
+' Copyright (c) 2008-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -293,6 +293,7 @@ Const BASS_CONFIG_UPDATETHREADS:Int = 24
 ?linux
 Const BASS_CONFIG_DEV_BUFFER:Int = 27
 ?
+Const BASS_CONFIG_REC_LOOPBACK:Int = 28
 Const BASS_CONFIG_DEV_DEFAULT:Int = 36
 
 Const BASS_CONFIG_NET_READTIMEOUT:Int = 37
@@ -313,11 +314,18 @@ Const BASS_CONFIG_VERIFY_NET:Int = 52
 Const BASS_CONFIG_DEV_PERIOD:Int = 53
 Const BASS_CONFIG_FLOAT:Int = 54
 Const BASS_CONFIG_NET_SEEK:Int = 56
+Const BASS_CONFIG_AM_DISABLE:Int = 58
+Const BASS_CONFIG_NET_PLAYLIST_DEPTH:Int = 59
+Const BASS_CONFIG_NET_PREBUF_WAIT:Int = 60
+Const BASS_CONFIG_WASAPI_PERSIST:Int = 65
+Const BASS_CONFIG_REC_WASAPI:Int = 66
 
 
 ' BASS_SetConfigPtr options
 Const BASS_CONFIG_NET_AGENT:Int = 16
 Const BASS_CONFIG_NET_PROXY:Int = 17
+Const BASS_CONFIG_IOS_NOTIFY:Int = 46
+Const BASS_CONFIG_LIBSSL:Int = 64
 
 ' Initialization flags
 Const BASS_DEVICE_8BITS:Int = $0001	' use 8 bit resolution, else 16 bit
@@ -330,6 +338,9 @@ Const BASS_DEVICE_NOSPEAKER:Int = $1000 ' ignore speaker arrangement
 Const BASS_DEVICE_DMIX:Int = $2000 ' use ALSA "dmix" plugin
 Const BASS_DEVICE_FREQ:Int = $4000 ' set device sample rate
 Const BASS_DEVICE_STEREO:Int = $8000 ' limit output To stereo
+Const BASS_DEVICE_HOG:Int = $10000    ' hog/exclusive Mode
+Const BASS_DEVICE_AUDIOTRACK:Int = $20000    ' use AudioTrack output
+Const BASS_DEVICE_DSOUND:Int = $40000    ' use DirectSound output
 
 
 ' DirectSound interfaces (for use with BASS_GetDSoundObject)
@@ -340,6 +351,7 @@ Const BASS_OBJECT_DS3DL:Int = 2	' IDirectSound3DListener
 Const BASS_DEVICE_ENABLED:Int = 1
 Const BASS_DEVICE_DEFAULT:Int = 2
 Const BASS_DEVICE_INIT:Int = 4
+Const BASS_DEVICE_LOOPBACK:Int = 8
 
 ' BASS_INFO flags (from DSOUND.H)
 Const DSCAPS_CONTINUOUSRATE:Int = $00000010	' supports all sample rates between min/maxrate
@@ -382,12 +394,14 @@ Const BASS_SAMPLE_OVER_POS:Int = $20000	' override longest playing
 Const BASS_SAMPLE_OVER_DIST:Int = $30000 ' override furthest from listener (3D only)
 
 Const BASS_STREAM_PRESCAN:Int = $20000 ' enable pin-point seeking/length (MP3/MP2/MP1)
-Const BASS_MP3_SETPOS:Int = BASS_STREAM_PRESCAN
 Const BASS_STREAM_AUTOFREE:Int = $40000	' automatically free the stream when it stop/ends
 Const BASS_STREAM_RESTRATE:Int = $80000	' restrict the download rate of internet file streams
 Const BASS_STREAM_BLOCK:Int = $100000 ' download/play internet file stream in small blocks
 Const BASS_STREAM_DECODE:Int = $200000 ' don't play the stream, only decode (BASS_ChannelGetData)
 Const BASS_STREAM_STATUS:Int = $800000 ' give server status info (HTTP/ICY tags) in DOWNLOADPROC
+
+Const BASS_MP3_IGNOREDELAY:Int = $200 ' ignore LAME/Xing/VBRI/iTunes Delay & padding info
+Const BASS_MP3_SETPOS:Int = BASS_STREAM_PRESCAN
 
 Const BASS_MUSIC_FLOAT:Int = BASS_SAMPLE_FLOAT
 Const BASS_MUSIC_MONO:Int = BASS_SAMPLE_MONO
@@ -462,9 +476,15 @@ Const BASS_CTYPE_STREAM_MP1:Int = $10003
 Const BASS_CTYPE_STREAM_MP2:Int = $10004
 Const BASS_CTYPE_STREAM_MP3:Int = $10005
 Const BASS_CTYPE_STREAM_AIFF:Int = $10006
+Const BASS_CTYPE_STREAM_CA:Int = $10007
+Const BASS_CTYPE_STREAM_MF:Int = $10008
+Const BASS_CTYPE_STREAM_AM:Int = $10009
+Const BASS_CTYPE_STREAM_DUMMY:Int = $18000
+Const BASS_CTYPE_STREAM_DEVICE:Int = $18001
 Const BASS_CTYPE_STREAM_WAV:Int = $40000 ' WAVE flag, LOWORD=codec
 Const BASS_CTYPE_STREAM_WAV_PCM:Int = $50001
 Const BASS_CTYPE_STREAM_WAV_FLOAT:Int = $50003
+
 Const BASS_CTYPE_MUSIC_MOD:Int = $20000
 Const BASS_CTYPE_MUSIC_MTM:Int = $20001
 Const BASS_CTYPE_MUSIC_S3M:Int = $20002
@@ -475,9 +495,16 @@ Const BASS_CTYPE_MUSIC_MO3:Int = $00100 ' MO3 flag
 ' BASS_ChannelGetLength/GetPosition/SetPosition modes
 Const BASS_POS_BYTE:Int = 0		' byte position
 Const BASS_POS_MUSIC_ORDER:Int = 1		' order.row position, MAKELONG(order,row)
+Const BASS_POS_OGG:Int = 3        ' OGG bitstream number
+Const BASS_POS_RESET:Int = $2000000 ' flag: reset user file buffers
+Const BASS_POS_RELATIVE:Int = $4000000 ' flag: seek relative To the Current position
+Const BASS_POS_INEXACT:Int = $8000000 ' flag: allow seeking To inexact position
 Const BASS_POS_DECODE:Int = $10000000 ' flag: get the decoding (not playing) position
 Const BASS_POS_DECODETO:Int = $20000000 ' flag: decode To the position instead of seeking
+Const BASS_POS_SCAN:Int = $40000000 ' flag: scan To the position
 
+' BASS_ChannelSetDevice/GetDevice option
+Const BASS_NODEVICE:Int = $20000
 
 
 ' BASS_ChannelIsActive return values
@@ -498,6 +525,9 @@ Const BASS_FILEPOS_START:Int = 3
 Const BASS_FILEPOS_CONNECTED:Int = 4
 Const BASS_FILEPOS_BUFFER:Int = 5
 Const BASS_FILEPOS_SOCKET:Int = 6
+Const BASS_FILEPOS_ASYNCBUF:Int = 7
+Const BASS_FILEPOS_SIZE:Int = 8
+Const BASS_FILEPOS_BUFFERING:Int = 9
 
 ' BASS_ChannelSetSync types
 Const BASS_SYNC_POS:Int = 0
@@ -512,6 +542,8 @@ Const BASS_SYNC_MUSICPOS:Int = 10
 Const BASS_SYNC_MUSICINST:Int = 1
 Const BASS_SYNC_MUSICFX:Int = 3
 Const BASS_SYNC_OGG_CHANGE:Int = 12
+Const BASS_SYNC_DEV_FAIL:Int = 14
+Const BASS_SYNC_DEV_FORMAT:Int = 15
 Const BASS_SYNC_MIXTIME:Int = $40000000	' FLAG: sync at mixtime, else at playtime
 Const BASS_SYNC_ONETIME:Int = $80000000	' FLAG: sync only once, else continuously
 
@@ -570,10 +602,14 @@ Const BASS_TAG_LYRICS3:Int = 10 ' Lyric3v2 tag : ASCII string
 Const BASS_TAG_CA_CODEC:Int = 11 ' CoreAudio codec info : TAG_CA_CODEC structure
 Const BASS_TAG_MF:Int = 13 ' Media Foundation tags : series of null-terminated UTF-8 strings
 Const BASS_TAG_WAVEFORMAT:Int = 14 ' WAVE format : WAVEFORMATEEX structure
+Const BASS_TAG_AM_MIME:Int = 15    ' Android Media MIME Type : ASCII String
+Const BASS_TAG_AM_NAME:Int = 16    ' Android Media codec name : ASCII String
 Const BASS_TAG_RIFF_INFO:Int = $100 ' RIFF "INFO" tags : series of null-terminated ANSI strings
 Const BASS_TAG_RIFF_BEXT:Int = $101 ' RIFF/BWF "bext" tags : TAG_BEXT structure
 Const BASS_TAG_RIFF_CART:Int = $102 ' RIFF/BWF "cart" tags : TAG_CART structure
 Const BASS_TAG_RIFF_DISP:Int = $103 ' RIFF "DISP" text tag : ANSI string
+Const BASS_TAG_RIFF_CUE:Int = $104 ' RIFF "cue " chunk : TAG_CUE structure
+Const BASS_TAG_RIFF_SMPL:Int = $105 ' RIFF "smpl" chunk : TAG_SMPL structure
 Const BASS_TAG_APE_BINARY:Int = $1000 ' + index #, binary APE tag : TAG_APE_BINARY structure
 Const BASS_TAG_MUSIC_NAME:Int = $10000 ' MOD music name : ANSI string
 Const BASS_TAG_MUSIC_MESSAGE:Int = $10001 ' MOD message : ANSI string
@@ -592,6 +628,7 @@ Const BASS_FX_DX8_GARGLE:Int = 5
 Const BASS_FX_DX8_I3DL2REVERB:Int = 6
 Const BASS_FX_DX8_PARAMEQ:Int = 7
 Const BASS_FX_DX8_REVERB:Int = 8
+Const BASS_FX_VOLUME:Int = 9
 
 ' BASS_RecordSetInput flags
 Const BASS_INPUT_OFF:Int = $10000
