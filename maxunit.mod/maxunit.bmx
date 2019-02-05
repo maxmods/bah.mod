@@ -700,6 +700,18 @@ Type TAssert
 		End If
 		failNotEquals(String.fromSizeT(expected), String.fromSizeT(actual), "assertEquals() : " +message)
   	End Function
+
+	Function assertNull(obj:String, message:String = Null)
+		If obj <> Null Then
+			fail("assertNull() : " + message)
+		End If
+	End Function
+
+	Function assertNotNull(obj:String, message:String = Null)
+		If obj = Null Then
+			fail("assertNotNull() : " + message)
+		End If
+	End Function
 ?
 
 End Type
