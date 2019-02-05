@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2018 Bruce A Henderson
+' Copyright (c) 2008-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,14 @@ about: An object-persistence framework.
 End Rem
 Module BaH.Persistence
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008-2018 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Improved persistence."
+ModuleInfo "History: Added unit tests."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Added custom serializers."
 ModuleInfo "History: 1.02"
@@ -46,6 +49,9 @@ Import BRL.Reflection
 Import BRL.Map
 Import BRL.Stream
 Import brl.standardio
+
+Import "glue.c"
+
 Rem
 bbdoc: Object Persistence.
 End Rem
@@ -54,7 +60,7 @@ Type TPersist
 	Rem
 	bbdoc: File format version
 	End Rem
-	Const BMO_VERSION:Int = 7
+	Const BMO_VERSION:Int = 8
 
 	Field doc:TxmlDoc
 	Field objectMap:TMap = New TMap
@@ -82,6 +88,9 @@ Type TPersist
 	End Rem
 	Global maxDepth:Int = xmlParserMaxDepth
 	
+	Global bbEmptyString:String = Base36(Long(bbEmptyStringPtr()))
+	Global bbNullObject:String = Base36(Long(bbNullObjectPtr()))
+
 	Field fileVersion:Int
 	
 	Field serializers:TMap = New TMap
@@ -280,15 +289,6 @@ Type TPersist
 			Case DoubleTypeId
 				t = "double"
 				fieldNode.setContent(f.GetDouble(obj))
-			Case StringTypeId
-				t = "string"
-				' only if not empty
-				Local s:String = f.GetString(obj)
-				If s Then
-					' escape special chars
-					s = doc.encodeEntities(s) 
-					fieldNode.setContent(s)
-				End If
 			Default
 				t = fieldType.Name()
 
@@ -320,12 +320,14 @@ Type TPersist
 				Else
 					Local fieldObject:Object = f.Get(obj)
 					Local fieldRef:String = GetObjRef(fieldObject)
-
-					If fieldObject Then
-						If Not Contains(fieldRef, fieldObject) Then
-							SerializeObject(fieldObject, fieldNode)
-						Else
-							fieldNode.setAttribute("ref", fieldRef)
+					
+					If fieldRef <> bbEmptyString And fieldRef <> bbNullObject Then
+						If fieldObject Then
+							If Not Contains(fieldRef, fieldObject) Then
+								SerializeObject(fieldObject, fieldNode)
+							Else
+								fieldNode.setAttribute("ref", fieldRef)
+							End If
 						End If
 					End If
 				End If
@@ -362,7 +364,12 @@ Type TPersist
 		End If
 		
 		If obj Then
-		
+			Local objRef:String = GetObjRef(obj)
+			
+			If objRef = bbEmptyString Or objRef = bbNullObject Then
+				Return Null
+			End If
+			
 			Local objectIsArray:Int = False
 		
 			Local tid:TTypeId = TTypeId.ForObject(obj)
@@ -376,8 +383,8 @@ Type TPersist
 			
 			node = parent.addChild(tidName)
 			
-			Local objRef:String = GetObjRef(obj)
 			node.setAttribute("ref", objRef)
+			
 			AddObjectRef(obj, node)
 
 			' We need to handle array objects differently..
@@ -407,11 +414,15 @@ Type TPersist
 				End If
 			
 			Else
-						
+
 				' special case for String object
 				If tid = StringTypeId Then
-					Local s:String = doc.encodeEntities(String(obj))
-					node.setContent(s)
+					If String(obj)
+						Local s:String = doc.encodeEntities(String(obj))
+						node.setContent(s)
+					Else
+						node.setContent("")
+					End If
 				Else
 					SerializeByType(tid, obj, node)
 				End If
@@ -565,8 +576,6 @@ Type TPersist
 							fieldObj.SetFloat(obj, fieldNode.GetContent().toFloat())
 						Case "double"
 							fieldObj.SetDouble(obj, fieldNode.GetContent().toDouble())
-						Case "string"
-							fieldObj.SetString(obj, fieldNode.GetContent())
 						Default
 							If fieldType.StartsWith("array:") Then
 
@@ -661,17 +670,21 @@ Type TPersist
 									EndIf
 								End If
 							Else
-								' is this a reference?
-								Local ref:String = fieldNode.getAttribute("ref")
-								If ref Then
-									Local objRef:Object = objectMap.ValueForKey(ref)
-									If objRef Then
-										fieldObj.Set(obj, objRef)
-									Else
-										Throw "Reference not mapped yet : " + ref
-									End If
+								If fieldType = "string" And fileVersion < 8 Then
+									fieldObj.SetString(obj, fieldNode.GetContent())
 								Else
-									fieldObj.Set(obj, DeSerializeObject("", fieldNode))
+									' is this a reference?
+									Local ref:String = fieldNode.getAttribute("ref")
+									If ref Then
+										Local objRef:Object = objectMap.ValueForKey(ref)
+										If objRef Then
+											fieldObj.Set(obj, objRef)
+										Else
+											Throw "Reference not mapped yet : " + ref
+										End If
+									Else
+										fieldObj.Set(obj, DeSerializeObject("", fieldNode))
+									End If
 								End If
 							End If
 					End Select
@@ -801,9 +814,9 @@ Type TPersist
 
 	Function GetObjRef:String(obj:Object)
 ?ptr64
-		Return Base36(Long(Byte Ptr(obj)))
+		Return Base36(Long(bbObjectRef(obj)))
 ?Not ptr64
-		Return Base36(Int(Byte Ptr(obj)))
+		Return Base36(Int(bbObjectRef(obj)))
 ?
 	End Function
 
@@ -833,9 +846,34 @@ Type TPersist
 		Return String.FromShorts( Short Ptr(buf) + offset,size-offset )
 	End Function
 
-	Method AddSerializer(serializer:TXmlSerializer)
+	Method AddSerializer(serializer:TXMLSerializer)
 		serializers.Insert(serializer.TypeName(), serializer)
 		serializer.persist = Self
+	End Method
+
+	Method DeserializeReferencedObject:Object(node:TxmlNode, direct:Int = False)
+		Local obj:Object
+		Local ref:String = node.getAttribute("ref")
+		If ref Then
+			Local objRef:Object = objectMap.ValueForKey(ref)
+			If objRef Then
+				obj = objRef
+			Else
+				Throw "Reference not mapped yet : " + ref
+			End If
+		Else
+			obj = DeserializeObject("", node, 0, direct)
+		End If
+		Return obj
+	End Method
+
+	Method SerializeReferencedObject:TxmlNode(obj:Object, node:TxmlNode)
+		Local ref:String = GetObjRef(obj)
+		If Contains(ref, obj)
+			node.setAttribute("ref", ref)
+		Else
+			Return SerializeObject(obj, node)
+		End If
 	End Method
 	
 End Type
@@ -915,7 +953,7 @@ Type TXMLSerializer
 	Field persist:TPersist
 
 	Rem
-	bbdoc: Returns the typeid name that the serializer handles - for example, "TMap"
+	bbdoc: Returns the typeid name that the serializer handles - For example, "TMap"
 	End Rem
 	Method TypeName:String() Abstract
 	
@@ -932,9 +970,7 @@ Type TXMLSerializer
 	Rem
 	bbdoc: Returns a new instance.
 	End Rem	
-	Method Clone:TXMLSerializer()
-		Return New Self
-	End Method
+	Method Clone:TXMLSerializer() Abstract
 	
 	Rem
 	bbdoc: 
@@ -999,6 +1035,10 @@ Type TXMLSerializer
 	Method GetObjRef:String(obj:Object)
 		Return TPersist.GetObjRef(obj)
 	End Method
+	
+	Method GetReferencedObj:Object(ref:String)
+		Return persist.objectMap.ValueForKey(ref)
+	End Method
 
 	Rem
 	bbdoc: Serializes a single field.
@@ -1018,6 +1058,14 @@ Type TXMLSerializer
 		persist.DeserializeFields(objType, obj, node)
 	End Method
 	
+	Method DeserializeReferencedObject:Object(node:TxmlNode, direct:Int = False)
+		Return persist.DeserializeReferencedObject(node, direct)
+	End Method
+	
+	Method SerializeReferencedObject:TxmlNode(obj:Object, node:TxmlNode)
+		Return persist.SerializeReferencedObject(obj, node)
+	End Method
+	
 End Type
 
 Type TMapXMLSerializer Extends TXMLSerializer
@@ -1034,8 +1082,9 @@ Type TMapXMLSerializer Extends TXMLSerializer
 		If map Then
 			For Local mapNode:TNode = EachIn map
 				Local n:TxmlNode = node.addChild("n")
-				SerializeObject(mapNode.Key(), n.addChild("k"))
-				SerializeObject(mapNode.Value(), n.addChild("v"))
+				
+				SerializeReferencedObject(mapNode.Key(), n.addChild("k"))
+				SerializeReferencedObject(mapNode.Value(), n.addChild("v"))
 			Next
 		End If
 	End Method
@@ -1043,7 +1092,9 @@ Type TMapXMLSerializer Extends TXMLSerializer
 	Method Deserialize:Object(objType:TTypeId, node:TxmlNode)
 		Local map:TMap = TMap(CreateObjectInstance(objType, node))
 	
-		If GetFileVersion() <= 5
+		Local ver:Int = GetFileVersion()
+	
+		If ver <= 5
 			Local attr:String = node.getAttribute("nil")
 			If attr Then
 				AddObjectRef(attr, nil)
@@ -1053,15 +1104,27 @@ Type TMapXMLSerializer Extends TXMLSerializer
 		Else
 			If node.getChildren() Then
 				For Local mapNode:TxmlNode = EachIn node.getChildren()
-					Local keyNode:TxmlNode = TxmlNode(mapNode.getFirstChild())
-					Local valueNode:TxmlNode = TxmlNode(mapNode.getLastChild())
-					
-					map.Insert(DeserializeObject(keyNode), DeserializeObject(valueNode))
+					If ver < 8 Then
+						Local key:Object = DeserializeObject(TxmlNode(mapNode.getFirstChild()))
+						Local value:Object = DeserializeObject(TxmlNode(mapNode.getLastChild()))
+
+						map.Insert(key, value)
+					Else
+
+						Local key:Object = DeserializeReferencedObject(TxmlNode(mapNode.getFirstChild()))
+						Local value:Object = DeserializeReferencedObject(TxmlNode(mapNode.getLastChild()))
+				
+						map.Insert(key, value)
+					End If
 				Next
 			End If
 		End If
 		
 		Return map
+	End Method
+
+	Method Clone:TXMLSerializer()
+		Return New TMapXMLSerializer
 	End Method
 
 End Type
@@ -1077,20 +1140,26 @@ Type TListXMLSerializer Extends TXMLSerializer
 		
 		If list Then
 			For Local item:Object = EachIn list
-				SerializeObject(item, node)
+				SerializeReferencedObject(item, node.addChild("e"))
 			Next
 		End If
 	End Method
 	
 	Method Deserialize:Object(objType:TTypeId, node:TxmlNode)
 		Local list:TList = TList(CreateObjectInstance(objType, node))
+		
+		Local ver:Int = GetFileVersion()
 
-		If GetFileVersion() <= 5
+		If ver <= 5
 			DeserializeFields(objType, list, node)
 		Else
 			If node.getChildren() Then
 				For Local listNode:TxmlNode = EachIn node.getChildren()
-					list.AddLast(DeserializeObject(listNode, True))
+					If ver < 8 Then
+						list.AddLast(DeserializeObject(listNode, True))
+					Else
+						list.AddLast(DeserializeReferencedObject(listNode))
+					End If
 				Next
 			End If
 		End If
@@ -1098,7 +1167,17 @@ Type TListXMLSerializer Extends TXMLSerializer
 		Return list
 	End Method
 
+	Method Clone:TXMLSerializer()
+		Return New TListXMLSerializer
+	End Method
+
 End Type
 
 TXMLPersistenceBuilder.RegisterDefault(New TMapXMLSerializer)
 TXMLPersistenceBuilder.RegisterDefault(New TListXMLSerializer)
+
+Extern
+	Function bbEmptyStringPtr:Byte Ptr()
+	Function bbNullObjectPtr:Byte Ptr()
+	Function bbObjectRef:Byte Ptr(obj:Object)
+End Extern

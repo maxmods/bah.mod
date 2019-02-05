@@ -50,7 +50,7 @@ Type TIntMapXMLSerializer Extends TXMLSerializer
 			For Local mapNode:TIntNode = EachIn map
 				Local v:TxmlNode
 				If mapNode.Value() Then
-					v = SerializeObject(mapNode.Value(), node)
+					v = SerializeReferencedObject(mapNode.Value(), node)
 				Else
 					v = node.addChild("Null")
 				End If
@@ -62,16 +62,26 @@ Type TIntMapXMLSerializer Extends TXMLSerializer
 	Method Deserialize:Object(objType:TTypeId, node:TxmlNode)
 		Local map:TIntMap = TIntMap(CreateObjectInstance(objType, node))
 		If node.getChildren() Then
+			Local ver:Int = GetFileVersion()
+			
 			For Local mapNode:TxmlNode = EachIn node.getChildren()
 				Local index:Int = Int(mapNode.getAttribute("index"))
 				Local obj:Object
 				If mapNode.GetName() <> "Null" Then
-					obj = DeserializeObject(mapNode, True)
+					If ver < 8 Then
+						obj = DeserializeObject(mapNode, True)
+					Else
+						obj = DeserializeReferencedObject(mapNode, True)
+					End If
 				End If
 				map.Insert(index, obj)
 			Next
 		End If
 		Return map
+	End Method
+
+	Method Clone:TXMLSerializer()
+		Return New TIntMapXMLSerializer
 	End Method
 
 End Type
@@ -88,8 +98,8 @@ Type TStringMapXMLSerializer Extends TXMLSerializer
 		If map Then
 			For Local mapNode:TStringNode = EachIn map
 				Local n:TxmlNode = node.addChild("n")
-				SerializeObject(mapNode.Key(), n.addChild("k"))
-				SerializeObject(mapNode.Value(), n.addChild("v"))
+				SerializeReferencedObject(mapNode.Key(), n.addChild("k"))
+				SerializeReferencedObject(mapNode.Value(), n.addChild("v"))
 			Next
 		End If
 	End Method
@@ -98,15 +108,31 @@ Type TStringMapXMLSerializer Extends TXMLSerializer
 		Local map:TStringMap = TStringMap(CreateObjectInstance(objType, node))
 
 		If node.getChildren() Then
+			Local ver:Int = GetFileVersion()
+
 			For Local mapNode:TxmlNode = EachIn node.getChildren()
 				Local keyNode:TxmlNode = TxmlNode(mapNode.getFirstChild())
 				Local valueNode:TxmlNode = TxmlNode(mapNode.getLastChild())
 				
-				map.Insert(String(DeserializeObject(keyNode)), DeserializeObject(valueNode))
+				Local k:String
+				Local v:Object
+				
+				If ver < 8 Then
+					k = String(DeserializeObject(keyNode))
+					v = DeserializeObject(valueNode)
+				Else
+					k = String(DeserializeReferencedObject(keyNode))
+					v = DeserializeReferencedObject(valueNode)
+				End If
+				map.Insert(k, v)
 			Next
 		End If
 
 		Return map
+	End Method
+
+	Method Clone:TXMLSerializer()
+		Return New TStringMapXMLSerializer
 	End Method
 
 End Type
@@ -115,4 +141,3 @@ TXMLPersistenceBuilder.RegisterDefault(New TIntMapXMLSerializer)
 TXMLPersistenceBuilder.RegisterDefault(New TStringMapXMLSerializer)
 
 ?
-
