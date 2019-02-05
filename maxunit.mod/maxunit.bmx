@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2010 Bruce A Henderson
+' Copyright (c) 2006-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,14 @@ bbdoc: MaxUnit - Unit Testing
 End Rem
 Module BaH.MaxUnit
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "Credit: Based loosely on the JUnit testing framework by Erich Gamma and Kent Beck. see junit.org"
-ModuleInfo "Copyright: (c) 2006-2010 Bruce A Henderson"
+ModuleInfo "Copyright: (c) 2006-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Overloaded assertEquals() functions for NG."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Modified summary to count test runs, and tests."
 ModuleInfo "History: TTestSuite.run() now returns number of failures. (Muttley)"
@@ -385,6 +387,9 @@ Type TTestFunction
 End Type
 
 
+Rem
+bbdoc: Failed assertion.
+End Rem
 Type AssertionFailedException
 	Field message:String
 	
@@ -407,8 +412,8 @@ End Rem
 Type TAssert
 
 	Rem
-	bbdoc: Asserts that a condition is true.
-	about: If it isn't it throws an AssertionFailedException with the given message.
+	bbdoc: Asserts that a condition is #True.
+	about: If it isn't #True, it throws an #AssertionFailedException with the given message.
 	End Rem
 	Function assertTrue(bool:Int, message:String = Null)
 		If Not bool Then
@@ -417,8 +422,8 @@ Type TAssert
 	End Function
 	
 	Rem
-	bbdoc: Asserts that a condition is false.
-	about: If it isn't it throws an AssertionFailedException with the given message.
+	bbdoc: Asserts that a condition is #False.
+	about: If it isn't #False, it throws an #AssertionFailedException with the given message.
 	End Rem
 	Function assertFalse(bool:Int, message:String = Null)
 		If bool Then
@@ -437,7 +442,7 @@ Type TAssert
 
 	Rem
 	bbdoc: Asserts that two objects are equal.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
 	End Rem
 	Function assertEquals(expected:Object, actual:Object, message:String = Null)
 		If expected = Null And actual = Null Then
@@ -449,10 +454,9 @@ Type TAssert
 		failNotEquals(expected, actual, "assertEquals() : " + message)
 	End Function
 
-
 	Rem
 	bbdoc: Asserts that two ints are equal.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
 	End Rem
   	Function assertEqualsI(expected:Int, actual:Int, message:String = Null)
 		If expected = Null And actual = Null Then
@@ -468,7 +472,7 @@ Type TAssert
 
 	Rem
 	bbdoc: Asserts that two longs are equal.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	about: If they are not equal an #AssertionFailedException is thrown with the given message.
 	End Rem
   	Function assertEqualsL(expected:Long, actual:Long, message:String = Null)
 		If expected = Null And actual = Null Then
@@ -485,7 +489,7 @@ Type TAssert
 
 	Rem
 	bbdoc: Asserts that two floats are equal.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
 	End Rem
   	Function assertEqualsF(expected:Float, actual:Float, delta:Float = 0, message:String = Null)
 		If expected = Null And actual = Null Then
@@ -503,7 +507,7 @@ Type TAssert
 
 	Rem
 	bbdoc: Asserts that two doubles are equal.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
 	End Rem
   	Function assertEqualsD(expected:Double, actual:Double, delta:Double = 0, message:String = Null)
 		If expected = Null And actual = Null Then
@@ -521,7 +525,7 @@ Type TAssert
 
 	Rem
 	bbdoc: Asserts that two shorts are equal.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
 	End Rem
   	Function assertEqualsS(expected:Short, actual:Short, message:String = Null)
 		If expected = Null And actual = Null Then
@@ -537,7 +541,7 @@ Type TAssert
 
 	Rem
 	bbdoc: Asserts that two bytes are equal.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
 	End Rem
   	Function assertEqualsB(expected:Byte, actual:Byte, message:String = Null)
 		If expected = Null And actual = Null Then
@@ -552,8 +556,8 @@ Type TAssert
   	End Function
 
 	Rem
-	bbdoc: Asserts that an object isn't null.
-	about: If it is an AssertionFailedException is thrown with the given message.
+	bbdoc: Asserts that an object isn't #Null.
+	about: If it is #Null, an #AssertionFailedException is thrown with the given message.
 	End Rem
 	Function assertNotNull(obj:Object, message:String = Null)
 		If obj = Null Then
@@ -562,8 +566,8 @@ Type TAssert
 	End Function
 	
 	Rem
-	bbdoc: Asserts that an Object is null.
-	If it is not an AssertionFailedException is thrown with the given message.
+	bbdoc: Asserts that an #Object is #Null.
+	If it is not #Null, an #AssertionFailedException is thrown with the given message.
 	End Rem
 	Function assertNull(obj:Object, message:String = Null)
 		If obj <> Null Then
@@ -572,8 +576,8 @@ Type TAssert
 	End Function
 
 	Rem
-	bbdoc: Asserts that two objects refer to the same object.
-	about: If they are not an AssertionFailedException is thrown with the given message.
+	bbdoc: Asserts that two objects refer to the same #Object.
+	about: If they are not the same, an #AssertionFailedException is thrown with the given message.
 	End Rem
 	Function assertSame(expected:Object, actual:Object, message:String = Null)
 		If expected = actual Then
@@ -585,8 +589,8 @@ Type TAssert
 
 
  	Rem
- 	bbdoc: Asserts that two objects refer different objects.
-	about: If they are an AssertionFailedException is thrown with the given message.
+ 	bbdoc: Asserts that two objects refer to different objects.
+	about: If they are the same, an #AssertionFailedException is thrown with the given message.
  	End Rem
 	Function assertNotSame(expected:Object, actual:Object, message:String = Null)
 		If expected = actual Then
@@ -623,5 +627,79 @@ Type TAssert
 		End If
 		Return formatted + "expected:<" + expected.toString() + "> but was:<" + actual.toString() + ">"
 	End Function
+
+?bmxng
+  	Function assertEquals(expected:Int, actual:Int, message:String = Null)
+		assertEqualsI(expected, actual, message)
+	End Function
+
+  	Function assertEquals(expected:Long, actual:Long, message:String = Null)
+		assertEqualsL(expected, actual, message)
+	End Function
+
+ 	Function assertEquals(expected:Float, actual:Float, delta:Float = 0, message:String = Null)
+		assertEqualsF(expected, actual, delta, message)
+	End Function
+
+  	Function assertEquals(expected:Double, actual:Double, delta:Double = 0, message:String = Null)
+		assertEqualsD(expected, actual, delta, message)
+	End Function
+
+  	Function assertEquals(expected:Short, actual:Short, message:String = Null)
+		assertEqualsS(expected, actual, message)
+	End Function
+
+  	Function assertEquals(expected:Byte, actual:Byte, message:String = Null)
+		assertEqualsB(expected, actual, message)
+	End Function
+
+	Rem
+	bbdoc: Asserts that two UInts are equal.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
+	End Rem
+  	Function assertEquals(expected:UInt, actual:UInt, message:String = Null)
+		If expected = Null And actual = Null Then
+			Return
+		End If
+		If expected <> Null And actual <> Null Then
+			If expected = actual Then
+				Return
+			End If
+		End If
+		failNotEquals(String.fromUInt(expected), String.fromUInt(actual), "assertEquals() : " +message)
+  	End Function
+
+	Rem
+	bbdoc: Asserts that two ULongs are equal.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
+	End Rem
+  	Function assertEquals(expected:ULong, actual:ULong, message:String = Null)
+		If expected = Null And actual = Null Then
+			Return
+		End If
+		If expected <> Null And actual <> Null Then
+			If expected = actual Then
+				Return
+			End If
+		End If
+		failNotEquals(String.fromULong(expected), String.fromULong(actual), "assertEquals() : " +message)
+  	End Function
+
+	Rem
+	bbdoc: Asserts that two Size_Ts are equal.
+	about: If they are not equal, an #AssertionFailedException is thrown with the given message.
+	End Rem
+  	Function assertEquals(expected:Size_T, actual:Size_T, message:String = Null)
+		If expected = Null And actual = Null Then
+			Return
+		End If
+		If expected <> Null And actual <> Null Then
+			If expected = actual Then
+				Return
+			End If
+		End If
+		failNotEquals(String.fromSizeT(expected), String.fromSizeT(actual), "assertEquals() : " +message)
+  	End Function
+?
 
 End Type
