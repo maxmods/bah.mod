@@ -90,6 +90,7 @@ Type TPersist
 	
 	Global bbEmptyString:String = Base36(Long(bbEmptyStringPtr()))
 	Global bbNullObject:String = Base36(Long(bbNullObjectPtr()))
+	Global bbEmptyArray:String = Base36(Long(bbEmptyArrayPtr()))
 
 	Field fileVersion:Int
 	
@@ -321,7 +322,7 @@ Type TPersist
 					Local fieldObject:Object = f.Get(obj)
 					Local fieldRef:String = GetObjRef(fieldObject)
 					
-					If fieldRef <> bbEmptyString And fieldRef <> bbNullObject Then
+					If fieldRef <> bbEmptyString And fieldRef <> bbNullObject And fieldRef <> bbEmptyArray Then
 						If fieldObject Then
 							If Not Contains(fieldRef, fieldObject) Then
 								SerializeObject(fieldObject, fieldNode)
@@ -366,7 +367,7 @@ Type TPersist
 		If obj Then
 			Local objRef:String = GetObjRef(obj)
 			
-			If objRef = bbEmptyString Or objRef = bbNullObject Then
+			If objRef = bbEmptyString Or objRef = bbNullObject Or objRef = bbEmptyArray Then
 				Return Null
 			End If
 			
@@ -1179,5 +1180,6 @@ TXMLPersistenceBuilder.RegisterDefault(New TListXMLSerializer)
 Extern
 	Function bbEmptyStringPtr:Byte Ptr()
 	Function bbNullObjectPtr:Byte Ptr()
+	Function bbEmptyArrayPtr:Byte Ptr()
 	Function bbObjectRef:Byte Ptr(obj:Object)
 End Extern

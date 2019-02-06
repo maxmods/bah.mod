@@ -29,6 +29,10 @@ void * bbNullObjectPtr() {
 	return &bbNullObject;
 }
 
+void * bbEmptyArrayPtr() {
+	return &bbEmptyArray;
+}
+
 void * bbObjectRef(BBObject * obj) {
 	return obj;
 }
