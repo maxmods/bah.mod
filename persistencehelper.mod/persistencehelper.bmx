@@ -48,11 +48,9 @@ Type TIntMapXMLSerializer Extends TXMLSerializer
 		
 		If map Then
 			For Local mapNode:TIntNode = EachIn map
-				Local v:TxmlNode
+				Local v:TxmlNode = node.addChild("e")
 				If mapNode.Value() Then
-					v = SerializeReferencedObject(mapNode.Value(), node)
-				Else
-					v = node.addChild("Null")
+					SerializeReferencedObject(mapNode.Value(), v)
 				End If
 				v.setAttribute("index", mapNode.Key())
 			Next
@@ -67,12 +65,10 @@ Type TIntMapXMLSerializer Extends TXMLSerializer
 			For Local mapNode:TxmlNode = EachIn node.getChildren()
 				Local index:Int = Int(mapNode.getAttribute("index"))
 				Local obj:Object
-				If mapNode.GetName() <> "Null" Then
-					If ver < 8 Then
-						obj = DeserializeObject(mapNode, True)
-					Else
-						obj = DeserializeReferencedObject(mapNode, True)
-					End If
+				If ver < 8 Then
+					obj = DeserializeObject(mapNode, True)
+				Else
+					obj = DeserializeReferencedObject(mapNode)
 				End If
 				map.Insert(index, obj)
 			Next
