@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2016 Bruce A Henderson
+' Copyright (c) 2007-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,15 @@ bbdoc: FreeImage Library
 End Rem
 Module BaH.FreeImage
 
-ModuleInfo "Version: 1.11"
+ModuleInfo "Version: 1.12"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
-ModuleInfo "Copyright: Wrapper - 2007-2016 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2019 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.12"
+ModuleInfo "History: Updated to FreeImage 3.18."
+ModuleInfo "History: Fixed mac x86 rgba ordering (again)."
 ModuleInfo "History: 1.11"
 ModuleInfo "History: NG overload support."
 ModuleInfo "History: 1.10"
@@ -96,6 +99,9 @@ ModuleInfo "CC_OPTS: -D__ANSI__"
 ?win32
 ' fixes snprintf not define error on gcc 4.7
 ModuleInfo "CC_OPTS: -D_GLIBCXX_USE_C99_DYNAMIC"
+?macos
+' RGB colour order for mac
+ModuleInfo "CC_OPTS: -DFREEIMAGE_COLORORDER=1"
 ?
 
 Import BRL.Pixmap
@@ -106,9 +112,6 @@ Import BRL.StandardIO
 Import "common.bmx"
 
 ' NOTES :
-'
-' Changed FreeImage.h (Mac RGB colour issue)
-'    Use FREEIMAGE_COLORORDER_RGB for Mac x86
 '
 ' Changed ImfPxr24Compressor.cpp and ImfZipCompressor.cpp
 '    Mods to support zlib prefix change.
@@ -133,6 +136,17 @@ Import "common.bmx"
 '
 ' Changed ImfSystemSpecific.h
 '    Don't use posix function for win32
+'
+' Changed ImfPxr24Compressor.cpp
+'    undef compress and uncompress
+'
+' Changed ImfDwaCompressor.cpp
+'    undef compress and uncompress
+'    added fi_ prefixes for zlib calls.
+'
+' Changed ImfZip.cpp
+'    undef compress and uncompress
+'    added fi_ prefixes for zlib calls.
 '
 
 Rem
@@ -840,9 +854,9 @@ Type TFreeImage
 	End Function
 	
 	
-	Function read:Int(handler:TFreeImage, c:Byte Ptr, n:Int) { nomangle }
+	Function Read:Int(handler:TFreeImage, c:Byte Ptr, n:Int) { nomangle }
 
-		Return handler.stream.read(c, n)
+		Return handler.stream.Read(c, n)
 	
 	End Function
 	
