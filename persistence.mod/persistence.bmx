@@ -87,11 +87,15 @@ Type TPersist
 	</p>
 	End Rem
 	Global maxDepth:Int = xmlParserMaxDepth
-	
+?ptr64
 	Global bbEmptyString:String = Base36(Long(bbEmptyStringPtr()))
 	Global bbNullObject:String = Base36(Long(bbNullObjectPtr()))
 	Global bbEmptyArray:String = Base36(Long(bbEmptyArrayPtr()))
-
+?Not ptr64
+	Global bbEmptyString:String = Base36(Int(bbEmptyStringPtr()))
+	Global bbNullObject:String = Base36(Int(bbNullObjectPtr()))
+	Global bbEmptyArray:String = Base36(Int(bbEmptyArrayPtr()))
+?
 	Field fileVersion:Int
 	
 	Field serializers:TMap = New TMap
