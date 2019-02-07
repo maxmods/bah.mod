@@ -54,7 +54,7 @@ static bool GLOBAL_SYSTEM_LITTLE_ENDIAN =
 
 #ifdef IMF_HAVE_SSE2
 
-#if defined __GNUC__ && !defined(__WIN32__) // BaH
+#if defined(__GNUC__) && !defined(__WIN32__) // BaH
 // Causes issues on certain gcc versions
 //#define EXR_FORCEINLINE inline __attribute__((always_inline))
 #define EXR_FORCEINLINE inline

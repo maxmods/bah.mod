@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2016 Bruce A Henderson
+ Copyright (c) 2007-2019 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  THE SOFTWARE.
 */
 
-#include <blitz.h>
+#include "brl.mod/blitz.mod/blitz.h"
 
 #include "FreeImage.h"
 #include "Plugin.h"
@@ -45,7 +45,7 @@ extern "C" {
 	void bmx_freeimage_delete(MaxFreeImage * freeimage);
 
 	
-	unsigned CB_PREF(bah_freeimage_TFreeImage_read)(void * maxHandle, void *buffer, int n);
+	unsigned CB_PREF(bah_freeimage_TFreeImage_Read)(void * maxHandle, void *buffer, int n);
 	long CB_PREF(bah_freeimage_TFreeImage_tell)(void * maxHandle);
 	void CB_PREF(bah_freeimage_TFreeImage_seek)(void * maxHandle, int pos);
 	unsigned CB_PREF(bah_freeimage_TFreeImage_write)(void * maxHandle, void *buffer, int n);
@@ -208,7 +208,7 @@ unsigned DLL_CALLCONV bmx_stream_read(void *buffer, unsigned size, unsigned coun
 
 	// convert to number of bytes to read...
 	unsigned fullSize = count * size;
-	unsigned actual = CB_PREF(bah_freeimage_TFreeImage_read)(handle, buffer, fullSize);
+	unsigned actual = CB_PREF(bah_freeimage_TFreeImage_Read)(handle, buffer, fullSize);
 
 	if ((count != 0) && (actual == fullSize / count)) {
 		return count;

@@ -1,13 +1,13 @@
 /* zconf.h -- configuration of the zlib compression library
- * Copyright (C) 1995-2013 Jean-loup Gailly.
+ * Copyright (C) 1995-2016 Jean-loup Gailly, Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id: zconf.h,v 1.10 2013/05/10 17:22:52 drolon Exp $ */
+/* @(#) $Id: zconf.h,v 1.11 2017/02/11 03:07:47 drolon Exp $ */
 
 #ifndef ZCONF_H
 #define ZCONF_H
-/* BaH - changed prefix to fi_ */
+
 /*
  * If you *really* need a unique prefix for all types and library functions,
  * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.
@@ -17,7 +17,7 @@
 #ifdef Z_PREFIX     /* may be set to #if 1 by ./configure */
 #  define Z_PREFIX_SET
 
-/* all linked symbols */
+/* all linked symbols and init macros */
 #  define _dist_code            fi__dist_code
 #  define _length_code          fi__length_code
 #  define _tr_align             fi__tr_align
@@ -29,6 +29,7 @@
 #  define adler32               fi_adler32
 #  define adler32_combine       fi_adler32_combine
 #  define adler32_combine64     fi_adler32_combine64
+#  define adler32_z             fi_adler32_z
 #  ifndef Z_SOLO
 #    define compress              fi_compress
 #    define compress2             fi_compress2
@@ -37,10 +38,14 @@
 #  define crc32                 fi_crc32
 #  define crc32_combine         fi_crc32_combine
 #  define crc32_combine64       fi_crc32_combine64
+#  define crc32_z               fi_crc32_z
 #  define deflate               fi_deflate
 #  define deflateBound          fi_deflateBound
 #  define deflateCopy           fi_deflateCopy
 #  define deflateEnd            fi_deflateEnd
+#  define deflateGetDictionary  fi_deflateGetDictionary
+#  define deflateInit           fi_deflateInit
+#  define deflateInit2          fi_deflateInit2
 #  define deflateInit2_         fi_deflateInit2_
 #  define deflateInit_          fi_deflateInit_
 #  define deflateParams         fi_deflateParams
@@ -54,9 +59,9 @@
 #  define deflate_copyright     fi_deflate_copyright
 #  define get_crc_table         fi_get_crc_table
 #  ifndef Z_SOLO
-#    define gfi_error              fi_gfi_error
-#    define gfi_intmax             fi_gfi_intmax
-#    define gfi_strwinerror        fi_gfi_strwinerror
+#    define gz_error              fi_gz_error
+#    define gz_intmax             fi_gz_intmax
+#    define gz_strwinerror        fi_gz_strwinerror
 #    define gzbuffer              fi_gzbuffer
 #    define gzclearerr            fi_gzclearerr
 #    define gzclose               fi_gzclose
@@ -67,6 +72,8 @@
 #    define gzeof                 fi_gzeof
 #    define gzerror               fi_gzerror
 #    define gzflush               fi_gzflush
+#    define gzfread               fi_gzfread
+#    define gzfwrite              fi_gzfwrite
 #    define gzgetc                fi_gzgetc
 #    define gzgetc_               fi_gzgetc_
 #    define gzgets                fi_gzgets
@@ -78,7 +85,6 @@
 #      define gzopen_w              fi_gzopen_w
 #    endif
 #    define gzprintf              fi_gzprintf
-#    define gzvprintf             fi_gzvprintf
 #    define gzputc                fi_gzputc
 #    define gzputs                fi_gzputs
 #    define gzread                fi_gzread
@@ -89,32 +95,39 @@
 #    define gztell                fi_gztell
 #    define gztell64              fi_gztell64
 #    define gzungetc              fi_gzungetc
+#    define gzvprintf             fi_gzvprintf
 #    define gzwrite               fi_gzwrite
 #  endif
 #  define inflate               fi_inflate
 #  define inflateBack           fi_inflateBack
 #  define inflateBackEnd        fi_inflateBackEnd
+#  define inflateBackInit       fi_inflateBackInit
 #  define inflateBackInit_      fi_inflateBackInit_
+#  define inflateCodesUsed      fi_inflateCodesUsed
 #  define inflateCopy           fi_inflateCopy
 #  define inflateEnd            fi_inflateEnd
+#  define inflateGetDictionary  fi_inflateGetDictionary
 #  define inflateGetHeader      fi_inflateGetHeader
+#  define inflateInit           fi_inflateInit
+#  define inflateInit2          fi_inflateInit2
 #  define inflateInit2_         fi_inflateInit2_
 #  define inflateInit_          fi_inflateInit_
 #  define inflateMark           fi_inflateMark
 #  define inflatePrime          fi_inflatePrime
 #  define inflateReset          fi_inflateReset
 #  define inflateReset2         fi_inflateReset2
+#  define inflateResetKeep      fi_inflateResetKeep
 #  define inflateSetDictionary  fi_inflateSetDictionary
-#  define inflateGetDictionary  fi_inflateGetDictionary
 #  define inflateSync           fi_inflateSync
 #  define inflateSyncPoint      fi_inflateSyncPoint
 #  define inflateUndermine      fi_inflateUndermine
-#  define inflateResetKeep      fi_inflateResetKeep
+#  define inflateValidate       fi_inflateValidate
 #  define inflate_copyright     fi_inflate_copyright
 #  define inflate_fast          fi_inflate_fast
 #  define inflate_table         fi_inflate_table
 #  ifndef Z_SOLO
 #    define uncompress            fi_uncompress
+#    define uncompress2           fi_uncompress2
 #  endif
 #  define zError                fi_zError
 #  ifndef Z_SOLO
@@ -133,8 +146,8 @@
 #  ifndef Z_SOLO
 #    define gzFile                fi_gzFile
 #  endif
-#  define gfi_header             fi_gfi_header
-#  define gfi_headerp            fi_gfi_headerp
+#  define gz_header             fi_gz_header
+#  define gz_headerp            fi_gz_headerp
 #  define in_func               fi_in_func
 #  define intf                  fi_intf
 #  define out_func              fi_out_func
@@ -147,13 +160,10 @@
 #  define voidpf                fi_voidpf
 
 /* all zlib structs in zlib.h and zconf.h */
-#  define gfi_header_s           fi_gfi_header_s
+#  define gz_header_s           fi_gz_header_s
 #  define internal_state        fi_internal_state
 
-/* BaH */
-#  define z_errmsg				fi_z_errmsg
 #endif
-
 
 #if defined(__MSDOS__) && !defined(MSDOS)
 #  define MSDOS
@@ -227,9 +237,19 @@
 #  define z_const
 #endif
 
-/* Some Mac compilers merge all .h files incorrectly: */
-#if defined(__MWERKS__)||defined(applec)||defined(THINK_C)||defined(__SC__)
-#  define NO_DUMMY_DECL
+#ifdef Z_SOLO
+   typedef unsigned long z_size_t;
+#else
+#  define z_longlong long long
+#  if defined(NO_SIZE_T)
+     typedef unsigned NO_SIZE_T z_size_t;
+#  elif defined(STDC)
+#    include <stddef.h>
+     typedef size_t z_size_t;
+#  else
+     typedef unsigned long z_size_t;
+#  endif
+#  undef z_longlong
 #endif
 
 /* Maximum value for memLevel in deflateInit2 */
@@ -259,7 +279,7 @@
  Of course this will generally degrade compression (there's no free lunch).
 
    The memory requirements for inflate are (in bytes) 1 << windowBits
- that is, 32K for windowBits=15 (default value) plus a few kilobytes
+ that is, 32K for windowBits=15 (default value) plus about 7 kilobytes
  for small objects.
 */
 

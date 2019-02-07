@@ -2170,7 +2170,7 @@ DwaCompressor::compress
         uLongf inSize  = (uLongf)(*unknownUncompressedSize);
         uLongf outSize = (uLongf)(ceil ((float)inSize * 1.01f) + 100);
 
-        if (Z_OK != ::compress2 ((Bytef *)outDataPtr,
+        if (Z_OK != ::fi_compress2 ((Bytef *)outDataPtr,
                                  &outSize,
                                  (const Bytef *)_planarUncBuffer[UNKNOWN],
                                  inSize,
@@ -2209,7 +2209,7 @@ DwaCompressor::compress
                 uLongf destLen = (uLongf)
                     (2 * (*totalAcUncompressedCount) * sizeof (unsigned short));
 
-                if (Z_OK != ::compress2
+                if (Z_OK != ::fi_compress2
                                 ((Bytef *)outDataPtr,
                                  &destLen,
                                  (Bytef *)_packedAcBuffer, 
@@ -2262,7 +2262,7 @@ DwaCompressor::compress
         uLongf dstLen =
             (uLongf)ceil (1.01f * (float) * rleUncompressedSize) + 24;
 
-        if (Z_OK != ::compress2
+        if (Z_OK != ::fi_compress2
                         ((Bytef *)outDataPtr, 
                          &dstLen, 
                          (Bytef *)_rleBuffer, 
@@ -2382,7 +2382,12 @@ DwaCompressor::uncompress
 
     const char *dataPtr            = inPtr + NUM_SIZES_SINGLE * sizeof(Int64);
 
-    if (inSize < headerSize + compressedSize) 
+    /* Both the sum and individual sizes are checked in case of overflow. */
+    if (inSize < (headerSize + compressedSize) ||
+        inSize < unknownCompressedSize ||
+        inSize < acCompressedSize ||
+        inSize < dcCompressedSize ||
+        inSize < rleCompressedSize)
     {
         throw Iex::InputExc("Error uncompressing DWA data"
                             "(truncated file).");
