@@ -89,7 +89,6 @@ static const void *symbols[] = {
   &ZSTD_sizeof_CStream,
   &ZSTD_createDStream_advanced,
   &ZSTD_initDStream_usingDict,
-  &ZSTD_setDStreamParameter,
   &ZSTD_initDStream_usingDDict,
   &ZSTD_resetDStream,
   &ZSTD_sizeof_DStream,
@@ -144,6 +143,8 @@ static const void *symbols[] = {
 /* zdict.h: advanced functions */
   &ZDICT_trainFromBuffer_cover,
   &ZDICT_optimizeTrainFromBuffer_cover,
+  &ZDICT_trainFromBuffer_fastCover,
+  &ZDICT_optimizeTrainFromBuffer_fastCover,
   &ZDICT_finalizeDictionary,
   &ZDICT_trainFromBuffer_legacy,
   &ZDICT_addEntropyTablesFromBuffer,

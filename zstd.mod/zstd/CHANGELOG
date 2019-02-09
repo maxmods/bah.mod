@@ -1,3 +1,46 @@
+v1.3.8
+perf: better decompression speed on large files (+7%) and cold dictionaries (+15%)
+perf: slightly better compression ratio at high compression modes
+api : finalized advanced API, last stage before "stable" status
+api : new --rsyncable mode, by @terrelln
+api : support decompression of empty frames into NULL (used to be an error) (#1385)
+build: new set of macros to build a minimal size decoder, by @felixhandte
+build: fix compilation on MIPS32, reported by @clbr (#1441)
+build: fix compilation with multiple -arch flags, by @ryandesign
+build: highly upgraded meson build, by @lzutao
+build: improved buck support, by @obelisk
+build: fix cmake script : can create debug build, by @pitrou
+build: Makefile : grep works on both colored consoles and systems without color support
+build: fixed zstd-pgo, by @bmwiedemann
+cli : support ZSTD_CLEVEL environment variable, by @yijinfb (#1423)
+cli : --no-progress flag, preserving final summary (#1371), by @terrelln
+cli : ensure destination file is not source file (#1422)
+cli : clearer error messages, especially when input file not present
+doc : clarified zstd_compression_format.md, by @ulikunitz
+misc: fixed zstdgrep, returns 1 on failure, by @lzutao
+misc: NEWS renamed as CHANGELOG, in accordance with fboss
+
+v1.3.7
+perf: slightly better decompression speed on clang (depending on hardware target)
+fix : performance of dictionary compression for small input < 4 KB at levels 9 and 10
+build: no longer build backtrace by default in release mode; restrict further automatic mode
+build: control backtrace support through build macro BACKTRACE
+misc: added man pages for zstdless and zstdgrep, by @samrussell
+
+v1.3.6
+perf: much faster dictionary builder, by @jenniferliu
+perf: faster dictionary compression on small data when using multiple contexts, by @felixhandte
+perf: faster dictionary decompression when using a very large number of dictionaries simultaneously
+cli : fix : does no longer overwrite destination when source does not exist (#1082)
+cli : new command --adapt, for automatic compression level adaptation
+api : fix : block api can be streamed with > 4 GB, reported by @catid
+api : reduced ZSTD_DDict size by 2 KB
+api : minimum negative compression level is defined, and can be queried using ZSTD_minCLevel().
+build: support Haiku target, by @korli
+build: Read Legacy format is limited to v0.5+ by default. Can be changed at compile time with macro ZSTD_LEGACY_SUPPORT.
+doc : zstd_compression_format.md updated to match wording in IETF RFC 8478
+misc: tests/paramgrill, a parameter optimizer, by @GeorgeLu97
+
 v1.3.5
 perf: much faster dictionary compression, by @felixhandte
 perf: small quality improvement for dictionary generation, by @terrelln

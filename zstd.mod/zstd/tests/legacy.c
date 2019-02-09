@@ -36,7 +36,7 @@ size_t const COMPRESSED_SIZE = 917;
 const char* const EXPECTED; /* content is at end of file */
 
 
-int testSimpleAPI(void)
+static int testSimpleAPI(void)
 {
     size_t const size = strlen(EXPECTED);
     char* const output = malloc(size);
@@ -71,8 +71,10 @@ int testSimpleAPI(void)
     return 0;
 }
 
-int testStreamingAPI(void)
+
+static int testStreamingAPI(void)
 {
+    int error_code = 0;
     size_t const outBuffSize = ZSTD_DStreamOutSize();
     char* const outBuff = malloc(outBuffSize);
     ZSTD_DStream* const stream = ZSTD_createDStream();
@@ -86,6 +88,7 @@ int testStreamingAPI(void)
     }
     if (stream == NULL) {
         DISPLAY("ERROR: Could not create dstream\n");
+        free(outBuff);
         return 1;
     }
 
@@ -95,13 +98,15 @@ int testStreamingAPI(void)
             size_t const ret = ZSTD_initDStream(stream);
             if (ZSTD_isError(ret)) {
                 DISPLAY("ERROR: ZSTD_initDStream: %s\n", ZSTD_getErrorName(ret));
-                return 1;
+                error_code = 1;
+                break;
         }   }
 
         {   size_t const ret = ZSTD_decompressStream(stream, &output, &input);
             if (ZSTD_isError(ret)) {
                 DISPLAY("ERROR: ZSTD_decompressStream: %s\n", ZSTD_getErrorName(ret));
-                return 1;
+                error_code = 1;
+                break;
             }
 
             if (ret == 0) {
@@ -110,7 +115,8 @@ int testStreamingAPI(void)
 
         if (memcmp(outBuff, EXPECTED + outputPos, output.pos) != 0) {
             DISPLAY("ERROR: Wrong decoded output produced\n");
-            return 1;
+            error_code = 1;
+            break;
         }
         outputPos += output.pos;
         if (input.pos == input.size && output.pos < output.size) {
@@ -120,8 +126,8 @@ int testStreamingAPI(void)
 
     free(outBuff);
     ZSTD_freeDStream(stream);
-    DISPLAY("Streaming API OK\n");
-    return 0;
+    if (error_code == 0) DISPLAY("Streaming API OK\n");
+    return error_code;
 }
 
 int main(void)
