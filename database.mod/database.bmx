@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2019 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,14 @@ bbdoc: Database Framework
 End Rem
 Module BaH.Database
 
-ModuleInfo "Version: 1.08"
+ModuleInfo "Version: 1.09"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.09"
+ModuleInfo "History: Refactored use of 'enum'."
 ModuleInfo "History: 1.08"
 ModuleInfo "History: Fixed prepared statement reuse issue with some drivers."
 ModuleInfo "History: Added some integrity checks to TQueryRecord methods."
@@ -631,10 +633,10 @@ Type TDatabaseQuery
 
 	' "eachin" support
 	Method ObjectEnumerator:TRowEnumerator()
-		Local enum:TRowEnumerator = New TRowEnumerator
-		enum.query = Self
+		Local enumerator:TRowEnumerator = New TRowEnumerator
+		enumerator.query = Self
 
-		Return enum
+		Return enumerator
 	End Method
 
 	Method free()
