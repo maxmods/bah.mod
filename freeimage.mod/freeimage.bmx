@@ -25,12 +25,14 @@ bbdoc: FreeImage Library
 End Rem
 Module BaH.FreeImage
 
-ModuleInfo "Version: 1.12"
+ModuleInfo "Version: 1.13"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
 ModuleInfo "Copyright: Wrapper - 2007-2019 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.13"
+ModuleInfo "History: Refactored use of 'enum'."
 ModuleInfo "History: 1.12"
 ModuleInfo "History: Updated to FreeImage 3.18."
 ModuleInfo "History: Fixed mac x86 rgba ordering (again)."
@@ -1517,9 +1519,9 @@ Type TFreeImage
 	End Rem
 	Method metadata:TTagEnumerator(model:Int)
 		Local metaEnumerator:TMetadataEnumerator = New TMetadataEnumerator.Create(Self, model)
-		Local enum:TTagEnumerator = New TTagEnumerator
-		enum._enumerator = metaEnumerator
-		Return enum
+		Local enumerator:TTagEnumerator = New TTagEnumerator
+		enumerator._enumerator = metaEnumerator
+		Return enumerator
 	End Method
 	
 	Rem
