@@ -1,4 +1,4 @@
-' Copyright (c) 2016 Bruce A Henderson
+' Copyright (c) 2016-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Windows Registry access.
 End Rem
 Module BaH.Registry
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2016 Bruce A Henderson"
+ModuleInfo "Copyright: 2016-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Refactored use of 'enum'."
 ModuleInfo "History: 1.00 Initial Release."
 
 ?win32
@@ -117,13 +119,13 @@ Function RegDeleteKey:Int(key:Int, subKey:String, samDesired:Int = 0, recurse:In
 			End If
 			
 			' enumerate subkeys for this key
-			Local enum:TRegisterKeyEnumerator = New TRegisterKeyEnumerator
-			enum._key = reg.key
-			enum._enumForDelete = True
-			enum.NextObject()
+			Local enumerator:TRegisterKeyEnumerator = New TRegisterKeyEnumerator
+			enumerator._key = reg.key
+			enumerator._enumForDelete = True
+			enumerator.NextObject()
 	
 			Local objEnum:TRegisterEnumerator = New TRegisterEnumerator
-			objEnum._enumerator = enum
+			objEnum._enumerator = enumerator
 
 			For Local node:String = EachIn objEnum
 			
@@ -237,13 +239,13 @@ Type TRegistryKey
 	bbdoc: Enumerates sub keys.
 	End Rem
 	Method Keys:TRegisterEnumerator()
-		Local enum:TRegisterKeyEnumerator = New TRegisterKeyEnumerator
-		enum._key = key
-		enum.NextObject()
-		enum._index = 0
+		Local enumerator:TRegisterKeyEnumerator = New TRegisterKeyEnumerator
+		enumerator._key = key
+		enumerator.NextObject()
+		enumerator._index = 0
 		
 		Local objEnum:TRegisterEnumerator = New TRegisterEnumerator
-		objEnum._enumerator = enum
+		objEnum._enumerator = enumerator
 		
 		Return objEnum
 	End Method
@@ -252,13 +254,13 @@ Type TRegistryKey
 	bbdoc: Enumerates key values.
 	End Rem
 	Method Values:TRegisterEnumerator()
-		Local enum:TRegisterValueEnumerator = New TRegisterValueEnumerator
-		enum._key = key
-		enum.NextObject()
-		enum._index = 0
+		Local enumerator:TRegisterValueEnumerator = New TRegisterValueEnumerator
+		enumerator._key = key
+		enumerator.NextObject()
+		enumerator._index = 0
 		
 		Local objEnum:TRegisterEnumerator = New TRegisterEnumerator
-		objEnum._enumerator = enum
+		objEnum._enumerator = enumerator
 		
 		Return objEnum
 	End Method
