@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2010 Bruce A Henderson
+' Copyright (c) 2009-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,12 @@ about: Communicate with scriptable applications.
 End Rem
 Module BaH.ScriptingBridge
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2009-2010 Bruce A Henderson"
+ModuleInfo "Copyright: 2009-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Refactored use of 'enum'."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
 ModuleInfo "History: Added setPropertyAsString(), propertyAsURL() and callWithStringIntReturningObject() methods."
@@ -294,10 +296,10 @@ Type SBElementArray
 	End Function
 
 	Method ObjectEnumerator:SBObjectEnum()
-		Local enum:SBObjectEnum = New SBObjectEnum
-		enum.obj = SBObject._create(bmx_sb_sbobjectenum_nextObject(objectPtr))
-		enum.objectPtr = objectPtr
-		Return enum
+		Local enumerator:SBObjectEnum = New SBObjectEnum
+		enumerator.obj = SBObject._create(bmx_sb_sbobjectenum_nextObject(objectPtr))
+		enumerator.objectPtr = objectPtr
+		Return enumerator
 	End Method
 	
 	Rem
