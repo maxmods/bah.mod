@@ -25,11 +25,13 @@ bbdoc: A JSON encoder/decoder.
 End Rem
 Module BaH.Jansson
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2014-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Refactored use of 'enum'."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to Jansson 2.12"
 ModuleInfo "History: 1.02"
@@ -222,9 +224,9 @@ Type TJSONArray Extends TJSON
 	End Method
 
 	Method ObjectEnumerator:TJSONArrayEnum()
-		Local enum:TJSONArrayEnum =New TJSONArrayEnum
-		enum.array = Self
-		Return enum
+		Local enumerator:TJSONArrayEnum =New TJSONArrayEnum
+		enumerator.array = Self
+		Return enumerator
 	End Method
 
 End Type
@@ -329,10 +331,10 @@ Type TJSONObject Extends TJSON
 	End Method
 
 	Method ObjectEnumerator:TJSONObjectEnum()
-		Local enum:TJSONObjectEnum =New TJSONObjectEnum
-		enum.obj = Self
-		enum.objectIter = json_object_iter(jsonPtr)
-		Return enum
+		Local enumerator:TJSONObjectEnum =New TJSONObjectEnum
+		enumerator.obj = Self
+		enumerator.objectIter = json_object_iter(jsonPtr)
+		Return enumerator
 	End Method
 	
 	Rem
