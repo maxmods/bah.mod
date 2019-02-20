@@ -1,4 +1,4 @@
-' Copyright (c) 2009-2018 Bruce A Henderson
+' Copyright (c) 2009-2019 Bruce A Henderson
 '
 '  The contents of this file are subject to the Mozilla Public License
 '  Version 1.1 (the "License"); you may not use this file except in
@@ -22,11 +22,14 @@ about: Reading and editing audio meta data.
 End Rem
 Module BaH.TagLib
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MPL"
 ModuleInfo "Copyright: TagLib - Scott Wheeler"
-ModuleInfo "Copyright: Wrapper - 2009-2018 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Refactored use of 'enum'."
+ModuleInfo "History: Fixed incorrectly named readOnly() method."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to TagLib 1.11.1.a800931"
 ModuleInfo "History: 1.01"
@@ -425,7 +428,7 @@ Type TTLFile
 	Rem
 	bbdoc: Returns true if the file is read only (or if the file can not be opened).
 	End Rem
-	Method readOnly:Int()
+	Method isReadOnly:Int()
 		Return bmx_taglib_file_readonly(filePtr)
 	End Method
 	
