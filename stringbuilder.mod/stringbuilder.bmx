@@ -1,4 +1,4 @@
-' Copyright (c) 2016-2018 Bruce A Henderson
+' Copyright (c) 2016-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: A string buffer.
 End Rem	
 Module BaH.StringBuilder
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2016-2018 Bruce A Henderson"
+ModuleInfo "Copyright: 2016-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Refactored use of 'enum'."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Renamed to StringBuilder."
 ModuleInfo "History: If using NG, rather use BRL.StringBuilder instead."
@@ -338,10 +340,10 @@ Type TSplitBuffer
 	End Method
 
 	Method ObjectEnumerator:TSplitBufferEnum()
-		Local enum:TSplitBufferEnum = New TSplitBufferEnum
-		enum.buffer = Self
-		enum.length = Length()
-		Return enum
+		Local enumerator:TSplitBufferEnum = New TSplitBufferEnum
+		enumerator.buffer = Self
+		enumerator.length = Length()
+		Return enumerator
 	End Method
 
 	Method Delete()
