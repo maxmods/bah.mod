@@ -203,7 +203,9 @@ void XMLCALL bmx_expat_StartElementHandler(void *userData, const char *name, con
 	BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
 	for( int i = 0; i < n; ++i ){
 		s[i] = bbStringFromUTF8String(atts[i]);
+#ifndef BMX_NG
 		BBRETAIN(s[i]);
+#endif
 	}
 
 	CB_PREF(bah_expat_TXMLParser__StartElementHandler)((BBObject *)userData, bbStringFromUTF8String(name), p);

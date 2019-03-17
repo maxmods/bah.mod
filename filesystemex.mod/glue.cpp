@@ -263,7 +263,9 @@ BBArray * bmx_filesystem_loaddir(BBString * dir) {
 			for (std::vector<boost::filesystem::path>::const_iterator it (v.begin()); it != v.end(); ++it) {
 				boost::filesystem::path path((*it).filename());
 				s[i] = bbStringFromPath( path );
+#ifndef BMX_NG
 				BBRETAIN( s[i] );
+#endif
 				i++;
 			}
 			return arr;

@@ -23,7 +23,7 @@
 #import <AppKit/AppKit.h>
 #import <ScriptingBridge/ScriptingBridge.h>
 
-#include <blitz.h>
+#include "brl.mod/blitz.mod/blitz.h"
 
 // a class to keep the array and enumerator in scope!
 @class MaxArray;
@@ -68,7 +68,9 @@ extern BBObject * _bah_scriptingbridge_SBElementArray__create(MaxArray * arr);
 	int i = 0;
 	while (text = [ae nextObject]) {
 		s[i] = bbStringFromNSString(text);
+#ifndef BMX_NG
 		BBRETAIN( s[i] );
+#endif
 		i++;
 	}
 

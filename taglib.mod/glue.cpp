@@ -330,7 +330,9 @@ BBArray * bmx_taglib_stringlistToBBArray(const TagLib::StringList & list) {
 	BBString **s=(BBString**)BBARRAYDATA( p,p->dims );
 	for( int i=0;i<n;++i ){
 		s[i] = bbStringFromUTF8String(list[i].toCString(true));
+#ifndef BMX_NG
 		BBRETAIN( s[i] );
+#endif
 	}
 	return p;
 }

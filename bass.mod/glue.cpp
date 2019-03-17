@@ -262,28 +262,35 @@ BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags) {
 							
 				sprintf(buffer, "%.3s", id3->id);
 				s[0] = bbStringFromCString(buffer);
+#ifndef BMX_NG
 				BBRETAIN( s[0] );
-				
+#endif
 				s[1] = bbStringFromCString(id3->title);
+#ifndef BMX_NG
 				BBRETAIN( s[1] );
-				
+#endif
 				s[2] = bbStringFromCString(id3->artist);
+#ifndef BMX_NG
 				BBRETAIN( s[2] );
-				
+#endif
 				s[3] = bbStringFromCString(id3->album);
+#ifndef BMX_NG
 				BBRETAIN( s[3] );
-	
+#endif
 				sprintf(buffer, "%.4s", id3->year);
 				s[4] = bbStringFromCString(buffer);
+#ifndef BMX_NG
 				BBRETAIN( s[4] );
-				
+#endif
 				s[5] = bbStringFromCString(id3->comment);
+#ifndef BMX_NG
 				BBRETAIN( s[5] );
-							
+#endif
 				sprintf(buffer, "%d", id3->genre);
 				s[6] = bbStringFromCString(buffer);
+#ifndef BMX_NG
 				BBRETAIN( s[6] );
-				
+#endif
 				return p;
 			} else {
 				return &bbEmptyArray;
@@ -300,7 +307,9 @@ BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags) {
 				BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
 				
 				s[0] = bbStringFromCString( text );
+#ifndef BMX_NG
 				BBRETAIN( s[0] );
+#endif
 
 				return p;
 			} else {
@@ -326,8 +335,9 @@ BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags) {
 				current = text;
 				while (*current) {
 					s[count] = bbStringFromCString( current );
+#ifndef BMX_NG
 					BBRETAIN( s[count] );
-		
+#endif
 					current += strlen(current) + 1;
 					count++;
 				}
