@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2018 Bruce A Henderson
+' Copyright (c) 2007-2019 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,17 @@ bbdoc: Database Driver - SQLite
 about: An SQLite database driver for #bah.database.Database
 End Rem
 Module BaH.DBSQLite
-
-ModuleInfo "Version: 1.15"
+Import brl.standardio
+ModuleInfo "Version: 1.16"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2018 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2019 Bruce A Henderson"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.16"
+ModuleInfo "History: Update to SQLite 3.27.2."
+ModuleInfo "History: Fixed query free issue."
 ModuleInfo "History: 1.15"
 ModuleInfo "History: Update to SQLite 3.22.0."
 ModuleInfo "History: Fixed for 64-bit targets."
@@ -101,7 +104,7 @@ Import "common.bmx"
 
 Type TDBSQLite Extends TDBConnection
 
-	Field queries:TList = New TList
+	Field queries:TSQLiteResultSet[2]
 
 	Function Create:TDBConnection(dbname:String = Null, host:String = Null, ..
 		port:Int = Null, user:String = Null, password:String = Null, ..
@@ -379,26 +382,46 @@ Type TDBSQLite Extends TDBConnection
 	End Method
 
 	Method clearQueries()
-		For Local q:TSQLiteResultSet = EachIn queries.Copy()
-			q.free()
+		For Local i:Int = 0 Until queries.length
+			Local q:TSQLiteResultSet = queries[i]
+			If q Then
+				q.free()
+			End If
 		Next
-		queries.clear()
 	End Method
 
 	Method resetQueries()
 		For Local q:TSQLiteResultSet = EachIn queries
-			q.reset()
+			If q Then
+				q.reset()
+			End If
 		Next
 	End Method
 	
 	Method addQuery(query:TSQLiteResultSet)
-		If Not queries.Contains(query) Then
-			queries.addLast(query)
+		Local firstFree:Int = -1
+		For Local i:Int = 0 Until queries.length
+			Local q:TSQLiteResultSet = queries[i]
+			If Not q And firstFree < 0 Then
+				firstFree = i
+			Else If queries[i] = query Then
+				Return
+			End If
+		Next
+		If firstFree >= 0 Then
+			queries[firstFree] = query
+		Else
+			queries :+ [query]
 		End If
 	End Method
 	
 	Method removeQuery(query:TSQLiteResultSet)
-		queries.remove(query)
+		For Local i:Int = 0 Until queries.length
+			If queries[i] = query Then
+				queries[i] = Null
+				Exit
+			End If
+		Next
 	End Method
 	
 	Method addUser(username:String, password:String, isAdmin:Int = False)
