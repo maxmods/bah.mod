@@ -181,6 +181,8 @@ tv2(void)
                       1ULL << 12, crypto_pwhash_alg_argon2i13()) != -1) {
         printf("[tv2] pwhash with a long password length should have failed\n");
     }
+    assert(crypto_pwhash_argon2i(out, sizeof out, "password", strlen("password"), salt,
+                                 OPSLIMIT, MEMLIMIT, crypto_pwhash_alg_argon2id13()) == -1);
 }
 
 static void
@@ -206,6 +208,7 @@ tv3(void)
     char   *out;
     char   *passwd;
     size_t  i = 0U;
+    int     ret;
 
     do {
         out = (char *) sodium_malloc(strlen(tests[i].out) + 1U);
@@ -214,13 +217,13 @@ tv3(void)
         passwd = (char *) sodium_malloc(strlen(tests[i].passwd) + 1U);
         assert(passwd != NULL);
         memcpy(passwd, tests[i].passwd, strlen(tests[i].passwd) + 1U);
-        if (crypto_pwhash_str_verify(out, passwd, strlen(passwd)) != 0) {
-            printf("[tv3] pwhash_str failure (maybe intentional): [%u]\n",
-                   (unsigned int) i);
-            continue;
-        }
+        ret = crypto_pwhash_str_verify(out, passwd, strlen(passwd));
         sodium_free(out);
         sodium_free(passwd);
+        if (ret != 0) {
+            printf("[tv3] pwhash_str failure (maybe intentional): [%u]\n",
+                   (unsigned int) i);
+        }
     } while (++i < (sizeof tests) / (sizeof tests[0]));
 }
 
@@ -256,7 +259,11 @@ str_tests(void)
         crypto_pwhash_argon2i_str_needs_rehash(str_out, OPSLIMIT * 2, MEMLIMIT) != 1) {
         printf("needs_rehash() false negative\n");
     }
-    if (crypto_pwhash_argon2i_str_needs_rehash(str_out + 1, OPSLIMIT, MEMLIMIT) != -1) {
+    if (crypto_pwhash_str_needs_rehash(str_out, OPSLIMIT, MEMLIMIT / 2) != 1) {
+        printf("pwhash_str_needs_rehash() didn't handle argon2i\n");
+    }
+    if (crypto_pwhash_str_needs_rehash(str_out + 1, OPSLIMIT, MEMLIMIT) != -1 ||
+        crypto_pwhash_argon2i_str_needs_rehash(str_out + 1, OPSLIMIT, MEMLIMIT) != -1) {
         printf("needs_rehash() didn't fail with an invalid hash string\n");
     }
     if (sodium_is_zero((const unsigned char *) str_out + strlen(str_out),

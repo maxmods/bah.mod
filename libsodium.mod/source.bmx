@@ -1,4 +1,4 @@
-' Copyright (c) 2016-2017 Bruce A Henderson
+' Copyright (c) 2016-2019 Bruce A Henderson
 ' 
 ' Permission to use, copy, modify, and/or distribute this software for any purpose
 ' with or without fee is hereby granted, provided that the above copyright notice
@@ -112,9 +112,8 @@ Import "libsodium/src/libsodium/crypto_stream/salsa208/stream_salsa208.c"
 Import "libsodium/src/libsodium/crypto_stream/xchacha20/stream_xchacha20.c"
 Import "libsodium/src/libsodium/crypto_stream/xsalsa20/stream_xsalsa20.c"
 Import "libsodium/src/libsodium/crypto_verify/sodium/verify.c"
-Import "libsodium/src/libsodium/randombytes/nativeclient/randombytes_nativeclient.c"
 Import "libsodium/src/libsodium/randombytes/randombytes.c"
-Import "libsodium/src/libsodium/randombytes/salsa20/randombytes_salsa20_random.c"
+Import "libsodium/src/libsodium/randombytes/internal/randombytes_internal_random.c"
 Import "libsodium/src/libsodium/randombytes/sysrandom/randombytes_sysrandom.c"
 Import "libsodium/src/libsodium/sodium/codecs.c"
 Import "libsodium/src/libsodium/sodium/core.c"

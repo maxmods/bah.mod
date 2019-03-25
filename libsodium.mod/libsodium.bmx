@@ -1,4 +1,4 @@
-' Copyright (c) 2016-2017 Bruce A Henderson
+' Copyright (c) 2016-2019 Bruce A Henderson
 ' 
 ' Permission to use, copy, modify, and/or distribute this software for any purpose
 ' with or without fee is hereby granted, provided that the above copyright notice
@@ -19,11 +19,13 @@ bbdoc: Sodium Crypto Library
 End Rem
 Module bah.libsodium
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: ISC"
 ModuleInfo "Copyright: libsodium - 2013-2017 Frank Denis"
-ModuleInfo "Copyright: Wrapper - 2016-2017 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2016-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to libsodium 1.0.17.0f1c303"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to libsodium 1.0.15.46e2a46"
 ModuleInfo "History: 1.00 Initial Release"

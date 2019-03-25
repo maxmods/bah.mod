@@ -17,7 +17,7 @@ symbols() {
       fi
     done < emscripten-symbols.def
 
-    nm /usr/local/lib/libsodium.23.dylib | \
+    /usr/bin/nm /usr/local/lib/libsodium.23.dylib | \
     fgrep ' T _' | \
     cut -d' ' -f3 | {
       while read symbol; do
@@ -35,7 +35,7 @@ symbols() {
   } | \
     sort | \
     {
-      out=''
+      out='"_malloc","_free"'
       while read symbol ; do
         if [ ! -z "$out" ]; then
           out="${out},"
