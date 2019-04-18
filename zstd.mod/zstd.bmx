@@ -27,6 +27,16 @@ bbdoc: ZStandard Compression.
 End Rem
 Module BaH.zstd
 
+ModuleInfo "Version: 1.01"
+ModuleInfo "License: BSD"
+ModuleInfo "Copyright: Wrapper - 2018-2019 Bruce A Henderson"
+ModuleInfo "Copyright: ZStandard - 2016-present, Facebook, Inc"
+
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to zstd 1.4.0.af3531e"
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release."
+
 Import "common.bmx"
 
 
