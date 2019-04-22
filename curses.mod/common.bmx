@@ -324,7 +324,7 @@ Function arrayToCStrings:Byte Ptr(stringArray:String[])
 	Next
 ?x64
 	length = 8 * stringArray.length
-	Local cStrings:Byte Ptr = MemAlloc()
+	Local cStrings:Byte Ptr = MemAlloc(length)
 		
 	For Local i:Int = 0 Until stringArray.length
 		
