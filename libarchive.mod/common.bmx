@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2018 Bruce A Henderson
+' Copyright (c) 2013-2019 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without

@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013-2018 Bruce A Henderson
+ Copyright (c) 2013-2019 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -165,12 +165,20 @@ int bmx_libarchive_archive_read_support_format_rar(struct archive * arc) {
 	return archive_read_support_format_rar(arc);
 }
 
+int bmx_libarchive_archive_read_support_format_rar5(struct archive * arc) {
+	return archive_read_support_format_rar5(arc);
+}
+
 int bmx_libarchive_archive_read_support_format_raw(struct archive * arc) {
 	return archive_read_support_format_raw(arc);
 }
 
 int bmx_libarchive_archive_read_support_format_tar(struct archive * arc) {
 	return archive_read_support_format_tar(arc);
+}
+
+int bmx_libarchive_archive_read_support_format_warc(struct archive * arc) {
+	return archive_read_support_format_warc(arc);
 }
 
 int bmx_libarchive_archive_read_support_format_xar(struct archive * arc) {
@@ -397,6 +405,10 @@ int bmx_libarchive_archive_write_set_format_v7tar(struct archive * arc) {
 
 int bmx_libarchive_archive_write_set_format_xar(struct archive * arc) {
 	return archive_write_set_format_xar(arc);
+}
+
+int bmx_libarchive_archive_write_set_format_warc(struct archive * arc) {
+	return archive_write_set_format_warc(arc);
 }
 
 int bmx_libarchive_archive_write_set_format_zip(struct archive * arc) {

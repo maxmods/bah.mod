@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2018 Bruce A Henderson
+' Copyright (c) 2013-2019 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,13 @@ End Rem
 Module BaH.LibArchive
 
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.049"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: libarchive - 2003-2010 Tim Kientzle"
-ModuleInfo "Copyright: Wrapper - 2013-2018 Bruce A Henderson"
+ModuleInfo "Copyright: libarchive - 2003-2018 Tim Kientzle"
+ModuleInfo "Copyright: Wrapper - 2013-2019 Bruce A Henderson"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Update to libarchive 3.3.4.458e493."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Update to libarchive 3.3.4.c16ce12."
 ModuleInfo "History: 1.03"
@@ -385,12 +387,19 @@ Type TReadArchive Extends TArchive
 	End Method
 
 	Rem
-	bbdoc: Libarchive has limited support for reading RAR format archives.
+	bbdoc: Enables support for RARv3 archives.
 	about: Currently, libarchive can read RARv3 format archives which have been either created uncompressed, or
 	compressed using any of the compression methods supported by the RARv3 format. Libarchive can also read self-extracting RAR archives.
 	End Rem
 	Method SupportFormatRar:Int()
 		Return bmx_libarchive_archive_read_support_format_rar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: Enables support for RARv5 archives.
+	End Rem
+	Method SupportFormatRar5:Int()
+		Return bmx_libarchive_archive_read_support_format_rar5(archivePtr)
 	End Method
 
 	Rem
@@ -405,6 +414,13 @@ Type TReadArchive Extends TArchive
 	End Rem
 	Method SupportFormatTar:Int()
 		Return bmx_libarchive_archive_read_support_format_tar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SupportFormatWarc:Int()
+		Return bmx_libarchive_archive_read_support_format_warc(archivePtr)
 	End Method
 
 	Rem
@@ -865,6 +881,13 @@ Type TWriteArchive Extends TArchive
 	End Rem
 	Method SetFormatXar:Int()
 		Return bmx_libarchive_archive_write_set_format_xar(archivePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatWarc:Int()
+		Return bmx_libarchive_archive_write_set_format_warc(archivePtr)
 	End Method
 
 	Rem

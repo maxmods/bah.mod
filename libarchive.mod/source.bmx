@@ -1,4 +1,4 @@
-' Copyright (c) 2013-2018 Bruce A Henderson
+' Copyright (c) 2013-2019 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@ Import "libarchive/*.h"
 Import "zlib/*.h"
 
 Import "libarchive/archive_acl.c"
+Import "libarchive/archive_blake2s_ref.c"
+Import "libarchive/archive_blake2sp_ref.c"
 Import "libarchive/archive_check_magic.c"
 Import "libarchive/archive_cmdline.c"
 Import "libarchive/archive_cryptor.c"
@@ -54,6 +56,7 @@ Import "libarchive/archive_options.c"
 Import "libarchive/archive_pack_dev.c"
 Import "libarchive/archive_pathmatch.c"
 Import "libarchive/archive_ppmd7.c"
+Import "libarchive/archive_ppmd8.c"
 Import "libarchive/archive_random.c"
 Import "libarchive/archive_rb.c"
 Import "libarchive/archive_read_add_passphrase.c"
@@ -95,6 +98,7 @@ Import "libarchive/archive_read_support_format_iso9660.c"
 Import "libarchive/archive_read_support_format_lha.c"
 Import "libarchive/archive_read_support_format_mtree.c"
 Import "libarchive/archive_read_support_format_rar.c"
+Import "libarchive/archive_read_support_format_rar5.c"
 Import "libarchive/archive_read_support_format_raw.c"
 Import "libarchive/archive_read_support_format_tar.c"
 Import "libarchive/archive_read_support_format_warc.c"
