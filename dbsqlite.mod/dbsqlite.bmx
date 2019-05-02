@@ -31,13 +31,15 @@ about: An SQLite database driver for #bah.database.Database
 End Rem
 Module BaH.DBSQLite
 Import brl.standardio
-ModuleInfo "Version: 1.16"
+ModuleInfo "Version: 1.17"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007-2019 Bruce A Henderson"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.17"
+ModuleInfo "History: Update to SQLite 3.28.0."
 ModuleInfo "History: 1.16"
 ModuleInfo "History: Update to SQLite 3.27.2."
 ModuleInfo "History: Fixed query free issue."
