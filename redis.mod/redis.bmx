@@ -47,7 +47,7 @@ ModuleInfo "CC_OPTS: -D_WIN32_WINNT=0x0600"
 
 ?bmxng
 
-Import BaH.StringBuffer
+Import BaH.StringBuilder
 Import "common.bmx"
 
 
@@ -259,7 +259,7 @@ Type TRedisClient
 
 	Method Command:TRedisReply(cmd:String, arr:String[])
 	
-		Local sb:TStringBuffer = New TStringBuffer(16 * arr.length)
+		Local sb:TStringBuilder = New TStringBuilder(16 * arr.length)
 		
 		sb.Append(cmd)
 	
@@ -278,7 +278,7 @@ Type TRedisClient
 
 	Method Command:TRedisReply(cmd:String, txt:String, arr:String[])
 	
-		Local sb:TStringBuffer = New TStringBuffer(16 * arr.length)
+		Local sb:TStringBuilder = New TStringBuilder(16 * arr.length)
 		
 		sb.Append(cmd).Append(" ").Append(txt)
 	
@@ -297,7 +297,7 @@ Type TRedisClient
 
 	Method Command:TRedisReply(cmd:String, arr:String[], num:Int)
 	
-		Local sb:TStringBuffer = New TStringBuffer(16 * arr.length)
+		Local sb:TStringBuilder = New TStringBuilder(16 * arr.length)
 		
 		sb.Append(cmd)
 	
@@ -317,7 +317,7 @@ Type TRedisClient
 
 	End Method
 
-	Method Command:TRedisReply(sb:TStringBuffer)
+	Method Command:TRedisReply(sb:TStringBuilder)
 	
 		Local c:Byte Ptr = sb.ToString().ToCString()
 		
@@ -479,7 +479,7 @@ Type TRedisClient
 	Documentation: http://www.redis.io/commands/sort
 	End Rem
 	Method SORT_:TRedisReply(key:String, BY_pattern:String = Null, offset:Int = 0, count:Int = 0, GET_patterns:String[] = Null, DESC:Int = True, ALPHA:Int = False, STORE_destination:String = Null)
-		Local sb:TStringBuffer = New TStringBuffer(128)
+		Local sb:TStringBuilder = New TStringBuilder(128)
 		
 		sb.Append("SORT ").Append(key)
 
@@ -1150,7 +1150,7 @@ Type TRedisClient
 	Documentation: http://www.redis.io/commands/zinterstore
 	End Rem
 	Method ZINTERSTORE_:TRedisReply(destination:String, keys:String[], WEIGHTS:String[], AGGREGATE:String = Null)
-		Local sb:TStringBuffer = New TStringBuffer(128)
+		Local sb:TStringBuilder = New TStringBuilder(128)
 		
 		sb.Append("ZINTERSTORE ").Append(destination).Append(keys.length)
 		
@@ -1190,7 +1190,7 @@ Type TRedisClient
 	Documentation: http://www.redis.io/commands/zrangebyscore
 	End Rem
 	Method ZRANGEBYSCORE_:TRedisReply(key:String, _min:String, _max:String, WITHSCORES:Int = False, offset:Int = 0, count:Int = 0)
-		Local sb:TStringBuffer = New TStringBuffer(128)
+		Local sb:TStringBuilder = New TStringBuilder(128)
 
 		sb.Append("ZRANGEBYSCORE ").Append(key)
 		sb.Append(" ").Append(_min)
@@ -1260,7 +1260,7 @@ Type TRedisClient
 	Documentation: http://www.redis.io/commands/zrevrangebyscore
 	End Rem
 	Method ZREVRANGEBYSCORE_:TRedisReply(key:String, _min:String, _max:String, WITHSCORES:Int = False, offset:Int = 0, count:Int = 0)
-		Local sb:TStringBuffer = New TStringBuffer(128)
+		Local sb:TStringBuilder = New TStringBuilder(128)
 
 		sb.Append("ZREVRANGEBYSCORE ").Append(key)
 		sb.Append(" ").Append(_min)
@@ -1299,7 +1299,7 @@ Type TRedisClient
 	Documentation: http://www.redis.io/commands/zunionstore
 	End Rem
 	Method ZUNIONSTORE_:TRedisReply(destination:String, keys:String[], WEIGHTS:String[], AGGREGATE:String = Null)
-		Local sb:TStringBuffer = New TStringBuffer(128)
+		Local sb:TStringBuilder = New TStringBuilder(128)
 
 		sb.Append("ZUNIONSTORE ").Append(destination)
 		sb.Append(" ").Append(keys.length)
@@ -1590,7 +1590,7 @@ Type TRedisReply
 			Case REDIS_REPLY_STRING
 				Return GetString()
 			Case REDIS_REPLY_ARRAY
-				Local sb:TStringBuffer = New TStringBuffer
+				Local sb:TStringBuilder = New TStringBuilder
 				For Local i:Int = 0 Until elements
 					If i Then
 						sb.Append("~n")
