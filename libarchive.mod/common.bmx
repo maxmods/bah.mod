@@ -69,8 +69,10 @@ Extern
 	Function bmx_libarchive_archive_read_support_format_lha:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_format_mtree:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_format_rar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_support_format_rar5:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_format_raw:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_format_tar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_read_support_format_warc:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_format_xar:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_read_support_format_zip:Int(handle:Byte Ptr)
 
@@ -131,6 +133,7 @@ Extern
 	Function bmx_libarchive_archive_write_set_format_shar_dump:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_set_format_ustar:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_set_format_v7tar:Int(handle:Byte Ptr)
+	Function bmx_libarchive_archive_write_set_format_warc:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_set_format_xar:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_set_format_zip:Int(handle:Byte Ptr)
 	Function bmx_libarchive_archive_write_zip_set_compression_deflate:Int(handle:Byte Ptr)
@@ -188,6 +191,8 @@ Const ARCHIVE_FILTER_LZIP:Int = 9
 Const ARCHIVE_FILTER_LRZIP:Int = 10
 Const ARCHIVE_FILTER_LZOP:Int = 11
 Const ARCHIVE_FILTER_GRZIP:Int = 12
+Const ARCHIVE_FILTER_LZ4:Int = 13
+Const ARCHIVE_FILTER_ZSTD:Int = 14
 
 Const ARCHIVE_FORMAT_BASE_MASK:Int = $ff0000
 Const ARCHIVE_FORMAT_CPIO:Int = $10000
@@ -219,6 +224,8 @@ Const ARCHIVE_FORMAT_LHA:Int = $B0000
 Const ARCHIVE_FORMAT_CAB:Int = $C0000
 Const ARCHIVE_FORMAT_RAR:Int = $D0000
 Const ARCHIVE_FORMAT_7ZIP:Int = $E0000
+Const ARCHIVE_FORMAT_WARC:Int = $F0000
+Const ARCHIVE_FORMAT_RAR_V5:Int = $100000
 
 Rem
 bbdoc:  Found end of archive.
@@ -247,5 +254,6 @@ about: For example, if WriteHeader is "fatal," then this archive is dead and use
 End Rem
 Const ARCHIVE_FATAL:Int = -30
 
-
+Const ARCHIVE_READ_FORMAT_ENCRYPTION_UNSUPPORTED:Int = -2
+Const ARCHIVE_READ_FORMAT_ENCRYPTION_DONT_KNOW:Int = -1
 
