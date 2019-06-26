@@ -7,12 +7,10 @@
 #include <sys/types.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <errno.h>
 
-/* default strtoxx_or_err() exit code */
-#ifndef STRTOXX_EXIT_CODE
-# define STRTOXX_EXIT_CODE EXIT_FAILURE
-#endif
-
+/* initialize a custom exit code for all *_or_err functions */
+extern void strutils_set_exitcode(int exit_code);
 
 extern int parse_size(const char *str, uintmax_t *res, int *power);
 extern int strtosize(const char *str, uintmax_t *res);
@@ -20,12 +18,15 @@ extern uintmax_t strtosize_or_err(const char *str, const char *errmesg);
 
 extern int16_t strtos16_or_err(const char *str, const char *errmesg);
 extern uint16_t strtou16_or_err(const char *str, const char *errmesg);
+extern uint16_t strtox16_or_err(const char *str, const char *errmesg);
 
 extern int32_t strtos32_or_err(const char *str, const char *errmesg);
 extern uint32_t strtou32_or_err(const char *str, const char *errmesg);
+extern uint32_t strtox32_or_err(const char *str, const char *errmesg);
 
 extern int64_t strtos64_or_err(const char *str, const char *errmesg);
 extern uint64_t strtou64_or_err(const char *str, const char *errmesg);
+extern uint64_t strtox64_or_err(const char *str, const char *errmesg);
 
 extern double strtod_or_err(const char *str, const char *errmesg);
 
@@ -35,7 +36,12 @@ extern unsigned long strtoul_or_err(const char *str, const char *errmesg);
 extern void strtotimeval_or_err(const char *str, struct timeval *tv,
 		const char *errmesg);
 
-extern int isdigit_string(const char *str);
+extern int isdigit_strend(const char *str, const char **end);
+#define isdigit_string(_s)	isdigit_strend(_s, NULL)
+
+extern int isxdigit_strend(const char *str, const char **end);
+#define isxdigit_string(_s)	isxdigit_strend(_s, NULL)
+
 
 extern int parse_switch(const char *arg, const char *errmesg, ...);
 
@@ -59,33 +65,66 @@ static inline void xstrncpy(char *dest, const char *src, size_t n)
 	dest[n-1] = 0;
 }
 
-static inline char *strdup_to_offset(void *stru, size_t offset, const char *str)
+/* This is like strncpy(), but based on memcpy(), so compilers and static
+ * analyzers do not complain when sizeof(destination) is the same as 'n' and
+ * result is not terminated by zero.
+ *
+ * Use this function to copy string to logs with fixed sizes (wtmp/utmp. ...)
+ * where string terminator is optional.
+ */
+static inline void *str2memcpy(void *dest, const char *src, size_t n)
+{
+	size_t bytes = strlen(src) + 1;
+
+	if (bytes > n)
+		bytes = n;
+
+	memcpy(dest, src, bytes);
+	return dest;
+}
+
+static inline char *mem2strcpy(char *dest, const void *src, size_t n, size_t nmax)
+{
+	if (n + 1 > nmax)
+		n = nmax - 1;
+
+	memcpy(dest, src, n);
+	dest[nmax-1] = '\0';
+	return dest;
+}
+
+static inline int strdup_to_offset(void *stru, size_t offset, const char *str)
 {
 	char *n = NULL;
-	char **o = (char **) ((char *) stru + offset);
+	char **o;
 
+	if (!stru)
+		return -EINVAL;
+
+	o = (char **) ((char *) stru + offset);
 	if (str) {
 		n = strdup(str);
 		if (!n)
-			return NULL;
+			return -ENOMEM;
 	}
 
 	free(*o);
 	*o = n;
-	return n;
+	return 0;
 }
 
 #define strdup_to_struct_member(_s, _m, _str) \
 		strdup_to_offset((void *) _s, offsetof(__typeof__(*(_s)), _m), _str)
 
-extern void strmode(mode_t mode, char *str);
+extern char *xstrmode(mode_t mode, char *str);
 
 /* Options for size_to_human_string() */
 enum
 {
-        SIZE_SUFFIX_1LETTER = 0,
-        SIZE_SUFFIX_3LETTER = 1,
-        SIZE_SUFFIX_SPACE   = 2
+	SIZE_SUFFIX_1LETTER  = 0,
+	SIZE_SUFFIX_3LETTER  = (1 << 0),
+	SIZE_SUFFIX_SPACE    = (1 << 1),
+	SIZE_DECIMAL_2DIGITS = (1 << 2)
 };
 
 extern char *size_to_human_string(int options, uint64_t bytes);
@@ -104,7 +143,7 @@ extern int string_to_bitmask(const char *list,
 			     long (*name2flag)(const char *, size_t));
 extern int parse_range(const char *str, int *lower, int *upper, int def);
 
-extern int streq_except_trailing_slash(const char *s1, const char *s2);
+extern int streq_paths(const char *a, const char *b);
 
 /*
  * Match string beginning.
@@ -139,12 +178,12 @@ static inline const char *endswith(const char *s, const char *postfix)
 	size_t pl = postfix ? strlen(postfix) : 0;
 
 	if (pl == 0)
-		return (char *)s + sl;
+		return s + sl;
 	if (sl < pl)
 		return NULL;
 	if (memcmp(s + sl - pl, postfix, pl) != 0)
 		return NULL;
-	return (char *)s + sl - pl;
+	return s + sl - pl;
 }
 
 /*
@@ -172,8 +211,11 @@ static inline const char *skip_blank(const char *p)
  */
 static inline size_t rtrim_whitespace(unsigned char *str)
 {
-	size_t i = strlen((char *) str);
+	size_t i;
 
+	if (!str)
+		return 0;
+	i = strlen((char *) str);
 	while (i) {
 		i--;
 		if (!isspace(str[i])) {
@@ -194,18 +236,41 @@ static inline size_t ltrim_whitespace(unsigned char *str)
 	size_t len;
 	unsigned char *p;
 
-	for (p = str; p && isspace(*p); p++);
+	if (!str)
+		return 0;
+	for (p = str; *p && isspace(*p); p++);
 
 	len = strlen((char *) p);
 
-	if (len && p > str)
+	if (p > str)
 		memmove(str, p, len + 1);
 
 	return len;
 }
 
+static inline void strrep(char *s, int find, int replace)
+{
+	while (s && *s && (s = strchr(s, find)) != NULL)
+		*s++ = replace;
+}
+
+static inline void strrem(char *s, int rem)
+{
+	char *p;
+
+	if (!s)
+		return;
+	for (p = s; *s; s++) {
+		if (*s != rem)
+			*p++ = *s;
+	}
+	*p = '\0';
+}
+
 extern char *strnappend(const char *s, const char *suffix, size_t b);
 extern char *strappend(const char *s, const char *suffix);
+extern char *strfappend(const char *s, const char *format, ...)
+		 __attribute__ ((__format__ (__printf__, 2, 0)));
 extern const char *split(const char **state, size_t *l, const char *separator, int quoted);
 
 extern int skip_fline(FILE *fp);

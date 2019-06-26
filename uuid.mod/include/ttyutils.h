@@ -33,6 +33,34 @@
 #define DEF_EOL		0
 #define DEF_SWITCH	0		/* default switch char */
 
+/* Fallback for termios->c_cc[] */
+#ifndef CREPRINT
+# define CREPRINT	('r' & 037)
+#endif
+#ifndef CDISCARD
+# define CDISCARD	('o' & 037)
+#endif
+
+/* Default termios->iflag */
+#ifndef TTYDEF_IFLAG
+# define TTYDEF_IFLAG	(BRKINT | ICRNL | IMAXBEL | IXON | IXANY)
+#endif
+
+/* Default termios->oflag */
+#ifndef TTYDEF_OFLAG
+# define TTYDEF_OFLAG	(OPOST | ONLCR /*| OXTABS*/)
+#endif
+
+/* Default termios->lflag */
+#ifndef TTYDEF_LFLAG
+# define TTYDEF_LFLAG	(ECHO | ICANON | ISIG | IEXTEN | ECHOE|ECHOKE|ECHOCTL)
+#endif
+
+/* Default termios->cflag */
+#ifndef TTYDEF_CFLAG
+# define TTYDEF_CFLAG	(CREAD | CS8 | HUPCL)
+#endif
+
 /* Storage for things detected while the login name was read. */
 struct chardata {
 	int erase;		/* erase character */
@@ -50,8 +78,11 @@ struct chardata {
 	        (ptr)->capslock = 0;         \
 	} while (0)
 
-extern int get_terminal_width(void);
-extern int get_terminal_name(int fd, const char **path, const char **name,
+extern int get_terminal_dimension(int *cols, int *lines);
+extern int get_terminal_width(int default_width);
+extern int get_terminal_type(const char **type);
+extern int get_terminal_stdfd(void);
+extern int get_terminal_name(const char **path, const char **name,
 			     const char **number);
 
 #define UL_TTY_KEEPCFLAGS	(1 << 1)
@@ -112,6 +143,12 @@ static inline void reset_virtual_console(struct termios *tp, int flags)
 #endif
 #ifndef FFDLY
 # define FFDLY 0
+#endif
+#ifndef TAB0
+# define TAB0 0
+#endif
+#ifndef TABDLY
+# define TABDLY 0
 #endif
 
 	tp->c_iflag |=  (BRKINT | ICRNL | IMAXBEL);

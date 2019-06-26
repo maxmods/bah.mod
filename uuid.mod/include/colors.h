@@ -24,9 +24,9 @@ enum colortmode {
 };
 
 #ifdef USE_COLORS_BY_DEFAULT
-# define USAGE_COLORS_DEFAULT	N_("colors are enabled by default")
+# define USAGE_COLORS_DEFAULT	_("colors are enabled by default")
 #else
-# define USAGE_COLORS_DEFAULT   N_("colors are disabled by default")
+# define USAGE_COLORS_DEFAULT   _("colors are disabled by default")
 #endif
 
 extern int colormode_from_string(const char *str);
@@ -37,6 +37,9 @@ extern int colors_init(int mode, const char *util_name);
 
 /* Returns 1 or 0 */
 extern int colors_wanted(void);
+
+/* Returns UL_COLORMODE_* */
+extern int colors_mode(void);
 
 /* temporary enable/disable colors */
 extern void colors_off(void);

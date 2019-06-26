@@ -32,18 +32,17 @@
 
 #include <windows.h>
 
+HCRYPTPROV hProvider;
+
 int random_get_bytes(void * buffer, size_t length) {
 
-	HCRYPTPROV hProvider;
-
-	if (!CryptAcquireContext(&hProvider, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-		return -1;
+	if (!hProvider) {
+		if (!CryptAcquireContext(&hProvider, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
+			return -1;
+		}
 	}
 
-	BOOL res = CryptGenRandom(hProvider, length, buffer);
-	CryptReleaseContext(hProvider, 0);
-
-	return res ? 0 : -1;
+	return CryptGenRandom(hProvider, length, buffer) ? 0 : -1;
 }
 
 #else

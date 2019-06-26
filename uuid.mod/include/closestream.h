@@ -10,22 +10,24 @@
 #include "c.h"
 #include "nls.h"
 
-#ifndef HAVE___FPENDING
-static inline int
-__fpending(FILE *stream __attribute__((__unused__)))
-{
-	return 0;
-}
+#ifndef CLOSE_EXIT_CODE
+# define CLOSE_EXIT_CODE EXIT_FAILURE
 #endif
 
 static inline int
 close_stream(FILE * stream)
 {
+#ifdef HAVE___FPENDING
 	const int some_pending = (__fpending(stream) != 0);
+#endif
 	const int prev_fail = (ferror(stream) != 0);
 	const int fclose_fail = (fclose(stream) != 0);
 
-	if (prev_fail || (fclose_fail && (some_pending || errno != EBADF))) {
+	if (prev_fail || (fclose_fail && (
+#ifdef HAVE___FPENDING
+					  some_pending ||
+#endif
+					  errno != EBADF))) {
 		if (!fclose_fail && !(errno == EPIPE))
 			errno = 0;
 		return EOF;
@@ -37,16 +39,30 @@ close_stream(FILE * stream)
 static inline void
 close_stdout(void)
 {
-	if (close_stream(stdout) != 0 && !(errno == EPIPE)) {
+	if (stdout && close_stream(stdout) != 0 && !(errno == EPIPE)) {
 		if (errno)
 			warn(_("write error"));
 		else
 			warnx(_("write error"));
-		_exit(EXIT_FAILURE);
+		_exit(CLOSE_EXIT_CODE);
 	}
 
-	if (close_stream(stderr) != 0)
-		_exit(EXIT_FAILURE);
+	if (stderr && close_stream(stderr) != 0)
+		_exit(CLOSE_EXIT_CODE);
+
+	stdout = NULL;
+	stderr = NULL;
+}
+
+static inline void
+close_stdout_atexit(void)
+{
+	/*
+	 * Note that close stdout at exit disables ASAN to report memory leaks
+	 */
+#if !defined(__SANITIZE_ADDRESS__)
+	atexit(close_stdout);
+#endif
 }
 
 #ifndef HAVE_FSYNC

@@ -38,6 +38,7 @@
 #define UUID MYUUID
 #define O_CLOEXEC 0
 #define UL_CLOEXECSTR	""
+#include <assert.h>
 #endif
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H
@@ -90,8 +91,11 @@
 #include "uuidd.h"
 #include "randutils.h"
 #ifndef _WIN32
+#include "strutils.h"
 #include "c.h"
 #endif
+#include "md5.h"
+#include "sha1.h"
 
 #ifdef HAVE_TLS
 #define THREAD_LOCAL static __thread
@@ -282,12 +286,12 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 	if ((last.tv_sec == 0) && (last.tv_usec == 0)) {
 		random_get_bytes(&clock_seq, sizeof(clock_seq));
 		clock_seq &= 0x3FFF;
-		gettimeofday(&last, 0);
+		gettimeofday(&last, NULL);
 		last.tv_sec--;
 	}
 
 try_again:
-	gettimeofday(&tv, 0);
+	gettimeofday(&tv, NULL);
 	if ((tv.tv_sec < last.tv_sec) ||
 	    ((tv.tv_sec == last.tv_sec) &&
 	     (tv.tv_usec < last.tv_usec))) {
@@ -319,8 +323,8 @@ try_again:
 	if (state_fd >= 0) {
 		rewind(state_f);
 		len = fprintf(state_f,
-			      "clock: %04x tv: %016lu %08lu adj: %08d\n",
-			      clock_seq, last.tv_sec, last.tv_usec, adjustment);
+			      "clock: %04x tv: %016ld %08ld adj: %08d\n",
+			      clock_seq, (long)last.tv_sec, (long)last.tv_usec, adjustment);
 		fflush(state_f);
 		if (ftruncate(state_fd, len) < 0) {
 			fprintf(state_f, "                   \n");
@@ -339,6 +343,7 @@ try_again:
 }
 
 #if defined(HAVE_UUIDD) && defined(HAVE_SYS_UN_H)
+
 /*
  * Try using the uuidd daemon to generate the UUID
  *
@@ -353,11 +358,14 @@ static int get_uuid_via_daemon(int op, uuid_t out, int *num)
 	int32_t reply_len = 0, expected = 16;
 	struct sockaddr_un srv_addr;
 
+	if (sizeof(UUIDD_SOCKET_PATH) > sizeof(srv_addr.sun_path))
+		return -1;
+
 	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 		return -1;
 
 	srv_addr.sun_family = AF_UNIX;
-	strcpy(srv_addr.sun_path, UUIDD_SOCKET_PATH);
+	xstrncpy(srv_addr.sun_path, UUIDD_SOCKET_PATH, sizeof(srv_addr.sun_path));
 
 	if (connect(s, (const struct sockaddr *) &srv_addr,
 		    sizeof(struct sockaddr_un)) < 0)
@@ -398,7 +406,9 @@ fail:
 }
 
 #else /* !defined(HAVE_UUIDD) && defined(HAVE_SYS_UN_H) */
-static int get_uuid_via_daemon(int op, uuid_t out, int *num)
+static int get_uuid_via_daemon(int op __attribute__((__unused__)),
+				uuid_t out __attribute__((__unused__)),
+				int *num __attribute__((__unused__)))
 {
 	return -1;
 }
@@ -449,7 +459,7 @@ static int uuid_generate_time_generic(uuid_t out) {
 	time_t				now;
 
 	if (num > 0) {
-		now = time(0);
+		now = time(NULL);
 		if (now > last_time+1)
 			num = 0;
 	}
@@ -457,7 +467,7 @@ static int uuid_generate_time_generic(uuid_t out) {
 		num = 1000;
 		if (get_uuid_via_daemon(UUIDD_OP_BULK_TIME_UUID,
 					out, &num) == 0) {
-			last_time = time(0);
+			last_time = time(NULL);
 			uuid_unpack(out, &uu);
 			num--;
 			return 0;
@@ -480,7 +490,7 @@ static int uuid_generate_time_generic(uuid_t out) {
 		return 0;
 #endif
 
-	return __uuid_generate_time(out, 0);
+	return __uuid_generate_time(out, NULL);
 }
 
 /*
@@ -558,4 +568,56 @@ void uuid_generate(uuid_t out)
 		uuid_generate_random(out);
 	else
 		uuid_generate_time(out);
+}
+
+/*
+ * Generate an MD5 hashed (predictable) UUID based on a well-known UUID
+ * providing the namespace and an arbitrary binary string.
+ */
+void uuid_generate_md5(uuid_t out, const uuid_t ns, const char *name, size_t len)
+{
+	UL_MD5_CTX ctx;
+	char hash[UL_MD5LENGTH];
+	uuid_t buf;
+	struct uuid uu;
+
+	ul_MD5Init(&ctx);
+	ul_MD5Update(&ctx, ns, sizeof(uuid_t));
+	ul_MD5Update(&ctx, (const unsigned char *)name, len);
+	ul_MD5Final((unsigned char *)hash, &ctx);
+
+	assert(sizeof(buf) <= sizeof(hash));
+
+	memcpy(buf, hash, sizeof(buf));
+	uuid_unpack(buf, &uu);
+
+	uu.clock_seq = (uu.clock_seq & 0x3FFF) | 0x8000;
+	uu.time_hi_and_version = (uu.time_hi_and_version & 0x0FFF) | 0x3000;
+	uuid_pack(&uu, out);
+}
+
+/*
+ * Generate a SHA1 hashed (predictable) UUID based on a well-known UUID
+ * providing the namespace and an arbitrary binary string.
+ */
+void uuid_generate_sha1(uuid_t out, const uuid_t ns, const char *name, size_t len)
+{
+	UL_SHA1_CTX ctx;
+	char hash[UL_SHA1LENGTH];
+	uuid_t buf;
+	struct uuid uu;
+
+	ul_SHA1Init(&ctx);
+	ul_SHA1Update(&ctx, ns, sizeof(uuid_t));
+	ul_SHA1Update(&ctx, (const unsigned char *)name, len);
+	ul_SHA1Final((unsigned char *)hash, &ctx);
+
+	assert(sizeof(buf) <= sizeof(hash));
+
+	memcpy(buf, hash, sizeof(buf));
+	uuid_unpack(buf, &uu);
+
+	uu.clock_seq = (uu.clock_seq & 0x3FFF) | 0x8000;
+	uu.time_hi_and_version = (uu.time_hi_and_version & 0x0FFF) | 0x5000;
+	uuid_pack(&uu, out);
 }

@@ -1,31 +1,34 @@
 
 dist_noinst_HEADERS += \
 	include/all-io.h \
-	include/at.h \
 	include/bitops.h \
 	include/blkdev.h \
 	include/canonicalize.h \
 	include/carefulputc.h \
+	include/cctype.h \
 	include/c.h \
 	include/closestream.h \
 	include/colors.h \
 	include/color-names.h \
 	include/cpuset.h \
 	include/crc32.h \
-	include/crc64.h \
+	include/crc32c.h \
 	include/debug.h \
+	include/debugobj.h \
 	include/env.h \
 	include/exec_shell.h \
 	include/exitcodes.h \
 	include/fileutils.h \
+	include/idcache.h \
 	include/ismounted.h \
-	include/linux_reboot.h \
+	include/pwdutils.h \
 	include/linux_version.h \
 	include/list.h \
 	include/loopdev.h \
 	include/mangle.h \
 	include/match.h \
 	include/mbsalign.h \
+	include/mbsedit.h \
 	include/md5.h \
 	include/minix.h \
 	include/monotonic.h \
@@ -33,9 +36,10 @@ dist_noinst_HEADERS += \
 	include/nls.h \
 	include/optutils.h \
 	include/pager.h \
-	include/pamfail.h \
+	include/partx.h \
 	include/path.h \
 	include/pathnames.h \
+	include/plymouth-ctrl.h \
 	include/procutils.h \
 	include/pt-bsd.h \
 	include/pt-mbr.h \
@@ -44,6 +48,8 @@ dist_noinst_HEADERS += \
 	include/pt-sun.h \
 	include/randutils.h \
 	include/rpmatch.h \
+	include/sha1.h \
+	include/signames.h \
 	include/setproctitle.h \
 	include/statfs_magic.h \
 	include/strutils.h \

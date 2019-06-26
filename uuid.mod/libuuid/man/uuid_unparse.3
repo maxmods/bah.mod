@@ -31,7 +31,7 @@
 .\" Created  Wed Mar 10 17:42:12 1999, Andreas Dilger
 .TH UUID_UNPARSE 3 "May 2009" "util-linux" "Libuuid API"
 .SH NAME
-uuid_unparse \- convert an UUID from binary representation to a string
+uuid_unparse \- convert a UUID from binary representation to a string
 .SH SYNOPSIS
 .nf
 .B #include <uuid.h>
@@ -45,7 +45,7 @@ The
 .B uuid_unparse
 function converts the supplied UUID
 .I uu
-from the binary representation into a 36-byte string (plus tailing '\e0')
+from the binary representation into a 36-byte string (plus trailing '\e0')
 of the form 1b4e28ba\-2fa1\-11d2\-883f\-0016d3cca427 and stores this
 value in the character string pointed to by
 .IR out .
@@ -61,13 +61,13 @@ and
 .B uuid_unparse_lower
 may be used.
 .SH "CONFORMING TO"
-OSF DCE 1.1
+This library unparses UUIDs compatible with OSF DCE 1.1.
 .SH AUTHOR
 Theodore Y.\& Ts'o
 .SH AVAILABILITY
 .B libuuid
 is part of the util-linux package since version 2.15.1 and is available from
-ftp://ftp.kernel.org/pub/linux/utils/util-linux/.
+https://www.kernel.org/pub/linux/utils/util-linux/.
 .na
 .SH "SEE ALSO"
 .BR uuid (3),

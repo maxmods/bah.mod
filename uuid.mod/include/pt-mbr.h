@@ -1,6 +1,8 @@
 #ifndef UTIL_LINUX_PT_MBR_H
 #define UTIL_LINUX_PT_MBR_H
 
+#include <assert.h>
+
 struct dos_partition {
 	unsigned char boot_ind;		/* 0x80 - active */
 	unsigned char bh, bs, bc;	/* begin CHS */
@@ -20,13 +22,16 @@ static inline struct dos_partition *mbr_get_partition(unsigned char *mbr, int i)
 }
 
 /* assemble badly aligned little endian integer */
-static inline unsigned int __dos_assemble_4le(const unsigned char *p)
+static inline uint32_t __dos_assemble_4le(const unsigned char *p)
 {
-	return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+	uint32_t last_byte = p[3];
+
+	return p[0] | (p[1] << 8) | (p[2] << 16) | (last_byte << 24);
 }
 
 static inline void __dos_store_4le(unsigned char *p, unsigned int val)
 {
+	assert(!(p == NULL));
 	p[0] = (val & 0xff);
 	p[1] = ((val >> 8) & 0xff);
 	p[2] = ((val >> 16) & 0xff);
@@ -129,7 +134,8 @@ enum {
 	MBR_LINUX_SWAP_PARTITION	= 0x82,
 	MBR_SOLARIS_X86_PARTITION	= MBR_LINUX_SWAP_PARTITION,
 	MBR_LINUX_DATA_PARTITION	= 0x83,
-	MBR_OS2_HIDDEN_DRIVE_PARTITION	= 0x84,
+	MBR_OS2_HIDDEN_DRIVE_PARTITION	= 0x84, /* also hibernation MS APM, Intel Rapid Start */
+	MBR_INTEL_HIBERNATION_PARTITION	= MBR_OS2_HIDDEN_DRIVE_PARTITION,
 	MBR_LINUX_EXTENDED_PARTITION	= 0x85,
 	MBR_NTFS_VOL_SET1_PARTITION	= 0x86,
 	MBR_NTFS_VOL_SET2_PARTITION	= 0x87,
@@ -163,6 +169,7 @@ enum {
 	MBR_DOS_ACCESS_PARTITION	= 0xe1, /* DOS access or SpeedStor 12-bit FAT extended partition */
 	MBR_DOS_RO_PARTITION		= 0xe3, /* DOS R/O or SpeedStor */
 	MBR_SPEEDSTOR_EXTENDED_PARTITION = 0xe4, /* SpeedStor 16-bit FAT extended partition < 1024 cyl. */
+	MBR_RUFUS_EXTRA_PARTITION	= 0xea, /* Rufus extra partition for alignment */
 	MBR_BEOS_FS_PARTITION		= 0xeb,
 	MBR_GPT_PARTITION		= 0xee, /* Intel EFI GUID Partition Table */
 	MBR_EFI_SYSTEM_PARTITION	= 0xef, /* Intel EFI System Partition */
@@ -172,7 +179,7 @@ enum {
 	MBR_DOS_SECONDARY_PARTITION	= 0xf2, /* DOS 3.3+ secondary */
 	MBR_VMWARE_VMFS_PARTITION	= 0xfb,
 	MBR_VMWARE_VMKCORE_PARTITION	= 0xfc, /* VMware kernel dump partition */
-	MBR_LINUX_RAID_PARTITION	= 0xfd, /* New (2.2.x) raid partition with autodetect using persistent superblock */
+	MBR_LINUX_RAID_PARTITION	= 0xfd, /* Linux raid partition with autodetect using persistent superblock */
 	MBR_LANSTEP_PARTITION		= 0xfe, /* SpeedStor >1024 cyl. or LANstep */
 	MBR_XENIX_BBT_PARTITION		= 0xff, /* Xenix Bad Block Table */
 };

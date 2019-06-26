@@ -21,8 +21,21 @@
 # include <err.h>
 #endif
 
+#ifdef HAVE_SYS_SYSMACROS_H
+# include <sys/sysmacros.h>     /* for major, minor */
+#endif
+
+#ifndef LOGIN_NAME_MAX
+# define LOGIN_NAME_MAX 256
+#endif
+
+#ifndef NAME_MAX
+# define NAME_MAX PATH_MAX
+#endif
+
 /*
- * Compiler-specific stuff
+ * __GNUC_PREREQ is deprecated in favour of __has_attribute() and
+ * __has_feature(). The __has macros are supported by clang and gcc>=5.
  */
 #ifndef __GNUC_PREREQ
 # if defined __GNUC__ && defined __GNUC_MINOR__
@@ -50,10 +63,22 @@
 #endif /* !__GNUC__ */
 
 /*
+ * It evaluates to 1 if the attribute/feature is supported by the current
+ * compilation targed. Fallback for old compilers.
+ */
+#ifndef __has_attribute
+  #define __has_attribute(x) 0
+#endif
+
+#ifndef __has_feature
+  #define __has_feature(x) 0
+#endif
+
+/*
  * Function attributes
  */
 #ifndef __ul_alloc_size
-# if __GNUC_PREREQ (4, 3)
+# if (__has_attribute(alloc_size) && __has_attribute(warn_unused_result)) || __GNUC_PREREQ (4, 3)
 #  define __ul_alloc_size(s) __attribute__((alloc_size(s), warn_unused_result))
 # else
 #  define __ul_alloc_size(s)
@@ -61,11 +86,17 @@
 #endif
 
 #ifndef __ul_calloc_size
-# if __GNUC_PREREQ (4, 3)
+# if (__has_attribute(alloc_size) && __has_attribute(warn_unused_result)) || __GNUC_PREREQ (4, 3)
 #  define __ul_calloc_size(n, s) __attribute__((alloc_size(n, s), warn_unused_result))
 # else
 #  define __ul_calloc_size(n, s)
 # endif
+#endif
+
+#if __has_attribute(returns_nonnull) || __GNUC_PREREQ (4, 9)
+# define __ul_returns_nonnull __attribute__((returns_nonnull))
+#else
+# define __ul_returns_nonnull
 #endif
 
 /*
@@ -121,8 +152,14 @@
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
 
+/*
+ * container_of - cast a member of a structure out to the containing structure
+ * @ptr:	the pointer to the member.
+ * @type:	the type of the container struct this is embedded in.
+ * @member:	the name of the member within the struct.
+ */
 #ifndef container_of
-#define container_of(ptr, type, member) __extension__ ({	 \
+#define container_of(ptr, type, member) __extension__ ({	\
 	const __typeof__( ((type *)0)->member ) *__mptr = (ptr); \
 	(type *)( (char *)__mptr - offsetof(type,member) );})
 #endif
@@ -198,6 +235,21 @@ errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
 # define warnx(FMT...) errmsg(0, 0, 0, FMT)
 #endif
 #endif /* !HAVE_ERR_H */
+
+
+/* Don't use inline function to avoid '#include "nls.h"' in c.h
+ */
+#define errtryhelp(eval) __extension__ ({ \
+	fprintf(stderr, _("Try '%s --help' for more information.\n"), \
+			program_invocation_short_name); \
+	exit(eval); \
+})
+
+/* After failed execvp() */
+#define EX_EXEC_FAILED		126	/* Program located, but not usable. */
+#define EX_EXEC_ENOENT		127	/* Could not find program to exec.  */
+#define errexec(name)	err(errno == ENOENT ? EX_EXEC_ENOENT : EX_EXEC_FAILED, \
+			_("failed to execute %s"), name)
 
 
 static inline __attribute__((const)) int is_power_of_2(unsigned long num)
@@ -290,16 +342,32 @@ static inline int xusleep(useconds_t usec)
 
 /*
  * Constant strings for usage() functions. For more info see
- * Documentation/howto-usage-function.txt and disk-utils/delpart.c
+ * Documentation/{howto-usage-function.txt,boilerplate.c}
  */
 #define USAGE_HEADER     _("\nUsage:\n")
 #define USAGE_OPTIONS    _("\nOptions:\n")
+#define USAGE_FUNCTIONS  _("\nFunctions:\n")
+#define USAGE_COMMANDS   _("\nCommands:\n")
+#define USAGE_COLUMNS    _("\nAvailable output columns:\n")
 #define USAGE_SEPARATOR    "\n"
-#define USAGE_HELP       _(" -h, --help     display this help and exit\n")
-#define USAGE_VERSION    _(" -V, --version  output version information and exit\n")
+
+#define USAGE_OPTSTR_HELP     _("display this help")
+#define USAGE_OPTSTR_VERSION  _("display version")
+
+#define USAGE_HELP_OPTIONS(marg_dsc) \
+		"%-" #marg_dsc "s%s\n" \
+		"%-" #marg_dsc "s%s\n" \
+		, " -h, --help",    USAGE_OPTSTR_HELP \
+		, " -V, --version", USAGE_OPTSTR_VERSION
+
 #define USAGE_MAN_TAIL(_man)   _("\nFor more details see %s.\n"), _man
 
 #define UTIL_LINUX_VERSION _("%s from %s\n"), program_invocation_short_name, PACKAGE_STRING
+
+#define print_version(eval) __extension__ ({ \
+		printf(UTIL_LINUX_VERSION); \
+		exit(eval); \
+})
 
 /*
  * scanf modifiers for "strings allocation"
@@ -336,14 +404,25 @@ static inline int xusleep(useconds_t usec)
  * inlining the function because inlining currently breaks the blacklisting
  * mechanism of AddressSanitizer.
  */
-#if defined(__has_feature)
-# if __has_feature(address_sanitizer)
-#  define UL_ASAN_BLACKLIST __attribute__((noinline)) __attribute__((no_sanitize_memory)) __attribute__((no_sanitize_address))
-# else
-#  define UL_ASAN_BLACKLIST	/* nothing */
-# endif
+#if __has_feature(address_sanitizer) && __has_attribute(no_sanitize_memory) && __has_attribute(no_sanitize_address)
+# define UL_ASAN_BLACKLIST __attribute__((noinline)) __attribute__((no_sanitize_memory)) __attribute__((no_sanitize_address))
 #else
 # define UL_ASAN_BLACKLIST	/* nothing */
+#endif
+
+/*
+ * Note that sysconf(_SC_GETPW_R_SIZE_MAX) returns *initial* suggested size for
+ * pwd buffer and in some cases it is not large enough. See POSIX and
+ * getpwnam_r man page for more details.
+ */
+#define UL_GETPW_BUFSIZ	(16 * 1024)
+
+/*
+ * Darwin or other BSDs may only have MAP_ANON. To get it on Darwin we must
+ * define _DARWIN_C_SOURCE before including sys/mman.h. We do this in config.h.
+ */
+#if !defined MAP_ANONYMOUS && defined MAP_ANON
+# define MAP_ANONYMOUS  (MAP_ANON)
 #endif
 
 #endif /* UTIL_LINUX_C_H */

@@ -1,4 +1,4 @@
-' Copyright (c) 2015 Bruce A Henderson
+' Copyright (c) 2015-2019 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,9 @@ Import "libuuid/src/parse.c"
 Import "libuuid/src/unpack.c"
 Import "libuuid/src/unparse.c"
 Import "libuuid/src/uuid_time.c"
+
+Import "lib/sha1.c"
+Import "lib/md5.c"
 
 Import "glue.c"
 
