@@ -47,9 +47,9 @@ extern "C" {
 	date * bmx_datetime_newdate(int year, int month, int day);	
 	void bmx_datetime_delete(date * d);
 
-	bool bmx_datetime_before(date * myDate, date * yourDate);
-	bool bmx_datetime_after(date * myDate, date * yourDate);
-	bool bmx_datetime_equals(date * myDate, date * yourDate);
+	int bmx_datetime_before(date * myDate, date * yourDate);
+	int bmx_datetime_after(date * myDate, date * yourDate);
+	int bmx_datetime_equals(date * myDate, date * yourDate);
 	
 	int bmx_datetime_year(date * d);
 	int bmx_datetime_month(date * d);
@@ -63,9 +63,9 @@ extern "C" {
 	int bmx_datetime_day_of_year(date * d);
 	date * bmx_datetime_end_of_month(date * d);
 	int bmx_datetime_week_number(date * d);
-	date * bmx_datetime_date_add(date * d, long duration);
-	date * bmx_datetime_date_subtract(date * d, long duration);
-	long bmx_datetime_date_subdate(date * d1, date * d2);
+	date * bmx_datetime_date_add(date * d, int duration);
+	date * bmx_datetime_date_subtract(date * d, int duration);
+	int bmx_datetime_date_subdate(date * d1, date * d2);
 	
 	date_period * bmx_datetime_period_datedate(date * d1, date * d2);
 	date_period * bmx_datetime_period_withdays(date * d, int length);
@@ -84,19 +84,19 @@ extern "C" {
 	BBString * bmx_datetime_to_string(date * d, std::locale * loc, date_facet * facet);
 	BBString * bmx_datetime_period_to_string(date_period * p);
 	
-	bool bmx_datetime_period_isnull(date_period * p);
-	bool bmx_datetime_period_containsdate(date_period * p, date * d);
-	bool bmx_datetime_period_contains(date_period * p1, date_period * p2);
-	bool bmx_datetime_period_intersects(date_period * p1, date_period * p2);
+	int bmx_datetime_period_isnull(date_period * p);
+	int bmx_datetime_period_containsdate(date_period * p, date * d);
+	int bmx_datetime_period_contains(date_period * p1, date_period * p2);
+	int bmx_datetime_period_intersects(date_period * p1, date_period * p2);
 	date_period * bmx_datetime_period_intersection(date_period * p1, date_period * p2);
-	bool bmx_datetime_period_adjacent(date_period * p1, date_period * p2);
-	bool bmx_datetime_period_after(date_period * p, date * d);
-	bool bmx_datetime_period_before(date_period * p, date * d);
+	int bmx_datetime_period_adjacent(date_period * p1, date_period * p2);
+	int bmx_datetime_period_after(date_period * p, date * d);
+	int bmx_datetime_period_before(date_period * p, date * d);
 	date_period * bmx_datetime_period_merge(date_period * p1, date_period * p2);
 	date_period * bmx_datetime_period_span(date_period * p1, date_period * p2);
-	bool bmx_datetime_period_isless(date_period * p1, date_period * p2);
-	bool bmx_datetime_period_isgreater(date_period * p1, date_period * p2);
-	bool bmx_datetime_period_isequal(date_period * p1, date_period * p2);
+	int bmx_datetime_period_isless(date_period * p1, date_period * p2);
+	int bmx_datetime_period_isgreater(date_period * p1, date_period * p2);
+	int bmx_datetime_period_isequal(date_period * p1, date_period * p2);
 	
 	void bmx_datetime_iter_forward(date_iterator * d);
 	void bmx_datetime_iter_backward(date_iterator * d);
@@ -105,9 +105,9 @@ extern "C" {
 	year_iterator * bmx_datetime_yeariter(date * d, int offset);
 	void bmx_datetime_iter_delete(date_iterator * d);
 
-	bool bmx_datetime_iter_before(date_iterator * myDate, date * yourDate);
-	bool bmx_datetime_iter_after(date_iterator * myDate, date * yourDate);
-	bool bmx_datetime_iter_equals(date_iterator * myDate, date * yourDate);	
+	int bmx_datetime_iter_before(date_iterator * myDate, date * yourDate);
+	int bmx_datetime_iter_after(date_iterator * myDate, date * yourDate);
+	int bmx_datetime_iter_equals(date_iterator * myDate, date * yourDate);	
 	int bmx_datetime_iter_year(date_iterator * d);
 	int bmx_datetime_iter_month(date_iterator * d);
 	int bmx_datetime_iter_day(date_iterator * d);
@@ -116,9 +116,9 @@ extern "C" {
 	int bmx_datetime_iter_day_of_year(date_iterator * d);
 	date * bmx_datetime_iter_end_of_month(date_iterator * d);
 	int bmx_datetime_iter_week_number(date_iterator * d);
-	date * bmx_datetime_iter_date_add(date_iterator * d, long duration);
-	date * bmx_datetime_iter_date_subtract(date_iterator * d, long duration);
-	long bmx_datetime_iter_date_subdate(date_iterator * d1, date * d2);
+	date * bmx_datetime_iter_date_add(date_iterator * d, int duration);
+	date * bmx_datetime_iter_date_subtract(date_iterator * d, int duration);
+	int bmx_datetime_iter_date_subdate(date_iterator * d1, date * d2);
 	BBString * bmx_datetime_iter_to_simple_string(date_iterator * d);
 	BBString * bmx_datetime_iter_to_iso_string(date_iterator * d);
 	BBString * bmx_datetime_iter_to_iso_extended_string(date_iterator * d);
@@ -137,7 +137,7 @@ extern "C" {
 	int bmx_time_duration_total_seconds(time_duration * d);
 	int bmx_time_duration_total_milliseconds(time_duration * d);
 	int bmx_time_duration_fractional_seconds(time_duration * d);
-	bool bmx_time_duration_is_negative(time_duration * d);
+	int bmx_time_duration_is_negative(time_duration * d);
 	time_duration * bmx_time_duration_invert_sign(time_duration * d);
 	BBString * bmx_time_duration_to_string(time_duration * d);
 	BBString * bmx_time_duration_to_iso_string(time_duration * d);
@@ -145,9 +145,9 @@ extern "C" {
 	time_duration * bmx_time_duration_subtract(time_duration * d1, time_duration * d2);
 	time_duration * bmx_time_duration_divide(time_duration * d1, int value);
 	time_duration * bmx_time_duration_multiply(time_duration * d1, int value);
-	bool bmx_time_duration_less(time_duration * d1, time_duration * d2);
-	bool bmx_time_duration_greater(time_duration * d1, time_duration * d2);
-	bool bmx_time_duration_equal(time_duration * d1, time_duration * d2);
+	int bmx_time_duration_less(time_duration * d1, time_duration * d2);
+	int bmx_time_duration_greater(time_duration * d1, time_duration * d2);
+	int bmx_time_duration_equal(time_duration * d1, time_duration * d2);
 	BBString * bmx_time_duration_asformat(time_duration * d, BBString * format, std::locale * loc, time_facet * facet);
 
 	int bmx_time_ticks_per_second();
@@ -170,9 +170,9 @@ extern "C" {
 	ptime * bmx_ptime_add_duration(ptime * p, time_duration * d);
 	ptime * bmx_ptime_subtract_duration(ptime * p, time_duration * d);
 	time_duration * bmx_ptime_subtract(ptime * p1, ptime * p2);
-	bool bmx_ptime_less(ptime * p1, ptime * p2);
-	bool bmx_ptime_greater(ptime * p1, ptime * p2);
-	bool bmx_ptime_equal(ptime * p1, ptime * p2);
+	int bmx_ptime_less(ptime * p1, ptime * p2);
+	int bmx_ptime_greater(ptime * p1, ptime * p2);
+	int bmx_ptime_equal(ptime * p1, ptime * p2);
 	ptime * bmx_ptime_from_time_t(std::time_t * t);
 	BBString * bmx_ptime_asformat(ptime * p, BBString * f, std::locale * loc, time_facet * facet);
 
@@ -203,23 +203,23 @@ extern "C" {
 	ptime * bmx_time_period_last(time_period * tp);
 	ptime * bmx_time_period_end(time_period * tp);
 	time_duration * bmx_time_period_length(time_period * tp);
-	bool bmx_time_period_is_null(time_period * tp);
-	bool bmx_time_period_contains(time_period * tp, ptime * t);
-	bool bmx_time_period_containsPeriod(time_period * tp1, time_period * tp2);
-	bool bmx_time_period_intersects(time_period * tp1, time_period * tp2);
+	int bmx_time_period_is_null(time_period * tp);
+	int bmx_time_period_contains(time_period * tp, ptime * t);
+	int bmx_time_period_containsPeriod(time_period * tp1, time_period * tp2);
+	int bmx_time_period_intersects(time_period * tp1, time_period * tp2);
 	time_period * bmx_time_period_intersection(time_period * tp1, time_period * tp2);
 	time_period * bmx_time_period_merge(time_period * tp1, time_period * tp2);
 	time_period * bmx_time_period_span(time_period * tp1, time_period * tp2);
-	bool bmx_time_period_isless(time_period * tp1, time_period * tp2);
-	bool bmx_time_period_isgreater(time_period * tp1, time_period * tp2);
-	bool bmx_time_period_isequal(time_period * tp1, time_period * tp2);
+	int bmx_time_period_isless(time_period * tp1, time_period * tp2);
+	int bmx_time_period_isgreater(time_period * tp1, time_period * tp2);
+	int bmx_time_period_isequal(time_period * tp1, time_period * tp2);
 	
 	posix_time_zone * bmx_posix_time_zone(BBString * id);
 	BBString * bmx_time_zone_dst_zone_abbrev(time_zone * tz);
 	BBString * bmx_time_zone_std_zone_abbrev(time_zone * tz);
 	BBString * bmx_time_zone_dst_zone_name(time_zone * tz);
 	BBString * bmx_time_zone_std_zone_name(time_zone * tz);
-	bool bmx_time_zone_has_dst(time_zone * tz);
+	int bmx_time_zone_has_dst(time_zone * tz);
 	ptime * bmx_time_zone_dst_local_start_time(time_zone * tz, int year);
 	ptime * bmx_time_zone_dst_local_end_time(time_zone * tz, int year);
 	time_duration * bmx_time_zone_base_utc_offset(time_zone * tz);
@@ -263,20 +263,20 @@ extern "C" {
 	date * bmx_first_day_of_week_before_get_date(first_day_of_the_week_before *  p, date * d);
 	void bmx_first_day_of_week_before_delete(first_day_of_the_week_before *  p);
 
-	long bmx_days_until_weekday(date * d, int weekday);
-	long bmx_days_before_weekday(date * d, int weekday);
+	int bmx_days_until_weekday(date * d, int weekday);
+	int bmx_days_before_weekday(date * d, int weekday);
 	date * bmx_next_weekday(date * d, int weekday);
 	date * bmx_previous_weekday(date * d, int weekday);
 	
 	time_zone_ptr bmx_local_date_time_zone(local_date_time * ldt);
-	bool bmx_local_date_time_is_dst(local_date_time * ldt);
+	int bmx_local_date_time_is_dst(local_date_time * ldt);
 	ptime * bmx_local_date_time_utc_time(local_date_time * ldt);
 	ptime * bmx_local_date_time_local_time(local_date_time * ldt);
 	
 	BBString * bmx_local_date_time_to_string(local_date_time * ldt);
-	bool bmx_local_date_time_less(local_date_time * ldt1, local_date_time * ldt2);
-	bool bmx_local_date_time_greater(local_date_time * ldt1, local_date_time * ldt2);
-	bool bmx_local_date_time_equal(local_date_time * ldt1, local_date_time * ldt2);
+	int bmx_local_date_time_less(local_date_time * ldt1, local_date_time * ldt2);
+	int bmx_local_date_time_greater(local_date_time * ldt1, local_date_time * ldt2);
+	int bmx_local_date_time_equal(local_date_time * ldt1, local_date_time * ldt2);
 	
 	local_date_time * bmx_local_date_time_add_days(local_date_time * ldt, int value);
 	local_date_time * bmx_local_date_time_add_months(local_date_time * ldt, int value);
@@ -295,17 +295,17 @@ extern "C" {
 	local_date_time * bmx_local_time_period_last(local_time_period * ldt);
 	local_date_time * bmx_local_time_period_end(local_time_period * ldt);
 	time_duration * bmx_local_time_period_length(local_time_period * ldt);
-	bool bmx_local_time_period_is_null(local_time_period * ldt);
-	bool bmx_local_time_period_contains_time(local_time_period * ldt, local_date_time * t);
-	bool bmx_local_time_period_contains(local_time_period * ldt1, local_time_period * ldt2);
-	bool bmx_local_time_period_intersects(local_time_period * ldt1, local_time_period * ldt2);
+	int bmx_local_time_period_is_null(local_time_period * ldt);
+	int bmx_local_time_period_contains_time(local_time_period * ldt, local_date_time * t);
+	int bmx_local_time_period_contains(local_time_period * ldt1, local_time_period * ldt2);
+	int bmx_local_time_period_intersects(local_time_period * ldt1, local_time_period * ldt2);
 	local_time_period * bmx_local_time_period_intersection(local_time_period * ldt1, local_time_period * ldt2);
 	local_time_period * bmx_local_time_period_merge(local_time_period * ldt1, local_time_period * ldt2);
 	local_time_period * bmx_local_time_period_span(local_time_period * ldt1, local_time_period * ldt2);
 	void bmx_local_time_period_shift(local_time_period * ldt, time_duration * d);
-	bool bmx_local_time_period_less(local_time_period * ldt1, local_time_period * ldt2);
-	bool bmx_local_time_period_greater(local_time_period * ldt1, local_time_period * ldt2);
-	bool bmx_local_time_period_equal(local_time_period * ldt1, local_time_period * ldt2);
+	int bmx_local_time_period_less(local_time_period * ldt1, local_time_period * ldt2);
+	int bmx_local_time_period_greater(local_time_period * ldt1, local_time_period * ldt2);
+	int bmx_local_time_period_equal(local_time_period * ldt1, local_time_period * ldt2);
 	
 	int bmx_end_of_month_day(int y, int m);
 }
@@ -347,15 +347,15 @@ date * bmx_datetime_universalday() {
 	return new date(day_clock::universal_day());
 }
 
-bool bmx_datetime_before(date * myDate, date * yourDate) {
+int bmx_datetime_before(date * myDate, date * yourDate) {
 	return *myDate < *yourDate;
 }
 
-bool bmx_datetime_after(date * myDate, date * yourDate) {
+int bmx_datetime_after(date * myDate, date * yourDate) {
 	return *myDate > *yourDate;
 }
 
-bool bmx_datetime_equals(date * myDate, date * yourDate) {
+int bmx_datetime_equals(date * myDate, date * yourDate) {
 	return *myDate == *yourDate;
 }
 
@@ -419,15 +419,15 @@ int bmx_datetime_week_number(date * d) {
 	return (int)d->week_number();
 }
 
-date * bmx_datetime_date_add(date * d, long duration) {
+date * bmx_datetime_date_add(date * d, int duration) {
 	return new date(*d + date_duration(duration));
 }
 
-date * bmx_datetime_date_subtract(date * d, long duration) {
+date * bmx_datetime_date_subtract(date * d, int duration) {
 	return new date(*d - date_duration(duration));
 }
 
-long bmx_datetime_date_subdate(date * d1, date * d2) {
+int bmx_datetime_date_subdate(date * d1, date * d2) {
 	date_duration duration = *d1 - *d2;
 	return duration.days();
 }
@@ -495,19 +495,19 @@ BBString * bmx_datetime_period_to_string(date_period * p) {
 	return bmx_BBString_from_stream(outputStringStream);
 }
 
-bool bmx_datetime_period_isnull(date_period * p) {
+int bmx_datetime_period_isnull(date_period * p) {
 	return p->is_null();
 }
 
-bool bmx_datetime_period_containsdate(date_period * p, date * d) {
+int bmx_datetime_period_containsdate(date_period * p, date * d) {
 	return p->contains(*d);
 }
 
-bool bmx_datetime_period_contains(date_period * p1, date_period * p2) {
+int bmx_datetime_period_contains(date_period * p1, date_period * p2) {
 	return p1->contains(*p2);
 }
 
-bool bmx_datetime_period_intersects(date_period * p1, date_period * p2) {
+int bmx_datetime_period_intersects(date_period * p1, date_period * p2) {
 	return p1->intersects(*p2);
 }
 
@@ -515,15 +515,15 @@ date_period * bmx_datetime_period_intersection(date_period * p1, date_period * p
 	return new date_period(p1->intersection(*p2));
 }
 
-bool bmx_datetime_period_adjacent(date_period * p1, date_period * p2) {
+int bmx_datetime_period_adjacent(date_period * p1, date_period * p2) {
 	return p1->is_adjacent(*p2);
 }
 
-bool bmx_datetime_period_after(date_period * p, date * d) {
+int bmx_datetime_period_after(date_period * p, date * d) {
 	return p->is_after(*d);
 }
 
-bool bmx_datetime_period_before(date_period * p, date * d) {
+int bmx_datetime_period_before(date_period * p, date * d) {
 	return p->is_before(*d);
 }
 
@@ -535,15 +535,15 @@ date_period * bmx_datetime_period_span(date_period * p1, date_period * p2) {
 	return new date_period(p1->span(*p2));
 }
 
-bool bmx_datetime_period_isless(date_period * p1, date_period * p2) {
+int bmx_datetime_period_isless(date_period * p1, date_period * p2) {
 	return *p1 < *p2;
 }
 
-bool bmx_datetime_period_isgreater(date_period * p1, date_period * p2) {
+int bmx_datetime_period_isgreater(date_period * p1, date_period * p2) {
 	return *p1 > *p2;
 }
 
-bool bmx_datetime_period_isequal(date_period * p1, date_period * p2) {
+int bmx_datetime_period_isequal(date_period * p1, date_period * p2) {
 	return *p1 == *p2;
 }
 
@@ -572,15 +572,15 @@ void bmx_datetime_iter_backward(date_iterator * d) {
 }
 
 
-bool bmx_datetime_iter_before(date_iterator * myDate, date * yourDate) {
+int bmx_datetime_iter_before(date_iterator * myDate, date * yourDate) {
 	return (*(day_iterator *)myDate) < *yourDate;
 }
 
-bool bmx_datetime_iter_after(date_iterator * myDate, date * yourDate) {
+int bmx_datetime_iter_after(date_iterator * myDate, date * yourDate) {
 	return (*(day_iterator *)myDate) > *yourDate;
 }
 
-bool bmx_datetime_iter_equals(date_iterator * myDate, date * yourDate) {
+int bmx_datetime_iter_equals(date_iterator * myDate, date * yourDate) {
 	return (*(day_iterator *)myDate) == *yourDate;
 }
 
@@ -619,16 +619,16 @@ int bmx_datetime_iter_week_number(date_iterator * d) {
 	return (int)(*(day_iterator *)d)->week_number();
 }
 
-date * bmx_datetime_iter_date_add(date_iterator * d, long duration) {
+date * bmx_datetime_iter_date_add(date_iterator * d, int duration) {
 	date dd(**d);
 	return new date(dd + date_duration(duration));
 }
 
-date * bmx_datetime_iter_date_subtract(date_iterator * d, long duration) {
+date * bmx_datetime_iter_date_subtract(date_iterator * d, int duration) {
 	return new date(**d - date_duration(duration));
 }
 
-long bmx_datetime_iter_date_subdate(date_iterator * d1, date * d2) {
+int bmx_datetime_iter_date_subdate(date_iterator * d1, date * d2) {
 	date_duration duration = (**d1) - *d2;
 	return duration.days();
 }
@@ -720,7 +720,7 @@ int bmx_time_duration_fractional_seconds(time_duration * d) {
 	return d->fractional_seconds();
 }
 
-bool bmx_time_duration_is_negative(time_duration * d) {
+int bmx_time_duration_is_negative(time_duration * d) {
 	return d->is_negative();
 }
 
@@ -752,15 +752,15 @@ time_duration * bmx_time_duration_multiply(time_duration * d1, int value) {
 	return new time_duration(*d1 * value);
 }
 
-bool bmx_time_duration_less(time_duration * d1, time_duration * d2) {
+int bmx_time_duration_less(time_duration * d1, time_duration * d2) {
 	return *d1 < *d2;
 }
 
-bool bmx_time_duration_greater(time_duration * d1, time_duration * d2) {
+int bmx_time_duration_greater(time_duration * d1, time_duration * d2) {
 	return *d1 > *d2;
 }
 
-bool bmx_time_duration_equal(time_duration * d1, time_duration * d2) {
+int bmx_time_duration_equal(time_duration * d1, time_duration * d2) {
 	return *d1 == *d2;
 }
 
@@ -846,15 +846,15 @@ time_duration * bmx_ptime_subtract(ptime * p1, ptime * p2) {
 	return new time_duration(*p1 - *p2);
 }
 
-bool bmx_ptime_less(ptime * p1, ptime * p2) {
+int bmx_ptime_less(ptime * p1, ptime * p2) {
 	return *p1 < *p2;
 }
 
-bool bmx_ptime_greater(ptime * p1, ptime * p2) {
+int bmx_ptime_greater(ptime * p1, ptime * p2) {
 	return *p1 > *p2;
 }
 
-bool bmx_ptime_equal(ptime * p1, ptime * p2) {
+int bmx_ptime_equal(ptime * p1, ptime * p2) {
 	return *p1 == *p2;
 }
 
@@ -979,19 +979,19 @@ time_duration * bmx_time_period_length(time_period * tp) {
 	return new time_duration(tp->length());
 }
 
-bool bmx_time_period_is_null(time_period * tp) {
+int bmx_time_period_is_null(time_period * tp) {
 	return tp->is_null();
 }
 
-bool bmx_time_period_contains(time_period * tp, ptime * t) {
+int bmx_time_period_contains(time_period * tp, ptime * t) {
 	return tp->contains(*t);
 }
 
-bool bmx_time_period_containsPeriod(time_period * tp1, time_period * tp2) {
+int bmx_time_period_containsPeriod(time_period * tp1, time_period * tp2) {
 	return tp1->contains(*tp2);
 }
 
-bool bmx_time_period_intersects(time_period * tp1, time_period * tp2) {
+int bmx_time_period_intersects(time_period * tp1, time_period * tp2) {
 	return tp1->intersects(*tp2);
 }
 
@@ -1007,15 +1007,15 @@ time_period * bmx_time_period_span(time_period * tp1, time_period * tp2) {
 	return new time_period(tp1->span(*tp2));
 }
 
-bool bmx_time_period_isless(time_period * tp1, time_period * tp2) {
+int bmx_time_period_isless(time_period * tp1, time_period * tp2) {
 	return *tp1 < *tp2;
 }
 
-bool bmx_time_period_isgreater(time_period * tp1, time_period * tp2) {
+int bmx_time_period_isgreater(time_period * tp1, time_period * tp2) {
 	return *tp1 > *tp2;
 }
 
-bool bmx_time_period_isequal(time_period * tp1, time_period * tp2) {
+int bmx_time_period_isequal(time_period * tp1, time_period * tp2) {
 	return *tp1 == *tp2;
 }
 
@@ -1046,7 +1046,7 @@ BBString * bmx_time_zone_std_zone_name(time_zone * tz) {
 	return bbStringFromUTF8String(tz->std_zone_name().c_str());
 }
 
-bool bmx_time_zone_has_dst(time_zone * tz) {
+int bmx_time_zone_has_dst(time_zone * tz) {
 	return tz->has_dst();
 }
 
@@ -1262,10 +1262,10 @@ void bmx_first_day_of_week_before_delete(first_day_of_the_week_before *  p) {
 	delete p;
 }
 
-long bmx_days_until_weekday(date * d, int weekday) {
+int bmx_days_until_weekday(date * d, int weekday) {
 	return days_until_weekday(*d, greg_weekday(weekday)).days();
 }
-long bmx_days_before_weekday(date * d, int weekday) {
+int bmx_days_before_weekday(date * d, int weekday) {
 	return days_before_weekday(*d, greg_weekday(weekday)).days();
 }
 
@@ -1281,7 +1281,7 @@ time_zone_ptr bmx_local_date_time_zone(local_date_time * ldt) {
 	return ldt->zone();
 }
 
-bool bmx_local_date_time_is_dst(local_date_time * ldt) {
+int bmx_local_date_time_is_dst(local_date_time * ldt) {
 	return ldt->is_dst();
 }
 
@@ -1299,15 +1299,15 @@ BBString * bmx_local_date_time_to_string(local_date_time * ldt) {
 	return bmx_BBString_from_stream(outputStringStream);
 }
 
-bool bmx_local_date_time_less(local_date_time * ldt1, local_date_time * ldt2) {
+int bmx_local_date_time_less(local_date_time * ldt1, local_date_time * ldt2) {
 	return *ldt1 < *ldt2;
 }
 
-bool bmx_local_date_time_greater(local_date_time * ldt1, local_date_time * ldt2) {
+int bmx_local_date_time_greater(local_date_time * ldt1, local_date_time * ldt2) {
 	return *ldt1 > *ldt2;
 }
 
-bool bmx_local_date_time_equal(local_date_time * ldt1, local_date_time * ldt2) {
+int bmx_local_date_time_equal(local_date_time * ldt1, local_date_time * ldt2) {
 	return *ldt1 == *ldt2;
 }
 
@@ -1375,19 +1375,19 @@ time_duration * bmx_local_time_period_length(local_time_period * ldt) {
 	return new time_duration(ldt->length());
 }
 
-bool bmx_local_time_period_is_null(local_time_period * ldt) {
+int bmx_local_time_period_is_null(local_time_period * ldt) {
 	return ldt->is_null();
 }
 
-bool bmx_local_time_period_contains_time(local_time_period * ldt, local_date_time * t) {
+int bmx_local_time_period_contains_time(local_time_period * ldt, local_date_time * t) {
 	return ldt->contains(*t);
 }
 
-bool bmx_local_time_period_contains(local_time_period * ldt1, local_time_period * ldt2) {
+int bmx_local_time_period_contains(local_time_period * ldt1, local_time_period * ldt2) {
 	return ldt1->contains(*ldt2);
 }
 
-bool bmx_local_time_period_intersects(local_time_period * ldt1, local_time_period * ldt2) {
+int bmx_local_time_period_intersects(local_time_period * ldt1, local_time_period * ldt2) {
 	return ldt1->intersects(*ldt2);
 }
 
@@ -1407,15 +1407,15 @@ void bmx_local_time_period_shift(local_time_period * ldt, time_duration * d) {
 	ldt->shift(*d);
 }
 
-bool bmx_local_time_period_less(local_time_period * ldt1, local_time_period * ldt2) {
+int bmx_local_time_period_less(local_time_period * ldt1, local_time_period * ldt2) {
 	return *ldt1 < *ldt2;
 }
 
-bool bmx_local_time_period_greater(local_time_period * ldt1, local_time_period * ldt2) {
+int bmx_local_time_period_greater(local_time_period * ldt1, local_time_period * ldt2) {
 	return *ldt1 > *ldt2;
 }
 
-bool bmx_local_time_period_equal(local_time_period * ldt1, local_time_period * ldt2) {
+int bmx_local_time_period_equal(local_time_period * ldt1, local_time_period * ldt2) {
 	return *ldt1 == *ldt2;
 }
 

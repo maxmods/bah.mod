@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2018 Bruce A Henderson
+' Copyright (c) 2007-2019 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,13 @@ bbdoc: Date Time
 End Rem
 Module BaH.DateTime
 
-ModuleInfo "Version: 1.05"
+ModuleInfo "Version: 1.06"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2018 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2019 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.06"
+ModuleInfo "History: Fixed glue bool/long usage."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Updated to Boost 1.67"
 ModuleInfo "History: 1.04"
@@ -145,7 +147,7 @@ Type TDate
 	</pre>
 	<a href="../examples/tdate_fromString.bmx">Example source</a>
 	End Rem
-	Function fromString:TDate(date:String)
+	Function FromString:TDate(date:String)
 		Return _create(bmx_datetime_fromstring(date))
 	End Function
 	
