@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2017 Bruce A Henderson
+' Copyright (c) 2010-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,19 +28,17 @@ OnEnd(_tidyup)
 Type TSpeech Extends TSpeechBase
 
 	Field speech:Byte Ptr
-	Field status:SPVOICESTATUS = New SPVOICESTATUS
 
 	Method New()
 		speech = bmx_speech_create()
 	End Method
 
-	Method speak:Int(text:String)
-		Return bmx_speech_Speak(speech, text)
+	Method speak:Int(Text:String)
+		Return bmx_speech_Speak(speech, Text)
 	End Method
 
 	Method isSpeaking:Int()
-		bmx_speech_GetStatus(speech, status)
-		Return status.dwRunningState <> 1
+		Return bmx_speech_isSpeaking(speech)
 	End Method
 	
 	Function availableVoices:String[]()
@@ -70,9 +68,7 @@ Type TSpeech Extends TSpeechBase
 	End Method
 
 	Method getPosition(char:Int Var, length:Int Var)
-		bmx_speech_GetStatus(speech, status)
-		char = status.ulInputWordPos
-		length = status.ulInputWordLen
+		bmx_speech_getPosition(speech, char, length)
 	End Method
 	
 	Method setRate(rate:Int)

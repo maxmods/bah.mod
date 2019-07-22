@@ -16,6 +16,9 @@ End If
 
 speech.speak("Hello, this is BaH dot Speech")
 
+' wait a bit before we start testing
+Delay 1000
+
 While speech.isSpeaking()
 	Delay 10
 Wend

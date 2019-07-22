@@ -27,7 +27,7 @@
 extern "C" {
 	ISpVoice * bmx_speech_create();
 	void bmx_speech_Release(ISpVoice * voice);
-	int bmx_speech_Speak(ISpVoice * voice, LPCWSTR text);
+	int bmx_speech_Speak(ISpVoice * voice, BBString * text);
 	void bmx_speech_GetStatus(ISpVoice * voice, SPVOICESTATUS * status);
 	void bmx_speech_Pause(ISpVoice * voice);
 	void bmx_speech_Resume(ISpVoice * voice);
@@ -37,6 +37,8 @@ extern "C" {
 	void bmx_speech_GetRate(ISpVoice * voice, int * rate);
 	BBArray * bmx_speech_availableVoices();
 	void bmx_speech_setVoice(ISpVoice * voice, LPCWSTR text);
+	int bmx_speech_isSpeaking(ISpVoice * voice);
+	void bmx_speech_getPosition(ISpVoice * voice, int * character, int * length);
 }
 
 
@@ -52,8 +54,11 @@ void bmx_speech_Release(ISpVoice * voice) {
 	voice->Release();
 }
 
-int bmx_speech_Speak(ISpVoice * voice, LPCWSTR text) {
-	voice->Speak(text, SPF_ASYNC, 0);
+int bmx_speech_Speak(ISpVoice * voice, BBString * text) {
+	BBChar * s = bbStringToWString(text);
+	HRESULT res = voice->Speak((LPCWSTR)s, SPF_ASYNC, 0);
+	bbMemFree(s);
+	return res;
 }
 
 void bmx_speech_GetStatus(ISpVoice * voice, SPVOICESTATUS * status) {
@@ -188,3 +193,15 @@ void bmx_speech_setVoice(ISpVoice * voice, LPCWSTR text) {
 
 }
 
+int bmx_speech_isSpeaking(ISpVoice * voice) {
+	SPVOICESTATUS status;
+	voice->GetStatus(&status, 0);
+	return status.dwRunningState == SPRS_IS_SPEAKING;
+}
+
+void bmx_speech_getPosition(ISpVoice * voice, int * character, int * length) {
+	SPVOICESTATUS status;
+	voice->GetStatus(&status, 0);
+	*character = status.ulInputWordPos;
+	*length = status.ulInputWordLen;
+}

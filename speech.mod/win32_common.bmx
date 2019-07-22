@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2017 Bruce A Henderson
+' Copyright (c) 2010-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -40,12 +40,7 @@ End Extern
 Extern
 	Function bmx_speech_create:Byte Ptr()
 	Function bmx_speech_Release(speech:Byte Ptr)
-	Function bmx_speech_Speak:Int(speech:Byte Ptr, text$w)
-?bmxng
-	Function bmx_speech_GetStatus(speech:Byte Ptr, status:SPVOICESTATUS Var)
-?Not bmxng
-	Function bmx_speech_GetStatus(speech:Byte Ptr, status:Byte Ptr)
-?
+	Function bmx_speech_Speak:Int(speech:Byte Ptr, Text:String)
 	Function bmx_speech_Pause(speech:Byte Ptr)
 	Function bmx_speech_Resume(speech:Byte Ptr)
 	Function bmx_speech_SetVolume(speech:Byte Ptr, volume:Short)
@@ -54,28 +49,7 @@ Extern
 	Function bmx_speech_GetRate(speech:Byte Ptr, rate:Int Ptr)
 	Function bmx_speech_availableVoices:String[]()
 	Function bmx_speech_setVoice(speech:Byte Ptr, voice$w)
+	
+	Function bmx_speech_isSpeaking:Int(speech:Byte Ptr)
+	Function bmx_speech_getPosition(speech:Byte Ptr, character:Int Ptr, length:Int Ptr)
 End Extern
-
-?bmxng
-Struct SPVOICESTATUS
-?Not bmxng
-Type SPVOICESTATUS
-?
-    Field ulCurrentStream:Int
-    Field ulLastStreamQueued:Int
-    Field hrLastResult:Int
-    Field dwRunningState:Int
-    Field ulInputWordPos:Int
-    Field ulInputWordLen:Int
-    Field ulInputSentPos:Int
-    Field ulInputSentLen:Int
-    Field lBookmarkId:Int
-    Field PhonemeId:Int
-    Field VisemeId:Int
-    Field dwReserved1:Int
-    Field dwReserved2:Int
-?bmxng
-End Struct
-?Not bmxng
-End Type
-?
