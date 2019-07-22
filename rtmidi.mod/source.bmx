@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2018 Bruce A Henderson
+' Copyright (c) 2010-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
 '
 SuperStrict
 
-Import "src/*.h"
+Import "rtmidi/*.h"
 
-Import "src/RtMidi.cpp"
+Import "rtmidi/RtMidi.cpp"
 
 Import "glue.cpp"
 

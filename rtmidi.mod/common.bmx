@@ -1,4 +1,4 @@
-' Copyright (c) 2010-2018 Bruce A Henderson
+' Copyright (c) 2010-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -80,3 +80,7 @@ Rem
 bbdoc: The Microsoft Multimedia MIDI API.
 End Rem
 Const API_WINDOWS_MM:Int = 4
+Rem
+bbdoc: A compilable but non-functional API.
+End Rem
+Const RTMIDI_API_RTMIDI_DUMMY:Int = 5
