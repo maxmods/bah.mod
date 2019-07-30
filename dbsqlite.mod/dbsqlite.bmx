@@ -31,13 +31,16 @@ about: An SQLite database driver for #bah.database.Database
 End Rem
 Module BaH.DBSQLite
 Import brl.standardio
-ModuleInfo "Version: 1.17"
+ModuleInfo "Version: 1.18"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007-2019 Bruce A Henderson"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.18"
+ModuleInfo "History: Update to SQLite 3.29.0."
+ModuleInfo "History: Disable double-quoted string literals by default."
 ModuleInfo "History: 1.17"
 ModuleInfo "History: Update to SQLite 3.28.0."
 ModuleInfo "History: 1.16"
@@ -89,6 +92,7 @@ ModuleInfo "History: 1.00 Initial Release"
 ModuleInfo "History: Includes SQLite 3.3.13 source."
 
 ModuleInfo "CC_OPTS: -DSQLITE_USER_AUTHENTICATION"
+ModuleInfo "CC_OPTS: -DSQLITE_DQS=0" ' deactivates the double-quoted string literal "misfeature". see https://www.sqlite.org/quirks.html#dblquote
 
 Import BaH.Database
 
@@ -97,9 +101,6 @@ Import "common.bmx"
 ' Notes
 '
 '  Appended userauth.c to end of sqlite3.c
-'  Appended sqlite3userauth.h to end of sqlite3.h
-'
-'  Applied fast_math patch to sqlite3.c
 '
 
 ' The implementation
