@@ -27,11 +27,13 @@ bbdoc: ZStandard Compression.
 End Rem
 Module BaH.zstd
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2018-2019 Bruce A Henderson"
 ModuleInfo "Copyright: ZStandard - 2016-present, Facebook, Inc"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Update to zstd 1.4.3"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to zstd 1.4.0.9038579"
 ModuleInfo "History: 1.01"
@@ -43,7 +45,7 @@ Import "common.bmx"
 
 
 Rem
-bbdoc: 
+bbdoc: A Zstandard Compressor.
 End Rem
 Type TZstdCompress
 
@@ -54,7 +56,7 @@ Type TZstdCompress
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Compresses @src into @dst using the specified @compressionLevel.
 	End Rem
 ?bmxng
 	Method Compress:Size_T(dst:Byte Ptr, dstCapacity:Size_T, src:Byte Ptr, srcSize:Size_T, compressionLevel:Int)
@@ -64,10 +66,16 @@ Type TZstdCompress
 		Return ZSTD_compressCCtx(zstdPtr, dst, dstCapacity, src, srcSize, compressionLevel)
 	End Method
 	
+	Rem
+	bbdoc: Compresses @src into @dst using the specified dictionary @dict.
+	End Rem
 	Method CompressWithDict:Size_T(dst:Byte Ptr, dstCapacity:Size_T, src:Byte Ptr, srcSize:Size_T, dict:TZstdCDict)
 		Return ZSTD_compress_usingCDict(zstdPtr, dst, dstCapacity, src, srcSize, dict.zstdPtr)
 	End Method
 	
+	Rem
+	bbdoc: Frees the compressor.
+	End Rem
 	Method Free()
 		If zstdPtr Then
 			ZSTD_freeCCtx(zstdPtr)
@@ -78,7 +86,7 @@ Type TZstdCompress
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A ZStandard decompressor.
 End Rem
 Type TZstdDecompress
 
@@ -99,17 +107,27 @@ Type TZstdDecompress
 		Return ZSTD_decompressDCtx(zstdPtr, dst, dstCapacity, src, compressedSize)
 	End Method
 
+	Rem
+	bbdoc: Frees the decompressor.
+	End Rem
+	Method Free()
+		If zstdPtr Then
+			ZSTD_freeDCtx(zstdPtr)
+			zstdPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A Zstandard dictionary.
 End Rem
 Type TZstdCDict
 
 	Field zstdPtr:Byte Ptr
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a dictionary using the specified dictionary data @dictBuffer.
 	End Rem
 	Method Create:TZstdCDict(dictBuffer:Byte Ptr, dictSize:Size_T, compressionLevel:Int)
 		zstdPtr = ZSTD_createCDict(dictBuffer, dictSize, compressionLevel)

@@ -123,6 +123,10 @@ matrix:
         - make ppcinstall
         - make ppcfuzz
 
+    - name: Trusty (Versions Compatibility Test)
+      script:
+        - make -C tests versionsTest
+
     # check release number
     - name: Tag-Specific Test
       if: tag =~ ^v[0-9]\.[0-9]
@@ -190,18 +194,23 @@ matrix:
       compiler: clang
       install:
         - sudo apt-get install -qq liblz4-dev valgrind tree
-        - travis_retry curl -o ~/ninja.zip -L 'https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-linux.zip'
-            && unzip ~/ninja.zip -d ~/.local/bin
-        - travis_retry curl -o ~/get-pip.py -L 'https://bootstrap.pypa.io/get-pip.py'
-            && python3 ~/get-pip.py --user
-            && pip3 install --user meson
+        - |
+          travis_retry curl -o ~/ninja.zip -L 'https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-linux.zip' &&
+          unzip ~/ninja.zip -d ~/.local/bin
+        - |
+          travis_retry curl -o ~/get-pip.py -L 'https://bootstrap.pypa.io/get-pip.py' &&
+          python3 ~/get-pip.py --user &&
+          pip3 install --user meson
       script:
-        - meson setup
-            --buildtype=debugoptimized
-            -Db_lundef=false
-            -Dauto_features=enabled
-            -Dbuild_{programs,tests,contrib}=true
-            -Ddefault_library=both
+        - |
+          meson setup \
+            --buildtype=debugoptimized \
+            -Db_lundef=false \
+            -Dauto_features=enabled \
+            -Dbin_programs=true \
+            -Dbin_tests=true \
+            -Dbin_contrib=true \
+            -Ddefault_library=both \
              build/meson builddir
         - pushd builddir
         - ninja
