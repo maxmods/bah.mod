@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2016 Bruce A Henderson
+' Copyright (c) 2008-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,15 @@ SuperStrict
 
 Import BRL.Blitz
 
-Import "include/*.h"
+Import "muparser/include/*.h"
 
-Import "src/muParser.cpp"
-Import "src/muParserTokenReader.cpp"
-Import "src/muParserBase.cpp"
-Import "src/muParserBytecode.cpp"
-Import "src/muParserCallback.cpp"
-'Import "src/muParserComplex.cpp"
-Import "src/muParserError.cpp"
-Import "src/muParserInt.cpp"
+Import "muparser/src/muParser.cpp"
+Import "muparser/src/muParserTokenReader.cpp"
+Import "muparser/src/muParserBase.cpp"
+Import "muparser/src/muParserBytecode.cpp"
+Import "muparser/src/muParserCallback.cpp"
+Import "muparser/src/muParserError.cpp"
+Import "muparser/src/muParserInt.cpp"
 
 
 Import "glue.cpp"

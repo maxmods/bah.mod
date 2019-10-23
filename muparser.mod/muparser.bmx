@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2016 Bruce A Henderson
+' Copyright (c) 2008-2019 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Mathematical expressions parser.
 End Rem
 Module BaH.muParser
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2008-2016 Bruce A Henderson"
-ModuleInfo "Copyright: muParser - 2004-2012 Ingo Berg"
+ModuleInfo "Copyright: Wrapper - 2008-2019 Bruce A Henderson"
+ModuleInfo "Copyright: muParser - 2004-2013 Ingo Berg"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Updated to muParser 2.2.6.96e64b2"
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated for NG."
 ModuleInfo "History: 1.02"
@@ -39,7 +41,7 @@ ModuleInfo "History: Updated to muParser 2.2.3."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release (muparser 1.30 svn 20081110)"
 
-ModuleInfo "CC_OPTS: -fexceptions"' -D_UNICODE"
+ModuleInfo "CC_OPTS: -fexceptions -DMUPARSER_STATIC"' -D_UNICODE"
 ?macos
 ModuleInfo "CC_OPTS: -fpermissive"
 ?
