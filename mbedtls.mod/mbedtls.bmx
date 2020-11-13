@@ -35,6 +35,7 @@ ModuleInfo "History: Applied win32 vsnprintf patch."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
+Import BRL.Retro
 Import "common.bmx"
 
 '
@@ -146,11 +147,39 @@ Type TNetContext
 		Local buf:Byte[256]
 		Local length:Int
 		Local res:Int = mbedtls_net_accept(contextPtr, client.contextPtr, buf, 256, Varptr length)
-		If length > 0 Then
-			ip = String.FromUTF8String(buf)
+		
+		If length = 4
+			ip = StrIPv4(buf)
+		ElseIf length = 16
+			' IPv6 works, I tested
+			' You have to bind to [::1] and you can then `curl -g -6 --insecure "https://[::1]"`
+			ip = StrIPv6(buf)
+		Else
+			ip = "UNKNOWN"
 		End If
+		
 		Return res
 	End Method
+	
+	Function StrIPv4:String(buf:Byte Ptr)
+		Return buf[0] + "." + buf[1] + "." + buf[2] + "." + buf[3]		
+	End Function
+	
+	Function StrIPv6:String(buf:Byte Ptr)
+		Local Str:String = ""
+		
+		For Local i:Int = 0 To 15
+			Str :+ Right(Hex(buf[i]), 2)
+			
+			' Add the : delimeter after each 2 bytes
+			If (i + 1) Mod 2 = 0
+				If i = 15 Then Continue
+				Str :+ ":"
+			End If
+		Next
+		
+		Return Str
+	End Function
 	
 	Rem
 	bbdoc: 
