@@ -603,6 +603,20 @@ Type TX509Cert
 	End Method
 
 	Rem
+	bbdoc: Parses a file with one or more certificates (usually .pem extension)
+	End Rem
+	Method ParseFile:Int(path:String)
+		Local Status:Int
+		Local buf:Byte Ptr = path.toCString()
+
+		Status = bmx_mbedtls_x509_crt_parse_file(certPtr, buf)
+
+		MemFree buf
+
+		Return Status
+	End Method
+
+	Rem
 	bbbdoc: 
 	End Rem
 	Method GetNext:TX509Cert()
@@ -643,6 +657,22 @@ Type TPkContext
 		Return bmx_mbedtls_pk_parse_key(contextPtr, key, keylen, pwd, pwdlen)
 	End Method
 	
+	Rem
+	bbdoc: Load a private key from file (usually .pem extension)
+	End Rem
+	Method ParseKeyFile:Int(Path:String)
+		Local Status:Int
+		Local buf:Byte Ptr = Path.toCString()
+
+		' Warning: password argument hardcoded to NULL
+		' I don't know what password it's talking about and examples use NULL too
+		Status = bmx_mbedtls_pk_parse_keyfile(contextPtr, buf, Null)
+
+		MemFree buf
+
+		Return Status
+	End Method
+
 	Rem
 	bbdoc: 
 	End Rem
