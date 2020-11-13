@@ -48,7 +48,7 @@ If res Then
 	Fail(res)
 End If
 
-Print " ok~"
+Print " ok"
 
 ' 2. Setup the listening TCP socket
 
