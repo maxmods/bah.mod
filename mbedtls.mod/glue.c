@@ -80,6 +80,10 @@ void bmx_mbedtls_net_usleep(int usec) {
 	mbedtls_net_usleep(usec);
 }
 
+int bmx_mbedtls_net_poll(mbedtls_net_context * context, int rw, int timeout) {
+	return mbedtls_net_poll(context, rw, timeout);
+}
+
 int bmx_mbedtls_net_cbsend(mbedtls_ssl_send_t * send, void * context, char * buf, size_t length) {
 	return send(context, buf, length);
 }
