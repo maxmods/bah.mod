@@ -35,6 +35,7 @@ ModuleInfo "History: Applied win32 vsnprintf patch."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
+Import BRL.Stream
 Import "common.bmx"
 
 '
@@ -590,11 +591,12 @@ Type TX509Cert
 	End Rem
 	Method ParseFile:Int(path:String)
 		Local Status:Int
-		Local buf:Byte Ptr = path.toCString()
+		Local buf:Byte[] = LoadByteArray(path)
 
-		Status = bmx_mbedtls_x509_crt_parse_file(certPtr, buf)
+		buf = buf[..buf.length + 1]
+		buf[buf.length - 1] = 0
 
-		MemFree buf
+		Status = Parse(buf, buf.length)
 
 		Return Status
 	End Method
@@ -645,13 +647,13 @@ Type TPkContext
 	End Rem
 	Method ParseKeyFile:Int(Path:String)
 		Local Status:Int
-		Local buf:Byte Ptr = Path.toCString()
+		Local buf:Byte[] = LoadByteArray(path)
+
+		buf = buf[..buf.length + 1]
+		buf[buf.length - 1] = 0
 
 		' Warning: password argument hardcoded to NULL
-		' I don't know what password it's talking about and examples use NULL too
-		Status = bmx_mbedtls_pk_parse_keyfile(contextPtr, buf, Null)
-
-		MemFree buf
+		Status = ParseKey(buf, buf.length)
 
 		Return Status
 	End Method
