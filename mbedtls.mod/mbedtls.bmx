@@ -35,6 +35,7 @@ ModuleInfo "History: Applied win32 vsnprintf patch."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
+Import BRL.Stream
 Import "common.bmx"
 
 '
@@ -140,17 +141,36 @@ Type TNetContext
 	End Function
 	
 	Rem
+	bbdoc: Check if data is available on the socket.
+	End Rem
+	Method Poll:Int(rw:Int, timeout:Int)
+		Return bmx_mbedtls_net_poll(contextPtr, rw, timeout)
+	End Method
+
+	Rem
 	bbdoc: 
 	End Rem
 	Method Accept:Int(client:TNetContext, ip:String Var)
 		Local buf:Byte[256]
 		Local length:Int
 		Local res:Int = mbedtls_net_accept(contextPtr, client.contextPtr, buf, 256, Varptr length)
-		If length > 0 Then
-			ip = String.FromUTF8String(buf)
+		
+		If length = 4
+			ip = StrIPv4(buf)
+		ElseIf length = 16
+			' IPv6 works, I tested
+			' You have to bind to [::1] and you can then `curl -g -6 --insecure "https://[::1]"`
+			ip = "IPv6"
+		Else
+			ip = "UNKNOWN"
 		End If
+		
 		Return res
 	End Method
+	
+	Function StrIPv4:String(buf:Byte Ptr)
+		Return buf[0] + "." + buf[1] + "." + buf[2] + "." + buf[3]		
+	End Function
 	
 	Rem
 	bbdoc: 
@@ -567,6 +587,21 @@ Type TX509Cert
 	End Method
 
 	Rem
+	bbdoc: Parses a file with one or more certificates (usually .pem extension)
+	End Rem
+	Method ParseFile:Int(path:String)
+		Local Status:Int
+		Local buf:Byte[] = LoadByteArray(path)
+
+		buf = buf[..buf.length + 1]
+		buf[buf.length - 1] = 0
+
+		Status = Parse(buf, buf.length)
+
+		Return Status
+	End Method
+
+	Rem
 	bbbdoc: 
 	End Rem
 	Method GetNext:TX509Cert()
@@ -607,6 +642,22 @@ Type TPkContext
 		Return bmx_mbedtls_pk_parse_key(contextPtr, key, keylen, pwd, pwdlen)
 	End Method
 	
+	Rem
+	bbdoc: Load a private key from file (usually .pem extension)
+	End Rem
+	Method ParseKeyFile:Int(Path:String)
+		Local Status:Int
+		Local buf:Byte[] = LoadByteArray(path)
+
+		buf = buf[..buf.length + 1]
+		buf[buf.length - 1] = 0
+
+		' Warning: password argument hardcoded to NULL
+		Status = ParseKey(buf, buf.length)
+
+		Return Status
+	End Method
+
 	Rem
 	bbdoc: 
 	End Rem

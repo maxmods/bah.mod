@@ -35,6 +35,7 @@ Extern
 	Function bmx_mbedtls_net_recv_timeout:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int, timeout:Int)
 	Function bmx_mbedtls_net_send:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int)
 	Function bmx_mbedtls_net_usleep(usec:Int)
+	Function bmx_mbedtls_net_poll:Int(handle:Byte Ptr, rw:Int, timeout:Int)
 	Function mbedtls_net_accept:Int(handle:Byte Ptr, client:Byte Ptr, buf:Byte Ptr, size:Int, length:Int Ptr)
 ?bmxng	
 	Function bmx_mbedtls_net_cbsend:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Size_T)
@@ -92,11 +93,13 @@ Extern
 	Function bmx_mbedtls_x509_crt_free(handle:Byte Ptr)
 	
 	Function bmx_mbedtls_x509_crt_parse:Int(handle:Byte Ptr, buf:Byte Ptr, buflen:Int)
+	Function bmx_mbedtls_x509_crt_parse_file:Int(handle:Byte Ptr, path:Byte Ptr)
 	Function bmx_mbedtls_x509_crt_next:Byte Ptr(handle:Byte Ptr)
 	
 	Function bmx_mbedtls_pk_init:Byte Ptr()
 	Function bmx_mbedtls_pk_free(handle:Byte Ptr)
 	Function bmx_mbedtls_pk_parse_key:Int(handle:Byte Ptr, key:Byte Ptr, keylen:Int, pwd:Byte Ptr, pwdlen:Int)
+	Function bmx_mbedtls_pk_parse_keyfile:Int(handle:Byte Ptr, path:Byte Ptr, pwd:Byte Ptr)
 	Function bmx_mbedtls_pk_parse_key_string:Int(handle:Byte Ptr, key:String, pwd:String)
 	
 	Function bmx_mbedtls_ctr_drbg_init:Byte Ptr()
@@ -208,6 +211,15 @@ Rem
 bbdoc: The UDP transport protocol
 end rem
 Const MBEDTLS_NET_PROTO_UDP:Int = 1
+
+Rem
+bbdoc: Used in mbedtls_net_poll to check for pending data
+end rem
+Const MBEDTLS_NET_POLL_READ:Int = 1
+Rem
+bbdoc: Used in mbedtls_net_poll to check if write possible
+end rem
+Const MBEDTLS_NET_POLL_WRITE:Int = 2
 
 
 Rem

@@ -80,6 +80,10 @@ void bmx_mbedtls_net_usleep(int usec) {
 	mbedtls_net_usleep(usec);
 }
 
+int bmx_mbedtls_net_poll(mbedtls_net_context * context, int rw, int timeout) {
+	return mbedtls_net_poll(context, rw, timeout);
+}
+
 int bmx_mbedtls_net_cbsend(mbedtls_ssl_send_t * send, void * context, char * buf, size_t length) {
 	return send(context, buf, length);
 }
@@ -149,6 +153,10 @@ int bmx_mbedtls_x509_crt_parse(mbedtls_x509_crt * cert, char * buf, int buflen) 
 	return mbedtls_x509_crt_parse(cert, buf, buflen);
 }
 
+int bmx_mbedtls_x509_crt_parse_file(mbedtls_x509_crt * cert, char * path) {
+	return mbedtls_x509_crt_parse_file(cert, path);
+}
+
 mbedtls_x509_crt * bmx_mbedtls_x509_crt_next(mbedtls_x509_crt * cert) {
 	return cert->next;
 }
@@ -168,6 +176,10 @@ void bmx_mbedtls_pk_free(mbedtls_pk_context * context) {
 
 int bmx_mbedtls_pk_parse_key(mbedtls_pk_context * context, char * key, int keylen, char * pwd, int pwdlen) {
 	return mbedtls_pk_parse_key(context, key, keylen, pwd, pwdlen);
+}
+
+int bmx_mbedtls_pk_parse_keyfile(mbedtls_pk_context * context, char * path, char * pwd) {
+	return mbedtls_pk_parse_keyfile(context, path, pwd);
 }
 
 int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key, BBString * pwd) {
