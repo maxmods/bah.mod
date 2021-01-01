@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
+ * Copyright (c) 2016-2020, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -46,7 +46,7 @@ static int testOrder(size_t numThreads, size_t queueSize)
   POOL_ctx* const ctx = POOL_create(numThreads, queueSize);
   ASSERT_TRUE(ctx);
   data.i = 0;
-  (void)ZSTD_pthread_mutex_init(&data.mutex, NULL);
+  ASSERT_FALSE(ZSTD_pthread_mutex_init(&data.mutex, NULL));
   { size_t i;
     for (i = 0; i < 16; ++i) {
       POOL_add(ctx, &fn, &data);
