@@ -1,4 +1,4 @@
-' Copyright (c) 2018-2019 Bruce A Henderson
+' Copyright (c) 2018-2021 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,9 @@ Import "zstd/lib/common/error_private.c"
 Import "zstd/lib/common/fse_decompress.c"
 Import "zstd/lib/common/pool.c"
 Import "zstd/lib/common/threading.c"
+?Not bmxng
 Import "zstd/lib/common/xxhash.c"
+?
 Import "zstd/lib/common/zstd_common.c"
 Import "zstd/lib/compress/fse_compress.c"
 Import "zstd/lib/compress/hist.c"
@@ -40,6 +42,7 @@ Import "zstd/lib/compress/zstdmt_compress.c"
 Import "zstd/lib/compress/zstd_compress.c"
 Import "zstd/lib/compress/zstd_compress_literals.c"
 Import "zstd/lib/compress/zstd_compress_sequences.c"
+Import "zstd/lib/compress/zstd_compress_superblock.c"
 Import "zstd/lib/compress/zstd_double_fast.c"
 Import "zstd/lib/compress/zstd_fast.c"
 Import "zstd/lib/compress/zstd_lazy.c"

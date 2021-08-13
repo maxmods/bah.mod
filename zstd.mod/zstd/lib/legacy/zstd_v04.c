@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
+ * Copyright (c) 2016-2020, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -16,7 +16,7 @@
 #include <string.h>    /* memcpy */
 
 #include "zstd_v04.h"
-#include "error_private.h"
+#include "../common/error_private.h"
 
 
 /* ******************************************************************
@@ -52,7 +52,11 @@ extern "C" {
 *  Basic Types
 *****************************************************************/
 #if defined (__cplusplus) || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */)
-# include <stdint.h>
+# if defined(_AIX)
+#  include <inttypes.h>
+# else
+#  include <stdint.h> /* intptr_t */
+# endif
   typedef  uint8_t BYTE;
   typedef uint16_t U16;
   typedef  int16_t S16;
@@ -74,7 +78,7 @@ extern "C" {
 /*-*************************************
 *  Debug
 ***************************************/
-#include "debug.h"
+#include "../common/debug.h"
 #ifndef assert
 #  define assert(condition) ((void)0)
 #endif
@@ -161,7 +165,7 @@ MEM_STATIC void MEM_write16(void* memPtr, U16 value)
     memcpy(memPtr, &value, sizeof(value));
 }
 
-#endif // MEM_FORCE_MEMORY_ACCESS
+#endif /* MEM_FORCE_MEMORY_ACCESS */
 
 
 MEM_STATIC U16 MEM_readLE16(const void* memPtr)
@@ -627,7 +631,7 @@ MEM_STATIC unsigned BIT_highbit32 (U32 val)
     _BitScanReverse ( &r, val );
     return (unsigned) r;
 #   elif defined(__GNUC__) && (__GNUC__ >= 3)   /* Use GCC Intrinsic */
-    return 31 - __builtin_clz (val);
+    return __builtin_clz (val) ^ 31;
 #   else   /* Software version */
     static const unsigned DeBruijnClz[32] = { 0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30, 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31 };
     U32 v = val;
@@ -2603,7 +2607,9 @@ static size_t ZSTD_getcBlockSize(const void* src, size_t srcSize, blockPropertie
 static size_t ZSTD_copyRawBlock(void* dst, size_t maxDstSize, const void* src, size_t srcSize)
 {
     if (srcSize > maxDstSize) return ERROR(dstSize_tooSmall);
-    memcpy(dst, src, srcSize);
+    if (srcSize > 0) {
+        memcpy(dst, src, srcSize);
+    }
     return srcSize;
 }
 
@@ -2655,6 +2661,7 @@ static size_t ZSTD_decodeLiteralsBlock(ZSTD_DCtx* dctx,
             const size_t litSize = (MEM_readLE32(istart) & 0xFFFFFF) >> 2;   /* no buffer issue : srcSize >= MIN_CBLOCK_SIZE */
             if (litSize > srcSize-11)   /* risk of reading too far with wildcopy */
             {
+                if (litSize > BLOCKSIZE) return ERROR(corruption_detected);
                 if (litSize > srcSize-3) return ERROR(corruption_detected);
                 memcpy(dctx->litBuffer, istart, litSize);
                 dctx->litPtr = dctx->litBuffer;
@@ -3007,8 +3014,10 @@ static size_t ZSTD_decompressSequences(
             size_t lastLLSize = litEnd - litPtr;
             if (litPtr > litEnd) return ERROR(corruption_detected);
             if (op+lastLLSize > oend) return ERROR(dstSize_tooSmall);
-            if (op != litPtr) memcpy(op, litPtr, lastLLSize);
-            op += lastLLSize;
+            if (lastLLSize > 0) {
+                if (op != litPtr) memcpy(op, litPtr, lastLLSize);
+                op += lastLLSize;
+            }
         }
     }
 
@@ -3034,9 +3043,12 @@ static size_t ZSTD_decompressBlock_internal(ZSTD_DCtx* dctx,
 {
     /* blockType == blockCompressed */
     const BYTE* ip = (const BYTE*)src;
+    size_t litCSize;
+
+    if (srcSize > BLOCKSIZE) return ERROR(corruption_detected);
 
     /* Decode literals sub-block */
-    size_t litCSize = ZSTD_decodeLiteralsBlock(dctx, src, srcSize);
+    litCSize = ZSTD_decodeLiteralsBlock(dctx, src, srcSize);
     if (ZSTD_isError(litCSize)) return litCSize;
     ip += litCSize;
     srcSize -= litCSize;
@@ -3403,7 +3415,9 @@ static size_t ZBUFF_decompressWithDictionary(ZBUFF_DCtx* zbc, const void* src, s
 static size_t ZBUFF_limitCopy(void* dst, size_t maxDstSize, const void* src, size_t srcSize)
 {
     size_t length = MIN(maxDstSize, srcSize);
-    memcpy(dst, src, length);
+    if (length > 0) {
+        memcpy(dst, src, length);
+    }
     return length;
 }
 

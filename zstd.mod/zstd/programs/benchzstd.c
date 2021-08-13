@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
+ * Copyright (c) 2016-2020, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -30,13 +30,13 @@
 
 #include "timefn.h"      /* UTIL_time_t */
 #include "benchfn.h"
-#include "mem.h"
+#include "../lib/common/mem.h"
 #define ZSTD_STATIC_LINKING_ONLY
-#include "zstd.h"
+#include "../lib/zstd.h"
 #include "datagen.h"     /* RDG_genBuffer */
-#include "xxhash.h"
+#include "../lib/common/xxhash.h"
 #include "benchzstd.h"
-#include "zstd_errors.h"
+#include "../lib/common/zstd_errors.h"
 
 
 /* *************************************
@@ -88,7 +88,7 @@ static UTIL_time_t g_displayClock = UTIL_TIME_INITIALIZER;
 #endif
 #define DEBUGOUTPUT(...) { if (DEBUG) DISPLAY(__VA_ARGS__); }
 
-#define EXM_THROW_INT(errorNum, ...)  {               \
+#define RETURN_ERROR_INT(errorNum, ...)  {               \
     DEBUGOUTPUT("%s: %i: \n", __FILE__, __LINE__);    \
     DISPLAYLEVEL(1, "Error %i : ", errorNum);         \
     DISPLAYLEVEL(1, __VA_ARGS__);                     \
@@ -375,7 +375,6 @@ BMK_benchMemAdvancedNoAlloc(
                 resPtr += thisBlockSize;
                 remaining -= thisBlockSize;
                 if (adv->mode == BMK_decodeOnly) {
-                    assert(nbBlocks==0);
                     cSizes[nbBlocks] = thisBlockSize;
                     benchResult.cSize = thisBlockSize;
                 }
@@ -401,9 +400,9 @@ BMK_benchMemAdvancedNoAlloc(
         BMK_initCCtxArgs cctxprep;
         BMK_initDCtxArgs dctxprep;
 
-        cbp.benchFn = local_defaultCompress;
+        cbp.benchFn = local_defaultCompress;   /* ZSTD_compress2 */
         cbp.benchPayload = cctx;
-        cbp.initFn = local_initCCtx;
+        cbp.initFn = local_initCCtx;   /* BMK_initCCtx */
         cbp.initPayload = &cctxprep;
         cbp.errorFn = ZSTD_isError;
         cbp.blockCount = nbBlocks;
@@ -483,7 +482,7 @@ BMK_benchMemAdvancedNoAlloc(
                 {   int const ratioAccuracy = (ratio < 10.) ? 3 : 2;
                     DISPLAYLEVEL(2, "%2s-%-17.17s :%10u ->%10u (%5.*f),%6.*f MB/s ,%6.1f MB/s \r",
                             marks[markNb], displayName,
-                            (unsigned)srcSize, (unsigned)benchResult.cSize,
+                            (unsigned)srcSize, (unsigned)cSize,
                             ratioAccuracy, ratio,
                             benchResult.cSpeed < (10 MB) ? 2 : 1, (double)benchResult.cSpeed / MB_UNIT,
                             (double)benchResult.dSpeed / MB_UNIT);
@@ -534,8 +533,8 @@ BMK_benchMemAdvancedNoAlloc(
                     if (u==srcSize-1) {  /* should never happen */
                         DISPLAY("no difference detected\n");
                     }
-                }
-            }
+                }   /* for (u=0; u<srcSize; u++) */
+            }   /* if ((adv->mode == BMK_both) && (crcOrig!=crcCheck)) */
         }   /* CRC Checking */
 
         if (displayLevel == 1) {   /* hidden display mode -q, used by python speed benchmark */
@@ -754,8 +753,7 @@ static int BMK_loadFiles(void* buffer, size_t bufferSize,
     size_t pos = 0, totalSize = 0;
     unsigned n;
     for (n=0; n<nbFiles; n++) {
-        FILE* f;
-        U64 fileSize = UTIL_getFileSize(fileNamesTable[n]);
+        U64 fileSize = UTIL_getFileSize(fileNamesTable[n]);  /* last file may be shortened */
         if (UTIL_isDirectory(fileNamesTable[n])) {
             DISPLAYLEVEL(2, "Ignoring %s directory...       \n", fileNamesTable[n]);
             fileSizes[n] = 0;
@@ -766,20 +764,20 @@ static int BMK_loadFiles(void* buffer, size_t bufferSize,
             fileSizes[n] = 0;
             continue;
         }
-        f = fopen(fileNamesTable[n], "rb");
-        if (f==NULL) EXM_THROW_INT(10, "impossible to open file %s", fileNamesTable[n]);
-        DISPLAYUPDATE(2, "Loading %s...       \r", fileNamesTable[n]);
-        if (fileSize > bufferSize-pos) fileSize = bufferSize-pos, nbFiles=n;   /* buffer too small - stop after this file */
-        {   size_t const readSize = fread(((char*)buffer)+pos, 1, (size_t)fileSize, f);
-            if (readSize != (size_t)fileSize) EXM_THROW_INT(11, "could not read %s", fileNamesTable[n]);
-            pos += readSize;
-        }
-        fileSizes[n] = (size_t)fileSize;
-        totalSize += (size_t)fileSize;
-        fclose(f);
-    }
+        {   FILE* const f = fopen(fileNamesTable[n], "rb");
+            if (f==NULL) RETURN_ERROR_INT(10, "impossible to open file %s", fileNamesTable[n]);
+            DISPLAYUPDATE(2, "Loading %s...       \r", fileNamesTable[n]);
+            if (fileSize > bufferSize-pos) fileSize = bufferSize-pos, nbFiles=n;   /* buffer too small - stop after this file */
+            {   size_t const readSize = fread(((char*)buffer)+pos, 1, (size_t)fileSize, f);
+                if (readSize != (size_t)fileSize) RETURN_ERROR_INT(11, "could not read %s", fileNamesTable[n]);
+                pos += readSize;
+            }
+            fileSizes[n] = (size_t)fileSize;
+            totalSize += (size_t)fileSize;
+            fclose(f);
+    }   }
 
-    if (totalSize == 0) EXM_THROW_INT(12, "no data to bench");
+    if (totalSize == 0) RETURN_ERROR_INT(12, "no data to bench");
     return 0;
 }
 

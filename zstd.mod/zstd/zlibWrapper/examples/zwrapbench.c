@@ -74,7 +74,7 @@ static U32 g_compressibilityDefault = 50;
 #define DEFAULT_DISPLAY_LEVEL 2
 #define DISPLAY(...)         fprintf(displayOut, __VA_ARGS__)
 #define DISPLAYLEVEL(l, ...) if (g_displayLevel>=l) { DISPLAY(__VA_ARGS__); }
-static int g_displayLevel = DEFAULT_DISPLAY_LEVEL;   /* 0 : no display;   1: errors;   2 : + result + interaction + warnings;   3 : + progression;   4 : + information */
+static unsigned g_displayLevel = DEFAULT_DISPLAY_LEVEL;   /* 0 : no display;   1: errors;   2 : + result + interaction + warnings;   3 : + progression;   4 : + information */
 static FILE* displayOut;
 
 #define DISPLAYUPDATE(l, ...) if (g_displayLevel>=l) { \
@@ -311,14 +311,14 @@ static int BMK_benchMem(z_const void* srcBuffer, size_t srcSize,
                                 ret = deflateReset(&def);
                             if (ret != Z_OK) EXM_THROW(1, "deflateReset failure");
                             if (useSetDict) {
-                                ret = deflateSetDictionary(&def, dictBuffer, dictBufferSize);
+                                ret = deflateSetDictionary(&def, (const z_Bytef*)dictBuffer, dictBufferSize);
                                 if (ret != Z_OK) EXM_THROW(1, "deflateSetDictionary failure");
                                 if (ZWRAP_isUsingZSTDcompression()) useSetDict = 0; /* zstd doesn't require deflateSetDictionary after ZWRAP_deflateReset_keepDict */
                             }
-                            def.next_in = (z_const void*) blockTable[blockNb].srcPtr;
+                            def.next_in = (z_const z_Bytef*) blockTable[blockNb].srcPtr;
                             def.avail_in = (uInt)blockTable[blockNb].srcSize;
                             def.total_in = 0;
-                            def.next_out = (void*) blockTable[blockNb].cPtr;
+                            def.next_out = (z_Bytef*) blockTable[blockNb].cPtr;
                             def.avail_out = (uInt)blockTable[blockNb].cRoom;
                             def.total_out = 0;
                             ret = deflate(&def, Z_FINISH);
@@ -343,13 +343,13 @@ static int BMK_benchMem(z_const void* srcBuffer, size_t srcSize,
                             ret = deflateInit(&def, cLevel);
                             if (ret != Z_OK) EXM_THROW(1, "deflateInit failure");
                             if (dictBuffer) {
-                                ret = deflateSetDictionary(&def, dictBuffer, dictBufferSize);
+                                ret = deflateSetDictionary(&def, (const z_Bytef*)dictBuffer, dictBufferSize);
                                 if (ret != Z_OK) EXM_THROW(1, "deflateSetDictionary failure");
                             }
-                            def.next_in = (z_const void*) blockTable[blockNb].srcPtr;
+                            def.next_in = (z_const z_Bytef*) blockTable[blockNb].srcPtr;
                             def.avail_in = (uInt)blockTable[blockNb].srcSize;
                             def.total_in = 0;
-                            def.next_out = (void*) blockTable[blockNb].cPtr;
+                            def.next_out = (z_Bytef*) blockTable[blockNb].cPtr;
                             def.avail_out = (uInt)blockTable[blockNb].cRoom;
                             def.total_out = 0;
                             ret = deflate(&def, Z_FINISH);
@@ -451,15 +451,15 @@ static int BMK_benchMem(z_const void* srcBuffer, size_t srcSize,
                             else
                                 ret = inflateReset(&inf);
                             if (ret != Z_OK) EXM_THROW(1, "inflateReset failure");
-                            inf.next_in = (z_const void*) blockTable[blockNb].cPtr;
+                            inf.next_in = (z_const z_Bytef*) blockTable[blockNb].cPtr;
                             inf.avail_in = (uInt)blockTable[blockNb].cSize;
                             inf.total_in = 0;
-                            inf.next_out = (void*) blockTable[blockNb].resPtr;
+                            inf.next_out = (z_Bytef*) blockTable[blockNb].resPtr;
                             inf.avail_out = (uInt)blockTable[blockNb].srcSize;
                             inf.total_out = 0;
                             ret = inflate(&inf, Z_FINISH);
                             if (ret == Z_NEED_DICT) {
-                                ret = inflateSetDictionary(&inf, dictBuffer, dictBufferSize);
+                                ret = inflateSetDictionary(&inf, (const z_Bytef*)dictBuffer, dictBufferSize);
                                 if (ret != Z_OK) EXM_THROW(1, "inflateSetDictionary failure");
                                 ret = inflate(&inf, Z_FINISH);
                             }
@@ -483,15 +483,15 @@ static int BMK_benchMem(z_const void* srcBuffer, size_t srcSize,
                             inf.opaque = Z_NULL;
                             ret = inflateInit(&inf);
                             if (ret != Z_OK) EXM_THROW(1, "inflateInit failure");
-                            inf.next_in = (z_const void*) blockTable[blockNb].cPtr;
+                            inf.next_in = (z_const z_Bytef*) blockTable[blockNb].cPtr;
                             inf.avail_in = (uInt)blockTable[blockNb].cSize;
                             inf.total_in = 0;
-                            inf.next_out = (void*) blockTable[blockNb].resPtr;
+                            inf.next_out = (z_Bytef*) blockTable[blockNb].resPtr;
                             inf.avail_out = (uInt)blockTable[blockNb].srcSize;
                             inf.total_out = 0;
                             ret = inflate(&inf, Z_FINISH);
                             if (ret == Z_NEED_DICT) {
-                                ret = inflateSetDictionary(&inf, dictBuffer, dictBufferSize);
+                                ret = inflateSetDictionary(&inf, (const z_Bytef*) dictBuffer, dictBufferSize);
                                 if (ret != Z_OK) EXM_THROW(1, "inflateSetDictionary failure");
                                 ret = inflate(&inf, Z_FINISH);
                             }
@@ -848,7 +848,7 @@ static unsigned readU32FromChar(const char** stringPtr)
 {
     unsigned result = 0;
     while ((**stringPtr >='0') && (**stringPtr <='9'))
-        result *= 10, result += **stringPtr - '0', (*stringPtr)++ ;
+        result *= 10, result += (unsigned)(**stringPtr - '0'), (*stringPtr)++ ;
     return result;
 }
 
@@ -865,24 +865,18 @@ int main(int argCount, char** argv)
     int cLevel = ZSTDCLI_CLEVEL_DEFAULT;
     int cLevelLast = 1;
     unsigned recursive = 0;
-    const char** filenameTable = (const char**)malloc(argCount * sizeof(const char*));   /* argCount >= 1 */
-    unsigned filenameIdx = 0;
+    FileNamesTable* filenames = UTIL_allocateFileNamesTable((size_t)argCount);
     const char* programName = argv[0];
     const char* dictFileName = NULL;
     char* dynNameSpace = NULL;
-#ifdef UTIL_HAS_CREATEFILELIST
-    const char** fileNamesTable = NULL;
-    char* fileNamesBuf = NULL;
-    unsigned fileNamesNb;
-#endif
 
     /* init */
-    if (filenameTable==NULL) { DISPLAY("zstd: %s \n", strerror(errno)); exit(1); }
+    if (filenames==NULL) { DISPLAY("zstd: %s \n", strerror(errno)); exit(1); }
     displayOut = stderr;
 
     /* Pick out program name from path. Don't rely on stdlib because of conflicting behavior */
     {   size_t pos;
-        for (pos = (int)strlen(programName); pos > 0; pos--) { if (programName[pos] == '/') { pos++; break; } }
+        for (pos = strlen(programName); pos > 0; pos--) { if (programName[pos] == '/') { pos++; break; } }
         programName += pos;
     }
 
@@ -930,14 +924,14 @@ int main(int argCount, char** argv)
                     case 'b':
                             /* first compression Level */
                             argument++;
-                            cLevel = readU32FromChar(&argument);
+                            cLevel = (int)readU32FromChar(&argument);
                             break;
 
                         /* range bench (benchmark only) */
                     case 'e':
                             /* last compression Level */
                             argument++;
-                            cLevelLast = readU32FromChar(&argument);
+                            cLevelLast = (int)readU32FromChar(&argument);
                             break;
 
                         /* Modify Nb Iterations (benchmark only) */
@@ -964,7 +958,7 @@ int main(int argCount, char** argv)
                         /* Pause at the end (-p) or set an additional param (-p#) (hidden option) */
                     case 'p': argument++;
                         if ((*argument>='0') && (*argument<='9')) {
-                            BMK_setAdditionalParam(readU32FromChar(&argument));
+                            BMK_setAdditionalParam((int)readU32FromChar(&argument));
                         } else
                             main_pause=1;
                         break;
@@ -984,7 +978,7 @@ int main(int argCount, char** argv)
         }
 
         /* add filename to list */
-        filenameTable[filenameIdx++] = argument;
+        UTIL_refFilename(filenames, argument);
     }
 
     /* Welcome message (if verbose) */
@@ -992,28 +986,16 @@ int main(int argCount, char** argv)
 
 #ifdef UTIL_HAS_CREATEFILELIST
     if (recursive) {
-        fileNamesTable = UTIL_createFileList(filenameTable, filenameIdx, &fileNamesBuf, &fileNamesNb, 1);
-        if (fileNamesTable) {
-            unsigned u;
-            for (u=0; u<fileNamesNb; u++) DISPLAYLEVEL(4, "%u %s\n", u, fileNamesTable[u]);
-            free((void*)filenameTable);
-            filenameTable = fileNamesTable;
-            filenameIdx = fileNamesNb;
-        }
+        UTIL_expandFNT(&filenames, 1);
     }
 #endif
 
     BMK_setNotificationLevel(g_displayLevel);
-    BMK_benchFiles(filenameTable, filenameIdx, dictFileName, cLevel, cLevelLast);
+    BMK_benchFiles(filenames->fileNames, (unsigned)filenames->tableSize, dictFileName, cLevel, cLevelLast);
 
 _end:
     if (main_pause) waitEnter();
     free(dynNameSpace);
-#ifdef UTIL_HAS_CREATEFILELIST
-    if (fileNamesTable)
-        UTIL_freeFileList(fileNamesTable, fileNamesBuf);
-    else
-#endif
-        free((void*)filenameTable);
+    UTIL_freeFileNamesTable(filenames);
     return operationResult;
 }

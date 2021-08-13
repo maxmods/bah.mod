@@ -3,7 +3,7 @@ Zstandard Compression Format
 
 ### Notices
 
-Copyright (c) 2016-present Yann Collet, Facebook, Inc.
+Copyright (c) 2016-2020 Yann Collet, Facebook, Inc.
 
 Permission is granted to copy and distribute this document
 for any purpose and without charge,
@@ -16,7 +16,7 @@ Distribution of this document is unlimited.
 
 ### Version
 
-0.3.2 (17/07/19)
+0.3.7 (2020-12-09)
 
 
 Introduction
@@ -291,21 +291,10 @@ Format is __little-endian__.
 It's allowed to represent a small ID (for example `13`)
 with a large 4-bytes dictionary ID, even if it is less efficient.
 
-_Reserved ranges :_
-Within private environments, any `Dictionary_ID` can be used.
-
-However, for frames and dictionaries distributed in public space,
-`Dictionary_ID` must be attributed carefully.
-Rules for public environment are not yet decided,
-but the following ranges are reserved for some future registrar :
-- low range  : `<= 32767`
-- high range : `>= (1 << 31)`
-
-Outside of these ranges, any value of `Dictionary_ID`
-which is both `>= 32768` and `< (1<<31)` can be used freely,
-even in public environment.
-
-
+A value of `0` has same meaning as no `Dictionary_ID`,
+in which case the frame may or may not need a dictionary to be decoded,
+and the ID of such a dictionary is not specified.
+The decoder must know this information by other means.
 
 #### `Frame_Content_Size`
 
@@ -341,6 +330,8 @@ The structure of a block is as follows:
 |:--------------:|:---------------:|
 |    3 bytes     |     n bytes     |
 
+__`Block_Header`__
+
 `Block_Header` uses 3 bytes, written using __little-endian__ convention.
 It contains 3 fields :
 
@@ -358,6 +349,7 @@ It may be followed by an optional `Content_Checksum`
 __`Block_Type`__
 
 The next 2 bits represent the `Block_Type`.
+`Block_Type` influences the meaning of `Block_Size`.
 There are 4 block types :
 
 |    Value     |      0      |      1      |         2          |     3     |
@@ -384,14 +376,30 @@ There are 4 block types :
 __`Block_Size`__
 
 The upper 21 bits of `Block_Header` represent the `Block_Size`.
-`Block_Size` is the size of the block excluding the header.
-A block can contain any number of bytes (even zero), up to
-`Block_Maximum_Decompressed_Size`, which is the smallest of:
--  Window_Size
+
+When `Block_Type` is `Compressed_Block` or `Raw_Block`,
+`Block_Size` is the size of `Block_Content` (hence excluding `Block_Header`).
+
+When `Block_Type` is `RLE_Block`, since `Block_Content`’s size is always 1,
+`Block_Size` represents the number of times this byte must be repeated.
+
+`Block_Size` is limited by `Block_Maximum_Size` (see below).
+
+__`Block_Content`__ and __`Block_Maximum_Size`__
+
+The size of `Block_Content` is limited by `Block_Maximum_Size`,
+which is the smallest of:
+-  `Window_Size`
 -  128 KB
 
-If this condition cannot be respected when generating a `Compressed_Block`,
-the block must be sent uncompressed instead (`Raw_Block`).
+`Block_Maximum_Size` is constant for a given frame.
+This maximum is applicable to both the decompressed size
+and the compressed size of any block in the frame.
+
+The reasoning for this limit is that a decoder can read this information
+at the beginning of a frame and use it to allocate buffers.
+The guarantees on the size of blocks ensure that
+the buffers will be large enough for any following block of the valid frame.
 
 
 Compressed Blocks
@@ -910,38 +918,41 @@ Note that blocks which are not `Compressed_Block` are skipped, they do not contr
 
 ###### Offset updates rules
 
-The newest offset takes the lead in offset history,
-shifting others back by one rank,
-up to the previous rank of the new offset _if it was present in history_.
+During the execution of the sequences of a `Compressed_Block`, the
+`Repeated_Offsets`' values are kept up to date, so that they always represent
+the three most-recently used offsets. In order to achieve that, they are
+updated after executing each sequence in the following way:
 
-__Examples__ :
+When the sequence's `offset_value` does not refer to one of the
+`Repeated_Offsets`--when it has value greater than 3, or when it has value 3
+and the sequence's `literals_length` is zero--the `Repeated_Offsets`' values
+are shifted back one, and `Repeated_Offset1` takes on the value of the
+just-used offset.
 
-In the common case, when new offset is not part of history :
-`Repeated_Offset3` = `Repeated_Offset2`
-`Repeated_Offset2` = `Repeated_Offset1`
-`Repeated_Offset1` = `NewOffset`
+Otherwise, when the sequence's `offset_value` refers to one of the
+`Repeated_Offsets`--when it has value 1 or 2, or when it has value 3 and the
+sequence's `literals_length` is non-zero--the `Repeated_Offsets` are re-ordered
+so that `Repeated_Offset1` takes on the value of the used Repeated_Offset, and
+the existing values are pushed back from the first `Repeated_Offset` through to
+the `Repeated_Offset` selected by the `offset_value`. This effectively performs
+a single-stepped wrapping rotation of the values of these offsets, so that
+their order again reflects the recency of their use.
 
-When the new offset _is_ part of history, there may be specific adjustments.
+The following table shows the values of the `Repeated_Offsets` as a series of
+sequences are applied to them:
 
-When `NewOffset` == `Repeated_Offset1`, offset history remains actually unmodified.
-
-When `NewOffset` == `Repeated_Offset2`,
-`Repeated_Offset1` and `Repeated_Offset2` ranks are swapped.
-`Repeated_Offset3` is unmodified.
-
-When `NewOffset` == `Repeated_Offset3`,
-there is actually no difference with the common case :
-all offsets are shifted by one rank,
-`NewOffset` (== `Repeated_Offset3`) becomes the new `Repeated_Offset1`.
-
-Also worth mentioning, the specific corner case when `offset_value` == 3,
-and the literal length of the current sequence is zero.
-In which case , `NewOffset` = `Repeated_Offset1` - 1_byte.
-Here also, from an offset history update perspective, it's just a common case :
-`Repeated_Offset3` = `Repeated_Offset2`
-`Repeated_Offset2` = `Repeated_Offset1`
-`Repeated_Offset1` = `NewOffset` ( == `Repeated_Offset1` - 1_byte )
-
+| `offset_value` | `literals_length` | `Repeated_Offset1` | `Repeated_Offset2` | `Repeated_Offset3` | Comment                 |
+|:--------------:|:-----------------:|:------------------:|:------------------:|:------------------:|:-----------------------:|
+|                |                   |                  1 |                  4 |                  8 | starting values         |
+|           1114 |                11 |               1111 |                  1 |                  4 | non-repeat              |
+|              1 |                22 |               1111 |                  1 |                  4 | repeat 1; no change     |
+|           2225 |                22 |               2222 |               1111 |                  1 | non-repeat              |
+|           1114 |               111 |               1111 |               2222 |               1111 | non-repeat              |
+|           3336 |                33 |               3333 |               1111 |               2222 | non-repeat              |
+|              2 |                22 |               1111 |               3333 |               2222 | repeat 2; swap 1 & 2    |
+|              3 |                33 |               2222 |               1111 |               3333 | repeat 3; rotate 3 to 1 |
+|              3 |                 0 |               2221 |               2222 |               1111 | insert resolved offset  |
+|              1 |                 0 |               2222 |               2221 |               3333 | repeat 2                |
 
 
 Skippable Frames
@@ -1103,18 +1114,18 @@ It follows the following build rule :
 
 The table has a size of `Table_Size = 1 << Accuracy_Log`.
 Each cell describes the symbol decoded,
-and instructions to get the next state.
+and instructions to get the next state (`Number_of_Bits` and `Baseline`).
 
 Symbols are scanned in their natural order for "less than 1" probabilities.
 Symbols with this probability are being attributed a single cell,
 starting from the end of the table and retreating.
 These symbols define a full state reset, reading `Accuracy_Log` bits.
 
-All remaining symbols are allocated in their natural order.
-Starting from symbol `0` and table position `0`,
+Then, all remaining symbols, sorted in natural order, are allocated cells.
+Starting from symbol `0` (if it exists), and table position `0`,
 each symbol gets allocated as many cells as its probability.
 Cell allocation is spreaded, not linear :
-each successor position follow this rule :
+each successor position follows this rule :
 
 ```
 position += (tableSize>>1) + (tableSize>>3) + 3;
@@ -1126,40 +1137,41 @@ A position is skipped if already occupied by a "less than 1" probability symbol.
 each position in the table, switching to the next symbol when enough
 states have been allocated to the current one.
 
-The result is a list of state values.
-Each state will decode the current symbol.
+The process guarantees that the table is entirely filled.
+Each cell corresponds to a state value, which contains the symbol being decoded.
 
-To get the `Number_of_Bits` and `Baseline` required for next state,
-it's first necessary to sort all states in their natural order.
-The lower states will need 1 more bit than higher ones.
+To add the `Number_of_Bits` and `Baseline` required to retrieve next state,
+it's first necessary to sort all occurrences of each symbol in state order.
+Lower states will need 1 more bit than higher ones.
 The process is repeated for each symbol.
 
 __Example__ :
-Presuming a symbol has a probability of 5.
-It receives 5 state values. States are sorted in natural order.
+Presuming a symbol has a probability of 5,
+it receives 5 cells, corresponding to 5 state values.
+These state values are then sorted in natural order.
 
-Next power of 2 is 8.
-Space of probabilities is divided into 8 equal parts.
-Presuming the `Accuracy_Log` is 7, it defines 128 states.
+Next power of 2 after 5 is 8.
+Space of probabilities must be divided into 8 equal parts.
+Presuming the `Accuracy_Log` is 7, it defines a space of 128 states.
 Divided by 8, each share is 16 large.
 
-In order to reach 8, 8-5=3 lowest states will count "double",
-doubling the number of shares (32 in width),
-requiring one more bit in the process.
+In order to reach 8 shares, 8-5=3 lowest states will count "double",
+doubling their shares (32 in width), hence requiring one more bit.
 
 Baseline is assigned starting from the higher states using fewer bits,
-and proceeding naturally, then resuming at the first state,
-each takes its allocated width from Baseline.
+increasing at each state, then resuming at the first state,
+each state takes its allocated width from Baseline.
 
-| state order      |   0   |   1   |    2   |   3  |   4   |
-| ---------------- | ----- | ----- | ------ | ---- | ----- |
-| width            |  32   |  32   |   32   |  16  |  16   |
-| `Number_of_Bits` |   5   |   5   |    5   |   4  |   4   |
-| range number     |   2   |   4   |    6   |   0  |   1   |
-| `Baseline`       |  32   |  64   |   96   |   0  |  16   |
-| range            | 32-63 | 64-95 | 96-127 | 0-15 | 16-31 |
+| state value      |   1   |  39   |   77   |  84  |  122   |
+| state order      |   0   |   1   |    2   |   3  |    4   |
+| ---------------- | ----- | ----- | ------ | ---- | ------ |
+| width            |  32   |  32   |   32   |  16  |   16   |
+| `Number_of_Bits` |   5   |   5   |    5   |   4  |    4   |
+| range number     |   2   |   4   |    6   |   0  |    1   |
+| `Baseline`       |  32   |  64   |   96   |   0  |   16   |
+| range            | 32-63 | 64-95 | 96-127 | 0-15 | 16-31  |
 
-The next state is determined from current state
+During decoding, the next state value is determined from current state value,
 by reading the required `Number_of_Bits`, and adding the specified `Baseline`.
 
 See [Appendix A] for the results of this process applied to the default distributions.
@@ -1409,13 +1421,17 @@ __`Dictionary_ID`__ : 4 bytes, stored in __little-endian__ format.
               It's used by decoders to check if they use the correct dictionary.
 
 _Reserved ranges :_
-              If the frame is going to be distributed in a private environment,
-              any `Dictionary_ID` can be used.
-              However, for public distribution of compressed frames,
-              the following ranges are reserved and shall not be used :
+If the dictionary is going to be distributed in a public environment,
+the following ranges of `Dictionary_ID` are reserved for some future registrar
+and shall not be used :
 
-              - low range  : <= 32767
-              - high range : >= (2^31)
+    - low range  : <= 32767
+    - high range : >= (2^31)
+
+Outside of these ranges, any value of `Dictionary_ID`
+which is both `>= 32768` and `< (1<<31)` can be used freely,
+even in public environment.
+
 
 __`Entropy_Tables`__ : follow the same format as tables in [compressed blocks].
               See the relevant [FSE](#fse-table-description)
@@ -1427,7 +1443,7 @@ __`Entropy_Tables`__ : follow the same format as tables in [compressed blocks].
               Repeat distribution mode for sequence decoding.
               It's finally followed by 3 offset values, populating recent offsets (instead of using `{1,4,8}`),
               stored in order, 4-bytes __little-endian__ each, for a total of 12 bytes.
-              Each recent offset must have a value < dictionary size.
+              Each recent offset must have a value <= dictionary content size, and cannot equal 0.
 
 __`Content`__ : The rest of the dictionary is its content.
               The content act as a "past" in front of data to compress or decompress,
@@ -1435,7 +1451,7 @@ __`Content`__ : The rest of the dictionary is its content.
               As long as the amount of data decoded from this frame is less than or
               equal to `Window_Size`, sequence commands may specify offsets longer
               than the total length of decoded output so far to reference back to the
-              dictionary, even parts of the dictionary with offsets larger than `Window_Size`.  
+              dictionary, even parts of the dictionary with offsets larger than `Window_Size`.
               After the total output has surpassed `Window_Size` however,
               this is no longer allowed and the dictionary is no longer accessible.
 
@@ -1653,6 +1669,11 @@ or at least provide a meaningful error code explaining for which reason it canno
 
 Version changes
 ---------------
+- 0.3.7 : clarifications for Repeat_Offsets
+- 0.3.6 : clarifications for Dictionary_ID
+- 0.3.5 : clarifications for Block_Maximum_Size
+- 0.3.4 : clarifications for FSE decoding table
+- 0.3.3 : clarifications for field Block_Size
 - 0.3.2 : remove additional block size restriction on compressed blocks
 - 0.3.1 : minor clarification regarding offset history update rules
 - 0.3.0 : minor edits to match RFC8478

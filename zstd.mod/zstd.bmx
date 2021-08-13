@@ -1,4 +1,4 @@
-' Copyright (c) 2018-2019 Bruce A Henderson
+' Copyright (c) 2018-2021 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,13 @@ bbdoc: ZStandard Compression.
 End Rem
 Module BaH.zstd
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2018-2019 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2018-2021 Bruce A Henderson"
 ModuleInfo "Copyright: ZStandard - 2016-present, Facebook, Inc"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Update to zstd 1.4.8"
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to zstd 1.4.3"
 ModuleInfo "History: 1.02"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-present, Yann Collet, Facebook, Inc.
+ * Copyright (c) 2015-2020, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -35,6 +35,7 @@
 #define XXH_STATIC_LINKING_ONLY
 #include "xxhash.h"       /* XXH64_* */
 #include "util.h"
+#include "assert.h"
 
 
 /*-************************************
@@ -81,7 +82,7 @@ static U64 g_clockTime = 0;
     @return : a 27 bits random value, from a 32-bits `seed`.
     `seed` is also modified */
 #  define FUZ_rotl32(x,r) ((x << r) | (x >> (32 - r)))
-unsigned int FUZ_rand(unsigned int* seedPtr)
+static unsigned int FUZ_rand(unsigned int* seedPtr)
 {
     U32 rand32 = *seedPtr;
     rand32 *= prime1;
@@ -180,11 +181,16 @@ static int basicUnitTests(U32 seed, double compressibility, ZSTD_customMem custo
     if (readSize+readSkipSize != cSize) goto _output_error;   /* should have read the entire frame */
     DISPLAYLEVEL(4, "OK \n");
 
+    DISPLAYLEVEL(4, "test%3i : ZBUFF_recommendedCInSize : ", testNb++); { assert(ZBUFF_recommendedCInSize() != 0); } DISPLAYLEVEL(4, "OK \n");
+    DISPLAYLEVEL(4, "test%3i : ZBUFF_recommendedCOutSize : ", testNb++); { assert(ZBUFF_recommendedCOutSize() != 0); } DISPLAYLEVEL(4, "OK \n");
+    DISPLAYLEVEL(4, "test%3i : ZBUFF_recommendedDInSize : ", testNb++); { assert(ZBUFF_recommendedDInSize() != 0); } DISPLAYLEVEL(4, "OK \n");
+    DISPLAYLEVEL(4, "test%3i : ZBUFF_recommendedDOutSize : ", testNb++); { assert(ZBUFF_recommendedDOutSize() != 0); } DISPLAYLEVEL(4, "OK \n");
+
     /* check regenerated data is byte exact */
     DISPLAYLEVEL(4, "test%3i : check decompressed result : ", testNb++);
     {   size_t i;
         for (i=0; i<CNBufferSize; i++) {
-            if (((BYTE*)decodedBuffer)[i] != ((BYTE*)CNBuffer)[i]) goto _output_error;;
+            if (((BYTE*)decodedBuffer)[i] != ((BYTE*)CNBuffer)[i]) goto _output_error;
     }   }
     DISPLAYLEVEL(4, "OK \n");
 
@@ -213,7 +219,7 @@ static int basicUnitTests(U32 seed, double compressibility, ZSTD_customMem custo
     DISPLAYLEVEL(4, "test%3i : check decompressed result : ", testNb++);
     {   size_t i;
         for (i=0; i<CNBufferSize; i++) {
-            if (((BYTE*)decodedBuffer)[i] != ((BYTE*)CNBuffer)[i]) goto _output_error;;
+            if (((BYTE*)decodedBuffer)[i] != ((BYTE*)CNBuffer)[i]) goto _output_error;
     }   }
     DISPLAYLEVEL(4, "OK \n");
 
@@ -467,7 +473,7 @@ _output_error:
 /*-*******************************************************
 *  Command line
 *********************************************************/
-int FUZ_usage(const char* programName)
+static int FUZ_usage(const char* programName)
 {
     DISPLAY( "Usage :\n");
     DISPLAY( "      %s [args]\n", programName);
