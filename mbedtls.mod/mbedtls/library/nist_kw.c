@@ -2,7 +2,7 @@
  *  Implementation of NIST SP 800-38F key wrapping, supporting KW and KWP modes
  *  only
  *
- *  Copyright (C) 2018, Arm Limited (or its affiliates), All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -16,8 +16,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 /*
  * Definition of Key Wrapping:
@@ -29,16 +27,13 @@
  * the wrapping and unwrapping operation than the definition in NIST SP 800-38F.
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "common.h"
 
 #if defined(MBEDTLS_NIST_KW_C)
 
 #include "mbedtls/nist_kw.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -116,7 +111,7 @@ int mbedtls_nist_kw_setkey( mbedtls_nist_kw_context *ctx,
                             unsigned int keybits,
                             const int is_wrap )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
 
     cipher_info = mbedtls_cipher_info_from_values( cipher,
@@ -194,8 +189,6 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
     uint64_t t = 0;
     unsigned char outbuff[KW_SEMIBLOCK_LENGTH * 2];
     unsigned char inbuff[KW_SEMIBLOCK_LENGTH * 2];
-    unsigned char *R2 = output + KW_SEMIBLOCK_LENGTH;
-    unsigned char *A = output;
 
     *out_len = 0;
     /*
@@ -271,6 +264,9 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
     }
     else
     {
+        unsigned char *R2 = output + KW_SEMIBLOCK_LENGTH;
+        unsigned char *A = output;
+
         /*
          * Do the wrapping function W, as defined in RFC 3394 section 2.2.1
          */
@@ -311,7 +307,7 @@ cleanup:
     }
     mbedtls_platform_zeroize( inbuff, KW_SEMIBLOCK_LENGTH * 2 );
     mbedtls_platform_zeroize( outbuff, KW_SEMIBLOCK_LENGTH * 2 );
-    mbedtls_cipher_finish( &ctx->cipher_ctx, NULL, &olen );
+
     return( ret );
 }
 
@@ -334,7 +330,7 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
     uint64_t t = 0;
     unsigned char outbuff[KW_SEMIBLOCK_LENGTH * 2];
     unsigned char inbuff[KW_SEMIBLOCK_LENGTH * 2];
-    unsigned char *R = output + ( semiblocks - 2 ) * KW_SEMIBLOCK_LENGTH;
+    unsigned char *R = NULL;
     *out_len = 0;
 
     if( semiblocks < MIN_SEMIBLOCKS_COUNT )
@@ -344,6 +340,7 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
 
     memcpy( A, input, KW_SEMIBLOCK_LENGTH );
     memmove( output, input + KW_SEMIBLOCK_LENGTH, ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH );
+    R = output + ( semiblocks - 2 ) * KW_SEMIBLOCK_LENGTH;
 
     /* Calculate intermediate values */
     for( t = s; t >= 1; t-- )
@@ -528,7 +525,7 @@ cleanup:
     mbedtls_platform_zeroize( &bad_padding, sizeof( bad_padding) );
     mbedtls_platform_zeroize( &diff, sizeof( diff ) );
     mbedtls_platform_zeroize( A, sizeof( A ) );
-    mbedtls_cipher_finish( &ctx->cipher_ctx, NULL, &olen );
+
     return( ret );
 }
 

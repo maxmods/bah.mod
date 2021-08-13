@@ -1,7 +1,7 @@
 /*
  *  RSA/SHA-256 signature creation program
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,15 +15,9 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -33,6 +27,7 @@
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
 #define mbedtls_snprintf        snprintf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -45,7 +40,7 @@ int main( void )
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
             "MBEDTLS_MD_C and/or "
             "MBEDTLS_SHA256_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -54,6 +49,7 @@ int main( void )
 
 #include <stdio.h>
 #include <string.h>
+
 
 int main( int argc, char *argv[] )
 {
@@ -67,7 +63,7 @@ int main( int argc, char *argv[] )
     char filename[512];
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa );
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
@@ -127,7 +123,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
     if( ( ret = mbedtls_rsa_check_privkey( &rsa ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_rsa_check_privkey failed with -0x%0x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_rsa_check_privkey failed with -0x%0x\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -146,10 +142,10 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_rsa_pkcs1_sign( &rsa, NULL, NULL, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256,
-                                20, hash, buf ) ) != 0 )
+    if( ( ret = mbedtls_rsa_pkcs1_sign( &rsa, NULL, NULL, MBEDTLS_MD_SHA256,
+                                32, hash, buf ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_sign returned -0x%0x\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_sign returned -0x%0x\n\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -164,7 +160,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    for( i = 0; i < rsa.len; i++ )
+    for( i = 0; i < rsa.MBEDTLS_PRIVATE(len); i++ )
         mbedtls_fprintf( f, "%02X%s", buf[i],
                  ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
 
@@ -186,7 +182,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_SHA256_C &&
           MBEDTLS_FS_IO */
