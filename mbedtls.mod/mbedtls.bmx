@@ -154,11 +154,23 @@ Type TNetContext
 		Local buf:Byte[256]
 		Local length:Int
 		Local res:Int = mbedtls_net_accept(contextPtr, client.contextPtr, buf, 256, Varptr length)
-		If length > 0 Then
-			ip = String.FromUTF8String(buf)
+		
+		If length = 4
+			ip = StrIPv4(buf)
+		ElseIf length = 16
+			' IPv6 works, I tested
+			' You have to bind to [::1] and you can then `curl -g -6 --insecure "https://[::1]"`
+			ip = "IPv6"
+		Else
+			ip = "UNKNOWN"
 		End If
+		
 		Return res
 	End Method
+	
+	Function StrIPv4:String(buf:Byte Ptr)
+		Return buf[0] + "." + buf[1] + "." + buf[2] + "." + buf[3]
+	End Function
 	
 	Rem
 	bbdoc: 
