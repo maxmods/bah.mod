@@ -141,6 +141,13 @@ Type TNetContext
 	End Function
 	
 	Rem
+	bbdoc: Check if data is available on the socket.
+	End Rem
+	Method Poll:Int(rw:Int, timeout:Int)
+		Return bmx_mbedtls_net_poll(contextPtr, rw, timeout)
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method Accept:Int(client:TNetContext, ip:String Var)
