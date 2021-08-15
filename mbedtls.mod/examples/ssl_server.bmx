@@ -23,32 +23,21 @@ Local rctx:TRandContext = New TRandContext.Create()
 
 Print "  . Loading the server cert. and key..."
 
-' This demonstration program uses embedded test certificates.
-' Instead, you may want to use TX509Cert.ParseFile() to read the
-' server and CA certificates, as well as mbedtls_pk_parse_keyfile().
-
-Local res:Int = cert.Parse(testServerCertificate, testServerCertificateLength)
+Local res:Int = cert.ParseFile("cert.pem")
 
 If res Then
 	Print " failed~n  !  TX509Cert.Parse() returned " + res
 	Fail(res)
 End If
 
-res = cert.Parse(testCaCertificatePem(), testCaCertificatePemLength)
-
-If res Then
-	Print " failed~n  !  TX509Cert.Parse() returned " + res
-	Fail(res)
-End If
-
-res = pk.ParseKey(testServerKey, testServerKeyLength)
+res = pk.ParseKeyFile("privkey.pem")
 
 If res Then
 	Print " failed~n  !  TPkContext.ParseKey() returned " + res
 	Fail(res)
 End If
 
-Print " ok~"
+Print " ok"
 
 ' 2. Setup the listening TCP socket
 
@@ -91,7 +80,7 @@ config.RNG(RandomFunc, rctx)
 config.DBG(myDebug, Null)
 config.SetDebugThreshold(0)
 
-config.CaChain(cert.GetNext(), Null)
+config.CaChain(cert, Null)
 
 res = config.OwnCert(cert, pk)
 
