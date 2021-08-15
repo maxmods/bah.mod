@@ -587,9 +587,13 @@ End Rem
 Type TPkContext
 
 	Field contextPtr:Byte Ptr
+	Field _cbRandom:Byte Ptr
+	Field _rng:Byte Ptr
 	
 	Method Create:TPkContext()
 		contextPtr = bmx_mbedtls_pk_init()
+		_cbRandom = Null
+		_rng = Null
 		Return Self
 	End Method
 	
@@ -597,14 +601,31 @@ Type TPkContext
 	bbdoc: 
 	End Rem
 	Method ParseKey:Int(key:Byte Ptr, keylen:Int, pwd:Byte Ptr = Null, pwdlen:Int = 0)
-		Return bmx_mbedtls_pk_parse_key(contextPtr, key, keylen, pwd, pwdlen)
+		Return bmx_mbedtls_pk_parse_key(contextPtr, key, keylen, pwd, pwdlen, _cbRandom, _rng)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method ParseKeyString:Int(key:String, pwd:String = Null)
-		Return bmx_mbedtls_pk_parse_key_string(contextPtr, key, pwd)
+		Return bmx_mbedtls_pk_parse_key_string(contextPtr, key, pwd, _cbRandom, _rng)
+	End Method
+	
+	Rem
+	bbdoc: Supply a seeded RNG; skip this unless you ever manage to somehow run into MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+	End Rem
+?bmxng
+	Method RNG(cbRandom:Int(rng:Object, output:Byte Ptr, length:Size_T), rng:Object)
+?Not bmxng
+	Method RNG(cbRandom:Int(rng:Object, output:Byte Ptr, length:Int), rng:Object)
+?
+		If TRandContext(rng) Then
+			_rng = TRandContext(rng).contextPtr
+		Else
+			_rng = rng
+		End If
+		
+		_cbRandom = cbRandom
 	End Method
 	
 	Method Delete()

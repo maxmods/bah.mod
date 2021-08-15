@@ -94,8 +94,8 @@ Extern
 	
 	Function bmx_mbedtls_pk_init:Byte Ptr()
 	Function bmx_mbedtls_pk_free(handle:Byte Ptr)
-	Function bmx_mbedtls_pk_parse_key:Int(handle:Byte Ptr, key:Byte Ptr, keylen:Int, pwd:Byte Ptr, pwdlen:Int)
-	Function bmx_mbedtls_pk_parse_key_string:Int(handle:Byte Ptr, key:String, pwd:String)
+	Function bmx_mbedtls_pk_parse_key:Int(handle:Byte Ptr, key:Byte Ptr, keylen:Int, pwd:Byte Ptr, pwdlen:Int, cb:Byte Ptr, rng:Byte Ptr)
+	Function bmx_mbedtls_pk_parse_key_string:Int(handle:Byte Ptr, key:String, pwd:String, cb:Byte Ptr, rng:Byte Ptr)
 	
 	Function bmx_mbedtls_ctr_drbg_init:Byte Ptr()
 	Function bmx_mbedtls_ctr_drbg_free(handle:Byte Ptr)

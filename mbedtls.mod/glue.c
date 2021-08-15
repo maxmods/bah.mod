@@ -161,18 +161,18 @@ void bmx_mbedtls_pk_free(mbedtls_pk_context * context) {
 	free(context);
 }
 
-int bmx_mbedtls_pk_parse_key(mbedtls_pk_context * context, char * key, int keylen, char * pwd, int pwdlen) {
-	return mbedtls_pk_parse_key(context, key, keylen, pwd, pwdlen, NULL, NULL);
+int bmx_mbedtls_pk_parse_key(mbedtls_pk_context * context, char * key, int keylen, char * pwd, int pwdlen, int (*f_rng)(void *, unsigned char *, size_t), void *rng) {
+	return mbedtls_pk_parse_key(context, key, keylen, pwd, pwdlen, f_rng, rng);
 }
 
-int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key, BBString * pwd) {
+int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key, BBString * pwd, int (*f_rng)(void *, unsigned char *, size_t), void *rng) {
 	char * k = bbStringToUTF8String(key);
 	char * p = NULL;
 	if (pwd != &bbEmptyString) {
 		p = bbStringToUTF8String(pwd);
 	}
 	
-	int res = mbedtls_pk_parse_key(context, k, strlen(k), p, strlen(p), NULL, NULL);
+	int res = mbedtls_pk_parse_key(context, k, strlen(k), p, strlen(p), f_rng, rng);
 	
 	bbMemFree(p);
 	bbMemFree(k);
