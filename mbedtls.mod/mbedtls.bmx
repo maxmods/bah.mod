@@ -565,13 +565,6 @@ Type TX509Cert
 	Method Parse:Int(buf:Byte Ptr, buflen:Int)
 		Return bmx_mbedtls_x509_crt_parse(certPtr, buf, buflen)
 	End Method
-
-	Rem
-	bbbdoc: 
-	End Rem
-	Method GetNext:TX509Cert()
-		Return TX509Cert._create(bmx_mbedtls_x509_crt_next(certPtr))
-	End Method
 	
 	Method Delete()
 		If certPtr And _owned Then

@@ -90,9 +90,7 @@ Extern
 
 	Function bmx_mbedtls_x509_crt_init:Byte Ptr()
 	Function bmx_mbedtls_x509_crt_free(handle:Byte Ptr)
-	
 	Function bmx_mbedtls_x509_crt_parse:Int(handle:Byte Ptr, buf:Byte Ptr, buflen:Int)
-	Function bmx_mbedtls_x509_crt_next:Byte Ptr(handle:Byte Ptr)
 	
 	Function bmx_mbedtls_pk_init:Byte Ptr()
 	Function bmx_mbedtls_pk_free(handle:Byte Ptr)
@@ -104,24 +102,6 @@ Extern
 	
 	Function bmx_mbedtls_entropy_init:Byte Ptr()
 	Function bmx_mbedtls_entropy_free(handle:Byte Ptr)
-
-	Global testCaCertificate:Byte Ptr = "mbedtls_test_ca_crt"
-	Global testCaCertificateLength:Int = "mbedtls_test_ca_crt_len"
-	Global testCaKey:Byte Ptr = "mbedtls_test_ca_key"
-	Global testCaKeyLength:Int = "mbedtls_test_ca_key_len"
-	Global testCaPassword:Byte Ptr = "mbedtls_test_ca_pwd"
-	Global testCaPasswordLength:Int = "mbedtls_test_ca_pwd_len"
-	Global testServerCertificate:Byte Ptr = "mbedtls_test_srv_crt"
-	Global testServerCertificateLength:Int = "mbedtls_test_srv_crt_len"
-	Global testServerKey:Byte Ptr = "mbedtls_test_srv_key"
-	Global testServerKeyLength:Int = "mbedtls_test_srv_key_len"
-	Global testClientCertificate:Byte Ptr = "mbedtls_test_cli_crt"
-	Global testClientCertificateLength:Int = "mbedtls_test_cli_crt_len"
-	Global testClientKey:Byte Ptr = "mbedtls_test_cli_key"
-	Global testClientKeyLength:Int = "mbedtls_test_cli_key_len"
-	
-	Function testCaCertificatePem:Byte Ptr() = "bmx_mbedtls_test_cas_pem"
-	Global testCaCertificatePemLength:Int = "mbedtls_test_cas_pem_len"
 	
 	Rem
 	bbdoc: Retrieves entropy from the accumulator.

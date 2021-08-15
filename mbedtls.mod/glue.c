@@ -13,8 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-#include "mbedtls/net.h"
-#include "mbedtls/certs.h"
+#include "mbedtls/net_sockets.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
@@ -149,10 +148,6 @@ int bmx_mbedtls_x509_crt_parse(mbedtls_x509_crt * cert, char * buf, int buflen) 
 	return mbedtls_x509_crt_parse(cert, buf, buflen);
 }
 
-mbedtls_x509_crt * bmx_mbedtls_x509_crt_next(mbedtls_x509_crt * cert) {
-	return cert->next;
-}
-
 // --------------------------------------------------------
 
 mbedtls_pk_context * bmx_mbedtls_pk_init() {
@@ -167,7 +162,7 @@ void bmx_mbedtls_pk_free(mbedtls_pk_context * context) {
 }
 
 int bmx_mbedtls_pk_parse_key(mbedtls_pk_context * context, char * key, int keylen, char * pwd, int pwdlen) {
-	return mbedtls_pk_parse_key(context, key, keylen, pwd, pwdlen);
+	return mbedtls_pk_parse_key(context, key, keylen, pwd, pwdlen, NULL, NULL);
 }
 
 int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key, BBString * pwd) {
@@ -177,7 +172,7 @@ int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key
 		p = bbStringToUTF8String(pwd);
 	}
 	
-	int res = mbedtls_pk_parse_key(context, k, strlen(k), p, strlen(p));
+	int res = mbedtls_pk_parse_key(context, k, strlen(k), p, strlen(p), NULL, NULL);
 	
 	bbMemFree(p);
 	bbMemFree(k);
@@ -213,11 +208,4 @@ mbedtls_entropy_context * bmx_mbedtls_entropy_init() {
 void bmx_mbedtls_entropy_free(mbedtls_entropy_context * context) {
 	mbedtls_entropy_free(context);
 	free(context);
-}
-
-
-// --------------------------------------------------------
-
-char * bmx_mbedtls_test_cas_pem() {
-	return (char*)mbedtls_test_cas_pem;
 }
