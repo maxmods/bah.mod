@@ -35,6 +35,7 @@ ModuleInfo "History: Applied win32 vsnprintf patch."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
+Import BRL.Stream
 Import "common.bmx"
 
 '
@@ -566,6 +567,19 @@ Type TX509Cert
 		Return bmx_mbedtls_x509_crt_parse(certPtr, buf, buflen)
 	End Method
 	
+	Rem
+	bbdoc: Parses a file with one or more certificates (usually .pem extension)
+	End Rem
+	Method ParseFile:Int(path:String)
+		Local buf:Byte[] = LoadByteArray(path)
+		
+		' Have to ensure there is a null terminator
+		buf = buf[..buf.length + 1]
+		buf[buf.length - 1] = 0
+		
+		Return Parse(buf, buf.length)
+	End Method
+	
 	Method Delete()
 		If certPtr And _owned Then
 			bmx_mbedtls_x509_crt_free(certPtr)
@@ -607,8 +621,16 @@ Type TPkContext
 	Rem
 	bbdoc: 
 	End Rem
-	Method ParseKeyString:Int(key:String, pwd:String = Null)
+	Method ParseKeyString:Int(key:String, pwd:String = "")
 		Return bmx_mbedtls_pk_parse_key_string(contextPtr, key, pwd, _cbRandom, _rng)
+	End Method
+	
+	Rem
+	bbdoc: Load a private key from file (usually .pem extension)
+	End Rem
+	Method ParseKeyFile:Int(path:String, pwd:String = "")
+		Local key:String = LoadString(path)
+		Return ParseKeyString(key, pwd)
 	End Method
 	
 	Rem

@@ -166,16 +166,25 @@ int bmx_mbedtls_pk_parse_key(mbedtls_pk_context * context, char * key, int keyle
 }
 
 int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key, BBString * pwd, int (*f_rng)(void *, unsigned char *, size_t), void *rng) {
-	char * k = bbStringToUTF8String(key);
+	char * k = bbStringToCString(key);
 	char * p = NULL;
+	
+	// mbedtls takes length including the null terminator
+	size_t k_len = strlen(k) + 1;
+	size_t p_len = 0;
+	
 	if (pwd != &bbEmptyString) {
-		p = bbStringToUTF8String(pwd);
+		p = bbStringToCString(pwd);
+		p_len = strlen(p) + 1;
 	}
 	
-	int res = mbedtls_pk_parse_key(context, k, strlen(k), p, strlen(p), f_rng, rng);
+	int res = mbedtls_pk_parse_key(context, k, k_len, p, p_len, f_rng, rng);
 	
 	bbMemFree(p);
-	bbMemFree(k);
+	
+	if (pwd != &bbEmptyString) {
+		bbMemFree(k);
+	}
 	
 	return res;
 }
