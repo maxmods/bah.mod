@@ -42,10 +42,33 @@ BigUnsigned & MaxBigUnsigned::Big() {
 }
 
 
+
+
+
+MaxBigInteger::MaxBigInteger(BigInteger & b)
+	: big(b)
+{
+}
+
+MaxBigInteger::MaxBigInteger(const std::string & b)
+	: big(stringToBigInteger(b))
+{
+}
+
+MaxBigInteger::MaxBigInteger(int value)
+	: big(value)
+{
+}
+
+BigInteger & MaxBigInteger::Big() {
+	return big;
+}
+
+
 // --------------------------------------------------------
 
 MaxBigUnsigned * bmx_bigint_BigUnsigned_create(BBString * value) {
-	char * p = bbStringToCString(value);
+	char * p = (char*)bbStringToCString(value);
 	try {
 		MaxBigUnsigned * big = new MaxBigUnsigned(p);
 		bbMemFree(p);
@@ -72,3 +95,143 @@ BBString * bmx_bigint_BigUnsigned_ToString(MaxBigUnsigned * big) {
 	return bbStringFromCString(bigUnsignedToString(big->Big()).c_str());
 }
 
+
+void bmx_bigint_BigUnsigned_add(MaxBigUnsigned * target, MaxBigUnsigned * value) {
+	target->Big().add(target->Big(), value->Big());
+}
+void bmx_bigint_BigUnsigned_subtract(MaxBigUnsigned * target, MaxBigUnsigned * value) {
+	target->Big().subtract(target->Big(), value->Big());
+}
+
+void bmx_bigint_BigUnsigned_divide(MaxBigUnsigned * target, MaxBigUnsigned * value) {
+	target->Big().divideWithRemainder(target->Big(), value->Big());
+}
+
+
+
+
+// --------------------------------------------------------
+
+MaxBigInteger * bmx_bigint_BigInteger_create(BBString * value) {
+	char * p = (char*)bbStringToCString(value);
+	try {
+		MaxBigInteger * big = new MaxBigInteger(p);
+		bbMemFree(p);
+		return big;
+	} catch(char const* err) {
+		bbMemFree(p);
+		bbExThrow((BBObject*)bbStringFromCString(err));
+	}
+}
+
+MaxBigInteger * bmx_bigint_BigInteger_CreateWithInt(int value) {
+	try {
+		return new MaxBigInteger(value);
+	} catch(char const* err) {
+		bbExThrow((BBObject*)bbStringFromCString(err));
+	}
+}
+
+void bmx_bigint_BigInteger_free(MaxBigInteger * big) {
+	delete big;
+}
+
+BBString * bmx_bigint_BigInteger_ToString(MaxBigInteger * big) {
+	return bbStringFromCString(bigIntegerToString(big->Big()).c_str());
+}
+
+
+int bmx_bigint_BigInteger_equal(MaxBigInteger * a, MaxBigInteger * b) {
+	if(a->Big() == b->Big())
+		return 1;
+	return 0;
+}
+
+int bmx_bigint_BigInteger_notequal(MaxBigInteger * a, MaxBigInteger * b) {
+	if(a->Big() != b->Big())
+		return 1;
+	return 0;
+}
+
+int bmx_bigint_BigInteger_lessThan(MaxBigInteger * a, MaxBigInteger * b) {
+	if (a->Big() < b->Big())
+		return 1;
+	return 0;
+}
+
+int bmx_bigint_BigInteger_lessThanOrEqual(MaxBigInteger * a, MaxBigInteger * b) {
+	if (a->Big() <= b->Big())
+		return 1;
+	return 0;
+}
+
+int bmx_bigint_BigInteger_greaterThan(MaxBigInteger * a, MaxBigInteger * b) {
+	if(a->Big() > b->Big())
+		return 1;
+	return 0;
+}
+
+int bmx_bigint_BigInteger_greaterThanOrEqual(MaxBigInteger * a, MaxBigInteger * b) {
+	if(a->Big() >= b->Big())
+		return 1;
+	return 0;
+}
+
+
+void bmx_bigint_BigInteger_add(MaxBigInteger * target, MaxBigInteger * value) {
+//	target->Big().add(target->Big(), value->Big());
+	target->Big() += value->Big();
+}
+
+void bmx_bigint_BigInteger_subtract(MaxBigInteger * target, MaxBigInteger * value) {
+//	target->Big().subtract(target->Big(), value->Big());
+	target->Big() -= value->Big();
+}
+
+void bmx_bigint_BigInteger_modulo(MaxBigInteger * target, MaxBigInteger * value) {
+//	MaxBigInteger * quotient = new MaxBigInteger(0);
+//	target->Big().divideWithRemainder(value->Big(), quotient->Big());
+//	delete quotient;
+	target->Big() %= value->Big();
+}
+
+void bmx_bigint_BigInteger_divide(MaxBigInteger * target, MaxBigInteger * value) {
+	target->Big() /= value->Big();
+}
+
+void bmx_bigint_BigInteger_multiply(MaxBigInteger * target, MaxBigInteger * value) {
+//	target->Big().multiply(target->Big(), value->Big());
+	target->Big() *= value->Big();
+}
+
+
+
+MaxBigInteger * bmx_bigint_new_BigInteger_add(MaxBigInteger * target, MaxBigInteger * value) {
+	MaxBigInteger * result = new MaxBigInteger(target->Big());
+	result->Big() += value->Big();
+	return result;
+}
+
+MaxBigInteger * bmx_bigint_new_BigInteger_subtract(MaxBigInteger * target, MaxBigInteger * value) {
+	MaxBigInteger * result = new MaxBigInteger(target->Big());
+	result->Big() -= value->Big();
+	return result;
+}
+
+MaxBigInteger * bmx_bigint_new_BigInteger_modulo(MaxBigInteger * target, MaxBigInteger * value) {
+	MaxBigInteger * result = new MaxBigInteger(target->Big());
+	result->Big() %= value->Big();
+	return result;
+}
+
+MaxBigInteger * bmx_bigint_new_BigInteger_divide(MaxBigInteger * target, MaxBigInteger * value) {
+	MaxBigInteger * result = new MaxBigInteger(target->Big());
+	result->Big() /= value->Big();
+	return result;
+}
+
+MaxBigInteger * bmx_bigint_new_BigInteger_multiply(MaxBigInteger * target, MaxBigInteger * value) {
+	MaxBigInteger * result = new MaxBigInteger(target->Big());
+	result->Big() *= value->Big();
+	return result;
+}
