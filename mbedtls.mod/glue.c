@@ -13,8 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-#include "mbedtls/net.h"
-#include "mbedtls/certs.h"
+#include "mbedtls/net_sockets.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
@@ -78,6 +77,10 @@ int bmx_mbedtls_net_send(mbedtls_net_context * context, char * buf, int length) 
 
 void bmx_mbedtls_net_usleep(int usec) {
 	mbedtls_net_usleep(usec);
+}
+
+int bmx_mbedtls_net_poll(mbedtls_net_context * context, int rw, int timeout) {
+	return mbedtls_net_poll(context, rw, timeout);
 }
 
 int bmx_mbedtls_net_cbsend(mbedtls_ssl_send_t * send, void * context, char * buf, size_t length) {
@@ -149,10 +152,6 @@ int bmx_mbedtls_x509_crt_parse(mbedtls_x509_crt * cert, char * buf, int buflen) 
 	return mbedtls_x509_crt_parse(cert, buf, buflen);
 }
 
-mbedtls_x509_crt * bmx_mbedtls_x509_crt_next(mbedtls_x509_crt * cert) {
-	return cert->next;
-}
-
 // --------------------------------------------------------
 
 mbedtls_pk_context * bmx_mbedtls_pk_init() {
@@ -166,21 +165,30 @@ void bmx_mbedtls_pk_free(mbedtls_pk_context * context) {
 	free(context);
 }
 
-int bmx_mbedtls_pk_parse_key(mbedtls_pk_context * context, char * key, int keylen, char * pwd, int pwdlen) {
-	return mbedtls_pk_parse_key(context, key, keylen, pwd, pwdlen);
+int bmx_mbedtls_pk_parse_key(mbedtls_pk_context * context, char * key, int keylen, char * pwd, int pwdlen, int (*f_rng)(void *, unsigned char *, size_t), void *rng) {
+	return mbedtls_pk_parse_key(context, key, keylen, pwd, pwdlen, f_rng, rng);
 }
 
-int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key, BBString * pwd) {
-	char * k = bbStringToUTF8String(key);
+int bmx_mbedtls_pk_parse_key_string(mbedtls_pk_context * context, BBString * key, BBString * pwd, int (*f_rng)(void *, unsigned char *, size_t), void *rng) {
+	char * k = bbStringToCString(key);
 	char * p = NULL;
+	
+	// mbedtls takes length including the null terminator
+	size_t k_len = strlen(k) + 1;
+	size_t p_len = 0;
+	
 	if (pwd != &bbEmptyString) {
-		p = bbStringToUTF8String(pwd);
+		p = bbStringToCString(pwd);
+		p_len = strlen(p) + 1;
 	}
 	
-	int res = mbedtls_pk_parse_key(context, k, strlen(k), p, strlen(p));
+	int res = mbedtls_pk_parse_key(context, k, k_len, p, p_len, f_rng, rng);
 	
 	bbMemFree(p);
-	bbMemFree(k);
+	
+	if (pwd != &bbEmptyString) {
+		bbMemFree(k);
+	}
 	
 	return res;
 }
@@ -213,11 +221,4 @@ mbedtls_entropy_context * bmx_mbedtls_entropy_init() {
 void bmx_mbedtls_entropy_free(mbedtls_entropy_context * context) {
 	mbedtls_entropy_free(context);
 	free(context);
-}
-
-
-// --------------------------------------------------------
-
-char * bmx_mbedtls_test_cas_pem() {
-	return (char*)mbedtls_test_cas_pem;
 }

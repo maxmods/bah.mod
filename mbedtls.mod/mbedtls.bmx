@@ -35,6 +35,7 @@ ModuleInfo "History: Applied win32 vsnprintf patch."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
+Import BRL.Stream
 Import "common.bmx"
 
 '
@@ -140,17 +141,36 @@ Type TNetContext
 	End Function
 	
 	Rem
+	bbdoc: Check if data is available on the socket.
+	End Rem
+	Method Poll:Int(rw:Int, timeout:Int)
+		Return bmx_mbedtls_net_poll(contextPtr, rw, timeout)
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method Accept:Int(client:TNetContext, ip:String Var)
 		Local buf:Byte[256]
 		Local length:Int
 		Local res:Int = mbedtls_net_accept(contextPtr, client.contextPtr, buf, 256, Varptr length)
-		If length > 0 Then
-			ip = String.FromUTF8String(buf)
+		
+		If length = 4
+			ip = StrIPv4(buf)
+		ElseIf length = 16
+			' IPv6 works, I tested
+			' You have to bind to [::1] and you can then `curl -g -6 --insecure "https://[::1]"`
+			ip = "IPv6"
+		Else
+			ip = "UNKNOWN"
 		End If
+		
 		Return res
 	End Method
+	
+	Function StrIPv4:String(buf:Byte Ptr)
+		Return buf[0] + "." + buf[1] + "." + buf[2] + "." + buf[3]
+	End Function
 	
 	Rem
 	bbdoc: 
@@ -565,12 +585,18 @@ Type TX509Cert
 	Method Parse:Int(buf:Byte Ptr, buflen:Int)
 		Return bmx_mbedtls_x509_crt_parse(certPtr, buf, buflen)
 	End Method
-
+	
 	Rem
-	bbbdoc: 
+	bbdoc: Parses a file with one or more certificates (usually .pem extension)
 	End Rem
-	Method GetNext:TX509Cert()
-		Return TX509Cert._create(bmx_mbedtls_x509_crt_next(certPtr))
+	Method ParseFile:Int(path:String)
+		Local buf:Byte[] = LoadByteArray(path)
+		
+		' Have to ensure there is a null terminator
+		buf = buf[..buf.length + 1]
+		buf[buf.length - 1] = 0
+		
+		Return Parse(buf, buf.length)
 	End Method
 	
 	Method Delete()
@@ -594,9 +620,13 @@ End Rem
 Type TPkContext
 
 	Field contextPtr:Byte Ptr
+	Field _cbRandom:Byte Ptr
+	Field _rng:Byte Ptr
 	
 	Method Create:TPkContext()
 		contextPtr = bmx_mbedtls_pk_init()
+		_cbRandom = Null
+		_rng = Null
 		Return Self
 	End Method
 	
@@ -604,14 +634,39 @@ Type TPkContext
 	bbdoc: 
 	End Rem
 	Method ParseKey:Int(key:Byte Ptr, keylen:Int, pwd:Byte Ptr = Null, pwdlen:Int = 0)
-		Return bmx_mbedtls_pk_parse_key(contextPtr, key, keylen, pwd, pwdlen)
+		Return bmx_mbedtls_pk_parse_key(contextPtr, key, keylen, pwd, pwdlen, _cbRandom, _rng)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method ParseKeyString:Int(key:String, pwd:String = Null)
-		Return bmx_mbedtls_pk_parse_key_string(contextPtr, key, pwd)
+	Method ParseKeyString:Int(key:String, pwd:String = "")
+		Return bmx_mbedtls_pk_parse_key_string(contextPtr, key, pwd, _cbRandom, _rng)
+	End Method
+	
+	Rem
+	bbdoc: Load a private key from file (usually .pem extension)
+	End Rem
+	Method ParseKeyFile:Int(path:String, pwd:String = "")
+		Local key:String = LoadString(path)
+		Return ParseKeyString(key, pwd)
+	End Method
+	
+	Rem
+	bbdoc: Supply a seeded RNG; skip this unless you ever manage to somehow run into MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+	End Rem
+?bmxng
+	Method RNG(cbRandom:Int(rng:Object, output:Byte Ptr, length:Size_T), rng:Object)
+?Not bmxng
+	Method RNG(cbRandom:Int(rng:Object, output:Byte Ptr, length:Int), rng:Object)
+?
+		If TRandContext(rng) Then
+			_rng = TRandContext(rng).contextPtr
+		Else
+			_rng = rng
+		End If
+		
+		_cbRandom = cbRandom
 	End Method
 	
 	Method Delete()

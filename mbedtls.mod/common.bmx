@@ -35,6 +35,7 @@ Extern
 	Function bmx_mbedtls_net_recv_timeout:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int, timeout:Int)
 	Function bmx_mbedtls_net_send:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int)
 	Function bmx_mbedtls_net_usleep(usec:Int)
+	Function bmx_mbedtls_net_poll:Int(handle:Byte Ptr, rw:Int, timeout:Int)
 	Function mbedtls_net_accept:Int(handle:Byte Ptr, client:Byte Ptr, buf:Byte Ptr, size:Int, length:Int Ptr)
 ?bmxng	
 	Function bmx_mbedtls_net_cbsend:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Size_T)
@@ -90,38 +91,18 @@ Extern
 
 	Function bmx_mbedtls_x509_crt_init:Byte Ptr()
 	Function bmx_mbedtls_x509_crt_free(handle:Byte Ptr)
-	
 	Function bmx_mbedtls_x509_crt_parse:Int(handle:Byte Ptr, buf:Byte Ptr, buflen:Int)
-	Function bmx_mbedtls_x509_crt_next:Byte Ptr(handle:Byte Ptr)
 	
 	Function bmx_mbedtls_pk_init:Byte Ptr()
 	Function bmx_mbedtls_pk_free(handle:Byte Ptr)
-	Function bmx_mbedtls_pk_parse_key:Int(handle:Byte Ptr, key:Byte Ptr, keylen:Int, pwd:Byte Ptr, pwdlen:Int)
-	Function bmx_mbedtls_pk_parse_key_string:Int(handle:Byte Ptr, key:String, pwd:String)
+	Function bmx_mbedtls_pk_parse_key:Int(handle:Byte Ptr, key:Byte Ptr, keylen:Int, pwd:Byte Ptr, pwdlen:Int, cb:Byte Ptr, rng:Byte Ptr)
+	Function bmx_mbedtls_pk_parse_key_string:Int(handle:Byte Ptr, key:String, pwd:String, cb:Byte Ptr, rng:Byte Ptr)
 	
 	Function bmx_mbedtls_ctr_drbg_init:Byte Ptr()
 	Function bmx_mbedtls_ctr_drbg_free(handle:Byte Ptr)
 	
 	Function bmx_mbedtls_entropy_init:Byte Ptr()
 	Function bmx_mbedtls_entropy_free(handle:Byte Ptr)
-
-	Global testCaCertificate:Byte Ptr = "mbedtls_test_ca_crt"
-	Global testCaCertificateLength:Int = "mbedtls_test_ca_crt_len"
-	Global testCaKey:Byte Ptr = "mbedtls_test_ca_key"
-	Global testCaKeyLength:Int = "mbedtls_test_ca_key_len"
-	Global testCaPassword:Byte Ptr = "mbedtls_test_ca_pwd"
-	Global testCaPasswordLength:Int = "mbedtls_test_ca_pwd_len"
-	Global testServerCertificate:Byte Ptr = "mbedtls_test_srv_crt"
-	Global testServerCertificateLength:Int = "mbedtls_test_srv_crt_len"
-	Global testServerKey:Byte Ptr = "mbedtls_test_srv_key"
-	Global testServerKeyLength:Int = "mbedtls_test_srv_key_len"
-	Global testClientCertificate:Byte Ptr = "mbedtls_test_cli_crt"
-	Global testClientCertificateLength:Int = "mbedtls_test_cli_crt_len"
-	Global testClientKey:Byte Ptr = "mbedtls_test_cli_key"
-	Global testClientKeyLength:Int = "mbedtls_test_cli_key_len"
-	
-	Function testCaCertificatePem:Byte Ptr() = "bmx_mbedtls_test_cas_pem"
-	Global testCaCertificatePemLength:Int = "mbedtls_test_cas_pem_len"
 	
 	Rem
 	bbdoc: Retrieves entropy from the accumulator.
@@ -208,6 +189,15 @@ Rem
 bbdoc: The UDP transport protocol
 end rem
 Const MBEDTLS_NET_PROTO_UDP:Int = 1
+
+Rem
+bbdoc: Used in mbedtls_net_poll to check for pending data
+end rem
+Const MBEDTLS_NET_POLL_READ:Int = 1
+Rem
+bbdoc: Used in mbedtls_net_poll to check if write possible
+end rem
+Const MBEDTLS_NET_POLL_WRITE:Int = 2
 
 
 Rem
