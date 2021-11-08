@@ -1,5 +1,5 @@
 /*
-  Copyright 2018 Bruce A Henderson
+  Copyright 2018-2021 Bruce A Henderson
   
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -63,19 +63,35 @@ int bmx_mbedtls_net_connect(mbedtls_net_context * context, BBString * host, BBSt
 	return res;
 }
 
+#ifdef BMX_NG
+int bmx_mbedtls_net_recv(mbedtls_net_context * context, char * buf, size_t length) {
+#else
 int bmx_mbedtls_net_recv(mbedtls_net_context * context, char * buf, int length) {
+#endif
 	return mbedtls_net_recv(context, buf, length);
 }
 
+#ifdef BMX_NG
+int bmx_mbedtls_net_recv_timeout(mbedtls_net_context * context, char * buf, size_t length, uint32_t timeout) {
+#else
 int bmx_mbedtls_net_recv_timeout(mbedtls_net_context * context, char * buf, int length, int timeout) {
+#endif
 	return mbedtls_net_recv_timeout(context, buf, length, timeout);
 }
 
+#ifdef BMX_NG
+int bmx_mbedtls_net_send(mbedtls_net_context * context, char * buf, size_t length) {
+#else
 int bmx_mbedtls_net_send(mbedtls_net_context * context, char * buf, int length) {
+#endif
 	return mbedtls_net_send(context, buf, length);
 }
 
+#ifdef BMX_NG
+void bmx_mbedtls_net_usleep(uint32_t usec) {
+#else
 void bmx_mbedtls_net_usleep(int usec) {
+#endif
 	mbedtls_net_usleep(usec);
 }
 
@@ -109,11 +125,19 @@ void bmx_mbedtls_ssl_free(mbedtls_ssl_context * context) {
 	free(context);
 }
 
+#ifdef BMX_NG
+int bmx_mbedtls_ssl_read(mbedtls_ssl_context * context, char * buf, size_t length) {
+#else
 int bmx_mbedtls_ssl_read(mbedtls_ssl_context * context, char * buf, int length) {
+#endif
 	return mbedtls_ssl_read(context, buf, length);
 }
 
+#ifdef BMX_NG
+int bmx_mbedtls_ssl_write(mbedtls_ssl_context * context, char * buf, size_t length) {
+#else
 int bmx_mbedtls_ssl_write(mbedtls_ssl_context * context, char * buf, int length) {
+#endif
 	return mbedtls_ssl_write(context, buf, length);
 }
 

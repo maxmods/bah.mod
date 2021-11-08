@@ -1,5 +1,5 @@
 ' 
-' Copyright 2018 Bruce A Henderson
+' Copyright 2018-2021 Bruce A Henderson
 ' 
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -20,10 +20,13 @@ bbdoc: mbed TLS SSL library.
 End Rem
 Module BaH.mbedtls
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: Wrapper - 2018 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2018-2021 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Update to mbedtls 3.0.0."
+ModuleInfo "History: Fixed NG issues."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to mbedtls 2.13.0."
 ModuleInfo "History: 1.02"
@@ -92,8 +95,12 @@ Type TNetContext
 	returns: the number of bytes received, or a non-zero error code; with a non-blocking socket, #MBEDTLS_ERR_SSL_WANT_READ indicates read() would block.
 	about: If no error occurs, the actual amount read is returned.
 	End Rem
-	Method Recv:Int(buf:Byte Ptr, length:Int)
-		Return bmx_mbedtls_net_recv(contextPtr, buf, length)
+?bmxng
+	Method Recv:Int(buf:Byte Ptr, Length:Size_T)
+?Not bmxng
+	Method Recv:Int(buf:Byte Ptr, Length:Int)
+?
+		Return bmx_mbedtls_net_recv(contextPtr, buf, Length)
 	End Method
 	
 	Rem
@@ -103,8 +110,12 @@ Type TNetContext
 	This will block (until data becomes available or timeout is reached) even if the socket is
 	set to non-blocking. Handling timeouts with non-blocking reads requires a different strategy.
 	End Rem
-	Method RecvTimeout:Int(buf:Byte Ptr, length:Int, timeout:Int)
-		Return bmx_mbedtls_net_recv_timeout(contextPtr, buf, length, timeout)
+?bmxng
+	Method RecvTimeout:Int(buf:Byte Ptr, Length:Size_T, timeout:UInt)
+?Not bmxng
+	Method RecvTimeout:Int(buf:Byte Ptr, Length:Int, timeout:Int)
+?
+		Return bmx_mbedtls_net_recv_timeout(contextPtr, buf, Length, timeout)
 	End Method
 	
 	Rem
@@ -112,8 +123,12 @@ Type TNetContext
 	returns: the number of bytes sent, or a non-zero error code; with a non-blocking socket, #MBEDTLS_ERR_SSL_WANT_WRITE indicates write() would block.
 	about: If no error occurs, the actual amount read is returned.
 	End Rem
-	Method Send:Int(buf:Byte Ptr, length:Int)
-		Return bmx_mbedtls_net_send(contextPtr, buf, length)
+?bmxng
+	Method Send:Int(buf:Byte Ptr, Length:Size_T)
+?Not bmxng
+	Method Send:Int(buf:Byte Ptr, Length:Int)
+?
+		Return bmx_mbedtls_net_send(contextPtr, buf, Length)
 	End Method
 	
 	Rem
@@ -136,7 +151,11 @@ Type TNetContext
 	bbdoc: Portable usleep helper.
 	about: Real amount of time slept will not be less than select()'s timeout granularity (typically, 10ms).
 	End Rem
+?bmxng
+	Function USleep(usec:UInt)
+?Not bmxng
 	Function USleep(usec:Int)
+?
 		bmx_mbedtls_net_usleep(usec)
 	End Function
 	
@@ -152,12 +171,16 @@ Type TNetContext
 	End Rem
 	Method Accept:Int(client:TNetContext, ip:String Var)
 		Local buf:Byte[256]
-		Local length:Int
-		Local res:Int = mbedtls_net_accept(contextPtr, client.contextPtr, buf, 256, Varptr length)
+?bmxng
+		Local Length:Size_T
+?Not bmxng
+		Local Length:Int
+?
+		Local res:Int = mbedtls_net_accept(contextPtr, client.contextPtr, buf, 256, Varptr Length)
 		
-		If length = 4
+		If Length = 4
 			ip = StrIPv4(buf)
-		ElseIf length = 16
+		ElseIf Length = 16
 			' IPv6 works, I tested
 			' You have to bind to [::1] and you can then `curl -g -6 --insecure "https://[::1]"`
 			ip = "IPv6"
@@ -198,16 +221,17 @@ Type TSSLContext
 	
 	Field _bioCtx:Object
 ?bmxng
-	Field _cbSend:Int(ctx:Object, buf:Byte Ptr, length:Size_T)
-	Field _cbRecv:Int(ctx:Object, buf:Byte Ptr, length:Size_T)
-	Field _cbTimeout:Int(ctx:Object, buf:Byte Ptr, length:Size_T, timeout:Int)
+	Field _cbSend:Int(ctx:Object, buf:Byte Ptr, Length:Size_T)
+	Field _cbRecv:Int(ctx:Object, buf:Byte Ptr, Length:Size_T)
+	Field _cbTimeout:Int(ctx:Object, buf:Byte Ptr, Length:Size_T, timeout:Int)
+	Field _cbTimerSet(ctx:Object, intMs:UInt, finMs:UInt)
 ?Not bmxng
-	Field _cbSend:Int(ctx:Object, buf:Byte Ptr, length:Int)
-	Field _cbRecv:Int(ctx:Object, buf:Byte Ptr, length:Int)
-	Field _cbTimeout:Int(ctx:Object, buf:Byte Ptr, length:Int, timeout:Int)
+	Field _cbSend:Int(ctx:Object, buf:Byte Ptr, Length:Int)
+	Field _cbRecv:Int(ctx:Object, buf:Byte Ptr, Length:Int)
+	Field _cbTimeout:Int(ctx:Object, buf:Byte Ptr, Length:Int, timeout:Int)
+	Field _cbTimerSet(ctx:Object, intMs:Int, finMs:Int)
 ?
 	Field _timerCtx:Object
-	Field _cbTimerSet(ctx:Object, intMs:Int, finMs:Int)
 	Field _cbTimerGet:Int(ctx:Object)
 	
 	Rem
@@ -237,13 +261,13 @@ Type TSSLContext
 	bbdoc: Sets the underlying BIO callbacks for write, read and read-with-timeout.
 	End Rem
 ?bmxng
-	Method SetBio(ctx:Object, cbSend:Int(ctx:Object, buf:Byte Ptr, length:Size_T), ..
-			cbRecv:Int(ctx:Object, buf:Byte Ptr, length:Size_T), ..
-			cbTimeout:Int(ctx:Object, buf:Byte Ptr, length:Size_T, timeout:Int))
+	Method SetBio(ctx:Object, cbSend:Int(ctx:Object, buf:Byte Ptr, Length:Size_T), ..
+			cbRecv:Int(ctx:Object, buf:Byte Ptr, Length:Size_T), ..
+			cbTimeout:Int(ctx:Object, buf:Byte Ptr, Length:Size_T, timeout:Int))
 ?Not bmxng
-	Method SetBio(ctx:Object, cbSend:Int(ctx:Object, buf:Byte Ptr, length:Int), ..
-			cbRecv:Int(ctx:Object, buf:Byte Ptr, length:Int), ..
-			cbTimeout:Int(ctx:Object, buf:Byte Ptr, length:Int, timeout:Int))
+	Method SetBio(ctx:Object, cbSend:Int(ctx:Object, buf:Byte Ptr, Length:Int), ..
+			cbRecv:Int(ctx:Object, buf:Byte Ptr, Length:Int), ..
+			cbTimeout:Int(ctx:Object, buf:Byte Ptr, Length:Int, timeout:Int))
 ?
 		_bioCtx = ctx
 		_cbSend = cbSend
@@ -272,9 +296,13 @@ Type TSSLContext
 	Rem
 	bbdoc: Sets the timer callbacks (Mandatory for DTLS.)
 	End Rem
-	Method SetTimerCallbacks(ctx:Object, set(ctx:Object, intMs:Int, finMs:Int), get:Int(ctx:Object))
+?bmxng
+	Method SetTimerCallbacks(ctx:Object, Set(ctx:Object, intMs:UInt, finMs:UInt), get:Int(ctx:Object))
+?Not bmxng
+	Method SetTimerCallbacks(ctx:Object, Set(ctx:Object, intMs:Int, finMs:Int), get:Int(ctx:Object))
+?
 		_timerCtx = ctx
-		_cbTimerSet = set
+		_cbTimerSet = Set
 		_cbTimerGet = get
 		
 		mbedtls_ssl_set_timer_cb(contextPtr, Self, _timerSetCallback, _timerGetCallback)
@@ -321,12 +349,20 @@ Type TSSLContext
 	context becomes unusable, and you should either free it or call #SessonReset() on it 
 	before re-using it for a new connection; the current connection must be closed.
 	End Rem
-	Method Read:Int(buf:Byte Ptr, length:Int)
-		Return bmx_mbedtls_ssl_read(contextPtr, buf, length)
+?bmxng
+	Method Read:Int(buf:Byte Ptr, Length:Size_T)
+?Not bmxng
+	Method Read:Int(buf:Byte Ptr, Length:Int)
+?
+		Return bmx_mbedtls_ssl_read(contextPtr, buf, Length)
 	End Method
 
-	Method Write:Int(buf:Byte Ptr, length:Int)
-		Return bmx_mbedtls_ssl_write(contextPtr, buf, length)
+?bmxng
+	Method Write:Int(buf:Byte Ptr, Length:Size_T)
+?Not bmxng
+	Method Write:Int(buf:Byte Ptr, Length:Int)
+?
+		Return bmx_mbedtls_ssl_write(contextPtr, buf, Length)
 	End Method
 	
 	Rem
@@ -376,42 +412,46 @@ Type TSSLContext
 	End Method
 
 ?bmxng
-	Function _sendCallback:Int(ctx:TSSLContext, buf:Byte Ptr, length:Size_T)
+	Function _sendCallback:Int(ctx:TSSLContext, buf:Byte Ptr, Length:Size_T)
 ?Not bmxng
-	Function _sendCallback:Int(ctx:TSSLContext, buf:Byte Ptr, length:Int)
+	Function _sendCallback:Int(ctx:TSSLContext, buf:Byte Ptr, Length:Int)
 ?
 		If TNetContext(ctx._bioCtx) Then
-			Return bmx_mbedtls_net_cbsend(ctx._cbSend, TNetContext(ctx._bioCtx).contextPtr, buf, length)
+			Return bmx_mbedtls_net_cbsend(ctx._cbSend, TNetContext(ctx._bioCtx).contextPtr, buf, Length)
 		Else
-			Return ctx._cbSend(ctx._bioCtx, buf, length)
+			Return ctx._cbSend(ctx._bioCtx, buf, Length)
 		End If
 	End Function
 
 ?bmxng
-	Function _recvCallback:Int(ctx:TSSLContext, buf:Byte Ptr, length:Size_T)
+	Function _recvCallback:Int(ctx:TSSLContext, buf:Byte Ptr, Length:Size_T)
 ?Not bmxng
-	Function _recvCallback:Int(ctx:TSSLContext, buf:Byte Ptr, length:Int)
+	Function _recvCallback:Int(ctx:TSSLContext, buf:Byte Ptr, Length:Int)
 ?
 		If TNetContext(ctx._bioCtx) Then
-			Return bmx_mbedtls_net_cbrecv(ctx._cbRecv, TNetContext(ctx._bioCtx).contextPtr, buf, length)
+			Return bmx_mbedtls_net_cbrecv(ctx._cbRecv, TNetContext(ctx._bioCtx).contextPtr, buf, Length)
 		Else
-			Return ctx._cbRecv(ctx._bioCtx, buf, length)
+			Return ctx._cbRecv(ctx._bioCtx, buf, Length)
 		End If
 	End Function
 
 ?bmxng
-	Function _timeoutCallback:Int(ctx:TSSLContext, buf:Byte Ptr, length:Size_T, timeout:Int)
+	Function _timeoutCallback:Int(ctx:TSSLContext, buf:Byte Ptr, Length:Size_T, timeout:Int)
 ?Not bmxng
-	Function _timeoutCallback:Int(ctx:TSSLContext, buf:Byte Ptr, length:Int, timeout:Int)
+	Function _timeoutCallback:Int(ctx:TSSLContext, buf:Byte Ptr, Length:Int, timeout:Int)
 ?
 		If TNetContext(ctx._bioCtx) Then
-			Return bmx_mbedtls_net_cbtimeout(ctx._cbTimeout, TNetContext(ctx._bioCtx).contextPtr, buf, length, timeout)
+			Return bmx_mbedtls_net_cbtimeout(ctx._cbTimeout, TNetContext(ctx._bioCtx).contextPtr, buf, Length, timeout)
 		Else
-			Return ctx._cbTimeout(ctx._bioCtx, buf, length, timeout)
+			Return ctx._cbTimeout(ctx._bioCtx, buf, Length, timeout)
 		End If
 	End Function
 
+?bmxng
+	Function _timerSetCallback(ctx:TSSLContext, intMs:UInt, finMs:UInt)
+?Not bmxng
 	Function _timerSetCallback(ctx:TSSLContext, intMs:Int, finMs:Int)
+?
 		ctx._cbTimerSet(ctx._timerCtx, intMs, finMs)
 	End Function
 	
@@ -457,7 +497,7 @@ Type TSSLConfig
 	bbdoc: Sets the current endpoint type.
 	about: One of #MBEDTLS_SSL_IS_CLIENT or #MBEDTLS_SSL_IS_SERVER.
 	End Rem
-	Method SetEndpoint(endpoint:Int)
+	Method SetEndPoint(endpoint:Int)
 		mbedtls_ssl_conf_endpoint(configPtr, endpoint)
 	End Method
 	

@@ -152,13 +152,14 @@ While True
 	
 	While True
 	
-		Local length:Int = buf.length - 1
 ?bmxng
-		MemClear(buf, Size_T(buf.length))
+		Local Length:Size_T = buf.Length - 1
+		MemClear(buf, Size_T(buf.Length))
 ?Not bmxng
-		MemClear(buf, buf.length)
+		Local Length:Int = buf.Length - 1
+		MemClear(buf, buf.Length)
 ?	
-		res = ssl.Read(buf, length)
+		res = ssl.Read(buf, Length)
 		
 		If res = MBEDTLS_ERR_SSL_WANT_READ Or res = MBEDTLS_ERR_SSL_WANT_WRITE Then
 			Continue
@@ -191,11 +192,15 @@ While True
 	Print "  > Write to client:"
 	
 	Local response:String = HTTP_RESPONSE.Replace("%s", ssl.GetCipherSuite())
-	Local length:Int = response.length
+?bmxng
+	Local Length:Size_T = response.Length
+?Not bmxng
+	Local Length:Int = response.Length
+?
 	
 	Local out:Byte Ptr = response.ToUtf8String()
 	
-	res = ssl.Write(out, length)
+	res = ssl.Write(out, Length)
 	
 	While res <= 0
 	

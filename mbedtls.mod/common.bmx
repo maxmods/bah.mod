@@ -1,5 +1,5 @@
 ' 
-' Copyright 2018 Bruce A Henderson
+' Copyright 2018-2021 Bruce A Henderson
 ' 
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -24,34 +24,39 @@ Import "source.bmx"
 
 Extern
 
-	Function mbedtls_strerror(errornum:Int, buf:Byte Ptr, length:Int)
+	Function mbedtls_strerror(errornum:Int, buf:Byte Ptr, Length:Int)
 
 	Function bmx_mbedtls_net_init:Byte Ptr()
 	Function bmx_mbedtls_net_free(handle:Byte Ptr)
 	Function bmx_mbedtls_net_delete(handle:Byte Ptr)
 	Function bmx_mbedtls_net_bind:Int(handle:Byte Ptr, bindIp:String, port:String, proto:Int)
 	Function bmx_mbedtls_net_connect:Int(handle:Byte Ptr, host:String, port:String, proto:Int)
-	Function bmx_mbedtls_net_recv:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int)
-	Function bmx_mbedtls_net_recv_timeout:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int, timeout:Int)
-	Function bmx_mbedtls_net_send:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int)
-	Function bmx_mbedtls_net_usleep(usec:Int)
 	Function bmx_mbedtls_net_poll:Int(handle:Byte Ptr, rw:Int, timeout:Int)
-	Function mbedtls_net_accept:Int(handle:Byte Ptr, client:Byte Ptr, buf:Byte Ptr, size:Int, length:Int Ptr)
 ?bmxng	
-	Function bmx_mbedtls_net_cbsend:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Size_T)
-	Function bmx_mbedtls_net_cbrecv:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Size_T)
-	Function bmx_mbedtls_net_cbtimeout:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Size_T, timeout:Int)
+	Function bmx_mbedtls_net_usleep(usec:UInt)
+	Function bmx_mbedtls_net_send:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Size_T)
+	Function bmx_mbedtls_net_cbsend:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, Length:Size_T)
+	Function bmx_mbedtls_net_cbrecv:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, Length:Size_T)
+	Function bmx_mbedtls_net_cbtimeout:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, Length:Size_T, timeout:Int)
+	Function bmx_mbedtls_net_recv:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Size_T)
+	Function bmx_mbedtls_net_recv_timeout:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Size_T, timeout:UInt)
+	Function mbedtls_net_accept:Int(handle:Byte Ptr, client:Byte Ptr, buf:Byte Ptr, size:Size_T, Length:Size_T Ptr)
 ?Not bmxng
-	Function bmx_mbedtls_net_cbsend:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Int)
-	Function bmx_mbedtls_net_cbrecv:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Int)
-	Function bmx_mbedtls_net_cbtimeout:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, length:Int, timeout:Int)
+	Function bmx_mbedtls_net_usleep(usec:Int)
+	Function bmx_mbedtls_net_send:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Int)
+	Function bmx_mbedtls_net_cbsend:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, Length:Int)
+	Function bmx_mbedtls_net_cbrecv:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, Length:Int)
+	Function bmx_mbedtls_net_cbtimeout:Int(callback:Byte Ptr, handle:Byte Ptr, buf:Byte Ptr, Length:Int, timeout:Int)
+	Function bmx_mbedtls_net_recv:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Int)
+	Function bmx_mbedtls_net_recv_timeout:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Int, timeout:Int)
+	Function mbedtls_net_accept:Int(handle:Byte Ptr, client:Byte Ptr, buf:Byte Ptr, size:Int, Length:Int Ptr)
 ?
 ?bmxng	
-	Function NetSend:Int(ctx:Object, buf:Byte Ptr, length:Size_T) = "mbedtls_net_send"
-	Function NetRecv:Int(ctx:Object, buf:Byte Ptr, length:Size_T) = "mbedtls_net_recv"
+	Function NetSend:Int(ctx:Object, buf:Byte Ptr, Length:Size_T) = "mbedtls_net_send"
+	Function NetRecv:Int(ctx:Object, buf:Byte Ptr, Length:Size_T) = "mbedtls_net_recv"
 ?Not bmxng
-	Function NetSend:Int(ctx:Object, buf:Byte Ptr, length:Int) = "mbedtls_net_send"
-	Function NetRecv:Int(ctx:Object, buf:Byte Ptr, length:Int) = "mbedtls_net_recv"
+	Function NetSend:Int(ctx:Object, buf:Byte Ptr, Length:Int) = "mbedtls_net_send"
+	Function NetRecv:Int(ctx:Object, buf:Byte Ptr, Length:Int) = "mbedtls_net_recv"
 ?
 
 	Function mbedtls_net_set_block:Int(handle:Byte Ptr)
@@ -60,8 +65,13 @@ Extern
 	
 	Function bmx_mbedtls_ssl_init:Byte Ptr()
 	Function bmx_mbedtls_ssl_free(handle:Byte Ptr)
-	Function bmx_mbedtls_ssl_read:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int)
-	Function bmx_mbedtls_ssl_write:Int(handle:Byte Ptr, buf:Byte Ptr, length:Int)
+?bmxng	
+	Function bmx_mbedtls_ssl_read:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Size_T)
+	Function bmx_mbedtls_ssl_write:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Size_T)
+?Not bmxng
+	Function bmx_mbedtls_ssl_read:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Int)
+	Function bmx_mbedtls_ssl_write:Int(handle:Byte Ptr, buf:Byte Ptr, Length:Int)
+?
 	
 	Function mbedtls_ssl_setup:Int(handle:Byte Ptr, config:Byte Ptr)
 	Function mbedtls_ssl_session_reset:Int(handle:Byte Ptr)
@@ -110,19 +120,19 @@ Extern
 	about: (Maximum length: #MBEDTLS_ENTROPY_BLOCK_SIZE
 	End Rem
 ?bmxng
-	Function EntropyFunc:Int(entropy:Object, output:Byte Ptr, length:Size_T) = "mbedtls_entropy_func"
-	Function mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Byte Ptr, custom:Byte Ptr, length:Size_T)
-	Function bmx_mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Object, custom:Byte Ptr, length:Size_T)
+	Function EntropyFunc:Int(entropy:Object, output:Byte Ptr, Length:Size_T) = "mbedtls_entropy_func"
+	Function mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Byte Ptr, custom:Byte Ptr, Length:Size_T)
+	Function bmx_mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Object, custom:Byte Ptr, Length:Size_T)
 ?Not bmxng
-	Function EntropyFunc:Int(entropy:Object, output:Byte Ptr, length:Int) = "mbedtls_entropy_func"
-	Function mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Byte Ptr, custom:Byte Ptr, length:Int)
-	Function bmx_mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Object, custom:Byte Ptr, length:Int)
+	Function EntropyFunc:Int(entropy:Object, output:Byte Ptr, Length:Int) = "mbedtls_entropy_func"
+	Function mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Byte Ptr, custom:Byte Ptr, Length:Int)
+	Function bmx_mbedtls_ctr_drbg_seed:Int(handle:Byte Ptr, cb:Byte Ptr, entropy:Object, custom:Byte Ptr, Length:Int)
 ?
 	
 ?bmxng
-	Function RandomFunc:Int(rng:Object, output:Byte Ptr, length:Size_T) = "mbedtls_ctr_drbg_random"
+	Function RandomFunc:Int(rng:Object, output:Byte Ptr, Length:Size_T) = "mbedtls_ctr_drbg_random"
 ?Not bmxng
-	Function RandomFunc:Int(rng:Object, output:Byte Ptr, length:Int) = "mbedtls_ctr_drbg_random"
+	Function RandomFunc:Int(rng:Object, output:Byte Ptr, Length:Int) = "mbedtls_ctr_drbg_random"
 ?	
 	Function mbedtls_ssl_conf_rng(handle:Byte Ptr, cb:Byte Ptr, rng:Byte Ptr)
 	Function bmx_mbedtls_ssl_conf_rng(handle:Byte Ptr, cb:Byte Ptr, rng:Object)
