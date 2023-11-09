@@ -31,6 +31,36 @@ Extern
 
 	Function bmx_bigint_BigUnsigned_ToString:String(handle:Byte Ptr)
 
+	Function bmx_bigint_BigUnsigned_add(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigUnsigned_divide(target:Byte Ptr, value:Byte Ptr)
+
+
+
+	Function bmx_bigint_BigInteger_create:Byte Ptr(value:String)
+	Function bmx_bigint_BigInteger_free(handle:Byte Ptr)
+	Function bmx_bigint_BigInteger_CreateWithInt:Byte Ptr(value:Int)
+
+	Function bmx_bigint_BigInteger_ToString:String(handle:Byte Ptr)
+
+	Function bmx_bigint_BigInteger_equal:Int(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_notequal:Int(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_lessThan:Int(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_lessThanOrEqual:Int(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_greaterThan:Int(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_greaterThanOrEqual:Int(target:Byte Ptr, value:Byte Ptr)
+
+	Function bmx_bigint_BigInteger_add(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_subtract(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_divide(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_multiply(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_BigInteger_modulo(target:Byte Ptr, value:Byte Ptr)
+
+	Function bmx_bigint_new_BigInteger_add:Byte Ptr(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_new_BigInteger_subtract:Byte Ptr(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_new_BigInteger_divide:Byte Ptr(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_new_BigInteger_multiply:Byte Ptr(target:Byte Ptr, value:Byte Ptr)
+	Function bmx_bigint_new_BigInteger_modulo:Byte Ptr(target:Byte Ptr, value:Byte Ptr)
+
 End Extern
 
 

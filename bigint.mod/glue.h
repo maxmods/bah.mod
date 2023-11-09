@@ -35,7 +35,35 @@ extern "C" {
 	void bmx_bigint_BigUnsigned_free(MaxBigUnsigned * big);
 	BBString * bmx_bigint_BigUnsigned_ToString(MaxBigUnsigned * big);
 
+	void bmx_bigint_BigUnsigned_add(MaxBigUnsigned * target, MaxBigUnsigned * value);
+	void bmx_bigint_BigUnsigned_divide(MaxBigUnsigned * target, MaxBigUnsigned * value);
 
+
+
+
+	MaxBigInteger * bmx_bigint_BigInteger_create(BBString * value);
+	MaxBigInteger * bmx_bigint_BigInteger_CreateWithInt(int value);
+	void bmx_bigint_BigInteger_free(MaxBigInteger * big);
+	BBString * bmx_bigint_BigInteger_ToString(MaxBigInteger * big);
+
+	void bmx_bigint_BigInteger_add(MaxBigInteger * target, MaxBigInteger * value);
+	void bmx_bigint_BigInteger_subtract(MaxBigInteger * target, MaxBigInteger * value);
+	void bmx_bigint_BigInteger_divide(MaxBigInteger * target, MaxBigInteger * value);
+	void bmx_bigint_BigInteger_multiply(MaxBigInteger * target, MaxBigInteger * value);
+	void bmx_bigint_BigInteger_modulo(MaxBigInteger * target, MaxBigInteger * value);
+
+	MaxBigInteger * bmx_bigint_new_BigInteger_add(MaxBigInteger * target, MaxBigInteger * value);
+	MaxBigInteger * bmx_bigint_new_BigInteger_subtract(MaxBigInteger * target, MaxBigInteger * value);
+	MaxBigInteger * bmx_bigint_new_BigInteger_divide(MaxBigInteger * target, MaxBigInteger * value);
+	MaxBigInteger * bmx_bigint_new_BigInteger_multiply(MaxBigInteger * target, MaxBigInteger * value);
+	MaxBigInteger * bmx_bigint_new_BigInteger_modulo(MaxBigInteger * target, MaxBigInteger * value);
+
+	int bmx_bigint_BigInteger_equal(MaxBigInteger * a, MaxBigInteger * b);
+	int bmx_bigint_BigInteger_notequal(MaxBigInteger * a, MaxBigInteger * b);
+	int bmx_bigint_BigInteger_lessThan(MaxBigInteger * a, MaxBigInteger * b);
+	int bmx_bigint_BigInteger_lessThanOrEqual(MaxBigInteger * a, MaxBigInteger * b);
+	int bmx_bigint_BigInteger_greaterThan(MaxBigInteger * a, MaxBigInteger * b);
+	int bmx_bigint_BigInteger_greaterThanOrEqual(MaxBigInteger * a, MaxBigInteger * b);
 }
 
 
@@ -49,7 +77,20 @@ public:
 	~MaxBigUnsigned() {};
 
 	BigUnsigned & Big();
-
 private:
 	BigUnsigned big;
+};
+
+
+class MaxBigInteger
+{
+public:
+	MaxBigInteger(BigInteger & b);
+	MaxBigInteger(const std::string & b);
+	MaxBigInteger(int value);
+	~MaxBigInteger() {};
+
+	BigInteger & Big();
+private:
+	BigInteger big;
 };
